@@ -1,2 +1,4 @@
 bin
 Memento.code-workspace
+build
+src/moc_*
