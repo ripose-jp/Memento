@@ -1,7 +1,9 @@
 ﻿#include "mpvwidget.h"
 #include <stdexcept>
+#include <stdio.h>
 #include <QtGui/QOpenGLContext>
 #include <QtCore/QMetaObject>
+#include <QtGui/QMouseEvent>
 
 static void wakeup(void *ctx)
 {
@@ -23,6 +25,7 @@ MpvWidget::MpvWidget(QWidget *parent, Qt::WindowFlags f)
     if (!mpv)
         throw std::runtime_error("could not create mpv context");
 
+    mpv_set_option_string(mpv, "osc", "yes");
     mpv_set_option_string(mpv, "terminal", "yes");
     mpv_set_option_string(mpv, "msg-level", "all=v");
     if (mpv_initialize(mpv) < 0)
@@ -34,6 +37,8 @@ MpvWidget::MpvWidget(QWidget *parent, Qt::WindowFlags f)
     mpv_observe_property(mpv, 0, "duration", MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv, 0, "time-pos", MPV_FORMAT_DOUBLE);
     mpv_set_wakeup_callback(mpv, wakeup, this);
+
+    this->setMouseTracking(true);
 }
 
 MpvWidget::~MpvWidget()
@@ -146,4 +151,14 @@ void MpvWidget::maybeUpdate()
 void MpvWidget::on_update(void *ctx)
 {
     QMetaObject::invokeMethod((MpvWidget*)ctx, "maybeUpdate");
+}
+
+void MpvWidget::mouseMoveEvent(QMouseEvent *event) {
+    char cmdstr[BUFSIZ];
+    sprintf(cmdstr, "mouse %d %d", event->x(), event->y());
+    mpv_command_string(mpv, cmdstr);
+}
+
+void MpvWidget::mousePressEvent(QMouseEvent *event) {
+    
 }

@@ -16,12 +16,15 @@ public:
     void setProperty(const QString& name, const QVariant& value);
     QVariant getProperty(const QString& name) const;
     QSize sizeHint() const { return QSize(480, 270);}
+    mpv_handle* get_handle();
 Q_SIGNALS:
     void durationChanged(int value);
     void positionChanged(int value);
 protected:
     void initializeGL() Q_DECL_OVERRIDE;
     void paintGL() Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
 private Q_SLOTS:
     void on_mpv_events();
     void maybeUpdate();
