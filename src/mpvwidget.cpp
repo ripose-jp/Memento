@@ -155,7 +155,7 @@ void MpvWidget::on_update(void *ctx)
 
 void MpvWidget::mouseMoveEvent(QMouseEvent *event) {
     char cmdstr[BUFSIZ];
-    sprintf(cmdstr, "mouse %d %d", event->x(), event->y());
+    snprintf(cmdstr, BUFSIZ, "mouse %d %d", event->x(), event->y());
     mpv_command_string(mpv, cmdstr);
 }
 
