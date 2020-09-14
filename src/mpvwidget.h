@@ -10,7 +10,7 @@ class MpvWidget Q_DECL_FINAL: public QOpenGLWidget
 {
     Q_OBJECT
 public:
-    MpvWidget(QWidget *parent = 0, Qt::WindowFlags f = 0);
+    MpvWidget(QWidget *parent = 0);
     ~MpvWidget();
     void command(const QVariant& params);
     void setProperty(const QString& name, const QVariant& value);
@@ -23,9 +23,6 @@ Q_SIGNALS:
 protected:
     void initializeGL() Q_DECL_OVERRIDE;
     void paintGL() Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
 private Q_SLOTS:
     void on_mpv_events();
     void maybeUpdate();

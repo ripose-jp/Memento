@@ -1,10 +1,6 @@
 ﻿#include "mpvwidget.h"
 #include <stdexcept>
-#include <stdio.h>
-#include <string.h>
 #include <QtGui/QOpenGLContext>
-#include <QtCore/QMetaObject>
-#include <QtGui/QMouseEvent>
 
 static void wakeup(void *ctx)
 {
@@ -19,14 +15,12 @@ static void *get_proc_address(void *ctx, const char *name) {
     return reinterpret_cast<void *>(glctx->getProcAddress(QByteArray(name)));
 }
 
-MpvWidget::MpvWidget(QWidget *parent, Qt::WindowFlags f)
-    : QOpenGLWidget(parent, f)
+MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
     mpv = mpv_create();
     if (!mpv)
         throw std::runtime_error("could not create mpv context");
 
-    mpv_set_option_string(mpv, "osc", "yes");
     mpv_set_option_string(mpv, "terminal", "yes");
     mpv_set_option_string(mpv, "msg-level", "all=v");
     if (mpv_initialize(mpv) < 0)
@@ -38,8 +32,6 @@ MpvWidget::MpvWidget(QWidget *parent, Qt::WindowFlags f)
     mpv_observe_property(mpv, 0, "duration", MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv, 0, "time-pos", MPV_FORMAT_DOUBLE);
     mpv_set_wakeup_callback(mpv, wakeup, this);
-
-    this->setMouseTracking(true);
 }
 
 MpvWidget::~MpvWidget()
@@ -52,7 +44,7 @@ MpvWidget::~MpvWidget()
 
 void MpvWidget::command(const QVariant& params)
 {
-    mpv::qt::command_variant(mpv, params);
+    mpv::qt::command(mpv, params);
 }
 
 void MpvWidget::setProperty(const QString& name, const QVariant& value)
@@ -152,41 +144,4 @@ void MpvWidget::maybeUpdate()
 void MpvWidget::on_update(void *ctx)
 {
     QMetaObject::invokeMethod((MpvWidget*)ctx, "maybeUpdate");
-}
-
-void MpvWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    event->accept();
-    char cmdstr[BUFSIZ];
-    snprintf(cmdstr, BUFSIZ, "mouse %d %d", event->x(), event->y());
-    mpv_command_string(mpv, cmdstr);
-}
-
-void MpvWidget::mousePressEvent(QMouseEvent *event){
-    event->accept();
-    char cmdstr[BUFSIZ];
-    cmdstr[0] = '\0';
-    int mouse_button = -1;
-    switch(event->button()) {
-        case Qt::LeftButton:
-            mouse_button = 0;
-            break;
-        case Qt::MiddleButton:
-            mouse_button = 1;
-            break;
-        case Qt::RightButton:
-            mouse_button = 2;
-            break;
-        default:
-            break;
-    }
-    if(mouse_button != -1) {
-        snprintf(cmdstr, BUFSIZ, "mouse %d %d %d", event->x(), event->y(), mouse_button);
-    }
-    mpv_command_string(mpv, cmdstr);
-}
-
-void MpvWidget::mouseReleaseEvent(QMouseEvent *event)
-{
-    event->ignore();
 }
