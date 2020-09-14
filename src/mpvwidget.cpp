@@ -1,6 +1,7 @@
 ﻿#include "mpvwidget.h"
 #include <stdexcept>
 #include <stdio.h>
+#include <string.h>
 #include <QtGui/QOpenGLContext>
 #include <QtCore/QMetaObject>
 #include <QtGui/QMouseEvent>
@@ -153,12 +154,39 @@ void MpvWidget::on_update(void *ctx)
     QMetaObject::invokeMethod((MpvWidget*)ctx, "maybeUpdate");
 }
 
-void MpvWidget::mouseMoveEvent(QMouseEvent *event) {
+void MpvWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    event->accept();
     char cmdstr[BUFSIZ];
     snprintf(cmdstr, BUFSIZ, "mouse %d %d", event->x(), event->y());
     mpv_command_string(mpv, cmdstr);
 }
 
-void MpvWidget::mousePressEvent(QMouseEvent *event) {
-    
+void MpvWidget::mousePressEvent(QMouseEvent *event){
+    event->accept();
+    char cmdstr[BUFSIZ];
+    cmdstr[0] = '\0';
+    int mouse_button = -1;
+    switch(event->button()) {
+        case Qt::LeftButton:
+            mouse_button = 0;
+            break;
+        case Qt::MiddleButton:
+            mouse_button = 1;
+            break;
+        case Qt::RightButton:
+            mouse_button = 2;
+            break;
+        default:
+            break;
+    }
+    if(mouse_button != -1) {
+        snprintf(cmdstr, BUFSIZ, "mouse %d %d %d", event->x(), event->y(), mouse_button);
+    }
+    mpv_command_string(mpv, cmdstr);
+}
+
+void MpvWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    event->ignore();
 }

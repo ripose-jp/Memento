@@ -25,6 +25,7 @@ protected:
     void paintGL() Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 private Q_SLOTS:
     void on_mpv_events();
     void maybeUpdate();
