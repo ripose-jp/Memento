@@ -3,3 +3,4 @@ Memento.code-workspace
 build
 src/moc_*
 Memento
+.vscode
