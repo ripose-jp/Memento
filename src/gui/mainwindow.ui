@@ -19,7 +19,7 @@
      <enum>QLayout::SetDefaultConstraint</enum>
     </property>
     <item>
-     <widget class="QOpenGLWidget" name="mpvWidgetPlaceholder">
+     <widget class="MpvWidget" name="mpvWidget">
       <property name="minimumSize">
        <size>
         <width>788</width>
@@ -29,7 +29,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QWidget" name="horizontalWidget" native="true">
+     <widget class="QWidget" name="playerControls" native="true">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="sizeConstraint">
         <enum>QLayout::SetDefaultConstraint</enum>
@@ -40,7 +40,8 @@
           <string>...</string>
          </property>
          <property name="icon">
-          <iconset theme="media-playback-start"/>
+          <iconset theme="media-playback-start">
+           <normaloff>.</normaloff>.</iconset>
          </property>
         </widget>
        </item>
@@ -82,6 +83,13 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MpvWidget</class>
+   <extends>QOpenGLWidget</extends>
+   <header>src/gui/mpvwidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
