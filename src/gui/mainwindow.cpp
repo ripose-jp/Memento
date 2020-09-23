@@ -1,5 +1,6 @@
 #include "mainwindow.h"
-#include "mpvwidget.h"
+#include "ui_mainwindow.h"
+#include "widgets/mpvwidget.h"
 #include <QPushButton>
 #include <QSlider>
 #include <QLayout>

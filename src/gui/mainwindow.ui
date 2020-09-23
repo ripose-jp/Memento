@@ -87,7 +87,7 @@
   <customwidget>
    <class>MpvWidget</class>
    <extends>QOpenGLWidget</extends>
-   <header>src/gui/mpvwidget.h</header>
+   <header>gui/widgets/mpvwidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
