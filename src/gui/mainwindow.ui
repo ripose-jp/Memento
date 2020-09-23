@@ -13,13 +13,25 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="QWidget" name="centralwidget">
+  <widget class="QWidget" name="m_centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0">
     <property name="sizeConstraint">
      <enum>QLayout::SetDefaultConstraint</enum>
     </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
-     <widget class="MpvWidget" name="mpvWidget">
+     <widget class="MpvWidget" name="m_mpv">
       <property name="minimumSize">
        <size>
         <width>788</width>
@@ -29,35 +41,11 @@
      </widget>
     </item>
     <item>
-     <widget class="QWidget" name="playerControls" native="true">
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <property name="sizeConstraint">
-        <enum>QLayout::SetDefaultConstraint</enum>
-       </property>
-       <item>
-        <widget class="QToolButton" name="buttonPlay">
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset theme="media-playback-start">
-           <normaloff>.</normaloff>.</iconset>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSlider" name="sliderProgress">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+     <widget class="PlayerControls" name="m_controls" native="true"/>
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menubar">
+  <widget class="QMenuBar" name="m_menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -66,15 +54,15 @@
      <height>34</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
+   <widget class="QMenu" name="m_menuFile">
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionOpen"/>
+    <addaction name="m_actionOpen"/>
    </widget>
-   <addaction name="menuFile"/>
+   <addaction name="m_menuFile"/>
   </widget>
-  <action name="actionOpen">
+  <action name="m_actionOpen">
    <property name="text">
     <string>Open</string>
    </property>
@@ -88,6 +76,12 @@
    <class>MpvWidget</class>
    <extends>QOpenGLWidget</extends>
    <header>src/gui/widgets/mpvwidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>PlayerControls</class>
+   <extends>QWidget</extends>
+   <header>src/gui/widgets/playercontrols.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

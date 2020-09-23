@@ -7,7 +7,8 @@ set(GUI_SRCS
 set(GUI_LIBS
     Qt5::Gui
     Qt5::Core
-    mpvwidget)
+    mpvwidget
+    playercontrols)
 
 add_library(mainwindow ${GUI_SRCS})
 target_link_libraries(mainwindow ${GUI_LIBS})

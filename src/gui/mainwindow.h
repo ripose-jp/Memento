@@ -1,27 +1,31 @@
 #ifndef MainWindow_H
 #define MainWindow_H
 
-#include <QtWidgets/QWidget>
+#include <QMainWindow>
 
-class MpvWidget;
-class QSlider;
-class QPushButton;
-class MainWindow : public QWidget
+namespace Ui
+{
+    class MainWindow;
+}
+
+class MainWindow : public QMainWindow
 {
     Q_OBJECT
+    
 public:
     explicit MainWindow(QWidget *parent = 0);
+    virtual ~MainWindow();
+
 public Q_SLOTS:
     void openMedia();
     void seek(int pos);
     void pauseResume();
+
 private Q_SLOTS:
     void setSliderRange(int duration);
+
 private:
-    MpvWidget *m_mpv;
-    QSlider *m_slider;
-    QPushButton *m_openBtn;
-    QPushButton *m_playBtn;
+    Ui::MainWindow *ui;
 };
 
 #endif // MainWindow_H
