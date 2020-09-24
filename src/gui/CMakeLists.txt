@@ -1,6 +1,7 @@
 add_subdirectory(widgets)
 
 set(GUI_SRCS
+    mpvadapter.cpp
     mainwindow.cpp
     mainwindow.ui)
 

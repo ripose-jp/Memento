@@ -1,7 +1,7 @@
-#ifndef PLAYERWINDOW_H
-#define PLAYERWINDOW_H
+#ifndef MPVWIDGET_H
+#define MPVWIDGET_H
 
-#include <QtWidgets/QOpenGLWidget>
+#include <QOpenGLWidget>
 #include <mpv/client.h>
 #include <mpv/render_gl.h>
 #include <mpv/qthelper.hpp>
@@ -22,6 +22,7 @@ public:
 Q_SIGNALS:
     void durationChanged(int value);
     void positionChanged(int value);
+    void stateChanged(bool paused);
 
 protected:
     void initializeGL() Q_DECL_OVERRIDE;
@@ -39,4 +40,4 @@ private:
     mpv_render_context *mpv_gl;
 };
 
-#endif // PLAYERWINDOW_H
+#endif // MPVWIDGET_H

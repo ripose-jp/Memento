@@ -1,45 +1,37 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "mpvadapter.h"
 
 #include <QFileDialog>
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
+    m_ui->setupUi(this);
 
-    connect(ui->m_actionOpen, SIGNAL(triggered()), SLOT(openMedia()));
-    /*
-    connect(ui->sliderProgress, SIGNAL(sliderMoved(int)), SLOT(seek(int)));
-    connect(ui->buttonPlay, SIGNAL(clicked()), SLOT(pauseResume()));
-    connect(ui->mpv, SIGNAL(positionChanged(int)), ui->sliderProgress, SLOT(setValue(int)));
-    connect(ui->mpv, SIGNAL(durationChanged(int)), this, SLOT(setSliderRange(int)));
-    */
-}
+    m_player = new MpvAdapter(m_ui->m_mpv);
+    // Toolbar Actions
+    connect(m_ui->m_actionOpen, &QAction::triggered, dynamic_cast<QObject*>(m_player), &PlayerAdapter::open);
 
-void MainWindow::openMedia()
-{
-    QString file = QFileDialog::getOpenFileName(0, "Open a video");
-    if (file.isEmpty())
-        return;
-    ui->m_mpv->command(QStringList() << "loadfile" << file);
-}
+/*
+    // Buttons
+    connect(m_ui->m_controls, &PlayerControls::play, dynamic_cast<QObject*>(m_player), &PlayerAdapter::play);
+    connect(m_ui->m_controls, &PlayerControls::pause, dynamic_cast<QObject*>(m_player), &PlayerAdapter::pause);
+    connect(m_ui->m_controls, &PlayerControls::seekForward, dynamic_cast<QObject*>(m_player), &PlayerAdapter::seekForward);
+    connect(m_ui->m_controls, &PlayerControls::seekBackward, dynamic_cast<QObject*>(m_player), &PlayerAdapter::seekBackward);
 
-void MainWindow::seek(int pos)
-{
-    ui->m_mpv->command(QVariantList() << "seek" << pos << "absolute");
-}
+    // Slider
+    connect(m_ui->m_controls, &PlayerControls::sliderMoved, dynamic_cast<QObject*>(m_player), &PlayerAdapter::seek);
+    connect(dynamic_cast<QObject*>(m_player), &PlayerAdapter::durationChanged,
+            m_ui->m_controls, &PlayerControls::setDuration);
+    connect(dynamic_cast<QObject*>(m_player), &PlayerAdapter::positionChanged,
+            m_ui->m_controls, &PlayerControls::setPosition);
 
-void MainWindow::pauseResume()
-{
-    const bool paused = ui->m_mpv->getProperty("pause").toBool();
-    ui->m_mpv->setProperty("pause", !paused);
-}
-
-void MainWindow::setSliderRange(int duration)
-{
-    //ui->sliderProgress->setRange(0, duration);
+    connect(dynamic_cast<QObject*>(m_player), &PlayerAdapter::stateChanged,
+            m_ui->m_controls, &PlayerControls::setPaused);
+*/
 }
 
 MainWindow::~MainWindow() {
-    delete ui;
+    delete m_ui;
+    delete m_player;
 }

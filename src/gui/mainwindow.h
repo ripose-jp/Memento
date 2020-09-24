@@ -1,7 +1,9 @@
-#ifndef MainWindow_H
-#define MainWindow_H
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
 
 #include <QMainWindow>
+
+#include "playeradapter.h"
 
 namespace Ui
 {
@@ -13,19 +15,12 @@ class MainWindow : public QMainWindow
     Q_OBJECT
     
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    virtual ~MainWindow();
-
-public Q_SLOTS:
-    void openMedia();
-    void seek(int pos);
-    void pauseResume();
-
-private Q_SLOTS:
-    void setSliderRange(int duration);
+    MainWindow(QWidget *parent = 0);
+    ~MainWindow();
 
 private:
-    Ui::MainWindow *ui;
+    Ui::MainWindow *m_ui;
+    PlayerAdapter *m_player;
 };
 
-#endif // MainWindow_H
+#endif // MAINWINDOW_H

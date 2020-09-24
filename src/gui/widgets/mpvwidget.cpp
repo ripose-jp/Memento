@@ -1,6 +1,8 @@
 ﻿#include "mpvwidget.h"
+
 #include <stdexcept>
 #include <QtGui/QOpenGLContext>
+#include <iostream>
 
 static void wakeup(void *ctx)
 {
@@ -31,6 +33,7 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent)
 
     mpv_observe_property(mpv, 0, "duration", MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv, 0, "time-pos", MPV_FORMAT_DOUBLE);
+    mpv_observe_property(mpv, 0, "pause", MPV_FORMAT_NONE);
     mpv_set_wakeup_callback(mpv, wakeup, this);
 }
 
@@ -113,6 +116,9 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                 double time = *(double *)prop->data;
                 Q_EMIT durationChanged(time);
             }
+        } 
+        else if (strcmp(prop->name, "pause") == 0) {
+            Q_EMIT stateChanged(getProperty("pause").toBool());
         }
         break;
     }
