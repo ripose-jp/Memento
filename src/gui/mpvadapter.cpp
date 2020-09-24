@@ -2,7 +2,7 @@
 
 #include <QFileDialog>
 
-MpvAdapter::MpvAdapter(MpvWidget *mpv) : m_mpv(mpv)
+MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv), PlayerAdapter(parent)
 {
     connect(m_mpv, &MpvWidget::durationChanged, this, &MpvAdapter::durationChanged);
     connect(m_mpv, &MpvWidget::positionChanged, this, &MpvAdapter::positionChanged);
@@ -17,10 +17,6 @@ void MpvAdapter::open()
     m_mpv->command(QStringList() << "loadfile" << file);
 }
 
-bool MpvAdapter::isPaused() const {
-    return m_mpv->getProperty("pause").toBool();
-}
-
 void MpvAdapter::seek(int time)
 {
     m_mpv->command(QVariantList() << "seek" << time << "absolute");
@@ -28,25 +24,25 @@ void MpvAdapter::seek(int time)
 
 void MpvAdapter::play()
 {
-    m_mpv->setProperty("pause", true);
+    m_mpv->setProperty("pause", false);
 }
 
 void MpvAdapter::pause()
 {
-    m_mpv->setProperty("pause", false);
+    m_mpv->setProperty("pause", true);
 }
 
 void MpvAdapter::stop()
 {
-    m_mpv->command("stop");
+    m_mpv->command(QVariantList() << "stop");
 }
 
 void MpvAdapter::seekForward()
 {
-    m_mpv->command("sub-seek 1");
+    m_mpv->command(QVariantList() << "sub-seek" << 1);
 }
 
 void MpvAdapter::seekBackward()
 {
-    m_mpv->command("sub-seek -1");
+    m_mpv->command(QVariantList() << "sub-seek" << -1);
 }

@@ -3,12 +3,15 @@
 
 #include <QObject>
 
-class PlayerAdapter
+class PlayerAdapter : public QObject
 {
+    Q_OBJECT
+
 public:
+    using QObject::QObject;
     virtual ~PlayerAdapter() {}
 
-    virtual bool isPaused() const = 0;
+public Q_SLOTS:
     virtual void open() = 0;
     virtual void seek(int time) = 0;
     virtual void play() = 0;
@@ -17,12 +20,10 @@ public:
     virtual void seekForward() = 0;
     virtual void seekBackward() = 0;
 
-    // signals
-    virtual void durationChanged(int value) = 0;
-    virtual void positionChanged(int value) = 0;
-    virtual void stateChanged(bool paused) = 0;
+Q_SIGNALS:
+    void durationChanged(int value);
+    void positionChanged(int value);
+    void stateChanged(bool paused);
 };
-
-Q_DECLARE_INTERFACE(PlayerAdapter, "PlayerAdapter")
 
 #endif // PLAYERADAPTER_H

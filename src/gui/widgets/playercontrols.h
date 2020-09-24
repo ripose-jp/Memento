@@ -5,6 +5,11 @@
 
 #define PLAY_ICON "media-playback-start"
 #define PAUSE_ICON "media-playback-pause"
+#define SECONDS_IN_MINUTE 60
+#define SECONDS_IN_HOUR 3600
+#define FILL_SPACES 2
+#define BASE_TEN 10
+#define FILL_CHAR '0'
 
 namespace Ui
 {
@@ -37,6 +42,7 @@ Q_SIGNALS:
 private:
     Ui::PlayerControls *m_ui;
     bool m_paused;
+    QString formatTime(int time);
 };
 
 #endif // PLAYERCONTROLS_H
