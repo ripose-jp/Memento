@@ -25,6 +25,7 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent)
 
     mpv_set_option_string(mpv, "terminal", "yes");
     mpv_set_option_string(mpv, "msg-level", "all=v");
+    mpv_set_option_string(mpv, "config", "yes");
     if (mpv_initialize(mpv) < 0)
         throw std::runtime_error("could not initialize mpv context");
 

@@ -18,6 +18,7 @@ public Q_SLOTS:
     void stop() override;
     void seekForward() override;
     void seekBackward() override;
+    void keyPressed(QKeyEvent *event) override;
 
 private:
     MpvWidget *m_mpv;

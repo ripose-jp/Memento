@@ -2,6 +2,7 @@
 #define PLAYERADAPTER_H
 
 #include <QObject>
+#include <QKeyEvent>
 
 class PlayerAdapter : public QObject
 {
@@ -19,6 +20,7 @@ public Q_SLOTS:
     virtual void stop() = 0;
     virtual void seekForward() = 0;
     virtual void seekBackward() = 0;
+    virtual void keyPressed(QKeyEvent *event) = 0;
 
 Q_SIGNALS:
     void durationChanged(int value);

@@ -1,9 +1,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-
 #include "playeradapter.h"
+
+#include <QMainWindow>
+#include <QKeyEvent>
 
 namespace Ui
 {
@@ -17,6 +18,12 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+Q_SIGNALS:
+    void keyPressed(QKeyEvent *event);
+
+protected:
+    void keyPressEvent(QKeyEvent *event) override;
 
 private:
     Ui::MainWindow *m_ui;
