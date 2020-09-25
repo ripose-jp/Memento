@@ -1,14 +1,17 @@
 #include "playercontrols.h"
 #include "ui_playercontrols.h"
+#include "../iconfactory.h"
 
 PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent), m_ui(new Ui::PlayerControls)
 {
     m_ui->setupUi(this);
     
     connect(m_ui->m_sliderProgress, &QSlider::sliderMoved, this, &PlayerControls::sliderMoved);
+    connect(m_ui->m_sliderVolume, &QSlider::sliderMoved, this, &PlayerControls::volumeSliderMoved);
     connect(m_ui->m_buttonPlay, &QToolButton::clicked, this, &PlayerControls::pauseResume);
     connect(m_ui->m_buttonSeekForward, &QToolButton::clicked, this, &PlayerControls::seekForward);
     connect(m_ui->m_buttonSeekBackward, &QToolButton::clicked, this, &PlayerControls::seekBackward);
+    connect(m_ui->m_buttonFullscreen, &QToolButton::clicked, this, &PlayerControls::toggleFullscreen);
 }
 
 void PlayerControls::setDuration(int value)
@@ -26,9 +29,9 @@ void PlayerControls::setPosition(int value)
 void PlayerControls::setPaused(bool paused) {
     m_paused = paused;
     if (m_paused) {
-        m_ui->m_buttonPlay->setIcon(QIcon::fromTheme(QString::fromUtf8(PLAY_ICON)));
+        m_ui->m_buttonPlay->setIcon(IconFactory::getIcon(IconFactory::Icon::play, this));
     } else {
-        m_ui->m_buttonPlay->setIcon(QIcon::fromTheme(QString::fromUtf8(PAUSE_ICON)));
+        m_ui->m_buttonPlay->setIcon(IconFactory::getIcon(IconFactory::Icon::pause, this));
     }
 }
 
@@ -39,6 +42,33 @@ void PlayerControls::pauseResume()
     } else {
         Q_EMIT pause();
     }
+}
+
+void PlayerControls::setFullscreen(bool value)
+{
+    m_fullscreen = value;
+    if (m_fullscreen) {
+        m_ui->m_buttonFullscreen->setIcon(IconFactory::getIcon(IconFactory::Icon::restore, this));
+    } else {
+        m_ui->m_buttonFullscreen->setIcon(IconFactory::getIcon(IconFactory::Icon::fullscreen, this));
+    }
+}
+
+void PlayerControls::toggleFullscreen()
+{
+    Q_EMIT fullscreenChanged(!m_fullscreen);
+}
+
+void PlayerControls::setVolumeLimit(int value)
+{
+    m_ui->m_sliderVolume->setRange(0, value);
+}
+
+void PlayerControls::setVolume(int value)
+{
+    m_ui->m_sliderVolume->setValue(value);
+    QString volume = QString::number(value) + "%";
+    m_ui->m_labelVolume->setText(volume);
 }
 
 QString PlayerControls::formatTime(int time)

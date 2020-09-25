@@ -1,15 +1,15 @@
 #include "mpvadapter.h"
 
 #include <QFileDialog>
-#include <QDebug>
 
 MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv), PlayerAdapter(parent)
 {
     connect(m_mpv, &MpvWidget::durationChanged, this, &MpvAdapter::durationChanged);
     connect(m_mpv, &MpvWidget::positionChanged, this, &MpvAdapter::positionChanged);
     connect(m_mpv, &MpvWidget::stateChanged, this, &MpvAdapter::stateChanged);
+    connect(m_mpv, &MpvWidget::fullscreenChanged, this, &MpvAdapter::fullscreenChanged);
+    connect(m_mpv, &MpvWidget::volumeChanged, this, &MpvAdapter::volumeChanged);
     connect(m_mpv, &MpvWidget::shutdown, this, &MpvAdapter::close);
-
 }
 
 void MpvAdapter::open()
@@ -94,8 +94,23 @@ void MpvAdapter::keyPressed(QKeyEvent *event)
             key += "BS";
             break;
         default: {
-            key = event->text();
+            key += event->text();
         }
     }
     m_mpv->command(QVariantList() << "keypress" << key);
+}
+
+void MpvAdapter::setFullscreen(bool value)
+{
+    m_mpv->setProperty("fullscreen", value);
+}
+
+void MpvAdapter::setVolume(int value)
+{
+    m_mpv->setProperty("volume", value);
+}
+
+int MpvAdapter::getMaxVolume() const
+{
+    return m_mpv->getProperty("volume-max").toInt();
 }

@@ -2,7 +2,6 @@
 
 #include <stdexcept>
 #include <QtGui/QOpenGLContext>
-#include <QDebug>
 
 static void wakeup(void *ctx)
 {
@@ -41,7 +40,9 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent)
 
     mpv_observe_property(mpv, 0, "duration", MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv, 0, "time-pos", MPV_FORMAT_DOUBLE);
-    mpv_observe_property(mpv, 0, "pause", MPV_FORMAT_NONE);
+    mpv_observe_property(mpv, 0, "pause", MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "fullscreen", MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "volume", MPV_FORMAT_INT64);
     mpv_set_wakeup_callback(mpv, wakeup, this);
 }
 
@@ -124,9 +125,21 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                 double time = *(double *)prop->data;
                 Q_EMIT durationChanged(time);
             }
-        } 
-        else if (strcmp(prop->name, "pause") == 0) {
-            Q_EMIT stateChanged(getProperty("pause").toBool());
+        } else if (strcmp(prop->name, "pause") == 0) {
+            if (prop->format == MPV_FORMAT_FLAG) {
+                bool paused = *(int *)prop->data;
+                Q_EMIT stateChanged(paused);
+            }
+        } else if (strcmp(prop->name, "fullscreen") == 0) {
+            if (prop->format == MPV_FORMAT_FLAG) {
+                bool full = *(int *)prop->data;
+                Q_EMIT fullscreenChanged(full);
+            }
+        } else if (strcmp(prop->name, "volume") == 0) {
+            if (prop->format == MPV_FORMAT_INT64) {
+                int volume = *(int64_t *)prop->data;
+                Q_EMIT volumeChanged(volume);
+            }
         }
         break;
     }

@@ -3,8 +3,6 @@
 
 #include <QWidget>
 
-#define PLAY_ICON "media-playback-start"
-#define PAUSE_ICON "media-playback-pause"
 #define SECONDS_IN_MINUTE 60
 #define SECONDS_IN_HOUR 3600
 #define FILL_SPACES 2
@@ -28,20 +26,27 @@ public Q_SLOTS:
     void setDuration(int value);
     void setPosition(int value);
     void setPaused(bool paused);
-
-private Q_SLOTS:
-    void pauseResume();
+    void setFullscreen(bool value);
+    void setVolumeLimit(int value);
+    void setVolume(int value);
 
 Q_SIGNALS:
     void play();
     void pause();
     void seekForward();
     void seekBackward();
-    void sliderMoved(int);
+    void sliderMoved(int value);
+    void volumeSliderMoved(int value);
+    void fullscreenChanged(bool value);
+
+private Q_SLOTS:
+    void pauseResume();
+    void toggleFullscreen();
 
 private:
     Ui::PlayerControls *m_ui;
     bool m_paused;
+    bool m_fullscreen;
     QString formatTime(int time);
 };
 

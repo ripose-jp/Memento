@@ -19,6 +19,9 @@ public Q_SLOTS:
     void seekForward() override;
     void seekBackward() override;
     void keyPressed(QKeyEvent *event) override;
+    void setFullscreen(bool value) override;
+    void setVolume(int value) override;
+    int getMaxVolume() const override;
 
 private:
     MpvWidget *m_mpv;

@@ -11,6 +11,7 @@ class PlayerAdapter : public QObject
 public:
     using QObject::QObject;
     virtual ~PlayerAdapter() {}
+    virtual int getMaxVolume() const = 0;
 
 public Q_SLOTS:
     virtual void open() = 0;
@@ -21,11 +22,15 @@ public Q_SLOTS:
     virtual void seekForward() = 0;
     virtual void seekBackward() = 0;
     virtual void keyPressed(QKeyEvent *event) = 0;
+    virtual void setFullscreen(bool value) = 0;
+    virtual void setVolume(int value) = 0;
 
 Q_SIGNALS:
     void durationChanged(int value);
     void positionChanged(int value);
     void stateChanged(bool paused);
+    void fullscreenChanged(bool full);
+    void volumeChanged(int value);
     void close();
 };
 

@@ -24,7 +24,9 @@ public:
 Q_SIGNALS:
     void durationChanged(int value);
     void positionChanged(int value);
+    void volumeChanged(int value);
     void stateChanged(bool paused);
+    void fullscreenChanged(bool full);
     void shutdown();
 
 protected:

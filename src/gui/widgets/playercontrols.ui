@@ -64,11 +64,14 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="layoutButtons" stretch="0,0,0,0">
+    <layout class="QHBoxLayout" name="layoutButtons" stretch="0,0,0,0,0,0,0">
      <item>
       <widget class="QToolButton" name="m_buttonPlay">
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Pause/Play</string>
        </property>
        <property name="text">
         <string>...</string>
@@ -84,6 +87,9 @@
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
+       <property name="toolTip">
+        <string>Seek to the last subtitle</string>
+       </property>
        <property name="text">
         <string>...</string>
        </property>
@@ -97,6 +103,9 @@
       <widget class="QToolButton" name="m_buttonSeekForward">
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Seek to the next subtitle</string>
        </property>
        <property name="text">
         <string>...</string>
@@ -119,6 +128,63 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QSlider" name="m_sliderVolume">
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>150</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Volume</string>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="m_labelVolume">
+       <property name="minimumSize">
+        <size>
+         <width>39</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>000%</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="m_buttonFullscreen">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Fullscreen</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset theme="view-fullscreen"/>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

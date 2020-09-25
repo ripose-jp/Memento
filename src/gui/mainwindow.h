@@ -22,6 +22,9 @@ public:
 Q_SIGNALS:
     void keyPressed(QKeyEvent *event);
 
+public Q_SLOTS:
+    void setFullscreen(bool value);
+
 protected:
     void keyPressEvent(QKeyEvent *event) override;
 

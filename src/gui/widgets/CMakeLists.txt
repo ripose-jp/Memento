@@ -10,4 +10,5 @@ add_library(playercontrols
     playercontrols.ui
     playercontrols.cpp)
 target_link_libraries(playercontrols
-    Qt5::Widgets)
+    Qt5::Widgets
+    iconfactory)
