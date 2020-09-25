@@ -27,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
 
     // State changes
     connect(m_player, &PlayerAdapter::stateChanged, m_ui->m_controls, &PlayerControls::setPaused);
+    connect(m_player, &PlayerAdapter::close, this, &QApplication::quit);
 
     // Key presses
     connect(this, &MainWindow::keyPressed, m_player, &PlayerAdapter::keyPressed);

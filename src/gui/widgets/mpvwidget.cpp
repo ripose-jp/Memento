@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 #include <QtGui/QOpenGLContext>
-#include <iostream>
+#include <QDebug>
 
 static void wakeup(void *ctx)
 {
@@ -25,7 +25,14 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent)
 
     mpv_set_option_string(mpv, "terminal", "yes");
     mpv_set_option_string(mpv, "msg-level", "all=v");
+    mpv_set_option_string(mpv, "keep-open", "yes");
     mpv_set_option_string(mpv, "config", "yes");
+    
+    // TODO: non-portable code
+    QString path = getenv("HOME");
+    path += CONFIG_PATH;
+    mpv_set_option_string(mpv, "config-dir", path.toLatin1());
+
     if (mpv_initialize(mpv) < 0)
         throw std::runtime_error("could not initialize mpv context");
 
@@ -123,6 +130,8 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
         }
         break;
     }
+    case MPV_EVENT_SHUTDOWN:
+        Q_EMIT shutdown();
     default: ;
         // Ignore uninteresting or unknown events.
     }

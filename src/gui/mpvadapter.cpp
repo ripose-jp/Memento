@@ -8,6 +8,8 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv), PlayerAdap
     connect(m_mpv, &MpvWidget::durationChanged, this, &MpvAdapter::durationChanged);
     connect(m_mpv, &MpvWidget::positionChanged, this, &MpvAdapter::positionChanged);
     connect(m_mpv, &MpvWidget::stateChanged, this, &MpvAdapter::stateChanged);
+    connect(m_mpv, &MpvWidget::shutdown, this, &MpvAdapter::close);
+
 }
 
 void MpvAdapter::open()

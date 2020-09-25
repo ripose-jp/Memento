@@ -6,6 +6,8 @@
 #include <mpv/render_gl.h>
 #include <mpv/qthelper.hpp>
 
+#define CONFIG_PATH "/.config/memento"
+
 class MpvWidget Q_DECL_FINAL: public QOpenGLWidget
 {
     Q_OBJECT
@@ -23,6 +25,7 @@ Q_SIGNALS:
     void durationChanged(int value);
     void positionChanged(int value);
     void stateChanged(bool paused);
+    void shutdown();
 
 protected:
     void initializeGL() Q_DECL_OVERRIDE;

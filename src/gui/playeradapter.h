@@ -26,6 +26,7 @@ Q_SIGNALS:
     void durationChanged(int value);
     void positionChanged(int value);
     void stateChanged(bool paused);
+    void close();
 };
 
 #endif // PLAYERADAPTER_H
