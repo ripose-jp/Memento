@@ -12,15 +12,15 @@ public:
 
 public Q_SLOTS:
     void open() override;
-    void seek(int time) override;
+    void seek(const int time) override;
     void play() override;
     void pause() override;
     void stop() override;
     void seekForward() override;
     void seekBackward() override;
-    void keyPressed(QKeyEvent *event) override;
-    void setFullscreen(bool value) override;
-    void setVolume(int value) override;
+    void keyPressed(const QKeyEvent *event) override;
+    void setFullscreen(const bool value) override;
+    void setVolume(const int value) override;
     int getMaxVolume() const override;
 
 private:

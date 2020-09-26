@@ -23,25 +23,26 @@ public:
     ~PlayerControls();
 
 public Q_SLOTS:
-    void setDuration(int value);
-    void setPosition(int value);
-    void setPaused(bool paused);
-    void setFullscreen(bool value);
-    void setVolumeLimit(int value);
-    void setVolume(int value);
+    void setDuration(const int value);
+    void setPaused(const bool paused);
+    void setFullscreen(const bool value);
+    void setVolumeLimit(const int value);
+    void setVolume(const int value);
+    void setPosition(const int value);
 
 Q_SIGNALS:
     void play();
     void pause();
     void seekForward();
     void seekBackward();
-    void sliderMoved(int value);
-    void volumeSliderMoved(int value);
-    void fullscreenChanged(bool value);
+    void sliderMoved(const int value);
+    void volumeSliderMoved(const int value);
+    void fullscreenChanged(const bool value);
 
 private Q_SLOTS:
     void pauseResume();
     void toggleFullscreen();
+    
 
 private:
     Ui::PlayerControls *m_ui;

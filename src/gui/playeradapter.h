@@ -15,22 +15,22 @@ public:
 
 public Q_SLOTS:
     virtual void open() = 0;
-    virtual void seek(int time) = 0;
+    virtual void seek(const int time) = 0;
     virtual void play() = 0;
     virtual void pause() = 0;
     virtual void stop() = 0;
     virtual void seekForward() = 0;
     virtual void seekBackward() = 0;
-    virtual void keyPressed(QKeyEvent *event) = 0;
-    virtual void setFullscreen(bool value) = 0;
-    virtual void setVolume(int value) = 0;
+    virtual void keyPressed(const QKeyEvent *event) = 0;
+    virtual void setFullscreen(const bool value) = 0;
+    virtual void setVolume(const int value) = 0;
 
 Q_SIGNALS:
-    void durationChanged(int value);
-    void positionChanged(int value);
-    void stateChanged(bool paused);
-    void fullscreenChanged(bool full);
-    void volumeChanged(int value);
+    void durationChanged(const int value);
+    void positionChanged(const int value);
+    void stateChanged(const bool paused);
+    void fullscreenChanged(const bool full);
+    void volumeChanged(const int value);
     void close();
 };
 

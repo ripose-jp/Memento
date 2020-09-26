@@ -1,5 +1,10 @@
 find_library(MPV_LIB mpv)
 
+add_library(sliderjumpstyle
+    sliderjumpstyle.cpp)
+target_link_libraries(sliderjumpstyle
+    Qt5::Widgets)
+
 add_library(mpvwidget
     mpvwidget.cpp)
 target_link_libraries(mpvwidget
@@ -11,4 +16,5 @@ add_library(playercontrols
     playercontrols.cpp)
 target_link_libraries(playercontrols
     Qt5::Widgets
-    iconfactory)
+    iconfactory
+    sliderjumpstyle)

@@ -20,7 +20,7 @@ void MpvAdapter::open()
     m_mpv->command(QStringList() << "loadfile" << file);
 }
 
-void MpvAdapter::seek(int time)
+void MpvAdapter::seek(const int time)
 {
     m_mpv->command(QVariantList() << "seek" << time << "absolute");
 }
@@ -50,7 +50,7 @@ void MpvAdapter::seekBackward()
     m_mpv->command(QVariantList() << "sub-seek" << -1);
 }
 
-void MpvAdapter::keyPressed(QKeyEvent *event)
+void MpvAdapter::keyPressed(const QKeyEvent *event)
 {
     QString key = "";
     if (event->modifiers() & Qt::ShiftModifier) {
@@ -100,12 +100,12 @@ void MpvAdapter::keyPressed(QKeyEvent *event)
     m_mpv->command(QVariantList() << "keypress" << key);
 }
 
-void MpvAdapter::setFullscreen(bool value)
+void MpvAdapter::setFullscreen(const bool value)
 {
     m_mpv->setProperty("fullscreen", value);
 }
 
-void MpvAdapter::setVolume(int value)
+void MpvAdapter::setVolume(const int value)
 {
     m_mpv->setProperty("volume", value);
 }
