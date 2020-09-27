@@ -37,6 +37,8 @@ protected:
     void initializeGL() Q_DECL_OVERRIDE;
     void paintGL() Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
     void on_mpv_events();
@@ -45,6 +47,7 @@ private Q_SLOTS:
 private:
     void handle_mpv_event(mpv_event *event);
     static void on_update(void *ctx);
+    QString convertToMouseString(const QMouseEvent *event) const;
 
     mpv_handle *mpv;
     mpv_render_context *mpv_gl;

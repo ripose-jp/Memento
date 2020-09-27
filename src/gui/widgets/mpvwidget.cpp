@@ -187,3 +187,28 @@ void MpvWidget::mouseMoveEvent(QMouseEvent *event)
     }
     m_cursorTimer->start(TIMEOUT);
 }
+
+void MpvWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    command(QVariantList() << "keypress" << convertToMouseString(event));
+}
+
+void MpvWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    command(QVariantList() << "keypress" << convertToMouseString(event) + "_DBL");
+}
+
+QString MpvWidget::convertToMouseString(const QMouseEvent *event) const
+{
+    switch (event->button()) {
+        case Qt::LeftButton:
+            return "MBTN_LEFT";
+        case Qt::RightButton:
+            return "MBTN_RIGHT";
+        case Qt::BackButton:
+            return "MBTN_BACK";
+        case Qt::ForwardButton:
+            return "MBTN_FORWARD";
+    }
+    return "";
+}
