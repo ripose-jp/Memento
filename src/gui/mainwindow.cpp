@@ -4,6 +4,7 @@
 #include "iconfactory.h"
 
 #include <QFileDialog>
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::MainWindow)
 {
@@ -34,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_player, &PlayerAdapter::fullscreenChanged, this, &MainWindow::setFullscreen);
     connect(m_player, &PlayerAdapter::fullscreenChanged, m_ui->m_controls, &PlayerControls::setFullscreen);
     connect(m_player, &PlayerAdapter::volumeChanged, m_ui->m_controls, &PlayerControls::setVolume);
+    connect(m_player, &PlayerAdapter::hideCursor, [=] { if(isFullScreen()) m_ui->m_controls->hide(); } );
     connect(m_player, &PlayerAdapter::close, this, &QApplication::quit);
 
     // Key presses
@@ -49,14 +51,25 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void MainWindow::setFullscreen(bool value) {
-    if(value) {
+void MainWindow::setFullscreen(bool value)
+{
+    if (value) {
         showFullScreen();
         m_ui->m_menubar->hide();
+        QApplication::processEvents();
         m_ui->m_controls->hide();
+        m_ui->m_centralwidget->layout()->removeWidget(m_ui->m_controls);
     } else {
         showNormal();
         m_ui->m_menubar->show();
+        m_ui->m_controls->show();
+        m_ui->m_centralwidget->layout()->addWidget(m_ui->m_controls);
+    }
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent *event)
+{
+    if (isFullScreen() && m_ui->m_controls->isHidden()) {
         m_ui->m_controls->show();
     }
 }

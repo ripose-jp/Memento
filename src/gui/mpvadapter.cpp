@@ -9,6 +9,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv), PlayerAdap
     connect(m_mpv, &MpvWidget::stateChanged, this, &MpvAdapter::stateChanged);
     connect(m_mpv, &MpvWidget::fullscreenChanged, this, &MpvAdapter::fullscreenChanged);
     connect(m_mpv, &MpvWidget::volumeChanged, this, &MpvAdapter::volumeChanged);
+    connect(m_mpv, &MpvWidget::hideCursor, this, &MpvAdapter::hideCursor);
     connect(m_mpv, &MpvWidget::shutdown, this, &MpvAdapter::close);
 }
 

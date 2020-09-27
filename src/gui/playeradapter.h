@@ -31,6 +31,7 @@ Q_SIGNALS:
     void stateChanged(const bool paused);
     void fullscreenChanged(const bool full);
     void volumeChanged(const int value);
+    void hideCursor();
     void close();
 };
 

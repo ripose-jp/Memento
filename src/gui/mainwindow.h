@@ -5,6 +5,7 @@
 
 #include <QMainWindow>
 #include <QKeyEvent>
+#include <QMouseEvent>
 
 namespace Ui
 {
@@ -26,7 +27,8 @@ public Q_SLOTS:
     void setFullscreen(bool value);
 
 protected:
-    void keyPressEvent(QKeyEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 
 private:
     Ui::MainWindow *m_ui;

@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="autoFillBackground">
+   <bool>true</bool>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QHBoxLayout" name="m_layoutTime">
@@ -182,7 +185,8 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset theme="view-fullscreen"/>
+        <iconset theme="view-fullscreen">
+         <normaloff>.</normaloff>.</iconset>
        </property>
       </widget>
      </item>

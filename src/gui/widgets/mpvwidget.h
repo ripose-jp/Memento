@@ -2,10 +2,13 @@
 #define MPVWIDGET_H
 
 #include <QOpenGLWidget>
+#include <QMouseEvent>
+#include <QTimer>
 #include <mpv/client.h>
 #include <mpv/render_gl.h>
 #include <mpv/qthelper.hpp>
 
+#define TIMEOUT 2000
 #define CONFIG_PATH "/.config/memento"
 
 class MpvWidget Q_DECL_FINAL: public QOpenGLWidget
@@ -27,11 +30,13 @@ Q_SIGNALS:
     void volumeChanged(int value);
     void stateChanged(bool paused);
     void fullscreenChanged(bool full);
+    void hideCursor();
     void shutdown();
 
 protected:
     void initializeGL() Q_DECL_OVERRIDE;
     void paintGL() Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
     void on_mpv_events();
@@ -43,6 +48,7 @@ private:
 
     mpv_handle *mpv;
     mpv_render_context *mpv_gl;
+    QTimer *m_cursorTimer;
 };
 
 #endif // MPVWIDGET_H

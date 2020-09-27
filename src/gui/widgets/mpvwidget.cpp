@@ -16,7 +16,7 @@ static void *get_proc_address(void *ctx, const char *name) {
     return reinterpret_cast<void *>(glctx->getProcAddress(QByteArray(name)));
 }
 
-MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent)
+MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent), m_cursorTimer(new QTimer())
 {
     mpv = mpv_create();
     if (!mpv)
@@ -44,6 +44,9 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent)
     mpv_observe_property(mpv, 0, "fullscreen", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "volume", MPV_FORMAT_INT64);
     mpv_set_wakeup_callback(mpv, wakeup, this);
+
+    connect(m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
+    connect(m_cursorTimer, &QTimer::timeout, this, [=] { setCursor(Qt::BlankCursor); } );
 }
 
 MpvWidget::~MpvWidget()
@@ -52,6 +55,7 @@ MpvWidget::~MpvWidget()
     if (mpv_gl)
         mpv_render_context_free(mpv_gl);
     mpv_terminate_destroy(mpv);
+    delete m_cursorTimer;
 }
 
 void MpvWidget::command(const QVariant& params)
@@ -173,4 +177,13 @@ void MpvWidget::maybeUpdate()
 void MpvWidget::on_update(void *ctx)
 {
     QMetaObject::invokeMethod((MpvWidget*)ctx, "maybeUpdate");
+}
+
+void MpvWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    event->ignore();
+    if (cursor().shape() == Qt::BlankCursor) {
+        setCursor(Qt::ArrowCursor);
+    }
+    m_cursorTimer->start(TIMEOUT);
 }

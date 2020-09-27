@@ -10,6 +10,9 @@
     <height>600</height>
    </rect>
   </property>
+  <property name="mouseTracking">
+   <bool>true</bool>
+  </property>
   <property name="focusPolicy">
    <enum>Qt::StrongFocus</enum>
   </property>
@@ -17,6 +20,9 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="m_centralwidget">
+   <property name="mouseTracking">
+    <bool>true</bool>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0">
     <property name="sizeConstraint">
      <enum>QLayout::SetDefaultConstraint</enum>
@@ -40,6 +46,12 @@
         <width>788</width>
         <height>261</height>
        </size>
+      </property>
+      <property name="cursor">
+       <cursorShape>BlankCursor</cursorShape>
+      </property>
+      <property name="mouseTracking">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
