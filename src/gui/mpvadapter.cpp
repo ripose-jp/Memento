@@ -66,6 +66,9 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
     if (event->modifiers() & Qt::MetaModifier) {
         key += "Meta+";
     }
+    if (event->modifiers() & Qt::KeypadModifier) {
+        key += "KP";
+    }
     switch (event->key()) {
         case Qt::Key::Key_Left:
             key += "LEFT";
@@ -99,6 +102,21 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
         }
     }
     m_mpv->command(QVariantList() << "keypress" << key);
+}
+
+void MpvAdapter::mouseWheelMoved(const QWheelEvent *event) 
+{
+    QString direction = "WHEEL_";
+    if (event->angleDelta().y() > 0) {
+        direction += "UP";
+    } else if (event->angleDelta().y() < 0) {
+        direction += "DOWN";
+    } else if (event->angleDelta().x() > 0) {
+        direction += "RIGHT";
+    } else if (event->angleDelta().x() < 0) {
+        direction += "LEFT";
+    }
+    m_mpv->command(QVariantList() << "keypress" << direction);
 }
 
 void MpvAdapter::setFullscreen(const bool value)

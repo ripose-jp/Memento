@@ -19,6 +19,7 @@ public Q_SLOTS:
     void seekForward() Q_DECL_OVERRIDE;
     void seekBackward() Q_DECL_OVERRIDE;
     void keyPressed(const QKeyEvent *event) Q_DECL_OVERRIDE;
+    void mouseWheelMoved(const QWheelEvent *event) Q_DECL_OVERRIDE;
     void setFullscreen(const bool value) Q_DECL_OVERRIDE;
     void setVolume(const int value) Q_DECL_OVERRIDE;
     int getMaxVolume() const Q_DECL_OVERRIDE;

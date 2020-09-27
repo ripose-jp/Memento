@@ -6,6 +6,7 @@
 #include <QMainWindow>
 #include <QKeyEvent>
 #include <QMouseEvent>
+#include <QWheelEvent>
 
 namespace Ui
 {
@@ -21,7 +22,8 @@ public:
     ~MainWindow();
 
 Q_SIGNALS:
-    void keyPressed(QKeyEvent *event);
+    void keyPressed(const QKeyEvent *event);
+    void wheelMoved(const QWheelEvent *event);
 
 public Q_SLOTS:
     void setFullscreen(bool value);
@@ -29,6 +31,7 @@ public Q_SLOTS:
 protected:
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
 
 private:
     Ui::MainWindow *m_ui;

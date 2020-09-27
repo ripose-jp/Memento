@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QKeyEvent>
+#include <QWheelEvent>
 
 class PlayerAdapter : public QObject
 {
@@ -22,6 +23,7 @@ public Q_SLOTS:
     virtual void seekForward() = 0;
     virtual void seekBackward() = 0;
     virtual void keyPressed(const QKeyEvent *event) = 0;
+    virtual void mouseWheelMoved(const QWheelEvent *event) = 0;
     virtual void setFullscreen(const bool value) = 0;
     virtual void setVolume(const int value) = 0;
 

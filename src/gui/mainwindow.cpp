@@ -38,8 +38,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_player, &PlayerAdapter::hideCursor, [=] { if(isFullScreen()) m_ui->m_controls->hide(); } );
     connect(m_player, &PlayerAdapter::close, this, &QApplication::quit);
 
-    // Key presses
+    // Key/Mouse presses
     connect(this, &MainWindow::keyPressed, m_player, &PlayerAdapter::keyPressed);
+    connect(this, &MainWindow::wheelMoved, m_player, &PlayerAdapter::mouseWheelMoved);
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -49,6 +50,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             Q_EMIT keyPressed(event);
         };
     }
+}
+
+void MainWindow::wheelEvent(QWheelEvent *event)
+{
+    Q_EMIT wheelMoved(event);
 }
 
 void MainWindow::setFullscreen(bool value)
