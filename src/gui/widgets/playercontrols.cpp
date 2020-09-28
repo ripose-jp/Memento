@@ -16,9 +16,13 @@ PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent), m_ui(new Ui::
     connect(m_ui->m_sliderProgress, &QSlider::valueChanged, this, &PlayerControls::sliderMoved, Qt::QueuedConnection);
 
     connect(m_ui->m_sliderVolume, &QSlider::valueChanged, this, &PlayerControls::volumeSliderMoved);
+
     connect(m_ui->m_buttonPlay, &QToolButton::clicked, this, &PlayerControls::pauseResume);
     connect(m_ui->m_buttonSeekForward, &QToolButton::clicked, this, &PlayerControls::seekForward);
     connect(m_ui->m_buttonSeekBackward, &QToolButton::clicked, this, &PlayerControls::seekBackward);
+    connect(m_ui->m_buttonSkipForward, &QToolButton::clicked, this, &PlayerControls::skipForward);
+    connect(m_ui->m_buttonSkipBackward, &QToolButton::clicked, this, &PlayerControls::skipBackward);
+    connect(m_ui->m_buttonStop, &QToolButton::clicked, this, &PlayerControls::stop);
     connect(m_ui->m_buttonFullscreen, &QToolButton::clicked, this, &PlayerControls::toggleFullscreen);
 }
 

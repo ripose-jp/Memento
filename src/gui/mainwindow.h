@@ -9,6 +9,8 @@
 #include <QWheelEvent>
 #include <QActionGroup>
 #include <QPair>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 
 namespace Ui
 {
@@ -31,12 +33,15 @@ public Q_SLOTS:
     void setFullscreen(bool value);
 
 private Q_SLOTS:
+    void open();
     void setTracks(QVector<const PlayerAdapter::Track*> tracks);
 
 protected:
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
+    void dragEnterEvent(QDragEnterEvent *event) Q_DECL_OVERRIDE;
+    void dropEvent(QDropEvent *event) Q_DECL_OVERRIDE;
 
 private:
     Ui::MainWindow *m_ui;
@@ -49,6 +54,7 @@ private:
     QVector<QPair<QAction*, const PlayerAdapter::Track*>> m_subtitleTracks;
 
     void clearTracks();
+    void clearTrack(QVector<QPair<QAction*, const PlayerAdapter::Track*>> &tracks, QMenu *menu, QActionGroup *actionGroup);
 };
 
 #endif // MAINWINDOW_H

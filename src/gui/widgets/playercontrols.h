@@ -33,8 +33,11 @@ public Q_SLOTS:
 Q_SIGNALS:
     void play();
     void pause();
+    void stop();
     void seekForward();
     void seekBackward();
+    void skipForward();
+    void skipBackward();
     void sliderMoved(const int value);
     void volumeSliderMoved(const int value);
     void fullscreenChanged(const bool value);

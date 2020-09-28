@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>805</width>
+    <height>382</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -67,7 +67,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="layoutButtons" stretch="0,0,0,0,0,0,0">
+    <layout class="QHBoxLayout" name="layoutButtons" stretch="0,0,0,0,0,0,0,0,0,0">
      <item>
       <widget class="QToolButton" name="m_buttonPlay">
        <property name="focusPolicy">
@@ -81,6 +81,23 @@
        </property>
        <property name="icon">
         <iconset theme="media-playback-start">
+         <normaloff>.</normaloff>.</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="m_buttonSkipBackward">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Skip to the previous file in the playlist</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset theme="media-skip-backward">
          <normaloff>.</normaloff>.</iconset>
        </property>
       </widget>
@@ -116,6 +133,39 @@
        <property name="icon">
         <iconset theme="media-seek-forward">
          <normaloff>.</normaloff>.</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="m_buttonSkipForward">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Skip to the next file in the playlist</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset theme="media-skip-forward">
+         <normaloff>.</normaloff>.</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="m_buttonStop">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Stop playback and unqueue any videos</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset theme="media-playback-stop"/>
        </property>
       </widget>
      </item>

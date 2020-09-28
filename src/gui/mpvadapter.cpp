@@ -1,6 +1,5 @@
 #include "mpvadapter.h"
 
-#include <QFileDialog>
 #include <QDebug>
 
 MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv), PlayerAdapter(parent)
@@ -15,12 +14,25 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv), PlayerAdap
     connect(m_mpv, &MpvWidget::shutdown, this, &MpvAdapter::close);
 }
 
-void MpvAdapter::open()
+void MpvAdapter::open(const QString &file)
 {
-    QString file = QFileDialog::getOpenFileName(0, "Open a video");
     if (file.isEmpty())
         return;
     m_mpv->command(QStringList() << "loadfile" << file);
+}
+
+void MpvAdapter::open(const QList<QUrl> &files)
+{
+    if(files.isEmpty())
+        return;
+    
+    stop();
+    open(files.first().toLocalFile());
+    for (auto it = files.begin() + 1; it != files.end(); ++it) {
+        qDebug() << (*it).toLocalFile();
+        if (!(*it).toLocalFile().isEmpty())
+            m_mpv->command(QStringList() << "loadfile" << (*it).toLocalFile() << "append");
+    }
 }
 
 void MpvAdapter::seek(const int time)
@@ -51,6 +63,16 @@ void MpvAdapter::seekForward()
 void MpvAdapter::seekBackward()
 {
     m_mpv->command(QVariantList() << "sub-seek" << -1);
+}
+
+void MpvAdapter::skipForward()
+{
+    m_mpv->command(QVariantList() << "playlist-next");
+}
+
+void MpvAdapter::skipBackward()
+{
+    m_mpv->command(QVariantList() << "playlist-prev");
 }
 
 void MpvAdapter::keyPressed(const QKeyEvent *event)

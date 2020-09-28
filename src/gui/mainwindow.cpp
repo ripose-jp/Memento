@@ -4,6 +4,7 @@
 #include "iconfactory.h"
 
 #include <QFileDialog>
+#include <QMimeData>
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::MainWindow)
@@ -22,11 +23,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_ui->m_controls->setVolumeLimit(m_player->getMaxVolume());
 
     // Toolbar Actions
-    connect(m_ui->m_actionOpen, &QAction::triggered, m_player, &PlayerAdapter::open);
+    connect(m_ui->m_actionOpen, &QAction::triggered, this, &MainWindow::open);
 
     // Buttons
     connect(m_ui->m_controls, &PlayerControls::play, m_player, &PlayerAdapter::play);
     connect(m_ui->m_controls, &PlayerControls::pause, m_player, &PlayerAdapter::pause);
+    connect(m_ui->m_controls, &PlayerControls::stop, m_player, &PlayerAdapter::stop);
+    connect(m_ui->m_controls, &PlayerControls::skipForward, m_player, &PlayerAdapter::skipForward);
+    connect(m_ui->m_controls, &PlayerControls::skipBackward, m_player, &PlayerAdapter::skipBackward);
     connect(m_ui->m_controls, &PlayerControls::seekForward, m_player, &PlayerAdapter::seekForward);
     connect(m_ui->m_controls, &PlayerControls::seekBackward, m_player, &PlayerAdapter::seekBackward);
     connect(m_ui->m_controls, &PlayerControls::fullscreenChanged, m_player, &PlayerAdapter::setFullscreen);
@@ -63,6 +67,18 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 void MainWindow::wheelEvent(QWheelEvent *event)
 {
     Q_EMIT wheelMoved(event);
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasFormat("text/uri-list"))
+        event->acceptProposedAction();
+}
+
+void MainWindow::dropEvent(QDropEvent *event)
+{
+    if (event->mimeData()->hasUrls()) 
+        m_player->open(event->mimeData()->urls());
 }
 
 void MainWindow::setFullscreen(bool value)
@@ -127,11 +143,31 @@ void MainWindow::setTracks(QVector<const PlayerAdapter::Track*> tracks)
 
 void MainWindow::clearTracks()
 {
-    
+    clearTrack(m_audioTracks, m_ui->m_menuAudio, m_actionGroupAudio);
+    clearTrack(m_videoTracks, m_ui->m_menuVideo, m_actionGroupVideo);
+    clearTrack(m_subtitleTracks, m_ui->m_menuSubtitle, m_actionGroupSubtitle);
+}
+
+void MainWindow::clearTrack(QVector<QPair<QAction*, const PlayerAdapter::Track*>> &tracks, QMenu *menu, QActionGroup *actionGroup)
+{
+    for (auto it = tracks.begin(); it != tracks.end(); ++it) {
+        menu->removeAction((*it).first);
+        actionGroup->removeAction((*it).first);
+        delete (*it).first;
+        delete (*it).second;
+    }
+    tracks.clear();
+}
+
+void MainWindow::open()
+{
+    QString file = QFileDialog::getOpenFileName(0, "Open a video");
+    m_player->open(file);
 }
 
 MainWindow::~MainWindow()
 {
+    clearTracks();
     delete m_ui;
     delete m_player;
     delete m_actionGroupAudio;

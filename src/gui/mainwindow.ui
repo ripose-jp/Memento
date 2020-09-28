@@ -16,12 +16,18 @@
   <property name="focusPolicy">
    <enum>Qt::StrongFocus</enum>
   </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="m_centralwidget">
    <property name="mouseTracking">
     <bool>true</bool>
+   </property>
+   <property name="acceptDrops">
+    <bool>false</bool>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0">
     <property name="sizeConstraint">
@@ -53,10 +59,17 @@
       <property name="mouseTracking">
        <bool>true</bool>
       </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
+      </property>
      </widget>
     </item>
     <item>
-     <widget class="PlayerControls" name="m_controls" native="true"/>
+     <widget class="PlayerControls" name="m_controls" native="true">
+      <property name="acceptDrops">
+       <bool>true</bool>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

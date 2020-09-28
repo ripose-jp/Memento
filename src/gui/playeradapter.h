@@ -31,13 +31,16 @@ public:
     } typedef Track;
 
 public Q_SLOTS:
-    virtual void open() = 0;
+    virtual void open(const QString &file) = 0;
+    virtual void open(const QList<QUrl> &files) = 0;
     virtual void seek(const int time) = 0;
     virtual void play() = 0;
     virtual void pause() = 0;
     virtual void stop() = 0;
     virtual void seekForward() = 0;
     virtual void seekBackward() = 0;
+    virtual void skipForward() = 0;
+    virtual void skipBackward() = 0;
     virtual void keyPressed(const QKeyEvent *event) = 0;
     virtual void mouseWheelMoved(const QWheelEvent *event) = 0;
     virtual void setFullscreen(const bool value) = 0;
