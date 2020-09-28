@@ -81,7 +81,9 @@ void PlayerControls::setVolumeLimit(const int value)
 
 void PlayerControls::setVolume(const int value)
 {
+    m_ui->m_sliderVolume->blockSignals(true);
     m_ui->m_sliderVolume->setValue(value);
+    m_ui->m_sliderVolume->blockSignals(false);
     QString volume = QString::number(value) + "%";
     m_ui->m_labelVolume->setText(volume);
 }
