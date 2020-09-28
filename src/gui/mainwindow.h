@@ -7,6 +7,8 @@
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QWheelEvent>
+#include <QActionGroup>
+#include <QPair>
 
 namespace Ui
 {
@@ -28,6 +30,9 @@ Q_SIGNALS:
 public Q_SLOTS:
     void setFullscreen(bool value);
 
+private Q_SLOTS:
+    void setTracks(QVector<const PlayerAdapter::Track*> tracks);
+
 protected:
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
@@ -36,6 +41,14 @@ protected:
 private:
     Ui::MainWindow *m_ui;
     PlayerAdapter *m_player;
+    QActionGroup *m_actionGroupAudio;
+    QActionGroup *m_actionGroupVideo;
+    QActionGroup *m_actionGroupSubtitle;
+    QVector<QPair<QAction*, const PlayerAdapter::Track*>> m_audioTracks;
+    QVector<QPair<QAction*, const PlayerAdapter::Track*>> m_videoTracks;
+    QVector<QPair<QAction*, const PlayerAdapter::Track*>> m_subtitleTracks;
+
+    void clearTracks();
 };
 
 #endif // MAINWINDOW_H

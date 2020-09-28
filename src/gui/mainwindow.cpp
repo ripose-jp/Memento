@@ -10,6 +10,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
 {
     m_ui->setupUi(this);
 
+    m_actionGroupAudio = new QActionGroup(this);
+    m_actionGroupAudio->addAction(m_ui->m_actionAudioNone);
+    m_actionGroupVideo = new QActionGroup(this);
+    m_actionGroupVideo->addAction(m_ui->m_actionVideoNone);
+    m_actionGroupSubtitle = new QActionGroup(this);
+    m_actionGroupSubtitle->addAction(m_ui->m_actionSubtitleNone);
+
     m_player = new MpvAdapter(m_ui->m_mpv, this);
 
     m_ui->m_controls->setVolumeLimit(m_player->getMaxVolume());
@@ -36,6 +43,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_player, &PlayerAdapter::fullscreenChanged, m_ui->m_controls, &PlayerControls::setFullscreen);
     connect(m_player, &PlayerAdapter::volumeChanged, m_ui->m_controls, &PlayerControls::setVolume);
     connect(m_player, &PlayerAdapter::hideCursor, [=] { if(isFullScreen()) m_ui->m_controls->hide(); } );
+    connect(m_player, &PlayerAdapter::tracksChanged, this, &MainWindow::setTracks);
     connect(m_player, &PlayerAdapter::close, this, &QApplication::quit);
 
     // Key/Mouse presses
@@ -80,7 +88,53 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
-MainWindow::~MainWindow() {
+void MainWindow::setTracks(QVector<const PlayerAdapter::Track*> tracks)
+{
+    clearTracks();
+
+    for (auto it = tracks.begin(); it != tracks.end(); ++it) {
+        QAction *action = new QAction(this);
+        const PlayerAdapter::Track *track = *it;
+        QString actionText = "Track " + QString::number(track->id);
+        if (!track->lang.isEmpty())
+            actionText += " [" + track->lang + "]";
+        if (!track->title.isEmpty())
+            actionText += " - " + track->title;
+        action->setText(actionText);
+        action->setCheckable(true);
+
+        QPair<QAction*, const PlayerAdapter::Track*> qpair(action, track);
+
+        switch (track->type) {
+            case PlayerAdapter::Track::track_type::audio:
+                m_audioTracks.push_back(qpair);
+                m_ui->m_menuAudio->addAction(action);
+                m_actionGroupAudio->addAction(action);
+                break;
+            case PlayerAdapter::Track::track_type::video:
+                m_videoTracks.push_back(qpair);
+                m_ui->m_menuVideo->addAction(action);
+                m_actionGroupVideo->addAction(action);
+                break;
+            case PlayerAdapter::Track::track_type::subtitle:
+                m_subtitleTracks.push_back(qpair);
+                m_ui->m_menuSubtitle->addAction(action);
+                m_actionGroupVideo->addAction(action);
+                break;
+        }
+    }
+}
+
+void MainWindow::clearTracks()
+{
+    
+}
+
+MainWindow::~MainWindow()
+{
     delete m_ui;
     delete m_player;
+    delete m_actionGroupAudio;
+    delete m_actionGroupVideo;
+    delete m_actionGroupSubtitle;
 }

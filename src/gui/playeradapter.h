@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QKeyEvent>
 #include <QWheelEvent>
+#include <QVector>
 
 class PlayerAdapter : public QObject
 {
@@ -13,6 +14,21 @@ public:
     using QObject::QObject;
     virtual ~PlayerAdapter() {}
     virtual int getMaxVolume() const = 0;
+
+    struct Track
+    {
+        enum track_type {audio, video, subtitle};
+        int64_t id;
+        track_type type;
+        int64_t src_id;
+        QString title;
+        QString lang;
+        bool albumart;
+        bool def;
+        bool external;
+        QString external_filename;
+        QString codec;
+    } typedef Track;
 
 public Q_SLOTS:
     virtual void open() = 0;
@@ -33,6 +49,7 @@ Q_SIGNALS:
     void stateChanged(const bool paused);
     void fullscreenChanged(const bool full);
     void volumeChanged(const int value);
+    void tracksChanged(QVector<const PlayerAdapter::Track*> tracks);
     void hideCursor();
     void close();
 };

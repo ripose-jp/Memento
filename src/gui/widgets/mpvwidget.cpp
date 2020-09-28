@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <QtGui/QOpenGLContext>
+#include <QDebug>
 
 static void wakeup(void *ctx)
 {
@@ -43,6 +44,7 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent), m_cursorTimer(new
     mpv_observe_property(mpv, 0, "pause", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "fullscreen", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "volume", MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "track-list", MPV_FORMAT_NODE);
     mpv_set_wakeup_callback(mpv, wakeup, this);
 
     connect(m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
@@ -143,6 +145,10 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
             if (prop->format == MPV_FORMAT_INT64) {
                 int volume = *(int64_t *)prop->data;
                 Q_EMIT volumeChanged(volume);
+            }
+        } else if (strcmp(prop->name, "track-list") == 0) {
+            if (prop->format == MPV_FORMAT_NODE) {
+                Q_EMIT tracklistChanged((mpv_node*)prop->data);
             }
         }
         break;

@@ -24,6 +24,9 @@ public Q_SLOTS:
     void setVolume(const int value) Q_DECL_OVERRIDE;
     int getMaxVolume() const Q_DECL_OVERRIDE;
 
+private Q_SLOTS:
+    void processTracks(const mpv_node *node);
+
 private:
     MpvWidget *m_mpv;
 };

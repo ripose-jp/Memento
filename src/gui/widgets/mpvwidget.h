@@ -30,6 +30,7 @@ Q_SIGNALS:
     void volumeChanged(int value);
     void stateChanged(bool paused);
     void fullscreenChanged(bool full);
+    void tracklistChanged(mpv_node *node);
     void hideCursor();
     void shutdown();
 

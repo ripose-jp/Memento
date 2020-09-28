@@ -75,7 +75,28 @@
     </property>
     <addaction name="m_actionOpen"/>
    </widget>
+   <widget class="QMenu" name="m_menuAudio">
+    <property name="title">
+     <string>Audio</string>
+    </property>
+    <addaction name="m_actionAudioNone"/>
+   </widget>
+   <widget class="QMenu" name="m_menuVideo">
+    <property name="title">
+     <string>Video</string>
+    </property>
+    <addaction name="m_actionVideoNone"/>
+   </widget>
+   <widget class="QMenu" name="m_menuSubtitle">
+    <property name="title">
+     <string>Subtitle</string>
+    </property>
+    <addaction name="m_actionSubtitleNone"/>
+   </widget>
    <addaction name="m_menuFile"/>
+   <addaction name="m_menuAudio"/>
+   <addaction name="m_menuVideo"/>
+   <addaction name="m_menuSubtitle"/>
   </widget>
   <action name="m_actionOpen">
    <property name="text">
@@ -83,6 +104,39 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="m_actionAudioNone">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>None</string>
+   </property>
+  </action>
+  <action name="m_actionVideoNone">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>None</string>
+   </property>
+  </action>
+  <action name="m_actionSubtitleNone">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>None</string>
    </property>
   </action>
  </widget>

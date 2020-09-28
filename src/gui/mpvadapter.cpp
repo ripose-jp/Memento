@@ -1,6 +1,7 @@
 #include "mpvadapter.h"
 
 #include <QFileDialog>
+#include <QDebug>
 
 MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv), PlayerAdapter(parent)
 {
@@ -10,6 +11,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv), PlayerAdap
     connect(m_mpv, &MpvWidget::fullscreenChanged, this, &MpvAdapter::fullscreenChanged);
     connect(m_mpv, &MpvWidget::volumeChanged, this, &MpvAdapter::volumeChanged);
     connect(m_mpv, &MpvWidget::hideCursor, this, &MpvAdapter::hideCursor);
+    connect(m_mpv, &MpvWidget::tracklistChanged, this, &MpvAdapter::processTracks);
     connect(m_mpv, &MpvWidget::shutdown, this, &MpvAdapter::close);
 }
 
@@ -132,4 +134,69 @@ void MpvAdapter::setVolume(const int value)
 int MpvAdapter::getMaxVolume() const
 {
     return m_mpv->getProperty("volume-max").toInt();
+}
+
+// Code modified from loadTracks()
+// https://github.com/u8sand/Baka-MPlayer/blob/master/src/mpvhandler.cpp
+void MpvAdapter::processTracks(const mpv_node *node)
+{
+    QVector<const PlayerAdapter::Track*> tracks;
+    if (node->format == MPV_FORMAT_NODE_ARRAY) {
+        for (int i = 0; i < node->u.list->num; i++) {
+            PlayerAdapter::Track *track = new PlayerAdapter::Track;
+            if (node->u.list->values[i].format == MPV_FORMAT_NODE_MAP) {
+                for (int n = 0; n < node->u.list->values[i].u.list->num; n++) {
+                    if (QString(node->u.list->values[i].u.list->keys[n]) == "id") {
+                        if(node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_INT64)
+                            track->id = node->u.list->values[i].u.list->values[n].u.int64;
+                    }
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "type") {
+                        if(node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING) {
+                            QString type = node->u.list->values[i].u.list->values[n].u.string;
+                            if (type == "audio")
+                                track->type = Track::track_type::audio;
+                            else if (type == "video")
+                                track->type = Track::track_type::video;
+                            else if (type == "sub")
+                                track->type = Track::track_type::subtitle;
+                        }
+                    }
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "src-id") {
+                        if(node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_INT64)
+                            track->src_id = node->u.list->values[i].u.list->values[n].u.int64;
+                    }
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "title") {
+                        if(node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING)
+                            track->title = node->u.list->values[i].u.list->values[n].u.string;
+                    }
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "lang") {
+                        if(node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING)
+                            track->lang = node->u.list->values[i].u.list->values[n].u.string;
+                    }
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "albumart") {
+                        if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_FLAG)
+                            track->albumart = node->u.list->values[i].u.list->values[n].u.flag != 0;
+                    }
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "default") {
+                        if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_FLAG)
+                            track->def = node->u.list->values[i].u.list->values[n].u.flag != 0;
+                    }
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "external") {
+                        if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_FLAG)
+                            track->external = node->u.list->values[i].u.list->values[n].u.flag != 0;
+                    }
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "external-filename") {
+                        if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING)
+                            track->external_filename = node->u.list->values[i].u.list->values[n].u.string;
+                    }
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "codec") {
+                        if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING)
+                            track->codec = node->u.list->values[i].u.list->values[n].u.string;
+                    }
+                }
+                tracks.push_back(track);
+            }
+        }
+    }
+    Q_EMIT tracksChanged(tracks);
 }
