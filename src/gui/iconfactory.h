@@ -18,9 +18,16 @@ class IconFactory
 {
 public:
     enum class Icon
-    { 
-        play, pause, stop, seek_forward, seek_backward,
-        skip_forward, skip_backward, fullscreen, restore 
+    {
+        play,
+        pause,
+        stop,
+        seek_forward,
+        seek_backward,
+        skip_forward,
+        skip_backward,
+        fullscreen,
+        restore
     };
     static QIcon getIcon(IconFactory::Icon icon, const QWidget *widget);
 

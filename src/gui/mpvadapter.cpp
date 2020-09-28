@@ -23,12 +23,13 @@ void MpvAdapter::open(const QString &file)
 
 void MpvAdapter::open(const QList<QUrl> &files)
 {
-    if(files.isEmpty())
+    if (files.isEmpty())
         return;
-    
+
     stop();
     open(files.first().toLocalFile());
-    for (auto it = files.begin() + 1; it != files.end(); ++it) {
+    for (auto it = files.begin() + 1; it != files.end(); ++it)
+    {
         qDebug() << (*it).toLocalFile();
         if (!(*it).toLocalFile().isEmpty())
             m_mpv->command(QStringList() << "loadfile" << (*it).toLocalFile() << "append");
@@ -78,66 +79,80 @@ void MpvAdapter::skipBackward()
 void MpvAdapter::keyPressed(const QKeyEvent *event)
 {
     QString key = "";
-    if (event->modifiers() & Qt::ShiftModifier) {
+    if (event->modifiers() & Qt::ShiftModifier)
+    {
         key += "Shift+";
     }
-    if (event->modifiers() & Qt::ControlModifier) {
+    if (event->modifiers() & Qt::ControlModifier)
+    {
         key += "Ctrl+";
     }
-    if (event->modifiers() & Qt::AltModifier) {
+    if (event->modifiers() & Qt::AltModifier)
+    {
         key += "Alt+";
     }
-    if (event->modifiers() & Qt::MetaModifier) {
+    if (event->modifiers() & Qt::MetaModifier)
+    {
         key += "Meta+";
     }
-    if (event->modifiers() & Qt::KeypadModifier) {
+    if (event->modifiers() & Qt::KeypadModifier)
+    {
         key += "KP";
     }
-    switch (event->key()) {
-        case Qt::Key::Key_Left:
-            key += "LEFT";
-            break;
-        case Qt::Key::Key_Right:
-            key += "RIGHT";
-            break;
-        case Qt::Key::Key_Up:
-            key += "UP";
-            break;
-        case Qt::Key::Key_Down:
-            key += "DOWN";
-            break;
-        case Qt::Key::Key_Enter:
-            key += "ENTER";
-            break;
-        case Qt::Key::Key_Escape:
-            key += "ESC";
-            break;
-        case Qt::Key::Key_PageUp:
-            key += "PGUP";
-            break;
-        case Qt::Key::Key_PageDown:
-            key += "PGDWN";
-            break;
-        case Qt::Key::Key_Backspace:
-            key += "BS";
-            break;
-        default: {
-            key += event->text();
-        }
+    switch (event->key())
+    {
+    case Qt::Key::Key_Left:
+        key += "LEFT";
+        break;
+    case Qt::Key::Key_Right:
+        key += "RIGHT";
+        break;
+    case Qt::Key::Key_Up:
+        key += "UP";
+        break;
+    case Qt::Key::Key_Down:
+        key += "DOWN";
+        break;
+    case Qt::Key::Key_Enter:
+        key += "ENTER";
+        break;
+    case Qt::Key::Key_Escape:
+        key += "ESC";
+        break;
+    case Qt::Key::Key_PageUp:
+        key += "PGUP";
+        break;
+    case Qt::Key::Key_PageDown:
+        key += "PGDWN";
+        break;
+    case Qt::Key::Key_Backspace:
+        key += "BS";
+        break;
+    default:
+    {
+        key += event->text();
+    }
     }
     m_mpv->command(QVariantList() << "keypress" << key);
 }
 
-void MpvAdapter::mouseWheelMoved(const QWheelEvent *event) 
+void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
 {
     QString direction = "WHEEL_";
-    if (event->angleDelta().y() > 0) {
+    if (event->angleDelta().y() > 0)
+    {
         direction += "UP";
-    } else if (event->angleDelta().y() < 0) {
+    }
+    else if (event->angleDelta().y() < 0)
+    {
         direction += "DOWN";
-    } else if (event->angleDelta().x() > 0) {
+    }
+    else if (event->angleDelta().x() > 0)
+    {
         direction += "RIGHT";
-    } else if (event->angleDelta().x() < 0) {
+    }
+    else if (event->angleDelta().x() < 0)
+    {
         direction += "LEFT";
     }
     m_mpv->command(QVariantList() << "keypress" << direction);
@@ -162,18 +177,25 @@ int MpvAdapter::getMaxVolume() const
 // https://github.com/u8sand/Baka-MPlayer/blob/master/src/mpvhandler.cpp
 void MpvAdapter::processTracks(const mpv_node *node)
 {
-    QVector<const PlayerAdapter::Track*> tracks;
-    if (node->format == MPV_FORMAT_NODE_ARRAY) {
-        for (int i = 0; i < node->u.list->num; i++) {
+    QVector<const PlayerAdapter::Track *> tracks;
+    if (node->format == MPV_FORMAT_NODE_ARRAY)
+    {
+        for (int i = 0; i < node->u.list->num; i++)
+        {
             PlayerAdapter::Track *track = new PlayerAdapter::Track;
-            if (node->u.list->values[i].format == MPV_FORMAT_NODE_MAP) {
-                for (int n = 0; n < node->u.list->values[i].u.list->num; n++) {
-                    if (QString(node->u.list->values[i].u.list->keys[n]) == "id") {
-                        if(node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_INT64)
+            if (node->u.list->values[i].format == MPV_FORMAT_NODE_MAP)
+            {
+                for (int n = 0; n < node->u.list->values[i].u.list->num; n++)
+                {
+                    if (QString(node->u.list->values[i].u.list->keys[n]) == "id")
+                    {
+                        if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_INT64)
                             track->id = node->u.list->values[i].u.list->values[n].u.int64;
                     }
-                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "type") {
-                        if(node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING) {
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "type")
+                    {
+                        if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING)
+                        {
                             QString type = node->u.list->values[i].u.list->values[n].u.string;
                             if (type == "audio")
                                 track->type = Track::track_type::audio;
@@ -183,35 +205,43 @@ void MpvAdapter::processTracks(const mpv_node *node)
                                 track->type = Track::track_type::subtitle;
                         }
                     }
-                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "src-id") {
-                        if(node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_INT64)
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "src-id")
+                    {
+                        if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_INT64)
                             track->src_id = node->u.list->values[i].u.list->values[n].u.int64;
                     }
-                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "title") {
-                        if(node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING)
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "title")
+                    {
+                        if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING)
                             track->title = node->u.list->values[i].u.list->values[n].u.string;
                     }
-                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "lang") {
-                        if(node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING)
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "lang")
+                    {
+                        if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING)
                             track->lang = node->u.list->values[i].u.list->values[n].u.string;
                     }
-                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "albumart") {
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "albumart")
+                    {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_FLAG)
                             track->albumart = node->u.list->values[i].u.list->values[n].u.flag != 0;
                     }
-                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "default") {
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "default")
+                    {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_FLAG)
                             track->def = node->u.list->values[i].u.list->values[n].u.flag != 0;
                     }
-                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "external") {
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "external")
+                    {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_FLAG)
                             track->external = node->u.list->values[i].u.list->values[n].u.flag != 0;
                     }
-                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "external-filename") {
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "external-filename")
+                    {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING)
                             track->external_filename = node->u.list->values[i].u.list->values[n].u.string;
                     }
-                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "codec") {
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "codec")
+                    {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING)
                             track->codec = node->u.list->values[i].u.list->values[n].u.string;
                     }

@@ -6,10 +6,11 @@
 
 static void wakeup(void *ctx)
 {
-    QMetaObject::invokeMethod((MpvWidget*)ctx, "on_mpv_events", Qt::QueuedConnection);
+    QMetaObject::invokeMethod((MpvWidget *)ctx, "on_mpv_events", Qt::QueuedConnection);
 }
 
-static void *get_proc_address(void *ctx, const char *name) {
+static void *get_proc_address(void *ctx, const char *name)
+{
     Q_UNUSED(ctx);
     QOpenGLContext *glctx = QOpenGLContext::currentContext();
     if (!glctx)
@@ -27,7 +28,7 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent), m_cursorTimer(new
     mpv_set_option_string(mpv, "msg-level", "all=v");
     mpv_set_option_string(mpv, "keep-open", "yes");
     mpv_set_option_string(mpv, "config", "yes");
-    
+
     // TODO: non-portable code
     QString path = getenv("HOME");
     path += CONFIG_PATH;
@@ -45,10 +46,13 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent), m_cursorTimer(new
     mpv_observe_property(mpv, 0, "fullscreen", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "volume", MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "track-list", MPV_FORMAT_NODE);
+    mpv_observe_property(mpv, 0, "current-tracks/video/id", MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "current-tracks/audio/id", MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "current-tracks/sub/id", MPV_FORMAT_INT64);
     mpv_set_wakeup_callback(mpv, wakeup, this);
 
     connect(m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
-    connect(m_cursorTimer, &QTimer::timeout, this, [=] { setCursor(Qt::BlankCursor); } );
+    connect(m_cursorTimer, &QTimer::timeout, this, [=] { setCursor(Qt::BlankCursor); });
 }
 
 MpvWidget::~MpvWidget()
@@ -60,12 +64,12 @@ MpvWidget::~MpvWidget()
     delete m_cursorTimer;
 }
 
-void MpvWidget::command(const QVariant& params)
+void MpvWidget::command(const QVariant &params)
 {
     mpv::qt::command(mpv, params);
 }
 
-void MpvWidget::setProperty(const QString& name, const QVariant& value)
+void MpvWidget::setProperty(const QString &name, const QVariant &value)
 {
     mpv::qt::set_property_variant(mpv, name, value);
 }
@@ -81,8 +85,7 @@ void MpvWidget::initializeGL()
     mpv_render_param params[]{
         {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)},
         {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init_params},
-        {MPV_RENDER_PARAM_INVALID, nullptr}
-    };
+        {MPV_RENDER_PARAM_INVALID, nullptr}};
 
     if (mpv_render_context_create(&mpv_gl, mpv, params) < 0)
         throw std::runtime_error("failed to initialize mpv GL context");
@@ -97,8 +100,7 @@ void MpvWidget::paintGL()
     mpv_render_param params[] = {
         {MPV_RENDER_PARAM_OPENGL_FBO, &mpfbo},
         {MPV_RENDER_PARAM_FLIP_Y, &flip_y},
-        {MPV_RENDER_PARAM_INVALID, nullptr}
-    };
+        {MPV_RENDER_PARAM_INVALID, nullptr}};
     // See render_gl.h on what OpenGL environment mpv expects, and
     // other API details.
     mpv_render_context_render(mpv_gl, params);
@@ -107,9 +109,11 @@ void MpvWidget::paintGL()
 void MpvWidget::on_mpv_events()
 {
     // Process all events, until the event queue is empty.
-    while (mpv) {
+    while (mpv)
+    {
         mpv_event *event = mpv_wait_event(mpv, 0);
-        if (event->event_id == MPV_EVENT_NONE) {
+        if (event->event_id == MPV_EVENT_NONE)
+        {
             break;
         }
         handle_mpv_event(event);
@@ -118,44 +122,87 @@ void MpvWidget::on_mpv_events()
 
 void MpvWidget::handle_mpv_event(mpv_event *event)
 {
-    switch (event->event_id) {
-    case MPV_EVENT_PROPERTY_CHANGE: {
+    switch (event->event_id)
+    {
+    case MPV_EVENT_PROPERTY_CHANGE:
+    {
         mpv_event_property *prop = (mpv_event_property *)event->data;
-        if (strcmp(prop->name, "time-pos") == 0) {
-            if (prop->format == MPV_FORMAT_DOUBLE) {
+        if (strcmp(prop->name, "time-pos") == 0)
+        {
+            if (prop->format == MPV_FORMAT_DOUBLE)
+            {
                 double time = *(double *)prop->data;
                 Q_EMIT positionChanged(time);
             }
-        } else if (strcmp(prop->name, "duration") == 0) {
-            if (prop->format == MPV_FORMAT_DOUBLE) {
+        }
+        else if (strcmp(prop->name, "duration") == 0)
+        {
+            if (prop->format == MPV_FORMAT_DOUBLE)
+            {
                 double time = *(double *)prop->data;
                 Q_EMIT durationChanged(time);
             }
-        } else if (strcmp(prop->name, "pause") == 0) {
-            if (prop->format == MPV_FORMAT_FLAG) {
+        }
+        else if (strcmp(prop->name, "pause") == 0)
+        {
+            if (prop->format == MPV_FORMAT_FLAG)
+            {
                 bool paused = *(int *)prop->data;
                 Q_EMIT stateChanged(paused);
             }
-        } else if (strcmp(prop->name, "fullscreen") == 0) {
-            if (prop->format == MPV_FORMAT_FLAG) {
+        }
+        else if (strcmp(prop->name, "fullscreen") == 0)
+        {
+            if (prop->format == MPV_FORMAT_FLAG)
+            {
                 bool full = *(int *)prop->data;
                 Q_EMIT fullscreenChanged(full);
             }
-        } else if (strcmp(prop->name, "volume") == 0) {
-            if (prop->format == MPV_FORMAT_INT64) {
+        }
+        else if (strcmp(prop->name, "volume") == 0)
+        {
+            if (prop->format == MPV_FORMAT_INT64)
+            {
                 int volume = *(int64_t *)prop->data;
                 Q_EMIT volumeChanged(volume);
             }
-        } else if (strcmp(prop->name, "track-list") == 0) {
-            if (prop->format == MPV_FORMAT_NODE) {
-                Q_EMIT tracklistChanged((mpv_node*)prop->data);
+        }
+        else if (strcmp(prop->name, "track-list") == 0)
+        {
+            if (prop->format == MPV_FORMAT_NODE)
+            {
+                Q_EMIT tracklistChanged((mpv_node *)prop->data);
+            }
+        }
+        else if (strcmp(prop->name, "current-tracks/video/id") == 0)
+        {
+            if (prop->format == MPV_FORMAT_INT64)
+            {
+                int64_t id = *(int64_t *)prop->data;
+                Q_EMIT videoTrackChanged(id);
+            }
+        }
+        else if (strcmp(prop->name, "current-tracks/audio/id") == 0)
+        {
+            if (prop->format == MPV_FORMAT_INT64)
+            {
+                int64_t id = *(int64_t *)prop->data;
+                Q_EMIT audioTrackChanged(id);
+            }
+        }
+        else if (strcmp(prop->name, "current-tracks/sub/id") == 0)
+        {
+            if (prop->format == MPV_FORMAT_INT64)
+            {
+                int64_t id = *(int64_t *)prop->data;
+                Q_EMIT subtitleTrackChanged(id);
             }
         }
         break;
     }
     case MPV_EVENT_SHUTDOWN:
         Q_EMIT shutdown();
-    default: ;
+    default:;
         // Ignore uninteresting or unknown events.
     }
 }
@@ -170,25 +217,29 @@ void MpvWidget::maybeUpdate()
     // Note: Qt doesn't seem to provide a way to query whether update() will
     //       be skipped, and the following code still fails when e.g. switching
     //       to a different workspace with a reparenting window manager.
-    if (window()->isMinimized()) {
+    if (window()->isMinimized())
+    {
         makeCurrent();
         paintGL();
         context()->swapBuffers(context()->surface());
         doneCurrent();
-    } else {
+    }
+    else
+    {
         update();
     }
 }
 
 void MpvWidget::on_update(void *ctx)
 {
-    QMetaObject::invokeMethod((MpvWidget*)ctx, "maybeUpdate");
+    QMetaObject::invokeMethod((MpvWidget *)ctx, "maybeUpdate");
 }
 
 void MpvWidget::mouseMoveEvent(QMouseEvent *event)
 {
     event->ignore();
-    if (cursor().shape() == Qt::BlankCursor) {
+    if (cursor().shape() == Qt::BlankCursor)
+    {
         setCursor(Qt::ArrowCursor);
     }
     m_cursorTimer->start(TIMEOUT);
@@ -206,15 +257,16 @@ void MpvWidget::mouseDoubleClickEvent(QMouseEvent *event)
 
 QString MpvWidget::convertToMouseString(const QMouseEvent *event) const
 {
-    switch (event->button()) {
-        case Qt::LeftButton:
-            return "MBTN_LEFT";
-        case Qt::RightButton:
-            return "MBTN_RIGHT";
-        case Qt::BackButton:
-            return "MBTN_BACK";
-        case Qt::ForwardButton:
-            return "MBTN_FORWARD";
+    switch (event->button())
+    {
+    case Qt::LeftButton:
+        return "MBTN_LEFT";
+    case Qt::RightButton:
+        return "MBTN_RIGHT";
+    case Qt::BackButton:
+        return "MBTN_BACK";
+    case Qt::ForwardButton:
+        return "MBTN_FORWARD";
     }
     return "";
 }

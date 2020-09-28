@@ -20,7 +20,7 @@ namespace Ui
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    
+
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
@@ -34,7 +34,7 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void open();
-    void setTracks(QVector<const PlayerAdapter::Track*> tracks);
+    void setTracks(QVector<const PlayerAdapter::Track *> tracks);
 
 protected:
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
@@ -49,12 +49,12 @@ private:
     QActionGroup *m_actionGroupAudio;
     QActionGroup *m_actionGroupVideo;
     QActionGroup *m_actionGroupSubtitle;
-    QVector<QPair<QAction*, const PlayerAdapter::Track*>> m_audioTracks;
-    QVector<QPair<QAction*, const PlayerAdapter::Track*>> m_videoTracks;
-    QVector<QPair<QAction*, const PlayerAdapter::Track*>> m_subtitleTracks;
+    QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_audioTracks;
+    QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_videoTracks;
+    QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_subtitleTracks;
 
     void clearTracks();
-    void clearTrack(QVector<QPair<QAction*, const PlayerAdapter::Track*>> &tracks, QMenu *menu, QActionGroup *actionGroup);
+    void clearTrack(QVector<QPair<QAction *, const PlayerAdapter::Track *>> &tracks, QMenu *menu, QActionGroup *actionGroup);
 };
 
 #endif // MAINWINDOW_H

@@ -45,7 +45,6 @@ Q_SIGNALS:
 private Q_SLOTS:
     void pauseResume();
     void toggleFullscreen();
-    
 
 private:
     Ui::PlayerControls *m_ui;

@@ -10,7 +10,7 @@ PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent), m_ui(new Ui::
     // Make QSliders jump to the position clicked
     m_ui->m_sliderProgress->setStyle(new SliderJumpStyle(m_ui->m_sliderProgress->style()));
     m_ui->m_sliderVolume->setStyle(new SliderJumpStyle(m_ui->m_sliderVolume->style()));
-    
+
     connect(m_ui->m_sliderProgress, &QSlider::sliderPressed, this, &PlayerControls::pause);
     connect(m_ui->m_sliderProgress, &QSlider::sliderReleased, this, &PlayerControls::play);
     connect(m_ui->m_sliderProgress, &QSlider::valueChanged, this, &PlayerControls::sliderMoved, Qt::QueuedConnection);
@@ -41,20 +41,27 @@ void PlayerControls::setPosition(const int value)
     m_ui->m_labelCurrent->setText(formatTime(value));
 }
 
-void PlayerControls::setPaused(const bool paused) {
+void PlayerControls::setPaused(const bool paused)
+{
     m_paused = paused;
-    if (m_paused) {
+    if (m_paused)
+    {
         m_ui->m_buttonPlay->setIcon(IconFactory::getIcon(IconFactory::Icon::play, this));
-    } else {
+    }
+    else
+    {
         m_ui->m_buttonPlay->setIcon(IconFactory::getIcon(IconFactory::Icon::pause, this));
     }
 }
 
 void PlayerControls::pauseResume()
 {
-    if (m_paused) {
+    if (m_paused)
+    {
         Q_EMIT play();
-    } else {
+    }
+    else
+    {
         Q_EMIT pause();
     }
 }
@@ -62,9 +69,12 @@ void PlayerControls::pauseResume()
 void PlayerControls::setFullscreen(const bool value)
 {
     m_fullscreen = value;
-    if (m_fullscreen) {
+    if (m_fullscreen)
+    {
         m_ui->m_buttonFullscreen->setIcon(IconFactory::getIcon(IconFactory::Icon::restore, this));
-    } else {
+    }
+    else
+    {
         m_ui->m_buttonFullscreen->setIcon(IconFactory::getIcon(IconFactory::Icon::fullscreen, this));
     }
 }
@@ -93,10 +103,10 @@ QString PlayerControls::formatTime(const int time)
     int hours = time / SECONDS_IN_HOUR;
     int minutes = (time % SECONDS_IN_HOUR) / SECONDS_IN_MINUTE;
     int seconds = time % SECONDS_IN_MINUTE;
-    
-    QString formatted = QString("%1:%2").arg(minutes, FILL_SPACES, BASE_TEN, QChar(FILL_CHAR))
-                                        .arg(seconds, FILL_SPACES, BASE_TEN, QChar(FILL_CHAR));
-    if (hours) {
+
+    QString formatted = QString("%1:%2").arg(minutes, FILL_SPACES, BASE_TEN, QChar(FILL_CHAR)).arg(seconds, FILL_SPACES, BASE_TEN, QChar(FILL_CHAR));
+    if (hours)
+    {
         formatted.prepend(QString("%1:").arg(hours));
     }
 

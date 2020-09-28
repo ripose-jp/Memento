@@ -17,7 +17,12 @@ public:
 
     struct Track
     {
-        enum track_type {audio, video, subtitle};
+        enum track_type
+        {
+            audio,
+            video,
+            subtitle
+        };
         int64_t id;
         track_type type;
         int64_t src_id;
@@ -52,7 +57,7 @@ Q_SIGNALS:
     void stateChanged(const bool paused);
     void fullscreenChanged(const bool full);
     void volumeChanged(const int value);
-    void tracksChanged(QVector<const PlayerAdapter::Track*> tracks);
+    void tracksChanged(QVector<const PlayerAdapter::Track *> tracks);
     void hideCursor();
     void close();
 };
