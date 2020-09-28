@@ -12,11 +12,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_ui->setupUi(this);
 
     m_actionGroupAudio = new QActionGroup(this);
-    m_actionGroupAudio->addAction(m_ui->m_actionAudioNone);
+    m_ui->m_actionAudioNone->setActionGroup(m_actionGroupAudio);
     m_actionGroupVideo = new QActionGroup(this);
-    m_actionGroupVideo->addAction(m_ui->m_actionVideoNone);
+    m_ui->m_actionVideoNone->setActionGroup(m_actionGroupVideo);
     m_actionGroupSubtitle = new QActionGroup(this);
-    m_actionGroupSubtitle->addAction(m_ui->m_actionSubtitleNone);
+    m_ui->m_actionSubtitleNone->setActionGroup(m_actionGroupSubtitle);
 
     m_player = new MpvAdapter(m_ui->m_mpv, this);
 
@@ -47,12 +47,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_player, &PlayerAdapter::fullscreenChanged, m_ui->m_controls, &PlayerControls::setFullscreen);
     connect(m_player, &PlayerAdapter::volumeChanged, m_ui->m_controls, &PlayerControls::setVolume);
     connect(m_player, &PlayerAdapter::hideCursor, [=] { if(isFullScreen()) m_ui->m_controls->hide(); });
-    connect(m_player, &PlayerAdapter::tracksChanged, this, &MainWindow::setTracks);
     connect(m_player, &PlayerAdapter::close, this, &QApplication::quit);
 
     // Key/Mouse presses
     connect(this, &MainWindow::keyPressed, m_player, &PlayerAdapter::keyPressed);
     connect(this, &MainWindow::wheelMoved, m_player, &PlayerAdapter::mouseWheelMoved);
+
+    // Track changes
+    connect(m_player, &PlayerAdapter::tracksChanged, this, &MainWindow::setTracks);
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -116,47 +118,51 @@ void MainWindow::setTracks(QVector<const PlayerAdapter::Track *> tracks)
 
     for (auto it = tracks.begin(); it != tracks.end(); ++it)
     {
-        QAction *action = new QAction(this);
         const PlayerAdapter::Track *track = *it;
         QString actionText = "Track " + QString::number(track->id);
         if (!track->lang.isEmpty())
             actionText += " [" + track->lang + "]";
         if (!track->title.isEmpty())
             actionText += " - " + track->title;
+
+        QAction *action = new QAction(this);
         action->setText(actionText);
         action->setCheckable(true);
-
-        QPair<QAction *, const PlayerAdapter::Track *> qpair(action, track);
-
+        QList<QPair<QAction *, const PlayerAdapter::Track *>> *trackList;
         switch (track->type)
         {
         case PlayerAdapter::Track::track_type::audio:
-            m_audioTracks.push_back(qpair);
             m_ui->m_menuAudio->addAction(action);
-            m_actionGroupAudio->addAction(action);
+            action->setActionGroup(m_actionGroupAudio);
+            trackList = &m_audioTracks;
             break;
         case PlayerAdapter::Track::track_type::video:
-            m_videoTracks.push_back(qpair);
             m_ui->m_menuVideo->addAction(action);
-            m_actionGroupVideo->addAction(action);
+            action->setActionGroup(m_actionGroupVideo);
+            trackList = &m_audioTracks;
             break;
         case PlayerAdapter::Track::track_type::subtitle:
-            m_subtitleTracks.push_back(qpair);
             m_ui->m_menuSubtitle->addAction(action);
-            m_actionGroupVideo->addAction(action);
+            action->setActionGroup(m_actionGroupSubtitle);
+            trackList = &m_subtitleTracks;
             break;
         }
+        action->setChecked(track->selected);
+        trackList->push_back(QPair<QAction *, const PlayerAdapter::Track *>(action, track));
     }
 }
 
 void MainWindow::clearTracks()
 {
     clearTrack(m_audioTracks, m_ui->m_menuAudio, m_actionGroupAudio);
+    m_ui->m_actionAudioNone->setChecked(true);
     clearTrack(m_videoTracks, m_ui->m_menuVideo, m_actionGroupVideo);
+    m_ui->m_actionVideoNone->setChecked(true);
     clearTrack(m_subtitleTracks, m_ui->m_menuSubtitle, m_actionGroupSubtitle);
+    m_ui->m_actionSubtitleNone->setChecked(true);
 }
 
-void MainWindow::clearTrack(QVector<QPair<QAction *, const PlayerAdapter::Track *>> &tracks, QMenu *menu, QActionGroup *actionGroup)
+void MainWindow::clearTrack(QList<QPair<QAction *, const PlayerAdapter::Track *>> &tracks, QMenu *menu, QActionGroup *actionGroup)
 {
     for (auto it = tracks.begin(); it != tracks.end(); ++it)
     {

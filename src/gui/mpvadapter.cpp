@@ -4,13 +4,15 @@
 
 MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv), PlayerAdapter(parent)
 {
+    connect(m_mpv, &MpvWidget::tracklistChanged, this, &MpvAdapter::processTracks);
+
     connect(m_mpv, &MpvWidget::durationChanged, this, &MpvAdapter::durationChanged);
     connect(m_mpv, &MpvWidget::positionChanged, this, &MpvAdapter::positionChanged);
     connect(m_mpv, &MpvWidget::stateChanged, this, &MpvAdapter::stateChanged);
     connect(m_mpv, &MpvWidget::fullscreenChanged, this, &MpvAdapter::fullscreenChanged);
     connect(m_mpv, &MpvWidget::volumeChanged, this, &MpvAdapter::volumeChanged);
+
     connect(m_mpv, &MpvWidget::hideCursor, this, &MpvAdapter::hideCursor);
-    connect(m_mpv, &MpvWidget::tracklistChanged, this, &MpvAdapter::processTracks);
     connect(m_mpv, &MpvWidget::shutdown, this, &MpvAdapter::close);
 }
 
@@ -229,6 +231,11 @@ void MpvAdapter::processTracks(const mpv_node *node)
                     {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_FLAG)
                             track->def = node->u.list->values[i].u.list->values[n].u.flag != 0;
+                    }
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "selected")
+                    {
+                        if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_FLAG)
+                            track->selected = node->u.list->values[i].u.list->values[n].u.flag != 0;
                     }
                     else if (QString(node->u.list->values[i].u.list->keys[n]) == "external")
                     {

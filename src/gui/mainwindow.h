@@ -49,12 +49,12 @@ private:
     QActionGroup *m_actionGroupAudio;
     QActionGroup *m_actionGroupVideo;
     QActionGroup *m_actionGroupSubtitle;
-    QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_audioTracks;
-    QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_videoTracks;
-    QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_subtitleTracks;
+    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_audioTracks;
+    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_videoTracks;
+    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_subtitleTracks;
 
     void clearTracks();
-    void clearTrack(QVector<QPair<QAction *, const PlayerAdapter::Track *>> &tracks, QMenu *menu, QActionGroup *actionGroup);
+    void clearTrack(QList<QPair<QAction *, const PlayerAdapter::Track *>> &tracks, QMenu *menu, QActionGroup *actionGroup);
 };
 
 #endif // MAINWINDOW_H

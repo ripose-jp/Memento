@@ -30,6 +30,7 @@ public:
         QString lang;
         bool albumart;
         bool def;
+        bool selected;
         bool external;
         QString external_filename;
         QString codec;

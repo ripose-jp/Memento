@@ -46,9 +46,6 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent), m_cursorTimer(new
     mpv_observe_property(mpv, 0, "fullscreen", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "volume", MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "track-list", MPV_FORMAT_NODE);
-    mpv_observe_property(mpv, 0, "current-tracks/video/id", MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "current-tracks/audio/id", MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "current-tracks/sub/id", MPV_FORMAT_INT64);
     mpv_set_wakeup_callback(mpv, wakeup, this);
 
     connect(m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
@@ -174,6 +171,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                 Q_EMIT tracklistChanged((mpv_node *)prop->data);
             }
         }
+        /*
         else if (strcmp(prop->name, "current-tracks/video/id") == 0)
         {
             if (prop->format == MPV_FORMAT_INT64)
@@ -198,6 +196,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                 Q_EMIT subtitleTrackChanged(id);
             }
         }
+        */
         break;
     }
     case MPV_EVENT_SHUTDOWN:
