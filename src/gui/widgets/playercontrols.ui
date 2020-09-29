@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>805</width>
-    <height>314</height>
+    <height>386</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,13 +33,7 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="SubtitleLabel" name="m_subtitle">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
+    <widget class="SubtitleWidget" name="m_subtitle">
      <property name="font">
       <font>
        <pointsize>20</pointsize>
@@ -47,8 +41,11 @@
        <bold>true</bold>
       </font>
      </property>
-     <property name="text">
-      <string/>
+     <property name="cursor">
+      <cursorShape>ArrowCursor</cursorShape>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -309,9 +306,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>SubtitleLabel</class>
-   <extends>QLabel</extends>
-   <header>src/gui/widgets/subtitlelabel.h</header>
+   <class>SubtitleWidget</class>
+   <extends>QLineEdit</extends>
+   <header>src/gui/widgets/subtitlewidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

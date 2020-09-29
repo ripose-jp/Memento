@@ -41,7 +41,7 @@ void PlayerControls::setPosition(const int value)
     m_ui->m_labelCurrent->setText(formatTime(value));
 
     if (value > m_endtime)
-        m_ui->m_subtitle->setText("");
+        m_ui->m_subtitle->updateText("");
 }
 
 void PlayerControls::setPaused(const bool paused)
@@ -103,7 +103,7 @@ void PlayerControls::setVolume(const int value)
 
 void PlayerControls::setSubtitle(const QString &subtitle, const int end)
 {
-    m_ui->m_subtitle->setText(subtitle);
+    m_ui->m_subtitle->updateText(subtitle);
     m_endtime = end;
 }
 

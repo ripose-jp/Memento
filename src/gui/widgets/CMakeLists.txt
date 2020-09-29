@@ -11,9 +11,9 @@ target_link_libraries(mpvwidget
     ${MPV_LIB}
     Qt5::Widgets)
 
-add_library(subtitlelabel
-    subtitlelabel.cpp)
-target_link_libraries(subtitlelabel
+add_library(subtitlewidget
+    subtitlewidget.cpp)
+target_link_libraries(subtitlewidget
     Qt5::Widgets)
 
 add_library(playercontrols
@@ -23,4 +23,4 @@ target_link_libraries(playercontrols
     Qt5::Widgets
     iconfactory
     sliderjumpstyle
-    subtitlelabel)
+    subtitlewidget)
