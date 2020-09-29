@@ -8,6 +8,8 @@
 #include <mpv/render_gl.h>
 #include <mpv/qthelper.hpp>
 
+#define ASYNC_COMMAND_REPLY 20
+#define ERROR_STR "MPV threw error code: "
 #define TIMEOUT 2000
 #define CONFIG_PATH "/.config/memento"
 
@@ -19,6 +21,7 @@ public:
     MpvWidget(QWidget *parent = 0);
     ~MpvWidget();
     void command(const QVariant &params);
+    void asyncCommand(const QVariant &args);
     void setProperty(const QString &name, const QVariant &value);
     QVariant getProperty(const QString &name) const;
     QSize sizeHint() const { return QSize(480, 270); }

@@ -74,12 +74,24 @@ MpvWidget::~MpvWidget()
 
 void MpvWidget::command(const QVariant &params)
 {
-    mpv::qt::command(mpv, params);
+    QVariant err = mpv::qt::command(mpv, params);
+    if (mpv::qt::is_error(err))
+        qDebug() << ERROR_STR << mpv::qt::get_error(err);
+}
+
+void MpvWidget::asyncCommand(const QVariant &args)
+{
+    mpv::qt::node_builder node(args);
+    int err = mpv_command_node_async(mpv, ASYNC_COMMAND_REPLY, node.node());
+    if (err < 0)
+        qDebug() << ERROR_STR << err;
 }
 
 void MpvWidget::setProperty(const QString &name, const QVariant &value)
 {
-    mpv::qt::set_property_variant(mpv, name, value);
+    int err = mpv::qt::set_property(mpv, name, value);
+    if (err < 0)
+        qDebug() << ERROR_STR << err;
 }
 
 QVariant MpvWidget::getProperty(const QString &name) const

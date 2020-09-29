@@ -48,7 +48,7 @@ void MpvAdapter::open(const QList<QUrl> &files)
 
 void MpvAdapter::seek(const int time)
 {
-    m_mpv->command(QVariantList() << "seek" << time << "absolute");
+    m_mpv->asyncCommand(QVariantList() << "seek" << time << "absolute");
 }
 
 void MpvAdapter::play()
@@ -63,27 +63,27 @@ void MpvAdapter::pause()
 
 void MpvAdapter::stop()
 {
-    m_mpv->command(QVariantList() << "stop");
+    m_mpv->asyncCommand(QVariantList() << "stop");
 }
 
 void MpvAdapter::seekForward()
 {
-    m_mpv->command(QVariantList() << "sub-seek" << 1);
+    m_mpv->asyncCommand(QVariantList() << "sub-seek" << 1);
 }
 
 void MpvAdapter::seekBackward()
 {
-    m_mpv->command(QVariantList() << "sub-seek" << -1);
+    m_mpv->asyncCommand(QVariantList() << "sub-seek" << -1);
 }
 
 void MpvAdapter::skipForward()
 {
-    m_mpv->command(QVariantList() << "playlist-next");
+    m_mpv->asyncCommand(QVariantList() << "playlist-next");
 }
 
 void MpvAdapter::skipBackward()
 {
-    m_mpv->command(QVariantList() << "playlist-prev");
+    m_mpv->asyncCommand(QVariantList() << "playlist-prev");
 }
 
 void MpvAdapter::disableAudio()
