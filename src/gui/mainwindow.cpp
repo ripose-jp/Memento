@@ -47,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_player, &PlayerAdapter::fullscreenChanged, this, &MainWindow::setFullscreen);
     connect(m_player, &PlayerAdapter::fullscreenChanged, m_ui->m_controls, &PlayerControls::setFullscreen);
     connect(m_player, &PlayerAdapter::volumeChanged, m_ui->m_controls, &PlayerControls::setVolume);
-    connect(m_player, &PlayerAdapter::hideCursor, [=] { if(isFullScreen()) m_ui->m_controls->hide(); });
+    connect(m_player, &PlayerAdapter::hideCursor, [=] { if(isFullScreen() && !m_ui->m_controls->underMouse()) m_ui->m_controls->hide(); });
     connect(m_player, &PlayerAdapter::close, this, &QApplication::quit);
 
     // Key/Mouse presses
@@ -108,6 +108,7 @@ void MainWindow::setFullscreen(bool value)
         QApplication::processEvents();
         m_ui->m_controls->hide();
         m_ui->m_centralwidget->layout()->removeWidget(m_ui->m_controls);
+        m_ui->m_controls->raise();
     }
     else
     {
