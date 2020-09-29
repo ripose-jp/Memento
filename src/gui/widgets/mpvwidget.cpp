@@ -46,12 +46,17 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent), m_cursorTimer(new
     mpv_observe_property(mpv, 0, "fullscreen", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "volume", MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "track-list", MPV_FORMAT_NODE);
+
     mpv_observe_property(mpv, 0, "aid", MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "vid", MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "sid", MPV_FORMAT_INT64);
+
     mpv_observe_property(mpv, 0, "aid", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "vid", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "sid", MPV_FORMAT_FLAG);
+
+    mpv_observe_property(mpv, 0, "sub-text", MPV_FORMAT_STRING);
+
     mpv_set_wakeup_callback(mpv, wakeup, this);
 
     connect(m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
@@ -214,6 +219,18 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
             {
                 if (!*(int64_t *)prop->data) 
                     Q_EMIT subtitleDisabled();
+            }
+        }
+        else if (strcmp(prop->name, "sub-text") == 0)
+        {
+            if (prop->format == MPV_FORMAT_STRING)
+            {
+                const char **subtitle = (const char **)prop->data;
+                if (strcmp(*subtitle, ""))
+                {
+                    const int64_t end = getProperty("sub-end").toInt();
+                    Q_EMIT subtitleChanged(subtitle, end);
+                }
             }
         }
         break;

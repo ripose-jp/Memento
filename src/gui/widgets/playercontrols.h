@@ -29,6 +29,7 @@ public Q_SLOTS:
     void setVolumeLimit(const int value);
     void setVolume(const int value);
     void setPosition(const int value);
+    void setSubtitle(const QString &subtitle, const int end);
 
 Q_SIGNALS:
     void play();
@@ -50,6 +51,8 @@ private:
     Ui::PlayerControls *m_ui;
     bool m_paused;
     bool m_fullscreen;
+    int m_endtime;
+
     QString formatTime(int time);
 };
 

@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_player, &PlayerAdapter::positionChanged, m_ui->m_controls, &PlayerControls::setPosition);
 
     // State changes
+    connect(m_player, &PlayerAdapter::subtitleChanged, m_ui->m_controls, &PlayerControls::setSubtitle);
     connect(m_player, &PlayerAdapter::stateChanged, m_ui->m_controls, &PlayerControls::setPaused);
     connect(m_player, &PlayerAdapter::fullscreenChanged, this, &MainWindow::setFullscreen);
     connect(m_player, &PlayerAdapter::fullscreenChanged, m_ui->m_controls, &PlayerControls::setFullscreen);

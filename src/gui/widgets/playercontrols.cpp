@@ -28,6 +28,7 @@ PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent), m_ui(new Ui::
 void PlayerControls::setDuration(const int value)
 {
     setPosition(0);
+    m_endtime = -1;
     m_ui->m_sliderProgress->setRange(0, value);
     m_ui->m_labelTotal->setText(formatTime(value));
 }
@@ -38,6 +39,9 @@ void PlayerControls::setPosition(const int value)
     m_ui->m_sliderProgress->setValue(value);
     m_ui->m_sliderProgress->blockSignals(false);
     m_ui->m_labelCurrent->setText(formatTime(value));
+
+    if (value > m_endtime)
+        m_ui->m_subtitle->setText("");
 }
 
 void PlayerControls::setPaused(const bool paused)
@@ -95,6 +99,12 @@ void PlayerControls::setVolume(const int value)
     m_ui->m_sliderVolume->blockSignals(false);
     QString volume = QString::number(value) + "%";
     m_ui->m_labelVolume->setText(volume);
+}
+
+void PlayerControls::setSubtitle(const QString &subtitle, const int end)
+{
+    m_ui->m_subtitle->setText(subtitle);
+    m_endtime = end;
 }
 
 QString PlayerControls::formatTime(const int time)

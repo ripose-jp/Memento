@@ -13,6 +13,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv), PlayerAdap
     connect(m_mpv, &MpvWidget::videoDisabled, this, &MpvAdapter::videoDisabled);
     connect(m_mpv, &MpvWidget::subtitleDisabled, this, &MpvAdapter::subtitleDisabled);
 
+    connect(m_mpv, &MpvWidget::subtitleChanged, this, &MpvAdapter::processSubtitle);
     connect(m_mpv, &MpvWidget::durationChanged, this, &MpvAdapter::durationChanged);
     connect(m_mpv, &MpvWidget::positionChanged, this, &MpvAdapter::positionChanged);
     connect(m_mpv, &MpvWidget::stateChanged, this, &MpvAdapter::stateChanged);
@@ -210,6 +211,13 @@ void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
 int MpvAdapter::getMaxVolume() const
 {
     return m_mpv->getProperty("volume-max").toInt();
+}
+
+void MpvAdapter::processSubtitle(const char **subtitle, const int64_t end)
+{
+    QString formatted = *subtitle;
+    formatted = formatted.replace(QChar::fromLatin1('\n'), " / ");
+    Q_EMIT subtitleChanged(formatted, end);
 }
 
 // Code modified from loadTracks()
