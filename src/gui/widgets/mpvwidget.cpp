@@ -175,6 +175,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
         {
             if (prop->format == MPV_FORMAT_FLAG)
             {
+                setCursor(Qt::BlankCursor);
                 bool full = *(int *)prop->data;
                 Q_EMIT fullscreenChanged(full);
             }
