@@ -46,6 +46,12 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent), m_cursorTimer(new
     mpv_observe_property(mpv, 0, "fullscreen", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "volume", MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "track-list", MPV_FORMAT_NODE);
+    mpv_observe_property(mpv, 0, "aid", MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "vid", MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "sid", MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "aid", MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "vid", MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "sid", MPV_FORMAT_FLAG);
     mpv_set_wakeup_callback(mpv, wakeup, this);
 
     connect(m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
@@ -171,32 +177,45 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                 Q_EMIT tracklistChanged((mpv_node *)prop->data);
             }
         }
-        /*
-        else if (strcmp(prop->name, "current-tracks/video/id") == 0)
-        {
-            if (prop->format == MPV_FORMAT_INT64)
-            {
-                int64_t id = *(int64_t *)prop->data;
-                Q_EMIT videoTrackChanged(id);
-            }
-        }
-        else if (strcmp(prop->name, "current-tracks/audio/id") == 0)
+        else if (strcmp(prop->name, "aid") == 0)
         {
             if (prop->format == MPV_FORMAT_INT64)
             {
                 int64_t id = *(int64_t *)prop->data;
                 Q_EMIT audioTrackChanged(id);
             }
+            else if (prop->format == MPV_FORMAT_FLAG)
+            {
+                if (!*(int64_t *)prop->data) 
+                    Q_EMIT audioDisabled();
+            }
         }
-        else if (strcmp(prop->name, "current-tracks/sub/id") == 0)
+        else if (strcmp(prop->name, "vid") == 0)
+        {
+            if (prop->format == MPV_FORMAT_INT64)
+            {
+                int64_t id = *(int64_t *)prop->data;
+                Q_EMIT videoTrackChanged(id);
+            }
+            else if (prop->format == MPV_FORMAT_FLAG)
+            {
+                if (!*(int64_t *)prop->data) 
+                    Q_EMIT videoDisabled();
+            }
+        }
+        else if (strcmp(prop->name, "sid") == 0)
         {
             if (prop->format == MPV_FORMAT_INT64)
             {
                 int64_t id = *(int64_t *)prop->data;
                 Q_EMIT subtitleTrackChanged(id);
             }
+            else if (prop->format == MPV_FORMAT_FLAG)
+            {
+                if (!*(int64_t *)prop->data) 
+                    Q_EMIT subtitleDisabled();
+            }
         }
-        */
         break;
     }
     case MPV_EVENT_SHUTDOWN:

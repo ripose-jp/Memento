@@ -34,6 +34,9 @@ Q_SIGNALS:
     void videoTrackChanged(int64_t id);
     void audioTrackChanged(int64_t id);
     void subtitleTrackChanged(int64_t id);
+    void audioDisabled();
+    void videoDisabled();
+    void subtitleDisabled();
     void hideCursor();
     void shutdown();
 

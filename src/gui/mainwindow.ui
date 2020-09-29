@@ -20,7 +20,7 @@
    <bool>true</bool>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Memento</string>
   </property>
   <widget class="QWidget" name="m_centralwidget">
    <property name="mouseTracking">

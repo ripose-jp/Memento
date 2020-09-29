@@ -5,6 +5,13 @@
 MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv), PlayerAdapter(parent)
 {
     connect(m_mpv, &MpvWidget::tracklistChanged, this, &MpvAdapter::processTracks);
+    connect(m_mpv, &MpvWidget::audioTrackChanged, this, &MpvAdapter::audioTrackChanged);
+    connect(m_mpv, &MpvWidget::videoTrackChanged, this, &MpvAdapter::videoTrackChanged);
+    connect(m_mpv, &MpvWidget::subtitleTrackChanged, this, &MpvAdapter::subtitleTrackChanged);
+
+    connect(m_mpv, &MpvWidget::audioDisabled, this, &MpvAdapter::audioDisabled);
+    connect(m_mpv, &MpvWidget::videoDisabled, this, &MpvAdapter::videoDisabled);
+    connect(m_mpv, &MpvWidget::subtitleDisabled, this, &MpvAdapter::subtitleDisabled);
 
     connect(m_mpv, &MpvWidget::durationChanged, this, &MpvAdapter::durationChanged);
     connect(m_mpv, &MpvWidget::positionChanged, this, &MpvAdapter::positionChanged);
@@ -29,7 +36,7 @@ void MpvAdapter::open(const QList<QUrl> &files)
         return;
 
     stop();
-    open(files.first().toLocalFile());
+    open(files.first().toLocalFile()); // mpv won't start with loadfile append for some reason
     for (auto it = files.begin() + 1; it != files.end(); ++it)
     {
         qDebug() << (*it).toLocalFile();
@@ -76,6 +83,46 @@ void MpvAdapter::skipForward()
 void MpvAdapter::skipBackward()
 {
     m_mpv->command(QVariantList() << "playlist-prev");
+}
+
+void MpvAdapter::disableAudio()
+{
+    m_mpv->setProperty("aid", "no");
+}
+
+void MpvAdapter::disableVideo()
+{
+    m_mpv->setProperty("vid", "no");
+}
+
+void MpvAdapter::disableSubtitles()
+{
+    m_mpv->setProperty("sid", "no");
+}
+
+void MpvAdapter::setAudioTrack(const int id)
+{
+    m_mpv->setProperty("aid", id);
+}
+
+void MpvAdapter::setVideoTrack(const int id)
+{
+    m_mpv->setProperty("vid", id);
+}
+
+void MpvAdapter::setSubtitleTrack(const int id)
+{
+    m_mpv->setProperty("sid", id);
+}
+
+void MpvAdapter::setFullscreen(const bool value)
+{
+    m_mpv->setProperty("fullscreen", value);
+}
+
+void MpvAdapter::setVolume(const int value)
+{
+    m_mpv->setProperty("volume", value);
 }
 
 void MpvAdapter::keyPressed(const QKeyEvent *event)
@@ -158,16 +205,6 @@ void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
         direction += "LEFT";
     }
     m_mpv->command(QVariantList() << "keypress" << direction);
-}
-
-void MpvAdapter::setFullscreen(const bool value)
-{
-    m_mpv->setProperty("fullscreen", value);
-}
-
-void MpvAdapter::setVolume(const int value)
-{
-    m_mpv->setProperty("volume", value);
 }
 
 int MpvAdapter::getMaxVolume() const

@@ -10,6 +10,8 @@ public:
     MpvAdapter(MpvWidget *mpv, QObject *parent = 0);
     virtual ~MpvAdapter() {}
 
+    int getMaxVolume() const Q_DECL_OVERRIDE;
+
 public Q_SLOTS:
     void open(const QString &file) Q_DECL_OVERRIDE;
     void open(const QList<QUrl> &files) Q_DECL_OVERRIDE;
@@ -21,11 +23,16 @@ public Q_SLOTS:
     void seekBackward() Q_DECL_OVERRIDE;
     void skipForward() Q_DECL_OVERRIDE;
     void skipBackward() Q_DECL_OVERRIDE;
-    void keyPressed(const QKeyEvent *event) Q_DECL_OVERRIDE;
-    void mouseWheelMoved(const QWheelEvent *event) Q_DECL_OVERRIDE;
+    void disableAudio() Q_DECL_OVERRIDE;
+    void disableVideo() Q_DECL_OVERRIDE;
+    void disableSubtitles() Q_DECL_OVERRIDE;
+    void setAudioTrack(const int id) Q_DECL_OVERRIDE;
+    void setVideoTrack(const int id) Q_DECL_OVERRIDE;
+    void setSubtitleTrack(const int id) Q_DECL_OVERRIDE;
     void setFullscreen(const bool value) Q_DECL_OVERRIDE;
     void setVolume(const int value) Q_DECL_OVERRIDE;
-    int getMaxVolume() const Q_DECL_OVERRIDE;
+    void keyPressed(const QKeyEvent *event) Q_DECL_OVERRIDE;
+    void mouseWheelMoved(const QWheelEvent *event) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
     void processTracks(const mpv_node *node);

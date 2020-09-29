@@ -47,12 +47,24 @@ public Q_SLOTS:
     virtual void seekBackward() = 0;
     virtual void skipForward() = 0;
     virtual void skipBackward() = 0;
-    virtual void keyPressed(const QKeyEvent *event) = 0;
-    virtual void mouseWheelMoved(const QWheelEvent *event) = 0;
+    virtual void disableAudio() = 0;
+    virtual void disableVideo() = 0;
+    virtual void disableSubtitles() = 0;
+    virtual void setAudioTrack(const int id) = 0;
+    virtual void setVideoTrack(const int id) = 0;
+    virtual void setSubtitleTrack(const int id) = 0;
     virtual void setFullscreen(const bool value) = 0;
     virtual void setVolume(const int value) = 0;
+    virtual void keyPressed(const QKeyEvent *event) = 0;
+    virtual void mouseWheelMoved(const QWheelEvent *event) = 0;
 
 Q_SIGNALS:
+    void audioTrackChanged(const int id);
+    void videoTrackChanged(const int id);
+    void subtitleTrackChanged(const int id);
+    void audioDisabled();
+    void videoDisabled();
+    void subtitleDisabled();
     void durationChanged(const int value);
     void positionChanged(const int value);
     void stateChanged(const bool paused);
