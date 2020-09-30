@@ -53,7 +53,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="m_layoutTime">
+    <layout class="QHBoxLayout" name="m_layoutTop">
      <property name="leftMargin">
       <number>6</number>
      </property>
@@ -114,7 +114,10 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="layoutButtons" stretch="0,0,0,0,0,0,0,0,0,0">
+    <layout class="QHBoxLayout" name="m_layoutBottom" stretch="0,0,0,0,0">
+     <property name="spacing">
+      <number>6</number>
+     </property>
      <property name="leftMargin">
       <number>6</number>
      </property>
@@ -128,106 +131,113 @@
       <number>6</number>
      </property>
      <item>
-      <widget class="QToolButton" name="m_buttonPlay">
-       <property name="focusPolicy">
-        <enum>Qt::NoFocus</enum>
+      <layout class="QHBoxLayout" name="m_layoutButtons">
+       <property name="spacing">
+        <number>0</number>
        </property>
-       <property name="toolTip">
-        <string>Pause/Play</string>
-       </property>
-       <property name="text">
-        <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset theme="media-playback-start">
-         <normaloff>.</normaloff>.</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="m_buttonSkipBackward">
-       <property name="focusPolicy">
-        <enum>Qt::NoFocus</enum>
-       </property>
-       <property name="toolTip">
-        <string>Skip to the previous file in the playlist</string>
-       </property>
-       <property name="text">
-        <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset theme="media-skip-backward">
-         <normaloff>.</normaloff>.</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="m_buttonSeekBackward">
-       <property name="focusPolicy">
-        <enum>Qt::NoFocus</enum>
-       </property>
-       <property name="toolTip">
-        <string>Seek to the last subtitle</string>
-       </property>
-       <property name="text">
-        <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset theme="media-seek-backward">
-         <normaloff>.</normaloff>.</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="m_buttonSeekForward">
-       <property name="focusPolicy">
-        <enum>Qt::NoFocus</enum>
-       </property>
-       <property name="toolTip">
-        <string>Seek to the next subtitle</string>
-       </property>
-       <property name="text">
-        <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset theme="media-seek-forward">
-         <normaloff>.</normaloff>.</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="m_buttonSkipForward">
-       <property name="focusPolicy">
-        <enum>Qt::NoFocus</enum>
-       </property>
-       <property name="toolTip">
-        <string>Skip to the next file in the playlist</string>
-       </property>
-       <property name="text">
-        <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset theme="media-skip-forward">
-         <normaloff>.</normaloff>.</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="m_buttonStop">
-       <property name="focusPolicy">
-        <enum>Qt::NoFocus</enum>
-       </property>
-       <property name="toolTip">
-        <string>Stop playback and unqueue any videos</string>
-       </property>
-       <property name="text">
-        <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset theme="media-playback-stop">
-         <normaloff>.</normaloff>.</iconset>
-       </property>
-      </widget>
+       <item>
+        <widget class="QToolButton" name="m_buttonPlay">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Pause/Play</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset theme="media-playback-start">
+           <normaloff>.</normaloff>.</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="m_buttonSkipBackward">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Skip to the previous file in the playlist</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset theme="media-skip-backward">
+           <normaloff>.</normaloff>.</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="m_buttonSeekBackward">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Seek to the last subtitle</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset theme="media-seek-backward">
+           <normaloff>.</normaloff>.</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="m_buttonStop">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Stop playback and unqueue any videos</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset theme="media-playback-stop">
+           <normaloff>.</normaloff>.</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="m_buttonSeekForward">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Seek to the next subtitle</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset theme="media-seek-forward">
+           <normaloff>.</normaloff>.</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="m_buttonSkipForward">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Skip to the next file in the playlist</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset theme="media-skip-forward">
+           <normaloff>.</normaloff>.</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
       <spacer name="m_horizontalSpacer">
