@@ -1,5 +1,6 @@
 set(DICT_SRCS
-    characterutil.cpp)
+    characterutil.cpp
+    word.cpp)
 
 set(DICT_LIBS
     Qt::Core)
