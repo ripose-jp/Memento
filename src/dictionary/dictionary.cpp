@@ -7,7 +7,10 @@ Dictionary::Dictionary(DictionaryType type) : m_type(type),
                                               m_kanjiContains(new QHash<QChar, QList<Word>>),
                                               m_digramStartsWith(new QHash<Digram, QList<Word>>),
                                               m_digramContains(new QHash<Digram, QList<Word>>),
-                                              m_descriptionIndex(new QHash<Trigram, QList<Word>>) {}
+                                              m_descriptionIndex(new QHash<Trigram, QList<Word>>),
+                                              m_kanjiIndexingDone(false),
+                                              m_digramIndexingDone(false),
+                                              m_descriptionIndexingDone(false) {}
 
 Dictionary::~Dictionary()
 {
