@@ -187,23 +187,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="m_buttonStop">
-         <property name="focusPolicy">
-          <enum>Qt::NoFocus</enum>
-         </property>
-         <property name="toolTip">
-          <string>Stop playback and unqueue any videos</string>
-         </property>
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset theme="media-playback-stop">
-           <normaloff>.</normaloff>.</iconset>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QToolButton" name="m_buttonSeekForward">
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
@@ -233,6 +216,23 @@
          </property>
          <property name="icon">
           <iconset theme="media-skip-forward">
+           <normaloff>.</normaloff>.</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="m_buttonStop">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Stop playback and unqueue any videos</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset theme="media-playback-stop">
            <normaloff>.</normaloff>.</iconset>
          </property>
         </widget>
