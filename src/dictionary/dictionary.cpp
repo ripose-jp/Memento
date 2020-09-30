@@ -23,14 +23,8 @@ Dictionary::~Dictionary()
 
 QList<Word> *Dictionary::getWordsKanji(const QChar &kanji, const bool startsWith) const
 {
-    unsigned int waitTime = 0;
-    while (!m_kanjiIndexingDone)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_RESOLUTION));
-        waitTime += WAIT_RESOLUTION;
-        if (waitTime > MAX_WAIT_TIME)
-            return nullptr;
-    }
+    if (!indexingDone(m_kanjiIndexingDone))
+        return nullptr;
 
     QList<Word> *result = new QList<Word>();
 
@@ -49,14 +43,8 @@ QList<Word> *Dictionary::getWordsKanji(const QChar &kanji, const bool startsWith
 
 QList<Word> *Dictionary::getWordsDigram(const Digram &dg, const bool startsWith) const
 {
-    unsigned int waitTime = 0;
-    while (!m_digramIndexingDone)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_RESOLUTION));
-        waitTime += WAIT_RESOLUTION;
-        if (waitTime > MAX_WAIT_TIME)
-            return nullptr;
-    }
+    if (!indexingDone(m_digramIndexingDone))
+        return nullptr;
 
     QList<Word> *result = new QList<Word>();
     
@@ -75,14 +63,8 @@ QList<Word> *Dictionary::getWordsDigram(const Digram &dg, const bool startsWith)
 
 QList<Word> *Dictionary::getWordsDescription(const Trigram &tg) const
 {
-    unsigned int waitTime = 0;
-    while (!m_descriptionIndexingDone)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_RESOLUTION));
-        waitTime += WAIT_RESOLUTION;
-        if (waitTime > MAX_WAIT_TIME)
-            return nullptr;
-    }
+    if (!indexingDone(m_descriptionIndexingDone))
+        return nullptr;
 
     QList<Word> *result = new QList<Word>();
     
@@ -91,4 +73,17 @@ QList<Word> *Dictionary::getWordsDescription(const Trigram &tg) const
         result->append(*descriptionFoundList);
 
     return result;
+}
+
+bool Dictionary::indexingDone(const std::atomic_bool &waitCondition) const
+{
+    unsigned int waitTime = 0;
+    while (!waitCondition)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_RESOLUTION));
+        waitTime += WAIT_RESOLUTION;
+        if (waitTime > MAX_WAIT_TIME)
+            return false;
+    }
+    return true;
 }
