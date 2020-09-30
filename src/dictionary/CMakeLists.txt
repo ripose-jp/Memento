@@ -1,6 +1,11 @@
 set(DICT_SRCS
     characterutil.cpp
-    word.cpp)
+    word.cpp
+    ngram.h
+    monogram.h
+    digram.h
+    trigram.h
+    dictionary.cpp)
 
 set(DICT_LIBS
     Qt::Core)
