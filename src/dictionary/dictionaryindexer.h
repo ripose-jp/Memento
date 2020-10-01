@@ -18,7 +18,7 @@ public:
         DigramIndex,
         DescriptionIndex
     };
-    const ThreadRole roles[] = { KanjiIndex, DigramIndex, DescriptionIndex };
+    const ThreadRole roles[3] = { KanjiIndex, DigramIndex, DescriptionIndex };
 
 private:
     Dictionary *m_dictionary;
