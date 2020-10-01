@@ -9,10 +9,10 @@ QString DirectoryUtils::getConfigDir()
 
 QString DirectoryUtils::getDictionaryDir()
 {
-    return getConfigDir() + "/" + DICTIONARY_DIR;
+    return getConfigDir() + SLASH + DICTIONARY_DIR;
 }
 
 QString DirectoryUtils::getCacheDir()
 {
-    return getConfigDir() + "/" + CACHE_DIR;
+    return getConfigDir() + SLASH + CACHE_DIR;
 }
