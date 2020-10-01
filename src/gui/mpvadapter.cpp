@@ -151,6 +151,11 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
     }
     switch (event->key())
     {
+    case Qt::Key::Key_Shift:
+    case Qt::Key::Key_Control:
+    case Qt::Key::Key_Alt:
+    case Qt::Key::Key_Meta:
+        return;
     case Qt::Key::Key_Left:
         key += "LEFT";
         break;
