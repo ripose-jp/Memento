@@ -5,7 +5,9 @@ set(DICT_SRCS
     monogram.h
     digram.h
     trigram.h
-    dictionary.cpp)
+    dictionary.cpp
+    dictionaryindexer.h
+    dictionaryindexer.cpp)
 
 set(DICT_LIBS
     Qt::Core)

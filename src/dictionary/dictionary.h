@@ -52,11 +52,8 @@ public:
     std::atomic_bool m_kanjiIndexingDone;
     std::atomic_bool m_digramIndexingDone;
     std::atomic_bool m_descriptionIndexingDone;
-    
-private:
-	bool indexingDone(const std::atomic_bool &waitCondition) const;
 
-    /**
+	/**
 	 * Kanji -> List of words that start with kanji monogram. 
 	 * Kana monograms are not indexed and seach for single kana is not supported. 
 	 */
@@ -86,6 +83,9 @@ private:
 	 * Trigram in description -> List of words containing the alphabet trigram.
 	 */
     QHash<Trigram, QList<Word>> *m_descriptionIndex;
+    
+private:
+	bool indexingDone(const std::atomic_bool &waitCondition) const;
 };
 
 #endif // DICTIONARY_H
