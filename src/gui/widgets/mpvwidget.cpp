@@ -28,11 +28,7 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent), m_cursorTimer(new
     mpv_set_option_string(mpv, "msg-level", "all=v");
     mpv_set_option_string(mpv, "keep-open", "yes");
     mpv_set_option_string(mpv, "config", "yes");
-
-    // TODO: non-portable code
-    QString path = getenv("HOME");
-    path += CONFIG_PATH;
-    mpv_set_option_string(mpv, "config-dir", path.toLatin1());
+    mpv_set_option_string(mpv, "config-dir", DirectoryUtils::getConfigDir().toLatin1());
 
     if (mpv_initialize(mpv) < 0)
         throw std::runtime_error("could not initialize mpv context");

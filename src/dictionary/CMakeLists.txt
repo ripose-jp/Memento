@@ -8,10 +8,12 @@ set(DICT_SRCS
     dictionary.cpp
     dictionaryindexer.h
     dictionaryindexer.cpp
-    dictionarymanager.cpp)
+    dictionarymanager.cpp
+    dictionaryloader.cpp)
 
 set(DICT_LIBS
-    Qt::Core)
+    Qt::Core
+    directoryutils)
 
 add_library(dictionary ${DICT_SRCS})
 target_link_libraries(dictionary ${DICT_LIBS})

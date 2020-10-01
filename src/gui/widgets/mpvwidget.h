@@ -4,14 +4,16 @@
 #include <QOpenGLWidget>
 #include <QMouseEvent>
 #include <QTimer>
+
 #include <mpv/client.h>
 #include <mpv/render_gl.h>
 #include <mpv/qthelper.hpp>
 
+#include "../../util/directoryutils.h"
+
 #define ASYNC_COMMAND_REPLY 20
 #define ERROR_STR "MPV threw error code: "
 #define TIMEOUT 2000
-#define CONFIG_PATH "/.config/memento"
 
 class MpvWidget Q_DECL_FINAL : public QOpenGLWidget
 {

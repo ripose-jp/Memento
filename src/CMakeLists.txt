@@ -1,3 +1,4 @@
+add_subdirectory(util)
 add_subdirectory(dictionary)
 add_subdirectory(gui)
 

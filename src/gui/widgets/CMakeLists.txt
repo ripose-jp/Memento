@@ -9,6 +9,7 @@ add_library(mpvwidget
     mpvwidget.cpp)
 target_link_libraries(mpvwidget
     ${MPV_LIB}
+    directoryutils
     Qt5::Widgets)
 
 add_library(subtitlewidget
