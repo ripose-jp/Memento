@@ -7,7 +7,8 @@ set(DICT_SRCS
     trigram.h
     dictionary.cpp
     dictionaryindexer.h
-    dictionaryindexer.cpp)
+    dictionaryindexer.cpp
+    dictionarymanager.cpp)
 
 set(DICT_LIBS
     Qt::Core)
