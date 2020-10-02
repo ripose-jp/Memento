@@ -65,6 +65,8 @@ private:
 	 */
     void readFromSource();
 
+	void processLine(QString &line);
+
     /**
 	 * Some words contain multiple versions split with ; in kanji field.
 	 * Return them as individual words.

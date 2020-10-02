@@ -17,7 +17,7 @@ DictionaryLoader::~DictionaryLoader()
 
 Dictionary *DictionaryLoader::loadDictionary()
 {
-    
+    // TODO
 }
 
 bool DictionaryLoader::isCacheOutdated()
@@ -81,8 +81,6 @@ QFile DictionaryLoader::getCacheFile()
 
 void DictionaryLoader::readFromSource()
 {
-    qint64 started = QDateTime::currentMSecsSinceEpoch();
-
     m_dictionary = new Dictionary(m_type);
     QFile dictFile = getDictionaryFile();
     if (!dictFile.exists())
@@ -99,10 +97,82 @@ void DictionaryLoader::readFromSource()
 
     while (!dictFile.atEnd())
     {
-        QByteArray line = dictFile.readLine();
+        QString line = dictFile.readLine();
+        processLine(line);
     }
 
-    // TODO continue to implement
+    // Remove (...)
+    for (const Word word : *m_words)
+    {
+        int pos = word.m_kanji->indexOf('(');
+        if (pos != -1)
+            word.m_kanji->truncate(pos);
+    }
+}
+
+void DictionaryLoader::processLine(QString &line)
+{
+    QString kanji;
+    QString kana;
+    bool readKana;
+    uint i = 0;
+    while (true)
+    {
+        QChar c = line[i++];
+
+        if (c == '/')
+        {
+            break;
+        }
+        else if (c == '[')
+        {
+            readKana = true;
+        }
+        else if (readKana && ']')
+        {
+            readKana = false;
+        }
+        else if (readKana)
+        {
+            kana.append(c);
+        }
+        else if (c == ' ')
+        {
+            continue;
+        }
+        else
+        {
+            kanji.append(c);
+        }
+    }
+
+    QString description;
+    while (true)
+    {
+        QChar c = line[i++];
+        
+        if (c == '/')
+        {
+            c = '\n';
+        }
+
+        description.append(c);
+
+        if (i == line.length() - 1)
+        {
+            break;
+        }
+    }
+
+    Word word(kanji,
+              kana.length() > 0 ? kana : kanji,
+              description,
+              m_type == JAPANESE_NAMES);
+    QList<Word> splitWords = word.m_name ? splitKanji(word) : splitWithMap(word);
+    for (const Word splitWord : splitWords)
+    {
+        m_words->append(splitKana(splitWord));
+    }
 }
 
 QList<Word> DictionaryLoader::splitKanji(const Word &word)
