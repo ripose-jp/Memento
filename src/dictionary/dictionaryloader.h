@@ -63,7 +63,7 @@ private:
     /**
 	 * Reads dictionary from source file
 	 */
-    void readFromSource();
+    bool readFromSource();
 
 	void processLine(QString &line);
 

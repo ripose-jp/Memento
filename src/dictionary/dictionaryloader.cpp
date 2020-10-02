@@ -17,7 +17,19 @@ DictionaryLoader::~DictionaryLoader()
 
 Dictionary *DictionaryLoader::loadDictionary()
 {
-    // TODO
+    QFile cacheFile = getCacheFile();
+    if (!isCacheOutdated() && fromDataStream(cacheFile))
+    {
+        indexWords();
+        return m_dictionary;
+    }
+    
+    if (!readFromSource())
+    {
+        return nullptr;
+    }
+    
+    return loadDictionary();
 }
 
 bool DictionaryLoader::isCacheOutdated()
@@ -79,20 +91,20 @@ QFile DictionaryLoader::getCacheFile()
     return QFile(path);
 }
 
-void DictionaryLoader::readFromSource()
+bool DictionaryLoader::readFromSource()
 {
     m_dictionary = new Dictionary(m_type);
     QFile dictFile = getDictionaryFile();
     if (!dictFile.exists())
     {
         qDebug() << DICT_MISSING_ERR;
-        return;
+        return false;
     }
 
     if (!dictFile.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         qDebug() << "Can't open dictionary file!";
-        return;
+        return false;
     }
 
     while (!dictFile.atEnd())
@@ -108,6 +120,8 @@ void DictionaryLoader::readFromSource()
         if (pos != -1)
             word.m_kanji->truncate(pos);
     }
+
+    return true;
 }
 
 void DictionaryLoader::processLine(QString &line)
