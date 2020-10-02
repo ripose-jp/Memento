@@ -2,10 +2,12 @@
 #define WORD_H
 
 #include <QString>
+#include <QDataStream>
 
 struct Word
 {
-    Word(QString& kanji, QString& kana, QString &description, bool name);
+    Word(); // Used for deserialization
+    Word(const QString& kanji, const QString& kana, const QString &description, const bool name);
     ~Word();
     bool operator==(const Word &rhs);
 
@@ -40,5 +42,8 @@ struct Word
 	 */
     int m_kanjiCount; 
 } typedef Word;
+
+QDataStream &operator<<(QDataStream &dataStream, const Word &word);
+QDataStream &operator>>(QDataStream &dataStream, Word &word);
 
 #endif // WORD_H

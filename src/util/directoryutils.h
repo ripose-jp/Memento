@@ -24,7 +24,7 @@
 #endif
 
 #define DICTIONARY_DIR "dict"
-#define CACHE_DIR "cache"
+#define CACHE_DIR "dict"
 
 class DirectoryUtils
 {
