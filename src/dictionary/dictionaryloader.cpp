@@ -107,6 +107,7 @@ bool DictionaryLoader::readFromSource()
         return false;
     }
 
+    dictFile
     while (!dictFile.atEnd())
     {
         QString line = dictFile.readLine();
@@ -177,6 +178,11 @@ void DictionaryLoader::processLine(QString &line)
             break;
         }
     }
+
+    qDebug() << line;
+    qDebug() << kanji;
+    qDebug() << kana;
+    qDebug() << description;
 
     Word word(kanji,
               kana.length() > 0 ? kana : kanji,
