@@ -41,7 +41,6 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent), m_cursorTimer(new
     mpv_observe_property(mpv, 0, "pause", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "fullscreen", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "volume", MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "track-list", MPV_FORMAT_NODE);
 
     mpv_observe_property(mpv, 0, "aid", MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "vid", MPV_FORMAT_INT64);
@@ -244,8 +243,16 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
         }
         break;
     }
+    case MPV_EVENT_FILE_LOADED:
+    {
+        mpv_node node;
+        mpv_get_property(mpv, "track-list", MPV_FORMAT_NODE, &node);
+        Q_EMIT tracklistChanged(&node);
+        break;
+    }
     case MPV_EVENT_SHUTDOWN:
         Q_EMIT shutdown();
+        break;
     default:;
         // Ignore uninteresting or unknown events.
     }
