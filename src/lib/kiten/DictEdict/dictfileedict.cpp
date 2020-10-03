@@ -306,14 +306,14 @@ bool DictFileEdict::validDictionaryFile( const QString &filename )
   //Now we can actually check the file
   QTextStream fileStream( &file );
   fileStream.setCodec( QTextCodec::codecForName( "eucJP" ) );
-  QString commentMarker( QStringLiteral("？？？？") ); //Note: Don't touch this! vim seems to have
+  QString commentMarker( QStringLiteral("　？？？ ")  ); //Note: Don't touch this! vim seems to have
                                       //An odd text codec error here too :(
   QRegExp formattedLine( "^\\S+\\s+(\\[\\S+\\]\\s+)?/.*/$" );
   while( ! fileStream.atEnd() )
   {
     QString line = fileStream.readLine();
 
-    if( line.left( 4 ) == commentMarker )
+    if( line.left( 5 ) == commentMarker )
     {
       continue;
     }

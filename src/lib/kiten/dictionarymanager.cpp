@@ -230,24 +230,6 @@ QMap<QString, QString> DictionaryManager::generateExtendedFieldsList()
   return result;
 }
 
-QMap<QString,DictionaryPreferenceDialog*>
-DictionaryManager::generatePreferenceDialogs( KConfigSkeleton *config, QWidget *parent )
-{
-  QMap<QString,DictionaryPreferenceDialog*> result;
-  QStringList dictTypes = listDictFileTypes();
-  foreach( const QString &dictType, dictTypes )
-  {
-    DictFile *tempDictFile = makeDictFile( dictType );
-    DictionaryPreferenceDialog *newDialog = tempDictFile->preferencesWidget( config, parent );
-
-    if( newDialog == nullptr ) continue;
-    result.insert( dictType, newDialog );
-    delete tempDictFile;
-  }
-
-  return result;
-}
-
 /**
  * Return a list of the dictionaries by their name (our key)
  * Note that this dictionary name does not necessarily have to have anything
