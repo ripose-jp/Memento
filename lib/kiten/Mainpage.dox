@@ -1,0 +1,101 @@
+/** @mainpage The libkiten Library API Reference
+<p><b>
+Overview |
+@ref components |
+@ref using |
+@ref adding
+</b></p>
+
+This is the online reference for developing using the libkiten library.
+
+libkiten is a library for managing a variety of japanese cross-language
+dictionaries through a common interface. It provides a light abstraction layer
+over various types of japanese dictionaries, with a simple facility for adding
+more types.
+
+@authors
+(c)2001 Jason Katz-Brown <jason@katzbrown.com> : Original Author of most of kiten and libkiten
+(c)1998 Jim W. Breen <jwb@csse.monash.edu.au> : Creator of an index file format used in libkiten
+(c)2006-2007 Eric Kjeldergaard : Rewriting effort for KDE 4
+(c)2006-2008 Joseph Kerian <jkerian@gmail.com> : Rewriting effort for KDE 4
+(c)2011 Daniel E. Moctezuma <democtezuma@gmail.com> : Deinflection system improvements, bug fixes and code polishing
+
+@maintainers
+Daniel E. Moctezuma <democtezuma@gmail.com> is the current maintainer.
+
+@licenses
+This library is distributed under the lgpl: @lgpl<br>
+
+*/
+
+/** @page components Components
+
+<p><b>
+@ref index "Overview" |
+Components |
+@ref using |
+@ref adding
+</b></p>
+
+Below is a brief summary of the various components of libkiten
+<dl>
+	<dt>DictQuery</dt>
+	<dd>Class to load with a query to the dictionary system.</dd>
+
+	<dt>DictionaryManager</dt>
+	<dd>Main management class. These objects are the main interface to the library.</dd>
+
+	<dt>DictionaryPreferenceDialog</dt>
+	<dd>Abstract Base Class, providing an interface between the individual dictionary preferences and the host application.</dd>
+
+	<dt>Entry</dt>
+	<dd>Results from a dictionary search are returned to the user application in a list of type Entry, aggregated in an EntryList.</dd>
+
+	<dt>EntryList</dt>
+	<dd>Results from a dictionary search are returned to the user application in a list of type Entry, aggregated in an EntryList.</dd>
+
+	<dt>HistoryPtrList</dt>
+	<dd>A useful utility class if you want to keep a history of results. Contains a list of EntryLists. Automatically handles maximum history size, and truncation/tracking current item</dd>
+
+	<dt>DictFile</dt>
+	<dd>An abstract base class, used internally for managing dictionary types</dd>
+
+	<dt>kromajiedit</dt>
+	<dd>An input box, can allow the user to enter kana without a japanese input manager installed</dd>
+</dl>
+*/
+
+/** @page using Using libkiten
+<p><b>
+@ref index "Overview" |
+@ref components |
+Using libkiten |
+@ref adding
+</b></p>
+
+General Approach to using the classes in the library:
+
+Create a DictionaryManager object, load dictionaries to it using member functions. (persistant)
+Create a DictQuery object, load it with your query
+EntryList *results = DictionaryManagerObject->doSearch(DictQueryObject);
+//Do something with each Entry in the EntryList, or do something with the whole list
+
+For your preferences dialog:
+Get a list of DictionaryPreferenceDialog objects from DictionaryManager to put into your preferences dialog.
+
+If you maintain a history:
+You can use HistoryPtrList to store and manage lists of EntryList's.
+*/
+
+/** @page adding Adding New Dictionary Types
+<p><b>
+@ref index "Overview" |
+@ref components |
+@ref using |
+Adding New Dictionary Types
+</b></p>
+
+Adding a new dictionary type is relatively simple.
+Look over the documentation of the DictFile abstract class. You may also need to subclass from Entry, if your dictionary requires special logic or strangely formatted fields. If you have no particular preferences to set (or want to put off that work until later), your DictFile descendent can return NULL, when asked for a preference dialog.
+
+*/

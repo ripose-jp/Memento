@@ -1,7 +1,6 @@
 #include <QApplication>
 #include <QDebug>
 
-#include "dictionary/dictionarymanager.h"
 #include "gui/mainwindow.h"
 
 int main(int argc, char *argv[])
@@ -12,7 +11,6 @@ int main(int argc, char *argv[])
     setlocale(LC_NUMERIC, "C");
 
     qDebug() << "Loading dictionary";
-    DictionaryManager::prepareDictionary(DictionaryType::JAPANESE_DEFAULT);
     qDebug() << "Dictionary loaded";
 
     MainWindow main_window;

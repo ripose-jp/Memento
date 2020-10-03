@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1.0)
+include(GenerateExportHeader)
 
 project(Memento)
-
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_AUTOMOC ON)
@@ -16,4 +16,5 @@ include_directories(
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
+add_subdirectory(lib)
 add_subdirectory(src)
