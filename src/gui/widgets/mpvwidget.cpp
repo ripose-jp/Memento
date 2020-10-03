@@ -183,13 +183,6 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                 Q_EMIT volumeChanged(volume);
             }
         }
-        else if (strcmp(prop->name, "track-list") == 0)
-        {
-            if (prop->format == MPV_FORMAT_NODE)
-            {
-                Q_EMIT tracklistChanged((mpv_node *)prop->data);
-            }
-        }
         else if (strcmp(prop->name, "aid") == 0)
         {
             if (prop->format == MPV_FORMAT_INT64)
