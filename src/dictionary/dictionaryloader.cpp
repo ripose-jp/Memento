@@ -17,7 +17,7 @@ DictionaryLoader::~DictionaryLoader()
 
 Dictionary *DictionaryLoader::loadDictionary()
 {
-    QFile cacheFile = getCacheFile();
+    QFile cacheFile(getCacheFile());
     if (!isCacheOutdated() && fromDataStream(cacheFile))
     {
         indexWords();
@@ -34,7 +34,7 @@ Dictionary *DictionaryLoader::loadDictionary()
 
 bool DictionaryLoader::isCacheOutdated()
 {
-    QFile sourceFile = getDictionaryFile();
+    QFile sourceFile(getDictionaryFile());
     if (!sourceFile.exists())
     {
         qDebug() << DICT_MISSING_ERR;
@@ -43,7 +43,7 @@ bool DictionaryLoader::isCacheOutdated()
     QFileInfo sourceFileInfo(sourceFile);
     QDateTime sourceModified = sourceFileInfo.lastModified();
 
-    QFile cacheFile = getCacheFile();
+    QFile cacheFile(getCacheFile());
     if (!sourceFile.exists())
     {
         qDebug() << CACHE_MISSING_ERR;
@@ -55,7 +55,7 @@ bool DictionaryLoader::isCacheOutdated()
     return sourceModified.currentMSecsSinceEpoch() > cacheModified.currentMSecsSinceEpoch();
 }
 
-QFile DictionaryLoader::getDictionaryFile()
+QString DictionaryLoader::getDictionaryFile()
 {
     QString path = DirectoryUtils::getDictionaryDir();
     switch (m_type)
@@ -70,10 +70,10 @@ QFile DictionaryLoader::getDictionaryFile()
             qDebug() << "Dictionary not selected";
             break;
     }
-    return QFile(path);
+    return path;
 }
 
-QFile DictionaryLoader::getCacheFile()
+QString DictionaryLoader::getCacheFile()
 {
     QString path = DirectoryUtils::getCacheDir();
     switch (m_type)
@@ -88,13 +88,13 @@ QFile DictionaryLoader::getCacheFile()
             qDebug() << "Dictionary not selected";
             break;
     }
-    return QFile(path);
+    return path;
 }
 
 bool DictionaryLoader::readFromSource()
 {
     m_dictionary = new Dictionary(m_type);
-    QFile dictFile = getDictionaryFile();
+    QFile dictFile(getDictionaryFile());
     if (!dictFile.exists())
     {
         qDebug() << DICT_MISSING_ERR;

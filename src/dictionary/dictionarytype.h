@@ -14,6 +14,6 @@ enum DictionaryType {
 	 * Japanese names dictionary
 	 */
 	JAPANESE_NAMES
-}
+};
 
 #endif // DICTIONARYTYPE_H

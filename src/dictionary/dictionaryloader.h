@@ -28,16 +28,6 @@ public:
 	 */
     Dictionary *loadDictionary();
 
-	/**
-	 * Saves dictionary to serialized file
-	 */
-	void toDataStream(QFile &file);
-
-	/**
-	 * Retrieves dictionary from serialized file
-	 */
-	bool fromDataStream(QFile &file);
-
 private:
     Dictionary *m_dictionary;
     DictionaryType m_type;
@@ -53,12 +43,12 @@ private:
     /**
 	 * Gets dictionary file reference for current dictionary
 	 */
-    QFile getDictionaryFile();
+    QString getDictionaryFile();
 
     /**
 	 * Gets cache file reference for current dictionary
 	 */
-    QFile getCacheFile();
+    QString getCacheFile();
 
     /**
 	 * Reads dictionary from source file
@@ -90,6 +80,16 @@ private:
     QHash<QString, QString> *buildKanjiKanaMap(const QString &multikana);
 
     QString &cleanStr(QString &str);
+
+	/**
+	 * Saves dictionary to serialized file
+	 */
+	void toDataStream(QFile &file);
+
+	/**
+	 * Retrieves dictionary from serialized file
+	 */
+	bool fromDataStream(QFile &file);
 
 	/**
 	 * Indexes words in parallel threads

@@ -12,7 +12,7 @@ public:
     static void freeDictionaries();
 
 private:
-    static Dictionary *dictionaries[DICTIONARY_TYPES] = { nullptr, nullptr};
+    static Dictionary *dictionaries[DICTIONARY_TYPES];
     DictionaryManager() {}
 };
 

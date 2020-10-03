@@ -1,15 +1,15 @@
 set(DICT_SRCS
-    characterutil.cpp
-    word.cpp
     ngram.h
     monogram.h
     digram.h
     trigram.h
+    characterutil.cpp
+    word.cpp
+    dictionarytype.h
     dictionary.cpp
-    dictionaryindexer.h
     dictionaryindexer.cpp
-    dictionarymanager.cpp
-    dictionaryloader.cpp)
+    dictionaryloader.cpp
+    dictionarymanager.cpp)
 
 set(DICT_LIBS
     Qt::Core

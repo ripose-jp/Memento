@@ -1,11 +1,15 @@
 #include "dictionarymanager.h"
+#include "dictionaryloader.h"
+
+Dictionary *DictionaryManager::dictionaries[DICTIONARY_TYPES] = { nullptr, nullptr};
 
 void DictionaryManager::prepareDictionary(DictionaryType type)
 {
     if (dictionaries[type])
         return;
-    
-    dictionaries[type] = nullptr; // TODO implement Dictionary Loader
+     
+    DictionaryLoader loader(type);
+    dictionaries[type] = loader.loadDictionary();
 }
 
 Dictionary *DictionaryManager::getDictionary(DictionaryType type)

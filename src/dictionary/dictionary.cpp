@@ -1,6 +1,6 @@
 #include "dictionary.h"
 
-#include <thread>
+#include <QThread>
 
 Dictionary::Dictionary(DictionaryType type) : m_type(type),
                                               m_kanjiStartWith(new QHash<QChar, QList<Word>>),
@@ -80,7 +80,7 @@ bool Dictionary::indexingDone(const std::atomic_bool &waitCondition) const
     unsigned int waitTime = 0;
     while (!waitCondition)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_RESOLUTION));
+        QThread::msleep(WAIT_RESOLUTION);
         waitTime += WAIT_RESOLUTION;
         if (waitTime > MAX_WAIT_TIME)
             return false;

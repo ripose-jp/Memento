@@ -1,7 +1,7 @@
-#ifndef DIAGRAM_H
-#define DIAGRAM_H
+#ifndef MONOGRAM_H
+#define MONOGRAM_H
 
-#include "monogram.h"
+#include "ngram.h"
 
 #include <QChar>
 
@@ -25,4 +25,4 @@ inline uint qHash(const Monogram &key, uint seed)
     return qHash(key.m_first, seed);
 }
 
-#endif // DIAGRAM_H
+#endif // MONOGRAM_H

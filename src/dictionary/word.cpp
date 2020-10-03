@@ -9,10 +9,10 @@ Word::Word(const QString &kanji, const QString &kana, const QString &description
                                                                                                      m_description(new QString(description)),
                                                                                                      m_name(name)
 {
-    m_common = m_description->contains("(P)"));
+    m_common = m_description->contains("(P)");
 
     m_kanjiCount = 0;
-    for (auto it = m_kanji->constBegin(); it != m_kanji->constEnd(), ++it)
+    for (auto it = m_kanji->constBegin(); it != m_kanji->constEnd(); ++it)
     {
         if (CharacterUtil::isKanji(*it))
             ++m_kanjiCount;

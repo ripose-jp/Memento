@@ -10,6 +10,8 @@
 #include <QChar>
 #include <QList>
 
+#include <atomic>
+
 /**
  * How long to wait for indexing until throwing timeout error (in milliseconds).
  * This should be long enough that even the slowest computer should have enough time to
