@@ -12,10 +12,19 @@ target_link_libraries(mpvwidget
     directoryutils
     Qt5::Widgets)
 
+add_library(definitionwidget
+    definitionwidget.cpp
+    definitionwidget.ui)
+target_link_libraries(definitionwidget
+    Qt5::Widgets
+    kiten)
+
 add_library(subtitlewidget
     subtitlewidget.cpp)
 target_link_libraries(subtitlewidget
-    Qt5::Widgets)
+    Qt5::Widgets
+    kiten
+    definitionwidget)
 
 add_library(playercontrols
     playercontrols.ui

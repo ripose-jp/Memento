@@ -13,7 +13,7 @@ set(edict_SRCS
 set(kanjidic_SRCS
 		DictKanjidic/dictfilekanjidic.cpp
 		DictKanjidic/entrykanjidic.cpp)
-set(dictionary_SRCS ${edict_SRCS} ${kanjidic_SRCS} ${kitengen_SRCS})
+set(dictionary_SRCS ${kitengen_SRCS} ${edict_SRCS} ${kanjidic_SRCS})
 
 set(kiten_LIB_SRCS
 		dictionarymanager.cpp
@@ -27,4 +27,5 @@ set(kiten_LIB_SRCS
 add_library(kiten ${kiten_LIB_SRCS})
 target_link_libraries(kiten
 		Qt5::Core
-		Qt5::Widgets)
+		Qt5::Widgets
+		directoryutils)

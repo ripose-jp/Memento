@@ -3,6 +3,8 @@
 
 #include "playeradapter.h"
 
+#include "widgets/definitionwidget.h"
+
 #include <QMainWindow>
 #include <QKeyEvent>
 #include <QMouseEvent>
@@ -52,6 +54,7 @@ private:
     QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_audioTracks;
     QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_videoTracks;
     QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_subtitleTracks;
+    DefinitionWidget *m_defintion;
 
     void clearTracks();
     void clearTrack(QVector<QPair<QAction *, const PlayerAdapter::Track *>> &tracks, QMenu *menu, QActionGroup *actionGroup, QAction *actionDisable);

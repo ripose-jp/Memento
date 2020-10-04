@@ -36,8 +36,6 @@ class Deinflection;
 class DictQuery;
 class DictionaryPreferenceDialog;
 class EntryEdict;
-class KConfigSkeleton;
-class KConfigSkeletonItem;
 class QString;
 class QStringList;
 
@@ -65,7 +63,7 @@ class DictFileEdict : public DictFile
     //This is a blatant abuse of protected methods to make the kanji subclass easy
     virtual Entry                *makeEntry( const QString &entry );
 
-    LinearEdictFile     m_edictFile;
+    IndexedEdictFile     m_edictFile;
 
     static QStringList *displayFields;
 

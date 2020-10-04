@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "mpvadapter.h"
 #include "iconfactory.h"
+#include "widgets/definitionwidget.h"
 
 #include <QFileDialog>
 #include <QMimeData>
@@ -69,6 +70,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->m_actionVideoNone, &QAction::triggered, m_player, &PlayerAdapter::disableVideo);
     connect(m_ui->m_actionSubtitleNone, &QAction::triggered, m_player, &PlayerAdapter::disableSubtitles);
 
+    m_defintion = 0;
+}
+
+
+MainWindow::~MainWindow()
+{
+    clearTracks();
+    delete m_ui;
+    delete m_player;
+    delete m_actionGroupAudio;
+    delete m_actionGroupVideo;
+    delete m_actionGroupSubtitle;
+    delete m_defintion;
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -125,6 +139,8 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     {
         m_ui->m_controls->show();
     }
+    //int offset = isFullScreen() ? m_ui->m_controls->height() : 0;
+    //m_defintion->move(event->x() - (m_defintion->width() / 2), m_ui->m_mpv->height() - m_defintion->height() - offset);
 }
 
 void MainWindow::setTracks(QVector<const PlayerAdapter::Track *> tracks)
@@ -195,14 +211,4 @@ void MainWindow::open()
 {
     QList<QUrl> files = QFileDialog::getOpenFileUrls(0, "Open a video");
     m_player->open(files);
-}
-
-MainWindow::~MainWindow()
-{
-    clearTracks();
-    delete m_ui;
-    delete m_player;
-    delete m_actionGroupAudio;
-    delete m_actionGroupVideo;
-    delete m_actionGroupSubtitle;
 }

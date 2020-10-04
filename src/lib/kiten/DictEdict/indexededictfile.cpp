@@ -21,7 +21,10 @@
 
 #include "indexededictfile.h"
 
-#include "../xjdxgen.h"
+extern "C"
+{
+  #include "../xjdxgen.h"
+}
 
 #include <QFile>
 #include <QFileInfo>
@@ -29,8 +32,11 @@
 #include <QString>
 #include <QTextCodec>
 #include <QVector>
+#include <QByteArray>
 
 #include <sys/mman.h>
+
+#include "../../../util/directoryutils.h"
 
 IndexedEdictFile::IndexedEdictFile()
 : m_valid( false )
@@ -55,10 +61,10 @@ bool IndexedEdictFile::buildIndex()
 {
   QByteArray dictFileName = m_dictFile.fileName().toLocal8Bit();
   QByteArray cacheFileName = m_indexFile.fileName().toLocal8Bit();
-  char *argv[2];
-  argv[0] = dictFileName.data();
-  argv[1] = cacheFileName.data();
-  int exitVal = __indexer_start(2, argv);
+  char *argv[3];
+  argv[1] = dictFileName.data();
+  argv[2] = cacheFileName.data();
+  int exitVal = __indexer_start(3, argv);
   return exitVal;
 }
 
@@ -300,8 +306,7 @@ bool IndexedEdictFile::loadFile( const QString &fileName )
   }
 
   m_dictPtr = static_cast<unsigned char*>( MAP_FAILED );
-  m_indexFile.setFileName( QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + QLatin1Char('/') + "kiten/xjdx/"
-                        + QFileInfo( fileName ).baseName() + ".xjdx" );
+  m_indexFile.setFileName( DirectoryUtils::getCacheDir() + QFileInfo( fileName ).baseName() + ".xjdx" );
   m_indexPtr = static_cast<uint32_t*>( MAP_FAILED );
   if( ! m_indexFile.exists() )
   {
