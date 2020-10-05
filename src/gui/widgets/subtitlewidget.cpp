@@ -36,7 +36,7 @@ void SubtitleWidget::deselectText()
 void SubtitleWidget::findEntry()
 {
     QString queryStr = text().remove(0, m_currentIndex);
-    QueryThread *queryThread = new QueryThread(this, queryStr, text());
+    QueryThread *queryThread = new QueryThread(this, queryStr, text(), m_currentIndex);
     QThreadPool::globalInstance()->start(queryThread);
 }
 
@@ -52,10 +52,10 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
 
 void SubtitleWidget::QueryThread::run()
 {
-    while (!m_query.isEmpty())
+    while (!m_query.isEmpty() && m_currentIndex == m_parent->m_currentIndex)
     {
         Entry *entry = m_parent->m_dictionary->query(m_query.toStdString(), JMDict::FULLTEXT);
-        if (!entry->m_descriptions->empty() && m_currentSubtitle == m_parent->text())
+        if (!entry->m_descriptions->empty() && m_currentIndex == m_parent->m_currentIndex && m_currentSubtitle == m_parent->text())
         {
             Q_EMIT m_parent->entryChanged(entry);
             m_parent->setSelection(m_parent->m_currentIndex, m_query.size());

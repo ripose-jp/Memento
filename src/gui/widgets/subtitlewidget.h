@@ -37,15 +37,18 @@ private:
     class QueryThread : public QRunnable
     {
     public:
-        QueryThread(SubtitleWidget *sw, const QString &query, const QString &currentSubtitle) : m_parent(sw), 
-                                                                                                m_query(query), 
-                                                                                                m_currentSubtitle(currentSubtitle) {}
+        QueryThread(SubtitleWidget *sw, const QString &query, 
+                    const QString &currentSubtitle, const int currentIndex) : m_parent(sw), 
+                                                                              m_query(query), 
+                                                                              m_currentSubtitle(currentSubtitle),
+                                                                              m_currentIndex(currentIndex) {}
         void run();
 
     private:
         SubtitleWidget *m_parent;
         QString m_query;
         QString m_currentSubtitle;
+        const int m_currentIndex;
     };
 };
 
