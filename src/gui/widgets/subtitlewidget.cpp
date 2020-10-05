@@ -3,7 +3,6 @@
 #include "definitionwidget.h"
 
 #include "../../util/directoryutils.h"
-#include "../../dict/jmdict.h"
 
 #include <QVBoxLayout>
 #include <QDebug>
@@ -12,10 +11,13 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent), m_currentIn
 {
     setStyleSheet("QLineEdit { color : white; background-color : black; }");
     setFrame(false);
+    QString path = DirectoryUtils::getDictionaryDir() + JMDICT_DB_NAME;
+    m_dictionary = new JMDict(path.toStdString());
 }
 
 SubtitleWidget::~SubtitleWidget()
 {
+    delete m_dictionary;
 }
 
 void SubtitleWidget::updateText(const QString &text)
@@ -27,27 +29,20 @@ void SubtitleWidget::updateText(const QString &text)
 
 void SubtitleWidget::findEntry()
 {
-    JMDict dictionary;
     QString queryStr = text().remove(0, m_currentIndex);
     while (!queryStr.isEmpty())
     {
-        /*
-        DictQuery query(queryStr);
-        query.setMatchType(DictQuery::MatchType::Beginning);
-        EntryList *entries = m_dictionaryManager->doSearch(query);
-        if (!entries->empty())
+        Entry *entry = m_dictionary->query(queryStr.toStdString(), JMDict::FULLTEXT);
+        if (!entry->m_descriptions->empty())
         {
-            Q_EMIT entryFound(entries->first());
-            qDebug() << entries->first()->dumpEntry();
-            entries->deleteAll();
-            delete entries;
+            qDebug() << QString::fromStdString(*entry->m_kanji) << " (" << QString::fromStdString(*entry->m_kana) << ")";
+            qDebug() << QString::fromStdString(*entry->m_altkanji);
+            qDebug() << QString::fromStdString(*entry->m_altkana);
+            delete entry;
             setSelection(m_currentIndex, queryStr.size());
             break;
         }
-        entries->deleteAll();
-        delete entries;
-        */
-        dictionary.query(queryStr.toStdString(), JMDict::FULLTEXT);
+        delete entry;
         queryStr.chop(1);
     }
 }

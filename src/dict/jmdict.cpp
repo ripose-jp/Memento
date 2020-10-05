@@ -1,36 +1,49 @@
 #include "jmdict.h"
 
-#include "../util/directoryutils.h"
-
 #include <cstdlib>
 #include <iostream>
-#include <ostream>
-#include <iomanip>
-#include <string>
-#include <stdexcept>
-#include <exception>
-#include <memory>
 
-sql::db *m_db = new sql::db(QString(DirectoryUtils::getDictionaryDir() + JMDICT_DB_NAME).toStdString());
+#define SENSE_INDEX 0
+#define POS_INDEX 1
+#define GLOSS_INDEX 2
 
-JMDict::JMDict()
+static int buildEntry(void *void_query_data, int, char **value, char **);
+static int accumulateKanji(void *void_entry, int, char **value, char **);
+static int accumulateKana(void *void_entry, int, char **value, char **);
+static void accumulate(std::string *base, std::string *extra, char **value);
+static int buildDefinition(void *void_entry, int, char **value, char **);
+
+struct query_data
 {
+    sql::db *db;
+    Entry *entry;
+};
 
-}
+JMDict::JMDict(const std::string &path) : m_db(new sql::db(path)) {}
 
 JMDict::~JMDict()
 {
-
+    delete m_db;
 }
 
-void JMDict::query(const std::string &query, const QueryType type)
+Entry *JMDict::query(const std::string &query, const QueryType type)
 {
+    struct query_data querydata;
+    querydata.db = m_db;
+    querydata.entry = new Entry();
+
+    // GROUP BY entry ensures only the first entry is returned from the query.
+    // This should be changed when multiple definitons are added.
     m_db->exec(
-          sql::query("SELECT DISTINCT entry FROM reading WHERE kana" + compare(type)) % query,
-          showEntry);
+        sql::query("SELECT DISTINCT entry FROM reading WHERE kana " + compare(type)) % query,
+        buildEntry, &querydata
+    );
     m_db->exec(
-          sql::query("SELECT DISTINCT entry FROM kanji WHERE kanji" + compare(type)) % query,
-          showEntry);
+        sql::query("SELECT DISTINCT entry FROM kanji WHERE kanji " + compare(type)) % query,
+        buildEntry, &querydata
+    );
+
+    return querydata.entry;
 }
 
 std::string JMDict::compare(QueryType type)
@@ -42,46 +55,68 @@ std::string JMDict::compare(QueryType type)
     return " LIKE '%q%%'";
 }
 
-int accumulate(void* to, int, char** what, char**) {
-    std::string& app = *static_cast<std::string*>(to);
-    if (app.size())
-        app += ", ";
-    app += *what;
+int buildEntry(void *void_query_data, int, char **value, char **)
+{
+    struct query_data *query_data = static_cast<struct query_data *>(void_query_data);
+    sql::db *db = query_data->db;
+    Entry *entry = query_data->entry;
+
+    db->exec(
+        sql::query("SELECT kanji FROM kanji WHERE entry=%s") % *value,
+        accumulateKanji, entry
+    );
+    db->exec(
+        sql::query("SELECT kana FROM reading WHERE entry=%s") % *value,
+        accumulateKana, entry
+    );
+    db->exec(
+        sql::query("SELECT sense, pos, gloss FROM gloss WHERE entry=%s ORDER BY sense") % *value,
+        buildDefinition, entry
+    );
+
     return 0;
 }
 
-int showGloss(void* s, int, char** value, char**) {
-    std::string& sense = *static_cast<std::string*>(s);
-    if (sense != value[0]) {
-        sense = value[0];
-        std::cout << "  " << std::setw(2) << sense << ")  ";
+int accumulateKanji(void *void_entry, int, char **value, char **)
+{
+    Entry *entry = static_cast<Entry *>(void_entry);
+    accumulate(entry->m_kanji, entry->m_altkanji, value);
+    return 0;
+}
+
+int accumulateKana(void *void_entry, int, char **value, char **)
+{
+    Entry *entry = static_cast<Entry *>(void_entry);
+    accumulate(entry->m_kana, entry->m_altkana, value);
+    return 0;
+}
+
+void accumulate(std::string *base, std::string *extra, char **value) {
+    if (base->empty())
+    {
+        *base = *value;
+        return;
     }
-    else
-        std::cout << "       ";
-    std::cout << value[1] << std::endl;
-    return 0;
+
+    if (!extra->empty())
+    {
+        *extra += ", ";
+    }
+    *extra += *value;
 }
 
-int showEntry(void*, int, char** value, char**) {
-    std::string kanji, kana;
-    m_db->exec(
-          sql::query("SELECT kanji FROM kanji WHERE entry=%s") % *value,
-          accumulate, &kanji);
-    m_db->exec(
-          sql::query("SELECT kana FROM reading WHERE entry=%s") % *value,
-          accumulate, &kana);
-
-    if (kanji.size())
-        std::cout << kanji << " (" << kana << ')';
-    else
-        std::cout << kana;
-
-    std::cout << std::endl;
+int buildDefinition(void *void_entry, int, char **value, char **)
+{
+    Entry *entry = static_cast<Entry *>(void_entry);
+    std::vector<std::vector<std::string>> &definitions = *entry->m_descriptions;
     
-    std::string sense;
-    m_db->exec(
-          sql::query("SELECT sense, gloss FROM gloss WHERE lang=%Q AND entry=%s "
-                   "ORDER BY sense") % std::string("eng") % *value,
-          showGloss, &sense);
+    uint sense = atoi(value[SENSE_INDEX]);
+    if (definitions.size() != sense)
+    {
+        definitions.push_back(std::vector<std::string>());
+        definitions[sense - 1].push_back(std::string(value[POS_INDEX]));
+    }
+    definitions[sense - 1].push_back(std::string(value[GLOSS_INDEX]));
+
     return 0;
 }
