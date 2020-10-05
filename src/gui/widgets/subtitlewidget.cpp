@@ -4,6 +4,7 @@
 
 #include "../../util/directoryutils.h"
 
+#include <QThreadPool>
 #include <QDebug>
 
 SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent), m_currentIndex(-1)
@@ -35,18 +36,8 @@ void SubtitleWidget::deselectText()
 void SubtitleWidget::findEntry()
 {
     QString queryStr = text().remove(0, m_currentIndex);
-    while (!queryStr.isEmpty())
-    {
-        Entry *entry = m_dictionary->query(queryStr.toStdString(), JMDict::FULLTEXT);
-        if (!entry->m_descriptions->empty())
-        {
-            Q_EMIT entryChanged(entry);
-            setSelection(m_currentIndex, queryStr.size());
-            break;
-        }
-        delete entry;
-        queryStr.chop(1);
-    }
+    QueryThread *queryThread = new QueryThread(this, queryStr, text());
+    QThreadPool::globalInstance()->start(queryThread);
 }
 
 void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
@@ -57,4 +48,20 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
         findEntry();
     }
     event->ignore();
+}
+
+void SubtitleWidget::QueryThread::run()
+{
+    while (!m_query.isEmpty())
+    {
+        Entry *entry = m_parent->m_dictionary->query(m_query.toStdString(), JMDict::FULLTEXT);
+        if (!entry->m_descriptions->empty() && m_currentSubtitle == m_parent->text())
+        {
+            Q_EMIT m_parent->entryChanged(entry);
+            m_parent->setSelection(m_parent->m_currentIndex, m_query.size());
+            break;
+        }
+        delete entry;
+        m_query.chop(1);
+    }
 }

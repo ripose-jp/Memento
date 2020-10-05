@@ -6,6 +6,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMouseEvent>
+#include <QRunnable>
 
 #define JMDICT_DB_NAME "JMDict_e"
 
@@ -32,6 +33,20 @@ private:
     int m_currentIndex;
 
     void findEntry();
+
+    class QueryThread : public QRunnable
+    {
+    public:
+        QueryThread(SubtitleWidget *sw, const QString &query, const QString &currentSubtitle) : m_parent(sw), 
+                                                                                                m_query(query), 
+                                                                                                m_currentSubtitle(currentSubtitle) {}
+        void run();
+
+    private:
+        SubtitleWidget *m_parent;
+        QString m_query;
+        QString m_currentSubtitle;
+    };
 };
 
 #endif // SUBTITLEWIDGET_H
