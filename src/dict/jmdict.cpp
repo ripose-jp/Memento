@@ -1,7 +1,6 @@
 #include "jmdict.h"
 
 #include <cstdlib>
-#include <iostream>
 
 #define SENSE_INDEX 0
 #define POS_INDEX 1
