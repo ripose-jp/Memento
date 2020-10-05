@@ -4,13 +4,12 @@
 
 #include "../../util/directoryutils.h"
 
-#include <QVBoxLayout>
 #include <QDebug>
 
 SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent), m_currentIndex(-1)
 {
     setStyleSheet("QLineEdit { color : white; background-color : black; }");
-    setFrame(false);
+
     QString path = DirectoryUtils::getDictionaryDir() + JMDICT_DB_NAME;
     m_dictionary = new JMDict(path.toStdString());
 }
@@ -25,6 +24,12 @@ void SubtitleWidget::updateText(const QString &text)
     setText(text);
     setAlignment(Qt::AlignCenter);
     m_currentIndex = -1;
+}
+
+void SubtitleWidget::deselectText()
+{
+    m_currentIndex = -1;
+    deselect();
 }
 
 void SubtitleWidget::findEntry()
@@ -52,9 +57,4 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
         findEntry();
     }
     event->ignore();
-}
-
-void SubtitleWidget::leaveEvent(QEvent *event)
-{
-    //deselect();
 }

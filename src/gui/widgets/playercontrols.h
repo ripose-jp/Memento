@@ -39,10 +39,15 @@ Q_SIGNALS:
     void volumeSliderMoved(const int value);
     void fullscreenChanged(const bool value);
     void entryChanged(const Entry *entry);
+    void definitionHidden();
+    void hideDefinition();
 
 private Q_SLOTS:
     void pauseResume();
     void toggleFullscreen();
+
+protected:
+    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 
 private:
     Ui::PlayerControls *m_ui;

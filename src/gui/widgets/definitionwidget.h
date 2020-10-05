@@ -3,6 +3,8 @@
 
 #include <QWidget>
 
+#include <QWheelEvent>
+
 #include "../../dict/entry.h"
 
 namespace Ui
@@ -23,6 +25,17 @@ public Q_SLOTS:
      * Sets the entry of this widget, deletes the old entry
      */
     void setEntry(const Entry *entry);
+
+Q_SIGNALS:
+    void definitionHidden();
+
+protected:
+    void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
+    // Prevents these events from being sent to mpv when widget has focus
+    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE { event->accept(); }
+    void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE { event->accept(); }
+    void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE { event->accept(); }
+    void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE { event->accept(); }
 
 private:
     Ui::DefinitionWidget *m_ui;

@@ -4,6 +4,7 @@
 #include "iconfactory.h"
 #include "widgets/definitionwidget.h"
 
+#include <QCursor>
 #include <QFileDialog>
 #include <QMimeData>
 #include <QDebug>
@@ -20,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_ui->m_actionSubtitleNone->setActionGroup(m_actionGroupSubtitle);
 
     m_player = new MpvAdapter(m_ui->m_mpv, this);
-    m_defintion = new DefinitionWidget(m_ui->m_mpv);
+    m_definition = new DefinitionWidget(m_ui->m_mpv);
 
     m_ui->m_controls->setVolumeLimit(m_player->getMaxVolume());
 
@@ -49,7 +50,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_player, &PlayerAdapter::fullscreenChanged, this, &MainWindow::setFullscreen);
     connect(m_player, &PlayerAdapter::fullscreenChanged, m_ui->m_controls, &PlayerControls::setFullscreen);
     connect(m_player, &PlayerAdapter::volumeChanged, m_ui->m_controls, &PlayerControls::setVolume);
-    connect(m_player, &PlayerAdapter::hideCursor, [=] { if(isFullScreen() && !m_ui->m_controls->underMouse()) m_ui->m_controls->hide(); });
+    connect(m_player, &PlayerAdapter::hideCursor, this, &MainWindow::hideControls);
+    connect(m_player, &PlayerAdapter::hideCursor, this, &MainWindow::hidePlayerCursor);
     connect(m_player, &PlayerAdapter::close, this, &QApplication::quit);
 
     // Key/Mouse presses
@@ -72,9 +74,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->m_actionSubtitleNone, &QAction::triggered, m_player, &PlayerAdapter::disableSubtitles);
 
     // Definition changes
-    connect(m_ui->m_controls, &PlayerControls::entryChanged, m_defintion, &DefinitionWidget::setEntry);
+    connect(m_ui->m_controls, &PlayerControls::entryChanged, m_definition, &DefinitionWidget::setEntry);
+    connect(m_ui->m_controls, &PlayerControls::entryChanged, this, &MainWindow::setDefinitionWidgetLocation);
+    connect(m_ui->m_controls, &PlayerControls::hideDefinition, m_definition, &DefinitionWidget::hide);
+    connect(m_definition, &DefinitionWidget::definitionHidden, m_ui->m_controls, &PlayerControls::definitionHidden);
 }
-
 
 MainWindow::~MainWindow()
 {
@@ -84,7 +88,7 @@ MainWindow::~MainWindow()
     delete m_actionGroupAudio;
     delete m_actionGroupVideo;
     delete m_actionGroupSubtitle;
-    delete m_defintion;
+    delete m_definition;
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -141,8 +145,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     {
         m_ui->m_controls->show();
     }
-    int offset = isFullScreen() ? m_ui->m_controls->height() : 0;
-    m_defintion->move(event->x() - (m_defintion->width() / 2), m_ui->m_mpv->height() - m_defintion->height() - offset);
+    m_ui->m_mpv->setCursor(Qt::ArrowCursor);
 }
 
 void MainWindow::setTracks(QVector<const PlayerAdapter::Track *> tracks)
@@ -185,6 +188,42 @@ void MainWindow::setTracks(QVector<const PlayerAdapter::Track *> tracks)
         }
         action->setChecked(track->selected);
         trackList->push_back(QPair<QAction *, const PlayerAdapter::Track *>(action, track));
+    }
+}
+
+void MainWindow::setDefinitionWidgetLocation()
+{
+    const QPoint mousePos = mapFromGlobal(QCursor::pos());
+
+    int x = mousePos.x() - (m_definition->width() / 2);
+    if (x < 0)
+    {
+        x = 0;
+    }
+    else if (x > m_ui->m_mpv->width() - m_definition->width())
+    {
+        x = m_ui->m_mpv->width() - m_definition->width();
+    }
+
+    int y = m_ui->m_mpv->height() - m_definition->height();
+    y = isFullScreen() ? y - m_ui->m_controls->height() : y;
+
+    m_definition->move(x, y);
+}
+
+void MainWindow::hideControls()
+{
+    if (isFullScreen() && !m_ui->m_controls->underMouse() && !m_definition->underMouse())
+    {
+        m_ui->m_controls->hide();
+    }
+}
+
+void MainWindow::hidePlayerCursor()
+{
+    if (!m_ui->m_controls->underMouse() && !m_definition->underMouse()) 
+    {
+        m_ui->m_mpv->setCursor(Qt::BlankCursor);
     }
 }
 

@@ -31,6 +31,8 @@ PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent), m_ui(new Ui::
     connect(m_ui->m_buttonFullscreen, &QToolButton::clicked, this, &PlayerControls::toggleFullscreen);
 
     connect(m_ui->m_subtitle, &SubtitleWidget::entryChanged, this, &PlayerControls::entryChanged);
+    connect(m_ui->m_subtitle, &SubtitleWidget::textChanged, this, &PlayerControls::hideDefinition);
+    connect(this, &PlayerControls::definitionHidden, m_ui->m_subtitle, &SubtitleWidget::deselectText);
 }
 
 void PlayerControls::setDuration(const int value)
@@ -129,6 +131,17 @@ QString PlayerControls::formatTime(const int time)
 
     return formatted;
 }
+
+void PlayerControls::mouseMoveEvent(QMouseEvent *event)
+{
+    event->ignore();
+    if (!m_ui->m_subtitle->underMouse())
+    {
+        m_ui->m_subtitle->deselectText();
+        Q_EMIT hideDefinition();
+    }
+}
+
 
 PlayerControls::~PlayerControls()
 {

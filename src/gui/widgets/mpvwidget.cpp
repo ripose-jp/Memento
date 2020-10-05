@@ -55,7 +55,6 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent), m_cursorTimer(new
     mpv_set_wakeup_callback(mpv, wakeup, this);
 
     connect(m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
-    connect(m_cursorTimer, &QTimer::timeout, this, [=] { setCursor(Qt::BlankCursor); });
 }
 
 MpvWidget::~MpvWidget()

@@ -1,8 +1,6 @@
 #include "definitionwidget.h"
 #include "ui_definitionwidget.h"
 
-#include <iostream>
-
 #define ALT_KANJI_TEXT "Alternative Kanji: "
 #define ALT_KANA_TEXT "Alternative Kana: "
 
@@ -88,4 +86,10 @@ QString DefinitionWidget::buildDefinition(const std::vector<std::vector<std::str
         }
     }
     return defStr;
+}
+
+void DefinitionWidget::leaveEvent(QEvent *event)
+{
+    hide();
+    Q_EMIT definitionHidden();
 }

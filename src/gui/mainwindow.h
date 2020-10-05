@@ -37,6 +37,9 @@ public Q_SLOTS:
 private Q_SLOTS:
     void open();
     void setTracks(QVector<const PlayerAdapter::Track *> tracks);
+    void setDefinitionWidgetLocation();
+    void hideControls();
+    void hidePlayerCursor();
 
 protected:
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
@@ -54,7 +57,7 @@ private:
     QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_audioTracks;
     QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_videoTracks;
     QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_subtitleTracks;
-    DefinitionWidget *m_defintion;
+    DefinitionWidget *m_definition;
 
     void clearTracks();
     void clearTrack(QVector<QPair<QAction *, const PlayerAdapter::Track *>> &tracks, QMenu *menu, QActionGroup *actionGroup, QAction *actionDisable);

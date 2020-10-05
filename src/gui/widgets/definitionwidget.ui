@@ -28,11 +28,17 @@
     <height>600</height>
    </size>
   </property>
+  <property name="mouseTracking">
+   <bool>false</bool>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <property name="autoFillBackground">
-   <bool>true</bool>
+   <bool>false</bool>
+  </property>
+  <property name="windowFilePath">
+   <string notr="true"/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -43,8 +49,11 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
      <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
+      <enum>QFrame::StyledPanel</enum>
      </property>
      <property name="horizontalScrollBarPolicy">
       <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -57,8 +66,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>388</width>
-        <height>282</height>
+        <width>384</width>
+        <height>278</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -144,6 +153,9 @@
            </property>
            <property name="text">
             <string>&lt;a href=&quot;https://jisho.org/&quot;&gt;Jisho&lt;/a&gt;</string>
+           </property>
+           <property name="openExternalLinks">
+            <bool>true</bool>
            </property>
           </widget>
          </item>

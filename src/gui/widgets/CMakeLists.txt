@@ -23,8 +23,7 @@ add_library(subtitlewidget
     subtitlewidget.cpp)
 target_link_libraries(subtitlewidget
     Qt5::Widgets
-    jmdict
-    definitionwidget)
+    jmdict)
 
 add_library(playercontrols
     playercontrols.ui

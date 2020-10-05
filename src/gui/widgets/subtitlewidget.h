@@ -16,14 +16,16 @@ class SubtitleWidget : public QLineEdit
 public:
     SubtitleWidget(QWidget *parent = 0);
     ~SubtitleWidget();
+
+public Q_SLOTS:
     void updateText(const QString &text);
+    void deselectText();
 
 Q_SIGNALS:
     void entryChanged(const Entry *entry);
 
 protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
 
 private:
     JMDict *m_dictionary;
