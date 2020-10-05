@@ -1,6 +1,6 @@
 add_subdirectory(util)
-add_subdirectory(lib)
+add_subdirectory(dict)
 add_subdirectory(gui)
 
 add_executable(Memento main.cpp)
-target_link_libraries(Memento mainwindow kiten)
+target_link_libraries(Memento mainwindow)

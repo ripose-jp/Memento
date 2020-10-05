@@ -3,7 +3,7 @@
 
 #include <QWidget>
 
-#include "../../lib/kiten/entry.h"
+#include "../../dict/entry.h"
 
 namespace Ui
 {

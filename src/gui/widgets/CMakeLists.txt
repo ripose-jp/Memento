@@ -17,13 +17,13 @@ add_library(definitionwidget
     definitionwidget.ui)
 target_link_libraries(definitionwidget
     Qt5::Widgets
-    kiten)
+    jmdict)
 
 add_library(subtitlewidget
     subtitlewidget.cpp)
 target_link_libraries(subtitlewidget
     Qt5::Widgets
-    kiten
+    jmdict
     definitionwidget)
 
 add_library(playercontrols

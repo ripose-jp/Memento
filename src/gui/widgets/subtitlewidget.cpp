@@ -3,25 +3,19 @@
 #include "definitionwidget.h"
 
 #include "../../util/directoryutils.h"
-#include "../../lib/kiten/dictquery.h"
-#include "../../lib/kiten/entrylist.h"
+#include "../../dict/jmdict.h"
 
 #include <QVBoxLayout>
 #include <QDebug>
 
-SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent), m_dictionaryManager(new DictionaryManager), m_currentIndex(-1)
+SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent), m_currentIndex(-1)
 {
     setStyleSheet("QLineEdit { color : white; background-color : black; }");
     setFrame(false);
-
-    QString path = DirectoryUtils::getDictionaryDir() + EDICT_FILENAME;
-    m_dictionaryManager->addDictionary(path, EDICT, EDICT);
 }
 
 SubtitleWidget::~SubtitleWidget()
 {
-    m_dictionaryManager->removeAllDictionaries();
-    delete m_dictionaryManager;
 }
 
 void SubtitleWidget::updateText(const QString &text)
@@ -33,9 +27,11 @@ void SubtitleWidget::updateText(const QString &text)
 
 void SubtitleWidget::findEntry()
 {
+    JMDict dictionary;
     QString queryStr = text().remove(0, m_currentIndex);
     while (!queryStr.isEmpty())
     {
+        /*
         DictQuery query(queryStr);
         query.setMatchType(DictQuery::MatchType::Beginning);
         EntryList *entries = m_dictionaryManager->doSearch(query);
@@ -50,6 +46,8 @@ void SubtitleWidget::findEntry()
         }
         entries->deleteAll();
         delete entries;
+        */
+        dictionary.query(queryStr.toStdString(), JMDict::FULLTEXT);
         queryStr.chop(1);
     }
 }
