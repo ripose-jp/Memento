@@ -3,6 +3,12 @@
 #include "../iconfactory.h"
 #include "sliderjumpstyle.h"
 
+#define SECONDS_IN_MINUTE 60
+#define SECONDS_IN_HOUR 3600
+#define FILL_SPACES 2
+#define BASE_TEN 10
+#define FILL_CHAR '0'
+
 PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent), m_ui(new Ui::PlayerControls)
 {
     m_ui->setupUi(this);
@@ -23,6 +29,8 @@ PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent), m_ui(new Ui::
     connect(m_ui->m_buttonSkipBackward, &QToolButton::clicked, this, &PlayerControls::skipBackward);
     connect(m_ui->m_buttonStop, &QToolButton::clicked, this, &PlayerControls::stop);
     connect(m_ui->m_buttonFullscreen, &QToolButton::clicked, this, &PlayerControls::toggleFullscreen);
+
+    connect(m_ui->m_subtitle, &SubtitleWidget::entryChanged, this, &PlayerControls::entryChanged);
 }
 
 void PlayerControls::setDuration(const int value)

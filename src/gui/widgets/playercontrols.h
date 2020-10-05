@@ -3,16 +3,12 @@
 
 #include <QWidget>
 
-#define SECONDS_IN_MINUTE 60
-#define SECONDS_IN_HOUR 3600
-#define FILL_SPACES 2
-#define BASE_TEN 10
-#define FILL_CHAR '0'
-
 namespace Ui
 {
     class PlayerControls;
 }
+
+struct Entry;
 
 class PlayerControls : public QWidget
 {
@@ -42,6 +38,7 @@ Q_SIGNALS:
     void sliderMoved(const int value);
     void volumeSliderMoved(const int value);
     void fullscreenChanged(const bool value);
+    void entryChanged(const Entry *entry);
 
 private Q_SLOTS:
     void pauseResume();

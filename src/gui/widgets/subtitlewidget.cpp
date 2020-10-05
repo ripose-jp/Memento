@@ -35,10 +35,7 @@ void SubtitleWidget::findEntry()
         Entry *entry = m_dictionary->query(queryStr.toStdString(), JMDict::FULLTEXT);
         if (!entry->m_descriptions->empty())
         {
-            qDebug() << QString::fromStdString(*entry->m_kanji) << " (" << QString::fromStdString(*entry->m_kana) << ")";
-            qDebug() << QString::fromStdString(*entry->m_altkanji);
-            qDebug() << QString::fromStdString(*entry->m_altkana);
-            delete entry;
+            Q_EMIT entryChanged(entry);
             setSelection(m_currentIndex, queryStr.size());
             break;
         }

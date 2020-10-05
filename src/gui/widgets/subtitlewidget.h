@@ -18,6 +18,9 @@ public:
     ~SubtitleWidget();
     void updateText(const QString &text);
 
+Q_SIGNALS:
+    void entryChanged(const Entry *entry);
+
 protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;

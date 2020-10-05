@@ -16,6 +16,7 @@ struct query_data
 {
     sql::db *db;
     Entry *entry;
+    std::string entryId;
 };
 
 JMDict::JMDict(const std::string &path) : m_db(new sql::db(path)) {}
@@ -31,8 +32,6 @@ Entry *JMDict::query(const std::string &query, const QueryType type)
     querydata.db = m_db;
     querydata.entry = new Entry();
 
-    // GROUP BY entry ensures only the first entry is returned from the query.
-    // This should be changed when multiple definitons are added.
     m_db->exec(
         sql::query("SELECT DISTINCT entry FROM reading WHERE kana " + compare(type)) % query,
         buildEntry, &querydata
@@ -59,6 +58,14 @@ int buildEntry(void *void_query_data, int, char **value, char **)
     struct query_data *query_data = static_cast<struct query_data *>(void_query_data);
     sql::db *db = query_data->db;
     Entry *entry = query_data->entry;
+    if (query_data->entryId.empty())
+    {
+        query_data->entryId = *value;
+    }
+    else if (query_data->entryId != *value)
+    {
+        return 0; // This is a new definition, skip over
+    }
 
     db->exec(
         sql::query("SELECT kanji FROM kanji WHERE entry=%s") % *value,

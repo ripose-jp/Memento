@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     m_ui->m_actionSubtitleNone->setActionGroup(m_actionGroupSubtitle);
 
     m_player = new MpvAdapter(m_ui->m_mpv, this);
+    m_defintion = new DefinitionWidget(m_ui->m_mpv);
 
     m_ui->m_controls->setVolumeLimit(m_player->getMaxVolume());
 
@@ -70,7 +71,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->m_actionVideoNone, &QAction::triggered, m_player, &PlayerAdapter::disableVideo);
     connect(m_ui->m_actionSubtitleNone, &QAction::triggered, m_player, &PlayerAdapter::disableSubtitles);
 
-    m_defintion = 0;
+    // Definition changes
+    connect(m_ui->m_controls, &PlayerControls::entryChanged, m_defintion, &DefinitionWidget::setEntry);
 }
 
 
@@ -139,8 +141,8 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     {
         m_ui->m_controls->show();
     }
-    //int offset = isFullScreen() ? m_ui->m_controls->height() : 0;
-    //m_defintion->move(event->x() - (m_defintion->width() / 2), m_ui->m_mpv->height() - m_defintion->height() - offset);
+    int offset = isFullScreen() ? m_ui->m_controls->height() : 0;
+    m_defintion->move(event->x() - (m_defintion->width() / 2), m_ui->m_mpv->height() - m_defintion->height() - offset);
 }
 
 void MainWindow::setTracks(QVector<const PlayerAdapter::Track *> tracks)
