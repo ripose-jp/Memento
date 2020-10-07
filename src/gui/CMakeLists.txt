@@ -1,8 +1,3 @@
-add_library(iconfactory iconfactory.cpp)
-target_link_libraries(iconfactory
-    Qt5::Gui
-    Qt5::Widgets)
-
 add_subdirectory(widgets)
 
 set(GUI_SRCS
@@ -16,7 +11,6 @@ set(GUI_LIBS
     Qt5::Core
     mpvwidget
     playercontrols
-    iconfactory
     definitionwidget)
 
 add_library(mainwindow ${GUI_SRCS})

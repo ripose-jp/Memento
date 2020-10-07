@@ -3,6 +3,8 @@
 
 #include <QWidget>
 
+#include "../../util/iconfactory.h"
+
 namespace Ui
 {
     class PlayerControls;
@@ -54,8 +56,10 @@ private:
     bool m_paused;
     bool m_fullscreen;
     int m_endtime;
+    IconFactory *m_iconFactory;
 
     QString formatTime(int time);
+    void setIcons();
 };
 
 #endif // PLAYERCONTROLS_H

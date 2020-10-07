@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "mpvadapter.h"
-#include "iconfactory.h"
 #include "widgets/definitionwidget.h"
 
 #include <QCursor>

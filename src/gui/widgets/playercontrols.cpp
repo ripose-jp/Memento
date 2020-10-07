@@ -1,6 +1,5 @@
 #include "playercontrols.h"
 #include "ui_playercontrols.h"
-#include "../iconfactory.h"
 #include "sliderjumpstyle.h"
 
 #define SECONDS_IN_MINUTE 60
@@ -12,6 +11,9 @@
 PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent), m_ui(new Ui::PlayerControls)
 {
     m_ui->setupUi(this);
+
+    m_iconFactory = IconFactory::create(this);
+    setIcons();
 
     m_ui->m_sliderProgress->setStyle(new SliderJumpStyle(m_ui->m_sliderProgress->style()));
     m_ui->m_sliderVolume->setStyle(new SliderJumpStyle(m_ui->m_sliderVolume->style()));
@@ -33,6 +35,26 @@ PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent), m_ui(new Ui::
     connect(m_ui->m_subtitle, &SubtitleWidget::entryChanged, this, &PlayerControls::entryChanged);
     connect(m_ui->m_subtitle, &SubtitleWidget::textChanged, this, &PlayerControls::hideDefinition);
     connect(this, &PlayerControls::definitionHidden, m_ui->m_subtitle, &SubtitleWidget::deselectText);
+}
+
+PlayerControls::~PlayerControls()
+{
+    delete m_ui;
+    delete m_iconFactory;
+}
+
+void PlayerControls::setIcons()
+{
+    m_ui->m_buttonPlay->setIcon(m_iconFactory->getIcon(IconFactory::Icon::play));
+    m_ui->m_buttonStop->setIcon(m_iconFactory->getIcon(IconFactory::Icon::stop));
+
+    m_ui->m_buttonFullscreen->setIcon(m_iconFactory->getIcon(IconFactory::Icon::fullscreen));
+
+    m_ui->m_buttonSeekBackward->setIcon(m_iconFactory->getIcon(IconFactory::Icon::seek_backward));
+    m_ui->m_buttonSeekForward->setIcon(m_iconFactory->getIcon(IconFactory::Icon::seek_forward));
+
+    m_ui->m_buttonSkipBackward->setIcon(m_iconFactory->getIcon(IconFactory::Icon::skip_backward));
+    m_ui->m_buttonSkipForward->setIcon(m_iconFactory->getIcon(IconFactory::Icon::skip_forward));
 }
 
 void PlayerControls::setDuration(const int value)
@@ -59,11 +81,11 @@ void PlayerControls::setPaused(const bool paused)
     m_paused = paused;
     if (m_paused)
     {
-        m_ui->m_buttonPlay->setIcon(IconFactory::getIcon(IconFactory::Icon::play, this));
+        m_ui->m_buttonPlay->setIcon(m_iconFactory->getIcon(IconFactory::Icon::play));
     }
     else
     {
-        m_ui->m_buttonPlay->setIcon(IconFactory::getIcon(IconFactory::Icon::pause, this));
+        m_ui->m_buttonPlay->setIcon(m_iconFactory->getIcon(IconFactory::Icon::pause));
     }
 }
 
@@ -84,11 +106,11 @@ void PlayerControls::setFullscreen(const bool value)
     m_fullscreen = value;
     if (m_fullscreen)
     {
-        m_ui->m_buttonFullscreen->setIcon(IconFactory::getIcon(IconFactory::Icon::restore, this));
+        m_ui->m_buttonFullscreen->setIcon(m_iconFactory->getIcon(IconFactory::Icon::restore));
     }
     else
     {
-        m_ui->m_buttonFullscreen->setIcon(IconFactory::getIcon(IconFactory::Icon::fullscreen, this));
+        m_ui->m_buttonFullscreen->setIcon(m_iconFactory->getIcon(IconFactory::Icon::fullscreen));
     }
 }
 
@@ -140,10 +162,4 @@ void PlayerControls::mouseMoveEvent(QMouseEvent *event)
         m_ui->m_subtitle->deselectText();
         Q_EMIT hideDefinition();
     }
-}
-
-
-PlayerControls::~PlayerControls()
-{
-    delete m_ui;
 }
