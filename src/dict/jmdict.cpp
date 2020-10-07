@@ -1,3 +1,23 @@
+/*
+jmdict, a frontend to the JMdict file. http://mandrill.fuxx0r.net/jmdict.php
+Copyright (C) 2004 Florian Bluemel (florian.bluemel@uni-dortmund.de)
+Copyright (C) 2020 Ripose
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+*/
+
 #include "jmdict.h"
 
 #include <cstdlib>
@@ -33,11 +53,13 @@ Entry *JMDict::query(const std::string &query, const QueryType type)
     querydata.entry = new Entry();
 
     m_db->exec(
-        sql::query("SELECT DISTINCT entry FROM reading WHERE kana " + compare(type)) % query,
+        sql::query("SELECT DISTINCT entry FROM reading WHERE kana " 
+                   + compare(type)) % query,
         buildEntry, &querydata
     );
     m_db->exec(
-        sql::query("SELECT DISTINCT entry FROM kanji WHERE kanji " + compare(type)) % query,
+        sql::query("SELECT DISTINCT entry FROM kanji WHERE kanji "
+                   + compare(type)) % query,
         buildEntry, &querydata
     );
 
@@ -55,7 +77,8 @@ std::string JMDict::compare(QueryType type)
 
 int buildEntry(void *void_query_data, int, char **value, char **)
 {
-    struct query_data *query_data = static_cast<struct query_data *>(void_query_data);
+    struct query_data *query_data = 
+        static_cast<struct query_data *>(void_query_data);
     sql::db *db = query_data->db;
     Entry *entry = query_data->entry;
     if (query_data->entryId.empty())
@@ -76,7 +99,8 @@ int buildEntry(void *void_query_data, int, char **value, char **)
         accumulateKana, entry
     );
     db->exec(
-        sql::query("SELECT sense, pos, gloss FROM gloss WHERE entry=%s ORDER BY sense") % *value,
+        sql::query("SELECT sense, pos, gloss FROM gloss WHERE entry=%s "
+                   "ORDER BY sense") % *value,
         buildDefinition, entry
     );
 

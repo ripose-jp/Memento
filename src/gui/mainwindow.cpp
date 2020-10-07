@@ -1,3 +1,23 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2020 Ripose
+//
+// This file is part of Memento.
+//
+// Memento is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2 of the License.
+//
+// Memento is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Memento.  If not, see <https://www.gnu.org/licenses/>.
+//
+////////////////////////////////////////////////////////////////////////////////
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "mpvadapter.h"
@@ -8,7 +28,8 @@
 #include <QMimeData>
 #include <QDebug>
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
+                                          m_ui(new Ui::MainWindow)
 {
     m_ui->setupUi(this);
 
@@ -28,55 +49,99 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     connect(m_ui->m_actionOpen, &QAction::triggered, this, &MainWindow::open);
 
     // Buttons
-    connect(m_ui->m_controls, &PlayerControls::play, m_player, &PlayerAdapter::play);
-    connect(m_ui->m_controls, &PlayerControls::pause, m_player, &PlayerAdapter::pause);
-    connect(m_ui->m_controls, &PlayerControls::stop, m_player, &PlayerAdapter::stop);
-    connect(m_ui->m_controls, &PlayerControls::skipForward, m_player, &PlayerAdapter::skipForward);
-    connect(m_ui->m_controls, &PlayerControls::skipBackward, m_player, &PlayerAdapter::skipBackward);
-    connect(m_ui->m_controls, &PlayerControls::seekForward, m_player, &PlayerAdapter::seekForward);
-    connect(m_ui->m_controls, &PlayerControls::seekBackward, m_player, &PlayerAdapter::seekBackward);
-    connect(m_ui->m_controls, &PlayerControls::fullscreenChanged, m_player, &PlayerAdapter::setFullscreen);
+    connect(m_ui->m_controls, &PlayerControls::play,
+        m_player, &PlayerAdapter::play);
+    connect(m_ui->m_controls, &PlayerControls::pause,
+        m_player, &PlayerAdapter::pause);
+    connect(m_ui->m_controls, &PlayerControls::stop,
+        m_player, &PlayerAdapter::stop);
+    connect(m_ui->m_controls, &PlayerControls::skipForward,
+        m_player, &PlayerAdapter::skipForward);
+    connect(m_ui->m_controls, &PlayerControls::skipBackward,
+        m_player, &PlayerAdapter::skipBackward);
+    connect(m_ui->m_controls, &PlayerControls::seekForward,
+        m_player, &PlayerAdapter::seekForward);
+    connect(m_ui->m_controls, &PlayerControls::seekBackward,
+        m_player, &PlayerAdapter::seekBackward);
+    connect(m_ui->m_controls, &PlayerControls::fullscreenChanged,
+        m_player, &PlayerAdapter::setFullscreen);
 
     // Slider
-    connect(m_ui->m_controls, &PlayerControls::volumeSliderMoved, m_player, &PlayerAdapter::setVolume);
-    connect(m_ui->m_controls, &PlayerControls::sliderMoved, m_player, &PlayerAdapter::seek);
-    connect(m_player, &PlayerAdapter::durationChanged, m_ui->m_controls, &PlayerControls::setDuration);
-    connect(m_player, &PlayerAdapter::positionChanged, m_ui->m_controls, &PlayerControls::setPosition);
+    connect(m_ui->m_controls, &PlayerControls::volumeSliderMoved,
+        m_player, &PlayerAdapter::setVolume);
+    connect(m_ui->m_controls, &PlayerControls::sliderMoved,
+        m_player, &PlayerAdapter::seek);
+    connect(m_player, &PlayerAdapter::durationChanged,
+        m_ui->m_controls, &PlayerControls::setDuration);
+    connect(m_player, &PlayerAdapter::positionChanged,
+        m_ui->m_controls, &PlayerControls::setPosition);
 
     // State changes
-    connect(m_player, &PlayerAdapter::subtitleChanged, m_ui->m_controls, &PlayerControls::setSubtitle);
-    connect(m_player, &PlayerAdapter::stateChanged, m_ui->m_controls, &PlayerControls::setPaused);
-    connect(m_player, &PlayerAdapter::fullscreenChanged, this, &MainWindow::setFullscreen);
-    connect(m_player, &PlayerAdapter::fullscreenChanged, m_ui->m_controls, &PlayerControls::setFullscreen);
-    connect(m_player, &PlayerAdapter::volumeChanged, m_ui->m_controls, &PlayerControls::setVolume);
-    connect(m_player, &PlayerAdapter::hideCursor, this, &MainWindow::hideControls);
-    connect(m_player, &PlayerAdapter::hideCursor, this, &MainWindow::hidePlayerCursor);
+    connect(m_player, &PlayerAdapter::subtitleChanged,
+        m_ui->m_controls, &PlayerControls::setSubtitle);
+    connect(m_player, &PlayerAdapter::stateChanged,
+        m_ui->m_controls, &PlayerControls::setPaused);
+    connect(m_player, &PlayerAdapter::fullscreenChanged,
+        this, &MainWindow::setFullscreen);
+    connect(m_player, &PlayerAdapter::fullscreenChanged,
+        m_ui->m_controls, &PlayerControls::setFullscreen);
+    connect(m_player, &PlayerAdapter::volumeChanged,
+        m_ui->m_controls, &PlayerControls::setVolume);
+    connect(m_player, &PlayerAdapter::hideCursor,
+        this, &MainWindow::hideControls);
+    connect(m_player, &PlayerAdapter::hideCursor,
+        this, &MainWindow::hidePlayerCursor);
     connect(m_player, &PlayerAdapter::close, this, &QApplication::quit);
 
     // Key/Mouse presses
-    connect(this, &MainWindow::keyPressed, m_player, &PlayerAdapter::keyPressed);
-    connect(this, &MainWindow::wheelMoved, m_player, &PlayerAdapter::mouseWheelMoved);
+    connect(this, &MainWindow::keyPressed,
+        m_player, &PlayerAdapter::keyPressed);
+    connect(this, &MainWindow::wheelMoved,
+        m_player, &PlayerAdapter::mouseWheelMoved);
 
     // Track changes
-    connect(m_player, &PlayerAdapter::tracksChanged, this, &MainWindow::setTracks);
+    connect(m_player, &PlayerAdapter::tracksChanged,
+        this, &MainWindow::setTracks);
+
     connect(m_player, &PlayerAdapter::audioTrackChanged, 
-            [=] (const int id) { if(!m_audioTracks.isEmpty()) m_audioTracks[id - 1].first->setChecked(true); } );
+            [=] (const int id) {
+                if(!m_audioTracks.isEmpty())
+                    m_audioTracks[id - 1].first->setChecked(true); 
+            } );
     connect(m_player, &PlayerAdapter::videoTrackChanged,
-            [=] (const int id) { if(!m_videoTracks.isEmpty()) m_videoTracks[id - 1].first->setChecked(true); } );
+            [=] (const int id) {
+                if(!m_videoTracks.isEmpty())
+                    m_videoTracks[id - 1].first->setChecked(true);
+            } );
     connect(m_player, &PlayerAdapter::subtitleTrackChanged,
-            [=] (const int id) { if(!m_subtitleTracks.isEmpty()) m_subtitleTracks[id - 1].first->setChecked(true); } );
-    connect(m_player, &PlayerAdapter::audioDisabled, [=] { m_ui->m_actionAudioNone->setChecked(true); } );
-    connect(m_player, &PlayerAdapter::videoDisabled, [=] { m_ui->m_actionVideoNone->setChecked(true); } );
-    connect(m_player, &PlayerAdapter::subtitleDisabled, [=] { m_ui->m_actionSubtitleNone->setChecked(true); } );
-    connect(m_ui->m_actionAudioNone, &QAction::triggered, m_player, &PlayerAdapter::disableAudio);
-    connect(m_ui->m_actionVideoNone, &QAction::triggered, m_player, &PlayerAdapter::disableVideo);
-    connect(m_ui->m_actionSubtitleNone, &QAction::triggered, m_player, &PlayerAdapter::disableSubtitles);
+            [=] (const int id) {
+                if(!m_subtitleTracks.isEmpty())
+                    m_subtitleTracks[id - 1].first->setChecked(true);
+            } );
+
+    connect(m_player, &PlayerAdapter::audioDisabled,
+        [=] { m_ui->m_actionAudioNone->setChecked(true); } );
+    connect(m_player, &PlayerAdapter::videoDisabled,
+        [=] { m_ui->m_actionVideoNone->setChecked(true); } );
+    connect(m_player, &PlayerAdapter::subtitleDisabled,
+        [=] { m_ui->m_actionSubtitleNone->setChecked(true); } );
+
+    connect(m_ui->m_actionAudioNone, &QAction::triggered,
+        m_player, &PlayerAdapter::disableAudio);
+    connect(m_ui->m_actionVideoNone, &QAction::triggered,
+        m_player, &PlayerAdapter::disableVideo);
+    connect(m_ui->m_actionSubtitleNone, &QAction::triggered,
+        m_player, &PlayerAdapter::disableSubtitles);
 
     // Definition changes
-    connect(m_ui->m_controls, &PlayerControls::entryChanged, m_definition, &DefinitionWidget::setEntry);
-    connect(m_ui->m_controls, &PlayerControls::entryChanged, this, &MainWindow::setDefinitionWidgetLocation);
-    connect(m_ui->m_controls, &PlayerControls::hideDefinition, m_definition, &DefinitionWidget::hide);
-    connect(m_definition, &DefinitionWidget::definitionHidden, m_ui->m_controls, &PlayerControls::definitionHidden);
+    connect(m_ui->m_controls, &PlayerControls::entryChanged,
+        m_definition, &DefinitionWidget::setEntry);
+    connect(m_ui->m_controls, &PlayerControls::entryChanged,
+        this, &MainWindow::setDefinitionWidgetLocation);
+    connect(m_ui->m_controls, &PlayerControls::hideDefinition,
+        m_definition, &DefinitionWidget::hide);
+    connect(m_definition, &DefinitionWidget::definitionHidden,
+        m_ui->m_controls, &PlayerControls::definitionHidden);
 }
 
 MainWindow::~MainWindow()
@@ -169,24 +234,34 @@ void MainWindow::setTracks(QVector<const PlayerAdapter::Track *> tracks)
         case PlayerAdapter::Track::track_type::audio:
             m_ui->m_menuAudio->addAction(action);
             action->setActionGroup(m_actionGroupAudio);
-            connect(action, &QAction::triggered, [=] (const bool checked) { if (checked) m_player->setAudioTrack(track->id); } );
+            connect(action, &QAction::triggered, 
+                [=] (const bool checked) { 
+                    if (checked) m_player->setAudioTrack(track->id); 
+                } );
             trackList = &m_audioTracks;
             break;
         case PlayerAdapter::Track::track_type::video:
             m_ui->m_menuVideo->addAction(action);
             action->setActionGroup(m_actionGroupVideo);
-            connect(action, &QAction::triggered, [=] (const bool checked) { if (checked) m_player->setVideoTrack(track->id); } );
+            connect(action, &QAction::triggered, 
+                [=] (const bool checked) { 
+                    if (checked) m_player->setVideoTrack(track->id);
+                } );
             trackList = &m_videoTracks;
             break;
         case PlayerAdapter::Track::track_type::subtitle:
             m_ui->m_menuSubtitle->addAction(action);
             action->setActionGroup(m_actionGroupSubtitle);
-            connect(action, &QAction::triggered, [=] (const bool checked) { if (checked) m_player->setSubtitleTrack(track->id); } );
+            connect(action, &QAction::triggered, 
+                [=] (const bool checked) { 
+                    if (checked) m_player->setSubtitleTrack(track->id); 
+                } );
             trackList = &m_subtitleTracks;
             break;
         }
         action->setChecked(track->selected);
-        trackList->push_back(QPair<QAction *, const PlayerAdapter::Track *>(action, track));
+        trackList->push_back(
+            QPair<QAction *, const PlayerAdapter::Track *>(action, track));
     }
 }
 
@@ -212,7 +287,8 @@ void MainWindow::setDefinitionWidgetLocation()
 
 void MainWindow::hideControls()
 {
-    if (isFullScreen() && !m_ui->m_controls->underMouse() && !m_definition->underMouse())
+    if (isFullScreen() && !m_ui->m_controls->underMouse() && 
+        !m_definition->underMouse())
     {
         m_ui->m_controls->hide();
     }
@@ -228,12 +304,17 @@ void MainWindow::hidePlayerCursor()
 
 void MainWindow::clearTracks()
 {
-    clearTrack(m_audioTracks, m_ui->m_menuAudio, m_actionGroupAudio, m_ui->m_actionAudioNone);
-    clearTrack(m_videoTracks, m_ui->m_menuVideo, m_actionGroupVideo, m_ui->m_actionVideoNone);
-    clearTrack(m_subtitleTracks, m_ui->m_menuSubtitle, m_actionGroupSubtitle, m_ui->m_actionSubtitleNone);
+    clearTrack(m_audioTracks, m_ui->m_menuAudio, m_actionGroupAudio,
+               m_ui->m_actionAudioNone);
+    clearTrack(m_videoTracks, m_ui->m_menuVideo, m_actionGroupVideo,
+               m_ui->m_actionVideoNone);
+    clearTrack(m_subtitleTracks, m_ui->m_menuSubtitle, m_actionGroupSubtitle,
+               m_ui->m_actionSubtitleNone);
 }
 
-void MainWindow::clearTrack(QVector<QPair<QAction *, const PlayerAdapter::Track *>> &tracks, QMenu *menu, QActionGroup *actionGroup, QAction *actionDisable)
+void MainWindow::clearTrack(
+    QVector<QPair<QAction *, const PlayerAdapter::Track *>> &tracks,
+    QMenu *menu, QActionGroup *actionGroup, QAction *actionDisable)
 {
     for (auto it = tracks.begin(); it != tracks.end(); ++it)
     {

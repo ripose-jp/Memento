@@ -1,3 +1,23 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2020 Ripose
+//
+// This file is part of Memento.
+//
+// Memento is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2 of the License.
+//
+// Memento is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Memento.  If not, see <https://www.gnu.org/licenses/>.
+//
+////////////////////////////////////////////////////////////////////////////////
+
 #include <QApplication>
 #include <QDebug>
 
@@ -6,8 +26,6 @@
 int main(int argc, char *argv[])
 {
     QApplication memento(argc, argv);
-    // Qt sets the locale in the QApplication constructor, but libmpv requires
-    // the LC_NUMERIC category to be set to "C", so change it back.
     setlocale(LC_NUMERIC, "C");
     MainWindow main_window;
     main_window.show();

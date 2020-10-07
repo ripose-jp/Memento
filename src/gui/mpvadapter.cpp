@@ -1,24 +1,58 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2020 Ripose
+//
+// This file is part of Memento.
+//
+// Memento is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2 of the License.
+//
+// Memento is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Memento.  If not, see <https://www.gnu.org/licenses/>.
+//
+////////////////////////////////////////////////////////////////////////////////
+
 #include "mpvadapter.h"
 
 #include <QDebug>
 
-MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv), PlayerAdapter(parent)
+MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv),
+                                                          PlayerAdapter(parent)
 {
-    connect(m_mpv, &MpvWidget::tracklistChanged, this, &MpvAdapter::processTracks);
-    connect(m_mpv, &MpvWidget::audioTrackChanged, this, &MpvAdapter::audioTrackChanged);
-    connect(m_mpv, &MpvWidget::videoTrackChanged, this, &MpvAdapter::videoTrackChanged);
-    connect(m_mpv, &MpvWidget::subtitleTrackChanged, this, &MpvAdapter::subtitleTrackChanged);
+    connect(m_mpv, &MpvWidget::tracklistChanged, 
+        this, &MpvAdapter::processTracks);
+    connect(m_mpv, &MpvWidget::audioTrackChanged, 
+        this, &MpvAdapter::audioTrackChanged);
+    connect(m_mpv, &MpvWidget::videoTrackChanged, 
+        this, &MpvAdapter::videoTrackChanged);
+    connect(m_mpv, &MpvWidget::subtitleTrackChanged,
+        this, &MpvAdapter::subtitleTrackChanged);
 
-    connect(m_mpv, &MpvWidget::audioDisabled, this, &MpvAdapter::audioDisabled);
-    connect(m_mpv, &MpvWidget::videoDisabled, this, &MpvAdapter::videoDisabled);
-    connect(m_mpv, &MpvWidget::subtitleDisabled, this, &MpvAdapter::subtitleDisabled);
+    connect(m_mpv, &MpvWidget::audioDisabled,
+        this, &MpvAdapter::audioDisabled);
+    connect(m_mpv, &MpvWidget::videoDisabled,
+        this, &MpvAdapter::videoDisabled);
+    connect(m_mpv, &MpvWidget::subtitleDisabled,
+        this, &MpvAdapter::subtitleDisabled);
 
-    connect(m_mpv, &MpvWidget::subtitleChanged, this, &MpvAdapter::processSubtitle);
-    connect(m_mpv, &MpvWidget::durationChanged, this, &MpvAdapter::durationChanged);
-    connect(m_mpv, &MpvWidget::positionChanged, this, &MpvAdapter::positionChanged);
-    connect(m_mpv, &MpvWidget::stateChanged, this, &MpvAdapter::stateChanged);
-    connect(m_mpv, &MpvWidget::fullscreenChanged, this, &MpvAdapter::fullscreenChanged);
-    connect(m_mpv, &MpvWidget::volumeChanged, this, &MpvAdapter::volumeChanged);
+    connect(m_mpv, &MpvWidget::subtitleChanged,
+        this, &MpvAdapter::processSubtitle);
+    connect(m_mpv, &MpvWidget::durationChanged,
+        this, &MpvAdapter::durationChanged);
+    connect(m_mpv, &MpvWidget::positionChanged,
+        this, &MpvAdapter::positionChanged);
+    connect(m_mpv, &MpvWidget::stateChanged,
+        this, &MpvAdapter::stateChanged);
+    connect(m_mpv, &MpvWidget::fullscreenChanged,
+        this, &MpvAdapter::fullscreenChanged);
+    connect(m_mpv, &MpvWidget::volumeChanged,
+        this, &MpvAdapter::volumeChanged);
 
     connect(m_mpv, &MpvWidget::hideCursor, this, &MpvAdapter::hideCursor);
     connect(m_mpv, &MpvWidget::shutdown, this, &MpvAdapter::close);
@@ -37,12 +71,14 @@ void MpvAdapter::open(const QList<QUrl> &files)
         return;
 
     stop();
-    open(files.first().toLocalFile()); // mpv won't start with loadfile append for some reason
+    open(files.first().toLocalFile()); // mpv won't start with loadfile append
     for (auto it = files.begin() + 1; it != files.end(); ++it)
     {
         qDebug() << (*it).toLocalFile();
         if (!(*it).toLocalFile().isEmpty())
-            m_mpv->command(QStringList() << "loadfile" << (*it).toLocalFile() << "append");
+            m_mpv->command(QStringList() << "loadfile" 
+                                         << (*it).toLocalFile() 
+                                         << "append");
     }
 }
 

@@ -1,4 +1,24 @@
-﻿#include "mpvwidget.h"
+﻿////////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2020 Ripose
+//
+// This file is part of Memento.
+//
+// Memento is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2 of the License.
+//
+// Memento is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Memento.  If not, see <https://www.gnu.org/licenses/>.
+//
+////////////////////////////////////////////////////////////////////////////////
+
+#include "mpvwidget.h"
 
 #include <stdexcept>
 #include <QtGui/QOpenGLContext>
@@ -6,7 +26,8 @@
 
 static void wakeup(void *ctx)
 {
-    QMetaObject::invokeMethod((MpvWidget *)ctx, "on_mpv_events", Qt::QueuedConnection);
+    QMetaObject::invokeMethod((MpvWidget *)ctx, "on_mpv_events",
+                              Qt::QueuedConnection);
 }
 
 static void *get_proc_address(void *ctx, const char *name)
@@ -18,7 +39,8 @@ static void *get_proc_address(void *ctx, const char *name)
     return reinterpret_cast<void *>(glctx->getProcAddress(QByteArray(name)));
 }
 
-MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent), m_cursorTimer(new QTimer())
+MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent),
+                                        m_cursorTimer(new QTimer())
 {
     mpv = mpv_create();
     if (!mpv)
@@ -28,7 +50,8 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent), m_cursorTimer(new
     mpv_set_option_string(mpv, "msg-level", "all=v");
     mpv_set_option_string(mpv, "keep-open", "yes");
     mpv_set_option_string(mpv, "config", "yes");
-    mpv_set_option_string(mpv, "config-dir", DirectoryUtils::getConfigDir().toLatin1());
+    mpv_set_option_string(mpv, "config-dir",
+                          DirectoryUtils::getConfigDir().toLatin1());
 
     if (mpv_initialize(mpv) < 0)
         throw std::runtime_error("could not initialize mpv context");
@@ -97,18 +120,26 @@ void MpvWidget::initializeGL()
 {
     mpv_opengl_init_params gl_init_params{get_proc_address, nullptr, nullptr};
     mpv_render_param params[]{
-        {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)},
+        {MPV_RENDER_PARAM_API_TYPE, 
+            const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)},
         {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init_params},
-        {MPV_RENDER_PARAM_INVALID, nullptr}};
+        {MPV_RENDER_PARAM_INVALID, nullptr}
+    };
 
     if (mpv_render_context_create(&mpv_gl, mpv, params) < 0)
         throw std::runtime_error("failed to initialize mpv GL context");
-    mpv_render_context_set_update_callback(mpv_gl, MpvWidget::on_update, reinterpret_cast<void *>(this));
+    mpv_render_context_set_update_callback(mpv_gl, MpvWidget::on_update,
+                                           reinterpret_cast<void *>(this));
 }
 
 void MpvWidget::paintGL()
 {
-    mpv_opengl_fbo mpfbo{static_cast<int>(defaultFramebufferObject()), width(), height(), 0};
+    mpv_opengl_fbo mpfbo{
+        static_cast<int>(defaultFramebufferObject()),
+        width(),
+        height(),
+        0
+    };
     int flip_y{1};
 
     mpv_render_param params[] = {
@@ -295,7 +326,8 @@ void MpvWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void MpvWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    command(QVariantList() << "keypress" << convertToMouseString(event) + "_DBL");
+    command(QVariantList() << "keypress" 
+                           << convertToMouseString(event) + "_DBL");
 }
 
 QString MpvWidget::convertToMouseString(const QMouseEvent *event) const

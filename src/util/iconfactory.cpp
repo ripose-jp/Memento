@@ -1,3 +1,23 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2020 Ripose
+//
+// This file is part of Memento.
+//
+// Memento is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2 of the License.
+//
+// Memento is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Memento.  If not, see <https://www.gnu.org/licenses/>.
+//
+////////////////////////////////////////////////////////////////////////////////
+
 #include "iconfactory.h"
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
@@ -73,7 +93,8 @@ ThemeFactory::ThemeFactory(const QWidget *parent) : IconFactory(parent)
     for (int i = 0; i < ICON_ENUM_SIZE; ++i)
     {
         icons[i] = QIcon::hasThemeIcon(names[i]) ? 
-            QIcon::fromTheme(names[i]) : styleFactory.getIcon((IconFactory::Icon) i);
+            QIcon::fromTheme(names[i]) : 
+            styleFactory.getIcon((IconFactory::Icon) i);
     }
 }
 
