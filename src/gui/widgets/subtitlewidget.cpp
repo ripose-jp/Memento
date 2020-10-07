@@ -7,6 +7,8 @@
 #include <QThreadPool>
 #include <QDebug>
 
+#define MAX_QUERY_LENGTH 37
+
 SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent), m_currentIndex(-1)
 {
     setStyleSheet("QLineEdit { color : white; background-color : black; }");
@@ -36,6 +38,7 @@ void SubtitleWidget::deselectText()
 void SubtitleWidget::findEntry()
 {
     QString queryStr = text().remove(0, m_currentIndex);
+    queryStr.truncate(MAX_QUERY_LENGTH);
     QueryThread *queryThread = new QueryThread(this, queryStr, text(), m_currentIndex);
     QThreadPool::globalInstance()->start(queryThread);
 }
