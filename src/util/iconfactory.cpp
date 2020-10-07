@@ -14,21 +14,70 @@
     #error "OS not supported"
 #endif
 
+#define PLAY_THEME "media-playback-start"
+#define PAUSE_THEME "media-playback-pause"
+#define STOP_THEME "media-playback-stop"
+#define SEEK_BACKWARD_THEME "media-seek-backward"
+#define SEEK_FORWARD_THEME "media-seek-forward"
+#define SKIP_BACKWARD_THEME "media-skip-backward"
+#define SKIP_FORWARD_THEME "media-skip-forward"
+#define FULLSCREEN_THEME "view-fullscreen"
+#define RESTORE_THEME "view-restore"
+
+
 IconFactory *IconFactory::create(const QWidget *parent)
 {
     return FACTORY_CLASS(parent);
 }
 
+StyleFactory::StyleFactory(const QWidget *parent) : IconFactory(parent)
+{
+    const QStyle::StandardPixmap pixmaps[skip_backward + 1] = {
+        QStyle::SP_MediaPlay,
+        QStyle::SP_MediaPause,
+        QStyle::SP_MediaStop,
+        QStyle::SP_MediaSeekForward,
+        QStyle::SP_MediaSeekBackward,
+        QStyle::SP_MediaSkipForward,
+        QStyle::SP_MediaSkipBackward
+    };
+
+    for (int i = 0; i < fullscreen; ++i)
+    {
+        icons[i] = m_parent->style()->standardIcon(pixmaps[i]);
+    }
+    icons[fullscreen] = QIcon(":/images/fullscreen.svg");
+    icons[restore] = QIcon(":/images/restore.svg");
+}
+
 QIcon StyleFactory::getIcon(IconFactory::Icon icon)
 {
-        return m_parent->style()->standardIcon(pixmaps[icon]);
+    return icons[icon];
+}
+
+ThemeFactory::ThemeFactory(const QWidget *parent) : IconFactory(parent)
+{
+    const QString names[9] = {
+        PLAY_THEME,
+        PAUSE_THEME,
+        STOP_THEME,
+        SEEK_FORWARD_THEME,
+        SEEK_BACKWARD_THEME,
+        SKIP_FORWARD_THEME,
+        SKIP_BACKWARD_THEME,
+        FULLSCREEN_THEME,
+        RESTORE_THEME
+    };
+
+    StyleFactory styleFactory(m_parent);
+    for (int i = 0; i < ICON_ENUM_SIZE; ++i)
+    {
+        icons[i] = QIcon::hasThemeIcon(names[i]) ? 
+            QIcon::fromTheme(names[i]) : styleFactory.getIcon((IconFactory::Icon) i);
+    }
 }
 
 QIcon ThemeFactory::getIcon(IconFactory::Icon icon)
 {
-    if (QIcon::hasThemeIcon(icons[icon]))
-    {
-            return QIcon::fromTheme(icons[icon]);
-    }
-    return StyleFactory(m_parent).getIcon(icon);
+    return icons[icon];
 }
