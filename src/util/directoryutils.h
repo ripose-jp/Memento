@@ -43,8 +43,8 @@
     #error "OS not supported"
 #endif
 
-#define DICTIONARY_DIR "dict"
-#define CACHE_DIR "dict"
+#define JMDICT_DB_NAME "JMDict"
+
 
 class DirectoryUtils
 {

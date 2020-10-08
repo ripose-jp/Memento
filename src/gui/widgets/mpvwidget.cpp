@@ -24,6 +24,10 @@
 #include <QtGui/QOpenGLContext>
 #include <QDebug>
 
+#define ASYNC_COMMAND_REPLY 20
+#define ERROR_STR "MPV threw error code: "
+#define TIMEOUT 2000
+
 static void wakeup(void *ctx)
 {
     QMetaObject::invokeMethod((MpvWidget *)ctx, "on_mpv_events",
@@ -55,9 +59,6 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent),
 
     if (mpv_initialize(mpv) < 0)
         throw std::runtime_error("could not initialize mpv context");
-
-    // Request hw decoding, just for testing.
-    mpv::qt::set_option_variant(mpv, "hwdec", "auto");
 
     mpv_observe_property(mpv, 0, "duration", MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv, 0, "time-pos", MPV_FORMAT_DOUBLE);

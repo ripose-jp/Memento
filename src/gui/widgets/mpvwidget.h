@@ -31,10 +31,6 @@
 
 #include "../../util/directoryutils.h"
 
-#define ASYNC_COMMAND_REPLY 20
-#define ERROR_STR "MPV threw error code: "
-#define TIMEOUT 2000
-
 class MpvWidget Q_DECL_FINAL : public QOpenGLWidget
 {
     Q_OBJECT

@@ -20,6 +20,9 @@
 
 #include "directoryutils.h"
 
+#define DICTIONARY_DIR "dict"
+#define CACHE_DIR "dict"
+
 QString DirectoryUtils::getConfigDir()
 {
     QString path = getenv(ENV_VAR);

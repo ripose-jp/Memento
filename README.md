@@ -4,7 +4,18 @@
 
 ## Overview
 
-Memento is a FOSS, libmpv-based video player intended for studying Japanese.
+Memento is a FOSS, mpv-based video player intended for studying Japanese.
+
+## To-do
+
+* Display definitions for all potential matches, rather than just the first 
+match.
+* Improve query processing to be aware of Japanese grammar.
+    * Example: 食べられない　→　食べられる　→　食べる
+* Improve query speed.
+* Add AnkiConnect support for automatically making flashcards from defintions.
+* Add support for regenerating the JMDict database from within Memento.
+* Display subtitles over the video player.
 
 ## Acknowledgements
 

@@ -28,8 +28,6 @@
 #include <QMouseEvent>
 #include <QRunnable>
 
-#define JMDICT_DB_NAME "JMDict_e"
-
 class SubtitleWidget : public QLineEdit
 {
     Q_OBJECT

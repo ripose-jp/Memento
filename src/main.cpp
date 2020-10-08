@@ -19,12 +19,22 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <QApplication>
+#include <QFile>
 #include <QDebug>
 
 #include "gui/mainwindow.h"
+#include "util/directoryutils.h"
 
 int main(int argc, char *argv[])
 {
+    QFile db(DirectoryUtils::getDictionaryDir() + JMDICT_DB_NAME);
+    if (!db.exists())
+    {
+        qDebug() << "Could not find JMDict in" 
+                 << DirectoryUtils::getDictionaryDir();
+        return EXIT_FAILURE;
+    }
+
     QApplication memento(argc, argv);
     setlocale(LC_NUMERIC, "C");
     MainWindow main_window;

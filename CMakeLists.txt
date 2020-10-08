@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1.0)
-project(Memento VERSION "0.1")
+project(memento VERSION "0.1")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_AUTOMOC ON)
@@ -15,3 +15,21 @@ include_directories(
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 add_subdirectory(src)
+
+if(UNIX)
+	install(
+		TARGETS memento 
+		DESTINATION bin
+		COMPONENT binaries
+	)
+	install(
+		FILES config/input.conf
+		DESTINATION $ENV{HOME}/.config/memento
+		COMPONENT config
+	)
+	install(
+		FILES config/dict/JMDict
+		DESTINATION $ENV{HOME}/.config/memento/dict
+		COMPONENT config
+	)
+endif()

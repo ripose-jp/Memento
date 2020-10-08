@@ -2,5 +2,9 @@ add_subdirectory(util)
 add_subdirectory(dict)
 add_subdirectory(gui)
 
-add_executable(Memento main.cpp ../res/resources.qrc)
-target_link_libraries(Memento mainwindow)
+add_executable(memento 
+               main.cpp 
+               ../res/resources.qrc
+               ../config/input.conf
+               ../config/dict/JMDict)
+target_link_libraries(memento mainwindow)
