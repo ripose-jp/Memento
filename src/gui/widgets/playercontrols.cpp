@@ -112,16 +112,16 @@ void PlayerControls::setDuration(const int value)
 
 void PlayerControls::setPosition(const int value)
 {
-    if (value <= m_duration) 
-    {
-        m_ui->m_sliderProgress->blockSignals(true);
-        m_ui->m_sliderProgress->setValue(value);
-        m_ui->m_sliderProgress->blockSignals(false);
-        m_ui->m_labelCurrent->setText(formatTime(value));
+    if (value > m_duration)
+        return;
+    
+    m_ui->m_sliderProgress->blockSignals(true);
+    m_ui->m_sliderProgress->setValue(value);
+    m_ui->m_sliderProgress->blockSignals(false);
+    m_ui->m_labelCurrent->setText(formatTime(value));
 
-        if (value > m_endtime)
-            m_ui->m_subtitle->updateText("");
-    }
+    if (value > m_endtime)
+        m_ui->m_subtitle->updateText("");
 }
 
 void PlayerControls::setPaused(const bool paused)
