@@ -16,6 +16,7 @@ match.
 * Add AnkiConnect support for automatically making flashcards from defintions.
 * Add support for regenerating the JMDict database from within Memento.
 * Display subtitles over the video player.
+* Compile Window and OS X versions.
 
 ## Acknowledgements
 
@@ -30,7 +31,7 @@ http://jmdict.sourceforge.net/
 MPV Widget code is based off of libmpv example code by w4m.
 https://github.com/mpv-player/mpv-examples/tree/master/libmpv/qt_opengl
 
-Some code and build scripts based off of Baka-MPlayer.
+Some code based off of Baka-MPlayer.
 https://github.com/u8sand/Baka-MPlayer
 
 This project uses icons made by Georgiana Ionescu for the Noun Project.
