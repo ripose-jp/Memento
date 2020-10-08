@@ -6,6 +6,12 @@
 
 Memento is a FOSS, mpv-based video player intended for studying Japanese.
 
+## Dependencies
+
+* Qt5
+* mpv
+* sqlite3
+
 ## To-do
 
 * Display definitions for all potential matches, rather than just the first 

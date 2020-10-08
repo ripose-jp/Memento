@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Memento
 Comment=A video player for studying Japanese
-GenericName=Video Player
+GenericName=A video player for studying Japanese
 Exec=memento
 Icon=memento.svg
 Categories=Education;Languages;Qt;

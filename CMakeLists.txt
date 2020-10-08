@@ -34,10 +34,10 @@ if(UNIX)
 	)
 	install(
 		FILES res/memento.desktop
-		DESTINATION ${DATAROOTDIR}/applications/
+		DESTINATION share/applications
 	)
 	install(
 		FILES res/memento.svg
-		DESTINATION share
+		DESTINATION share/icons/hicolor/scalable/apps
 	)
 endif()
