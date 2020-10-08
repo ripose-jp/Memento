@@ -6,11 +6,37 @@
 
 Memento is a FOSS, mpv-based video player intended for studying Japanese.
 
+![image info](example.png)
+
 ## Dependencies
 
 * Qt5
 * mpv
 * sqlite3
+
+## Installing
+
+To install Memento on Linux, type the following commands:
+
+```
+cmake .
+sudo cmake --build . --target install
+```
+
+Currently Linux is the only officially supported OS. Windows and OS X will need
+some configuration to be compiled, but the source code is likely portable as is.
+
+## Configuration
+
+Most mpv shaders, plugins, and configuration files will work out of the box.
+The Memento config directory is located at:
+
+```
+~/.config/memento
+```
+
+If any mpv binds or plugins do not work, please create an issue in the issue
+tracker.
 
 ## To-do
 
