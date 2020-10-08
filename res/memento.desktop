@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Memento
+Comment=A video player for studying Japanese
+GenericName=Video Player
+Exec=memento
+Icon=memento.svg
+Categories=Education;Languages;Qt;
+Type=Application
+Version=0.1

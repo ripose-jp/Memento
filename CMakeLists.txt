@@ -32,4 +32,12 @@ if(UNIX)
 		DESTINATION $ENV{HOME}/.config/memento/dict
 		COMPONENT config
 	)
+	install(
+		FILES res/memento.desktop
+		DESTINATION ${DATAROOTDIR}/applications/
+	)
+	install(
+		FILES res/memento.svg
+		DESTINATION share
+	)
 endif()
