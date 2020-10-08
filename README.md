@@ -1,6 +1,4 @@
-# [Memento]
-
---------------
+# Memento
 
 ## Overview
 
