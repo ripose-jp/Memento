@@ -75,6 +75,7 @@ private:
     Ui::PlayerControls *m_ui;
     bool m_paused;
     bool m_fullscreen;
+    int m_duration;
     int m_endtime;
     IconFactory *m_iconFactory;
 
