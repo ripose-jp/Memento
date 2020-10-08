@@ -35,6 +35,7 @@ PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent),
 
     m_iconFactory = IconFactory::create(this);
     setIcons();
+    m_ui->m_buttonStop->hide(); // stop button may be removed entirely
 
     m_ui->m_sliderProgress->setStyle(
         new SliderJumpStyle(m_ui->m_sliderProgress->style()));
