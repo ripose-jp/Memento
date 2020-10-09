@@ -38,8 +38,6 @@ tracker.
 
 ## To-do
 
-* Display definitions for all potential matches, rather than just the first 
-match.
 * Improve query processing to be aware of Japanese grammar.
     * Example: 食べられない　→　食べられる　→　食べる
 * Improve query speed.
