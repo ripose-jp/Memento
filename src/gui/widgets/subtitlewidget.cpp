@@ -34,7 +34,7 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
     setStyleSheet("QLineEdit { color : white; background-color : black; }");
 
     QString path = DirectoryUtils::getDictionaryDir() + JMDICT_DB_NAME;
-    m_dictionary = new JMDict(path.toStdString());
+    m_dictionary = new JMDict(path);
 }
 
 SubtitleWidget::~SubtitleWidget()
@@ -78,17 +78,26 @@ void SubtitleWidget::QueryThread::run()
 {
     while (!m_query.isEmpty() && m_currentIndex == m_parent->m_currentIndex)
     {
-        Entry *entry = m_parent->m_dictionary->query(
-            m_query.toStdString(), JMDict::FULLTEXT);
-        if (!entry->m_descriptions->empty() && 
+        QList<const Entry *> *entries = m_parent->m_dictionary->query(
+            m_query, JMDict::FULLTEXT);
+        if (!entries->isEmpty() && 
             m_currentIndex == m_parent->m_currentIndex &&
             m_currentSubtitle == m_parent->text())
         {
-            Q_EMIT m_parent->entryChanged(entry);
+            Q_EMIT m_parent->entriesChanged(entries);
             m_parent->setSelection(m_parent->m_currentIndex, m_query.size());
             break;
         }
-        delete entry;
+        deleteEntries(entries);
         m_query.chop(1);
     }
+}
+
+void SubtitleWidget::QueryThread::deleteEntries(QList<const Entry *> *entries)
+{
+    for (auto it = entries->begin(); it != entries->end(); ++it)
+    {
+        delete *it;
+    }
+    delete entries;
 }

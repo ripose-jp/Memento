@@ -67,8 +67,8 @@ PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent),
     connect(m_ui->m_buttonFullscreen, &QToolButton::clicked,
         this, &PlayerControls::toggleFullscreen);
 
-    connect(m_ui->m_subtitle, &SubtitleWidget::entryChanged,
-        this, &PlayerControls::entryChanged);
+    connect(m_ui->m_subtitle, &SubtitleWidget::entriesChanged,
+        this, &PlayerControls::entriesChanged);
     connect(m_ui->m_subtitle, &SubtitleWidget::textChanged,
         this, &PlayerControls::hideDefinition);
     connect(this, &PlayerControls::definitionHidden,
