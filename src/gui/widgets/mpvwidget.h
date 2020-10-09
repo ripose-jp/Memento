@@ -58,7 +58,9 @@ Q_SIGNALS:
     void audioDisabled();
     void videoDisabled();
     void subtitleDisabled();
-    void subtitleChanged(const char **subtitle, const int64_t end);
+    void subtitleChanged(const char **subtitle, 
+                         const int64_t start, 
+                         const int64_t end);
     void hideCursor();
     void shutdown();
 

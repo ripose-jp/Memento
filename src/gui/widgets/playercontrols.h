@@ -47,7 +47,7 @@ public Q_SLOTS:
     void setVolumeLimit(const int value);
     void setVolume(const int value);
     void setPosition(const int value);
-    void setSubtitle(const QString &subtitle, const int end);
+    void setSubtitle(const QString &subtitle, const int start, const int end);
 
 Q_SIGNALS:
     void play();
@@ -76,6 +76,7 @@ private:
     bool m_paused;
     bool m_fullscreen;
     int m_duration;
+    int m_starttime;
     int m_endtime;
     IconFactory *m_iconFactory;
 

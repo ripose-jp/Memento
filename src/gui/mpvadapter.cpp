@@ -254,11 +254,13 @@ int MpvAdapter::getMaxVolume() const
     return m_mpv->getProperty("volume-max").toInt();
 }
 
-void MpvAdapter::processSubtitle(const char **subtitle, const int64_t end)
+void MpvAdapter::processSubtitle(const char **subtitle,
+                                 const int64_t start,
+                                 const int64_t end)
 {
     QString formatted = *subtitle;
     formatted = formatted.replace(QChar::fromLatin1('\n'), " / ");
-    Q_EMIT subtitleChanged(formatted, end);
+    Q_EMIT subtitleChanged(formatted, start, end);
 }
 
 // Code modified from loadTracks()

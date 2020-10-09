@@ -56,7 +56,9 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void processTracks(const mpv_node *node);
-    void processSubtitle(const char **subtitle, const int64_t end);
+    void processSubtitle(const char **subtitle,
+                         const int64_t start,
+                         const int64_t end);
 
 private:
     MpvWidget *m_mpv;

@@ -106,6 +106,7 @@ void PlayerControls::setDuration(const int value)
 {
     setPosition(0);
     m_duration = value;
+    m_starttime = -1;
     m_endtime = -1;
     m_ui->m_sliderProgress->setRange(0, value);
     m_ui->m_labelTotal->setText(formatTime(value));
@@ -121,7 +122,7 @@ void PlayerControls::setPosition(const int value)
     m_ui->m_sliderProgress->blockSignals(false);
     m_ui->m_labelCurrent->setText(formatTime(value));
 
-    if (value > m_endtime)
+    if (value > m_endtime || value < m_starttime - 1)
         m_ui->m_subtitle->updateText("");
 }
 
@@ -186,9 +187,12 @@ void PlayerControls::setVolume(const int value)
     m_ui->m_labelVolume->setText(volume);
 }
 
-void PlayerControls::setSubtitle(const QString &subtitle, const int end)
+void PlayerControls::setSubtitle(const QString &subtitle,
+                                 const int start, 
+                                 const int end)
 {
     m_ui->m_subtitle->updateText(subtitle);
+    m_starttime = start;
     m_endtime = end;
 }
 
