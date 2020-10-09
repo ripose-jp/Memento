@@ -18,34 +18,32 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef ENTRY_H
-#define ENTRY_H
+#ifndef DEFINITION_H
+#define DEFINITION_H
 
-#include <QString>
-#include <QList>
+#include <QWidget>
 
-struct Entry
+#include "../../dict/entry.h"
+
+namespace Ui
 {
-    Entry() : m_kanji(new QString),
-              m_altkanji(new QString),
-              m_kana(new QString), 
-              m_altkana(new QString),
-              m_descriptions(new QList<QList<QString>>) {}
-    
-    ~Entry()
-    {
-        delete m_kanji;
-        delete m_altkanji;
-        delete m_kana;
-        delete m_altkana;
-        delete m_descriptions;
-    }
+    class Definition;
+}
 
-    QString *m_kanji;
-    QString *m_altkanji;
-    QString *m_kana;
-    QString *m_altkana;
-    QList<QList<QString>> *m_descriptions;
-} typedef Entry;
+class Definition : public QWidget
+{
+    Q_OBJECT
 
-#endif // ENTRY_H
+public:
+    Definition(const Entry *entry, QWidget *parent = 0);
+    ~Definition();
+
+private:
+    Ui::Definition *m_ui;
+
+    void setEntry(const Entry *entry);
+    QString generateJishoLink(const QString &word);
+    QString buildDefinition(const QList<QList<QString>> &definitions);
+};
+
+#endif // DEFINITION_H

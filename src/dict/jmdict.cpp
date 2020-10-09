@@ -29,41 +29,44 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 static int buildEntry(void *void_query_data, int, char **value, char **);
 static int accumulateKanji(void *void_entry, int, char **value, char **);
 static int accumulateKana(void *void_entry, int, char **value, char **);
-static void accumulate(std::string *base, std::string *extra, char **value);
+static void accumulate(QString *base, QString *extra, char **value);
 static int buildDefinition(void *void_entry, int, char **value, char **);
 
 struct query_data
 {
     sql::db *db;
-    Entry *entry;
-    std::string entryId;
+    Entry *current_entry;
+    QList<const Entry *> *entires;
+    QString entryId;
 };
 
-JMDict::JMDict(const std::string &path) : m_db(new sql::db(path)) {}
+JMDict::JMDict(const QString &path) : m_db(new sql::db(path.toStdString())) {}
 
 JMDict::~JMDict()
 {
     delete m_db;
 }
 
-Entry *JMDict::query(const std::string &query, const QueryType type)
+QList<const Entry *> *JMDict::query(const QString &query, 
+                                    const QueryType type)
 {
     struct query_data querydata;
     querydata.db = m_db;
-    querydata.entry = new Entry();
+    querydata.current_entry = 0;
+    querydata.entires = new QList<const Entry *>;
 
     m_db->exec(
         sql::query("SELECT DISTINCT entry FROM reading WHERE kana " 
-                   + compare(type)) % query,
+                   + compare(type)) % query.toStdString(),
         buildEntry, &querydata
     );
     m_db->exec(
         sql::query("SELECT DISTINCT entry FROM kanji WHERE kanji "
-                   + compare(type)) % query,
+                   + compare(type)) % query.toStdString(),
         buildEntry, &querydata
     );
 
-    return querydata.entry;
+    return querydata.entires;
 }
 
 std::string JMDict::compare(QueryType type)
@@ -79,16 +82,15 @@ int buildEntry(void *void_query_data, int, char **value, char **)
 {
     struct query_data *query_data = 
         static_cast<struct query_data *>(void_query_data);
-    sql::db *db = query_data->db;
-    Entry *entry = query_data->entry;
-    if (query_data->entryId.empty())
+
+    if (query_data->entryId.isEmpty() || query_data->entryId != *value)
     {
+        query_data->current_entry = new Entry;
         query_data->entryId = *value;
     }
-    else if (query_data->entryId != *value)
-    {
-        return 0; // This is a new definition, skip over
-    }
+    
+    sql::db *db = query_data->db;
+    Entry *entry = query_data->current_entry;
 
     db->exec(
         sql::query("SELECT kanji FROM kanji WHERE entry=%s") % *value,
@@ -103,6 +105,8 @@ int buildEntry(void *void_query_data, int, char **value, char **)
                    "ORDER BY sense") % *value,
         buildDefinition, entry
     );
+
+    query_data->entires->push_back(query_data->current_entry);
 
     return 0;
 }
@@ -121,14 +125,14 @@ int accumulateKana(void *void_entry, int, char **value, char **)
     return 0;
 }
 
-void accumulate(std::string *base, std::string *extra, char **value) {
-    if (base->empty())
+void accumulate(QString *base, QString *extra, char **value) {
+    if (base->isEmpty())
     {
         *base = *value;
         return;
     }
 
-    if (!extra->empty())
+    if (!extra->isEmpty())
     {
         *extra += ", ";
     }
@@ -138,15 +142,15 @@ void accumulate(std::string *base, std::string *extra, char **value) {
 int buildDefinition(void *void_entry, int, char **value, char **)
 {
     Entry *entry = static_cast<Entry *>(void_entry);
-    std::vector<std::vector<std::string>> &definitions = *entry->m_descriptions;
+    QList<QList<QString>> &definitions = *entry->m_descriptions;
     
     uint sense = atoi(value[SENSE_INDEX]);
     if (definitions.size() != sense)
     {
-        definitions.push_back(std::vector<std::string>());
-        definitions[sense - 1].push_back(std::string(value[POS_INDEX]));
+        definitions.push_back(QList<QString>());
+        definitions[sense - 1].push_back(QString(value[POS_INDEX]));
     }
-    definitions[sense - 1].push_back(std::string(value[GLOSS_INDEX]));
+    definitions[sense - 1].push_back(QString(value[GLOSS_INDEX]));
 
     return 0;
 }

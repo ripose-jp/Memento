@@ -24,6 +24,9 @@
 #include "entry.h"
 #include "sqlite.h"
 
+#include <QString>
+#include <QList>
+
 class JMDict
 {
 public:
@@ -34,9 +37,10 @@ public:
         EXACT
     };
 
-    JMDict(const std::string &path);
+    JMDict(const QString &path);
     ~JMDict();
-    Entry *query(const std::string &query, const JMDict::QueryType type);
+    QList<const Entry *> *query(const QString &query, 
+                                const JMDict::QueryType type);
 
 private:
     sql::db *m_db;

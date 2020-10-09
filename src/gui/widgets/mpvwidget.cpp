@@ -260,8 +260,9 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                 const char **subtitle = (const char **)prop->data;
                 if (strcmp(*subtitle, ""))
                 {
+                    const int64_t start = getProperty("sub-start").toInt();
                     const int64_t end = getProperty("sub-end").toInt();
-                    Q_EMIT subtitleChanged(subtitle, end);
+                    Q_EMIT subtitleChanged(subtitle, start, end);
                 }
             }
         }

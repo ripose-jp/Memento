@@ -1,35 +1,67 @@
 find_library(MPV_LIB mpv)
 
-add_library(sliderjumpstyle
-    sliderjumpstyle.cpp)
-target_link_libraries(sliderjumpstyle
-    Qt5::Widgets)
+add_library(
+    sliderjumpstyle
+    sliderjumpstyle.cpp
+)
+target_link_libraries(
+    sliderjumpstyle
+    Qt5::Widgets
+)
 
-add_library(mpvwidget
-    mpvwidget.cpp)
-target_link_libraries(mpvwidget
+add_library(
+    mpvwidget
+    mpvwidget.cpp
+)
+target_link_libraries(
+    mpvwidget
     ${MPV_LIB}
     directoryutils
-    Qt5::Widgets)
+    Qt5::Widgets
+)
 
-add_library(definitionwidget
+add_library(
+    definition
+    definition.cpp
+    definition.ui
+)
+target_link_libraries(
+    definition
+    Qt5::Widgets
+    jmdict
+)
+
+add_library(
+    definitionwidget
     definitionwidget.cpp
-    definitionwidget.ui)
-target_link_libraries(definitionwidget
+    definitionwidget.ui
+)
+target_link_libraries(
+    definitionwidget
+    definition
     Qt5::Widgets
-    jmdict)
+    jmdict
+)
 
-add_library(subtitlewidget
-    subtitlewidget.cpp)
-target_link_libraries(subtitlewidget
+add_library(
+    subtitlewidget
+    subtitlewidget.cpp
+)
+target_link_libraries(
+    subtitlewidget
     Qt5::Widgets
-    jmdict)
+    jmdict
+)
 
-add_library(playercontrols
+add_library(
+    playercontrols
     playercontrols.ui
-    playercontrols.cpp)
-target_link_libraries(playercontrols
+    playercontrols.cpp
+)
+target_link_libraries(
+    playercontrols
     Qt5::Widgets
     iconfactory
     sliderjumpstyle
-    subtitlewidget)
+    subtitlewidget
+)

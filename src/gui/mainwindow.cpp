@@ -134,9 +134,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         m_player, &PlayerAdapter::disableSubtitles);
 
     // Definition changes
-    connect(m_ui->m_controls, &PlayerControls::entryChanged,
-        m_definition, &DefinitionWidget::setEntry);
-    connect(m_ui->m_controls, &PlayerControls::entryChanged,
+    connect(m_ui->m_controls, &PlayerControls::entriesChanged,
+        m_definition, &DefinitionWidget::setEntries);
+    connect(m_ui->m_controls, &PlayerControls::entriesChanged,
         this, &MainWindow::setDefinitionWidgetLocation);
     connect(m_ui->m_controls, &PlayerControls::hideDefinition,
         m_definition, &DefinitionWidget::hide);

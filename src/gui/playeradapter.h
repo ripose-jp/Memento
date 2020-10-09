@@ -85,7 +85,9 @@ Q_SIGNALS:
     void audioDisabled();
     void videoDisabled();
     void subtitleDisabled();
-    void subtitleChanged(const QString &subtitle, const int64_t end);
+    void subtitleChanged(const QString &subtitle,
+                         const int64_t start,
+                         const int64_t end);
     void durationChanged(const int value);
     void positionChanged(const int value);
     void stateChanged(const bool paused);
