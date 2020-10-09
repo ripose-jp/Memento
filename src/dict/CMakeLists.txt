@@ -7,4 +7,5 @@ set(DICT_SRCS
 
 add_library(jmdict ${DICT_SRCS})
 target_link_libraries(jmdict
-    ${SQLITE})
+    ${SQLITE}
+    Qt::Core)

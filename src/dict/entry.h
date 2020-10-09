@@ -21,16 +21,16 @@
 #ifndef ENTRY_H
 #define ENTRY_H
 
-#include <string>
-#include <vector>
+#include <QString>
+#include <QList>
 
 struct Entry
 {
-    Entry() : m_kanji(new std::string),
-              m_altkanji(new std::string),
-              m_kana(new std::string), 
-              m_altkana(new std::string),
-              m_descriptions(new std::vector<std::vector<std::string>>) {}
+    Entry() : m_kanji(new QString),
+              m_altkanji(new QString),
+              m_kana(new QString), 
+              m_altkana(new QString),
+              m_descriptions(new QList<QList<QString>>) {}
     
     ~Entry()
     {
@@ -41,11 +41,11 @@ struct Entry
         delete m_descriptions;
     }
 
-    std::string *m_kanji;
-    std::string *m_altkanji;
-    std::string *m_kana;
-    std::string *m_altkana;
-    std::vector<std::vector<std::string>> *m_descriptions;
+    QString *m_kanji;
+    QString *m_altkanji;
+    QString *m_kana;
+    QString *m_altkana;
+    QList<QList<QString>> *m_descriptions;
 } typedef Entry;
 
 #endif // ENTRY_H
