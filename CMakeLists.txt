@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1.0)
-project(memento VERSION "0.1-master")
+project(memento VERSION "0.1")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_AUTOMOC ON)
