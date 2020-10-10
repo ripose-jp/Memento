@@ -1,4 +1,5 @@
 find_library(MPV_LIB mpv)
+find_library(MECAB_LIB mecab)
 
 add_library(
     sliderjumpstyle
@@ -51,6 +52,7 @@ target_link_libraries(
     subtitlewidget
     Qt5::Widgets
     jmdict
+    mecab
 )
 
 add_library(
