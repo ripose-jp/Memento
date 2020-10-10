@@ -24,6 +24,7 @@
 #include "definition.h"
 
 #include <QFrame>
+#include <QScrollBar>
 
 DefinitionWidget::DefinitionWidget(QWidget *parent)
     : QWidget(parent), m_ui(new Ui::DefinitionWidget)
@@ -62,6 +63,8 @@ void DefinitionWidget::setEntries(const QList<const Entry *> *entries)
     }
 
     delete entries;
+
+    m_ui->m_scrollArea->verticalScrollBar()->setValue(0);
     show();
 }
 
