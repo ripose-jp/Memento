@@ -40,6 +40,7 @@ public:
 
 private:
     Ui::Definition *m_ui;
+    const Entry *m_entry;
 
     void setEntry(const Entry *entry);
     QString generateJishoLink(const QString &word);

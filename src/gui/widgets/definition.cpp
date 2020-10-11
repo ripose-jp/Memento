@@ -25,7 +25,7 @@
 #define ALT_KANA_TEXT "Alternative Kana: "
 
 Definition::Definition(const Entry *entry, QWidget *parent) 
-    : QWidget(parent), m_ui(new Ui::Definition)
+    : QWidget(parent), m_ui(new Ui::Definition), m_entry(entry)
 {
     m_ui->setupUi(this);
     setEntry(entry);
@@ -34,6 +34,7 @@ Definition::Definition(const Entry *entry, QWidget *parent)
 Definition::~Definition()
 {
     delete m_ui;
+    delete m_entry;
 }
 
 void Definition::setEntry(const Entry *entry)
