@@ -74,8 +74,6 @@ void Definition::setEntry(const Entry *entry)
         m_ui->m_labelAltKana->show();
         m_ui->m_labelAltKana->setText(ALT_KANA_TEXT + *entry->m_altkana);
     }
-
-    delete entry;
 }
 
 QString Definition::generateJishoLink(const QString &word)

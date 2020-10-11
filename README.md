@@ -11,6 +11,7 @@ Memento is a FOSS, mpv-based video player intended for studying Japanese.
 * Qt5
 * mpv
 * sqlite3
+* MeCab
 
 ## Installing
 
@@ -38,8 +39,6 @@ tracker.
 
 ## To-do
 
-* Improve query processing to be aware of Japanese grammar.
-    * Example: 食べられない　→　食べられる　→　食べる
 * Improve query speed.
 * Add AnkiConnect support for automatically making flashcards from defintions.
 * Add support for regenerating the JMDict database from within Memento.
