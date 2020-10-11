@@ -103,7 +103,7 @@ void SubtitleWidget::QueryThread::run()
     
     // Match the longest exact entry in JMDict
     QList<const Entry *> *exact_entries = 0;
-    while (!m_query.isEmpty())
+    while (!m_query.isEmpty() && m_currentIndex == m_parent->m_currentIndex)
     {
         exact_entries = 
             m_parent->m_dictionary->query(m_query, JMDict::FULLTEXT);
@@ -146,7 +146,9 @@ void SubtitleWidget::QueryThread::run()
     // Query for the lemmenized entries
     unsigned int maxLen = 0;
     QList<const Entry *> *lem_entires = new QList<const Entry *>;
-    for (auto it = queries.begin(); it != queries.end(); ++it)
+    for (auto it = queries.begin();
+         it != queries.end() && m_currentIndex == m_parent->m_currentIndex;
+         ++it)
     {
         QPair<QString, unsigned int> pair = *it;
         QList<const Entry *> *query_results = 
