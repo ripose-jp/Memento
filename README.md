@@ -43,7 +43,7 @@ tracker.
 * Add AnkiConnect support for automatically making flashcards from defintions.
 * Add support for regenerating the JMDict database from within Memento.
 * Display subtitles over the video player.
-* Compile Window and OS X versions.
+* Compile Windows and OS X versions.
 
 ## Acknowledgements
 
