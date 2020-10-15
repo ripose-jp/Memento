@@ -76,6 +76,8 @@ private:
     bool m_paused;
     bool m_fullscreen;
     int m_duration;
+    int m_startTime;
+    int m_endTime;
     IconFactory *m_iconFactory;
 
     QString formatTime(int time);
