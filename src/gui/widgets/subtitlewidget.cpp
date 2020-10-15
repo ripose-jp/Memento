@@ -33,7 +33,7 @@
 #define MAX_QUERY_LENGTH 37
 #define WORD_INDEX 6
 #define UNICODE_LENGTH 3
-#define TIMER_DELAY 10
+#define TIMER_DELAY 250
 
 SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
                                                   m_currentIndex(-1),
