@@ -27,6 +27,7 @@
 #include <QLineEdit>
 #include <QMouseEvent>
 #include <QRunnable>
+#include <QTimer>
 
 class SubtitleWidget : public QLineEdit
 {
@@ -46,11 +47,13 @@ Q_SIGNALS:
 protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 
+private Q_SLOTS:
+    void findEntry();
+
 private:
     JMDict *m_dictionary;
     int m_currentIndex;
-
-    void findEntry();
+    QTimer *m_findDelay;
 
     class QueryThread : public QRunnable
     {

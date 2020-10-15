@@ -33,14 +33,19 @@
 #define MAX_QUERY_LENGTH 37
 #define WORD_INDEX 6
 #define UNICODE_LENGTH 3
+#define TIMER_DELAY 10
 
 SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
-                                                  m_currentIndex(-1)
+                                                  m_currentIndex(-1),
+                                                  m_findDelay(new QTimer(this))
 {
     setStyleSheet("QLineEdit { color : white; background-color : black; }");
 
     QString path = DirectoryUtils::getDictionaryDir() + JMDICT_DB_NAME;
     m_dictionary = new JMDict(path);
+
+    m_findDelay->setSingleShot(true);
+    connect(m_findDelay, &QTimer::timeout, this, &SubtitleWidget::findEntry);
 }
 
 SubtitleWidget::~SubtitleWidget()
@@ -75,7 +80,7 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
     if (cursorPositionAt(event->pos()) != m_currentIndex)
     {
         m_currentIndex = cursorPositionAt(event->pos());
-        findEntry();
+        m_findDelay->start(TIMER_DELAY);
     }
     event->ignore();
 }
