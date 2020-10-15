@@ -51,6 +51,7 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
 SubtitleWidget::~SubtitleWidget()
 {
     delete m_dictionary;
+    delete m_findDelay;
 }
 
 void SubtitleWidget::updateText(const QString &text)
