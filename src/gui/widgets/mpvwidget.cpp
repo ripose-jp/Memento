@@ -44,8 +44,10 @@ static void *get_proc_address(void *ctx, const char *name)
 }
 
 MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent),
-                                        m_cursorTimer(new QTimer())
+                                        m_cursorTimer(new QTimer(this))
 {
+    m_cursorTimer->setSingleShot(true);
+
     mpv = mpv_create();
     if (!mpv)
         throw std::runtime_error("could not create mpv context");
