@@ -13,6 +13,7 @@ target_link_libraries(
 add_library(
     mpvwidget
     mpvwidget.cpp
+    qthelper.h
 )
 target_link_libraries(
     mpvwidget
