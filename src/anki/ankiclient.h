@@ -23,6 +23,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QList>
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QNetworkReply>
@@ -36,12 +37,15 @@ public:
     ~AnkiClient();
     void setServer(const QString &address, const QString &port);
     void testConnection(void (*callback)(const bool));
+    void getDeckNames(void (*callback)(const QList<QString> *));
 
 private:
     QString m_address;
     QString m_port;
 
-    QJsonObject replyToJson(QNetworkReply *reply);
+    QNetworkReply *makeRequest(const QString &action,
+                               const QJsonObject &params = QJsonObject());
+    QJsonObject processReply(QNetworkReply *reply);
 };
 
 #endif // ANKICLIENT_H
