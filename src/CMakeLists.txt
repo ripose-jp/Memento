@@ -1,5 +1,6 @@
 add_subdirectory(util)
 add_subdirectory(dict)
+add_subdirectory(anki)
 add_subdirectory(gui)
 
 add_executable(memento 

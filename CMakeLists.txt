@@ -12,7 +12,7 @@ include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}
 )
 
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
 
 add_subdirectory(src)
 
