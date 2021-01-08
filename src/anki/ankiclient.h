@@ -38,6 +38,9 @@ public:
     void setServer(const QString &address, const QString &port);
     void testConnection(void (*callback)(const bool));
     void getDeckNames(void (*callback)(const QList<QString> *));
+    void getModelNames(void (*callback)(const QList<QString> *));
+    void getFieldNames(void (*callback)(const QList<QString> *),
+                       const QString &model);
 
 private:
     QString m_address;
@@ -46,6 +49,9 @@ private:
     QNetworkReply *makeRequest(const QString &action,
                                const QJsonObject &params = QJsonObject());
     QJsonObject processReply(QNetworkReply *reply);
+    void requestStringList(void (*callback)(const QList<QString> *),
+                           const QString &action,
+                           const QJsonObject &params = QJsonObject());
 };
 
 #endif // ANKICLIENT_H

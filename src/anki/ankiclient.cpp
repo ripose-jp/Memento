@@ -36,6 +36,8 @@
 
 // Anki actions
 #define ANKI_DECK_NAMES "deckNames"
+#define ANKI_MODEL_NAMES "modelNames"
+#define ANKI_FIELD_NAMES "modelFieldNames"
 #define ANKI_ACTION_VERSION "version"
 
 #define MIN_ANKICONNECT_VERSION 6
@@ -63,17 +65,57 @@ void AnkiClient::testConnection(void (*callback)(const bool))
     QNetworkReply *reply = makeRequest(ANKI_ACTION_VERSION);
     connect(reply, &QNetworkReply::finished, [=] {
         QJsonObject replyObj = processReply(reply);
-        callback(!replyObj.isEmpty());
+        if (replyObj.isEmpty())
+        {
+            callback(false);
+        }
+        else if (!replyObj[ANKI_RESULT].isDouble())
+        {
+            qDebug() << "AnkiConnect result is not a number";
+            callback(false);
+        }
+        else if (replyObj[ANKI_RESULT].toInt() < MIN_ANKICONNECT_VERSION)
+        {
+            qDebug() << "AnkiConnect version" 
+                     << replyObj[ANKI_RESULT].toInt()
+                     << "<"
+                     << MIN_ANKICONNECT_VERSION;
+            callback(false);
+        }
+        else
+        {
+            callback(true);
+        }
         delete reply;
     });
 }
 
 void AnkiClient::getDeckNames(void (*callback)(const QList<QString> *))
 {
-    QNetworkReply *reply = makeRequest(ANKI_DECK_NAMES);
+    requestStringList(callback, ANKI_DECK_NAMES);
+}
+
+void AnkiClient::getModelNames(void (*callback)(const QList<QString> *))
+{
+    requestStringList(callback, ANKI_MODEL_NAMES);
+}
+
+void AnkiClient::getFieldNames(void (*callback)(const QList<QString> *),
+                               const QString &model)
+{
+    QJsonObject params;
+    params[ANKI_ACTION] = model;
+    requestStringList(callback, ANKI_FIELD_NAMES, params);
+}
+
+void AnkiClient::requestStringList(void (*callback)(const QList<QString> *),
+                                   const QString &action,
+                                   const QJsonObject &params = QJsonObject())
+{
+    QNetworkReply *reply = makeRequest(action, params);
     connect(reply, &QNetworkReply::finished, [=] {
         QJsonObject replyObj = processReply(reply);
-        if (replyObj.isEmpty()) 
+        if (replyObj.isEmpty() || !replyObj[ANKI_RESULT].isArray()) 
         {
             callback(0);
         }
@@ -141,13 +183,6 @@ QJsonObject AnkiClient::processReply(QNetworkReply *reply)
         {
             qDebug() << "Error reported:" 
                      << replyObj[ANKI_ERROR].toString();
-        }
-        else if (replyObj[ANKI_RESULT].toInt() < MIN_ANKICONNECT_VERSION)
-        {
-            qDebug() << "AnkiConnect version" 
-                     << replyObj[ANKI_RESULT].toInt()
-                     << "<"
-                     << MIN_ANKICONNECT_VERSION;
         }
         else 
         {
