@@ -52,6 +52,9 @@ AnkiSettings::AnkiSettings(AnkiClient *client, QWidget *parent)
         &QPushButton::clicked, this, &AnkiSettings::applyChanges);
     connect(m_ui->m_buttonBox->button(QDialogButtonBox::StandardButton::Close),
         &QPushButton::clicked, this, &AnkiSettings::hide);
+    
+    restoreSaved();
+    connectToClient(false);
 }
 
 AnkiSettings::~AnkiSettings()
@@ -83,7 +86,7 @@ void AnkiSettings::enabledStateChanged(int state)
     }
 }
 
-void AnkiSettings::connectToClient()
+void AnkiSettings::connectToClient(const bool showErrors)
 {
     m_ui->m_buttonConnect->setEnabled(false);
 
@@ -96,7 +99,7 @@ void AnkiSettings::connectToClient()
                 [=](const QStringList *decks, const QString &error) {
                     if (error.isEmpty())
                         m_ui->m_comboBoxDeck->addItems(*decks);
-                    else
+                    else if (showErrors)
                     {
                         QMessageBox messageBox;
                         messageBox.critical(0,"Error", error);
@@ -106,8 +109,22 @@ void AnkiSettings::connectToClient()
             m_client->getModelNames(
                 [=](const QStringList *models, const QString &error) {
                     if (error.isEmpty())
+                    {
+                        QString savedModel = m_client->getConfig().model;
+
+                        m_ui->m_comboBoxModel->
+                            blockSignals(!savedModel.isEmpty());
+
                         m_ui->m_comboBoxModel->addItems(*models);
-                    else
+                        if (!savedModel.isEmpty())
+                        {
+                            m_ui->m_comboBoxModel->
+                                setCurrentText(m_client->getConfig().model);
+                        }
+
+                        m_ui->m_comboBoxModel->blockSignals(false);
+                    }
+                    else if (showErrors)
                     {
                         QMessageBox messageBox;
                         messageBox.critical(0,"Error", error);
@@ -115,7 +132,7 @@ void AnkiSettings::connectToClient()
                     delete models;
                 });
         }
-        else
+        else if (showErrors)
         {
             QMessageBox messageBox;
             messageBox.critical(0,"Error", error);
@@ -171,7 +188,7 @@ void AnkiSettings::applyChanges()
     {
         QTableWidgetItem *field = m_ui->m_tableFields->item(i, 0);
         QTableWidgetItem *value = m_ui->m_tableFields->item(i, 1);
-        config.modelConfig[field->text()] = value->text();
+        config.fields[field->text()] = value->text();
     }
 
     m_client->setConfig(config);
@@ -210,15 +227,15 @@ void AnkiSettings::restoreSaved()
     m_ui->m_comboBoxModel->setCurrentText(config.model);
     m_ui->m_comboBoxModel->blockSignals(false);
 
-    m_ui->m_tableFields->setRowCount(config.modelConfig.size());
-    for (size_t i = 0; i < config.modelConfig.size(); ++i)
+    m_ui->m_tableFields->setRowCount(config.fields.size());
+    for (size_t i = 0; i < config.fields.size(); ++i)
     {
-        QString key = config.modelConfig.keys()[i];
+        QString key = config.fields.keys()[i];
         QTableWidgetItem *item = new QTableWidgetItem(key);
         item->setFlags(item->flags() ^ Qt::ItemIsEditable);
         m_ui->m_tableFields->setItem(i, 0, item);
 
-        item = new QTableWidgetItem(config.modelConfig[key].toString());
+        item = new QTableWidgetItem(config.fields[key].toString());
         m_ui->m_tableFields->setItem(i, 1, item);
     }
 }

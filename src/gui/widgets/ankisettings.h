@@ -42,7 +42,7 @@ public:
 
 private Q_SLOTS:
     void enabledStateChanged(int state);
-    void connectToClient();
+    void connectToClient(const bool showErrors = true);
     void updateModelFields(const QString &model);
     void applyChanges();
     void restoreDefaults();

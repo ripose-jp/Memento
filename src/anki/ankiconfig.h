@@ -33,7 +33,7 @@ struct AnkiConfig
     QStringList tags;
     QString deck;
     QString model;
-    QJsonObject modelConfig;
+    QJsonObject fields;
 
     AnkiConfig &operator=(const AnkiConfig &rhs)
     {
@@ -43,7 +43,7 @@ struct AnkiConfig
         tags = rhs.tags;
         deck = rhs.deck;
         model = rhs.model;
-        modelConfig = rhs.modelConfig;
+        fields = rhs.fields;
         
         return *this;
     }

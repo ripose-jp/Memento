@@ -20,9 +20,13 @@
 
 #include "ankiclient.h"
 
+#include "../util/directoryutils.h"
+
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QJsonArray>
+#include <QFile>
+#include <QTextStream>
 #include <QDebug>
 
 // Anki request fields
@@ -44,8 +48,18 @@
 #define ANKI_PARAM_MODEL_NAME "modelName"
 
 #define MIN_ANKICONNECT_VERSION 6
-
 #define TIMEOUT 5000
+
+#define CONFIG_FILE "anki_connect.json"
+
+// Config file fields
+#define CONFIG_ENABLED "enabled"
+#define CONFIG_HOST "host"
+#define CONFIG_PORT "port"
+#define CONFIG_TAGS "tags"
+#define CONFIG_DECK "deck"
+#define CONFIG_MODEL "model"
+#define CONFIG_FIELDS "fields"
 
 QNetworkAccessManager *m_manager;
 
@@ -53,11 +67,120 @@ AnkiClient::AnkiClient(QObject *parent) : QObject(parent)
 {
     m_manager = new QNetworkAccessManager(this);
     m_manager->setTransferTimeout(TIMEOUT);
+
+    readConfigFromFile(CONFIG_FILE);
 }
 
 AnkiClient::~AnkiClient()
 {
     delete m_manager;
+}
+
+void AnkiClient::readConfigFromFile(const QString &filename)
+{
+    QFile configFile(DirectoryUtils::getConfigDir() + filename);
+    if (configFile.exists())
+    {
+        if (!configFile.open(QIODevice::ReadOnly))
+        {
+            qDebug() << "AnkiConnect config file exists, can't open it";
+        }
+        else
+        {
+            QTextStream stream(&configFile);
+            QJsonDocument jsonDoc = QJsonDocument::fromJson(
+                stream.readAll().toLocal8Bit());
+            configFile.close();
+
+            if (jsonDoc.isNull())
+            {
+                qDebug() << filename << "is not JSON";
+            }
+            else if (!jsonDoc.isObject())
+            {
+                qDebug() << filename << "is not an object";
+            }
+            else
+            {
+                QJsonObject jsonObj = jsonDoc.object();
+                if (!jsonObj[CONFIG_ENABLED].isBool())
+                {
+                    qDebug() << CONFIG_ENABLED << "is not a boolean";
+                }
+                else if (!jsonObj[CONFIG_HOST].isString())
+                {
+                    qDebug() << CONFIG_HOST << "is not a string";
+                }
+                else if (!jsonObj[CONFIG_PORT].isString())
+                {
+                    qDebug() << CONFIG_PORT << "is not a string";
+                }
+                else if (!jsonObj[CONFIG_TAGS].isArray())
+                {
+                    qDebug() << CONFIG_TAGS << "is not an array";
+                }
+                else if (!jsonObj[CONFIG_DECK].isString())
+                {
+                    qDebug() << CONFIG_DECK << "is not a string";
+                }
+                else if (!jsonObj[CONFIG_MODEL].isString())
+                {
+                    qDebug() << CONFIG_MODEL << "is not a string";
+                }
+                else if (!jsonObj[CONFIG_FIELDS].isObject())
+                {
+                    qDebug() << CONFIG_FIELDS << "is not an object";
+                }
+                else
+                {
+                    m_config.enabled = jsonObj[CONFIG_ENABLED].toBool();
+                    m_config.address = jsonObj[CONFIG_HOST].toString();
+                    m_config.port = jsonObj[CONFIG_PORT].toString();
+                    QJsonArray tagArray = jsonObj[CONFIG_TAGS].toArray();
+                    for (auto it = tagArray.begin(); it != tagArray.end(); ++it)
+                    {
+                        m_config.tags.append(it->toString());
+                    }
+                    m_config.deck = jsonObj[CONFIG_DECK].toString();
+                    m_config.model = jsonObj[CONFIG_MODEL].toString();
+                    m_config.fields = jsonObj[CONFIG_FIELDS].toObject();
+                    setServer(m_config.address, m_config.port);
+                }
+            }
+        }
+    }
+}
+
+bool AnkiClient::writeConfigToFile(const QString &filename)
+{
+    QFile configFile(DirectoryUtils::getConfigDir() + filename);
+    if (!configFile.open(QIODevice::ReadWrite | QIODevice::Truncate | 
+        QIODevice::Text))
+    {
+        qDebug() << "Could not open file" << filename;
+        return false;
+    }
+
+    QJsonObject jsonObj;
+    jsonObj[CONFIG_ENABLED] = m_config.enabled;
+    jsonObj[CONFIG_HOST] = m_config.address;
+    jsonObj[CONFIG_PORT] = m_config.port;
+    QJsonArray jsonTags;
+    for (auto it = m_config.tags.begin(); it != m_config.tags.end(); ++it)
+    {
+        jsonTags.append(QJsonValue(*it));
+    }
+    jsonObj[CONFIG_TAGS] = jsonTags;
+    jsonObj[CONFIG_DECK] = m_config.deck;
+    jsonObj[CONFIG_MODEL] = m_config.model;
+    jsonObj[CONFIG_FIELDS] = m_config.fields;
+    QJsonDocument jsonDoc(jsonObj);
+
+    QTextStream stream(&configFile);
+    stream << jsonDoc.toJson();
+    configFile.close();
+
+    return true;
 }
 
 void AnkiClient::setServer(const QString &address, const QString &port)
@@ -75,6 +198,7 @@ void AnkiClient::setConfig(const AnkiConfig &config)
 {
     m_config = config;
     setServer(config.address, config.port);
+    writeConfigToFile(CONFIG_FILE);
 }
 
 void AnkiClient::testConnection(

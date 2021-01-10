@@ -55,6 +55,8 @@ private:
     QString m_address;
     QString m_port;
     
+    void readConfigFromFile(const QString &filename);
+    bool writeConfigToFile(const QString &filename);
     QNetworkReply *makeRequest(const QString &action,
                                const QJsonObject &params);
     QJsonObject processReply(QNetworkReply *reply, QString &error);
