@@ -40,13 +40,19 @@
 #define ANKI_FIELD_NAMES "modelFieldNames"
 #define ANKI_ACTION_VERSION "version"
 
+// Anki param fields
+#define ANKI_PARAM_MODEL_NAME "modelName"
+
 #define MIN_ANKICONNECT_VERSION 6
+
+#define TIMEOUT 5000
 
 QNetworkAccessManager *m_manager;
 
 AnkiClient::AnkiClient(QObject *parent) : QObject(parent)
 {
     m_manager = new QNetworkAccessManager(this);
+    m_manager->setTransferTimeout(TIMEOUT);
 }
 
 AnkiClient::~AnkiClient()
@@ -108,7 +114,7 @@ void AnkiClient::getFieldNames(
     const QString &model)
 {
     QJsonObject params;
-    params[ANKI_ACTION] = model;
+    params[ANKI_PARAM_MODEL_NAME] = model;
     requestStringList(callback, ANKI_FIELD_NAMES, params);
 }
 

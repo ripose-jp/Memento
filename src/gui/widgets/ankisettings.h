@@ -23,6 +23,8 @@
 
 #include <QWidget>
 
+#include <QMutex>
+
 #include "../../anki/ankiclient.h"
 
 namespace Ui
@@ -41,10 +43,12 @@ public:
 private Q_SLOTS:
     void enabledStateChanged(int state);
     void connectToClient();
+    void updateModelFields(const QString &model);
 
 private:
     Ui::AnkiSettings *m_ui;
     AnkiClient *m_client;
+    QMutex m_mutexUpdateModelFields;
 };
 
 #endif // ANKISETTINGS_H

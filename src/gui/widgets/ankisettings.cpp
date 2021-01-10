@@ -22,6 +22,7 @@
 #include "ui_ankisettings.h"
 
 #include <QMessageBox>
+#include <QTableWidgetItem>
 
 AnkiSettings::AnkiSettings(AnkiClient *client, QWidget *parent)
     : m_client(client), QWidget(parent), m_ui(new Ui::AnkiSettings)
@@ -32,6 +33,8 @@ AnkiSettings::AnkiSettings(AnkiClient *client, QWidget *parent)
         this, &AnkiSettings::enabledStateChanged);
     connect(m_ui->m_buttonConnect, &QPushButton::clicked,
         this, &AnkiSettings::connectToClient);
+    connect(m_ui->m_comboBoxModel, &QComboBox::currentTextChanged,
+        this, &AnkiSettings::updateModelFields);
 }
 
 AnkiSettings::~AnkiSettings()
@@ -63,6 +66,8 @@ void AnkiSettings::enabledStateChanged(int state)
 
 void AnkiSettings::connectToClient()
 {
+    m_ui->m_buttonConnect->setEnabled(false);
+
     m_client->setServer(m_ui->m_lineEditHost->text(),
                         m_ui->m_lineEditPort->text());
     m_client->testConnection([=](const bool val, const QString &error) {
@@ -96,5 +101,33 @@ void AnkiSettings::connectToClient()
             QMessageBox messageBox;
             messageBox.critical(0,"Error", error);
         }
+
+        m_ui->m_buttonConnect->setEnabled(true);
     });
+}
+
+void AnkiSettings::updateModelFields(const QString &model)
+{
+    m_mutexUpdateModelFields.lock();
+    m_client->getFieldNames(
+        [=](const QStringList *fields, const QString error) {
+            if (error.isEmpty())
+            {
+                m_ui->m_tableFields->setRowCount(fields->size());
+                for (uint i = 0; i < fields->size(); ++i)
+                {
+                    QTableWidgetItem *item = 
+                        new QTableWidgetItem(fields->at(i));
+                    item->setFlags(item->flags() ^ Qt::ItemIsEditable);
+                    m_ui->m_tableFields->setItem(i, 0, item);
+                }
+            }
+            else
+            {
+                QMessageBox messageBox;
+                messageBox.critical(0,"Error", error);
+            }
+            m_mutexUpdateModelFields.unlock();
+            delete fields;
+        }, model);
 }
