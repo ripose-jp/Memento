@@ -205,6 +205,9 @@ Comma or space seperated list.</string>
    </item>
    <item>
     <widget class="QTableWidget" name="m_tableFields">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -236,6 +239,13 @@ Comma or space seperated list.</string>
        <string>Value</string>
       </property>
      </column>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="m_buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Close|QDialogButtonBox::Reset|QDialogButtonBox::RestoreDefaults</set>
+     </property>
     </widget>
    </item>
   </layout>

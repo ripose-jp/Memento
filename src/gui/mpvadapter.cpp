@@ -270,12 +270,12 @@ void MpvAdapter::processTracks(const mpv_node *node)
     QVector<const PlayerAdapter::Track *> tracks;
     if (node->format == MPV_FORMAT_NODE_ARRAY)
     {
-        for (int i = 0; i < node->u.list->num; i++)
+        for (size_t i = 0; i < node->u.list->num; i++)
         {
             PlayerAdapter::Track *track = new PlayerAdapter::Track;
             if (node->u.list->values[i].format == MPV_FORMAT_NODE_MAP)
             {
-                for (int n = 0; n < node->u.list->values[i].u.list->num; n++)
+                for (size_t n = 0; n < node->u.list->values[i].u.list->num; n++)
                 {
                     if (QString(node->u.list->values[i].u.list->keys[n]) == "id")
                     {

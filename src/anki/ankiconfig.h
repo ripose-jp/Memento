@@ -18,40 +18,35 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef ANKISETTINGS_H
-#define ANKISETTINGS_H
+#ifndef ANKICONFIG_H
+#define ANKICONFIG_H
 
-#include <QWidget>
+#include <QString>
+#include <QStringList>
+#include <QJsonObject>
 
-#include <QMutex>
-
-#include "../../anki/ankiclient.h"
-
-namespace Ui
+struct AnkiConfig
 {
-    class AnkiSettings;
-}
+    bool enabled;
+    QString address;
+    QString port;
+    QStringList tags;
+    QString deck;
+    QString model;
+    QJsonObject modelConfig;
 
-class AnkiSettings : public QWidget
-{
-    Q_OBJECT
-
-public:
-    AnkiSettings(AnkiClient *client, QWidget *parent = 0);
-    ~AnkiSettings();
-
-private Q_SLOTS:
-    void enabledStateChanged(int state);
-    void connectToClient();
-    void updateModelFields(const QString &model);
-    void applyChanges();
-    void restoreDefaults();
-    void restoreSaved();
-
-private:
-    Ui::AnkiSettings *m_ui;
-    AnkiClient *m_client;
-    QMutex m_mutexUpdateModelFields;
+    AnkiConfig &operator=(const AnkiConfig &rhs)
+    {
+        enabled = rhs.enabled;
+        address = rhs.address;
+        port = rhs.port;
+        tags = rhs.tags;
+        deck = rhs.deck;
+        model = rhs.model;
+        modelConfig = rhs.modelConfig;
+        
+        return *this;
+    }
 };
 
-#endif // ANKISETTINGS_H
+#endif // ANKICONFIG_H

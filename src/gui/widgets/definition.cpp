@@ -85,7 +85,7 @@ QString Definition::generateJishoLink(const QString &word)
 QString Definition::buildDefinition(const QList<QList<QString>> &definitions)
 {
     QString defStr;
-    for (uint i = 0; i < definitions.size(); ++i)
+    for (size_t i = 0; i < definitions.size(); ++i)
     {
         if (i)
             defStr.push_back('\n');
@@ -95,7 +95,7 @@ QString Definition::buildDefinition(const QList<QList<QString>> &definitions)
         defStr.push_back('(');
         defStr += definitions[i].front();
         defStr.push_back(')');
-        for (uint j = 1; j < definitions[i].size(); ++j)
+        for (size_t j = 1; j < definitions[i].size(); ++j)
         {
             defStr.push_back('\n');
             defStr += "- ";

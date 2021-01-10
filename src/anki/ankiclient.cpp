@@ -66,6 +66,17 @@ void AnkiClient::setServer(const QString &address, const QString &port)
     m_port = port;
 }
 
+AnkiConfig AnkiClient::getConfig() const
+{
+    return m_config;
+}
+
+void AnkiClient::setConfig(const AnkiConfig &config)
+{
+    m_config = config;
+    setServer(config.address, config.port);
+}
+
 void AnkiClient::testConnection(
     std::function<void(const bool, const QString &)> callback)
 {

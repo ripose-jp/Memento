@@ -62,7 +62,7 @@ StyleFactory::StyleFactory(const QWidget *parent) : IconFactory(parent)
         QStyle::SP_MediaSkipBackward
     };
 
-    for (int i = 0; i < fullscreen; ++i)
+    for (size_t i = 0; i < fullscreen; ++i)
     {
         icons[i] = m_parent->style()->standardIcon(pixmaps[i]);
     }
@@ -90,7 +90,7 @@ ThemeFactory::ThemeFactory(const QWidget *parent) : IconFactory(parent)
     };
 
     StyleFactory styleFactory(m_parent);
-    for (int i = 0; i < ICON_ENUM_SIZE; ++i)
+    for (size_t i = 0; i < ICON_ENUM_SIZE; ++i)
     {
         icons[i] = QIcon::hasThemeIcon(names[i]) ? 
             QIcon::fromTheme(names[i]) : 

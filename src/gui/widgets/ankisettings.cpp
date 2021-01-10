@@ -24,6 +24,12 @@
 #include <QMessageBox>
 #include <QTableWidgetItem>
 
+#define DEFAULT_HOST "localhost"
+#define DEFAULT_PORT "8765"
+#define DEFAULT_TAGS "memento"
+
+#define REGEX_REMOVE_SPACES_COMMAS "[, ]+"
+
 AnkiSettings::AnkiSettings(AnkiClient *client, QWidget *parent)
     : m_client(client), QWidget(parent), m_ui(new Ui::AnkiSettings)
 {
@@ -35,6 +41,17 @@ AnkiSettings::AnkiSettings(AnkiClient *client, QWidget *parent)
         this, &AnkiSettings::connectToClient);
     connect(m_ui->m_comboBoxModel, &QComboBox::currentTextChanged,
         this, &AnkiSettings::updateModelFields);
+    
+    // Dialog Buttons
+    connect(m_ui->m_buttonBox->button(QDialogButtonBox::StandardButton::Reset),
+        &QPushButton::clicked, this, &AnkiSettings::restoreSaved);
+    connect(m_ui->m_buttonBox->button(
+            QDialogButtonBox::StandardButton::RestoreDefaults),
+        &QPushButton::clicked, this, &AnkiSettings::restoreDefaults);
+    connect(m_ui->m_buttonBox->button(QDialogButtonBox::StandardButton::Apply),
+        &QPushButton::clicked, this, &AnkiSettings::applyChanges);
+    connect(m_ui->m_buttonBox->button(QDialogButtonBox::StandardButton::Close),
+        &QPushButton::clicked, this, &AnkiSettings::hide);
 }
 
 AnkiSettings::~AnkiSettings()
@@ -52,6 +69,7 @@ void AnkiSettings::enabledStateChanged(int state)
         m_ui->m_lineEditHost->setEnabled(true);
         m_ui->m_lineEditPort->setEnabled(true);
         m_ui->m_lineEditTags->setEnabled(true);
+        m_ui->m_tableFields->setEnabled(true);
     }
     else if (state == Qt::CheckState::Unchecked)
     {
@@ -61,6 +79,7 @@ void AnkiSettings::enabledStateChanged(int state)
         m_ui->m_lineEditHost->setEnabled(false);
         m_ui->m_lineEditPort->setEnabled(false);
         m_ui->m_lineEditTags->setEnabled(false);
+        m_ui->m_tableFields->setEnabled(false);
     }
 }
 
@@ -114,12 +133,17 @@ void AnkiSettings::updateModelFields(const QString &model)
             if (error.isEmpty())
             {
                 m_ui->m_tableFields->setRowCount(fields->size());
-                for (uint i = 0; i < fields->size(); ++i)
+                for (size_t i = 0; i < fields->size(); ++i)
                 {
                     QTableWidgetItem *item = 
                         new QTableWidgetItem(fields->at(i));
                     item->setFlags(item->flags() ^ Qt::ItemIsEditable);
                     m_ui->m_tableFields->setItem(i, 0, item);
+                }
+                for (size_t i = 0; i < fields->size(); ++i)
+                {
+                    QTableWidgetItem *item = new QTableWidgetItem("");
+                    m_ui->m_tableFields->setItem(i, 1, item);
                 }
             }
             else
@@ -130,4 +154,71 @@ void AnkiSettings::updateModelFields(const QString &model)
             m_mutexUpdateModelFields.unlock();
             delete fields;
         }, model);
+}
+
+void AnkiSettings::applyChanges()
+{
+    AnkiConfig config;
+
+    config.enabled = m_ui->m_checkBoxEnabled->isChecked();
+    config.address = m_ui->m_lineEditHost->text();
+    config.port = m_ui->m_lineEditPort->text();
+    config.tags =
+        m_ui->m_lineEditTags->text().split(QRegExp(REGEX_REMOVE_SPACES_COMMAS));
+    config.deck = m_ui->m_comboBoxDeck->currentText();
+    config.model = m_ui->m_comboBoxModel->currentText();
+    for (size_t i = 0; i < m_ui->m_tableFields->rowCount(); ++i)
+    {
+        QTableWidgetItem *field = m_ui->m_tableFields->item(i, 0);
+        QTableWidgetItem *value = m_ui->m_tableFields->item(i, 1);
+        config.modelConfig[field->text()] = value->text();
+    }
+
+    m_client->setConfig(config);
+}
+
+void AnkiSettings::restoreDefaults()
+{
+    m_ui->m_lineEditHost->setText(DEFAULT_HOST);
+    m_ui->m_lineEditPort->setText(DEFAULT_PORT);
+    m_ui->m_lineEditTags->setText(DEFAULT_TAGS);
+    for (size_t i = 0; i < m_ui->m_tableFields->rowCount(); ++i)
+    {
+        m_ui->m_tableFields->item(i, 1)->setText("");
+    }
+}
+
+void AnkiSettings::restoreSaved()
+{
+    AnkiConfig config = m_client->getConfig();
+
+    m_ui->m_checkBoxEnabled->setChecked(config.enabled);
+    m_ui->m_lineEditHost->setText(config.address);
+    m_ui->m_lineEditPort->setText(config.port);
+
+    QString tags;
+    for (auto it = config.tags.begin(); it != config.tags.end(); ++it)
+        tags += *it + ",";
+    tags.chop(1);
+    m_ui->m_lineEditTags->setText(tags);
+
+    m_ui->m_comboBoxDeck->blockSignals(true);
+    m_ui->m_comboBoxDeck->setCurrentText(config.deck);
+    m_ui->m_comboBoxDeck->blockSignals(false);
+
+    m_ui->m_comboBoxModel->blockSignals(true);
+    m_ui->m_comboBoxModel->setCurrentText(config.model);
+    m_ui->m_comboBoxModel->blockSignals(false);
+
+    m_ui->m_tableFields->setRowCount(config.modelConfig.size());
+    for (size_t i = 0; i < config.modelConfig.size(); ++i)
+    {
+        QString key = config.modelConfig.keys()[i];
+        QTableWidgetItem *item = new QTableWidgetItem(key);
+        item->setFlags(item->flags() ^ Qt::ItemIsEditable);
+        m_ui->m_tableFields->setItem(i, 0, item);
+
+        item = new QTableWidgetItem(config.modelConfig[key].toString());
+        m_ui->m_tableFields->setItem(i, 1, item);
+    }
 }
