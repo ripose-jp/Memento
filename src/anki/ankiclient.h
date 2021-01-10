@@ -23,7 +23,7 @@
 
 #include <QObject>
 #include <QString>
-#include <QList>
+#include <QStringList>
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QNetworkReply>
@@ -36,22 +36,27 @@ public:
     AnkiClient(QObject *parent);
     ~AnkiClient();
     void setServer(const QString &address, const QString &port);
-    void testConnection(void (*callback)(const bool));
-    void getDeckNames(void (*callback)(const QList<QString> *));
-    void getModelNames(void (*callback)(const QList<QString> *));
-    void getFieldNames(void (*callback)(const QList<QString> *),
-                       const QString &model);
+    void testConnection(
+        std::function<void(const bool, const QString &)> callback);
+    void getDeckNames(
+        std::function<void(const QStringList *, const QString &)> callback);
+    void getModelNames(
+        std::function<void(const QStringList *, const QString &)> callback);
+    void getFieldNames(
+        std::function<void(const QStringList *, const QString &)> callback,
+        const QString &model);
 
 private:
     QString m_address;
     QString m_port;
 
     QNetworkReply *makeRequest(const QString &action,
-                               const QJsonObject &params = QJsonObject());
-    QJsonObject processReply(QNetworkReply *reply);
-    void requestStringList(void (*callback)(const QList<QString> *),
-                           const QString &action,
-                           const QJsonObject &params = QJsonObject());
+                               const QJsonObject &params);
+    QJsonObject processReply(QNetworkReply *reply, QString &error);
+    void requestStringList(
+        std::function<void(const QStringList *, const QString &)> callback,
+        const QString &action,
+        const QJsonObject &params);
 };
 
 #endif // ANKICLIENT_H

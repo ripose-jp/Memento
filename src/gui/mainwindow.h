@@ -24,6 +24,8 @@
 #include "playeradapter.h"
 
 #include "widgets/definitionwidget.h"
+#include "widgets/ankisettings.h"
+#include "../anki/ankiclient.h"
 
 #include <QMainWindow>
 #include <QKeyEvent>
@@ -78,6 +80,8 @@ private:
     QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_videoTracks;
     QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_subtitleTracks;
     DefinitionWidget *m_definition;
+    AnkiSettings *m_ankiSettings;
+    AnkiClient *m_ankiClient;
 
     void clearTracks();
     void clearTrack(QVector<QPair<QAction *, const PlayerAdapter::Track *>> &tracks, QMenu *menu, QActionGroup *actionGroup, QAction *actionDisable);

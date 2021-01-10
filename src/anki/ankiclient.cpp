@@ -60,79 +60,85 @@ void AnkiClient::setServer(const QString &address, const QString &port)
     m_port = port;
 }
 
-void AnkiClient::testConnection(void (*callback)(const bool))
+void AnkiClient::testConnection(
+    std::function<void(const bool, const QString &)> callback)
 {
-    QNetworkReply *reply = makeRequest(ANKI_ACTION_VERSION);
+    QNetworkReply *reply = makeRequest(ANKI_ACTION_VERSION, QJsonObject());
     connect(reply, &QNetworkReply::finished, [=] {
-        QJsonObject replyObj = processReply(reply);
+        QString error;
+        QJsonObject replyObj = processReply(reply, error);
         if (replyObj.isEmpty())
         {
-            callback(false);
+            callback(false, error);
         }
         else if (!replyObj[ANKI_RESULT].isDouble())
         {
-            qDebug() << "AnkiConnect result is not a number";
-            callback(false);
+            error = "AnkiConnect result is not a number";
+            callback(false, error);
         }
         else if (replyObj[ANKI_RESULT].toInt() < MIN_ANKICONNECT_VERSION)
         {
-            qDebug() << "AnkiConnect version" 
-                     << replyObj[ANKI_RESULT].toInt()
-                     << "<"
-                     << MIN_ANKICONNECT_VERSION;
-            callback(false);
+            error = "AnkiConnect version %1 < %2";
+            error = error.arg(QString::number(replyObj[ANKI_RESULT].toInt()), 
+                              QString::number(MIN_ANKICONNECT_VERSION));
+            callback(false, error);
         }
         else
         {
-            callback(true);
+            callback(true, error);
         }
         delete reply;
     });
 }
 
-void AnkiClient::getDeckNames(void (*callback)(const QList<QString> *))
+void AnkiClient::getDeckNames(
+    std::function<void(const QStringList *, const QString &)> callback)
 {
-    requestStringList(callback, ANKI_DECK_NAMES);
+    requestStringList(callback, ANKI_DECK_NAMES, QJsonObject());
 }
 
-void AnkiClient::getModelNames(void (*callback)(const QList<QString> *))
+void AnkiClient::getModelNames(
+    std::function<void(const QStringList *, const QString &)> callback)
 {
-    requestStringList(callback, ANKI_MODEL_NAMES);
+    requestStringList(callback, ANKI_MODEL_NAMES, QJsonObject());
 }
 
-void AnkiClient::getFieldNames(void (*callback)(const QList<QString> *),
-                               const QString &model)
+void AnkiClient::getFieldNames(
+    std::function<void(const QStringList *, const QString &)> callback, 
+    const QString &model)
 {
     QJsonObject params;
     params[ANKI_ACTION] = model;
     requestStringList(callback, ANKI_FIELD_NAMES, params);
 }
 
-void AnkiClient::requestStringList(void (*callback)(const QList<QString> *),
-                                   const QString &action,
-                                   const QJsonObject &params = QJsonObject())
+void AnkiClient::requestStringList(
+    std::function<void(const QStringList *, const QString &)> callback,
+    const QString &action,
+    const QJsonObject &params)
 {
     QNetworkReply *reply = makeRequest(action, params);
     connect(reply, &QNetworkReply::finished, [=] {
-        QJsonObject replyObj = processReply(reply);
+        QString error;
+        QJsonObject replyObj = processReply(reply, error);
         if (replyObj.isEmpty() || !replyObj[ANKI_RESULT].isArray()) 
         {
-            callback(0);
+            callback(0, error);
         }
         else 
         {
-            QList<QString> *decks = new QList<QString>();
+            QStringList *decks = new QStringList();
             QJsonArray deckNames = replyObj[ANKI_RESULT].toArray();
             for (auto it = deckNames.begin(); it != deckNames.end(); ++it)
                 decks->append((*it).toString());
-            callback(decks);
+            callback(decks, error);
         }
         delete reply;
     });
 }
 
 QNetworkReply *AnkiClient::makeRequest(const QString &action,
-                                       const QJsonObject &params = QJsonObject())
+                                       const QJsonObject &params)
 {
     QNetworkRequest request;
     request.setUrl(QUrl("http://" + m_address + ":" + m_port));
@@ -150,39 +156,38 @@ QNetworkReply *AnkiClient::makeRequest(const QString &action,
     return m_manager->post(request, jsonDoc.toJson());
 }
 
-QJsonObject AnkiClient::processReply(QNetworkReply *reply)
+QJsonObject AnkiClient::processReply(QNetworkReply *reply, QString &error)
 {
     if (reply->error() == QNetworkReply::NoError) {
         QJsonDocument replyDoc = QJsonDocument::fromJson(reply->readAll());
         if (replyDoc.isNull())
         {
-            qDebug() << "Reply was not JSON";
+            error = "Reply was not JSON";
             qDebug() << reply->readAll();
             return QJsonObject();
         }
         else if (!replyDoc.isObject())
         {
-            qDebug() << "Reply was not an object";
+            error = "Reply was not an object";
             return QJsonObject();
         }
 
         QJsonObject replyObj = replyDoc.object();
         if (replyObj.length() != 2)
         {
-            qDebug() << "Anki response has unexpected number of fields";
+            error = "Anki response has unexpected number of fields";
         }
         else if (!replyObj.contains(ANKI_ERROR))
         {
-            qDebug() << "Anki response is missing error field";
+            error = "Anki response is missing error field";
         }
         else if (!replyObj.contains(ANKI_RESULT))
         {
-            qDebug() << "Anki response is missing result field";
+            error = "Anki response is missing result field";
         }
         else if (!replyObj[ANKI_ERROR].isNull())
         {
-            qDebug() << "Error reported:" 
-                     << replyObj[ANKI_ERROR].toString();
+            error = replyObj[ANKI_ERROR].toString();
         }
         else 
         {
@@ -191,7 +196,7 @@ QJsonObject AnkiClient::processReply(QNetworkReply *reply)
     }
     else
     {
-        qDebug() << reply->errorString();
+        error = reply->errorString();
     }
 
     return QJsonObject();

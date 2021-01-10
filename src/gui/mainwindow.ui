@@ -133,10 +133,31 @@
     </property>
     <addaction name="m_actionSubtitleNone"/>
    </widget>
+   <widget class="QMenu" name="m_menuSettings">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>200</width>
+      <height>84</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>200</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="m_actionAnki"/>
+   </widget>
    <addaction name="m_menuMedia"/>
    <addaction name="m_menuAudio"/>
    <addaction name="m_menuVideo"/>
    <addaction name="m_menuSubtitle"/>
+   <addaction name="m_menuSettings"/>
   </widget>
   <action name="m_actionOpen">
    <property name="text">
@@ -177,6 +198,11 @@
    </property>
    <property name="text">
     <string>None</string>
+   </property>
+  </action>
+  <action name="m_actionAnki">
+   <property name="text">
+    <string>Anki Integration</string>
    </property>
   </action>
  </widget>

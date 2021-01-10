@@ -22,6 +22,7 @@
 #include "ui_mainwindow.h"
 #include "mpvadapter.h"
 #include "widgets/definitionwidget.h"
+#include "widgets/ankisettings.h"
 
 #include <QCursor>
 #include <QFileDialog>
@@ -45,8 +46,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     m_ui->m_controls->setVolumeLimit(m_player->getMaxVolume());
 
+    // Anki
+    m_ankiClient = new AnkiClient(this);
+    m_ankiSettings = new AnkiSettings(m_ankiClient);
+    m_ankiSettings->hide();
+
     // Toolbar Actions
     connect(m_ui->m_actionOpen, &QAction::triggered, this, &MainWindow::open);
+    connect(m_ui->m_actionAnki, &QAction::triggered,
+        m_ankiSettings, &QWidget::show);
 
     // Buttons
     connect(m_ui->m_controls, &PlayerControls::play,
@@ -153,6 +161,8 @@ MainWindow::~MainWindow()
     delete m_actionGroupVideo;
     delete m_actionGroupSubtitle;
     delete m_definition;
+    delete m_ankiClient;
+    delete m_ankiSettings;
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)

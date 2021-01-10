@@ -68,3 +68,15 @@ target_link_libraries(
     sliderjumpstyle
     subtitlewidget
 )
+
+add_library(
+    ankisettings
+    ankisettings.cpp
+    ankisettings.ui
+)
+
+target_link_libraries(
+    ankisettings
+    Qt5::Widgets
+    anki
+)
