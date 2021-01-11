@@ -40,6 +40,9 @@ public:
     AnkiSettings(AnkiClient *client, QWidget *parent = 0);
     ~AnkiSettings();
 
+protected:
+    void showEvent(QShowEvent *event) override;
+
 private Q_SLOTS:
     void enabledStateChanged(int state);
     void connectToClient(const bool showErrors = true);

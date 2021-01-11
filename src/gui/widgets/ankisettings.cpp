@@ -38,7 +38,7 @@ AnkiSettings::AnkiSettings(AnkiClient *client, QWidget *parent)
     connect(m_ui->m_checkBoxEnabled, &QCheckBox::stateChanged,
         this, &AnkiSettings::enabledStateChanged);
     connect(m_ui->m_buttonConnect, &QPushButton::clicked,
-        this, &AnkiSettings::connectToClient);
+        [=] { connectToClient(true); });
     connect(m_ui->m_comboBoxModel, &QComboBox::currentTextChanged,
         this, &AnkiSettings::updateModelFields);
     
@@ -52,14 +52,17 @@ AnkiSettings::AnkiSettings(AnkiClient *client, QWidget *parent)
         &QPushButton::clicked, this, &AnkiSettings::applyChanges);
     connect(m_ui->m_buttonBox->button(QDialogButtonBox::StandardButton::Close),
         &QPushButton::clicked, this, &AnkiSettings::hide);
-    
-    restoreSaved();
-    connectToClient(false);
 }
 
 AnkiSettings::~AnkiSettings()
 {
     delete m_ui;
+}
+
+void AnkiSettings::showEvent(QShowEvent *event) 
+{
+    restoreSaved();
+    connectToClient(false);
 }
 
 void AnkiSettings::enabledStateChanged(int state)
@@ -212,6 +215,8 @@ void AnkiSettings::restoreSaved()
     m_ui->m_checkBoxEnabled->setChecked(config.enabled);
     m_ui->m_lineEditHost->setText(config.address);
     m_ui->m_lineEditPort->setText(config.port);
+
+    m_client->setServer(config.address, config.port);
 
     QString tags;
     for (auto it = config.tags.begin(); it != config.tags.end(); ++it)
