@@ -24,7 +24,6 @@
 #include <QObject>
 #include <QKeyEvent>
 #include <QWheelEvent>
-#include <QVector>
 
 class PlayerAdapter : public QObject
 {
@@ -93,7 +92,7 @@ Q_SIGNALS:
     void stateChanged(const bool paused);
     void fullscreenChanged(const bool full);
     void volumeChanged(const int value);
-    void tracksChanged(QVector<const PlayerAdapter::Track *> tracks);
+    void tracksChanged(QList<const PlayerAdapter::Track *> tracks);
     void hideCursor();
     void close();
 };

@@ -222,7 +222,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     m_ui->m_mpv->setCursor(Qt::ArrowCursor);
 }
 
-void MainWindow::setTracks(QVector<const PlayerAdapter::Track *> tracks)
+void MainWindow::setTracks(QList<const PlayerAdapter::Track *> tracks)
 {
     clearTracks();
 
@@ -238,7 +238,7 @@ void MainWindow::setTracks(QVector<const PlayerAdapter::Track *> tracks)
         QAction *action = new QAction(this);
         action->setText(actionText);
         action->setCheckable(true);
-        QVector<QPair<QAction *, const PlayerAdapter::Track *>> *trackList;
+        QList<QPair<QAction *, const PlayerAdapter::Track *>> *trackList;
         switch (track->type)
         {
         case PlayerAdapter::Track::track_type::audio:
@@ -323,7 +323,7 @@ void MainWindow::clearTracks()
 }
 
 void MainWindow::clearTrack(
-    QVector<QPair<QAction *, const PlayerAdapter::Track *>> &tracks,
+    QList<QPair<QAction *, const PlayerAdapter::Track *>> &tracks,
     QMenu *menu, QActionGroup *actionGroup, QAction *actionDisable)
 {
     for (auto it = tracks.begin(); it != tracks.end(); ++it)

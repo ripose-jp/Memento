@@ -267,7 +267,7 @@ void MpvAdapter::processSubtitle(const char **subtitle,
 // https://github.com/u8sand/Baka-MPlayer/blob/master/src/mpvhandler.cpp
 void MpvAdapter::processTracks(const mpv_node *node)
 {
-    QVector<const PlayerAdapter::Track *> tracks;
+    QList<const PlayerAdapter::Track *> tracks;
     if (node->format == MPV_FORMAT_NODE_ARRAY)
     {
         for (size_t i = 0; i < node->u.list->num; i++)

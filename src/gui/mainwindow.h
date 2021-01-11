@@ -58,7 +58,7 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void open();
-    void setTracks(QVector<const PlayerAdapter::Track *> tracks);
+    void setTracks(QList<const PlayerAdapter::Track *> tracks);
     void setDefinitionWidgetLocation();
     void hideControls();
     void hidePlayerCursor();
@@ -76,15 +76,15 @@ private:
     QActionGroup *m_actionGroupAudio;
     QActionGroup *m_actionGroupVideo;
     QActionGroup *m_actionGroupSubtitle;
-    QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_audioTracks;
-    QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_videoTracks;
-    QVector<QPair<QAction *, const PlayerAdapter::Track *>> m_subtitleTracks;
+    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_audioTracks;
+    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_videoTracks;
+    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_subtitleTracks;
     DefinitionWidget *m_definition;
     AnkiSettings *m_ankiSettings;
     AnkiClient *m_ankiClient;
 
     void clearTracks();
-    void clearTrack(QVector<QPair<QAction *, const PlayerAdapter::Track *>> &tracks, QMenu *menu, QActionGroup *actionGroup, QAction *actionDisable);
+    void clearTrack(QList<QPair<QAction *, const PlayerAdapter::Track *>> &tracks, QMenu *menu, QActionGroup *actionGroup, QAction *actionDisable);
 };
 
 #endif // MAINWINDOW_H
