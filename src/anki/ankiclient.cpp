@@ -61,12 +61,14 @@
 #define ANKI_NOTE_AUDIO_URL "url"
 #define ANKI_NOTE_AUDIO_FILENAME "filename"
 #define ANKI_NOTE_AUDIO_FIELDS "fields"
+#define ANKI_NOTE_AUDIO_SKIPHASH "skipHash"
 
 #define MIN_ANKICONNECT_VERSION 6
 #define TIMEOUT 5000
 #define CONFIG_FILE "anki_connect.json"
 #define FURIGANA_FORMAT_STRING (QString("<ruby>%1<rt>%2</rt></ruby>"))
 #define AUDIO_URL_FORMAT_STRING (QString("http://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kanji=%1&kana=%2"))
+#define JAPANESE_POD_STUB_MD5 "7e2c2f954ef6051373ba916f000168dc"
 #define AUDIO_FILENAME_FORMAT_STRING (QString("memento_%1_%2.mp3"))
 
 // Config file fields
@@ -433,6 +435,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry)
             AUDIO_URL_FORMAT_STRING.arg(*entry.m_kanji).arg(*entry.m_kana);
         audio[ANKI_NOTE_AUDIO_FILENAME] = audioFile;
         audio[ANKI_NOTE_AUDIO_FIELDS] = fieldsWithAudio;
+        audio[ANKI_NOTE_AUDIO_SKIPHASH] = JAPANESE_POD_STUB_MD5;
         note[ANKI_NOTE_AUDIO] = audio;
     }
     
