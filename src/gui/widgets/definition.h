@@ -46,7 +46,7 @@ private Q_SLOTS:
 private:
     Ui::Definition *m_ui;
     const Entry *m_entry;
-    const AnkiClient *m_client;
+    AnkiClient *m_client;
 
     void setEntry(const Entry *entry);
     QString generateJishoLink(const QString &word);
