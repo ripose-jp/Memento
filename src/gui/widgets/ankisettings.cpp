@@ -65,6 +65,12 @@ void AnkiSettings::showEvent(QShowEvent *event)
     connectToClient(false);
 }
 
+void AnkiSettings::hideEvent(QHideEvent *event)
+{
+    AnkiConfig config = m_client->getConfig();
+    m_client->setServer(config.address, config.port);
+}
+
 void AnkiSettings::enabledStateChanged(int state)
 {
     if (state == Qt::CheckState::Checked)

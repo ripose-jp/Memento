@@ -24,11 +24,15 @@
 #define ALT_KANJI_TEXT "Alternative Kanji: "
 #define ALT_KANA_TEXT "Alternative Kana: "
 
-Definition::Definition(const Entry *entry, QWidget *parent) 
-    : QWidget(parent), m_ui(new Ui::Definition), m_entry(entry)
+Definition::Definition(const Entry *entry, AnkiClient *client, QWidget *parent) 
+    : QWidget(parent), m_ui(new Ui::Definition), m_entry(entry),
+      m_client(client)
 {
     m_ui->setupUi(this);
     setEntry(entry);
+
+    connect(m_ui->m_buttonAddCard, &QToolButton::clicked,
+        this, &Definition::addNote);
 }
 
 Definition::~Definition()
@@ -103,4 +107,14 @@ QString Definition::buildDefinition(const QList<QList<QString>> &definitions)
         }
     }
     return defStr;
+}
+
+void Definition::setAddable(bool value)
+{
+    m_ui->m_buttonAddCard->setEnabled(value);
+}
+
+void Definition::addNote()
+{
+    m_ui->m_buttonAddCard->setEnabled(false);
 }

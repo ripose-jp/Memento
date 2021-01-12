@@ -42,7 +42,7 @@ public Q_SLOTS:
     void deselectText();
 
 Q_SIGNALS:
-    void entriesChanged(const QList<const Entry *> *entry);
+    void entriesChanged(const QList<Entry *> *entry);
 
 protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
@@ -72,7 +72,7 @@ private:
         QString m_currentSubtitle;
         const int m_currentIndex;
 
-        void deleteEntries(QList<const Entry *> *entries);
+        void deleteEntries(QList<Entry *> *entries);
     };
 };
 
