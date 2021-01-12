@@ -84,11 +84,10 @@ void DefinitionWidget::setEntries(const QList<Entry *> *entries)
                     m_searchIdMutex.lock();
                     m_entryMutex.lock();
                     if (searchId == m_searchId)
-                        for (auto it = addable->begin(); it != addable->end();
-                             ++it)
-                        {
-                            definition->setAddable(*it);
-                        }
+                    {
+                        for (size_t i = 0; i < addable->size(); ++i)
+                            m_definitions->at(i)->setAddable(addable->at(i));
+                    }
                     m_entryMutex.unlock();
                     m_searchIdMutex.unlock();
                 }
@@ -107,6 +106,7 @@ void DefinitionWidget::clearEntries()
         delete child->widget();
         delete child;
     }
+    m_definitions->clear();
     m_entryMutex.unlock();
 }
 
