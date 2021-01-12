@@ -23,28 +23,32 @@
 
 #include <QWidget>
 
-#include <QWheelEvent>
-
 #include "../../dict/entry.h"
+#include "../../anki/ankiclient.h"
+
+#include <QWheelEvent>
+#include <QMutex>
 
 namespace Ui
 {
     class DefinitionWidget;
 }
 
+class Definition;
+
 class DefinitionWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    DefinitionWidget(QWidget *parent = 0);
+    DefinitionWidget(AnkiClient *client, QWidget *parent = 0);
     ~DefinitionWidget();
 
 public Q_SLOTS:  
     /**
      * Sets the entries of this widget, deletes the old entry
      */
-    void setEntries(const QList<const Entry *> *entries);
+    void setEntries(const QList<Entry *> *entries);
 
 Q_SIGNALS:
     void definitionHidden();
@@ -63,6 +67,12 @@ protected:
 
 private:
     Ui::DefinitionWidget *m_ui;
+    AnkiClient *m_client;
+
+    QList<Definition *> *m_definitions;
+    unsigned int m_searchId;
+    QMutex m_searchIdMutex;
+    QMutex m_entryMutex;
 
     void clearEntries();
 };

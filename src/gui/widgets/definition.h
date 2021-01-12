@@ -24,6 +24,7 @@
 #include <QWidget>
 
 #include "../../dict/entry.h"
+#include "../../anki/ankiclient.h"
 
 namespace Ui
 {
@@ -35,12 +36,17 @@ class Definition : public QWidget
     Q_OBJECT
 
 public:
-    Definition(const Entry *entry, QWidget *parent = 0);
+    Definition(const Entry *entry, AnkiClient *client, QWidget *parent = 0);
     ~Definition();
+    void setAddable(bool value);
+
+private Q_SLOTS:
+    void addNote();
 
 private:
     Ui::Definition *m_ui;
     const Entry *m_entry;
+    const AnkiClient *m_client;
 
     void setEntry(const Entry *entry);
     QString generateJishoLink(const QString &word);

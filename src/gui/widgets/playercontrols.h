@@ -60,7 +60,7 @@ Q_SIGNALS:
     void sliderMoved(const int value);
     void volumeSliderMoved(const int value);
     void fullscreenChanged(const bool value);
-    void entriesChanged(const QList<const Entry *> *entries);
+    void entriesChanged(const QList<Entry *> *entries);
     void definitionHidden();
     void hideDefinition();
 

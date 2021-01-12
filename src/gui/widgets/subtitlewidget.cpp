@@ -108,13 +108,27 @@ void SubtitleWidget::QueryThread::run()
     }
     
     // Match the longest exact entry in JMDict
-    QList<const Entry *> *exact_entries = 0;
+    QList<Entry *> *exact_entries = 0;
     while (!m_query.isEmpty() && m_currentIndex == m_parent->m_currentIndex)
     {
         exact_entries = 
             m_parent->m_dictionary->query(m_query, JMDict::FULLTEXT);
         if (!exact_entries->isEmpty())
         {
+            for (auto it = exact_entries->begin(); it != exact_entries->end();
+                 ++it)
+            {
+                (*it)->m_sentence = new QString(m_currentSubtitle);
+                QString *sentence = (*it)->m_sentence;
+                (*it)->m_clozePrefix = 
+                    new QString(sentence->left(m_currentIndex));
+                (*it)->m_clozeBody =
+                    new QString(sentence->mid(m_currentIndex,
+                                              m_currentIndex + m_query.size()));
+                (*it)->m_clozeSuffix = 
+                    new QString(
+                        sentence->right(m_currentIndex + m_query.size()));
+            }
             break;
         }
         deleteEntries(exact_entries);
@@ -123,7 +137,7 @@ void SubtitleWidget::QueryThread::run()
     }
     if (exact_entries == 0)
     {
-        exact_entries = new QList<const Entry *>;
+        exact_entries = new QList<Entry *>;
     }
 
     // Generate Lemmenized queries
@@ -151,17 +165,30 @@ void SubtitleWidget::QueryThread::run()
 
     // Query for the lemmenized entries
     unsigned int maxLen = 0;
-    QList<const Entry *> *lem_entires = new QList<const Entry *>;
+    QList<Entry *> *lem_entires = new QList<Entry *>;
     for (auto it = queries.begin();
          it != queries.end() && m_currentIndex == m_parent->m_currentIndex;
          ++it)
     {
         QPair<QString, unsigned int> pair = *it;
-        QList<const Entry *> *query_results = 
+        QList<Entry *> *query_results = 
             m_parent->m_dictionary->query(pair.first, JMDict::FULLTEXT);
 
         if (!query_results->isEmpty())
         {
+            for (auto it = query_results->begin(); it != query_results->end();
+                 ++it)
+            {
+                (*it)->m_sentence = new QString(m_currentSubtitle);
+                QString *sentence = (*it)->m_sentence;
+                (*it)->m_clozePrefix = 
+                    new QString(sentence->left(m_currentIndex));
+                (*it)->m_clozeBody =
+                    new QString(sentence->mid(m_currentIndex,
+                                              m_currentIndex + match.size()));
+                (*it)->m_clozeSuffix = 
+                    new QString(sentence->right(m_currentIndex + match.size()));
+            }
             lem_entires->append(*query_results);
             maxLen = pair.second > maxLen ? pair.second : maxLen;
         }
@@ -170,7 +197,7 @@ void SubtitleWidget::QueryThread::run()
     }
 
     // Merge query results
-    QList<const Entry *> *entries;
+    QList<Entry *> *entries;
     if (maxLen > m_query.length())
     {
         entries = lem_entires;
@@ -199,7 +226,7 @@ void SubtitleWidget::QueryThread::run()
     }
 }
 
-void SubtitleWidget::QueryThread::deleteEntries(QList<const Entry *> *entries)
+void SubtitleWidget::QueryThread::deleteEntries(QList<Entry *> *entries)
 {
     for (auto it = entries->begin(); it != entries->end(); ++it)
     {

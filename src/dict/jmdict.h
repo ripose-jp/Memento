@@ -39,8 +39,7 @@ public:
 
     JMDict(const QString &path);
     ~JMDict();
-    QList<const Entry *> *query(const QString &query, 
-                                const JMDict::QueryType type);
+    QList<Entry *> *query(const QString &query, const JMDict::QueryType type);
 
 private:
     sql::db *m_db;

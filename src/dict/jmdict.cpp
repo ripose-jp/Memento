@@ -36,7 +36,7 @@ struct query_data
 {
     sql::db *db;
     Entry *current_entry;
-    QList<const Entry *> *entires;
+    QList<Entry *> *entires;
     QString entryId;
 };
 
@@ -47,13 +47,12 @@ JMDict::~JMDict()
     delete m_db;
 }
 
-QList<const Entry *> *JMDict::query(const QString &query, 
-                                    const QueryType type)
+QList<Entry *> *JMDict::query(const QString &query, const QueryType type)
 {
     struct query_data querydata;
     querydata.db = m_db;
     querydata.current_entry = 0;
-    querydata.entires = new QList<const Entry *>;
+    querydata.entires = new QList<Entry *>;
 
     m_db->exec(
         sql::query("SELECT DISTINCT entry FROM reading WHERE kana " 
