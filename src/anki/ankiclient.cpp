@@ -46,6 +46,7 @@
 #define ANKI_ACTION_VERSION "version"
 #define ANKI_CAN_ADD_NOTES "canAddNotes"
 #define ANKI_ADD_NOTE "addNote"
+#define ANKI_ADD_NOTE_PARAM "note"
 
 // Anki param fields
 #define ANKI_PARAM_MODEL_NAME "modelName"
@@ -65,7 +66,7 @@
 #define TIMEOUT 5000
 #define CONFIG_FILE "anki_connect.json"
 #define FURIGANA_FORMAT_STRING (QString("<ruby>%1<rt>%2</rt></ruby>"))
-#define AUDIO_URL_FORMAT_STRING (QString("https://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kanji=%1&kana=%2"))
+#define AUDIO_URL_FORMAT_STRING (QString("http://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kanji=%1&kana=%2"))
 #define AUDIO_FILENAME_FORMAT_STRING (QString("memento_%1_%2.mp3"))
 
 // Config file fields
@@ -225,7 +226,7 @@ bool AnkiClient::isEnabled() const
 void AnkiClient::testConnection(
     std::function<void(const bool, const QString &)> callback)
 {
-    QNetworkReply *reply = makeRequest(ANKI_ACTION_VERSION, QJsonObject());
+    QNetworkReply *reply = makeRequest(ANKI_ACTION_VERSION);
     connect(reply, &QNetworkReply::finished, [=] {
         QString error;
         QJsonObject replyObj = processReply(reply, error);
@@ -255,13 +256,13 @@ void AnkiClient::testConnection(
 void AnkiClient::getDeckNames(
     std::function<void(const QStringList *, const QString &)> callback)
 {
-    requestStringList(callback, ANKI_DECK_NAMES, QJsonObject());
+    requestStringList(callback, ANKI_DECK_NAMES);
 }
 
 void AnkiClient::getModelNames(
     std::function<void(const QStringList *, const QString &)> callback)
 {
-    requestStringList(callback, ANKI_MODEL_NAMES, QJsonObject());
+    requestStringList(callback, ANKI_MODEL_NAMES);
 }
 
 void AnkiClient::getFieldNames(
@@ -345,6 +346,32 @@ void AnkiClient::entriesAddable(
     });
 }
 
+void AnkiClient::addEntry(
+    std::function<void(const int, const QString &)> callback,
+    const Entry *entry)
+{
+    QJsonObject params;
+    params[ANKI_ADD_NOTE_PARAM] = createAnkiNoteObject(*entry);
+    QNetworkReply *reply = makeRequest(ANKI_ADD_NOTE, params);
+    connect(reply, &QNetworkReply::finished, [=] {
+        QString error;
+        QJsonObject replyObj = processReply(reply, error);
+        if (replyObj.isEmpty())
+        {
+            callback(false, error);
+        }
+        else if (!replyObj[ANKI_RESULT].isDouble())
+        {
+            callback(false, "AnkiConnect result is not a bool");
+        }
+        else
+        {
+            callback(replyObj[ANKI_RESULT].toInt(), error);
+        }
+        delete reply;
+    });
+}
+
 QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry)
 {
     QJsonObject note;
@@ -352,6 +379,8 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry)
     note[ANKI_NOTE_MODEL] = m_config.model;
 
     // Processed fields
+    QString audioFile = AUDIO_FILENAME_FORMAT_STRING.arg(*entry.m_kana)
+                                                    .arg(*entry.m_kanji);
     QString furigana = FURIGANA_FORMAT_STRING.arg(*entry.m_kanji)
                                              .arg(*entry.m_kana);
     QString furiganaPlain;
@@ -371,7 +400,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry)
 
         if (value.contains(REPLACE_AUDIO))
         {
-            fieldsWithAudio.append(value);
+            fieldsWithAudio.append(*it);
         }
         value = value.replace(REPLACE_AUDIO, "");
         value = value.replace(REPLACE_CLOZE_BODY, *entry.m_clozeBody);
@@ -401,10 +430,10 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry)
     {
         QJsonObject audio;
         audio[ANKI_NOTE_AUDIO_URL] = 
-            AUDIO_URL_FORMAT_STRING.arg(*entry.m_altkanji).arg(*entry.m_kana);
-        audio[ANKI_NOTE_AUDIO_FILENAME] =
-            AUDIO_FILENAME_FORMAT_STRING.arg(*entry.m_kana).arg(*entry.m_kanji);
+            AUDIO_URL_FORMAT_STRING.arg(*entry.m_kanji).arg(*entry.m_kana);
+        audio[ANKI_NOTE_AUDIO_FILENAME] = audioFile;
         audio[ANKI_NOTE_AUDIO_FIELDS] = fieldsWithAudio;
+        note[ANKI_NOTE_AUDIO] = audio;
     }
     
     return note;
