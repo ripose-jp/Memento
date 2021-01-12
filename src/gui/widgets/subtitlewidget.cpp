@@ -123,11 +123,12 @@ void SubtitleWidget::QueryThread::run()
                 (*it)->m_clozePrefix = 
                     new QString(sentence->left(m_currentIndex));
                 (*it)->m_clozeBody =
-                    new QString(sentence->mid(m_currentIndex,
-                                              m_currentIndex + m_query.size()));
+                    new QString(sentence->mid(m_currentIndex, m_query.size()));
                 (*it)->m_clozeSuffix = 
                     new QString(
-                        sentence->right(m_currentIndex + m_query.size()));
+                        sentence->right(
+                            sentence->size() - 
+                            (m_currentIndex + m_query.size())));
             }
             break;
         }
@@ -183,11 +184,10 @@ void SubtitleWidget::QueryThread::run()
                 QString *sentence = (*it)->m_sentence;
                 (*it)->m_clozePrefix = 
                     new QString(sentence->left(m_currentIndex));
-                (*it)->m_clozeBody =
-                    new QString(sentence->mid(m_currentIndex,
-                                              m_currentIndex + match.size()));
+                (*it)->m_clozeBody = new QString(match);
                 (*it)->m_clozeSuffix = 
-                    new QString(sentence->right(m_currentIndex + match.size()));
+                    new QString(sentence->right(
+                        sentence->size() - (m_currentIndex + match.size())));
             }
             lem_entires->append(*query_results);
             maxLen = pair.second > maxLen ? pair.second : maxLen;
