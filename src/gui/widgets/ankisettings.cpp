@@ -107,7 +107,15 @@ void AnkiSettings::connectToClient(const bool showErrors)
             m_client->getDeckNames(
                 [=](const QStringList *decks, const QString &error) {
                     if (error.isEmpty())
+                    {
+                        const QString &savedDeck = m_client->getConfig().deck;
+                        m_ui->m_comboBoxDeck->clear();
                         m_ui->m_comboBoxDeck->addItems(*decks);
+                        if (!savedDeck.isEmpty())
+                        {
+                            m_ui->m_comboBoxDeck->setCurrentText(savedDeck);
+                        }
+                    }
                     else if (showErrors)
                     {
                         QMessageBox messageBox;
@@ -119,18 +127,15 @@ void AnkiSettings::connectToClient(const bool showErrors)
                 [=](const QStringList *models, const QString &error) {
                     if (error.isEmpty())
                     {
-                        QString savedModel = m_client->getConfig().model;
+                        const QString &savedModel = m_client->getConfig().model;
 
-                        m_ui->m_comboBoxModel->
-                            blockSignals(!savedModel.isEmpty());
-
+                        m_ui->m_comboBoxModel->blockSignals(true);
+                        m_ui->m_comboBoxModel->clear();
                         m_ui->m_comboBoxModel->addItems(*models);
                         if (!savedModel.isEmpty())
                         {
-                            m_ui->m_comboBoxModel->
-                                setCurrentText(m_client->getConfig().model);
+                            m_ui->m_comboBoxModel->setCurrentText(savedModel);
                         }
-
                         m_ui->m_comboBoxModel->blockSignals(false);
                     }
                     else if (showErrors)
