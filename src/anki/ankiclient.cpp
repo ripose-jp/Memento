@@ -24,6 +24,7 @@
 
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
+#include <QNetworkReply>
 #include <QJsonArray>
 #include <QFile>
 #include <QTextStream>
@@ -43,14 +44,29 @@
 #define ANKI_MODEL_NAMES "modelNames"
 #define ANKI_FIELD_NAMES "modelFieldNames"
 #define ANKI_ACTION_VERSION "version"
+#define ANKI_CAN_ADD_NOTES "canAddNotes"
+#define ANKI_ADD_NOTE "addNote"
 
 // Anki param fields
 #define ANKI_PARAM_MODEL_NAME "modelName"
 
+// Anki note fields
+#define ANKI_CAN_ADD_NOTES_PARAM "notes"
+#define ANKI_NOTE_DECK "deckName"
+#define ANKI_NOTE_MODEL "modelName"
+#define ANKI_NOTE_FIELDS "fields"
+#define ANKI_NOTE_TAGS "tags"
+#define ANKI_NOTE_AUDIO "audio"
+#define ANKI_NOTE_AUDIO_URL "url"
+#define ANKI_NOTE_AUDIO_FILENAME "filename"
+#define ANKI_NOTE_AUDIO_FIELDS "fields"
+
 #define MIN_ANKICONNECT_VERSION 6
 #define TIMEOUT 5000
-
 #define CONFIG_FILE "anki_connect.json"
+#define FURIGANA_FORMAT_STRING (QString("<ruby>%1<rt>%2</rt></ruby>"))
+#define AUDIO_URL_FORMAT_STRING (QString("https://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kanji=%1&kana=%2"))
+#define AUDIO_FILENAME_FORMAT_STRING (QString("memento_%1_%2.mp3"))
 
 // Config file fields
 #define CONFIG_ENABLED "enabled"
@@ -201,6 +217,11 @@ void AnkiClient::setConfig(const AnkiConfig &config)
     writeConfigToFile(CONFIG_FILE);
 }
 
+bool AnkiClient::isEnabled() const
+{
+    return m_config.enabled;
+}
+
 void AnkiClient::testConnection(
     std::function<void(const bool, const QString &)> callback)
 {
@@ -214,8 +235,7 @@ void AnkiClient::testConnection(
         }
         else if (!replyObj[ANKI_RESULT].isDouble())
         {
-            error = "AnkiConnect result is not a number";
-            callback(false, error);
+            callback(false, "AnkiConnect result is not a number");
         }
         else if (replyObj[ANKI_RESULT].toInt() < MIN_ANKICONNECT_VERSION)
         {
@@ -262,9 +282,13 @@ void AnkiClient::requestStringList(
     connect(reply, &QNetworkReply::finished, [=] {
         QString error;
         QJsonObject replyObj = processReply(reply, error);
-        if (replyObj.isEmpty() || !replyObj[ANKI_RESULT].isArray()) 
+        if (replyObj.isEmpty()) 
         {
             callback(0, error);
+        }
+        else if (!replyObj[ANKI_RESULT].isArray())
+        {
+            callback(0, "Result is not an array");
         }
         else 
         {
@@ -276,6 +300,144 @@ void AnkiClient::requestStringList(
         }
         delete reply;
     });
+}
+
+void AnkiClient::entriesAddable(
+    std::function<void(const QList<bool> *, const QString &)> callback,
+    const QList<Entry *> *entries)
+{
+    QJsonArray notes;
+    for (auto it = entries->begin(); it != entries->end(); ++it)
+        notes.append(createAnkiNoteObject(**it));
+    QJsonObject params;
+    params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
+    QNetworkReply *reply = makeRequest(ANKI_CAN_ADD_NOTES, params);
+    connect(reply, &QNetworkReply::finished, [=] {
+        QString error;
+        QJsonObject replyObj = processReply(reply, error);
+        if (replyObj.isEmpty())
+        {
+            callback(0, error);
+        }
+        else if (!replyObj[ANKI_RESULT].isArray())
+        {
+            callback(0, "Result is not an array");
+        }
+        else
+        {
+            QList<bool> *response = new QList<bool>();
+            QJsonArray resultArray = replyObj[ANKI_RESULT].toArray();
+            for (auto it = resultArray.begin(); it != resultArray.end(); ++it)
+            {
+                if (it->isBool())
+                {
+                    response->append(it->toBool());
+                }
+                else
+                {
+                    delete response;
+                    callback(0, "Response was not an array of bool");
+                }
+            }
+            callback(response, error);
+        }
+        delete reply;
+    });
+}
+
+QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry)
+{
+    QJsonObject note;
+    note[ANKI_NOTE_DECK] = m_config.deck;
+    note[ANKI_NOTE_MODEL] = m_config.model;
+
+    // Processed fields
+    QString furigana = FURIGANA_FORMAT_STRING.arg(*entry.m_kanji)
+                                             .arg(*entry.m_kana);
+    QString furiganaPlain;
+    if (entry.m_kanji->isEmpty())
+        furiganaPlain = *entry.m_kana;
+    else
+        furiganaPlain = *entry.m_altkanji + "[" + *entry.m_kana + "]";
+    QString glossary = buildGlossary(*entry.m_descriptions);
+
+    // Find and replace fields with processed fields
+    QStringList fields = m_config.fields.keys();
+    QJsonArray fieldsWithAudio;
+    QJsonObject fieldsObj;
+    for (auto it = fields.begin(); it != fields.end(); ++it)
+    {
+        QString value = m_config.fields[*it].toString();
+
+        if (value.contains(REPLACE_AUDIO))
+        {
+            fieldsWithAudio.append(value);
+        }
+        value = value.replace(REPLACE_AUDIO, "");
+        value = value.replace(REPLACE_CLOZE_BODY, *entry.m_clozeBody);
+        value = value.replace(REPLACE_CLOZE_PREFIX, *entry.m_clozePrefix);
+        value = value.replace(REPLACE_CLOZE_SUFFIX, *entry.m_clozeSuffix);
+        value = value.replace(
+            REPLACE_EXPRESSION, 
+            entry.m_kanji->isEmpty() ? *entry.m_kana : *entry.m_kanji);
+        value = value.replace(REPLACE_ALT_EXPRESSION, *entry.m_altkanji);
+        value = value.replace(REPLACE_FURIGANA, furigana);
+        value = value.replace(REPLACE_FURIGANA_PLAIN, furiganaPlain);
+        value = value.replace(REPLACE_GLOSSARY, glossary);
+        value = value.replace(REPLACE_READING, *entry.m_kana);
+        value = value.replace(REPLACE_ALT_READING, *entry.m_altkana);
+        value = value.replace(REPLACE_SENTENCE, *entry.m_sentence);
+
+        fieldsObj[*it] = value;
+    }
+    note[ANKI_NOTE_FIELDS] = fieldsObj;
+    
+    QJsonArray tags;
+    for (auto it = m_config.tags.begin(); it != m_config.tags.end(); ++it)
+        tags.append(*it);
+    note[ANKI_NOTE_TAGS] = tags;
+
+    if (!fieldsWithAudio.isEmpty())
+    {
+        QJsonObject audio;
+        audio[ANKI_NOTE_AUDIO_URL] = 
+            AUDIO_URL_FORMAT_STRING.arg(*entry.m_altkanji).arg(*entry.m_kana);
+        audio[ANKI_NOTE_AUDIO_FILENAME] =
+            AUDIO_FILENAME_FORMAT_STRING.arg(*entry.m_kana).arg(*entry.m_kanji);
+        audio[ANKI_NOTE_AUDIO_FIELDS] = fieldsWithAudio;
+    }
+    
+    return note;
+}
+
+QString AnkiClient::buildGlossary(const QList<QList<QString>> &definitions)
+{
+    QString glossary;
+    glossary.append("<div style=\"text-align: left;\"><ol>");
+
+    for (size_t i = 0; i < definitions.size(); ++i)
+    {
+        glossary += "<li>";
+        
+        glossary += "<i>(";
+        glossary += definitions[i].front();
+        glossary += ")</i>";
+
+        glossary += "<ul>";
+        for (size_t j = 1; j < definitions[i].size(); ++j)
+        {
+            glossary += "<li>";
+            glossary += definitions[i][j];
+            glossary += "</li>";
+        }
+        glossary += "</ul>";
+
+        glossary += "</li>";
+    }
+
+    glossary.append("</ol></div>");
+
+    return glossary;
 }
 
 QNetworkReply *AnkiClient::makeRequest(const QString &action,

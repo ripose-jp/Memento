@@ -30,7 +30,11 @@ struct Entry
               m_altkanji(new QString),
               m_kana(new QString), 
               m_altkana(new QString),
-              m_descriptions(new QList<QList<QString>>) {}
+              m_descriptions(new QList<QList<QString>>),
+              m_clozeBody(0),
+              m_clozePrefix(0),
+              m_clozeSuffix(0),
+              m_sentence(0) {}
     
     ~Entry()
     {
@@ -39,6 +43,10 @@ struct Entry
         delete m_kana;
         delete m_altkana;
         delete m_descriptions;
+        delete m_clozeBody;
+        delete m_clozePrefix;
+        delete m_clozeSuffix;
+        delete m_sentence;
     }
 
     QString *m_kanji;
@@ -46,6 +54,10 @@ struct Entry
     QString *m_kana;
     QString *m_altkana;
     QList<QList<QString>> *m_descriptions;
+    QString *m_clozeBody;
+    QString *m_clozePrefix;
+    QString *m_clozeSuffix;
+    QString *m_sentence;
 } typedef Entry;
 
 #endif // ENTRY_H

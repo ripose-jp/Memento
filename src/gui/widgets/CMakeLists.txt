@@ -23,24 +23,14 @@ target_link_libraries(
 )
 
 add_library(
-    definition
+    definitionwidget
+    definitionwidget.cpp
+    definitionwidget.ui
     definition.cpp
     definition.ui
 )
 target_link_libraries(
-    definition
-    Qt5::Widgets
-    jmdict
-)
-
-add_library(
     definitionwidget
-    definitionwidget.cpp
-    definitionwidget.ui
-)
-target_link_libraries(
-    definitionwidget
-    definition
     Qt5::Widgets
     jmdict
 )

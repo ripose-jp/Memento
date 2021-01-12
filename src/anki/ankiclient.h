@@ -26,9 +26,28 @@
 #include <QStringList>
 #include <QJsonObject>
 #include <QJsonDocument>
-#include <QNetworkReply>
 
 #include "ankiconfig.h"
+
+#include "../dict/entry.h"
+
+#define REPLACE_AUDIO "{audio}"
+#define REPLACE_CLOZE_BODY "{cloze-body}"
+#define REPLACE_CLOZE_PREFIX "{cloze-prefix}"
+#define REPLACE_CLOZE_SUFFIX "{cloze-suffix}"
+#define REPLACE_DOCUMENT_TITLE "{document-title}"
+#define REPLACE_EXPRESSION "{expression}"
+#define REPLACE_ALT_EXPRESSION "{expression-alt}"
+#define REPLACE_FURIGANA "{furigana}"
+#define REPLACE_FURIGANA_PLAIN "{furigana-plain}"
+#define REPLACE_GLOSSARY "{glossary}"
+#define REPLACE_READING "{reading}"
+#define REPLACE_ALT_READING "{reading-alt}"
+#define REPLACE_SCREENSHOT "{screenshot}"
+#define REPLACE_SENTENCE "{sentence}"
+#define REPLACE_TAGS "{tags}"
+
+class QNetworkReply;
 
 class AnkiClient : public QObject
 {
@@ -40,6 +59,7 @@ public:
     void setServer(const QString &address, const QString &port);
     AnkiConfig getConfig() const;
     void setConfig(const AnkiConfig &config);
+    bool isEnabled() const;
     void testConnection(
         std::function<void(const bool, const QString &)> callback);
     void getDeckNames(
@@ -49,6 +69,9 @@ public:
     void getFieldNames(
         std::function<void(const QStringList *, const QString &)> callback,
         const QString &model);
+    void entriesAddable(
+        std::function<void(const QList<bool> *, const QString &)> callback,
+        const QList<Entry *> *entries);
 
 private:
     AnkiConfig m_config;
@@ -64,15 +87,8 @@ private:
         std::function<void(const QStringList *, const QString &)> callback,
         const QString &action,
         const QJsonObject &params);
-    void setSettings(const bool enabled, const QString &address,
-                     const QString &port, const QStringList &tags,
-                     const QJsonObject &modelConfig);
-    
-    bool isEnabled() const;
-    QString getAddress() const;
-    QString getPort() const;
-    QStringList getTags() const;
-    QJsonObject getModelConfig() const;
+    QJsonObject createAnkiNoteObject(const Entry &entry);
+    QString buildGlossary(const QList<QList<QString>> &definitions);
 };
 
 #endif // ANKICLIENT_H
