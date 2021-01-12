@@ -21,6 +21,8 @@
 #include "definition.h"
 #include "ui_definition.h"
 
+#include <QMessageBox>
+
 #define ALT_KANJI_TEXT "Alternative Kanji: "
 #define ALT_KANA_TEXT "Alternative Kana: "
 
@@ -117,4 +119,11 @@ void Definition::setAddable(bool value)
 void Definition::addNote()
 {
     m_ui->m_buttonAddCard->setEnabled(false);
+    m_client->addEntry([=](const int id, const QString &error) {
+        if (!error.isEmpty())
+        {
+            QMessageBox messageBox;
+            messageBox.critical(0,"Error", error);
+        }
+    }, m_entry);
 }

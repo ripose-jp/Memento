@@ -72,6 +72,9 @@ public:
     void entriesAddable(
         std::function<void(const QList<bool> *, const QString &)> callback,
         const QList<Entry *> *entries);
+    void addEntry(
+        std::function<void(const int, const QString &)> callback,
+        const Entry *entry);
 
 private:
     AnkiConfig m_config;
@@ -81,12 +84,12 @@ private:
     void readConfigFromFile(const QString &filename);
     bool writeConfigToFile(const QString &filename);
     QNetworkReply *makeRequest(const QString &action,
-                               const QJsonObject &params);
+                               const QJsonObject &params = QJsonObject());
     QJsonObject processReply(QNetworkReply *reply, QString &error);
     void requestStringList(
         std::function<void(const QStringList *, const QString &)> callback,
         const QString &action,
-        const QJsonObject &params);
+        const QJsonObject &params = QJsonObject());
     QJsonObject createAnkiNoteObject(const Entry &entry);
     QString buildGlossary(const QList<QList<QString>> &definitions);
 };
