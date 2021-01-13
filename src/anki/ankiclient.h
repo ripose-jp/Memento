@@ -56,10 +56,20 @@ class AnkiClient : public QObject
 public:
     AnkiClient(QObject *parent);
     ~AnkiClient();
+    
     void setServer(const QString &address, const QString &port);
-    AnkiConfig getConfig() const;
-    void setConfig(const AnkiConfig &config);
+
+    QString getProfile() const;
+    QStringList getProfiles() const;
+    const AnkiConfig *getConfig(const QString &profile) const;
+    bool setProfile(const QString &profile);
+    void addProfile(const QString &profile, const AnkiConfig &config);
+    bool renameProfile(const QString &oldName, const QString &newName);
+    void deleteProfile(const QString &profile);
+
     bool isEnabled() const;
+    void setEnabled(const bool value);
+
     void testConnection(
         std::function<void(const bool, const QString &)> callback);
     void getDeckNames(
@@ -77,7 +87,12 @@ public:
         const Entry *entry);
 
 private:
-    AnkiConfig m_config;
+    bool m_enabled;
+
+    QHash<QString, const AnkiConfig *> *m_configs;
+    const AnkiConfig *m_currentConfig;
+    QString m_currentProfile;
+
     QString m_address;
     QString m_port;
     

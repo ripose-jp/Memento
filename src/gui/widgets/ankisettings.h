@@ -51,11 +51,17 @@ private Q_SLOTS:
     void applyChanges();
     void restoreDefaults();
     void restoreSaved();
+    void addProfile();
+    void deleteProfile();
+    void changeProfile(const QString &text);
 
 private:
     Ui::AnkiSettings *m_ui;
     AnkiClient *m_client;
+    QHash<QString, AnkiClient> m_configs;
     QMutex m_mutexUpdateModelFields;
+
+    void populateFields(const QString &profile, const AnkiConfig *config);
 };
 
 #endif // ANKISETTINGS_H

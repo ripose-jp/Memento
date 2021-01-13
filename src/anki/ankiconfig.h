@@ -24,20 +24,31 @@
 #include <QString>
 #include <QStringList>
 #include <QJsonObject>
+#include <QJsonArray>
 
 struct AnkiConfig
 {
-    bool enabled;
     QString address;
     QString port;
-    QStringList tags;
+    QJsonArray tags;
     QString deck;
     QString model;
     QJsonObject fields;
 
+    AnkiConfig() {}
+
+    AnkiConfig(const AnkiConfig &config)
+    {
+        address = config.address;
+        port = config.port;
+        tags = config.tags;
+        deck = config.deck;
+        model = config.model;
+        fields = config.fields;
+    }
+
     AnkiConfig &operator=(const AnkiConfig &rhs)
     {
-        enabled = rhs.enabled;
         address = rhs.address;
         port = rhs.port;
         tags = rhs.tags;
