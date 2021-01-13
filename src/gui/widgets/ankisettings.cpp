@@ -36,18 +36,14 @@ AnkiSettings::AnkiSettings(AnkiClient *client, QWidget *parent)
 {
     m_ui->setupUi(this);
 
-    QStringList profiles = m_client->getProfiles();
-    if (profiles.isEmpty())
+    if (m_client->getProfile().isEmpty())
     {
-        m_ui->m_comboBoxProfile->addItem(DEFAULT_PROFILE);
-        applyChanges();
+        AnkiConfig defaultConfig;
+        defaultConfig.address = DEFAULT_HOST;
+        defaultConfig.port = DEFAULT_PORT;
+        defaultConfig.tags.append(DEFAULT_TAGS);
+        m_client->addProfile(DEFAULT_PROFILE, defaultConfig);
         m_client->setProfile(DEFAULT_PROFILE);
-        profiles.append(DEFAULT_PROFILE);
-    }
-    else
-    {
-        m_ui->m_comboBoxProfile->clear();
-        m_ui->m_comboBoxProfile->addItems(m_client->getProfiles());
     }
 
     connect(m_ui->m_checkBoxEnabled, &QCheckBox::stateChanged,
@@ -84,11 +80,29 @@ AnkiSettings::AnkiSettings(AnkiClient *client, QWidget *parent)
 AnkiSettings::~AnkiSettings()
 {
     delete m_ui;
+    clearConfigs();
+}
+
+void AnkiSettings::clearConfigs()
+{
+    if (m_configs)
+    {
+        for (auto it = m_configs->begin(); it != m_configs->end(); ++it)
+        {
+            delete *it;
+        }
+        delete m_configs;
+        m_configs = 0;
+    }
 }
 
 void AnkiSettings::showEvent(QShowEvent *event)
 {
-    restoreSaved();
+    m_ui->m_checkBoxEnabled->setChecked(m_client->isEnabled());
+    m_configs = m_client->getConfigs();
+    m_currentProfile = m_client->getProfile();
+    populateFields(
+        m_client->getProfile(), m_configs->value(m_client->getProfile()));
     connectToClient(false);
 }
 
@@ -96,6 +110,7 @@ void AnkiSettings::hideEvent(QHideEvent *event)
 {
     const AnkiConfig *config = m_client->getConfig(m_client->getProfile());
     m_client->setServer(config->address, config->port);
+    clearConfigs();
 }
 
 void AnkiSettings::enabledStateChanged(int state)
@@ -131,6 +146,67 @@ void AnkiSettings::enabledStateChanged(int state)
     m_ui->m_tableFields->setEnabled(enabled);
 }
 
+void AnkiSettings::addProfile()
+{
+    QString profileName = m_ui->m_lineEditProfileName->text();
+    if (m_configs->contains(profileName))
+    {
+        QMessageBox messageBox;
+        messageBox.information(
+            0, "Failed",
+            "Profile with name " + profileName + " already exists.");
+    }
+    else
+    {
+        m_configs->insert(
+            profileName,
+            new AnkiConfig(
+                *m_configs->value(m_ui->m_comboBoxProfile->currentText())));
+
+        m_ui->m_comboBoxProfile->blockSignals(true);
+        m_ui->m_comboBoxProfile->addItem(profileName);
+        m_ui->m_comboBoxProfile->setCurrentText(profileName);
+        m_ui->m_comboBoxProfile->blockSignals(false);
+
+        m_currentProfile = profileName;
+    }
+}
+
+void AnkiSettings::deleteProfile()
+{
+    QString profile = m_ui->m_comboBoxProfile->currentText();
+    if (profile == DEFAULT_PROFILE)
+    {
+        QMessageBox messageBox;
+        messageBox.information(0, "Failed",
+                               "The Default profile cannot be deleted");
+    }
+    else
+    {
+        delete m_configs->value(profile);
+        m_configs->remove(profile);
+
+        m_ui->m_comboBoxProfile->blockSignals(true);
+        m_ui->m_comboBoxProfile->removeItem(
+            m_ui->m_comboBoxProfile->currentIndex());
+        populateFields(
+            m_ui->m_comboBoxProfile->currentText(),
+            m_configs->value(m_ui->m_comboBoxProfile->currentText()));
+        m_ui->m_comboBoxProfile->blockSignals(false);
+
+        m_currentProfile = m_ui->m_comboBoxProfile->currentText();
+    }
+}
+
+void AnkiSettings::changeProfile(const QString &text)
+{
+    applyToConfig(m_currentProfile);
+    if (m_currentProfile != m_ui->m_lineEditProfileName->text())
+        renameProfile(m_currentProfile, m_ui->m_lineEditProfileName->text());
+    populateFields(text, m_configs->value(text));
+    m_currentProfile = text;
+}
+
 void AnkiSettings::connectToClient(const bool showErrors)
 {
     m_ui->m_buttonConnect->setEnabled(false);
@@ -144,14 +220,12 @@ void AnkiSettings::connectToClient(const bool showErrors)
                 [=](const QStringList *decks, const QString &error) {
                     if (error.isEmpty())
                     {
-                        const QString &savedDeck =
-                            m_client->getConfig(m_client->getProfile())->deck;
                         m_ui->m_comboBoxDeck->clear();
                         m_ui->m_comboBoxDeck->addItems(*decks);
-                        if (!savedDeck.isEmpty())
-                        {
-                            m_ui->m_comboBoxDeck->setCurrentText(savedDeck);
-                        }
+                        m_ui->m_comboBoxDeck->
+                            setCurrentText(
+                                m_client->getConfig(
+                                    m_client->getProfile())->deck);
                     }
                     else if (showErrors)
                     {
@@ -164,16 +238,13 @@ void AnkiSettings::connectToClient(const bool showErrors)
                 [=](const QStringList *models, const QString &error) {
                     if (error.isEmpty())
                     {
-                        const QString &savedModel =
-                            m_client->getConfig(m_client->getProfile())->model;
-
                         m_ui->m_comboBoxModel->blockSignals(true);
                         m_ui->m_comboBoxModel->clear();
                         m_ui->m_comboBoxModel->addItems(*models);
-                        if (!savedModel.isEmpty())
-                        {
-                            m_ui->m_comboBoxModel->setCurrentText(savedModel);
-                        }
+                        m_ui->m_comboBoxModel->
+                            setCurrentText(
+                                m_client->getConfig(
+                                    m_client->getProfile())->model);
                         m_ui->m_comboBoxModel->blockSignals(false);
                     }
                     else if (showErrors)
@@ -228,94 +299,75 @@ void AnkiSettings::updateModelFields(const QString &model)
 
 void AnkiSettings::applyChanges()
 {
-    AnkiConfig config;
-
-    m_client->setEnabled(m_ui->m_checkBoxEnabled->isChecked());
-    m_client->setProfile(m_ui->m_comboBoxProfile->currentText());
-    config.address = m_ui->m_lineEditHost->text();
-    config.port = m_ui->m_lineEditPort->text();
-    QStringList splitTags =
-        m_ui->m_lineEditTags->text().split(QRegExp(REGEX_REMOVE_SPACES_COMMAS));
-    for (auto it = splitTags.begin(); it != splitTags.end(); ++it)
-        config.tags.append(*it);
-    config.deck = m_ui->m_comboBoxDeck->currentText();
-    config.model = m_ui->m_comboBoxModel->currentText();
-    for (size_t i = 0; i < m_ui->m_tableFields->rowCount(); ++i)
+    // Renaming profile if changed
+    if (m_ui->m_comboBoxProfile->currentText() !=
+        m_ui->m_lineEditProfileName->text())
     {
-        QTableWidgetItem *field = m_ui->m_tableFields->item(i, 0);
-        QTableWidgetItem *value = m_ui->m_tableFields->item(i, 1);
-        config.fields[field->text()] = value->text();
+        renameProfile(
+            m_ui->m_comboBoxProfile->currentText(),
+            m_ui->m_lineEditProfileName->text()
+        );
     }
 
-    m_client->addProfile(m_ui->m_comboBoxProfile->currentText(), config);
+    applyToConfig(m_ui->m_comboBoxProfile->currentText());
+
+    // Apply changes to the client
+    m_client->setEnabled(m_ui->m_checkBoxEnabled->isChecked());
+    m_client->clearProfiles();
+    for (auto it = m_configs->constKeyValueBegin();
+         it != m_configs->constKeyValueEnd();
+         ++it)
+    {
+        m_client->addProfile(it->first, *it->second);
+    }
+    m_client->setProfile(m_ui->m_comboBoxProfile->currentText());
+
+    // Write the changes to the config file
+    m_client->writeChanges();
 }
 
 void AnkiSettings::restoreDefaults()
 {
-    m_ui->m_lineEditHost->setText(DEFAULT_HOST);
-    m_ui->m_lineEditPort->setText(DEFAULT_PORT);
-    m_ui->m_lineEditTags->setText(DEFAULT_TAGS);
-    for (size_t i = 0; i < m_ui->m_tableFields->rowCount(); ++i)
-    {
-        m_ui->m_tableFields->item(i, 1)->setText("");
-    }
+    AnkiConfig defaultConfig;
+    defaultConfig.address = DEFAULT_HOST;
+    defaultConfig.port = DEFAULT_PORT;
+    defaultConfig.tags.append(DEFAULT_TAGS);
+    defaultConfig.deck = m_ui->m_comboBoxDeck->currentText();
+    defaultConfig.model = m_ui->m_comboBoxModel->currentText();
+    QStringList fields =
+        m_configs->value(m_ui->m_comboBoxProfile->currentText())->fields.keys();
+    for (auto it = fields.begin(); it != fields.end(); ++it)
+        defaultConfig.fields[*it] = "";
+    populateFields(m_ui->m_comboBoxProfile->currentText(), &defaultConfig);
 }
 
 void AnkiSettings::restoreSaved()
 {
-    populateFields(
-        m_client->getProfile(), m_client->getConfig(m_client->getProfile()));
+    clearConfigs();
+    m_configs = m_client->getConfigs();
 
     m_ui->m_comboBoxProfile->blockSignals(true);
-    m_ui->m_comboBoxProfile->setCurrentText(m_client->getProfile());
+    m_ui->m_comboBoxProfile->clear();
+    for (auto it = m_configs->keyBegin(); it != m_configs->keyEnd(); ++it)
+    {
+        m_ui->m_comboBoxProfile->addItem(*it);
+    }
     m_ui->m_comboBoxProfile->blockSignals(false);
-}
 
-void AnkiSettings::addProfile()
-{
-    QString profileName = m_ui->m_lineEditProfileName->text();
-    if (m_client->getProfiles().contains(profileName))
-    {
-        QMessageBox messageBox;
-        messageBox.information(
-            0, "Failed", 
-            "Profile with name " + profileName + " already exists.");
-    }
-    else
-    {
-        m_ui->m_comboBoxProfile->blockSignals(true);
-        m_ui->m_comboBoxProfile->addItem(profileName);
-        m_ui->m_comboBoxProfile->setCurrentText(profileName);
-        m_ui->m_comboBoxProfile->blockSignals(false);
-        applyChanges();
-    }
-    
-}
-
-void AnkiSettings::deleteProfile()
-{
-    if (m_ui->m_comboBoxProfile->currentText() == DEFAULT_PROFILE)
-    {
-        QMessageBox messageBox;
-        messageBox.information(0, "Failed",
-                               "The Default profile cannot be deleted");
-        return;
-    }
-
-    m_client->deleteProfile(m_ui->m_comboBoxProfile->currentText());
-    m_ui->m_comboBoxProfile->removeItem(
-        m_ui->m_comboBoxProfile->currentIndex());
-}
-
-void AnkiSettings::changeProfile(const QString &text)
-{
-    populateFields(text, m_client->getConfig(text));
+    populateFields(
+        m_client->getProfile(), m_client->getConfig(m_client->getProfile())
+    );
 }
 
 void AnkiSettings::populateFields(const QString &profile,
                                   const AnkiConfig *config)
 {
-    m_ui->m_checkBoxEnabled->setChecked(m_client->isEnabled());
+    m_ui->m_comboBoxProfile->blockSignals(true);
+    m_ui->m_comboBoxProfile->clear();
+    for (auto it = m_configs->keyBegin(); it != m_configs->keyEnd(); ++it)
+        m_ui->m_comboBoxProfile->addItem(*it);
+    m_ui->m_comboBoxProfile->setCurrentText(profile);
+    m_ui->m_comboBoxProfile->blockSignals(false);
 
     m_ui->m_lineEditProfileName->setText(profile);
 
@@ -346,7 +398,70 @@ void AnkiSettings::populateFields(const QString &profile,
         item->setFlags(item->flags() ^ Qt::ItemIsEditable);
         m_ui->m_tableFields->setItem(i, 0, item);
 
-        item = new QTableWidgetItem(config->fields[key].toString());
+        QString itemText;
+        if (!config->fields[key].isUndefined())
+        {
+            itemText = config->fields[key].toString();
+        }
+        item = new QTableWidgetItem(itemText);
         m_ui->m_tableFields->setItem(i, 1, item);
+    }
+}
+
+void AnkiSettings::applyToConfig(const QString &profile)
+{
+    AnkiConfig *config = m_configs->value(profile);
+
+    config->address = m_ui->m_lineEditHost->text();
+    config->port = m_ui->m_lineEditPort->text();
+
+    config->tags = QJsonArray();
+    QStringList splitTags =
+        m_ui->m_lineEditTags->text().split(QRegExp(REGEX_REMOVE_SPACES_COMMAS));
+    for (auto it = splitTags.begin(); it != splitTags.end(); ++it)
+        config->tags.append(*it);
+
+    config->deck = m_ui->m_comboBoxDeck->currentText();
+    config->model = m_ui->m_comboBoxModel->currentText();
+
+    config->fields = QJsonObject();
+    for (size_t i = 0; i < m_ui->m_tableFields->rowCount(); ++i)
+    {
+        QTableWidgetItem *field = m_ui->m_tableFields->item(i, 0);
+        QTableWidgetItem *value = m_ui->m_tableFields->item(i, 1);
+        config->fields[field->text()] = value->text();
+    }
+}
+
+void AnkiSettings::renameProfile(const QString &oldName, const QString &newName)
+{
+
+    if (oldName == DEFAULT_PROFILE)
+    {
+        QMessageBox messageBox;
+        messageBox.information(
+            0, "Info", "Default profile cannnot be renamed");
+        m_ui->m_lineEditProfileName->setText(DEFAULT_PROFILE);
+    }
+    else if (newName.isEmpty())
+    {
+        QMessageBox messageBox;
+        messageBox.information(
+            0, "Info", "Profile must have a name");
+        m_ui->m_lineEditProfileName->setText(oldName);
+    }
+    else
+    {
+        m_configs->insert(newName, m_configs->value(oldName));
+        m_configs->remove(oldName);
+
+        m_ui->m_comboBoxProfile->blockSignals(true);
+        m_ui->m_comboBoxProfile->clear();
+        for (auto it = m_configs->keyBegin(); it != m_configs->keyEnd(); ++it)
+        {
+            m_ui->m_comboBoxProfile->addItem(*it);
+        }
+        m_ui->m_comboBoxProfile->setCurrentText(newName);
+        m_ui->m_comboBoxProfile->blockSignals(false);
     }
 }

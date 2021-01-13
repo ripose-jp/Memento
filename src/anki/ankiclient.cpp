@@ -96,8 +96,7 @@ AnkiClient::AnkiClient(QObject *parent)
 
 AnkiClient::~AnkiClient()
 {
-    for (auto it = m_configs->begin(); it != m_configs->end(); ++it)
-        delete *it;
+    clearProfiles();
     delete m_configs;
     delete m_manager;
 }
@@ -290,6 +289,17 @@ const AnkiConfig *AnkiClient::getConfig(const QString &profile) const
     return m_configs->value(profile);
 }
 
+QHash<QString, AnkiConfig *> *AnkiClient::getConfigs() const
+{
+    QList<QString> keys = m_configs->keys();
+    QHash<QString, AnkiConfig *> *configs = new QHash<QString, AnkiConfig *>();
+    for (auto it = keys.begin(); it != keys.end(); ++it)
+    {
+        configs->insert(*it, new AnkiConfig(*m_configs->value(*it)));
+    }
+    return configs;
+}
+
 bool AnkiClient::setProfile(const QString &profile)
 {
     const AnkiConfig *config = m_configs->value(profile);
@@ -298,7 +308,6 @@ bool AnkiClient::setProfile(const QString &profile)
         m_currentConfig = config;
         m_currentProfile = profile;
         setServer(m_currentConfig->address, m_currentConfig->port);
-        writeConfigToFile(CONFIG_FILE);
         return true;
     }
     return false;
@@ -309,27 +318,13 @@ void AnkiClient::addProfile(const QString &profile, const AnkiConfig &config)
     const AnkiConfig *oldConfig = m_configs->value(profile);
     m_configs->insert(profile, new AnkiConfig(config));
     delete oldConfig;
-    writeConfigToFile(CONFIG_FILE);
 }
 
-bool AnkiClient::renameProfile(const QString &oldName, const QString &newName)
+void AnkiClient::clearProfiles()
 {
-    const AnkiConfig *config = m_configs->value(oldName);
-    if (config == nullptr || m_configs->contains(newName))
-    {
-        return false;
-    }
-    m_configs->remove(oldName);
-    m_configs->insert(newName, config);
-    writeConfigToFile(CONFIG_FILE);
-    return true;
-}
-
-void AnkiClient::deleteProfile(const QString &profile)
-{
-    const AnkiConfig *config = m_configs->value(profile);
-    delete config;
-    writeConfigToFile(CONFIG_FILE);
+    for (auto it = m_configs->begin(); it != m_configs->end(); ++it)
+        delete *it;
+    m_configs->clear();
 }
 
 bool AnkiClient::isEnabled() const
@@ -340,6 +335,10 @@ bool AnkiClient::isEnabled() const
 void AnkiClient::setEnabled(const bool value)
 {
     m_enabled = value;
+}
+
+void AnkiClient::writeChanges()
+{
     writeConfigToFile(CONFIG_FILE);
 }
 
