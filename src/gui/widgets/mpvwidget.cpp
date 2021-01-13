@@ -26,7 +26,7 @@
 
 #define ASYNC_COMMAND_REPLY 20
 #define ERROR_STR "MPV threw error code: "
-#define TIMEOUT 2000
+#define TIMEOUT 1000
 
 static void wakeup(void *ctx)
 {

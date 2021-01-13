@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>687</width>
-    <height>491</height>
+    <height>644</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,14 +22,147 @@
     </widget>
    </item>
    <item>
-    <layout class="QGridLayout" name="m_layoutConnect">
-     <item row="1" column="2">
-      <widget class="QPushButton" name="m_buttonConnect">
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="2" column="1">
+      <widget class="QComboBox" name="m_comboBoxProfile">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="3">
+      <widget class="QToolButton" name="m_buttonAdd">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>38</width>
+         <height>38</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>+</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLabel" name="m_labelProfile">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Profiles</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QToolButton" name="m_buttonDelete">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>38</width>
+         <height>38</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>-</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="m_layoutProfileName">
+     <item>
+      <widget class="QLabel" name="m_labelProfileName">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Profile Name</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="m_lineEditProfileName">
        <property name="enabled">
         <bool>false</bool>
        </property>
        <property name="text">
-        <string>Connect</string>
+        <string>Default</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="m_layoutConnect">
+     <item row="1" column="0">
+      <widget class="QLineEdit" name="m_lineEditHost">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Host name for Anki.
+Only change this if you know what you're doing.</string>
+       </property>
+       <property name="text">
+        <string>localhost</string>
+       </property>
+       <property name="placeholderText">
+        <string>Host</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="m_labelHostName">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Anki Hostname</string>
        </property>
       </widget>
      </item>
@@ -50,44 +183,11 @@ Only change this if you know what you're doing.</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLineEdit" name="m_lineEditHost">
+     <item row="0" column="1">
+      <widget class="QLabel" name="m_labelPort">
        <property name="enabled">
         <bool>false</bool>
        </property>
-       <property name="toolTip">
-        <string>Host name for Anki.
-Only change this if you know what you're doing.</string>
-       </property>
-       <property name="text">
-        <string>localhost</string>
-       </property>
-       <property name="placeholderText">
-        <string>Host</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="m_labelHostName">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Anki Hostname</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLabel" name="m_labelPort">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
          <horstretch>0</horstretch>
@@ -105,12 +205,25 @@ Only change this if you know what you're doing.</string>
        </property>
       </widget>
      </item>
+     <item row="1" column="2">
+      <widget class="QPushButton" name="m_buttonConnect">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Connect</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
     <layout class="QVBoxLayout" name="m_layoutTags">
      <item>
       <widget class="QLabel" name="m_labelTags">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
          <horstretch>0</horstretch>
@@ -149,8 +262,18 @@ Comma or space seperated list.</string>
    </item>
    <item>
     <layout class="QGridLayout" name="m_layoutCards">
+     <item row="1" column="1">
+      <widget class="QComboBox" name="m_comboBoxModel">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
      <item row="0" column="1">
       <widget class="QLabel" name="m_labelModel">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
          <horstretch>0</horstretch>
@@ -177,6 +300,9 @@ Comma or space seperated list.</string>
      </item>
      <item row="0" column="0">
       <widget class="QLabel" name="m_labelDeck">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
          <horstretch>0</horstretch>
@@ -191,13 +317,6 @@ Comma or space seperated list.</string>
        </property>
        <property name="text">
         <string>Deck</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QComboBox" name="m_comboBoxModel">
-       <property name="enabled">
-        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -244,7 +363,7 @@ Comma or space seperated list.</string>
    <item>
     <widget class="QDialogButtonBox" name="m_buttonBox">
      <property name="standardButtons">
-      <set>QDialogButtonBox::Apply|QDialogButtonBox::Close|QDialogButtonBox::Reset|QDialogButtonBox::RestoreDefaults</set>
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Close|QDialogButtonBox::Help|QDialogButtonBox::Reset|QDialogButtonBox::RestoreDefaults</set>
      </property>
     </widget>
    </item>
