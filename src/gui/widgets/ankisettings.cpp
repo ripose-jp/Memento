@@ -357,6 +357,8 @@ void AnkiSettings::restoreSaved()
     populateFields(
         m_client->getProfile(), m_client->getConfig(m_client->getProfile())
     );
+
+    m_currentProfile = m_client->getProfile();
 }
 
 void AnkiSettings::populateFields(const QString &profile,
