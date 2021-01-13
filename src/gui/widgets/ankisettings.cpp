@@ -166,6 +166,7 @@ void AnkiSettings::addProfile()
         m_ui->m_comboBoxProfile->blockSignals(true);
         m_ui->m_comboBoxProfile->addItem(profileName);
         m_ui->m_comboBoxProfile->setCurrentText(profileName);
+        m_ui->m_comboBoxProfile->model()->sort(0);
         m_ui->m_comboBoxProfile->blockSignals(false);
 
         m_currentProfile = profileName;
@@ -226,6 +227,7 @@ void AnkiSettings::connectToClient(const bool showErrors)
                             setCurrentText(
                                 m_client->getConfig(
                                     m_client->getProfile())->deck);
+                        m_ui->m_comboBoxDeck->model()->sort(0);
                     }
                     else if (showErrors)
                     {
@@ -245,6 +247,7 @@ void AnkiSettings::connectToClient(const bool showErrors)
                             setCurrentText(
                                 m_client->getConfig(
                                     m_client->getProfile())->model);
+                        m_ui->m_comboBoxModel->model()->sort(0);
                         m_ui->m_comboBoxModel->blockSignals(false);
                     }
                     else if (showErrors)
@@ -352,6 +355,7 @@ void AnkiSettings::restoreSaved()
     {
         m_ui->m_comboBoxProfile->addItem(*it);
     }
+    m_ui->m_comboBoxProfile->model()->sort(0);
     m_ui->m_comboBoxProfile->blockSignals(false);
 
     populateFields(
@@ -369,6 +373,7 @@ void AnkiSettings::populateFields(const QString &profile,
     for (auto it = m_configs->keyBegin(); it != m_configs->keyEnd(); ++it)
         m_ui->m_comboBoxProfile->addItem(*it);
     m_ui->m_comboBoxProfile->setCurrentText(profile);
+    m_ui->m_comboBoxProfile->model()->sort(0);
     m_ui->m_comboBoxProfile->blockSignals(false);
 
     m_ui->m_lineEditProfileName->setText(profile);
@@ -464,6 +469,7 @@ void AnkiSettings::renameProfile(const QString &oldName, const QString &newName)
             m_ui->m_comboBoxProfile->addItem(*it);
         }
         m_ui->m_comboBoxProfile->setCurrentText(newName);
+        m_ui->m_comboBoxProfile->model()->sort(0);
         m_ui->m_comboBoxProfile->blockSignals(false);
     }
 }
