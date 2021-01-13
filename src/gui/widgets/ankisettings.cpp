@@ -32,7 +32,10 @@
 #define REGEX_REMOVE_SPACES_COMMAS "[, ]+"
 
 AnkiSettings::AnkiSettings(AnkiClient *client, QWidget *parent)
-    : m_client(client), QWidget(parent), m_ui(new Ui::AnkiSettings)
+    : m_client(client),
+      m_ankiSettingsHelp(new AnkiSettingsHelp),
+      QWidget(parent),
+      m_ui(new Ui::AnkiSettings)
 {
     m_ui->setupUi(this);
 
@@ -65,8 +68,8 @@ AnkiSettings::AnkiSettings(AnkiClient *client, QWidget *parent)
             &QPushButton::clicked, this, &AnkiSettings::applyChanges);
     connect(m_ui->m_buttonBox->button(QDialogButtonBox::StandardButton::Close),
             &QPushButton::clicked, this, &AnkiSettings::hide);
-    //connect(m_ui->m_buttonBox->button(QDialogButtonBox::StandardButton::Help),
-    //    &QPushButton::clicked, this, &AnkiSettings::hide);
+    connect(m_ui->m_buttonBox->button(QDialogButtonBox::StandardButton::Help),
+        &QPushButton::clicked, m_ankiSettingsHelp, &AnkiSettingsHelp::show);
 
     // Profile actions
     connect(m_ui->m_buttonAdd, &QToolButton::clicked,
@@ -80,6 +83,7 @@ AnkiSettings::AnkiSettings(AnkiClient *client, QWidget *parent)
 AnkiSettings::~AnkiSettings()
 {
     delete m_ui;
+    delete m_ankiSettingsHelp;
     clearConfigs();
 }
 

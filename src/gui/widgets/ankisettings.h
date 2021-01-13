@@ -26,6 +26,7 @@
 #include <QMutex>
 
 #include "../../anki/ankiclient.h"
+#include "ankisettingshelp.h"
 
 namespace Ui
 {
@@ -57,6 +58,7 @@ private Q_SLOTS:
 
 private:
     Ui::AnkiSettings *m_ui;
+    AnkiSettingsHelp *m_ankiSettingsHelp;
     AnkiClient *m_client;
     QHash<QString, AnkiConfig *> *m_configs;
     QString m_currentProfile;
