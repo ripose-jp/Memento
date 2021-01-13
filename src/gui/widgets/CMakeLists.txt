@@ -63,6 +63,8 @@ add_library(
     ankisettings
     ankisettings.cpp
     ankisettings.ui
+    ankisettingshelp.cpp
+    ankisettingshelp.ui
 )
 
 target_link_libraries(
