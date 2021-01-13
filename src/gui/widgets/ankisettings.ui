@@ -31,6 +31,14 @@
        <property name="editable">
         <bool>false</bool>
        </property>
+       <property name="insertPolicy">
+        <enum>QComboBox::InsertAlphabetically</enum>
+       </property>
+       <item>
+        <property name="text">
+         <string>Default</string>
+        </property>
+       </item>
       </widget>
      </item>
      <item row="2" column="3">
@@ -267,6 +275,9 @@ Comma or space seperated list.</string>
        <property name="enabled">
         <bool>false</bool>
        </property>
+       <property name="insertPolicy">
+        <enum>QComboBox::InsertAlphabetically</enum>
+       </property>
       </widget>
      </item>
      <item row="0" column="1">
@@ -295,6 +306,9 @@ Comma or space seperated list.</string>
       <widget class="QComboBox" name="m_comboBoxDeck">
        <property name="enabled">
         <bool>false</bool>
+       </property>
+       <property name="insertPolicy">
+        <enum>QComboBox::InsertAlphabetically</enum>
        </property>
       </widget>
      </item>
