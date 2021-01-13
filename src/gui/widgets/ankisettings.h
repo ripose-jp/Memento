@@ -58,10 +58,14 @@ private Q_SLOTS:
 private:
     Ui::AnkiSettings *m_ui;
     AnkiClient *m_client;
-    QHash<QString, AnkiClient> m_configs;
+    QHash<QString, AnkiConfig *> *m_configs;
+    QString m_currentProfile;
     QMutex m_mutexUpdateModelFields;
 
+    void clearConfigs();
     void populateFields(const QString &profile, const AnkiConfig *config);
+    void applyToConfig(const QString &profile);
+    void renameProfile(const QString &oldName, const QString &newName);
 };
 
 #endif // ANKISETTINGS_H

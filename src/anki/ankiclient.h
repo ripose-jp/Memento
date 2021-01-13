@@ -62,13 +62,15 @@ public:
     QString getProfile() const;
     QStringList getProfiles() const;
     const AnkiConfig *getConfig(const QString &profile) const;
+    QHash<QString, AnkiConfig *> *getConfigs() const;
     bool setProfile(const QString &profile);
     void addProfile(const QString &profile, const AnkiConfig &config);
-    bool renameProfile(const QString &oldName, const QString &newName);
-    void deleteProfile(const QString &profile);
+    void clearProfiles();
 
     bool isEnabled() const;
     void setEnabled(const bool value);
+
+    void writeChanges();
 
     void testConnection(
         std::function<void(const bool, const QString &)> callback);
