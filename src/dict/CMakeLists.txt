@@ -1,6 +1,3 @@
-find_library(SQLITE sqlite3)
-find_library(EXPAT expat)
-
 set(
     DICT_SRCS
     sqlite.h

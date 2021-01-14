@@ -1,6 +1,3 @@
-find_library(MPV_LIB mpv)
-find_library(MECAB_LIB mecab)
-
 add_library(
     sliderjumpstyle
     sliderjumpstyle.cpp
