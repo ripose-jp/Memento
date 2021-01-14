@@ -136,10 +136,10 @@
    <widget class="QMenu" name="m_menuSettings">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>0</y>
+      <x>437</x>
+      <y>162</y>
       <width>200</width>
-      <height>84</height>
+      <height>112</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -152,6 +152,7 @@
      <string>Settings</string>
     </property>
     <addaction name="m_actionAnki"/>
+    <addaction name="m_actionUpdateJMDict"/>
    </widget>
    <addaction name="m_menuMedia"/>
    <addaction name="m_menuAudio"/>
@@ -203,6 +204,11 @@
   <action name="m_actionAnki">
    <property name="text">
     <string>Anki Integration</string>
+   </property>
+  </action>
+  <action name="m_actionUpdateJMDict">
+   <property name="text">
+    <string>Update JMDict</string>
    </property>
   </action>
  </widget>
