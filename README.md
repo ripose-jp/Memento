@@ -38,6 +38,19 @@ The Memento config directory is located at:
 If any mpv binds or plugins do not work, please create an issue in the issue
 tracker.
 
+## JMDict
+
+JMdict can be updated from within Memento by going to "Settings" -> 
+"Update JMDict" and selected the JMDict file.
+
+The JMDict file with only English translations can be downloaded here:
+
+ftp://ftp.monash.edu.au/pub/nihongo/JMdict_e.gz
+
+The multilingual version can be downloaded here:
+
+ftp://ftp.monash.edu.au/pub/nihongo/JMdict.gz
+
 ## To-do
 
 * Improve query speed.
