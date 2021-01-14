@@ -26,6 +26,8 @@
 
 #include <QString>
 #include <QList>
+#include <QSemaphore>
+#include <QMutex>
 
 class JMDict
 {
@@ -40,9 +42,14 @@ public:
     JMDict(const QString &path);
     ~JMDict();
     QList<Entry *> *query(const QString &query, const JMDict::QueryType type);
+    void reopenDictionary();
 
 private:
     sql::db *m_db;
+    const QString m_path;
+    QMutex m_numReadersMutex;
+    QSemaphore m_readerWriter;
+    int m_numReaders;
 
     std::string compare(QueryType type);
 };

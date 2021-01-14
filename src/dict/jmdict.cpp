@@ -40,11 +40,21 @@ struct query_data
     QString entryId;
 };
 
-JMDict::JMDict(const QString &path) : m_db(new sql::db(path.toStdString())) {}
+JMDict::JMDict(const QString &path) : m_db(new sql::db(path.toStdString())),
+                                      m_path(path),
+                                      m_readerWriter(QSemaphore(1)) {}
 
 JMDict::~JMDict()
 {
     delete m_db;
+}
+
+void JMDict::reopenDictionary()
+{
+    m_readerWriter.acquire();
+    delete m_db;
+    m_db = new sql::db(m_path.toStdString());
+    m_readerWriter.release();
 }
 
 QList<Entry *> *JMDict::query(const QString &query, const QueryType type)
@@ -54,6 +64,12 @@ QList<Entry *> *JMDict::query(const QString &query, const QueryType type)
     querydata.current_entry = 0;
     querydata.entires = new QList<Entry *>;
 
+    m_numReadersMutex.lock();
+    ++m_numReaders;
+    if (m_numReaders == 1)
+        m_readerWriter.acquire();
+    m_numReadersMutex.unlock();
+    
     m_db->exec(
         sql::query("SELECT DISTINCT entry FROM reading WHERE kana " 
                    + compare(type)) % query.toStdString(),
@@ -64,6 +80,12 @@ QList<Entry *> *JMDict::query(const QString &query, const QueryType type)
                    + compare(type)) % query.toStdString(),
         buildEntry, &querydata
     );
+
+    m_numReadersMutex.lock();
+    --m_numReaders;
+    if (m_numReaders == 0)
+        m_readerWriter.release();
+    m_numReadersMutex.unlock();
 
     return querydata.entires;
 }

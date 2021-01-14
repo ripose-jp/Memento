@@ -1,11 +1,29 @@
 find_library(SQLITE sqlite3)
+find_library(EXPAT expat)
 
-set(DICT_SRCS
+set(
+    DICT_SRCS
     sqlite.h
     entry.h
-    jmdict.cpp)
+    jmdict.cpp
+)
+
+set(
+    BUILDER_SRCS
+    builder/dictionarybuilder.cpp
+    builder/xmlparser.h
+)
 
 add_library(jmdict ${DICT_SRCS})
-target_link_libraries(jmdict
+target_link_libraries(
+    jmdict
     ${SQLITE}
-    Qt::Core)
+    Qt::Core
+)
+
+add_library(jmdict_builder ${BUILDER_SRCS})
+target_link_libraries(
+    jmdict_builder
+    ${SQLITE}
+    ${EXPAT}
+)

@@ -35,6 +35,7 @@
 #include <QPair>
 #include <QDragEnterEvent>
 #include <QDropEvent>
+#include <QRunnable>
 
 namespace Ui
 {
@@ -52,6 +53,7 @@ public:
 Q_SIGNALS:
     void keyPressed(const QKeyEvent *event);
     void wheelMoved(const QWheelEvent *event);
+    void jmDictUpdated() const;
 
 public Q_SLOTS:
     void setFullscreen(bool value);
@@ -84,7 +86,24 @@ private:
     AnkiClient *m_ankiClient;
 
     void clearTracks();
-    void clearTrack(QList<QPair<QAction *, const PlayerAdapter::Track *>> &tracks, QMenu *menu, QActionGroup *actionGroup, QAction *actionDisable);
+    void clearTrack(
+        QList<QPair<QAction *, const PlayerAdapter::Track *>> &tracks, 
+        QMenu *menu,
+        QActionGroup *actionGroup,
+        QAction *actionDisable);
+    void updateJMDict();
+
+    class JMDictUpdaterThread : public QRunnable
+    {
+        public:
+            JMDictUpdaterThread(const MainWindow *parent,
+                                const QString &path) : m_parent(parent),
+                                                       m_path(path) {}
+            void run() override;
+        private:
+            const MainWindow *m_parent;
+            const QString m_path;
+    };
 };
 
 #endif // MAINWINDOW_H

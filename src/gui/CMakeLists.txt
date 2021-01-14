@@ -15,6 +15,7 @@ set(GUI_LIBS
     definitionwidget
     ankisettings
     anki
+    jmdict_builder
 )
 
 add_library(mainwindow ${GUI_SRCS})

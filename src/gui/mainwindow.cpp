@@ -23,11 +23,14 @@
 #include "mpvadapter.h"
 #include "widgets/definitionwidget.h"
 #include "widgets/ankisettings.h"
+#include "../dict/builder/dictionarybuilder.h"
 
 #include <QCursor>
 #include <QFileDialog>
 #include <QMimeData>
 #include <QDebug>
+#include <QMessageBox>
+#include <QThreadPool>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
                                           m_ui(new Ui::MainWindow)
@@ -55,6 +58,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(m_ui->m_actionOpen, &QAction::triggered, this, &MainWindow::open);
     connect(m_ui->m_actionAnki, &QAction::triggered,
         m_ankiSettings, &QWidget::show);
+    connect(m_ui->m_actionUpdateJMDict, &QAction::triggered,
+        this, &MainWindow::updateJMDict);
 
     // Buttons
     connect(m_ui->m_controls, &PlayerControls::play,
@@ -342,4 +347,35 @@ void MainWindow::open()
 {
     QList<QUrl> files = QFileDialog::getOpenFileUrls(0, "Open a video");
     m_player->open(files);
+}
+
+void MainWindow::updateJMDict()
+{
+    QString jmdictFile =
+        QFileDialog::getOpenFileName(0, "Open the JMDict file");
+    if (!jmdictFile.isEmpty())
+    {
+        JMDictUpdaterThread *thread = new JMDictUpdaterThread(this, jmdictFile);
+        QThreadPool::globalInstance()->start(thread);
+    }
+    
+}
+
+void MainWindow::JMDictUpdaterThread::run()
+{
+    bool success = DictionaryBuilder::buildDictionary(
+        m_path.toStdString(), 
+        (DirectoryUtils::getDictionaryDir() + JMDICT_DB_NAME).toStdString()
+    );
+    if (!success)
+    {
+        QMessageBox message;
+        message.critical(0, "Error",
+            "Could not update JMDict file. See console for more details.");
+    }
+    else
+    {
+        Q_EMIT m_parent->jmDictUpdated();
+    }
+    
 }
