@@ -24,7 +24,7 @@
 #include <QString>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    #define ENV_VAR "APPDATA"
+    #define ENV_VAR "%CD%"
     #define CONFIG_PATH "\\memento"
     #define SLASH "\\"
 #elif __linux__
