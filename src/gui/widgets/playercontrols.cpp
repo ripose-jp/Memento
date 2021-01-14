@@ -73,6 +73,8 @@ PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent),
         this, &PlayerControls::hideDefinition);
     connect(this, &PlayerControls::definitionHidden,
         m_ui->m_subtitle, &SubtitleWidget::deselectText);
+    connect(this, &PlayerControls::jmDictUpdated,
+        m_ui->m_subtitle, &SubtitleWidget::jmDictUpdated);
 }
 
 PlayerControls::~PlayerControls()

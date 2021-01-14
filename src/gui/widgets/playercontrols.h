@@ -63,6 +63,7 @@ Q_SIGNALS:
     void entriesChanged(const QList<Entry *> *entries);
     void definitionHidden();
     void hideDefinition();
+    void jmDictUpdated();
 
 private Q_SLOTS:
     void pauseResume();

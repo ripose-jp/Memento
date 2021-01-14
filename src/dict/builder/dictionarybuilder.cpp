@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stack>
 #include "../sqlite.h"
 #include "xmlparser.h"
+#include "kana2romaji.h"
 
 using namespace std;
 
@@ -94,7 +95,9 @@ private:
     }
 
     void insert_reading(const string& reading) {
-        db.exec(sql::query("INSERT INTO reading (entry, kana) VALUES (%u, %Q)") % entry_seq % reading);
+        string romaji;
+        kana2romaji(reading, romaji);
+        db.exec(sql::query("INSERT INTO reading (entry, kana, romaji) VALUES (%u, %Q, %Q)") % entry_seq % reading % romaji);
     }
 
     void insert_gloss(string lang, const string& text) {
@@ -121,15 +124,22 @@ private:
 bool DictionaryBuilder::buildDictionary(const std::string &dict_file,
                                         const std::string &database_name)
 try {
+    initRomaji();
     if (std::remove(database_name.c_str()) == 0)
         std::cout << "removed old dictionary database\n";
+    else
+    {
+        std::cout << "Could not delete old dictionary " 
+                  << strerror(errno) 
+                  << std::endl;
+    }
 
     Dictionary dict(database_name);
     xml::Parser<Dictionary> parser(dict);
     
     ifstream in(dict_file.c_str());
     if (!in.is_open()) {
-        cerr << "could not open dictionary file '" << dict_file << "'\n";
+        cerr << "could not open dictionary file: " << dict_file << "'\n";
         return false;
     }
     cout << "filling database... " << flush;

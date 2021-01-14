@@ -155,6 +155,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         m_definition, &DefinitionWidget::hide);
     connect(m_definition, &DefinitionWidget::definitionHidden,
         m_ui->m_controls, &PlayerControls::definitionHidden);
+    connect(this, &MainWindow::jmDictUpdated,
+        m_ui->m_controls, &PlayerControls::jmDictUpdated); 
 }
 
 MainWindow::~MainWindow()
