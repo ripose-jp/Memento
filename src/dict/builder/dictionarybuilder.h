@@ -17,3 +17,20 @@
 // along with Memento.  If not, see <https://www.gnu.org/licenses/>.
 //
 ////////////////////////////////////////////////////////////////////////////////
+
+#ifndef DICTIONARYBUILDER_H
+#define DICTIONARYBUILDER_H
+
+#include <string>
+
+class DictionaryBuilder
+{
+public:
+    static bool buildDictionary(const std::string &dict_file,
+                                const std::string &database_name);
+    
+private:
+    DictionaryBuilder() {}
+};
+
+#endif // DICTIONARYBUILDER_H

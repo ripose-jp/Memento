@@ -17,6 +17,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#include "dictionarybuilder.h"
+
 #include <cstdlib>
 #include <exception>
 #include <ostream>
@@ -25,9 +27,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <ctime>
 #include <string>
 #include <stack>
-#include "sqlite.h"
+#include "../sqlite.h"
 #include "xmlparser.h"
-#include "kana2romaji.h"
 
 using namespace std;
 
@@ -93,9 +94,7 @@ private:
     }
 
     void insert_reading(const string& reading) {
-        string romaji;
-        kana2romaji(reading, romaji);
-        db.exec(sql::query("INSERT INTO reading (entry, kana, romaji) VALUES (%u, %Q, %Q)") % entry_seq % reading % romaji);
+        db.exec(sql::query("INSERT INTO reading (entry, kana) VALUES (%u, %Q)") % entry_seq % reading);
     }
 
     void insert_gloss(string lang, const string& text) {
@@ -119,17 +118,9 @@ private:
     sql::db db;
 };
 
-int main(int argc, char** argv)
+bool DictionaryBuilder::buildDictionary(const std::string &dict_file,
+                                        const std::string &database_name)
 try {
-    if(argc < 2 || argc > 3) {
-        cerr << "Usage: jmdict_import <dictfile> [dest_dir]\n";
-        return EXIT_FAILURE;
-    }
-    
-    const string dict_file = argv[1],
-          database_name = argc == 2 ? DICTIONARY_PATH : string(argv[2]) + DICTIONARY_PATH;
-
-    initRomaji();
     if (std::remove(database_name.c_str()) == 0)
         std::cout << "removed old dictionary database\n";
 
@@ -139,7 +130,7 @@ try {
     ifstream in(dict_file.c_str());
     if (!in.is_open()) {
         cerr << "could not open dictionary file '" << dict_file << "'\n";
-        return EXIT_FAILURE;
+        return false;
     }
     cout << "filling database... " << flush;
     time_t start = time(0);
@@ -150,9 +141,9 @@ try {
     dict.createIndices();
     cout << time(0) - start << "s" << endl;
 
-    return EXIT_SUCCESS;
+    return true;
 }
 catch (const std::exception& e) {
     cerr << e.what() << '\n';
-    return EXIT_FAILURE;
+    return false;
 }
