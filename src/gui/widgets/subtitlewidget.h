@@ -40,6 +40,7 @@ public:
 public Q_SLOTS:
     void updateText(const QString &text);
     void deselectText();
+    void jmDictUpdated();
 
 Q_SIGNALS:
     void entriesChanged(const QList<Entry *> *entry);
