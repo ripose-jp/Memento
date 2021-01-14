@@ -12,6 +12,7 @@ set(
     BUILDER_SRCS
     builder/dictionarybuilder.cpp
     builder/xmlparser.h
+    builder/kana2romaji.cpp
 )
 
 add_library(jmdict ${DICT_SRCS})

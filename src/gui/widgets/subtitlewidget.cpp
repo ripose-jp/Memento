@@ -54,6 +54,11 @@ SubtitleWidget::~SubtitleWidget()
     delete m_findDelay;
 }
 
+void SubtitleWidget::jmDictUpdated()
+{
+    m_dictionary->reopenDictionary();
+}
+
 void SubtitleWidget::updateText(const QString &text)
 {
     setText(text);
