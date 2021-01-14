@@ -32,7 +32,14 @@ int main(int argc, char *argv[])
     {
         qDebug() << "Could not find JMDict in" 
                  << DirectoryUtils::getDictionaryDir();
-        return EXIT_FAILURE;
+        if (!db.open(QIODevice::WriteOnly))
+        {
+            qDebug() << "Could not create placeholder file in JMDict directory";
+            return EXIT_FAILURE;
+        }
+        qDebug() << "Created a placeholder file. Please download the latest "
+                    "JMDict file and update it from within the Memento.";
+        db.close();
     }
 
     QApplication memento(argc, argv);
