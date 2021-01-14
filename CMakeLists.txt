@@ -13,6 +13,10 @@ include_directories(
 )
 
 find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
+find_library(SQLITE sqlite3)
+find_library(EXPAT expat)
+find_library(MPV_LIB mpv)
+find_library(MECAB_LIB mecab)
 
 add_subdirectory(src)
 
