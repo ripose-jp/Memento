@@ -22,16 +22,21 @@
 
 #define DICTIONARY_DIR "dict"
 
-QString DirectoryUtils::getConfigDir()
+QString DirectoryUtils::getProgramDirectory()
 {
     #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
         WCHAR buf[MAX_PATH];
         GetModuleFileNameW(NULL, buf, MAX_PATH);
         QString path = QString::fromWCharArray(buf);
-        path = path.left(path.lastIndexOf(SLASH) + 1);
+        return path.left(path.lastIndexOf(SLASH) + 1);
     #else
-        QString path = BASE_DIR;
+        return BASE_DIR;
     #endif
+}
+
+QString DirectoryUtils::getConfigDir()
+{
+    QString path = getProgramDirectory();
     path += CONFIG_PATH;
     path += SLASH;
     return path;
