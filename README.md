@@ -114,4 +114,8 @@ This project uses icons made by Georgiana Ionescu for the Noun Project.
 https://thenounproject.com/georgiana.ionescu/
 
 Plus and minus button images were sourced from here.
+<<<<<<< HEAD
 https://www.iconfinder.com/iconsets/ios-7-icons
+=======
+https://www.svgrepo.com/vectors/plus-symbol-button/
+>>>>>>> 6b7b141c4e5c0a41160007ff11b3ab162e94996b
