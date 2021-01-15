@@ -34,6 +34,7 @@
 AnkiSettings::AnkiSettings(AnkiClient *client, QWidget *parent)
     : m_client(client),
       m_ankiSettingsHelp(new AnkiSettingsHelp),
+      m_configs(0),
       QWidget(parent),
       m_ui(new Ui::AnkiSettings)
 {

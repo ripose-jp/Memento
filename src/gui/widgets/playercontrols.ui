@@ -149,6 +149,12 @@
          <property name="toolTip">
           <string>Pause/Play</string>
          </property>
+         <property name="minimumSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
          <property name="text">
           <string>...</string>
          </property>
@@ -165,6 +171,12 @@
          </property>
          <property name="toolTip">
           <string>Skip to the previous file in the playlist</string>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
          </property>
          <property name="text">
           <string>...</string>
@@ -186,6 +198,12 @@
          <property name="text">
           <string>...</string>
          </property>
+         <property name="minimumSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
          <property name="icon">
           <iconset theme="media-seek-backward">
            <normaloff>.</normaloff>.</iconset>
@@ -202,6 +220,12 @@
          </property>
          <property name="text">
           <string>...</string>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
          </property>
          <property name="icon">
           <iconset theme="media-seek-forward">
@@ -220,6 +244,12 @@
          <property name="text">
           <string>...</string>
          </property>
+         <property name="minimumSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
          <property name="icon">
           <iconset theme="media-skip-forward">
            <normaloff>.</normaloff>.</iconset>
@@ -233,6 +263,12 @@
          </property>
          <property name="toolTip">
           <string>Stop playback and unqueue any videos</string>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
          </property>
          <property name="text">
           <string>...</string>
@@ -307,6 +343,12 @@
        <property name="toolTip">
         <string>Fullscreen</string>
        </property>
+       <property name="minimumSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
        <property name="text">
         <string>...</string>
        </property>

@@ -14,17 +14,43 @@ Memento is a FOSS, mpv-based video player intended for studying Japanese.
 * MeCab
 * Apache Expat XML Parser
 
-## Installing
+## Building
+
+# Linux
 
 To install Memento on Linux, type the following commands:
 
 ```
-cmake .
-sudo cmake --build . --target install
+mkdir build
+cd build
+cmake ..
+cmake --build .. --target install
 ```
 
-Currently Linux is the only officially supported OS. Windows and OS X will need
-some configuration to be compiled, but the source code is likely portable as is.
+# Windows
+
+1. Install [MSys2](https://www.msys2.org/)
+1. Make sure MSys2 is up to date by running these commands:
+```
+pacman -Sy --needed msys2-runtime pacman
+pacman -Su
+```
+1. Install the needed tools and dependencies:
+```
+pacman -S git mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-expat mingw-w64-x86_64-mecab mingw-w64-x86_64-mecab-naist-jdic
+```
+1. Clone the repository:
+```
+git clone https://github.com/ripose-jp/Memento.git
+```
+1. Build Memento:
+```
+cd Memento
+mkdir build
+cd build
+cmake -G "MSYS Makefiles" ..
+make
+```
 
 ## Configuration
 
@@ -54,9 +80,8 @@ ftp://ftp.monash.edu.au/pub/nihongo/JMdict.gz
 ## To-do
 
 * Improve query speed.
-* Add support for regenerating the JMDict database from within Memento.
 * Display subtitles over the video player.
-* Compile Windows and OS X versions.
+* Compile an OS X version.
 
 ## Acknowledgements
 

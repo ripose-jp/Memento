@@ -25,6 +25,8 @@ AnkiSettingsHelp::AnkiSettingsHelp(QWidget *parent)
     : QWidget(parent), m_ui(new Ui::AnkiSettingsHelp)
 {
     m_ui->setupUi(this);
+    resize(minimumSizeHint());
+    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
 }
 
 AnkiSettingsHelp::~AnkiSettingsHelp()

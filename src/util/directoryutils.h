@@ -24,16 +24,16 @@
 #include <QString>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    #define ENV_VAR "%CD%"
-    #define CONFIG_PATH "\\memento"
+    #include <windows.h>
+    #define CONFIG_PATH "\\config"
     #define SLASH "\\"
 #elif __linux__
-    #define ENV_VAR "HOME"
+    #define BASE_DIR getenv("HOME")
     #define CONFIG_PATH "/.config/memento"
     #define SLASH "/"
 #elif __APPLE__
     #if TARGET_OS_MAC
-        #define ENV_VAR "HOME"
+        #define BASE_DIR getenv("HOME")
         #define CONFIG_PATH "/.config/memento"
         #define SLASH "/"
     #else
@@ -44,7 +44,6 @@
 #endif
 
 #define JMDICT_DB_NAME "JMDict"
-
 
 class DirectoryUtils
 {

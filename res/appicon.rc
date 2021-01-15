@@ -1,0 +1,6 @@
+#ifndef APPICON_RC
+#define APPICON_RC
+
+MAINICON ICON "memento.ico"
+
+#endif // APPICON_RC
