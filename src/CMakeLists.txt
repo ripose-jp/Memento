@@ -5,7 +5,7 @@ add_subdirectory(gui)
 
 if(WIN32)
 	set(APP_ICON_RESOURCE_WINDOWS ../res/appicon.rc)
-    #set(WINDOWS_EXE_OPTION WIN32)
+    set(WINDOWS_EXE_OPTION WIN32)
 endif()
 
 add_executable(
