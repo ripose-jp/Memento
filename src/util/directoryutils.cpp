@@ -21,7 +21,6 @@
 #include "directoryutils.h"
 
 #define DICTIONARY_DIR "dict"
-#define CACHE_DIR "dict"
 
 QString DirectoryUtils::getConfigDir()
 {
@@ -41,9 +40,4 @@ QString DirectoryUtils::getConfigDir()
 QString DirectoryUtils::getDictionaryDir()
 {
     return getConfigDir() + DICTIONARY_DIR + SLASH;
-}
-
-QString DirectoryUtils::getCacheDir()
-{
-    return getConfigDir() + CACHE_DIR + SLASH;
 }

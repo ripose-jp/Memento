@@ -35,6 +35,9 @@
 #define UNICODE_LENGTH 3
 #define TIMER_DELAY 250
 
+#define MECAB_ARG ("-r " + DirectoryUtils::getDictionaryDir() + SLASH + "ipadic" + SLASH + "dicrc " \
+                   "-d " + DirectoryUtils::getDictionaryDir() + SLASH + "ipadic").toUtf8()
+
 SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
                                                   m_currentIndex(-1),
                                                   m_findDelay(new QTimer(this))
@@ -97,13 +100,7 @@ void SubtitleWidget::QueryThread::run()
         return;
     
     // Lemmatization of the string
-    MeCab::Model *model = MeCab::createModel("");
-    if (model == 0)
-    {
-        qDebug() << MeCab::getLastError();
-        return;
-    }
-    MeCab::Tagger *tagger = model->createTagger();
+    MeCab::Tagger *tagger = MeCab::createTagger(MECAB_ARG);
     MeCab::Lattice *lattice = MeCab::createLattice();
     char buffer[BUFSIZ];
     strncpy(buffer, m_query.toUtf8().data(), BUFSIZ);
@@ -113,7 +110,6 @@ void SubtitleWidget::QueryThread::run()
         qDebug() << "Cannot access MeCab";
         delete lattice;
         delete tagger;
-        delete model;
         return;
     }
     
@@ -171,7 +167,6 @@ void SubtitleWidget::QueryThread::run()
 
     delete lattice;
     delete tagger;
-    delete model;
     delete duplicates;
 
     // Query for the lemmenized entries
