@@ -27,6 +27,7 @@
 
 int main(int argc, char *argv[])
 {
+    QGuiApplication::setWindowIcon(QIcon(":memento.svg"));
     QFile db(DirectoryUtils::getDictionaryDir() + JMDICT_DB_NAME);
     if (!db.exists())
     {
