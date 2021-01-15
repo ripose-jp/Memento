@@ -31,26 +31,26 @@ cmake --build .. --target install
 
 1. Install [MSys2](https://www.msys2.org/)
 1. Make sure MSys2 is up to date by running these commands:
-```
-pacman -Sy --needed msys2-runtime pacman
-pacman -Su
-```
+    ```
+    pacman -Sy --needed msys2-runtime pacman
+    pacman -Su
+    ```
 1. Install the needed tools and dependencies:
-```
-pacman -S git mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-expat mingw-w64-x86_64-mecab mingw-w64-x86_64-mecab-naist-jdic
-```
+    ```
+    pacman -S git mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-expat mingw-w64-x86_64-mecab mingw-w64-x86_64-mecab-naist-jdic
+    ```
 1. Clone the repository:
-```
-git clone https://github.com/ripose-jp/Memento.git
-```
+    ```
+    git clone https://github.com/ripose-jp/Memento.git
+    ```
 1. Build Memento:
-```
-cd Memento
-mkdir build
-cd build
-cmake -G "MSYS Makefiles" ..
-make
-```
+    ```
+    cd Memento
+    mkdir build
+    cd build
+    cmake -G "MSYS Makefiles" ..
+    make
+    ```
 
 ## Configuration
 
@@ -101,3 +101,6 @@ https://github.com/u8sand/Baka-MPlayer
 
 This project uses icons made by Georgiana Ionescu for the Noun Project.
 https://thenounproject.com/georgiana.ionescu/
+
+Plus and minus button images were sourced from here.
+https://www.svgrepo.com/vectors/plus-symbol-button/

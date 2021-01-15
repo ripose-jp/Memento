@@ -40,7 +40,7 @@ These will expand to larger expressions in the final card.</string>
       <widget class="QLabel" name="m_labelAudio">
        <property name="font">
         <font>
-         <family>Courier New [Mono]</family>
+         <family>DejaVu Sans Mono</family>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -67,7 +67,7 @@ These will expand to larger expressions in the final card.</string>
       <widget class="QLabel" name="m_labelClozeBody">
        <property name="font">
         <font>
-         <family>Courier New [Mono]</family>
+         <family>DejaVu Sans Mono</family>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -94,7 +94,7 @@ These will expand to larger expressions in the final card.</string>
       <widget class="QLabel" name="m_labelClozePrefix">
        <property name="font">
         <font>
-         <family>Courier New [Mono]</family>
+         <family>DejaVu Sans Mono</family>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -127,7 +127,7 @@ These will expand to larger expressions in the final card.</string>
       <widget class="QLabel" name="m_labelClozeSuffix">
        <property name="font">
         <font>
-         <family>Courier New [Mono]</family>
+         <family>DejaVu Sans Mono</family>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -154,7 +154,7 @@ These will expand to larger expressions in the final card.</string>
       <widget class="QLabel" name="m_labelExpression">
        <property name="font">
         <font>
-         <family>Courier New [Mono]</family>
+         <family>DejaVu Sans Mono</family>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -181,7 +181,7 @@ These will expand to larger expressions in the final card.</string>
       <widget class="QLabel" name="m_labelFurigana">
        <property name="font">
         <font>
-         <family>Courier New [Mono]</family>
+         <family>DejaVu Sans Mono</family>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -208,7 +208,7 @@ These will expand to larger expressions in the final card.</string>
       <widget class="QLabel" name="m_labelFuriganaPlain">
        <property name="font">
         <font>
-         <family>Courier New [Mono]</family>
+         <family>DejaVu Sans Mono</family>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -238,7 +238,7 @@ These will expand to larger expressions in the final card.</string>
       <widget class="QLabel" name="m_labelGlossary">
        <property name="font">
         <font>
-         <family>Courier New [Mono]</family>
+         <family>DejaVu Sans Mono</family>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -265,7 +265,7 @@ These will expand to larger expressions in the final card.</string>
       <widget class="QLabel" name="m_labelReading">
        <property name="font">
         <font>
-         <family>Courier New [Mono]</family>
+         <family>DejaVu Sans Mono</family>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -292,7 +292,7 @@ These will expand to larger expressions in the final card.</string>
       <widget class="QLabel" name="m_labelSentence">
        <property name="font">
         <font>
-         <family>Courier New [Mono]</family>
+         <family>DejaVu Sans Mono</family>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -319,7 +319,7 @@ These will expand to larger expressions in the final card.</string>
       <widget class="QLabel" name="m_labelExpressionAlt">
        <property name="font">
         <font>
-         <family>Courier New [Mono]</family>
+         <family>DejaVu Sans Mono</family>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -346,7 +346,7 @@ These will expand to larger expressions in the final card.</string>
       <widget class="QLabel" name="m_labelReadingAlt">
        <property name="font">
         <font>
-         <family>Courier New [Mono]</family>
+         <family>DejaVu Sans Mono</family>
          <weight>75</weight>
          <bold>true</bold>
         </font>

@@ -26,7 +26,8 @@
 #include <QStyle>
 #include <QString>
 
-#define ICON_ENUM_SIZE 9
+#define ICON_ENUM_SIZE 11
+#define XDG_ICONS 9
 
 class IconFactory
 {
@@ -40,8 +41,12 @@ public:
         seek_backward,
         skip_forward,
         skip_backward,
+        // All bundled icons should be put past this point
         fullscreen,
-        restore
+        restore,
+        // All icons without an xdg spec should be put past this point
+        plus,
+        minus
     };
 
     virtual QIcon getIcon(IconFactory::Icon icon) = 0;
