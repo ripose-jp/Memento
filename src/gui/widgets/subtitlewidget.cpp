@@ -35,8 +35,8 @@
 #define UNICODE_LENGTH 3
 #define TIMER_DELAY 250
 
-#define MECAB_ARG ("-r " + DirectoryUtils::getDictionaryDir() + SLASH + "ipadic" + SLASH + "dicrc " \
-                   "-d " + DirectoryUtils::getDictionaryDir() + SLASH + "ipadic").toUtf8()
+#define MECAB_ARG ("-r " + DirectoryUtils::getDictionaryDir() + SLASH + "naist-jdic" + SLASH + "dicrc " \
+                   "-d " + DirectoryUtils::getDictionaryDir() + SLASH + "naist-jdic").toUtf8()
 
 SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
                                                   m_currentIndex(-1),
