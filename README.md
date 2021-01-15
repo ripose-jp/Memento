@@ -14,6 +14,10 @@ Memento is a FOSS, mpv-based video player intended for studying Japanese.
 * MeCab
 * Apache Expat XML Parser
 
+For the best experience, install Noto Sans JP
+
+https://fonts.google.com/specimen/Noto+Sans+JP
+
 ## Building
 
 # Linux
@@ -46,23 +50,26 @@ cmake --build .. --target install
 1. Build Memento:
     ```
     cd Memento
-    mkdir build
-    cd build
-    cmake -G "MSYS Makefiles" ..
-    make
+    ./windows-build.sh x86_64
     ```
-
-For the best experience, install Noto Sans JP
-
-https://fonts.google.com/specimen/Noto+Sans+JP
+1. The resulting file will be in
+    ```
+    build/Memento_x86_64
+    ```
 
 ## Configuration
 
 Most mpv shaders, plugins, and configuration files will work out of the box.
 The Memento config directory is located at:
 
+# Linux
 ```
 ~/.config/memento
+```
+
+# Windows
+```
+[installation directory]\config
 ```
 
 If any mpv binds or plugins do not work, please create an issue in the issue
