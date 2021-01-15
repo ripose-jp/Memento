@@ -21,6 +21,8 @@
 #include "ankisettings.h"
 #include "ui_ankisettings.h"
 
+#include "../../util/iconfactory.h"
+
 #include <QMessageBox>
 #include <QTableWidgetItem>
 
@@ -39,6 +41,11 @@ AnkiSettings::AnkiSettings(AnkiClient *client, QWidget *parent)
       m_ui(new Ui::AnkiSettings)
 {
     m_ui->setupUi(this);
+
+    IconFactory *factory = IconFactory::create(this);
+    m_ui->m_buttonAdd->setIcon(factory->getIcon(IconFactory::Icon::plus));
+    m_ui->m_buttonDelete->setIcon(factory->getIcon(IconFactory::Icon::minus));
+    delete factory;
 
     if (m_client->getProfile().isEmpty())
     {

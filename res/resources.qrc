@@ -2,5 +2,7 @@
 <qresource>
     <file>images/fullscreen.svg</file>
     <file>images/restore.svg</file>
+    <file>images/plus.svg</file>
+    <file>images/minus.svg</file>
 </qresource>
 </RCC>

@@ -68,6 +68,8 @@ StyleFactory::StyleFactory(const QWidget *parent) : IconFactory(parent)
     }
     icons[fullscreen] = QIcon(":/images/fullscreen.svg");
     icons[restore] = QIcon(":/images/restore.svg");
+    icons[plus] = QIcon(":/images/plus.svg");
+    icons[minus] = QIcon(":/images/minus.svg");
 }
 
 QIcon StyleFactory::getIcon(IconFactory::Icon icon)
@@ -90,12 +92,14 @@ ThemeFactory::ThemeFactory(const QWidget *parent) : IconFactory(parent)
     };
 
     StyleFactory styleFactory(m_parent);
-    for (size_t i = 0; i < ICON_ENUM_SIZE; ++i)
+    for (size_t i = 0; i < XDG_ICONS; ++i)
     {
         icons[i] = QIcon::hasThemeIcon(names[i]) ? 
             QIcon::fromTheme(names[i]) : 
             styleFactory.getIcon((IconFactory::Icon) i);
     }
+    icons[plus] = QIcon(":/images/plus.svg");
+    icons[minus] = QIcon(":/images/minus.svg");
 }
 
 QIcon ThemeFactory::getIcon(IconFactory::Icon icon)

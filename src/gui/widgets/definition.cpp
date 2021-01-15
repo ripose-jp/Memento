@@ -21,6 +21,8 @@
 #include "definition.h"
 #include "ui_definition.h"
 
+#include "../../util/iconfactory.h"
+
 #include <QMessageBox>
 
 #define ALT_KANJI_TEXT "Alternative Kanji: "
@@ -31,6 +33,11 @@ Definition::Definition(const Entry *entry, AnkiClient *client, QWidget *parent)
       m_client(client)
 {
     m_ui->setupUi(this);
+
+    IconFactory *factory = IconFactory::create(this);
+    m_ui->m_buttonAddCard->setIcon(factory->getIcon(IconFactory::Icon::plus));
+    delete factory;
+
     setEntry(entry);
 
     connect(m_ui->m_buttonAddCard, &QToolButton::clicked,
