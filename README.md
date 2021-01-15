@@ -52,6 +52,10 @@ cmake --build .. --target install
     make
     ```
 
+For the best experience, install Noto Sans JP
+
+https://fonts.google.com/specimen/Noto+Sans+JP
+
 ## Configuration
 
 Most mpv shaders, plugins, and configuration files will work out of the box.
