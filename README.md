@@ -28,7 +28,7 @@ To install Memento on Linux, type the following commands:
 mkdir build
 cd build
 cmake ..
-cmake --build .. --target install
+cmake --build . --target install
 ```
 
 # Windows
@@ -41,7 +41,7 @@ cmake --build .. --target install
     ```
 1. Install the needed tools and dependencies:
     ```
-    pacman -S git mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-expat mingw-w64-x86_64-mecab mingw-w64-x86_64-mecab-naist-jdic
+    pacman -S git mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-expat mingw-w64-x86_64-mecab
     ```
 1. Clone the repository:
     ```
