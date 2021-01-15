@@ -48,9 +48,9 @@
 class DirectoryUtils
 {
 public:
+    static QString getProgramDirectory();
     static QString getConfigDir();
     static QString getDictionaryDir();
-    static QString getCacheDir();
     
 private:
     DirectoryUtils() {}

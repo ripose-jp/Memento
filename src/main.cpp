@@ -27,7 +27,11 @@
 
 int main(int argc, char *argv[])
 {
+    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+        QCoreApplication::addLibraryPath(DirectoryUtils::getProgramDirectory());
+    #endif
     QGuiApplication::setWindowIcon(QIcon(":memento.svg"));
+    
     QFile db(DirectoryUtils::getDictionaryDir() + JMDICT_DB_NAME);
     if (!db.exists())
     {
