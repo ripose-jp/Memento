@@ -24,7 +24,6 @@
 #include "../../util/directoryutils.h"
 
 #include <algorithm>
-#include <mecab.h>
 #include <QThreadPool>
 #include <QDebug>
 #include <QSet>
@@ -35,8 +34,15 @@
 #define UNICODE_LENGTH 3
 #define TIMER_DELAY 250
 
-#define MECAB_ARG ("-r " + DirectoryUtils::getDictionaryDir() + SLASH + "naist-jdic" + SLASH + "dicrc " \
-                   "-d " + DirectoryUtils::getDictionaryDir() + SLASH + "naist-jdic").toUtf8()
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    #define MECAB_ARG ("-r " + DirectoryUtils::getDictionaryDir() + SLASH + \
+                       "naist-jdic" + SLASH + "dicrc " \
+                       "-d " + DirectoryUtils::getDictionaryDir() + SLASH + \
+                       "naist-jdic").toUtf8()
+#elif __linux__
+    #define MECAB_ARG ""
+#endif
+
 
 SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
                                                   m_currentIndex(-1),
@@ -49,12 +55,17 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
 
     m_findDelay->setSingleShot(true);
     connect(m_findDelay, &QTimer::timeout, this, &SubtitleWidget::findEntry);
+
+    m_tagger = MeCab::createTagger(MECAB_ARG);
+    if (m_tagger == nullptr)
+        qDebug() << MeCab::getLastError();
 }
 
 SubtitleWidget::~SubtitleWidget()
 {
     delete m_dictionary;
     delete m_findDelay;
+    delete m_tagger;
 }
 
 void SubtitleWidget::jmDictUpdated()
@@ -77,11 +88,14 @@ void SubtitleWidget::deselectText()
 
 void SubtitleWidget::findEntry()
 {
-    QString queryStr = text().remove(0, m_currentIndex);
-    queryStr.truncate(MAX_QUERY_LENGTH);
-    QueryThread *queryThread = 
-        new QueryThread(this, queryStr, text(), m_currentIndex);
-    QThreadPool::globalInstance()->start(queryThread);
+    if (m_tagger)
+    {
+        QString queryStr = text().remove(0, m_currentIndex);
+        queryStr.truncate(MAX_QUERY_LENGTH);
+        QueryThread *queryThread = 
+            new QueryThread(this, queryStr, text(), m_currentIndex);
+        QThreadPool::globalInstance()->start(queryThread);
+    }
 }
 
 void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
@@ -100,16 +114,14 @@ void SubtitleWidget::QueryThread::run()
         return;
     
     // Lemmatization of the string
-    MeCab::Tagger *tagger = MeCab::createTagger(MECAB_ARG);
     MeCab::Lattice *lattice = MeCab::createLattice();
     char buffer[BUFSIZ];
     strncpy(buffer, m_query.toUtf8().data(), BUFSIZ);
     lattice->set_sentence(buffer);
-    if (!tagger->parse(lattice))
+    if (!m_parent->m_tagger->parse(lattice))
     {
         qDebug() << "Cannot access MeCab";
         delete lattice;
-        delete tagger;
         return;
     }
     
@@ -166,11 +178,10 @@ void SubtitleWidget::QueryThread::run()
     while (node = node->bnext);
 
     delete lattice;
-    delete tagger;
     delete duplicates;
 
     // Query for the lemmenized entries
-    unsigned int maxLen = 0;
+    size_t maxLen = 0;
     QList<Entry *> *lem_entires = new QList<Entry *>;
     for (auto it = queries.begin();
          it != queries.end() && m_currentIndex == m_parent->m_currentIndex;

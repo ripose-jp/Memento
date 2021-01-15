@@ -28,6 +28,7 @@
 #include <QMouseEvent>
 #include <QRunnable>
 #include <QTimer>
+#include <mecab.h>
 
 class SubtitleWidget : public QLineEdit
 {
@@ -55,6 +56,7 @@ private:
     JMDict *m_dictionary;
     int m_currentIndex;
     QTimer *m_findDelay;
+    MeCab::Tagger *m_tagger;
 
     class QueryThread : public QRunnable
     {

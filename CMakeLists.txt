@@ -27,8 +27,13 @@ if(UNIX)
 		COMPONENT binaries
 	)
 	install(
-		DIRECTORY config
+		FILES config/input.conf
 		DESTINATION $ENV{HOME}/.config/memento
+		COMPONENT config
+	)
+	install(
+		FILES config/dict/JMDict
+		DESTINATION $ENV{HOME}/.config/memento/dict/
 		COMPONENT config
 	)
 	install(

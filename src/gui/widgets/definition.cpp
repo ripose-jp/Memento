@@ -25,8 +25,10 @@
 
 #include <QMessageBox>
 
-#define ALT_KANJI_TEXT "Alternative Kanji: "
-#define ALT_KANA_TEXT "Alternative Kana: "
+#define ALT_KANJI_TEXT QString("Alternative Kanji: " \
+    "<font face='font-family: \"Noto Sans CJK JP\", sans-serif;'>%1</font>")
+#define ALT_KANA_TEXT QString("Alternative Kana: "\
+    "<font face='font-family: \"Noto Sans CJK JP\", sans-serif;'>%1</font>")
 
 Definition::Definition(const Entry *entry, AnkiClient *client, QWidget *parent) 
     : QWidget(parent), m_ui(new Ui::Definition), m_entry(entry),
@@ -75,7 +77,7 @@ void Definition::setEntry(const Entry *entry)
     else
     {
         m_ui->m_labelAltKanji->show();
-        m_ui->m_labelAltKanji->setText(ALT_KANJI_TEXT + *entry->m_altkanji);
+        m_ui->m_labelAltKanji->setText(ALT_KANJI_TEXT.arg(*entry->m_altkanji));
     }
 
     if (entry->m_altkana->isEmpty())
@@ -85,7 +87,7 @@ void Definition::setEntry(const Entry *entry)
     else
     {
         m_ui->m_labelAltKana->show();
-        m_ui->m_labelAltKana->setText(ALT_KANA_TEXT + *entry->m_altkana);
+        m_ui->m_labelAltKana->setText(ALT_KANA_TEXT.arg(*entry->m_altkana));
     }
 }
 
