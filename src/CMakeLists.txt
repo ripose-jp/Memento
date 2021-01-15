@@ -5,10 +5,12 @@ add_subdirectory(gui)
 
 if(WIN32)
 	set(APP_ICON_RESOURCE_WINDOWS ../res/appicon.rc)
+    #set(WINDOWS_EXE_OPTION WIN32)
 endif()
 
 add_executable(
     memento 
+    ${WINDOWS_EXE_OPTION}
     main.cpp 
     ../res/resources.qrc
     ../config/input.conf
