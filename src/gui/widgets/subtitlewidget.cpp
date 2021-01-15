@@ -98,8 +98,13 @@ void SubtitleWidget::QueryThread::run()
     
     // Lemmatization of the string
     MeCab::Model *model = MeCab::createModel("");
+    if (model == 0)
+    {
+        qDebug() << MeCab::getLastError();
+        return;
+    }
     MeCab::Tagger *tagger = model->createTagger();
-    MeCab::Lattice *lattice = model->createLattice();
+    MeCab::Lattice *lattice = MeCab::createLattice();
     char buffer[BUFSIZ];
     strncpy(buffer, m_query.toUtf8().data(), BUFSIZ);
     lattice->set_sentence(buffer);

@@ -21,7 +21,7 @@
 These will expand to larger expressions in the final card.</string>
      </property>
      <property name="wordWrap">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -59,7 +59,7 @@ These will expand to larger expressions in the final card.</string>
         <string>An audio clip of the word if found.</string>
        </property>
        <property name="wordWrap">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -86,7 +86,7 @@ These will expand to larger expressions in the final card.</string>
         <string>The raw term as recognized by Memento.</string>
        </property>
        <property name="wordWrap">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -119,7 +119,7 @@ These will expand to larger expressions in the final card.</string>
         <string>The text leading up to the raw term as recognized by Memento.</string>
        </property>
        <property name="wordWrap">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -146,7 +146,7 @@ These will expand to larger expressions in the final card.</string>
         <string>The text after the raw term as recognized by Memento.</string>
        </property>
        <property name="wordWrap">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -173,7 +173,7 @@ These will expand to larger expressions in the final card.</string>
         <string>The term in kanji. Kana if not available.</string>
        </property>
        <property name="wordWrap">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -200,7 +200,7 @@ These will expand to larger expressions in the final card.</string>
         <string>The term in kanji with furigana above. Kana if kanji is not available.</string>
        </property>
        <property name="wordWrap">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -230,7 +230,7 @@ These will expand to larger expressions in the final card.</string>
         <string>The term in kanji with furigana proceeding in brackets. Kana if kanji is not available.</string>
        </property>
        <property name="wordWrap">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -257,7 +257,7 @@ These will expand to larger expressions in the final card.</string>
         <string>The dictionary definitions of the word.</string>
        </property>
        <property name="wordWrap">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -284,7 +284,7 @@ These will expand to larger expressions in the final card.</string>
         <string>The reading of the word in kana.</string>
        </property>
        <property name="wordWrap">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -311,7 +311,7 @@ These will expand to larger expressions in the final card.</string>
         <string>The subtitle the word appeared in.</string>
        </property>
        <property name="wordWrap">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -338,7 +338,7 @@ These will expand to larger expressions in the final card.</string>
         <string>Alternative kanji for the word if found.</string>
        </property>
        <property name="wordWrap">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -365,7 +365,7 @@ These will expand to larger expressions in the final card.</string>
         <string>Alternative kana readings of the word if found.</string>
        </property>
        <property name="wordWrap">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>

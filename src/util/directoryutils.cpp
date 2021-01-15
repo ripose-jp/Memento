@@ -25,7 +25,14 @@
 
 QString DirectoryUtils::getConfigDir()
 {
-    QString path = getenv(ENV_VAR);
+    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+        WCHAR buf[MAX_PATH];
+        GetModuleFileNameW(NULL, buf, MAX_PATH);
+        QString path = QString::fromWCharArray(buf);
+        path = path.left(path.lastIndexOf(SLASH) + 1);
+    #else
+        QString path = BASE_DIR;
+    #endif
     path += CONFIG_PATH;
     path += SLASH;
     return path;
