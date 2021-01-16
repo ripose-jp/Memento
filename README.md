@@ -20,7 +20,7 @@ https://fonts.google.com/specimen/Noto+Sans+JP
 
 ## Building
 
-# Linux
+### Linux
 
 To install Memento on Linux, type the following commands:
 
@@ -31,7 +31,7 @@ cmake ..
 cmake --build . --target install
 ```
 
-# Windows
+### Windows
 
 1. Install [MSys2](https://www.msys2.org/)
 1. Make sure MSys2 is up to date by running these commands:
@@ -62,12 +62,12 @@ cmake --build . --target install
 Most mpv shaders, plugins, and configuration files will work out of the box.
 The Memento config directory is located at:
 
-# Linux
+### Linux
 ```
 ~/.config/memento
 ```
 
-# Windows
+### Windows
 ```
 [installation directory]\config
 ```
