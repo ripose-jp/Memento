@@ -26,6 +26,7 @@
 
 #include <QString>
 #include <QList>
+#include <QHash>
 #include <QSemaphore>
 #include <QMutex>
 
@@ -50,7 +51,9 @@ private:
     QMutex m_numReadersMutex;
     QSemaphore m_readerWriter;
     int m_numReaders;
+    QHash<QString, QString> m_kataToHira;
 
+    QString katakanaToHiragana(const QString &str);
     std::string compare(QueryType type);
 };
 

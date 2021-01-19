@@ -42,7 +42,96 @@ struct query_data
 
 JMDict::JMDict(const QString &path) : m_db(new sql::db(path.toStdString())),
                                       m_path(path),
-                                      m_readerWriter(QSemaphore(1)) {}
+                                      m_readerWriter(QSemaphore(1))
+{
+    m_kataToHira["ア"] = "あ";
+    m_kataToHira["イ"] = "い";
+    m_kataToHira["ウ"] = "う";
+    m_kataToHira["エ"] = "え";
+    m_kataToHira["オ"] = "お";    
+    m_kataToHira["カ"] = "か";
+    m_kataToHira["キ"] = "き";
+    m_kataToHira["ク"] = "く";
+    m_kataToHira["ケ"] = "け";
+    m_kataToHira["コ"] = "こ";
+    m_kataToHira["サ"] = "さ";
+    m_kataToHira["シ"] = "し";
+    m_kataToHira["ス"] = "す";
+    m_kataToHira["セ"] = "せ";
+    m_kataToHira["ソ"] = "そ";
+    m_kataToHira["タ"] = "た";
+    m_kataToHira["チ"] = "ち";
+    m_kataToHira["ツ"] = "つ";
+    m_kataToHira["テ"] = "て";
+    m_kataToHira["ト"] = "と";
+    m_kataToHira["ナ"] = "な";
+    m_kataToHira["ニ"] = "に";
+    m_kataToHira["ヌ"] = "ぬ";
+    m_kataToHira["ネ"] = "ね";
+    m_kataToHira["ノ"] = "の";
+    m_kataToHira["ハ"] = "は";
+    m_kataToHira["ヒ"] = "ひ";
+    m_kataToHira["フ"] = "ふ";
+    m_kataToHira["ヘ"] = "へ";
+    m_kataToHira["ホ"] = "ほ";
+    m_kataToHira["マ"] = "ま";
+    m_kataToHira["ミ"] = "み";
+    m_kataToHira["ム"] = "む";
+    m_kataToHira["メ"] = "め";
+    m_kataToHira["モ"] = "も";
+    m_kataToHira["ヤ"] = "や";
+    m_kataToHira["ユ"] = "ゆ";
+    m_kataToHira["ヨ"] = "よ";
+    m_kataToHira["ラ"] = "ら";
+    m_kataToHira["リ"] = "り";
+    m_kataToHira["ル"] = "る";
+    m_kataToHira["レ"] = "れ";
+    m_kataToHira["ロ"] = "ろ";
+    m_kataToHira["ワ"] = "わ";
+    m_kataToHira["ヰ"] = "ゐ";
+    m_kataToHira["ヱ"] = "ゑ";
+    m_kataToHira["ヲ"] = "を";
+    m_kataToHira["ン"] = "ん";
+    
+    m_kataToHira["ァ"] = "ぁ";
+    m_kataToHira["ィ"] = "ぃ";
+    m_kataToHira["ゥ"] = "ぅ";
+    m_kataToHira["ェ"] = "ぇ";
+    m_kataToHira["ォ"] = "ぉ";
+    m_kataToHira["ヮ"] = "ゎ";
+    m_kataToHira["ャ"] = "ゃ";
+    m_kataToHira["ュ"] = "ゅ";
+    m_kataToHira["ョ"] = "ょ";
+    m_kataToHira["ッ"] = "っ";
+
+    m_kataToHira["ヴ"] = "ゔ";
+    m_kataToHira["ガ"] = "が";
+    m_kataToHira["ギ"] = "ぎ";
+    m_kataToHira["グ"] = "ぐ";
+    m_kataToHira["ゲ"] = "げ";
+    m_kataToHira["ゴ"] = "ご";
+    m_kataToHira["ザ"] = "ざ";
+    m_kataToHira["ジ"] = "じ";
+    m_kataToHira["ズ"] = "ず";
+    m_kataToHira["ゼ"] = "ぜ";
+    m_kataToHira["ゾ"] = "ぞ";
+    m_kataToHira["ダ"] = "だ";
+    m_kataToHira["ヂ"] = "ぢ";
+    m_kataToHira["ヅ"] = "づ";
+    m_kataToHira["デ"] = "で";
+    m_kataToHira["ド"] = "ど";
+    m_kataToHira["バ"] = "ば";
+    m_kataToHira["ビ"] = "び";
+    m_kataToHira["ブ"] = "ぶ";
+    m_kataToHira["ベ"] = "べ";
+    m_kataToHira["ボ"] = "ぼ";
+    m_kataToHira["パ"] = "ぱ";
+    m_kataToHira["ピ"] = "ぴ";
+    m_kataToHira["プ"] = "ぷ";
+    m_kataToHira["ペ"] = "ぺ";
+    m_kataToHira["ポ"] = "ぽ";
+    m_kataToHira["・"] = " ";
+}
 
 JMDict::~JMDict()
 {
@@ -59,6 +148,7 @@ void JMDict::reopenDictionary()
 
 QList<Entry *> *JMDict::query(const QString &query, const QueryType type)
 {
+    QString cleanedQuery = katakanaToHiragana(query);
     struct query_data querydata;
     querydata.db = m_db;
     querydata.current_entry = 0;
@@ -72,12 +162,12 @@ QList<Entry *> *JMDict::query(const QString &query, const QueryType type)
     
     m_db->exec(
         sql::query("SELECT DISTINCT entry FROM reading WHERE kana " 
-                   + compare(type)) % query.toStdString(),
+                   + compare(type)) % cleanedQuery.toStdString(),
         buildEntry, &querydata
     );
     m_db->exec(
         sql::query("SELECT DISTINCT entry FROM kanji WHERE kanji "
-                   + compare(type)) % query.toStdString(),
+                   + compare(type)) % cleanedQuery.toStdString(),
         buildEntry, &querydata
     );
 
@@ -88,6 +178,16 @@ QList<Entry *> *JMDict::query(const QString &query, const QueryType type)
     m_numReadersMutex.unlock();
 
     return querydata.entires;
+}
+
+QString JMDict::katakanaToHiragana(const QString &str)
+{
+    QString res;
+    for (auto it = str.begin(); it != str.end(); ++it)
+    {
+        res += m_kataToHira.contains(*it) ? m_kataToHira.value(*it) : *it;
+    }
+    return res;
 }
 
 std::string JMDict::compare(QueryType type)
