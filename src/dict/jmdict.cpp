@@ -130,7 +130,6 @@ JMDict::JMDict(const QString &path) : m_db(new sql::db(path.toStdString())),
     m_kataToHira["プ"] = "ぷ";
     m_kataToHira["ペ"] = "ぺ";
     m_kataToHira["ポ"] = "ぽ";
-    m_kataToHira["・"] = " ";
 }
 
 JMDict::~JMDict()
@@ -162,12 +161,14 @@ QList<Entry *> *JMDict::query(const QString &query, const QueryType type)
     
     m_db->exec(
         sql::query("SELECT DISTINCT entry FROM reading WHERE kana " 
-                   + compare(type)) % cleanedQuery.toStdString(),
+                   + compare(type) + " OR kana " + compare(type))
+                   % query.toStdString() % cleanedQuery.toStdString(),
         buildEntry, &querydata
     );
     m_db->exec(
         sql::query("SELECT DISTINCT entry FROM kanji WHERE kanji "
-                   + compare(type)) % cleanedQuery.toStdString(),
+                   + compare(type) + " OR kanji " + compare(type))
+                   % query.toStdString() % cleanedQuery.toStdString(),
         buildEntry, &querydata
     );
 
