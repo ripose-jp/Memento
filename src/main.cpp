@@ -31,6 +31,9 @@ int main(int argc, char *argv[])
         QCoreApplication::addLibraryPath(DirectoryUtils::getProgramDirectory());
     #endif
     QGuiApplication::setWindowIcon(QIcon(":memento.svg"));
+    // HiDPI support
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     
     QFile db(DirectoryUtils::getDictionaryDir() + JMDICT_DB_NAME);
     if (!db.exists())

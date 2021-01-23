@@ -22,6 +22,8 @@
 
 #include <stdexcept>
 #include <QtGui/QOpenGLContext>
+#include <QApplication>
+#include <QDesktopWidget>
 #include <QDebug>
 
 #define ASYNC_COMMAND_REPLY 20
@@ -137,10 +139,11 @@ void MpvWidget::initializeGL()
 
 void MpvWidget::paintGL()
 {
+    qreal ratio = QApplication::desktop()->devicePixelRatioF();
     mpv_opengl_fbo mpfbo{
         static_cast<int>(defaultFramebufferObject()),
-        width(),
-        height(),
+        (int) (width() * ratio),
+        (int) (height() * ratio),
         0
     };
     int flip_y{1};

@@ -360,7 +360,6 @@ void MainWindow::updateJMDict()
         JMDictUpdaterThread *thread = new JMDictUpdaterThread(this, jmdictFile);
         QThreadPool::globalInstance()->start(thread);
     }
-    
 }
 
 void MainWindow::JMDictUpdaterThread::run()
