@@ -17,6 +17,7 @@ target_link_libraries(
     ${MPV_LIB}
     directoryutils
     Qt5::Widgets
+    Qt5::DBus
 )
 
 add_library(

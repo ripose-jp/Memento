@@ -26,6 +26,16 @@
 #include <QDesktopWidget>
 #include <QDebug>
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    #include <winbase.h>
+#elif __linux__
+    #include <QtDBus>
+
+    uint32_t dbus_cookie;
+#else
+    #error "OS not supported"
+#endif
+
 #define ASYNC_COMMAND_REPLY 20
 #define ERROR_STR "MPV threw error code: "
 #define TIMEOUT 1000
@@ -199,6 +209,56 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
             if (prop->format == MPV_FORMAT_FLAG)
             {
                 bool paused = *(int *)prop->data;
+
+                // Keep the computer from going to sleep
+                #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+                    SetThreadExecutionState(paused ? ES_CONTINUOUS : 
+                                                     ES_CONTINUOUS | 
+                                                     ES_SYSTEM_REQUIRED | 
+                                                     ES_AWAYMODE_REQUIRED);
+                #elif __linux__
+                    QDBusInterface screenSaver("org.freedesktop.ScreenSaver",
+                                               "/org/freedesktop/ScreenSaver");
+                    if (paused)
+                    {
+                        screenSaver.call("UnInhibit", dbus_cookie);
+                    }
+                    else
+                    {
+                        QDBusMessage reply =
+                            screenSaver.call("Inhibit",
+                                             "ripose.memento",
+                                             "Playing a video");
+                        
+                        if (QDBusMessage::ReplyMessage)
+                        {
+                            if (reply.arguments().size() == 1 &&
+                                reply.arguments().first().isValid())
+                            {
+                                dbus_cookie = 
+                                    reply.arguments().first().toUInt();
+                            }
+                            else
+                            {
+                                qDebug() << "org.freedesktop.ScreenSaver reply "
+                                            "is invalid";
+                            }
+                        }
+                        else if (QDBusMessage::ErrorMessage)
+                        {
+                            qDebug() << "Error from org.freedesktop.ScreenSaver" 
+                                     << reply.errorMessage();
+                        }
+                        else
+                        {
+                            qDebug() << "Unknown reply from "
+                                        "org.freedesktop.ScreenSaver";
+                        }     
+                    }
+                #else
+                    #error "OS not supported"
+                #endif
+                
                 Q_EMIT stateChanged(paused);
             }
         }

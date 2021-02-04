@@ -80,6 +80,7 @@ void MpvAdapter::open(const QList<QUrl> &files)
                                          << (*it).toLocalFile() 
                                          << "append");
     }
+    play();
 }
 
 void MpvAdapter::seek(const int time)

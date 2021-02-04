@@ -12,7 +12,11 @@ include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}
 )
 
-find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
+if(UNIX)
+	find_package(Qt5 COMPONENTS Widgets Network DBus REQUIRED)
+else()
+	find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
+endif()
 find_library(SQLITE sqlite3)
 find_library(EXPAT expat)
 find_library(MPV_LIB mpv)

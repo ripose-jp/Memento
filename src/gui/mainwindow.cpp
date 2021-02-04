@@ -50,8 +50,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     m_ankiSettings->hide();
 
     m_player = new MpvAdapter(m_ui->m_mpv, this);
-    m_definition = new DefinitionWidget(m_ankiClient, m_ui->m_mpv);
+    m_player->pause();
 
+    m_definition = new DefinitionWidget(m_ankiClient, m_ui->m_mpv);
     m_ui->m_controls->setVolumeLimit(m_player->getMaxVolume());
 
     // Toolbar Actions
