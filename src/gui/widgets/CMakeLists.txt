@@ -12,12 +12,22 @@ add_library(
     mpvwidget.cpp
     qthelper.h
 )
-target_link_libraries(
-    mpvwidget
+set(
+    MPV_WIDGET_LIBS
     ${MPV_LIB}
     directoryutils
     Qt5::Widgets
-    Qt5::DBus
+)
+if(UNIX)
+    set(
+        MPV_WIDGET_LIBS 
+	${MPV_WIDGET_LIBS} 
+	Qt5::DBus
+    )
+endif()
+target_link_libraries(
+    mpvwidget
+    ${MPV_WIDGET_LIBS}
 )
 
 add_library(
