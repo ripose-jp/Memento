@@ -13,6 +13,7 @@ Memento is a FOSS, mpv-based video player intended for studying Japanese.
 * sqlite3
 * MeCab
 * Apache Expat XML Parser
+* DBus (Linux)
 
 For the best experience, install Noto Sans JP
 
