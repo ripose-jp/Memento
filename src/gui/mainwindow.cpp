@@ -33,7 +33,8 @@
 #include <QThreadPool>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
-                                          m_ui(new Ui::MainWindow)
+                                          m_ui(new Ui::MainWindow),
+                                          m_maximized(false)
 {
     m_ui->setupUi(this);
 
@@ -205,6 +206,7 @@ void MainWindow::setFullscreen(bool value)
 {
     if (value)
     {
+        m_maximized = isMaximized();
         showFullScreen();
         m_ui->m_menubar->hide();
         QApplication::processEvents();
@@ -214,7 +216,10 @@ void MainWindow::setFullscreen(bool value)
     }
     else
     {
-        showNormal();
+        if (m_maximized)
+            showMaximized();
+        else
+            showNormal();
         m_ui->m_menubar->show();
         m_ui->m_controls->show();
         m_ui->m_centralwidget->layout()->addWidget(m_ui->m_controls);

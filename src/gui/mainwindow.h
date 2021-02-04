@@ -84,6 +84,7 @@ private:
     DefinitionWidget *m_definition;
     AnkiSettings *m_ankiSettings;
     AnkiClient *m_ankiClient;
+    bool m_maximized;
 
     void clearTracks();
     void clearTrack(
