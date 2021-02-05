@@ -216,10 +216,13 @@ void MainWindow::setFullscreen(bool value)
     }
     else
     {
+        showNormal();
         if (m_maximized)
+        {
+            // Have call showNormal before showMaximized when leaving fullscreen
+            // on Linux due to a bug with Qt
             showMaximized();
-        else
-            showNormal();
+        }
         m_ui->m_menubar->show();
         m_ui->m_controls->show();
         m_ui->m_centralwidget->layout()->addWidget(m_ui->m_controls);
