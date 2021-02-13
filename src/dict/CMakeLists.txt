@@ -3,7 +3,7 @@ set(
     sqlite.h
     entry.h
     jmdict.cpp
-    dictionarysearch.cpp
+    dictionary.cpp
 )
 
 set(

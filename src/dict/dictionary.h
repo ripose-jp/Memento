@@ -18,8 +18,8 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef DICTIONARYSEARCH_H
-#define DICTIONARYSEARCH_H
+#ifndef DICTIONARY_H
+#define DICTIONARY_H
 
 #include <QString>
 #include <QList>
@@ -30,27 +30,28 @@
 namespace MeCab
 {
     class Tagger;
+    class Lattice;
 }
 
-class DictionarySearch
+class Dictionary
 {
 public:
-    DictionarySearch();
-    ~DictionarySearch();
-    QList<Entry *> *search(const QString query,
+    Dictionary();
+    ~Dictionary();
+    QList<Entry *> *search(const QString &query,
                            const QString &subtitle,
                            const int index,
                            const int *currentIndex);
+    void reopenDictionary();
 
 private:
     JMDict *m_dictionary;
     MeCab::Tagger *m_tagger;
 
     MeCab::Lattice *lemmatizeQuery(const QString &query);
-    QList<QPair<QString, unsigned int>> generateQueries(MeCab::Lattice *lattice,
-                                                        const QString &query);
-    void deleteEntries(QList<Entry *> *entries);
-
+    QList<QPair<QString, QString>> generateQueries(MeCab::Lattice *lattice,
+                                                   const QString &query);
+                                                   
     class ExactWorker : public QThread
     {
     public:
@@ -78,4 +79,4 @@ private:
     };
 };
 
-#endif // DICTIONARYSEARCH_H
+#endif // DICTIONARY_H

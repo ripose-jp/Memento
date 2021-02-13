@@ -197,7 +197,8 @@ std::string JMDict::compare(QueryType type)
         return "=%Q";
     else if (QueryType::FULLTEXT)
         return " LIKE '%%%q%%'";
-    return " LIKE '%q%%'";
+    else if (QueryType::BEGINNING)
+        return " LIKE '%q%%'";
 }
 
 int buildEntry(void *void_query_data, int, char **value, char **)

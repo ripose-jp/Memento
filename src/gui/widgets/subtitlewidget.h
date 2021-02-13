@@ -21,10 +21,11 @@
 #ifndef SUBTITLEWIDGET_H
 #define SUBTITLEWIDGET_H
 
+#include "../../dict/dictionary.h"
+
 #include <QLabel>
 #include <QLineEdit>
 #include <QMouseEvent>
-#include <QRunnable>
 #include <QTimer>
 
 class SubtitleWidget : public QLineEdit
@@ -50,26 +51,11 @@ private Q_SLOTS:
     void findEntry();
 
 private:
+    Dictionary *m_dictionary;
     int m_currentIndex;
     QTimer *m_findDelay;
 
-    class QueryThread : public QRunnable
-    {
-    public:
-        QueryThread(SubtitleWidget *sw, const QString &query, 
-                    const QString &currentSubtitle, 
-                    const int currentIndex) : m_parent(sw), 
-                                              m_query(query), 
-                                              m_currentSubtitle(currentSubtitle),
-                                              m_currentIndex(currentIndex) {}
-        void run();
-
-    private:
-        SubtitleWidget *m_parent;
-        QString m_query;
-        QString m_currentSubtitle;
-        const int m_currentIndex;
-    };
+    void deleteEntries(QList<Entry *> *entries);
 };
 
 #endif // SUBTITLEWIDGET_H
