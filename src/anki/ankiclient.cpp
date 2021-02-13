@@ -500,8 +500,10 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry)
     // Processed fields
     QString audioFile = AUDIO_FILENAME_FORMAT_STRING.arg(*entry.m_kana)
                             .arg(*entry.m_kanji);
-    QString furigana = FURIGANA_FORMAT_STRING.arg(*entry.m_kanji)
-                           .arg(*entry.m_kana);
+    QString furigana =
+        entry.m_kanji->isEmpty() ? *entry.m_kana :
+                                   FURIGANA_FORMAT_STRING.arg(*entry.m_kanji)
+                                   .arg(*entry.m_kana);
     QString furiganaPlain;
     if (entry.m_kanji->isEmpty())
         furiganaPlain = *entry.m_kana;
