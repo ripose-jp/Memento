@@ -54,7 +54,7 @@ private:
     {
     public:
         ExactWorker(const QString &query,
-                    const size_t endSize,
+                    const int endSize,
                     const QString &subtitle,
                     const int index,
                     const int *currentIndex,
@@ -71,7 +71,7 @@ private:
 
     private:
         QString query;
-        const size_t endSize;
+        const int endSize;
         const QString &subtitle;
         const int index;
         const int *currentIndex;

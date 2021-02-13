@@ -26,8 +26,8 @@
 #include "../util/directoryutils.h"
 
 #define WORD_INDEX 6
-#define MECAB_QUERY_THREADS 2
-#define EXACT_QUERY_THREADS 2
+#define MECAB_QUERY_THREADS 3
+#define EXACT_QUERY_THREADS 3
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #define MECAB_ARG ("-r " + DirectoryUtils::getDictionaryDir() + SLASH + \
@@ -72,13 +72,12 @@ QList<Entry *> *Dictionary::search(const QString &query,
         QString str = query;
         str.chop(queriesPerThread * i);
 
-        size_t endSize = str.size() - queriesPerThread;
+        int endSize = str.size() - queriesPerThread;
         endSize = endSize < 0 ? 0 : endSize;
 
         QThread *worker =
-            new ExactWorker(str, endSize,
-                            subtitle, index, currentIndex, entries, 
-                            m_dictionary);
+            new ExactWorker(str, endSize, subtitle, index, currentIndex,
+                            entries, m_dictionary);
         
         worker->start();
         threads.append(worker);
@@ -91,15 +90,17 @@ QList<Entry *> *Dictionary::search(const QString &query,
         queriesPerThread = queries.size() / MECAB_QUERY_THREADS + 1;
         for (size_t i = 0;
              i < MECAB_QUERY_THREADS && 
-                queries.constBegin() + queriesPerThread * (i + 1) < 
-                    queries.constEnd();
-            ++i)
+             queries.constBegin() + queriesPerThread * i < queries.constEnd();
+             ++i)
         {
+            auto endIt = queries.constBegin() + queriesPerThread * (i + 1);
+            endIt = endIt < queries.constEnd() ? endIt : queries.constEnd();
+
             QThread *worker = 
                 new MeCabWorker(
-                    queries.constBegin() + queriesPerThread * i, 
-                    queries.constBegin() + queriesPerThread * (i + 1),
+                    queries.constBegin() + queriesPerThread * i, endIt,
                     subtitle, index, currentIndex, entries, m_dictionary);
+            
             worker->start();
             threads.append(worker);
         }
@@ -181,7 +182,7 @@ QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
 
 void Dictionary::ExactWorker::run()
 {
-    while (!query.isEmpty() && index == *currentIndex)
+    while (query.size() > endSize && index == *currentIndex)
     {
         QList<Entry *> *results = dictionary->query(query, JMDict::EXACT);
 
@@ -211,7 +212,7 @@ void Dictionary::ExactWorker::run()
 
 void Dictionary::MeCabWorker::run()
 {
-    while(begin < end && index == *currentIndex)
+    while(begin != end && index == *currentIndex)
     {
         QPair<QString, QString> pair = *begin;
         QList<Entry *> *results = dictionary->query(pair.first, JMDict::EXACT);
