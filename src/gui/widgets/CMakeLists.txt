@@ -51,7 +51,6 @@ target_link_libraries(
     subtitlewidget
     Qt5::Widgets
     jmdict
-    mecab
 )
 
 add_library(

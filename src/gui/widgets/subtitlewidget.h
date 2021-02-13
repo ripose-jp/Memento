@@ -21,14 +21,11 @@
 #ifndef SUBTITLEWIDGET_H
 #define SUBTITLEWIDGET_H
 
-#include "../../dict/jmdict.h"
-
 #include <QLabel>
 #include <QLineEdit>
 #include <QMouseEvent>
 #include <QRunnable>
 #include <QTimer>
-#include <mecab.h>
 
 class SubtitleWidget : public QLineEdit
 {
@@ -53,10 +50,8 @@ private Q_SLOTS:
     void findEntry();
 
 private:
-    JMDict *m_dictionary;
     int m_currentIndex;
     QTimer *m_findDelay;
-    MeCab::Tagger *m_tagger;
 
     class QueryThread : public QRunnable
     {
@@ -74,8 +69,6 @@ private:
         QString m_query;
         QString m_currentSubtitle;
         const int m_currentIndex;
-
-        void deleteEntries(QList<Entry *> *entries);
     };
 };
 

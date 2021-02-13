@@ -3,6 +3,7 @@ set(
     sqlite.h
     entry.h
     jmdict.cpp
+    dictionarysearch.cpp
 )
 
 set(
@@ -15,6 +16,7 @@ set(
 add_library(jmdict ${DICT_SRCS})
 target_link_libraries(
     jmdict
+    mecab
     ${SQLITE}
     Qt::Core
 )

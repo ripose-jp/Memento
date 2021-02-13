@@ -34,38 +34,19 @@
 #define UNICODE_LENGTH 3
 #define TIMER_DELAY 250
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    #define MECAB_ARG ("-r " + DirectoryUtils::getDictionaryDir() + SLASH + \
-                       "naist-jdic" + SLASH + "dicrc " \
-                       "-d " + DirectoryUtils::getDictionaryDir() + SLASH + \
-                       "naist-jdic").toUtf8()
-#elif __linux__
-    #define MECAB_ARG ""
-#endif
-
-
 SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
                                                   m_currentIndex(-1),
                                                   m_findDelay(new QTimer(this))
 {
     setStyleSheet("QLineEdit { color : white; background-color : black; }");
 
-    QString path = DirectoryUtils::getDictionaryDir() + JMDICT_DB_NAME;
-    m_dictionary = new JMDict(path);
-
     m_findDelay->setSingleShot(true);
     connect(m_findDelay, &QTimer::timeout, this, &SubtitleWidget::findEntry);
-
-    m_tagger = MeCab::createTagger(MECAB_ARG);
-    if (m_tagger == nullptr)
-        qDebug() << MeCab::getLastError();
 }
 
 SubtitleWidget::~SubtitleWidget()
 {
-    delete m_dictionary;
     delete m_findDelay;
-    delete m_tagger;
 }
 
 void SubtitleWidget::jmDictUpdated()
@@ -240,13 +221,4 @@ void SubtitleWidget::QueryThread::run()
     {
         deleteEntries(entries);
     }
-}
-
-void SubtitleWidget::QueryThread::deleteEntries(QList<Entry *> *entries)
-{
-    for (auto it = entries->begin(); it != entries->end(); ++it)
-    {
-        delete *it;
-    }
-    delete entries;
 }
