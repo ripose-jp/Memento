@@ -48,20 +48,20 @@ private:
     JMDict *m_dictionary;
     MeCab::Tagger *m_tagger;
 
-    MeCab::Lattice *lemmatizeQuery(const QString &query);
-    QList<QPair<QString, QString>> generateQueries(MeCab::Lattice *lattice,
-                                                   const QString &query);
+    QList<QPair<QString, QString>> generateQueries(const QString &query);
                                                    
     class ExactWorker : public QThread
     {
     public:
         ExactWorker(const QString &query,
+                    const size_t endSize,
                     const QString &subtitle,
                     const int index,
                     const int *currentIndex,
                     QList<Entry *> *entries,
                     JMDict *dictionary)
                         : query(query),
+                          endSize(endSize),
                           subtitle(subtitle),
                           index(index),
                           currentIndex(currentIndex),
@@ -71,6 +71,35 @@ private:
 
     private:
         QString query;
+        const size_t endSize;
+        const QString &subtitle;
+        const int index;
+        const int *currentIndex;
+        QList<Entry *> *entries;
+        JMDict *dictionary;
+    };
+
+    class MeCabWorker : public QThread
+    {
+    public:
+        MeCabWorker(QList<QPair<QString, QString>>::const_iterator begin,
+                    QList<QPair<QString, QString>>::const_iterator end,
+                    const QString &subtitle,
+                    const int index,
+                    const int *currentIndex,
+                    QList<Entry *> *entries,
+                    JMDict *dictionary)
+                        : begin(begin),
+                          end(end),
+                          subtitle(subtitle),
+                          index(index),
+                          currentIndex(currentIndex),
+                          entries(entries),
+                          dictionary(dictionary) {}
+        void run() override;
+
+    private:
+        QList<QPair<QString, QString>>::const_iterator begin, end;
         const QString &subtitle;
         const int index;
         const int *currentIndex;
