@@ -43,11 +43,10 @@ public:
     JMDict(const QString &path);
     ~JMDict();
     QList<Entry *> *query(const QString &query, const JMDict::QueryType type);
-    void reopenDictionary();
+    void reopenDictionary(const QString &path);
 
 private:
     sql::db *m_db;
-    const QString m_path;
     QMutex m_numReadersMutex;
     QSemaphore m_readerWriter;
     int m_numReaders;

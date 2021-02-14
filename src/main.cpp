@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <QApplication>
+#include <QDir>
 #include <QFile>
 #include <QDebug>
 
@@ -34,20 +35,45 @@ int main(int argc, char *argv[])
     // HiDPI support
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-    
-    QFile db(DirectoryUtils::getDictionaryDir() + JMDICT_DB_NAME);
-    if (!db.exists())
+
+    // Create the config dir if it doesn't exist
+    if (!QDir(DirectoryUtils::getConfigDir()).exists())
     {
-        qDebug() << "Could not find JMDict in" 
-                 << DirectoryUtils::getDictionaryDir();
+        if (!QDir().mkdir(DirectoryUtils::getConfigDir()))
+        {
+            qDebug() << "Could not make config dir at"
+                     << DirectoryUtils::getConfigDir();
+            return EXIT_FAILURE;
+        }
+    }
+
+    // Create dictionary dir if it doesn't exist
+    if (!QDir(DirectoryUtils::getDictionaryDir()).exists())
+    {
+        if (!QDir().mkdir(DirectoryUtils::getDictionaryDir()))
+        {
+            qDebug() << "Could not make dictionary dir at"
+                     << DirectoryUtils::getDictionaryDir();
+            return EXIT_FAILURE;
+        }
+    }
+    
+    // Check that jmdict exists, create a placeholder if it doesn't
+    if (!QFile(DirectoryUtils::getJmdict()).exists())
+    {
+        qDebug() << "Could not find JMDict at" 
+                 << DirectoryUtils::getJmdict();
+
+        QFile db(DirectoryUtils::getDictionaryDir() + JMDICT_DB_FILE);
         if (!db.open(QIODevice::WriteOnly))
         {
             qDebug() << "Could not create placeholder file in JMDict directory";
             return EXIT_FAILURE;
         }
+        db.close();
+
         qDebug() << "Created a placeholder file. Please download the latest "
                     "JMDict file and update it from within the Memento.";
-        db.close();
     }
 
     QApplication memento(argc, argv);

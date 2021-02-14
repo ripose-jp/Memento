@@ -83,6 +83,9 @@ private:
     mpv_handle *mpv;
     mpv_render_context *mpv_gl;
     QTimer *m_cursorTimer;
+    #if __linux__
+        uint32_t dbus_cookie;
+    #endif
 };
 
 #endif // MPVWIDGET_H

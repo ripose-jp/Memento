@@ -30,8 +30,6 @@
     #include <winbase.h>
 #elif __linux__
     #include <QtDBus>
-
-    uint32_t dbus_cookie;
 #else
     #error "OS not supported"
 #endif
@@ -70,6 +68,8 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent),
     mpv_set_option_string(mpv, "config", "yes");
     mpv_set_option_string(mpv, "config-dir",
                           DirectoryUtils::getConfigDir().toLatin1());
+    mpv_set_option_string(mpv, "input-conf", 
+                          DirectoryUtils::getMpvInputConfig().toLatin1());
 
     if (mpv_initialize(mpv) < 0)
         throw std::runtime_error("could not initialize mpv context");

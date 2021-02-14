@@ -40,8 +40,7 @@
 
 Dictionary::Dictionary()
 {
-    QString path = DirectoryUtils::getDictionaryDir() + JMDICT_DB_NAME;
-    m_dictionary = new JMDict(path);
+    m_dictionary = new JMDict(DirectoryUtils::getJmdict());
 
     m_tagger = MeCab::createTagger(MECAB_ARG);
     qDebug() << MECAB_ARG;
@@ -240,5 +239,5 @@ void Dictionary::MeCabWorker::run()
 
 void Dictionary::reopenDictionary()
 {
-    m_dictionary->reopenDictionary();
+    m_dictionary->reopenDictionary(DirectoryUtils::getJmdict());
 }

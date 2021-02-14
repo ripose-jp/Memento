@@ -375,7 +375,7 @@ void MainWindow::JMDictUpdaterThread::run()
 {
     bool success = DictionaryBuilder::buildDictionary(
         m_path.toStdString(), 
-        (DirectoryUtils::getDictionaryDir() + JMDICT_DB_NAME).toStdString()
+        (DirectoryUtils::getDictionaryDir() + JMDICT_DB_FILE).toStdString()
     );
     if (!success)
     {

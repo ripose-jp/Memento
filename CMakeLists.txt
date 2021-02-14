@@ -32,12 +32,12 @@ if(UNIX)
 	)
 	install(
 		FILES config/input.conf
-		DESTINATION $ENV{HOME}/.config/memento
+		DESTINATION /etc/memento
 		COMPONENT config
 	)
 	install(
 		FILES config/dict/JMDict
-		DESTINATION $ENV{HOME}/.config/memento/dict/
+		DESTINATION /etc/memento
 		COMPONENT config
 	)
 	install(

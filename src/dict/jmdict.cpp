@@ -41,7 +41,6 @@ struct query_data
 };
 
 JMDict::JMDict(const QString &path) : m_db(new sql::db(path.toStdString())),
-                                      m_path(path),
                                       m_readerWriter(QSemaphore(1))
 {
     m_kataToHira["ア"] = "あ";
@@ -137,11 +136,11 @@ JMDict::~JMDict()
     delete m_db;
 }
 
-void JMDict::reopenDictionary()
+void JMDict::reopenDictionary(const QString &path)
 {
     m_readerWriter.acquire();
     delete m_db;
-    m_db = new sql::db(m_path.toStdString());
+    m_db = new sql::db(path.toStdString());
     m_readerWriter.release();
 }
 

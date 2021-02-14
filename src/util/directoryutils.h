@@ -24,17 +24,11 @@
 #include <QString>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    #include <windows.h>
-    #define CONFIG_PATH "\\config"
     #define SLASH "\\"
 #elif __linux__
-    #define BASE_DIR getenv("HOME")
-    #define CONFIG_PATH "/.config/memento"
     #define SLASH "/"
 #elif __APPLE__
     #if TARGET_OS_MAC
-        #define BASE_DIR getenv("HOME")
-        #define CONFIG_PATH "/.config/memento"
         #define SLASH "/"
     #else
         #error "Apple OS type no supported"
@@ -43,7 +37,8 @@
     #error "OS not supported"
 #endif
 
-#define JMDICT_DB_NAME "JMDict"
+#define JMDICT_DB_FILE "JMDict"
+#define MPV_INPUT_CONF_FILE "input.conf"
 
 class DirectoryUtils
 {
@@ -51,6 +46,8 @@ public:
     static QString getProgramDirectory();
     static QString getConfigDir();
     static QString getDictionaryDir();
+    static QString getJmdict();
+    static QString getMpvInputConfig();
     
 private:
     DirectoryUtils() {}
