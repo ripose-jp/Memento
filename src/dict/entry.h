@@ -34,7 +34,8 @@ struct Entry
               m_clozeBody(0),
               m_clozePrefix(0),
               m_clozeSuffix(0),
-              m_sentence(0) {}
+              m_sentence(0),
+              m_exact(false) {}
     
     ~Entry()
     {
@@ -58,6 +59,7 @@ struct Entry
     QString *m_clozePrefix;
     QString *m_clozeSuffix;
     QString *m_sentence;
+    bool m_exact;
 } typedef Entry;
 
 #endif // ENTRY_H

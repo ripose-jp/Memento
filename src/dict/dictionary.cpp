@@ -117,7 +117,9 @@ QList<Entry *> *Dictionary::search(const QString &query,
     {
         bool operator()(const Entry *lhs, const Entry *rhs)
         {
-            return lhs->m_clozeBody->size() > rhs->m_clozeBody->size();
+            return lhs->m_clozeBody->size() > rhs->m_clozeBody->size() || 
+                   (lhs->m_clozeBody->size() == rhs->m_clozeBody->size() &&
+                   lhs->m_exact && !rhs->m_exact);
         }
     } comp;
     if (index == *currentIndex)
@@ -200,6 +202,7 @@ void Dictionary::ExactWorker::run()
                     new QString(
                         sentence->right(
                             sentence->size() - (index + query.size())));
+                (*it)->m_exact = true;
             }
         }
         entries->append(*results);
