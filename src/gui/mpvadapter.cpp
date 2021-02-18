@@ -74,7 +74,6 @@ void MpvAdapter::open(const QList<QUrl> &files)
     open(files.first().toLocalFile()); // mpv won't start with loadfile append
     for (auto it = files.begin() + 1; it != files.end(); ++it)
     {
-        qDebug() << (*it).toLocalFile();
         if (!(*it).toLocalFile().isEmpty())
             m_mpv->command(QStringList() << "loadfile" 
                                          << (*it).toLocalFile() 
@@ -222,9 +221,18 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
         break;
     default:
     {
-        key += event->text();
+        if (event->modifiers() & Qt::ControlModifier)
+        {
+            if (event->modifiers() & Qt::ShiftModifier)
+                key += QKeySequence(event->key()).toString();
+            else
+                key += QKeySequence(event->key()).toString().toLower();
+        }
+        else
+            key = event->text();
     }
     }
+    qDebug() << key;
     m_mpv->command(QVariantList() << "keypress" << key);
 }
 
