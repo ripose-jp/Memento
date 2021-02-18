@@ -232,7 +232,6 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
             key = event->text();
     }
     }
-    qDebug() << key;
     m_mpv->command(QVariantList() << "keypress" << key);
 }
 
