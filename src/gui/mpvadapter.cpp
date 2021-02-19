@@ -58,11 +58,16 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv),
     connect(m_mpv, &MpvWidget::shutdown, this, &MpvAdapter::close);
 }
 
-void MpvAdapter::open(const QString &file)
+void MpvAdapter::open(const QString &file, const bool append)
 {
     if (file.isEmpty())
         return;
-    m_mpv->command(QStringList() << "loadfile" << file);
+    
+    QStringList command;
+    command << "loadfile" << file;
+    if (append)
+        command << "append";
+    m_mpv->command(command);
 }
 
 void MpvAdapter::open(const QList<QUrl> &files)
@@ -70,16 +75,12 @@ void MpvAdapter::open(const QList<QUrl> &files)
     if (files.isEmpty())
         return;
 
-    stop();
     open(files.first().toLocalFile()); // mpv won't start with loadfile append
     for (auto it = files.begin() + 1; it != files.end(); ++it)
     {
         if (!(*it).toLocalFile().isEmpty())
-            m_mpv->command(QStringList() << "loadfile" 
-                                         << (*it).toLocalFile() 
-                                         << "append");
+            open((*it).toLocalFile(), true);
     }
-    play();
 }
 
 void MpvAdapter::seek(const int time)

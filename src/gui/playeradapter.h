@@ -56,7 +56,7 @@ public:
     } typedef Track;
 
 public Q_SLOTS:
-    virtual void open(const QString &file) = 0;
+    virtual void open(const QString &file, const bool append = false) = 0;
     virtual void open(const QList<QUrl> &files) = 0;
     virtual void seek(const int time) = 0;
     virtual void play() = 0;

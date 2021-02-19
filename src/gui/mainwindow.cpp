@@ -32,9 +32,8 @@
 #include <QMessageBox>
 #include <QThreadPool>
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
-                                          m_ui(new Ui::MainWindow),
-                                          m_maximized(false)
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent), m_ui(new Ui::MainWindow), m_maximized(false)
 {
     m_ui->setupUi(this);
 
@@ -158,7 +157,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(m_definition, &DefinitionWidget::definitionHidden,
         m_ui->m_controls, &PlayerControls::definitionHidden);
     connect(this, &MainWindow::jmDictUpdated,
-        m_ui->m_controls, &PlayerControls::jmDictUpdated); 
+        m_ui->m_controls, &PlayerControls::jmDictUpdated);
 }
 
 MainWindow::~MainWindow()
@@ -174,6 +173,20 @@ MainWindow::~MainWindow()
     delete m_ankiSettings;
 }
 
+void MainWindow::showEvent(QShowEvent *event)
+{
+    QStringList args = QApplication::arguments();
+    if (args.size() > 1)
+    {
+        m_player->open(args[1]);
+        for (size_t i = 2; i < args.size(); ++i)
+        {
+            m_player->open(args[i], true);
+        }
+        m_player->play();
+    }
+}
+
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key())
@@ -181,7 +194,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     default:
     {
         Q_EMIT keyPressed(event);
-    };
+    }
     }
 }
 
@@ -199,7 +212,10 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 void MainWindow::dropEvent(QDropEvent *event)
 {
     if (event->mimeData()->hasUrls())
+    {
         m_player->open(event->mimeData()->urls());
+        m_player->play();
+    }   
 }
 
 void MainWindow::setFullscreen(bool value)
@@ -357,7 +373,12 @@ void MainWindow::clearTrack(
 void MainWindow::open()
 {
     QList<QUrl> files = QFileDialog::getOpenFileUrls(0, "Open a video");
-    m_player->open(files);
+    if (!files.isEmpty())
+    {
+        m_player->stop();
+        m_player->open(files);
+        m_player->play();
+    }
 }
 
 void MainWindow::updateJMDict()

@@ -33,7 +33,7 @@ public:
     int getMaxVolume() const Q_DECL_OVERRIDE;
 
 public Q_SLOTS:
-    void open(const QString &file) Q_DECL_OVERRIDE;
+    void open(const QString &file, const bool append = false) Q_DECL_OVERRIDE;
     void open(const QList<QUrl> &files) Q_DECL_OVERRIDE;
     void seek(const int time) Q_DECL_OVERRIDE;
     void play() Q_DECL_OVERRIDE;
