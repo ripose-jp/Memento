@@ -3,7 +3,7 @@
 Name=Memento
 Comment=A video player for studying Japanese
 GenericName=A video player for studying Japanese
-Exec=memento
+Exec=memento %U
 Icon=memento.svg
 Categories=Education;Languages;Qt;
 Type=Application
