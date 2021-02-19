@@ -78,7 +78,10 @@ public:
         else if (tag.name() == "reb")
             insert_reading(tag.text());
         else if (tag.name() == "sense")
+        {
             ++sense_seq;
+            pos.clear();
+        }
         else if (tag.name() == "pos") {
             if (!pos.empty())
                 pos.append(", ");
