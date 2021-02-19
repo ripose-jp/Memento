@@ -106,6 +106,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_player, &PlayerAdapter::hideCursor,
         this, &MainWindow::hidePlayerCursor);
     connect(m_player, &PlayerAdapter::close, this, &QApplication::quit);
+    connect(m_player, &PlayerAdapter::titleChanged, 
+        [=] (const QString &name) { setWindowTitle(name + " - Memento"); });
 
     // Key/Mouse presses
     connect(this, &MainWindow::keyPressed,

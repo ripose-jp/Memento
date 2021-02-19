@@ -52,6 +52,7 @@ Q_SIGNALS:
     void stateChanged(bool paused);
     void fullscreenChanged(bool full);
     void tracklistChanged(mpv_node *node);
+    void titleChanged(const char **name);
     void videoTrackChanged(int64_t id);
     void audioTrackChanged(int64_t id);
     void subtitleTrackChanged(int64_t id);

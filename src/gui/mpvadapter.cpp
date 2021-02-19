@@ -53,6 +53,8 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv),
         this, &MpvAdapter::fullscreenChanged);
     connect(m_mpv, &MpvWidget::volumeChanged,
         this, &MpvAdapter::volumeChanged);
+    connect(m_mpv, &MpvWidget::titleChanged,
+        [=] (const char **name) { Q_EMIT titleChanged(QString(*name)); } );
 
     connect(m_mpv, &MpvWidget::hideCursor, this, &MpvAdapter::hideCursor);
     connect(m_mpv, &MpvWidget::shutdown, this, &MpvAdapter::close);

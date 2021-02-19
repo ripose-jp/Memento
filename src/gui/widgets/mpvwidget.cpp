@@ -79,6 +79,7 @@ MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent),
     mpv_observe_property(mpv, 0, "pause", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "fullscreen", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "volume", MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "media-title", MPV_FORMAT_STRING);
 
     mpv_observe_property(mpv, 0, "aid", MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "vid", MPV_FORMAT_INT64);
@@ -192,7 +193,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
         {
             if (prop->format == MPV_FORMAT_DOUBLE)
             {
-                double time = *(double *)prop->data;
+                double time = *(double *) prop->data;
                 Q_EMIT positionChanged(time);
             }
         }
@@ -200,7 +201,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
         {
             if (prop->format == MPV_FORMAT_DOUBLE)
             {
-                double time = *(double *)prop->data;
+                double time = *(double *) prop->data;
                 Q_EMIT durationChanged(time);
             }
         }
@@ -208,7 +209,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
         {
             if (prop->format == MPV_FORMAT_FLAG)
             {
-                bool paused = *(int *)prop->data;
+                bool paused = *(int *) prop->data;
 
                 // Keep the computer from going to sleep
                 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
@@ -267,7 +268,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
             if (prop->format == MPV_FORMAT_FLAG)
             {
                 setCursor(Qt::BlankCursor);
-                bool full = *(int *)prop->data;
+                bool full = *(int *) prop->data;
                 Q_EMIT fullscreenChanged(full);
             }
         }
@@ -275,8 +276,16 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
         {
             if (prop->format == MPV_FORMAT_INT64)
             {
-                int volume = *(int64_t *)prop->data;
+                int volume = *(int64_t *) prop->data;
                 Q_EMIT volumeChanged(volume);
+            }
+        }
+        else if (strcmp(prop->name, "media-title") == 0)
+        {
+            if (prop->format == MPV_FORMAT_STRING)
+            {
+                const char **name = (const char **) prop->data;
+                Q_EMIT titleChanged(name);
             }
         }
         else if (strcmp(prop->name, "aid") == 0)
@@ -296,7 +305,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
         {
             if (prop->format == MPV_FORMAT_INT64)
             {
-                int64_t id = *(int64_t *)prop->data;
+                int64_t id = *(int64_t *) prop->data;
                 Q_EMIT videoTrackChanged(id);
             }
             else if (prop->format == MPV_FORMAT_FLAG)
@@ -309,7 +318,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
         {
             if (prop->format == MPV_FORMAT_INT64)
             {
-                int64_t id = *(int64_t *)prop->data;
+                int64_t id = *(int64_t *) prop->data;
                 Q_EMIT subtitleTrackChanged(id);
             }
             else if (prop->format == MPV_FORMAT_FLAG)
@@ -322,7 +331,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
         {
             if (prop->format == MPV_FORMAT_STRING)
             {
-                const char **subtitle = (const char **)prop->data;
+                const char **subtitle = (const char **) prop->data;
                 if (strcmp(*subtitle, ""))
                 {
                     const int64_t delay = getProperty("sub-delay").toInt();

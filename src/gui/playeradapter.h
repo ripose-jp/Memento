@@ -93,6 +93,7 @@ Q_SIGNALS:
     void fullscreenChanged(const bool full);
     void volumeChanged(const int value);
     void tracksChanged(QList<const PlayerAdapter::Track *> tracks);
+    void titleChanged(const QString &name);
     void hideCursor();
     void close();
 };
