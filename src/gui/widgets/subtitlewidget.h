@@ -46,6 +46,7 @@ Q_SIGNALS:
 
 protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
     void findEntry();

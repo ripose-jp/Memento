@@ -65,6 +65,7 @@ void SubtitleWidget::deselectText()
 
 void SubtitleWidget::findEntry()
 {
+
     int index = m_currentIndex;
     QString queryStr = text().remove(0, index);
     queryStr.truncate(MAX_QUERY_LENGTH);
@@ -100,6 +101,11 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
         m_findDelay->start(TIMER_DELAY);
     }
     event->ignore();
+}
+
+void SubtitleWidget::leaveEvent(QEvent *event)
+{
+    m_findDelay->stop();
 }
 
 void SubtitleWidget::deleteEntries(QList<Entry *> *entries)
