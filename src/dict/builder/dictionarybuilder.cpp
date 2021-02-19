@@ -33,9 +33,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 using namespace std;
 
-class Dictionary {
+class JmdictBuilder {
 public:
-    Dictionary(const string& name) : db(name) {
+    JmdictBuilder(const string& name) : db(name) {
         db.exec("DROP TABLE kanji");
         db.exec("DROP TABLE reading");
         db.exec("DROP TABLE gloss");
@@ -45,7 +45,7 @@ public:
         db.exec("BEGIN");
     }
 
-    ~Dictionary() {
+    ~JmdictBuilder() {
         db.exec("COMMIT");
     }
 
@@ -121,26 +121,23 @@ private:
     sql::db db;
 };
 
-bool DictionaryBuilder::buildDictionary(const std::string &dict_file,
+std::string DictionaryBuilder::buildDictionary(const std::string &dict_file,
                                         const std::string &database_name)
 try {
     initRomaji();
-    if (std::remove(database_name.c_str()) == 0)
-        std::cout << "removed old dictionary database\n";
-    else
+    if (std::remove(database_name.c_str()) && errno != ENOENT)
     {
-        std::cout << "Could not delete old dictionary " 
-                  << strerror(errno) 
-                  << std::endl;
+        return strerror(errno);
     }
 
-    Dictionary dict(database_name);
-    xml::Parser<Dictionary> parser(dict);
+    JmdictBuilder dict(database_name);
+    xml::Parser<JmdictBuilder> parser(dict);
     
     ifstream in(dict_file.c_str());
     if (!in.is_open()) {
-        cerr << "could not open dictionary file: " << dict_file << "'\n";
-        return false;
+        std::string err = "Could not open dictionary file: ";
+        err += dict_file;
+        return err;
     }
     cout << "filling database... " << flush;
     time_t start = time(0);
@@ -151,9 +148,8 @@ try {
     dict.createIndices();
     cout << time(0) - start << "s" << endl;
 
-    return true;
+    return "";
 }
 catch (const std::exception& e) {
-    cerr << e.what() << '\n';
-    return false;
+    return e.what();
 }

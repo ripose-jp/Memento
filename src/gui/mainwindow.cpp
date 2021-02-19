@@ -160,6 +160,10 @@ MainWindow::MainWindow(QWidget *parent)
         m_ui->m_controls, &PlayerControls::definitionHidden);
     connect(this, &MainWindow::jmDictUpdated,
         m_ui->m_controls, &PlayerControls::jmDictUpdated);
+
+    // Dictionary update errors
+    connect(this, &MainWindow::dictUpdateFailed,
+        this, &MainWindow::showErrorMessage);
 }
 
 MainWindow::~MainWindow()
@@ -385,30 +389,35 @@ void MainWindow::open()
 
 void MainWindow::updateJMDict()
 {
-    QString jmdictFile =
+    QString jmdictFile = 
         QFileDialog::getOpenFileName(0, "Open the JMDict file");
     if (!jmdictFile.isEmpty())
     {
         JMDictUpdaterThread *thread = new JMDictUpdaterThread(this, jmdictFile);
         QThreadPool::globalInstance()->start(thread);
     }
+    
 }
 
 void MainWindow::JMDictUpdaterThread::run()
 {
-    bool success = DictionaryBuilder::buildDictionary(
+    QString error = QString::fromStdString(DictionaryBuilder::buildDictionary(
         m_path.toStdString(), 
         (DirectoryUtils::getDictionaryDir() + JMDICT_DB_FILE).toStdString()
-    );
-    if (!success)
-    {
-        QMessageBox message;
-        message.critical(0, "Error",
-            "Could not update JMDict file. See console for more details.");
-    }
-    else
+    ));
+    if (error.isEmpty())
     {
         Q_EMIT m_parent->jmDictUpdated();
     }
-    
+    else
+    {
+        Q_EMIT m_parent->dictUpdateFailed("Error Updating JMDict", error);
+    }
+}
+
+void MainWindow::showErrorMessage(const QString &title, 
+                                  const QString &error) const
+{
+    QMessageBox message;
+    message.critical(0, title, error);
 }

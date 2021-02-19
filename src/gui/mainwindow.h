@@ -54,6 +54,7 @@ Q_SIGNALS:
     void keyPressed(const QKeyEvent *event);
     void wheelMoved(const QWheelEvent *event);
     void jmDictUpdated() const;
+    void dictUpdateFailed(const QString& title, const QString &error) const;
 
 public Q_SLOTS:
     void setFullscreen(bool value);
@@ -64,6 +65,7 @@ private Q_SLOTS:
     void setDefinitionWidgetLocation();
     void hideControls();
     void hidePlayerCursor();
+    void showErrorMessage(const QString& title, const QString &error) const;
 
 protected:
     void showEvent(QShowEvent *event) override;
@@ -97,14 +99,14 @@ private:
 
     class JMDictUpdaterThread : public QRunnable
     {
-        public:
-            JMDictUpdaterThread(const MainWindow *parent,
-                                const QString &path) : m_parent(parent),
-                                                       m_path(path) {}
-            void run() override;
-        private:
-            const MainWindow *m_parent;
-            const QString m_path;
+    public:
+        JMDictUpdaterThread(MainWindow *parent, const QString &path)
+            : m_parent(parent), m_path(path) {}
+        void run() override;
+
+    private:
+        const MainWindow *m_parent;
+        const QString m_path;
     };
 };
 

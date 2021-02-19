@@ -26,8 +26,8 @@
 class DictionaryBuilder
 {
 public:
-    static bool buildDictionary(const std::string &dict_file,
-                                const std::string &database_name);
+    static std::string buildDictionary(const std::string &dict_file,
+                                       const std::string &database_name);
     
 private:
     DictionaryBuilder() {}
