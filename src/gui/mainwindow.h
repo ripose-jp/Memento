@@ -62,6 +62,7 @@ public Q_SLOTS:
 private Q_SLOTS:
     void open();
     void setTracks(QList<const PlayerAdapter::Track *> tracks);
+    void updateAnkiProfileMenu();
     void setDefinitionWidgetLocation();
     void hideControls();
     void hidePlayerCursor();
@@ -77,16 +78,23 @@ protected:
 
 private:
     Ui::MainWindow *m_ui;
+
     PlayerAdapter *m_player;
-    QActionGroup *m_actionGroupAudio;
-    QActionGroup *m_actionGroupVideo;
-    QActionGroup *m_actionGroupSubtitle;
-    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_audioTracks;
-    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_videoTracks;
-    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_subtitleTracks;
     DefinitionWidget *m_definition;
+
     AnkiSettings *m_ankiSettings;
     AnkiClient *m_ankiClient;
+
+    QActionGroup *m_actionGroupAudio;
+    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_audioTracks;
+    QActionGroup *m_actionGroupVideo;
+    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_videoTracks;
+    QActionGroup *m_actionGroupSubtitle;
+    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_subtitleTracks;
+
+    QActionGroup *m_actionGroupAnkiProfile;
+    QList<QAction *> m_ankiProfiles;
+
     bool m_maximized;
 
     void clearTracks();
@@ -94,7 +102,8 @@ private:
         QList<QPair<QAction *, const PlayerAdapter::Track *>> &tracks, 
         QMenu *menu,
         QActionGroup *actionGroup,
-        QAction *actionDisable);
+        QAction *actionDisable
+    );
     void updateJMDict();
 
     class JMDictUpdaterThread : public QRunnable

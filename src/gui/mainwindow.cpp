@@ -37,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     m_ui->setupUi(this);
 
+    // Video Action Groups
     m_actionGroupAudio = new QActionGroup(this);
     m_ui->m_actionAudioNone->setActionGroup(m_actionGroupAudio);
     m_actionGroupVideo = new QActionGroup(this);
@@ -49,9 +50,14 @@ MainWindow::MainWindow(QWidget *parent)
     m_ankiSettings = new AnkiSettings(m_ankiClient);
     m_ankiSettings->hide();
 
+    m_actionGroupAnkiProfile = new QActionGroup(this);
+    updateAnkiProfileMenu();
+
+    // Player behaviors
     m_player = new MpvAdapter(m_ui->m_mpv, this);
     m_player->pause();
 
+    // Definitions
     m_definition = new DefinitionWidget(m_ankiClient, m_ui->m_mpv);
     m_ui->m_controls->setVolumeLimit(m_player->getMaxVolume());
 
@@ -108,6 +114,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_player, &PlayerAdapter::close, this, &QApplication::quit);
     connect(m_player, &PlayerAdapter::titleChanged, 
         [=] (const QString &name) { setWindowTitle(name + " - Memento"); });
+    connect(m_ankiClient, &AnkiClient::settingsChanged,
+        this, &MainWindow::updateAnkiProfileMenu);
 
     // Key/Mouse presses
     connect(this, &MainWindow::keyPressed,
@@ -177,6 +185,7 @@ MainWindow::~MainWindow()
     delete m_definition;
     delete m_ankiClient;
     delete m_ankiSettings;
+    delete m_actionGroupAnkiProfile;
 }
 
 void MainWindow::showEvent(QShowEvent *event)
@@ -311,6 +320,50 @@ void MainWindow::setTracks(QList<const PlayerAdapter::Track *> tracks)
         trackList->push_back(
             QPair<QAction *, const PlayerAdapter::Track *>(action, track));
     }
+}
+
+void MainWindow::updateAnkiProfileMenu()
+{
+    // Remove all profiles
+    for (auto it = m_ankiProfiles.begin(); it != m_ankiProfiles.end(); ++it)
+    {
+        m_actionGroupAnkiProfile->removeAction(*it);
+        m_ui->m_menuAnkiProfile->removeAction(*it);
+        delete *it;
+    }
+    m_ankiProfiles.clear();
+
+    // Get profiles in alphabetical order
+    QStringList profiles = m_ankiClient->getProfiles();
+    std::sort(profiles.begin(), profiles.end());
+
+    // Add new profiles
+    for (auto it = profiles.begin(); it != profiles.end(); ++it)
+    {
+        QAction *profileAction = new QAction(this);
+        profileAction->setText(*it);
+        profileAction->setCheckable(true);
+        profileAction->setChecked(m_ankiClient->getProfile() == *it);
+        m_ui->m_menuAnkiProfile->addAction(profileAction);
+        profileAction->setActionGroup(m_actionGroupAnkiProfile);
+        m_ankiProfiles.append(profileAction);
+
+        connect(profileAction, &QAction::triggered,
+            [=] (const bool checked) {
+                if (checked) 
+                {
+                    profileAction->blockSignals(true);
+                    m_ankiClient->setProfile(profileAction->text());
+                    m_ankiClient->writeChanges();
+                    profileAction->blockSignals(false);
+                }
+            }
+        );
+    }
+
+    // Handle disabled Anki Integration
+    m_ui->m_menuAnkiProfile->
+        menuAction()->setVisible(m_ankiClient->isEnabled());
 }
 
 void MainWindow::setDefinitionWidgetLocation()

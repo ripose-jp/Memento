@@ -133,10 +133,10 @@
    <widget class="QMenu" name="m_menuSettings">
     <property name="geometry">
      <rect>
-      <x>437</x>
-      <y>162</y>
+      <x>465</x>
+      <y>161</y>
       <width>200</width>
-      <height>112</height>
+      <height>147</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -148,7 +148,22 @@
     <property name="title">
      <string>Settings</string>
     </property>
+    <widget class="QMenu" name="m_menuAnkiProfile">
+     <property name="geometry">
+      <rect>
+       <x>664</x>
+       <y>189</y>
+       <width>136</width>
+       <height>56</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Anki Profile</string>
+     </property>
+    </widget>
     <addaction name="m_actionAnki"/>
+    <addaction name="m_menuAnkiProfile"/>
+    <addaction name="separator"/>
     <addaction name="m_actionUpdateJMDict"/>
    </widget>
    <addaction name="m_menuMedia"/>
@@ -206,6 +221,14 @@
   <action name="m_actionUpdateJMDict">
    <property name="text">
     <string>Update JMDict</string>
+   </property>
+  </action>
+  <action name="m_actionProfileDefault">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Default</string>
    </property>
   </action>
  </widget>

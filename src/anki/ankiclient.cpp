@@ -340,6 +340,7 @@ void AnkiClient::setEnabled(const bool value)
 void AnkiClient::writeChanges()
 {
     writeConfigToFile(CONFIG_FILE);
+    Q_EMIT settingsChanged();
 }
 
 void AnkiClient::testConnection(

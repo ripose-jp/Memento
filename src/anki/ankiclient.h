@@ -88,6 +88,9 @@ public:
         std::function<void(const int, const QString &)> callback,
         const Entry *entry);
 
+Q_SIGNALS:
+    void settingsChanged() const;
+
 private:
     bool m_enabled;
 

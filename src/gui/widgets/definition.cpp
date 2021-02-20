@@ -39,6 +39,7 @@ Definition::Definition(const Entry *entry, AnkiClient *client, QWidget *parent)
     IconFactory *factory = IconFactory::create(this);
     m_ui->m_buttonAddCard->setIcon(factory->getIcon(IconFactory::Icon::plus));
     delete factory;
+    m_ui->m_buttonAddCard->setVisible(m_client->isEnabled());
 
     setEntry(entry);
 

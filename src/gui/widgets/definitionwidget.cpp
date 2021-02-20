@@ -27,8 +27,11 @@
 #include <QScrollBar>
 
 DefinitionWidget::DefinitionWidget(AnkiClient *client, QWidget *parent)
-    : QWidget(parent), m_ui(new Ui::DefinitionWidget), m_client(client),
-      m_definitions(new QList<Definition *>), m_searchId(0)
+    : QWidget(parent),
+      m_ui(new Ui::DefinitionWidget),
+      m_client(client),
+      m_definitions(new QList<Definition *>), 
+      m_searchId(0)
 {
     m_ui->setupUi(this);
     hide();

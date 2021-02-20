@@ -440,8 +440,14 @@ void AnkiSettings::applyToConfig(const QString &profile)
     for (auto it = splitTags.begin(); it != splitTags.end(); ++it)
         config->tags.append(*it);
 
-    config->deck = m_ui->m_comboBoxDeck->currentText();
-    config->model = m_ui->m_comboBoxModel->currentText();
+    if (!m_ui->m_comboBoxDeck->currentText().isEmpty())
+    {
+        config->deck = m_ui->m_comboBoxDeck->currentText();
+    }
+    if (!m_ui->m_comboBoxModel->currentText().isEmpty())
+    {
+        config->model = m_ui->m_comboBoxModel->currentText();
+    }
 
     config->fields = QJsonObject();
     for (size_t i = 0; i < m_ui->m_tableFields->rowCount(); ++i)
