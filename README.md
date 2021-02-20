@@ -98,7 +98,7 @@ ftp://ftp.monash.edu.au/pub/nihongo/JMdict.gz
 ## Acknowledgements
 
 JMDICT is the property of the Electronic Dictionary Research and Development
-Group, and are used in conformance with the Group's licence.
+Group, and is used in conformance with the Group's licence.
 https://www.edrdg.org/jmdict/j_jmdict.html
 
 This code uses code from Jim Breen's jmdict program for creating a database from
