@@ -65,7 +65,6 @@ void SubtitleWidget::deselectText()
 
 void SubtitleWidget::findEntry()
 {
-
     int index = m_currentIndex;
     QString queryStr = text().remove(0, index);
     queryStr.truncate(MAX_QUERY_LENGTH);
