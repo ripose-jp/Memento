@@ -74,6 +74,7 @@ public Q_SLOTS:
     virtual void setSubtitleTrack(const int id) = 0;
     virtual void setFullscreen(const bool value) = 0;
     virtual void setVolume(const int value) = 0;
+    virtual QString tempScreenshot(const bool subtitles) = 0;
     virtual void keyPressed(const QKeyEvent *event) = 0;
     virtual void mouseWheelMoved(const QWheelEvent *event) = 0;
 

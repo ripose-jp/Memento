@@ -38,12 +38,12 @@ class MpvWidget Q_DECL_FINAL : public QOpenGLWidget
 public:
     MpvWidget(QWidget *parent = 0);
     ~MpvWidget();
-    void command(const QVariant &params);
+    QVariant command(const QVariant &params);
     void asyncCommand(const QVariant &args);
     void setProperty(const QString &name, const QVariant &value);
     QVariant getProperty(const QString &name) const;
     QSize sizeHint() const { return QSize(480, 270); }
-    mpv_handle *get_handle();
+    mpv_handle *get_handle() { return mpv; }
 
 Q_SIGNALS:
     void durationChanged(int value);

@@ -51,6 +51,7 @@ public Q_SLOTS:
     void setSubtitleTrack(const int id) Q_DECL_OVERRIDE;
     void setFullscreen(const bool value) Q_DECL_OVERRIDE;
     void setVolume(const int value) Q_DECL_OVERRIDE;
+    QString tempScreenshot(const bool subtitles) Q_DECL_OVERRIDE;
     void keyPressed(const QKeyEvent *event) Q_DECL_OVERRIDE;
     void mouseWheelMoved(const QWheelEvent *event) Q_DECL_OVERRIDE;
 

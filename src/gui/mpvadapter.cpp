@@ -21,6 +21,7 @@
 #include "mpvadapter.h"
 
 #include <QDebug>
+#include <QTemporaryFile>
 
 MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv),
                                                           PlayerAdapter(parent)
@@ -163,6 +164,26 @@ void MpvAdapter::setFullscreen(const bool value)
 void MpvAdapter::setVolume(const int value)
 {
     m_mpv->setProperty("volume", value);
+}
+
+QString MpvAdapter::tempScreenshot(const bool subtitles)
+{
+    const char *args[4];
+    args[0] = "screenshot-to-file";
+
+    // Get a temporary file name
+    QTemporaryFile file;
+    file.open();
+    QString filename = file.fileName() + ".png";
+    file.close();
+
+    args[1] = filename.toLatin1();
+    args[2] = subtitles ? NULL : "video";
+    args[3] = NULL;
+
+    mpv_command(m_mpv->get_handle(), args);
+
+    return filename;
 }
 
 void MpvAdapter::keyPressed(const QKeyEvent *event)

@@ -105,11 +105,12 @@ MpvWidget::~MpvWidget()
     delete m_cursorTimer;
 }
 
-void MpvWidget::command(const QVariant &params)
+QVariant MpvWidget::command(const QVariant &params)
 {
-    QVariant err = mpv::qt::command(mpv, params);
-    if (mpv::qt::is_error(err))
-        qDebug() << ERROR_STR << mpv::qt::get_error(err);
+    QVariant result = mpv::qt::command(mpv, params);
+    if (mpv::qt::is_error(result))
+        qDebug() << ERROR_STR << mpv::qt::get_error(result);
+    return result;
 }
 
 void MpvWidget::asyncCommand(const QVariant &args)
