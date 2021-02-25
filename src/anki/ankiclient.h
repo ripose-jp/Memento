@@ -30,8 +30,10 @@
 #include "ankiconfig.h"
 
 #include "../dict/entry.h"
+#include "../gui/playeradapter.h"
 
 #define REPLACE_AUDIO "{audio}"
+#define REPLACE_AUDIO_MEDIA "{audio-media}"
 #define REPLACE_CLOZE_BODY "{cloze-body}"
 #define REPLACE_CLOZE_PREFIX "{cloze-prefix}"
 #define REPLACE_CLOZE_SUFFIX "{cloze-suffix}"
@@ -44,6 +46,7 @@
 #define REPLACE_READING "{reading}"
 #define REPLACE_ALT_READING "{reading-alt}"
 #define REPLACE_SCREENSHOT "{screenshot}"
+#define REPLACE_SCREENSHOT_VIDEO "{screenshot-video}"
 #define REPLACE_SENTENCE "{sentence}"
 #define REPLACE_TAGS "{tags}"
 
@@ -54,7 +57,7 @@ class AnkiClient : public QObject
     Q_OBJECT
 
 public:
-    AnkiClient(QObject *parent);
+    AnkiClient(QObject *parent, PlayerAdapter *player);
     ~AnkiClient();
     
     void setServer(const QString &address, const QString &port);
@@ -100,6 +103,8 @@ private:
 
     QString m_address;
     QString m_port;
+
+    PlayerAdapter *m_player;
     
     void readConfigFromFile(const QString &filename);
     bool writeConfigToFile(const QString &filename);
@@ -110,8 +115,10 @@ private:
         std::function<void(const QStringList *, const QString &)> callback,
         const QString &action,
         const QJsonObject &params = QJsonObject());
-    QJsonObject createAnkiNoteObject(const Entry &entry);
+    QJsonObject createAnkiNoteObject(const Entry &entry,
+                                     const bool media = false);
     QString buildGlossary(const QList<QList<QString>> &definitions);
+    QString generateMD5(const QString &filename);
 };
 
 #endif // ANKICLIENT_H

@@ -7,6 +7,7 @@ set(
 add_library(anki ${ANKI_SRCS})
 target_link_libraries(
     anki
+    mpvadapter
     Qt::Core
     Qt5::Network
 )

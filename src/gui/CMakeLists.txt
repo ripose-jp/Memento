@@ -1,16 +1,29 @@
 add_subdirectory(widgets)
 
-set(GUI_SRCS
+add_library(
+    mpvadapter
     mpvadapter.cpp
     playeradapter.h
+)
+target_link_libraries(
+    mpvadapter 
+    mpvwidget
+    Qt5::Gui
+    Qt5::Core
+)
+
+set(
+    GUI_SRCS
     mainwindow.cpp
     mainwindow.ui
 )
 
-set(GUI_LIBS
+set(
+    GUI_LIBS
     Qt5::Gui
     Qt5::Core
     mpvwidget
+    mpvadapter
     playercontrols
     definitionwidget
     ankisettings

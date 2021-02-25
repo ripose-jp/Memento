@@ -58,10 +58,12 @@
 #define ANKI_NOTE_FIELDS "fields"
 #define ANKI_NOTE_TAGS "tags"
 #define ANKI_NOTE_AUDIO "audio"
-#define ANKI_NOTE_AUDIO_URL "url"
-#define ANKI_NOTE_AUDIO_FILENAME "filename"
-#define ANKI_NOTE_AUDIO_FIELDS "fields"
-#define ANKI_NOTE_AUDIO_SKIPHASH "skipHash"
+#define ANKI_NOTE_PICTURE "picture"
+#define ANKI_NOTE_URL "url"
+#define ANKI_NOTE_PATH "path"
+#define ANKI_NOTE_FILENAME "filename"
+#define ANKI_NOTE_FIELDS "fields"
+#define ANKI_NOTE_SKIPHASH "skipHash"
 
 #define MIN_ANKICONNECT_VERSION 6
 #define TIMEOUT 5000
@@ -85,8 +87,11 @@
 
 QNetworkAccessManager *m_manager;
 
-AnkiClient::AnkiClient(QObject *parent)
-    : QObject(parent), m_configs(new QHash<QString, const AnkiConfig *>)
+AnkiClient::AnkiClient(QObject *parent, PlayerAdapter *player)
+    : QObject(parent),
+      m_player(player),
+      m_configs(new QHash<QString, const AnkiConfig *>),
+      m_currentConfig(0)
 {
     m_manager = new QNetworkAccessManager(this);
     m_manager->setTransferTimeout(TIMEOUT);
@@ -471,7 +476,7 @@ void AnkiClient::addEntry(
     const Entry *entry)
 {
     QJsonObject params;
-    params[ANKI_ADD_NOTE_PARAM] = createAnkiNoteObject(*entry);
+    params[ANKI_ADD_NOTE_PARAM] = createAnkiNoteObject(*entry, true);
     QNetworkReply *reply = makeRequest(ANKI_ADD_NOTE, params);
     connect(reply, &QNetworkReply::finished, [=] {
         QString error;
@@ -492,7 +497,8 @@ void AnkiClient::addEntry(
     });
 }
 
-QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry)
+QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
+                                             const bool media)
 {
     QJsonObject note;
     note[ANKI_NOTE_DECK] = m_currentConfig->deck;
@@ -514,7 +520,8 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry)
 
     // Find and replace fields with processed fields
     QStringList fields = m_currentConfig->fields.keys();
-    QJsonArray fieldsWithAudio;
+    QJsonArray fieldsWithAudio, fieldsWithAudioMedia, 
+               fieldsWithScreenshot, fieldWithScreenshotVideo;
     QJsonObject fieldsObj;
     for (auto it = fields.begin(); it != fields.end(); ++it)
     {
@@ -525,12 +532,32 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry)
             fieldsWithAudio.append(*it);
         }
         value = value.replace(REPLACE_AUDIO, "");
+
+        if (value.contains(REPLACE_AUDIO_MEDIA))
+        {
+            fieldsWithAudioMedia.append(*it);
+        }
+        value = value.replace(REPLACE_AUDIO_MEDIA, "");
+
+        if (value.contains(REPLACE_SCREENSHOT))
+        {
+            fieldsWithScreenshot.append(*it);
+        }
+        value = value.replace(REPLACE_SCREENSHOT, "");
+
+        if (value.contains(REPLACE_SCREENSHOT_VIDEO))
+        {
+            fieldWithScreenshotVideo.append(*it);
+        }
+        value = value.replace(REPLACE_SCREENSHOT_VIDEO, "");
+
         value = value.replace(REPLACE_CLOZE_BODY, *entry.m_clozeBody);
         value = value.replace(REPLACE_CLOZE_PREFIX, *entry.m_clozePrefix);
         value = value.replace(REPLACE_CLOZE_SUFFIX, *entry.m_clozeSuffix);
         value = value.replace(
             REPLACE_EXPRESSION,
-            entry.m_kanji->isEmpty() ? *entry.m_kana : *entry.m_kanji);
+            entry.m_kanji->isEmpty() ? *entry.m_kana : *entry.m_kanji
+        );
         value = value.replace(REPLACE_ALT_EXPRESSION, *entry.m_altkanji);
         value = value.replace(REPLACE_FURIGANA, furigana);
         value = value.replace(REPLACE_FURIGANA_PLAIN, furiganaPlain);
@@ -541,21 +568,83 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry)
 
         fieldsObj[*it] = value;
     }
-    note[ANKI_NOTE_FIELDS] = fieldsObj;
-    note[ANKI_NOTE_TAGS] = m_currentConfig->tags;
 
-    if (!fieldsWithAudio.isEmpty())
+    // Add media secions to the request
+    if (media)
     {
-        QJsonObject audio;
-        audio[ANKI_NOTE_AUDIO_URL] =
-            AUDIO_URL_FORMAT_STRING.arg(*entry.m_kanji).arg(*entry.m_kana);
-        audio[ANKI_NOTE_AUDIO_FILENAME] = audioFile;
-        audio[ANKI_NOTE_AUDIO_FIELDS] = fieldsWithAudio;
-        audio[ANKI_NOTE_AUDIO_SKIPHASH] = JAPANESE_POD_STUB_MD5;
-        note[ANKI_NOTE_AUDIO] = audio;
+        if (!fieldsWithAudio.isEmpty())
+        {
+            QJsonObject audio;
+            audio[ANKI_NOTE_URL] = AUDIO_URL_FORMAT_STRING.arg(*entry.m_kanji)
+                                                          .arg(*entry.m_kana);
+            audio[ANKI_NOTE_FILENAME] = audioFile;
+            audio[ANKI_NOTE_FIELDS] = fieldsWithAudio;
+            audio[ANKI_NOTE_SKIPHASH] = JAPANESE_POD_STUB_MD5;
+            note[ANKI_NOTE_AUDIO] = audio;
+        }
+        /*
+        else if (!fieldsWithAudioMedia.isEmpty())
+        {
+            QJsonObject audio;
+            audio[ANKI_NOTE_PATH] = "TODO";
+            audio[ANKI_NOTE_AUDIO_FILENAME] = audioFile;
+            audio[ANKI_NOTE_AUDIO_FIELDS] = fieldsWithAudio;
+            note[ANKI_NOTE_AUDIO] = audio;
+        }*/
+        
+        QJsonArray images;
+        if (!fieldsWithScreenshot.isEmpty())
+        {
+            QJsonObject image;
+            QString path = m_player->tempScreenshot(true);
+            image[ANKI_NOTE_PATH] = path;
+
+            QString filename = generateMD5(path) + ".png";
+            image[ANKI_NOTE_FILENAME] = filename;
+
+            image[ANKI_NOTE_FIELDS] = fieldsWithScreenshot;
+
+            images.append(image);
+        }
+
+        if (!fieldWithScreenshotVideo.isEmpty())
+        {
+            QJsonObject image;
+            QString path = m_player->tempScreenshot(false);
+            image[ANKI_NOTE_PATH] = path;
+
+            QString filename = generateMD5(path) + ".png";
+            image[ANKI_NOTE_FILENAME] = filename;
+            
+            image[ANKI_NOTE_FIELDS] = fieldWithScreenshotVideo;
+
+            images.append(image);
+        }
+
+        if (!images.isEmpty())
+        {
+            note[ANKI_NOTE_PICTURE] = images;
+        }    
     }
 
+    note[ANKI_NOTE_FIELDS] = fieldsObj;
+    note[ANKI_NOTE_TAGS] = m_currentConfig->tags;
+    
     return note;
+}
+
+QString AnkiClient::generateMD5(const QString &filename)
+{
+    QFile file(filename);
+    if (file.open(QFile::ReadOnly))
+    {
+        QCryptographicHash hasher(QCryptographicHash::Md5);
+        if (hasher.addData(&file))
+        {
+            return QString(hasher.result().toHex());
+        }
+    }
+    return "";
 }
 
 QString AnkiClient::buildGlossary(const QList<QList<QString>> &definitions)

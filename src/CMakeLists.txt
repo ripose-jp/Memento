@@ -1,7 +1,7 @@
 add_subdirectory(util)
 add_subdirectory(dict)
-add_subdirectory(anki)
 add_subdirectory(gui)
+add_subdirectory(anki)
 
 if(WIN32)
 	set(APP_ICON_RESOURCE_WINDOWS ../res/appicon.rc)

@@ -45,21 +45,21 @@ MainWindow::MainWindow(QWidget *parent)
     m_actionGroupSubtitle = new QActionGroup(this);
     m_ui->m_actionSubtitleNone->setActionGroup(m_actionGroupSubtitle);
 
-    // Anki
-    m_ankiClient = new AnkiClient(this);
-    m_ankiSettings = new AnkiSettings(m_ankiClient);
-    m_ankiSettings->hide();
-
-    m_actionGroupAnkiProfile = new QActionGroup(this);
-    updateAnkiProfileMenu();
-
     // Player behaviors
     m_player = new MpvAdapter(m_ui->m_mpv, this);
     m_player->pause();
 
+    // Anki
+    m_ankiClient = new AnkiClient(this, m_player);
+    m_ankiSettings = new AnkiSettings(m_ankiClient);
+    m_ankiSettings->hide();
+
     // Definitions
     m_definition = new DefinitionWidget(m_ankiClient, m_ui->m_mpv);
     m_ui->m_controls->setVolumeLimit(m_player->getMaxVolume());
+
+    m_actionGroupAnkiProfile = new QActionGroup(this);
+    updateAnkiProfileMenu();
 
     // Toolbar Actions
     connect(m_ui->m_actionOpen, &QAction::triggered, this, &MainWindow::open);
