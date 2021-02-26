@@ -451,7 +451,7 @@ static int decode_audio_frame(AVFrame *frame,
         if (input_packet.stream_index != audio_stream_idx || input_packet.pts < start_pts)
             goto cleanup;
         /* If we reach the ending position, mark as finished */
-        else if (input_packet.pts > end_pts) {
+        else if (input_packet.pts >= end_pts) {
             *finished = 1;
         }
     }
