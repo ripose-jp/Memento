@@ -21,6 +21,7 @@ find_library(SQLITE sqlite3)
 find_library(EXPAT expat)
 find_library(MPV_LIB mpv)
 find_library(MECAB_LIB mecab)
+find_library(FFMPEG ffmpeg)
 
 add_subdirectory(src)
 
