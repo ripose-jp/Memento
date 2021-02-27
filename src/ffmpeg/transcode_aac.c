@@ -144,7 +144,6 @@ static int open_input_file(const char *filename,
 /**
  * Seek to the start location and populate the start and end positions.
  * @param      input_format_contex  The format context to seek through
- * @param      input_codec_context  The codec context to seek through
  * @param      audio_stream_idx     The index of the audio stream to transcode
  * @param      start                Value to seek to in seconds
  * @param      end                  Value to end transcoding in seconds
@@ -153,30 +152,26 @@ static int open_input_file(const char *filename,
  * @return Error code (0 if successful)
  */
 static int seek_to_start(AVFormatContext *input_format_context,
-                         AVCodecContext *input_codec_context,
                          const size_t audio_stream_idx,
                          const double start, const double end,
                          int64_t *start_pts, int64_t *end_pts)
 {
     /* Convert seconds to AV timestamp */
-    AVRational default_timebase = av_make_q(1, AV_TIME_BASE);
+    const AVStream *stream = input_format_context->streams[audio_stream_idx];
+    AVRational default_timebase = {
+        1,
+        AV_TIME_BASE
+    };
     *start_pts = av_rescale_q((int64_t)(start * AV_TIME_BASE), 
                               default_timebase, 
-                              input_codec_context->time_base);
+                              stream->time_base);
     *end_pts   = av_rescale_q((int64_t)(end * AV_TIME_BASE), 
                               default_timebase, 
-                              input_codec_context->time_base);
+                              stream->time_base);
+
+    /* Seek to the starting point */
+    av_seek_frame(input_format_context, audio_stream_idx, *start_pts, 0);
     
-    /* Seek to the approximate starting point of the file */
-    int ret = avformat_seek_file(input_format_context, audio_stream_idx, INT64_MIN, *start_pts, INT64_MAX, 0);
-    if (ret < 0) {
-        fprintf(stderr, "Could not seek to the start time\n");
-        return ret;
-    }
-
-    /* Flush the codec buffers (needed after seeking) */
-    avcodec_flush_buffers(input_codec_context);
-
     return 0;
 }
 
@@ -879,7 +874,7 @@ int transcode_aac(const char *input_file, const char *output_file,
                         &input_format_context, &input_codec_context))
         goto cleanup;
     /* Seek to about the position and set the start and end postion */
-    if (seek_to_start(input_format_context, input_codec_context,
+    if (seek_to_start(input_format_context,
                       audio_stream_idx, start, end,
                       &start_pts, &end_pts))
         goto cleanup;

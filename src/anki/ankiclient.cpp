@@ -607,7 +607,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
                 );
 
                 QString filename = generateMD5(path) + ".aac";
-                audObj[ANKI_NOTE_FILENAME] = audioFile;
+                audObj[ANKI_NOTE_FILENAME] = filename;
                 audObj[ANKI_NOTE_FIELDS] = fieldsWithAudioMedia;
 
                 if (filename != ".aac")
