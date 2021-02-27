@@ -21,7 +21,15 @@ find_library(SQLITE sqlite3)
 find_library(EXPAT expat)
 find_library(MPV_LIB mpv)
 find_library(MECAB_LIB mecab)
-find_library(FFMPEG ffmpeg)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
+    libavformat
+    libavcodec
+    libswresample
+    libavutil
+)
+
 
 add_subdirectory(src)
 

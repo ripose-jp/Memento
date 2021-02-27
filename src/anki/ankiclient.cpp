@@ -21,12 +21,17 @@
 #include "ankiclient.h"
 
 #include "../util/directoryutils.h"
+extern "C"
+{
+    #include "../ffmpeg/transcode_aac.h"
+}
 
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QJsonArray>
 #include <QFile>
+#include <QTemporaryFile>
 #include <QTextStream>
 #include <QDebug>
 
@@ -572,25 +577,50 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
     // Add media secions to the request
     if (media)
     {
+        QJsonArray audio;
         if (!fieldsWithAudio.isEmpty())
         {
-            QJsonObject audio;
-            audio[ANKI_NOTE_URL] = AUDIO_URL_FORMAT_STRING.arg(*entry.m_kanji)
-                                                          .arg(*entry.m_kana);
-            audio[ANKI_NOTE_FILENAME] = audioFile;
-            audio[ANKI_NOTE_FIELDS] = fieldsWithAudio;
-            audio[ANKI_NOTE_SKIPHASH] = JAPANESE_POD_STUB_MD5;
+            QJsonObject audObj;
+            audObj[ANKI_NOTE_URL] = AUDIO_URL_FORMAT_STRING.arg(*entry.m_kanji)
+                                                           .arg(*entry.m_kana);
+            audObj[ANKI_NOTE_FILENAME] = audioFile;
+            audObj[ANKI_NOTE_FIELDS] = fieldsWithAudio;
+            audObj[ANKI_NOTE_SKIPHASH] = JAPANESE_POD_STUB_MD5;
+            audio.append(audObj);
+        }
+
+        if (!fieldsWithAudioMedia.isEmpty())
+        {
+            QJsonObject audObj;
+            QTemporaryFile temp;
+            if (temp.open()) {
+                QString path = temp.fileName() + ".aac";
+                temp.close();
+                temp.remove();
+
+                audObj[ANKI_NOTE_PATH] = path;
+
+                transcode_aac(
+                    m_player->getPath().toLatin1(), path.toLatin1(), 
+                    m_player->getAudioTrack() - 1,
+                    m_player->getSubStart(), m_player->getSubEnd()
+                );
+
+                QString filename = generateMD5(path) + ".aac";
+                audObj[ANKI_NOTE_FILENAME] = audioFile;
+                audObj[ANKI_NOTE_FIELDS] = fieldsWithAudioMedia;
+
+                if (filename != ".aac")
+                {
+                    audio.append(audObj);
+                }
+            }
+        }
+
+        if (!audio.isEmpty())
+        {
             note[ANKI_NOTE_AUDIO] = audio;
         }
-        /*
-        else if (!fieldsWithAudioMedia.isEmpty())
-        {
-            QJsonObject audio;
-            audio[ANKI_NOTE_PATH] = "TODO";
-            audio[ANKI_NOTE_AUDIO_FILENAME] = audioFile;
-            audio[ANKI_NOTE_AUDIO_FIELDS] = fieldsWithAudio;
-            note[ANKI_NOTE_AUDIO] = audio;
-        }*/
         
         QJsonArray images;
         if (!fieldsWithScreenshot.isEmpty())
@@ -604,7 +634,10 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
 
             image[ANKI_NOTE_FIELDS] = fieldsWithScreenshot;
 
-            images.append(image);
+            if (filename != ".png")
+            {
+                images.append(image);
+            }
         }
 
         if (!fieldWithScreenshotVideo.isEmpty())
@@ -618,7 +651,10 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
             
             image[ANKI_NOTE_FIELDS] = fieldWithScreenshotVideo;
 
-            images.append(image);
+            if (filename != ".png")
+            {
+                images.append(image);
+            }
         }
 
         if (!images.isEmpty())

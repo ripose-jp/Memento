@@ -85,7 +85,7 @@ static int open_input_file(const char *filename,
     }
 
     /* Find the index of the wanted audio stream */
-    for (*audio_stream_idx = 0; *audio_stream_idx < (*input_format_context)->nb_streams; *audio_stream_idx) {
+    for (*audio_stream_idx = 0; *audio_stream_idx < (*input_format_context)->nb_streams; ++*audio_stream_idx) {
         if ((*input_format_context)->streams[*audio_stream_idx]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             *audio_stream_idx += audio_stream_offset;
             break;
@@ -98,7 +98,7 @@ static int open_input_file(const char *filename,
     }
     else if ((*input_format_context)->streams[*audio_stream_idx]->codecpar->codec_type != AVMEDIA_TYPE_AUDIO)
     {
-        fprintf(stderr, "No audio stream found at index %d\n", *audio_stream_idx);
+        fprintf(stderr, "No audio stream found at index %ld\n", *audio_stream_idx);
         avformat_close_input(input_format_context);
         return AVERROR_EXIT;
     }

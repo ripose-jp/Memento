@@ -4,5 +4,5 @@ add_library(
 )
 target_link_libraries(
     transcoder
-    ${FFMPEG}
+    PkgConfig::LIBAV
 )
