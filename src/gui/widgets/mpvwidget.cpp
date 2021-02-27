@@ -314,7 +314,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                     double end;
                     mpv_get_property(mpv, "sub-end", MPV_FORMAT_DOUBLE, &end);
 
-                    Q_EMIT subtitleChanged(subtitle, start, end);
+                    Q_EMIT subtitleChanged(subtitle, start + delay, end + delay);
                 }
             }
         }
