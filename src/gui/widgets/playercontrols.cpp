@@ -43,10 +43,17 @@ PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent),
     m_ui->m_sliderVolume->setStyle(
         new SliderJumpStyle(m_ui->m_sliderVolume->style()));
 
-    connect(m_ui->m_sliderProgress, &QSlider::sliderPressed,
-        this, &PlayerControls::pause);
-    connect(m_ui->m_sliderProgress, &QSlider::sliderReleased,
-        this, &PlayerControls::play);
+    connect(m_ui->m_sliderProgress, &QSlider::sliderPressed, [=] {
+        blockSignals(true);
+        Q_EMIT pause();
+        blockSignals(false);
+    });
+    connect(m_ui->m_sliderProgress, &QSlider::sliderReleased, [=] {
+        if (!m_paused)
+        {
+            Q_EMIT play();
+        }
+    });
     connect(m_ui->m_sliderProgress, &QSlider::valueChanged,
         this, &PlayerControls::sliderMoved, Qt::QueuedConnection);
 
@@ -132,16 +139,9 @@ void PlayerControls::setPosition(const double value)
 void PlayerControls::setPaused(const bool paused)
 {
     m_paused = paused;
-    if (m_paused)
-    {
-        m_ui->m_buttonPlay->setIcon(
-            m_iconFactory->getIcon(IconFactory::Icon::play));
-    }
-    else
-    {
-        m_ui->m_buttonPlay->setIcon(
-            m_iconFactory->getIcon(IconFactory::Icon::pause));
-    }
+    m_ui->m_buttonPlay->setIcon(
+        m_iconFactory->getIcon(
+            m_paused ? IconFactory::Icon::play : IconFactory::Icon::pause));
 }
 
 void PlayerControls::pauseResume()
