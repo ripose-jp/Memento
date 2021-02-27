@@ -600,7 +600,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
 
                 audObj[ANKI_NOTE_PATH] = path;
 
-                transcode_aac(
+                int ret = transcode_aac(
                     m_player->getPath().toLatin1(), path.toLatin1(), 
                     m_player->getAudioTrack() - 1,
                     m_player->getSubStart() + m_player->getSubDelay(),
@@ -611,7 +611,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
                 audObj[ANKI_NOTE_FILENAME] = filename;
                 audObj[ANKI_NOTE_FIELDS] = fieldsWithAudioMedia;
 
-                if (filename != ".aac")
+                if (ret == 0 && filename != ".aac")
                 {
                     audio.append(audObj);
                 }
