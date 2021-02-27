@@ -210,7 +210,7 @@ void MpvAdapter::stop()
         "stop",
         NULL
     };
-    if (mpv_command_async(m_handle, -1, args) < 0)
+    if (mpv_command(m_handle, args) < 0)
     {
         qDebug() << "Could not stop mpv";
     }
@@ -223,7 +223,7 @@ void MpvAdapter::seekForward()
         "1",
         NULL
     };
-    if (mpv_command_async(m_handle, -1, args) < 0)
+    if (mpv_command(m_handle, args) < 0)
     {
         qDebug() << "Could not seek the next subtitle";
     }
@@ -236,7 +236,7 @@ void MpvAdapter::seekBackward()
         "-1",
         NULL
     };
-    if (mpv_command_async(m_handle, -1, args) < 0)
+    if (mpv_command(m_handle, args) < 0)
     {
         qDebug() << "Could not seek the last subtitle";
     }
@@ -248,7 +248,7 @@ void MpvAdapter::skipForward()
         "playlist-next",
         NULL
     };
-    if (mpv_command_async(m_handle, -1, args) < 0)
+    if (mpv_command(m_handle, args) < 0)
     {
         qDebug() << "Could not skip to the next file in the playlist";
     }
@@ -260,7 +260,7 @@ void MpvAdapter::skipBackward()
         "playlist-prev",
         NULL
     };
-    if (mpv_command_async(m_handle, -1, args) < 0)
+    if (mpv_command(m_handle, args) < 0)
     {
         qDebug() << "Could not skip to the next file in the playlist";
     }
@@ -268,8 +268,8 @@ void MpvAdapter::skipBackward()
 
 void MpvAdapter::disableAudio()
 {
-    char arg[] = "no";
-    if (mpv_set_property(m_handle, "aid", MPV_FORMAT_STRING, arg) < 0)
+    const char *value = "no";
+    if (mpv_set_property(m_handle, "aid", MPV_FORMAT_STRING, &value) < 0)
     {
         qDebug() << "Could not set mpv property aid to no";
     }
@@ -277,8 +277,8 @@ void MpvAdapter::disableAudio()
 
 void MpvAdapter::disableVideo()
 {
-    char arg[] = "no";
-    if (mpv_set_property(m_handle, "vid", MPV_FORMAT_STRING, arg) < 0)
+    const char *value = "no";
+    if (mpv_set_property(m_handle, "vid", MPV_FORMAT_STRING, &value) < 0)
     {
         qDebug() << "Could not set mpv property vid to no";
     }
@@ -286,8 +286,8 @@ void MpvAdapter::disableVideo()
 
 void MpvAdapter::disableSubtitles()
 {
-    char arg[] = "no";
-    if (mpv_set_property(m_handle, "sid", MPV_FORMAT_STRING, arg) < 0)
+    const char *value = "no";
+    if (mpv_set_property(m_handle, "sid", MPV_FORMAT_STRING, &value) < 0)
     {
         qDebug() << "Could not set mpv property sid to no";
     }
