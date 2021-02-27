@@ -10,6 +10,7 @@ Memento is a FOSS, mpv-based video player intended for studying Japanese.
 
 * Qt5
 * mpv
+* ffmpeg
 * sqlite3
 * MeCab
 * Apache Expat XML Parser
@@ -91,8 +92,6 @@ ftp://ftp.monash.edu.au/pub/nihongo/JMdict.gz
 
 ## To-do
 
-* Improve query speed.
-* Display subtitles over the video player.
 * Compile an OS X version.
 
 ## Acknowledgements
