@@ -23,6 +23,8 @@
 #include "definitionwidget.h"
 #include "../../util/directoryutils.h"
 
+#include <QApplication>
+#include <QClipboard>
 #include <QThreadPool>
 #include <QDebug>
 
@@ -52,7 +54,8 @@ void SubtitleWidget::jmDictUpdated()
 
 void SubtitleWidget::updateText(const QString &text)
 {
-    setText(text);
+    m_rawText = text;
+    setText(m_rawText.replace(QChar::fromLatin1('\n'), "/"));
     setAlignment(Qt::AlignCenter);
     m_currentIndex = -1;
 }
@@ -66,7 +69,8 @@ void SubtitleWidget::deselectText()
 void SubtitleWidget::findEntry()
 {
     int index = m_currentIndex;
-    QString queryStr = text().remove(0, index);
+    QString queryStr = m_rawText;
+    queryStr.remove(0, index);
     queryStr.truncate(MAX_QUERY_LENGTH);
     if (queryStr.isEmpty())
     {
@@ -75,7 +79,7 @@ void SubtitleWidget::findEntry()
 
     QThreadPool::globalInstance()->start([=] () {
         QList<Entry *> *entries = 
-            m_dictionary->search(queryStr, text(), index, &m_currentIndex);
+            m_dictionary->search(queryStr, m_rawText, index, &m_currentIndex);
         
         if (index != m_currentIndex)
         {
@@ -100,6 +104,11 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
         m_findDelay->start(TIMER_DELAY);
     }
     event->ignore();
+}
+
+void SubtitleWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    QApplication::clipboard()->setText(m_rawText);
 }
 
 void SubtitleWidget::leaveEvent(QEvent *event)

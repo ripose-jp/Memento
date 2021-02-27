@@ -46,6 +46,7 @@ Q_SIGNALS:
 
 protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
@@ -55,6 +56,7 @@ private:
     Dictionary *m_dictionary;
     int m_currentIndex;
     QTimer *m_findDelay;
+    QString m_rawText;
 
     void deleteEntries(QList<Entry *> *entries);
 };

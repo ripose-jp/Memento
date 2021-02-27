@@ -55,7 +55,7 @@ Q_SIGNALS:
     void audioDisabled();
     void videoDisabled();
     void subtitleDisabled();
-    void subtitleChanged(const char **subtitle, 
+    void subtitleChanged(const QString &subtitle, 
                          const double start, 
                          const double end);
     void hideCursor();

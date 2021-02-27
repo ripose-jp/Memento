@@ -43,7 +43,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
         this, &MpvAdapter::subtitleDisabled);
 
     connect(m_mpv, &MpvWidget::subtitleChanged,
-        this, &MpvAdapter::processSubtitle);
+        this, &MpvAdapter::subtitleChanged);
     connect(m_mpv, &MpvWidget::durationChanged,
         this, &MpvAdapter::durationChanged);
     connect(m_mpv, &MpvWidget::positionChanged,
@@ -469,15 +469,6 @@ void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
         qDebug() << "Could not send keypress command for direction"
                  << direction;
     }
-}
-
-void MpvAdapter::processSubtitle(const char **subtitle,
-                                 const double start,
-                                 const double end)
-{
-    QString formatted = *subtitle;
-    formatted = formatted.replace(QChar::fromLatin1('\n'), " / ");
-    Q_EMIT subtitleChanged(formatted, start, end);
 }
 
 // Code modified from loadTracks()
