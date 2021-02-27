@@ -27,7 +27,6 @@
 
 #include <mpv/client.h>
 #include <mpv/render_gl.h>
-#include "qthelper.h"
 
 #include "../../util/directoryutils.h"
 
@@ -38,30 +37,27 @@ class MpvWidget Q_DECL_FINAL : public QOpenGLWidget
 public:
     MpvWidget(QWidget *parent = 0);
     ~MpvWidget();
-    QVariant command(const QVariant &params);
-    void asyncCommand(const QVariant &args);
-    void setProperty(const QString &name, const QVariant &value);
-    QVariant getProperty(const QString &name) const;
+
     QSize sizeHint() const { return QSize(480, 270); }
     mpv_handle *get_handle() { return mpv; }
 
 Q_SIGNALS:
-    void durationChanged(int value);
-    void positionChanged(int value);
-    void volumeChanged(int value);
-    void stateChanged(bool paused);
-    void fullscreenChanged(bool full);
-    void tracklistChanged(mpv_node *node);
+    void durationChanged(const double value);
+    void positionChanged(const double value);
+    void volumeChanged(const int value);
+    void stateChanged(const bool paused);
+    void fullscreenChanged(const bool full);
+    void tracklistChanged(const mpv_node *node);
     void titleChanged(const char **name);
-    void videoTrackChanged(int64_t id);
-    void audioTrackChanged(int64_t id);
-    void subtitleTrackChanged(int64_t id);
+    void videoTrackChanged(const int64_t id);
+    void audioTrackChanged(const int64_t id);
+    void subtitleTrackChanged(const int64_t id);
     void audioDisabled();
     void videoDisabled();
     void subtitleDisabled();
     void subtitleChanged(const char **subtitle, 
-                         const int64_t start, 
-                         const int64_t end);
+                         const double start, 
+                         const double end);
     void hideCursor();
     void shutdown();
 
@@ -84,9 +80,9 @@ private:
     mpv_handle *mpv;
     mpv_render_context *mpv_gl;
     QTimer *m_cursorTimer;
-    #if __linux__
-        uint32_t dbus_cookie;
-    #endif
+#if __linux__
+    uint32_t dbus_cookie;
+#endif
 };
 
 #endif // MPVWIDGET_H

@@ -23,8 +23,8 @@
 #include <QDebug>
 #include <QTemporaryFile>
 
-MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv),
-                                                          PlayerAdapter(parent)
+MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
+    : m_mpv(mpv), m_handle(mpv->get_handle()), PlayerAdapter(parent)
 {
     connect(m_mpv, &MpvWidget::tracklistChanged, 
         this, &MpvAdapter::processTracks);
@@ -61,16 +61,101 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent) : m_mpv(mpv),
     connect(m_mpv, &MpvWidget::shutdown, this, &MpvAdapter::close);
 }
 
+int64_t MpvAdapter::getMaxVolume() const
+{
+    int64_t max;
+    if (mpv_get_property(m_handle, "volume-max", MPV_FORMAT_INT64, &max) < 0)
+    {
+        qDebug() << "Could not get volume-max property";
+        return 0;
+    }
+    return max;
+}
+
+double MpvAdapter::getSubStart() const
+{
+    double start;
+    if (mpv_get_property(m_handle, "sub-start", MPV_FORMAT_DOUBLE, &start) < 0)
+    {
+        qDebug() << "Could not get sub-start property";
+        return 0;
+    }
+    return start;
+}
+
+double MpvAdapter::getSubEnd() const
+{
+    double end;
+    if (mpv_get_property(m_handle, "sub-end", MPV_FORMAT_DOUBLE, &end) < 0)
+    {
+        qDebug() << "Could not get sub-end property";
+        return 0;
+    }
+    return end;
+}
+
+double MpvAdapter::getSubDelay() const
+{
+    double delay;
+    if (mpv_get_property(m_handle, "sub-delay", MPV_FORMAT_DOUBLE, &delay) < 0)
+    {
+        qDebug() << "Could not get sub-delay property";
+        return 0;
+    }
+    return delay;
+}
+    
+double MpvAdapter::getAudioDelay() const
+{
+    double delay;
+    if (mpv_get_property(m_handle, "audio-delay", MPV_FORMAT_DOUBLE, &delay) < 0)
+    {
+        qDebug() << "Could not get mpv delay property";
+        return 0;
+    }
+    return delay;
+}
+
+int64_t MpvAdapter::getAudioTrack() const
+{
+    int64_t track;
+    if (mpv_get_property(m_handle, "aid", MPV_FORMAT_INT64, &track) < 0)
+    {
+        qDebug() << "Could not get mpv aid property";
+        return 0;
+    }
+    return track;
+}
+
+QString MpvAdapter::getPath() const
+{
+    char *path = NULL;
+    if (mpv_get_property(m_handle, "path", MPV_FORMAT_STRING, &path) < 0)
+    {
+        qDebug() << "Could not get mpv path property";
+        return "";
+    }
+    QString path_str(path);
+    mpv_free(path);
+    return path_str;
+}
+
 void MpvAdapter::open(const QString &file, const bool append)
 {
     if (file.isEmpty())
         return;
     
-    QStringList command;
-    command << "loadfile" << file;
-    if (append)
-        command << "append";
-    m_mpv->command(command);
+    const char *args[4] = {
+        "loadfile",
+        file.toLatin1().data(),
+        append ? "append" : NULL,
+        NULL
+    };
+    
+    if (mpv_command(m_handle, args) < 0)
+    {
+        qDebug() << "Could not open file" << file;
+    }
 }
 
 void MpvAdapter::open(const QList<QUrl> &files)
@@ -81,107 +166,193 @@ void MpvAdapter::open(const QList<QUrl> &files)
     open(files.first().toLocalFile()); // mpv won't start with loadfile append
     for (auto it = files.begin() + 1; it != files.end(); ++it)
     {
-        if (!(*it).toLocalFile().isEmpty())
-            open((*it).toLocalFile(), true);
+        if (!it->toLocalFile().isEmpty())
+            open(it->toLocalFile(), true);
     }
 }
 
-void MpvAdapter::seek(const int time)
+void MpvAdapter::seek(const int64_t time)
 {
-    m_mpv->asyncCommand(QVariantList() << "seek" << time << "absolute");
+    QString timestr = QString::number(time);
+    const char *args[4] = {
+        "seek",
+        timestr.toLatin1().data(),
+        "absolute",
+        NULL
+    };
+    if (mpv_command_async(m_handle, -1, args) < 0)
+    {
+        qDebug() << "Seeking failed";
+    }
 }
 
 void MpvAdapter::play()
 {
-    m_mpv->setProperty("pause", false);
+    int flag = 0;
+    if (mpv_set_property(m_handle, "pause", MPV_FORMAT_FLAG, &flag) < 0)
+    {
+        qDebug() << "Could not set mpv property pause to false";
+    }
 }
 
 void MpvAdapter::pause()
 {
-    m_mpv->setProperty("pause", true);
+    int flag = 1;
+    if (mpv_set_property(m_handle, "pause", MPV_FORMAT_FLAG, &flag) < 0)
+    {
+        qDebug() << "Could not set mpv property pause to true";
+    }
 }
 
 void MpvAdapter::stop()
 {
-    m_mpv->asyncCommand(QVariantList() << "stop");
+    const char *args[2] = {
+        "stop",
+        NULL
+    };
+    if (mpv_command_async(m_handle, -1, args) < 0)
+    {
+        qDebug() << "Could not stop mpv";
+    }
 }
 
 void MpvAdapter::seekForward()
 {
-    m_mpv->asyncCommand(QVariantList() << "sub-seek" << 1);
+    const char *args[3] = {
+        "sub-seek",
+        "1",
+        NULL
+    };
+    if (mpv_command_async(m_handle, -1, args) < 0)
+    {
+        qDebug() << "Could not seek the next subtitle";
+    }
 }
 
 void MpvAdapter::seekBackward()
 {
-    m_mpv->asyncCommand(QVariantList() << "sub-seek" << -1);
+    const char *args[3] = {
+        "sub-seek",
+        "-1",
+        NULL
+    };
+    if (mpv_command_async(m_handle, -1, args) < 0)
+    {
+        qDebug() << "Could not seek the last subtitle";
+    }
 }
 
 void MpvAdapter::skipForward()
 {
-    m_mpv->asyncCommand(QVariantList() << "playlist-next");
+    const char *args[2] = {
+        "playlist-next",
+        NULL
+    };
+    if (mpv_command_async(m_handle, -1, args) < 0)
+    {
+        qDebug() << "Could not skip to the next file in the playlist";
+    }
 }
 
 void MpvAdapter::skipBackward()
 {
-    m_mpv->asyncCommand(QVariantList() << "playlist-prev");
+    const char *args[2] = {
+        "playlist-prev",
+        NULL
+    };
+    if (mpv_command_async(m_handle, -1, args) < 0)
+    {
+        qDebug() << "Could not skip to the next file in the playlist";
+    }
 }
 
 void MpvAdapter::disableAudio()
 {
-    m_mpv->setProperty("aid", "no");
+    char arg[] = "no";
+    if (mpv_set_property(m_handle, "aid", MPV_FORMAT_STRING, arg) < 0)
+    {
+        qDebug() << "Could not set mpv property aid to no";
+    }
 }
 
 void MpvAdapter::disableVideo()
 {
-    m_mpv->setProperty("vid", "no");
+    char arg[] = "no";
+    if (mpv_set_property(m_handle, "vid", MPV_FORMAT_STRING, arg) < 0)
+    {
+        qDebug() << "Could not set mpv property vid to no";
+    }
 }
 
 void MpvAdapter::disableSubtitles()
 {
-    m_mpv->setProperty("sid", "no");
+    char arg[] = "no";
+    if (mpv_set_property(m_handle, "sid", MPV_FORMAT_STRING, arg) < 0)
+    {
+        qDebug() << "Could not set mpv property sid to no";
+    }
 }
 
-void MpvAdapter::setAudioTrack(const int id)
+void MpvAdapter::setAudioTrack(int64_t id)
 {
-    m_mpv->setProperty("aid", id);
+    if (mpv_set_property(m_handle, "aid", MPV_FORMAT_INT64, &id) < 0)
+    {
+        qDebug() << "Could not set mpv property aid";
+    }
 }
 
-void MpvAdapter::setVideoTrack(const int id)
+void MpvAdapter::setVideoTrack(int64_t id)
 {
-    m_mpv->setProperty("vid", id);
+    if (mpv_set_property(m_handle, "vid", MPV_FORMAT_INT64, &id) < 0)
+    {
+        qDebug() << "Could not set mpv property vid";
+    }
 }
 
-void MpvAdapter::setSubtitleTrack(const int id)
+void MpvAdapter::setSubtitleTrack(int64_t id)
 {
-    m_mpv->setProperty("sid", id);
+    if (mpv_set_property(m_handle, "sid", MPV_FORMAT_INT64, &id) < 0)
+    {
+        qDebug() << "Could not set mpv property sid";
+    }
 }
 
-void MpvAdapter::setFullscreen(const bool value)
+void MpvAdapter::setFullscreen(bool value)
 {
-    m_mpv->setProperty("fullscreen", value);
+    if (mpv_set_property(m_handle, "fullscreen", MPV_FORMAT_FLAG, &value) < 0)
+    {
+        qDebug() << "Could not set mpv property fullscreen";
+    }
 }
 
-void MpvAdapter::setVolume(const int value)
+void MpvAdapter::setVolume(int64_t value)
 {
-    m_mpv->setProperty("volume", value);
+    if (mpv_set_property(m_handle, "volume", MPV_FORMAT_INT64, &value) < 0)
+    {
+        qDebug() << "Could not set mpv property volume";
+    }
 }
 
 QString MpvAdapter::tempScreenshot(const bool subtitles)
 {
-    const char *args[4];
-    args[0] = "screenshot-to-file";
-
     // Get a temporary file name
     QTemporaryFile file;
-    file.open();
+    if (!file.open())
+        return "";
     QString filename = file.fileName() + ".png";
     file.close();
 
-    args[1] = filename.toLatin1();
-    args[2] = subtitles ? NULL : "video";
-    args[3] = NULL;
-
-    mpv_command(m_mpv->get_handle(), args);
+    const char *args[4] = {
+        "screenshot-to-file",
+        filename.toLatin1().data(),
+        subtitles ? NULL : "video",
+        NULL
+    };
+    if (mpv_command(m_handle, args) < 0)
+    {
+        qDebug() << "Could not take temporary screenshot";
+        return "";
+    }
 
     return filename;
 }
@@ -256,7 +427,16 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
             key = event->text();
     }
     }
-    m_mpv->command(QVariantList() << "keypress" << key);
+
+    const char *args[3] = {
+        "keypress",
+        key.toLatin1().data(),
+        NULL
+    };
+    if (mpv_command_async(m_handle, -1, args) < 0)
+    {
+        qDebug() << "Could not send keypress command for key" << key;
+    }
 }
 
 void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
@@ -278,17 +458,22 @@ void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
     {
         direction += "LEFT";
     }
-    m_mpv->command(QVariantList() << "keypress" << direction);
-}
 
-int MpvAdapter::getMaxVolume() const
-{
-    return m_mpv->getProperty("volume-max").toInt();
+    const char *args[3] = {
+        "keypress",
+        direction.toLatin1().data(),
+        NULL
+    };
+    if (mpv_command_async(m_handle, -1, args) < 0)
+    {
+        qDebug() << "Could not send keypress command for direction"
+                 << direction;
+    }
 }
 
 void MpvAdapter::processSubtitle(const char **subtitle,
-                                 const int64_t start,
-                                 const int64_t end)
+                                 const double start,
+                                 const double end)
 {
     QString formatted = *subtitle;
     formatted = formatted.replace(QChar::fromLatin1('\n'), " / ");

@@ -40,8 +40,8 @@
 
 static void wakeup(void *ctx)
 {
-    QMetaObject::invokeMethod((MpvWidget *)ctx, "on_mpv_events",
-                              Qt::QueuedConnection);
+    QMetaObject::invokeMethod(
+        (MpvWidget *)ctx, "on_mpv_events", Qt::QueuedConnection);
 }
 
 static void *get_proc_address(void *ctx, const char *name)
@@ -53,8 +53,8 @@ static void *get_proc_address(void *ctx, const char *name)
     return reinterpret_cast<void *>(glctx->getProcAddress(QByteArray(name)));
 }
 
-MpvWidget::MpvWidget(QWidget *parent) : QOpenGLWidget(parent),
-                                        m_cursorTimer(new QTimer(this))
+MpvWidget::MpvWidget(QWidget *parent)
+    : QOpenGLWidget(parent), m_cursorTimer(new QTimer(this))
 {
     m_cursorTimer->setSingleShot(true);
 
@@ -103,34 +103,6 @@ MpvWidget::~MpvWidget()
         mpv_render_context_free(mpv_gl);
     mpv_terminate_destroy(mpv);
     delete m_cursorTimer;
-}
-
-QVariant MpvWidget::command(const QVariant &params)
-{
-    QVariant result = mpv::qt::command(mpv, params);
-    if (mpv::qt::is_error(result))
-        qDebug() << ERROR_STR << mpv::qt::get_error(result);
-    return result;
-}
-
-void MpvWidget::asyncCommand(const QVariant &args)
-{
-    mpv::qt::node_builder node(args);
-    int err = mpv_command_node_async(mpv, ASYNC_COMMAND_REPLY, node.node());
-    if (err < 0)
-        qDebug() << ERROR_STR << err;
-}
-
-void MpvWidget::setProperty(const QString &name, const QVariant &value)
-{
-    int err = mpv::qt::set_property(mpv, name, value);
-    if (err < 0)
-        qDebug() << ERROR_STR << err;
-}
-
-QVariant MpvWidget::getProperty(const QString &name) const
-{
-    return mpv::qt::get_property_variant(mpv, name);
 }
 
 void MpvWidget::initializeGL()
@@ -213,12 +185,12 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                 bool paused = *(int *) prop->data;
 
                 // Keep the computer from going to sleep
-                #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+            #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
                     SetThreadExecutionState(paused ? ES_CONTINUOUS : 
                                                      ES_CONTINUOUS | 
                                                      ES_SYSTEM_REQUIRED | 
                                                      ES_AWAYMODE_REQUIRED);
-                #elif __linux__
+            #elif __linux__
                     QDBusInterface screenSaver("org.freedesktop.ScreenSaver",
                                                "/org/freedesktop/ScreenSaver");
                     if (paused)
@@ -257,9 +229,9 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                                         "org.freedesktop.ScreenSaver";
                         }     
                     }
-                #else
-                    #error "OS not supported"
-                #endif
+            #else
+                #error "OS not supported"
+            #endif
                 
                 Q_EMIT stateChanged(paused);
             }
@@ -335,11 +307,13 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                 const char **subtitle = (const char **) prop->data;
                 if (strcmp(*subtitle, ""))
                 {
-                    const int64_t delay = getProperty("sub-delay").toInt();
-                    const int64_t start = 
-                        getProperty("sub-start").toInt() + delay;
-                    const int64_t end = 
-                        getProperty("sub-end").toInt() + delay;
+                    double delay;
+                    mpv_get_property(mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay);
+                    double start;
+                    mpv_get_property(mpv, "sub-start", MPV_FORMAT_DOUBLE, &start);
+                    double end;
+                    mpv_get_property(mpv, "sub-end", MPV_FORMAT_DOUBLE, &end);
+
                     Q_EMIT subtitleChanged(subtitle, start, end);
                 }
             }
@@ -401,13 +375,28 @@ void MpvWidget::mouseMoveEvent(QMouseEvent *event)
 
 void MpvWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    command(QVariantList() << "keypress" << convertToMouseString(event));
+    const char *args[3] = {
+        "keypress",
+        convertToMouseString(event).toLatin1().data(),
+        NULL
+    };
+    if (mpv_command_async(mpv, -1, args) < 0)
+    {
+        qDebug() << "Could not send click event to mpv";
+    }
 }
 
 void MpvWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    command(QVariantList() << "keypress" 
-                           << convertToMouseString(event) + "_DBL");
+    const char *args[3] = {
+        "keypress",
+        (convertToMouseString(event) + "_DBL").toLatin1().data(),
+        NULL
+    };
+    if (mpv_command_async(mpv, -1, args) < 0)
+    {
+        qDebug() << "Could not send double click event to mpv";
+    }
 }
 
 QString MpvWidget::convertToMouseString(const QMouseEvent *event) const

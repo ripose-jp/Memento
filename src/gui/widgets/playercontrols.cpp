@@ -27,6 +27,7 @@
 #define FILL_SPACES 2
 #define BASE_TEN 10
 #define FILL_CHAR '0'
+#define DOUBLE_DELTA 0.05
 
 PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent), 
                                                   m_ui(new Ui::PlayerControls)
@@ -104,7 +105,7 @@ void PlayerControls::setIcons()
         m_iconFactory->getIcon(IconFactory::Icon::skip_forward));
 }
 
-void PlayerControls::setDuration(const int value)
+void PlayerControls::setDuration(const double value)
 {
     setPosition(0);
     m_duration = value;
@@ -114,7 +115,7 @@ void PlayerControls::setDuration(const int value)
     m_ui->m_labelTotal->setText(formatTime(value));
 }
 
-void PlayerControls::setPosition(const int value)
+void PlayerControls::setPosition(const double value)
 {
     if (value > m_duration)
         return;
@@ -124,7 +125,7 @@ void PlayerControls::setPosition(const int value)
     m_ui->m_sliderProgress->blockSignals(false);
     m_ui->m_labelCurrent->setText(formatTime(value));
 
-    if (value < m_startTime - 1 || value > m_endTime)
+    if (value < m_startTime - DOUBLE_DELTA || value > m_endTime + DOUBLE_DELTA)
         m_ui->m_subtitle->updateText("");
 }
 
@@ -175,12 +176,12 @@ void PlayerControls::toggleFullscreen()
     Q_EMIT fullscreenChanged(!m_fullscreen);
 }
 
-void PlayerControls::setVolumeLimit(const int value)
+void PlayerControls::setVolumeLimit(const int64_t value)
 {
     m_ui->m_sliderVolume->setRange(0, value);
 }
 
-void PlayerControls::setVolume(const int value)
+void PlayerControls::setVolume(const int64_t value)
 {
     m_ui->m_sliderVolume->blockSignals(true);
     m_ui->m_sliderVolume->setValue(value);
@@ -190,8 +191,8 @@ void PlayerControls::setVolume(const int value)
 }
 
 void PlayerControls::setSubtitle(const QString &subtitle,
-                                 const int start, 
-                                 const int end)
+                                 const double start, 
+                                 const double end)
 {
     m_ui->m_subtitle->updateText(subtitle);
     m_startTime = start;

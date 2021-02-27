@@ -41,13 +41,15 @@ public:
     ~PlayerControls();
 
 public Q_SLOTS:
-    void setDuration(const int value);
+    void setDuration(const double value);
     void setPaused(const bool paused);
     void setFullscreen(const bool value);
-    void setVolumeLimit(const int value);
-    void setVolume(const int value);
-    void setPosition(const int value);
-    void setSubtitle(const QString &subtitle, const int start, const int end);
+    void setVolumeLimit(const int64_t value);
+    void setVolume(const int64_t value);
+    void setPosition(const double value);
+    void setSubtitle(const QString &subtitle,
+                     const double start,
+                     const double end);
 
 Q_SIGNALS:
     void play();
@@ -76,9 +78,9 @@ private:
     Ui::PlayerControls *m_ui;
     bool m_paused;
     bool m_fullscreen;
-    int m_duration;
-    int m_startTime;
-    int m_endTime;
+    double m_duration;
+    double m_startTime;
+    double m_endTime;
     IconFactory *m_iconFactory;
 
     QString formatTime(int time);
