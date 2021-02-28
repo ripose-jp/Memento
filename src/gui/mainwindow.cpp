@@ -541,8 +541,8 @@ void MainWindow::checkForUpdates()
                 if (replyDoc.isNull() ||
                     !replyDoc.isArray() || 
                     replyDoc.array().isEmpty() ||
-                    !replyDoc.array().last().isObject() ||
-                    !replyDoc.array().last().toObject()["tag_name"].isString())
+                    !replyDoc.array().first().isObject() ||
+                    !replyDoc.array().first().toObject()["tag_name"].isString())
                 {
                     Q_EMIT threadError(
                         "Error", 
@@ -554,9 +554,9 @@ void MainWindow::checkForUpdates()
                 else 
                 {
                     QString tag = replyDoc.array()
-                                           .last()
-                                           .toObject()["tag_name"]
-                                           .toString();
+                                          .first()
+                                          .toObject()["tag_name"]
+                                          .toString();
                     if (tag != VERSION)
                     {
                         Q_EMIT threadInfo(
