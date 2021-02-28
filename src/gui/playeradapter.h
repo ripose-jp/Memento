@@ -85,10 +85,12 @@ public Q_SLOTS:
     virtual void disableAudio() = 0;
     virtual void disableVideo() = 0;
     virtual void disableSubtitles() = 0;
+    virtual void disableSubtitleTwo() = 0;
 
-    virtual void setAudioTrack(const int64_t id) = 0;
-    virtual void setVideoTrack(const int64_t id) = 0;
-    virtual void setSubtitleTrack(const int64_t id) = 0;
+    virtual void setAudioTrack(int64_t id) = 0;
+    virtual void setVideoTrack(int64_t id) = 0;
+    virtual void setSubtitleTrack(int64_t id) = 0;
+    virtual void setSubtitleTwoTrack(int64_t id) = 0;
 
     virtual void setFullscreen(const bool value) = 0;
     virtual void setVolume(const int64_t value) = 0;
@@ -102,10 +104,12 @@ Q_SIGNALS:
     void audioTrackChanged(const int64_t id);
     void videoTrackChanged(const int64_t id);
     void subtitleTrackChanged(const int64_t id);
+    void subtitleTwoTrackChanged(const int64_t id);
 
     void audioDisabled();
     void videoDisabled();
     void subtitleDisabled();
+    void subtitleTwoDisabled();
 
     void subtitleChanged(const QString &subtitle,
                          const double start,

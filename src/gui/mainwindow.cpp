@@ -44,6 +44,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->m_actionVideoNone->setActionGroup(m_actionGroupVideo);
     m_actionGroupSubtitle = new QActionGroup(this);
     m_ui->m_actionSubtitleNone->setActionGroup(m_actionGroupSubtitle);
+    m_actionGroupSubtitleTwo = new QActionGroup(this);
+    m_ui->m_actionSubtitleTwoNone->setActionGroup(m_actionGroupSubtitleTwo);
 
     // Player behaviors
     m_player = new MpvAdapter(m_ui->m_mpv, this);
@@ -142,6 +144,11 @@ MainWindow::MainWindow(QWidget *parent)
                 if(!m_subtitleTracks.isEmpty())
                     m_subtitleTracks[id - 1].first->setChecked(true);
             } );
+    connect(m_player, &PlayerAdapter::subtitleTwoTrackChanged,
+            [=] (const int id) {
+                if(!m_subtitleTwoTracks.isEmpty())
+                    m_subtitleTwoTracks[id - 1].first->setChecked(true);
+            } );
 
     connect(m_player, &PlayerAdapter::audioDisabled,
         [=] { m_ui->m_actionAudioNone->setChecked(true); } );
@@ -149,6 +156,8 @@ MainWindow::MainWindow(QWidget *parent)
         [=] { m_ui->m_actionVideoNone->setChecked(true); } );
     connect(m_player, &PlayerAdapter::subtitleDisabled,
         [=] { m_ui->m_actionSubtitleNone->setChecked(true); } );
+    connect(m_player, &PlayerAdapter::subtitleTwoDisabled,
+        [=] { m_ui->m_actionSubtitleTwoNone->setChecked(true); } );
 
     connect(m_ui->m_actionAudioNone, &QAction::triggered,
         m_player, &PlayerAdapter::disableAudio);
@@ -156,6 +165,8 @@ MainWindow::MainWindow(QWidget *parent)
         m_player, &PlayerAdapter::disableVideo);
     connect(m_ui->m_actionSubtitleNone, &QAction::triggered,
         m_player, &PlayerAdapter::disableSubtitles);
+    connect(m_ui->m_actionSubtitleTwoNone, &QAction::triggered,
+        m_player, &PlayerAdapter::disableSubtitleTwo);
 
     // Definition changes
     connect(m_ui->m_controls, &PlayerControls::entriesChanged,
@@ -182,6 +193,7 @@ MainWindow::~MainWindow()
     delete m_actionGroupAudio;
     delete m_actionGroupVideo;
     delete m_actionGroupSubtitle;
+    delete m_actionGroupSubtitleTwo;
     delete m_definition;
     delete m_ankiClient;
     delete m_ankiSettings;
@@ -307,6 +319,7 @@ void MainWindow::setTracks(QList<const PlayerAdapter::Track *> tracks)
             trackList = &m_videoTracks;
             break;
         case PlayerAdapter::Track::track_type::subtitle:
+        {
             m_ui->m_menuSubtitle->addAction(action);
             action->setActionGroup(m_actionGroupSubtitle);
             connect(action, &QAction::triggered, 
@@ -314,7 +327,21 @@ void MainWindow::setTracks(QList<const PlayerAdapter::Track *> tracks)
                     if (checked) m_player->setSubtitleTrack(track->id); 
                 } );
             trackList = &m_subtitleTracks;
+
+            QAction *actionSubTwo = new QAction(this);
+            actionSubTwo->setText(actionText);
+            actionSubTwo->setCheckable(true);
+            m_ui->m_menuSubtitleTwo->addAction(actionSubTwo);
+            actionSubTwo->setActionGroup(m_actionGroupSubtitleTwo);
+            connect(actionSubTwo, &QAction::triggered, 
+                [=] (const bool checked) { 
+                    if (checked) m_player->setSubtitleTwoTrack(track->id); 
+                } );
+            m_subtitleTwoTracks.push_back(
+                QPair<QAction *, const PlayerAdapter::Track *>
+                    (actionSubTwo, nullptr));
             break;
+        }
         }
         action->setChecked(track->selected);
         trackList->push_back(
@@ -411,6 +438,9 @@ void MainWindow::clearTracks()
                m_ui->m_actionVideoNone);
     clearTrack(m_subtitleTracks, m_ui->m_menuSubtitle, m_actionGroupSubtitle,
                m_ui->m_actionSubtitleNone);
+    clearTrack(m_subtitleTwoTracks, m_ui->m_menuSubtitleTwo,
+               m_actionGroupSubtitleTwo, m_ui->m_actionSubtitleTwoNone);
+    
 }
 
 void MainWindow::clearTrack(

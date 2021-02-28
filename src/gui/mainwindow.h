@@ -91,6 +91,8 @@ private:
     QList<QPair<QAction *, const PlayerAdapter::Track *>> m_videoTracks;
     QActionGroup *m_actionGroupSubtitle;
     QList<QPair<QAction *, const PlayerAdapter::Track *>> m_subtitleTracks;
+    QActionGroup *m_actionGroupSubtitleTwo;
+    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_subtitleTwoTracks;
 
     QActionGroup *m_actionGroupAnkiProfile;
     QList<QAction *> m_ankiProfiles;

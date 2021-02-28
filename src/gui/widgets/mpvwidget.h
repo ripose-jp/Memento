@@ -52,9 +52,11 @@ Q_SIGNALS:
     void videoTrackChanged(const int64_t id);
     void audioTrackChanged(const int64_t id);
     void subtitleTrackChanged(const int64_t id);
+    void subtitleTwoTrackChanged(const int64_t id);
     void audioDisabled();
     void videoDisabled();
     void subtitleDisabled();
+    void subtitleTwoDisabled();
     void subtitleChanged(const QString &subtitle, 
                          const double start, 
                          const double end);

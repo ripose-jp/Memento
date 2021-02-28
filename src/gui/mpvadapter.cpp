@@ -34,6 +34,8 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
         this, &MpvAdapter::videoTrackChanged);
     connect(m_mpv, &MpvWidget::subtitleTrackChanged,
         this, &MpvAdapter::subtitleTrackChanged);
+    connect(m_mpv, &MpvWidget::subtitleTwoTrackChanged,
+        this, &MpvAdapter::subtitleTwoTrackChanged);
 
     connect(m_mpv, &MpvWidget::audioDisabled,
         this, &MpvAdapter::audioDisabled);
@@ -41,6 +43,8 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
         this, &MpvAdapter::videoDisabled);
     connect(m_mpv, &MpvWidget::subtitleDisabled,
         this, &MpvAdapter::subtitleDisabled);
+    connect(m_mpv, &MpvWidget::subtitleTwoDisabled,
+        this, &MpvAdapter::subtitleTwoDisabled);
 
     connect(m_mpv, &MpvWidget::subtitleChanged,
         this, &MpvAdapter::subtitleChanged);
@@ -293,6 +297,15 @@ void MpvAdapter::disableSubtitles()
     }
 }
 
+void MpvAdapter::disableSubtitleTwo()
+{
+    const char *value = "no";
+    if (mpv_set_property(m_handle, "secondary-sid", MPV_FORMAT_STRING, &value) < 0)
+    {
+        qDebug() << "Could not set mpv property secondary-sid to no";
+    }
+}
+
 void MpvAdapter::setAudioTrack(int64_t id)
 {
     if (mpv_set_property(m_handle, "aid", MPV_FORMAT_INT64, &id) < 0)
@@ -314,6 +327,14 @@ void MpvAdapter::setSubtitleTrack(int64_t id)
     if (mpv_set_property(m_handle, "sid", MPV_FORMAT_INT64, &id) < 0)
     {
         qDebug() << "Could not set mpv property sid";
+    }
+}
+
+void MpvAdapter::setSubtitleTwoTrack(int64_t id)
+{
+    if (mpv_set_property(m_handle, "secondary-sid", MPV_FORMAT_INT64, &id) < 0)
+    {
+        qDebug() << "Could not set mpv property secondary-sid";
     }
 }
 

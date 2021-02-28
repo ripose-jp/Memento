@@ -61,10 +61,12 @@ public Q_SLOTS:
     void disableAudio() Q_DECL_OVERRIDE;
     void disableVideo() Q_DECL_OVERRIDE;
     void disableSubtitles() Q_DECL_OVERRIDE;
+    void disableSubtitleTwo() Q_DECL_OVERRIDE;
 
-    void setAudioTrack(const int64_t id) Q_DECL_OVERRIDE;
-    void setVideoTrack(const int64_t id) Q_DECL_OVERRIDE;
-    void setSubtitleTrack(const int64_t id) Q_DECL_OVERRIDE;
+    void setAudioTrack(int64_t id) Q_DECL_OVERRIDE;
+    void setVideoTrack(int64_t id) Q_DECL_OVERRIDE;
+    void setSubtitleTrack(int64_t id) Q_DECL_OVERRIDE;
+    void setSubtitleTwoTrack(int64_t id) Q_DECL_OVERRIDE;
 
     void setFullscreen(const bool value) Q_DECL_OVERRIDE;
     void setVolume(const int64_t value) Q_DECL_OVERRIDE;

@@ -128,15 +128,23 @@
     <property name="title">
      <string>Subtitle</string>
     </property>
+    <widget class="QMenu" name="m_menuSubtitleTwo">
+     <property name="title">
+      <string>Second Track</string>
+     </property>
+     <addaction name="m_actionSubtitleTwoNone"/>
+    </widget>
+    <addaction name="m_menuSubtitleTwo"/>
+    <addaction name="separator"/>
     <addaction name="m_actionSubtitleNone"/>
    </widget>
    <widget class="QMenu" name="m_menuSettings">
     <property name="geometry">
      <rect>
       <x>465</x>
-      <y>161</y>
+      <y>170</y>
       <width>200</width>
-      <height>147</height>
+      <height>151</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -153,8 +161,8 @@
       <rect>
        <x>664</x>
        <y>189</y>
-       <width>136</width>
-       <height>56</height>
+       <width>142</width>
+       <height>60</height>
       </rect>
      </property>
      <property name="title">
@@ -229,6 +237,17 @@
    </property>
    <property name="text">
     <string>Default</string>
+   </property>
+  </action>
+  <action name="m_actionSubtitleTwoNone">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>None</string>
    </property>
   </action>
  </widget>

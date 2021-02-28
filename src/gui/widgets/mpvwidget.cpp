@@ -84,10 +84,12 @@ MpvWidget::MpvWidget(QWidget *parent)
     mpv_observe_property(mpv, 0, "aid", MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "vid", MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "sid", MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "secondary-sid", MPV_FORMAT_INT64);
 
     mpv_observe_property(mpv, 0, "aid", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "vid", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "sid", MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "secondary-sid", MPV_FORMAT_FLAG);
 
     mpv_observe_property(mpv, 0, "sub-text", MPV_FORMAT_STRING);
 
@@ -298,6 +300,19 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
             {
                 if (!*(int64_t *)prop->data) 
                     Q_EMIT subtitleDisabled();
+            }
+        }
+        else if (strcmp(prop->name, "secondary-sid") == 0)
+        {
+            if (prop->format == MPV_FORMAT_INT64)
+            {
+                int64_t id = *(int64_t *) prop->data;
+                Q_EMIT subtitleTwoTrackChanged(id);
+            }
+            else if (prop->format == MPV_FORMAT_FLAG)
+            {
+                if (!*(int64_t *)prop->data) 
+                    Q_EMIT subtitleTwoDisabled();
             }
         }
         else if (strcmp(prop->name, "sub-text") == 0)
