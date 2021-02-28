@@ -30,12 +30,15 @@
 #define EXACT_QUERY_THREADS 3
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    #define MECAB_ARG ("-r " + DirectoryUtils::getDictionaryDir() + SLASH + \
-                       "ipadic" + SLASH + "dicrc " \
-                       "-d " + DirectoryUtils::getDictionaryDir() + SLASH + \
-                       "ipadic").toUtf8()
+    #define MECAB_ARG ("-r " + DirectoryUtils::getDictionaryDir() + \
+                       "unidic-lite" + SLASH + "dicrc " \
+                       "-d " + DirectoryUtils::getDictionaryDir() + \
+                       "unidic-lite").toLocal8Bit()
 #elif __linux__
-    #define MECAB_ARG ""
+    #define MECAB_ARG ("-r " + DirectoryUtils::globalConfigDir() + \
+                       "unidic-lite" + SLASH + "dicrc " \
+                       "-d " + DirectoryUtils::globalGonfigDir() + \
+                       "unidic-lite").toLocal8Bit()
 #endif
 
 Dictionary::Dictionary()
@@ -43,7 +46,6 @@ Dictionary::Dictionary()
     m_dictionary = new JMDict(DirectoryUtils::getJmdict());
 
     m_tagger = MeCab::createTagger(MECAB_ARG);
-    qDebug() << MECAB_ARG;
     if (m_tagger == nullptr)
         qDebug() << MeCab::getLastError();
 }
@@ -141,7 +143,7 @@ QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
     // Lemmatize the query
     MeCab::Lattice *lattice = MeCab::createLattice();
     char buffer[BUFSIZ];
-    strncpy(buffer, query.toLocal8Bit().data(), BUFSIZ);
+    strncpy(buffer, query.toUtf8().data(), BUFSIZ);
     lattice->set_sentence(buffer);
     if (!m_tagger->parse(lattice))
     {
@@ -159,7 +161,7 @@ QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
         QString acc = "";
         for (const MeCab::Node *node = basenode; node; node = node->next)
         {
-            QString conj = acc + QString(node->feature).split(',')[WORD_INDEX];
+            QString conj = acc + QString::fromUtf8(node->feature).split(',')[WORD_INDEX];
             if (duplicates.contains(conj))
             {
                 break;

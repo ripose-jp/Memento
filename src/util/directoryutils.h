@@ -45,6 +45,7 @@ class DirectoryUtils
 public:
     static QString getProgramDirectory();
     static QString getConfigDir();
+    static QString getGlobalConfigDir();
     static QString getDictionaryDir();
     static QString getJmdict();
     static QString getMpvInputConfig();

@@ -1,0 +1,58 @@
+; List of features
+; f[0]:  pos1
+; f[1]:  pos2
+; f[2]:  pos3
+; f[3]:  pos4
+; f[4]:  cType
+; f[5]:  cForm
+; f[6]:  lForm
+; f[7]:  lemma
+; f[8]:  orth
+; f[9]:  pron
+; f[10]: orthBase
+; f[11]: pronBase
+; f[12]: goshu
+; f[13]: iType
+; f[14]: iForm
+; f[15]: fType
+; f[16]: fForm
+; f[17]: kana
+; f[18]: kanaBase
+; f[19]: form
+; f[20]: formBase
+; f[21]: iConType
+; f[22]: fConType
+; f[23]: aType
+; f[24]: aConType
+; f[25]: aModType
+
+;dictionary-charset = utf8
+;config-charset = utf8
+
+cost-factor = 700
+;max-grouping-size = 10
+;eval-size = 10
+;unk-eval-size = 4
+
+bos-feature = BOS/EOS,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*
+
+output-format-type = unidic
+
+; output aType
+;node-format-unidic = %m\t%f[9]\t%f[6]\t%f[7]\t%F-[0,1,2,3]\t%f[4]\t%f[5]\n
+node-format-unidic = %m\t%f[9]\t%f[6]\t%f[7]\t%F-[0,1,2,3]\t%f[4]\t%f[5]\t%f[23]\n
+; default aType is 0
+;unk-format-unidic  = %m\t%m\t%m\t%m\t%F-[0,1,2,3]\t%f[4]\t%f[5]\n
+unk-format-unidic  = %m\t%m\t%m\t%m\t%F-[0,1,2,3]\t%f[4]\t%f[5]\t0\n
+bos-format-unidic  =
+eos-format-unidic  = EOS\n
+
+; output aType
+node-format-chamame = \t%m\t%f[9]\t%f[6]\t%f[7]\t%F-[0,1,2,3]\t%f[4]\t%f[5]\n
+node-format-chamame = \t%m\t%f[9]\t%f[6]\t%f[7]\t%F-[0,1,2,3]\t%f[4]\t%f[5]\t%f[23]\n
+; default aType is 0
+;unk-format-chamame = \t%m\t\t\t%m\tUNK\t\t\n
+;unk-format-chamame  = \t%m\t\t\t%m\t%F-[0,1,2,3]\t\t\n
+unk-format-chamame  = \t%m\t\t\t%m\t%F-[0,1,2,3]\t\t\t0\n
+bos-format-chamame  = B
+eos-format-chamame  = 
