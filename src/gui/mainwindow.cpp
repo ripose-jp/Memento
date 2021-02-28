@@ -274,6 +274,12 @@ void MainWindow::setFullscreen(bool value)
     }
     else
     {
+    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+        if (m_maximized)
+            showMaximized();
+        else
+            showNormal();
+    #elif __linux__
         showNormal();
         if (m_maximized)
         {
@@ -281,6 +287,8 @@ void MainWindow::setFullscreen(bool value)
             // on Linux due to a bug with Qt
             showMaximized();
         }
+    #endif
+        
         m_ui->m_menubar->show();
         m_ui->m_controls->show();
         m_ui->m_centralwidget->layout()->addWidget(m_ui->m_controls);
