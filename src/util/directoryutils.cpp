@@ -57,6 +57,7 @@ QString DirectoryUtils::getProgramDirectory()
 QString DirectoryUtils::getConfigDir()
 {
     QString path = getProgramDirectory();
+    path += SLASH;
     path += CONFIG_PATH;
     path += SLASH;
     return path;
