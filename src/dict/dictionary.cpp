@@ -31,14 +31,11 @@
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #define MECAB_ARG ("-r " + DirectoryUtils::getDictionaryDir() + \
-                       "unidic-lite" + SLASH + "dicrc " \
+                       "ipadic" + SLASH + "dicrc " \
                        "-d " + DirectoryUtils::getDictionaryDir() + \
-                       "unidic-lite").toLocal8Bit()
+                       "ipadic").toLocal8Bit()
 #elif __linux__
-    #define MECAB_ARG ("-r " + DirectoryUtils::globalConfigDir() + \
-                       "unidic-lite" + SLASH + "dicrc " \
-                       "-d " + DirectoryUtils::globalGonfigDir() + \
-                       "unidic-lite").toLocal8Bit()
+    #define MECAB_ARG ("")
 #endif
 
 Dictionary::Dictionary()

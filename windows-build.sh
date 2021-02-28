@@ -22,11 +22,12 @@ fi
 # build Memento
 mkdir build
 cd build
-cmake -G "MSYS Makefiles" ..
+cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
 make
 
 #release dlls and exe to a new directory
 mkdir Memento_$arch
+rm -rf Memento_$arch/memento.exe
 cp src/memento.exe Memento_$arch
 cp -r ../config Memento_$arch
 cp $PREFIX/bin/Qt5Core.dll \
@@ -98,7 +99,6 @@ $PREFIX/bin/libopus-0.dll \
 $PREFIX/bin/libp11-kit-0.dll \
 $PREFIX/bin/libpcre-1.dll \
 $PREFIX/bin/libpcre2-16-0.dll \
-$PREFIX/bin/libplacebo-72.dll \
 $PREFIX/bin/libpng16-16.dll \
 $PREFIX/bin/libpython3.8.dll \
 $PREFIX/bin/librtmp-1.dll \
