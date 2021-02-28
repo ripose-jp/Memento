@@ -21,14 +21,14 @@
 #ifndef ANKISETTINGSHELP_H
 #define ANKISETTINGSHELP_H
 
-#include <QWidget>
+#include <QDialog>
 
 namespace Ui
 {
     class AnkiSettingsHelp;
 }
 
-class AnkiSettingsHelp : public QWidget
+class AnkiSettingsHelp : public QDialog
 {
     Q_OBJECT
 

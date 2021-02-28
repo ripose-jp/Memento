@@ -22,7 +22,7 @@
 #include "ui_ankisettingshelp.h"
 
 AnkiSettingsHelp::AnkiSettingsHelp(QWidget *parent) 
-    : QWidget(parent), m_ui(new Ui::AnkiSettingsHelp)
+    : QDialog(parent), m_ui(new Ui::AnkiSettingsHelp)
 {
     m_ui->setupUi(this);
     resize(minimumSizeHint());
