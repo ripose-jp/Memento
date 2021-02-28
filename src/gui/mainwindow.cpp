@@ -24,6 +24,7 @@
 #include "widgets/definitionwidget.h"
 #include "widgets/ankisettings.h"
 #include "../dict/builder/dictionarybuilder.h"
+#include "../util/constants.h"
 
 #include <QCursor>
 #include <QFileDialog>
@@ -33,7 +34,8 @@
 #include <QThreadPool>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), m_ui(new Ui::MainWindow), m_maximized(false)
+    : QMainWindow(parent), m_ui(new Ui::MainWindow), m_maximized(false),
+      m_manager(new QNetworkAccessManager)
 {
     m_ui->setupUi(this);
 
@@ -77,6 +79,8 @@ MainWindow::MainWindow(QWidget *parent)
         m_ankiSettings, &QWidget::show);
     connect(m_ui->m_actionUpdateJMDict, &QAction::triggered,
         this, &MainWindow::updateJMDict);
+    connect(m_ui->m_actionUpdate, &QAction::triggered,
+        this, &MainWindow::checkForUpdates);
 
     // Buttons
     connect(m_ui->m_controls, &PlayerControls::play,
@@ -188,9 +192,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, &MainWindow::jmDictUpdated,
         m_ui->m_controls, &PlayerControls::jmDictUpdated);
 
-    // Dictionary update errors
-    connect(this, &MainWindow::dictUpdateFailed,
+    // Thread message box signals
+    connect(this, &MainWindow::threadError, 
         this, &MainWindow::showErrorMessage);
+    connect(this, &MainWindow::threadInfo, 
+        this, &MainWindow::showInfoMessage);
 }
 
 MainWindow::~MainWindow()
@@ -206,6 +212,7 @@ MainWindow::~MainWindow()
     delete m_ankiClient;
     delete m_ankiSettings;
     delete m_actionGroupAnkiProfile;
+    delete m_manager;
 }
 
 void MainWindow::showEvent(QShowEvent *event)
@@ -502,8 +509,65 @@ void MainWindow::JMDictUpdaterThread::run()
     }
     else
     {
-        Q_EMIT m_parent->dictUpdateFailed("Error Updating JMDict", error);
+        Q_EMIT m_parent->threadError("Error Updating JMDict", error);
     }
+}
+
+void MainWindow::checkForUpdates()
+{
+    m_manager->setTransferTimeout();
+    QNetworkRequest request(GITHUB_API_LINK);
+    QNetworkReply *reply = m_manager->get(request);
+    connect(reply, &QNetworkReply::finished, [=] {
+            if (reply->error())
+            {
+                Q_EMIT threadError(
+                    "Error", 
+                    "Could not check for updates:\n" + reply->errorString()
+                );
+            }
+            else
+            {
+                QJsonDocument replyDoc =
+                    QJsonDocument::fromJson(reply->readAll());
+                if (replyDoc.isNull() ||
+                    !replyDoc.isArray() || 
+                    replyDoc.array().isEmpty() ||
+                    !replyDoc.array().last().isObject() ||
+                    !replyDoc.array().last().toObject()["tag_name"].isString())
+                {
+                    Q_EMIT threadError(
+                        "Error", 
+                        "Server did not send a valid reply.\n"
+                        "Check manually <a href='" + GITHUB_RELEASES +
+                        "'>here</a>"
+                    );
+                }
+                else 
+                {
+                    QString tag = replyDoc.array()
+                                           .last()
+                                           .toObject()["tag_name"]
+                                           .toString();
+                    if (tag != VERSION)
+                    {
+                        Q_EMIT threadInfo(
+                            "Update Available",
+                            "New version <a href='" + GITHUB_RELEASES + "'>" + 
+                            tag + "</a> available"
+                        );
+                    }
+                    else
+                    {
+                        Q_EMIT threadInfo(
+                            "Up to Date",
+                            "Memento is up to date"
+                        );
+                    }
+                }
+            }
+            delete reply;
+    });
 }
 
 void MainWindow::showErrorMessage(const QString &title, 
@@ -511,4 +575,11 @@ void MainWindow::showErrorMessage(const QString &title,
 {
     QMessageBox message;
     message.critical(0, title, error);
+}
+
+void MainWindow::showInfoMessage(const QString &title, 
+                                 const QString &error) const
+{
+    QMessageBox message;
+    message.information(0, title, error);
 }

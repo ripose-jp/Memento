@@ -90,8 +90,6 @@ extern "C"
 #define CONFIG_MODEL "model"
 #define CONFIG_FIELDS "fields"
 
-QNetworkAccessManager *m_manager;
-
 AnkiClient::AnkiClient(QObject *parent, PlayerAdapter *player)
     : QObject(parent),
       m_player(player),

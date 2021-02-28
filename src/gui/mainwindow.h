@@ -36,6 +36,9 @@
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QRunnable>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
 
 namespace Ui
 {
@@ -54,7 +57,8 @@ Q_SIGNALS:
     void keyPressed(const QKeyEvent *event);
     void wheelMoved(const QWheelEvent *event);
     void jmDictUpdated() const;
-    void dictUpdateFailed(const QString& title, const QString &error) const;
+    void threadError(const QString& title, const QString &error) const;
+    void threadInfo(const QString& title, const QString &error) const;
 
 public Q_SLOTS:
     void setFullscreen(bool value);
@@ -67,6 +71,7 @@ private Q_SLOTS:
     void hideControls();
     void hidePlayerCursor();
     void showErrorMessage(const QString& title, const QString &error) const;
+    void showInfoMessage(const QString& title, const QString &error) const;
 
 protected:
     void showEvent(QShowEvent *event) override;
@@ -97,6 +102,8 @@ private:
     QActionGroup *m_actionGroupAnkiProfile;
     QList<QAction *> m_ankiProfiles;
 
+    QNetworkAccessManager *m_manager;
+
     bool m_maximized;
 
     void clearTracks();
@@ -107,6 +114,7 @@ private:
         QAction *actionDisable
     );
     void updateJMDict();
+    void checkForUpdates();
 
     class JMDictUpdaterThread : public QRunnable
     {

@@ -51,6 +51,7 @@
 #define REPLACE_TAGS "{tags}"
 
 class QNetworkReply;
+class QNetworkAccessManager;
 
 class AnkiClient : public QObject
 {
@@ -105,6 +106,8 @@ private:
     QString m_port;
 
     PlayerAdapter *m_player;
+
+    QNetworkAccessManager *m_manager;
     
     void readConfigFromFile(const QString &filename);
     bool writeConfigToFile(const QString &filename);
