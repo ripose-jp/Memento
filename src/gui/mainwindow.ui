@@ -134,6 +134,7 @@
      </property>
      <addaction name="m_actionSubtitleTwoNone"/>
     </widget>
+    <addaction name="m_actionAddSubtitle"/>
     <addaction name="m_menuSubtitleTwo"/>
     <addaction name="separator"/>
     <addaction name="m_actionSubtitleNone"/>
@@ -248,6 +249,11 @@
    </property>
    <property name="text">
     <string>None</string>
+   </property>
+  </action>
+  <action name="m_actionAddSubtitle">
+   <property name="text">
+    <string>Add Subtitle File</string>
    </property>
   </action>
  </widget>

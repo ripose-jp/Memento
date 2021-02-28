@@ -65,6 +65,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Toolbar Actions
     connect(m_ui->m_actionOpen, &QAction::triggered, this, &MainWindow::open);
+    connect(m_ui->m_actionAddSubtitle, &QAction::triggered, [=] {
+        QString file = QFileDialog::getOpenFileName(0, "Open Subtitle");
+        if (!file.isEmpty())
+        {
+            m_player->addSubtitle(file);
+            setTracks(m_player->getTracks());
+        }
+    });
     connect(m_ui->m_actionAnki, &QAction::triggered,
         m_ankiSettings, &QWidget::show);
     connect(m_ui->m_actionUpdateJMDict, &QAction::triggered,

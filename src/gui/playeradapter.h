@@ -33,18 +33,6 @@ public:
     using QObject::QObject;
     virtual ~PlayerAdapter() {}
 
-    virtual int64_t getMaxVolume() const = 0;
-
-    virtual double getSubStart() const = 0;
-    virtual double getSubEnd() const = 0;
-    virtual double getSubDelay() const = 0;
-
-    virtual double getAudioDelay() const = 0;
-
-    virtual int64_t getAudioTrack() const = 0;
-
-    virtual QString getPath() const = 0;
-
     struct Track
     {
         enum track_type
@@ -66,9 +54,23 @@ public:
         QString codec;
     } typedef Track;
 
+    virtual int64_t getMaxVolume() const = 0;
+
+    virtual double getSubStart() const = 0;
+    virtual double getSubEnd() const = 0;
+    virtual double getSubDelay() const = 0;
+
+    virtual double getAudioDelay() const = 0;
+
+    virtual QList<const PlayerAdapter::Track *> getTracks() = 0;
+    virtual int64_t getAudioTrack() const = 0;
+
+    virtual QString getPath() const = 0;
+
 public Q_SLOTS:
     virtual void open(const QString &file, const bool append = false) = 0;
     virtual void open(const QList<QUrl> &files) = 0;
+    virtual void addSubtitle(const QString &file) = 0;
 
     virtual void seek(const int64_t time) = 0;
 

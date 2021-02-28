@@ -26,8 +26,9 @@
 MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     : m_mpv(mpv), m_handle(mpv->get_handle()), PlayerAdapter(parent)
 {
-    connect(m_mpv, &MpvWidget::tracklistChanged, 
-        this, &MpvAdapter::processTracks);
+    connect(m_mpv, &MpvWidget::tracklistChanged, [=] (const mpv_node *node) {
+        Q_EMIT tracksChanged(processTracks(node));
+    });
     connect(m_mpv, &MpvWidget::audioTrackChanged, 
         this, &MpvAdapter::audioTrackChanged);
     connect(m_mpv, &MpvWidget::videoTrackChanged, 
@@ -120,6 +121,17 @@ double MpvAdapter::getAudioDelay() const
     return delay;
 }
 
+QList<const PlayerAdapter::Track *> MpvAdapter::getTracks()
+{
+    mpv_node node;
+    if (mpv_get_property(m_handle, "track-list", MPV_FORMAT_NODE, &node) < 0)
+    {
+        qDebug() << "Could not get track-list property";
+        return QList<const PlayerAdapter::Track *>();
+    }
+    return processTracks(&node);
+}
+
 int64_t MpvAdapter::getAudioTrack() const
 {
     int64_t track;
@@ -172,6 +184,19 @@ void MpvAdapter::open(const QList<QUrl> &files)
     {
         if (!it->toLocalFile().isEmpty())
             open(it->toLocalFile(), true);
+    }
+}
+
+void MpvAdapter::addSubtitle(const QString &file)
+{
+    const char *args[3] = {
+        "sub-add",
+        file.toLatin1().data(),
+        NULL
+    };
+    if (mpv_command(m_handle, args) < 0)
+    {
+        qDebug() << "Could not add subtitle file" << file;
     }
 }
 
@@ -494,7 +519,7 @@ void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
 
 // Code modified from loadTracks()
 // https://github.com/u8sand/Baka-MPlayer/blob/master/src/mpvhandler.cpp
-void MpvAdapter::processTracks(const mpv_node *node)
+QList<const PlayerAdapter::Track *> MpvAdapter::processTracks(const mpv_node *node)
 {
     QList<const PlayerAdapter::Track *> tracks;
     if (node->format == MPV_FORMAT_NODE_ARRAY)
@@ -574,5 +599,5 @@ void MpvAdapter::processTracks(const mpv_node *node)
             }
         }
     }
-    Q_EMIT tracksChanged(tracks);
+    return tracks;
 }

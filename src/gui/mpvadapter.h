@@ -38,6 +38,7 @@ public:
     
     double getAudioDelay() const Q_DECL_OVERRIDE;
 
+    QList<const PlayerAdapter::Track *> getTracks() Q_DECL_OVERRIDE;
     int64_t getAudioTrack() const Q_DECL_OVERRIDE;
 
     QString getPath() const Q_DECL_OVERRIDE;
@@ -45,6 +46,7 @@ public:
 public Q_SLOTS:
     void open(const QString &file, const bool append = false) Q_DECL_OVERRIDE;
     void open(const QList<QUrl> &files) Q_DECL_OVERRIDE;
+    void addSubtitle(const QString &file) Q_DECL_OVERRIDE;
 
     void seek(const int64_t time) Q_DECL_OVERRIDE;
 
@@ -77,7 +79,7 @@ public Q_SLOTS:
     void mouseWheelMoved(const QWheelEvent *event) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
-    void processTracks(const mpv_node *node);
+    QList<const PlayerAdapter::Track *> processTracks(const mpv_node *node);
 
 private:
     MpvWidget *m_mpv;
