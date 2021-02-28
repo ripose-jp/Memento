@@ -31,9 +31,9 @@
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #define MECAB_ARG ("-r " + DirectoryUtils::getDictionaryDir() + SLASH + \
-                       "naist-jdic" + SLASH + "dicrc " \
+                       "ipadic" + SLASH + "dicrc " \
                        "-d " + DirectoryUtils::getDictionaryDir() + SLASH + \
-                       "naist-jdic").toUtf8()
+                       "ipadic").toUtf8()
 #elif __linux__
     #define MECAB_ARG ""
 #endif
