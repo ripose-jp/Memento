@@ -27,8 +27,8 @@
 #include <QTableWidgetItem>
 
 #define DUPLICATE_POLICY_NONE "None"
-#define DUPLICATE_POLICY_DIFFERENT "Different Decks"
-#define DUPLICATE_POLICY_SAME "Same Deck"
+#define DUPLICATE_POLICY_DIFFERENT "Allowed in Different Decks"
+#define DUPLICATE_POLICY_SAME "Allowed in Same Deck"
 
 #define SCREENSHOT_PNG "PNG"
 #define SCREENSHOT_JPG "JPG"

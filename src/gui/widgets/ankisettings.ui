@@ -263,12 +263,12 @@ Only change this if you know what you're doing.</string>
      </item>
      <item>
       <property name="text">
-       <string>Different Decks</string>
+       <string>Allowed in Different Decks</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>Same Deck</string>
+       <string>Allowed in Same Deck</string>
       </property>
      </item>
     </widget>
