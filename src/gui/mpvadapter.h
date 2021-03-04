@@ -73,7 +73,8 @@ public Q_SLOTS:
     void setFullscreen(const bool value) Q_DECL_OVERRIDE;
     void setVolume(const int64_t value) Q_DECL_OVERRIDE;
 
-    QString tempScreenshot(const bool subtitles) Q_DECL_OVERRIDE;
+    QString tempScreenshot(const bool subtitles,
+                           const QString &ext = ".jpg") Q_DECL_OVERRIDE;
 
     void keyPressed(const QKeyEvent *event) Q_DECL_OVERRIDE;
     void mouseWheelMoved(const QWheelEvent *event) Q_DECL_OVERRIDE;

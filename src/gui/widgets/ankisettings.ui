@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>687</width>
-    <height>644</height>
+    <height>804</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -114,59 +114,55 @@ Profile Default cannot be removed.</string>
     </layout>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="m_layoutProfileName">
-     <item>
-      <widget class="QLabel" name="m_labelProfileName">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Profile Name</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="m_lineEditProfileName">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="toolTip">
-        <string>Rename the profile by changing the name here and clicking apply or by switching to a new profile.
+    <widget class="QLabel" name="m_labelProfileName">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Profile Name</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="m_lineEditProfileName">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="toolTip">
+      <string>Rename the profile by changing the name here and clicking apply or by switching to a new profile.
 Becomes the name of a new profile when add is clicked.</string>
-       </property>
-       <property name="text">
-        <string>Default</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+     </property>
+     <property name="text">
+      <string>Default</string>
+     </property>
+    </widget>
    </item>
    <item>
     <layout class="QGridLayout" name="m_layoutConnect">
-     <item row="1" column="0">
-      <widget class="QLineEdit" name="m_lineEditHost">
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="m_lineEditPort">
        <property name="enabled">
         <bool>false</bool>
        </property>
        <property name="toolTip">
-        <string>Host name for Anki.
+        <string>Port Anki is listening on.
 Only change this if you know what you're doing.</string>
        </property>
        <property name="text">
-        <string>localhost</string>
+        <string>8765</string>
        </property>
        <property name="placeholderText">
-        <string>Host</string>
+        <string>Port</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="0">
+     <item row="1" column="0">
       <widget class="QLabel" name="m_labelHostName">
        <property name="enabled">
         <bool>false</bool>
@@ -189,23 +185,6 @@ Only change this if you know what you're doing.</string>
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="m_lineEditPort">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="toolTip">
-        <string>Port Anki is listening on.
-Only change this if you know what you're doing.</string>
-       </property>
-       <property name="text">
-        <string>8765</string>
-       </property>
-       <property name="placeholderText">
-        <string>Port</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
       <widget class="QLabel" name="m_labelPort">
        <property name="enabled">
         <bool>false</bool>
@@ -227,7 +206,7 @@ Only change this if you know what you're doing.</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="2">
+     <item row="2" column="2">
       <widget class="QPushButton" name="m_buttonConnect">
        <property name="enabled">
         <bool>false</bool>
@@ -237,50 +216,139 @@ Only change this if you know what you're doing.</string>
        </property>
       </widget>
      </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QVBoxLayout" name="m_layoutTags">
-     <item>
-      <widget class="QLabel" name="m_labelTags">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Card Tags</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="m_lineEditTags">
+     <item row="2" column="0">
+      <widget class="QLineEdit" name="m_lineEditHost">
        <property name="enabled">
         <bool>false</bool>
        </property>
        <property name="toolTip">
-        <string>Tags added to cards created by Memento.
-Comma or space seperated list.</string>
+        <string>Host name for Anki.
+Only change this if you know what you're doing.</string>
        </property>
        <property name="text">
-        <string>memento</string>
+        <string>localhost</string>
        </property>
        <property name="placeholderText">
-        <string>Card Tags</string>
+        <string>Host</string>
        </property>
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="m_labelDuplicates">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Duplicate Policy</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="m_comboBoxDuplicates">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <item>
+      <property name="text">
+       <string>None</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Different Decks</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Same Deck</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="m_labelScreenshot">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Screenshot File Type</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="m_comboBoxScreenshot">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <item>
+      <property name="text">
+       <string>JPG</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>PNG</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>WebP</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="m_labelTags">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Card Tags</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="m_lineEditTags">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="toolTip">
+      <string>Tags added to cards created by Memento.
+Comma or space seperated list.</string>
+     </property>
+     <property name="text">
+      <string>memento</string>
+     </property>
+     <property name="placeholderText">
+      <string>Card Tags</string>
+     </property>
+    </widget>
    </item>
    <item>
     <layout class="QGridLayout" name="m_layoutCards">

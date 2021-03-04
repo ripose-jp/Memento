@@ -61,14 +61,19 @@ extern "C"
 #define ANKI_NOTE_DECK "deckName"
 #define ANKI_NOTE_MODEL "modelName"
 #define ANKI_NOTE_FIELDS "fields"
+#define ANKI_NOTE_OPTIONS "options"
 #define ANKI_NOTE_TAGS "tags"
 #define ANKI_NOTE_AUDIO "audio"
 #define ANKI_NOTE_PICTURE "picture"
 #define ANKI_NOTE_URL "url"
 #define ANKI_NOTE_PATH "path"
 #define ANKI_NOTE_FILENAME "filename"
-#define ANKI_NOTE_FIELDS "fields"
 #define ANKI_NOTE_SKIPHASH "skipHash"
+
+// Anki note option fields
+#define ANKI_NOTE_OPTIONS_ALLOW_DUP "allowDuplicate"
+#define ANKI_NOTE_OPTIONS_SCOPE "duplicateScope"
+#define ANKI_NOTE_OPTIONS_SCOPE_CHECK_DECK "deck"
 
 #define MIN_ANKICONNECT_VERSION 6
 #define TIMEOUT 5000
@@ -85,6 +90,8 @@ extern "C"
 #define CONFIG_NAME "name"
 #define CONFIG_HOST "host"
 #define CONFIG_PORT "port"
+#define CONFIG_DUPLICATE "duplicate"
+#define CONFIG_SCREENSHOT "screenshot"
 #define CONFIG_TAGS "tags"
 #define CONFIG_DECK "deck"
 #define CONFIG_MODEL "model"
@@ -94,7 +101,8 @@ AnkiClient::AnkiClient(QObject *parent, PlayerAdapter *player)
     : QObject(parent),
       m_player(player),
       m_configs(new QHash<QString, const AnkiConfig *>),
-      m_currentConfig(0)
+      m_currentConfig(0),
+      m_enabled(false)
 {
     m_manager = new QNetworkAccessManager(this);
     m_manager->setTransferTimeout(TIMEOUT);
@@ -167,6 +175,18 @@ void AnkiClient::readConfigFromFile(const QString &filename)
             return;
         }
         QJsonObject profile = it->toObject();
+
+        // Initilize default values for old configs
+        if (profile[CONFIG_DUPLICATE].isNull())
+        {
+            profile[CONFIG_DUPLICATE] =
+                AnkiConfig::DuplicatePolicy::DifferentDeck;
+        }
+        if (profile[CONFIG_SCREENSHOT].isNull())
+        {
+            profile[CONFIG_SCREENSHOT] = AnkiConfig::FileType::jpg;
+        }
+
         if (!profile[CONFIG_NAME].isString())
         {
             qDebug() << CONFIG_NAME << "is not a string";
@@ -180,6 +200,16 @@ void AnkiClient::readConfigFromFile(const QString &filename)
         else if (!profile[CONFIG_PORT].isString())
         {
             qDebug() << CONFIG_PORT << "is not a string";
+            return;
+        }
+        else if (!profile[CONFIG_DUPLICATE].isDouble())
+        {
+            qDebug() << CONFIG_DUPLICATE << "is not a double";
+            return;
+        }
+        else if (!profile[CONFIG_SCREENSHOT].isDouble())
+        {
+            qDebug() << CONFIG_SCREENSHOT << "is not a double";
             return;
         }
         else if (!profile[CONFIG_TAGS].isArray())
@@ -212,6 +242,12 @@ void AnkiClient::readConfigFromFile(const QString &filename)
         AnkiConfig *config = new AnkiConfig;
         config->address = profile[CONFIG_HOST].toString();
         config->port = profile[CONFIG_PORT].toString();
+        config->duplicatePolicy = 
+            (AnkiConfig::DuplicatePolicy)profile[CONFIG_DUPLICATE].toInt(
+                AnkiConfig::DuplicatePolicy::DifferentDeck);
+        config->screenshotType =
+            (AnkiConfig::FileType)profile[CONFIG_SCREENSHOT].toInt(
+                AnkiConfig::FileType::jpg);
         config->tags = profile[CONFIG_TAGS].toArray();
         config->deck = profile[CONFIG_DECK].toString();
         config->model = profile[CONFIG_MODEL].toString();
@@ -250,6 +286,8 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
         const AnkiConfig *config = m_configs->value(*it);
         configObj[CONFIG_HOST] = config->address;
         configObj[CONFIG_PORT] = config->port;
+        configObj[CONFIG_DUPLICATE] = config->duplicatePolicy;
+        configObj[CONFIG_SCREENSHOT] = config->screenshotType;
         QJsonArray tagsArr;
         for (size_t i = 0; i < config->tags.size(); ++i)
         {
@@ -507,6 +545,25 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
     note[ANKI_NOTE_DECK] = m_currentConfig->deck;
     note[ANKI_NOTE_MODEL] = m_currentConfig->model;
 
+    switch (m_currentConfig->duplicatePolicy)
+    {
+    case AnkiConfig::DuplicatePolicy::None:
+        note[ANKI_NOTE_OPTIONS] = QJsonObject{
+            {ANKI_NOTE_OPTIONS_ALLOW_DUP, false},
+        };
+        break;
+    case AnkiConfig::DuplicatePolicy::DifferentDeck:
+        note[ANKI_NOTE_OPTIONS] = QJsonObject{
+            {ANKI_NOTE_OPTIONS_SCOPE, ANKI_NOTE_OPTIONS_SCOPE_CHECK_DECK}
+        };
+        break;
+    case AnkiConfig::DuplicatePolicy::SameDeck:
+        note[ANKI_NOTE_OPTIONS] = QJsonObject{
+            {ANKI_NOTE_OPTIONS_ALLOW_DUP, true}
+        };
+        break;
+    }
+
     // Processed fields
     QString audioFile = AUDIO_FILENAME_FORMAT_STRING.arg(*entry.m_kana)
                             .arg(*entry.m_kanji);
@@ -620,20 +677,36 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
         {
             note[ANKI_NOTE_AUDIO] = audio;
         }
+
+        QString imageExt;
+        switch (m_currentConfig->screenshotType)
+        {
+        case AnkiConfig::FileType::jpg:
+            imageExt = ".jpg";
+            break;
+        case AnkiConfig::FileType::png:
+            imageExt = ".png";
+            break;
+        case AnkiConfig::FileType::webp:
+            imageExt = ".webp";
+            break;
+        default:
+            imageExt = ".jpg";
+        }
         
         QJsonArray images;
         if (!fieldsWithScreenshot.isEmpty())
         {
             QJsonObject image;
-            QString path = m_player->tempScreenshot(true);
+            QString path = m_player->tempScreenshot(true, imageExt);
             image[ANKI_NOTE_PATH] = path;
 
-            QString filename = generateMD5(path) + ".png";
+            QString filename = generateMD5(path) + imageExt;
             image[ANKI_NOTE_FILENAME] = filename;
 
             image[ANKI_NOTE_FIELDS] = fieldsWithScreenshot;
 
-            if (filename != ".png")
+            if (filename != imageExt)
             {
                 images.append(image);
             }
@@ -642,15 +715,15 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
         if (!fieldWithScreenshotVideo.isEmpty())
         {
             QJsonObject image;
-            QString path = m_player->tempScreenshot(false);
+            QString path = m_player->tempScreenshot(false, imageExt);
             image[ANKI_NOTE_PATH] = path;
 
-            QString filename = generateMD5(path) + ".png";
+            QString filename = generateMD5(path) + imageExt;
             image[ANKI_NOTE_FILENAME] = filename;
             
             image[ANKI_NOTE_FIELDS] = fieldWithScreenshotVideo;
 
-            if (filename != ".png")
+            if (filename != imageExt)
             {
                 images.append(image);
             }

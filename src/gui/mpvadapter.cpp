@@ -379,13 +379,13 @@ void MpvAdapter::setVolume(int64_t value)
     }
 }
 
-QString MpvAdapter::tempScreenshot(const bool subtitles)
+QString MpvAdapter::tempScreenshot(const bool subtitles, const QString &ext)
 {
     // Get a temporary file name
     QTemporaryFile file;
     if (!file.open())
         return "";
-    QString filename = file.fileName() + ".png";
+    QString filename = file.fileName() + ext;
     file.close();
 
     const char *args[4] = {

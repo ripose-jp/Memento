@@ -26,9 +26,19 @@
 #include <QMessageBox>
 #include <QTableWidgetItem>
 
+#define DUPLICATE_POLICY_NONE "None"
+#define DUPLICATE_POLICY_DIFFERENT "Different Decks"
+#define DUPLICATE_POLICY_SAME "Same Deck"
+
+#define SCREENSHOT_PNG "PNG"
+#define SCREENSHOT_JPG "JPG"
+#define SCREENSHOT_WEBP "WebP"
+
 #define DEFAULT_PROFILE "Default"
 #define DEFAULT_HOST "localhost"
 #define DEFAULT_PORT "8765"
+#define DEFAULT_SCREENSHOT AnkiConfig::FileType::jpg
+#define DEFAULT_DUPLICATE_POLICY AnkiConfig::DuplicatePolicy::DifferentDeck
 #define DEFAULT_TAGS "memento"
 
 #define REGEX_REMOVE_SPACES_COMMAS "[, ]+"
@@ -138,6 +148,8 @@ void AnkiSettings::enabledStateChanged(int state)
     m_ui->m_comboBoxDeck->setEnabled(enabled);
     m_ui->m_comboBoxModel->setEnabled(enabled);
     m_ui->m_comboBoxProfile->setEnabled(enabled);
+    m_ui->m_comboBoxDuplicates->setEnabled(enabled);
+    m_ui->m_comboBoxScreenshot->setEnabled(enabled);
 
     // Labels
     m_ui->m_labelDeck->setEnabled(enabled);
@@ -147,6 +159,8 @@ void AnkiSettings::enabledStateChanged(int state)
     m_ui->m_labelTags->setEnabled(enabled);
     m_ui->m_labelProfile->setEnabled(enabled);
     m_ui->m_labelProfileName->setEnabled(enabled);
+    m_ui->m_labelDuplicates->setEnabled(enabled);
+    m_ui->m_labelScreenshot->setEnabled(enabled);
 
     // Line Edits
     m_ui->m_lineEditHost->setEnabled(enabled);
@@ -346,6 +360,8 @@ void AnkiSettings::restoreDefaults()
     AnkiConfig defaultConfig;
     defaultConfig.address = DEFAULT_HOST;
     defaultConfig.port = DEFAULT_PORT;
+    defaultConfig.duplicatePolicy = DEFAULT_DUPLICATE_POLICY;
+    defaultConfig.screenshotType = DEFAULT_SCREENSHOT;
     defaultConfig.tags.append(DEFAULT_TAGS);
     defaultConfig.deck = m_ui->m_comboBoxDeck->currentText();
     defaultConfig.model = m_ui->m_comboBoxModel->currentText();
@@ -395,6 +411,12 @@ void AnkiSettings::populateFields(const QString &profile,
 
     m_client->setServer(config->address, config->port);
 
+    m_ui->m_comboBoxDuplicates->setCurrentText(
+        duplicatePolicyToString(config->duplicatePolicy));
+    
+    m_ui->m_comboBoxScreenshot->setCurrentText(
+        fileTypeToString(config->screenshotType));
+
     QString tags;
     for (auto it = config->tags.begin(); it != config->tags.end(); ++it)
         tags += it->toString() + ",";
@@ -427,12 +449,87 @@ void AnkiSettings::populateFields(const QString &profile,
     }
 }
 
+QString AnkiSettings::duplicatePolicyToString(
+    AnkiConfig::DuplicatePolicy policy)
+{
+    switch(policy)
+    {
+    case AnkiConfig::DuplicatePolicy::None:
+        return DUPLICATE_POLICY_NONE;
+    case AnkiConfig::DuplicatePolicy::DifferentDeck:
+        return DUPLICATE_POLICY_DIFFERENT;
+    case AnkiConfig::DuplicatePolicy::SameDeck:
+        return DUPLICATE_POLICY_SAME;
+    default:
+        return DUPLICATE_POLICY_DIFFERENT;
+    }
+}
+
+AnkiConfig::DuplicatePolicy AnkiSettings::stringToDuplicatePolicy(
+    const QString &str)
+{
+    if (str == DUPLICATE_POLICY_NONE)
+    {
+        return AnkiConfig::DuplicatePolicy::None;
+    }
+    else if (str == DUPLICATE_POLICY_DIFFERENT)
+    {
+        return AnkiConfig::DuplicatePolicy::DifferentDeck;
+    }
+    else if (str == DUPLICATE_POLICY_SAME)
+    {
+        return AnkiConfig::DuplicatePolicy::SameDeck;
+    }
+
+    qDebug() << "Invalid duplicate policy string:" << str;
+    return DEFAULT_DUPLICATE_POLICY;
+}
+
+QString AnkiSettings::fileTypeToString(AnkiConfig::FileType type)
+{
+    switch(type)
+    {
+    case AnkiConfig::FileType::png:
+        return SCREENSHOT_PNG;
+    case AnkiConfig::FileType::jpg:
+        return SCREENSHOT_JPG;
+    case AnkiConfig::FileType::webp:
+        return SCREENSHOT_WEBP;
+    default:
+        return SCREENSHOT_JPG;
+    }
+}
+
+AnkiConfig::FileType AnkiSettings::stringToFileType(const QString &str)
+{
+    if (str == SCREENSHOT_JPG)
+    {
+        return AnkiConfig::FileType::jpg;
+    }
+    else if (str == SCREENSHOT_PNG)
+    {
+        return AnkiConfig::FileType::png;
+    }
+    else if (str == SCREENSHOT_WEBP)
+    {
+        return AnkiConfig::FileType::webp;
+    }
+
+    qDebug() << "Invalid file type string:" << str;
+    return DEFAULT_SCREENSHOT;
+}
+
 void AnkiSettings::applyToConfig(const QString &profile)
 {
     AnkiConfig *config = m_configs->value(profile);
 
     config->address = m_ui->m_lineEditHost->text();
     config->port = m_ui->m_lineEditPort->text();
+
+    config->duplicatePolicy =
+        stringToDuplicatePolicy(m_ui->m_comboBoxDuplicates->currentText());
+    config->screenshotType =
+        stringToFileType(m_ui->m_comboBoxScreenshot->currentText());
 
     config->tags = QJsonArray();
     QStringList splitTags =

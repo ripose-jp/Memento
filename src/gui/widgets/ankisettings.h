@@ -66,6 +66,10 @@ private:
 
     void clearConfigs();
     void populateFields(const QString &profile, const AnkiConfig *config);
+    QString duplicatePolicyToString(AnkiConfig::DuplicatePolicy policy);
+    AnkiConfig::DuplicatePolicy stringToDuplicatePolicy(const QString &str);
+    QString fileTypeToString(AnkiConfig::FileType type);
+    AnkiConfig::FileType stringToFileType(const QString &str);
     void applyToConfig(const QString &profile);
     void renameProfile(const QString &oldName, const QString &newName);
 };

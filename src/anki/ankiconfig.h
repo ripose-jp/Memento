@@ -28,8 +28,24 @@
 
 struct AnkiConfig
 {
+    enum DuplicatePolicy
+    {
+        None = 0,
+        DifferentDeck = 1,
+        SameDeck = 2
+    };
+
+    enum FileType
+    {
+        jpg = 0,
+        png = 1,
+        webp = 2
+    };
+
     QString address;
     QString port;
+    DuplicatePolicy duplicatePolicy;
+    FileType screenshotType;
     QJsonArray tags;
     QString deck;
     QString model;
@@ -41,6 +57,8 @@ struct AnkiConfig
     {
         address = config.address;
         port = config.port;
+        duplicatePolicy = config.duplicatePolicy;
+        screenshotType = config.screenshotType;
         tags = config.tags;
         deck = config.deck;
         model = config.model;
@@ -51,6 +69,8 @@ struct AnkiConfig
     {
         address = rhs.address;
         port = rhs.port;
+        duplicatePolicy = rhs.duplicatePolicy;
+        screenshotType = rhs.screenshotType;
         tags = rhs.tags;
         deck = rhs.deck;
         model = rhs.model;

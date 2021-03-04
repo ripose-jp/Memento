@@ -97,7 +97,8 @@ public Q_SLOTS:
     virtual void setFullscreen(const bool value) = 0;
     virtual void setVolume(const int64_t value) = 0;
 
-    virtual QString tempScreenshot(const bool subtitles) = 0;
+    virtual QString tempScreenshot(const bool subtitles,
+                                   const QString &ext = ".jpg") = 0;
 
     virtual void keyPressed(const QKeyEvent *event) = 0;
     virtual void mouseWheelMoved(const QWheelEvent *event) = 0;
