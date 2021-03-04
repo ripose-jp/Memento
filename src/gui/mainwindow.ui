@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>801</width>
     <height>600</height>
    </rect>
   </property>
@@ -22,19 +22,16 @@
   <property name="windowTitle">
    <string>Memento</string>
   </property>
-  <widget class="QWidget" name="m_centralwidget">
+  <widget class="QWidget" name="centralwidget">
    <property name="mouseTracking">
     <bool>true</bool>
    </property>
    <property name="acceptDrops">
     <bool>false</bool>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
      <number>0</number>
-    </property>
-    <property name="sizeConstraint">
-     <enum>QLayout::SetDefaultConstraint</enum>
     </property>
     <property name="leftMargin">
      <number>0</number>
@@ -49,40 +46,71 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="MpvWidget" name="m_mpv">
-      <property name="minimumSize">
-       <size>
-        <width>788</width>
-        <height>261</height>
-       </size>
-      </property>
-      <property name="cursor">
-       <cursorShape>BlankCursor</cursorShape>
+     <widget class="QSplitter" name="splitterPlayerSubtitles">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="mouseTracking">
        <bool>true</bool>
       </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="MpvWidget" name="mpv">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>400</width>
+         <height>225</height>
+        </size>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
+       <property name="mouseTracking">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QListWidget" name="listSubtitles">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
      </widget>
     </item>
     <item>
-     <widget class="PlayerControls" name="m_controls" native="true">
-      <property name="acceptDrops">
-       <bool>true</bool>
+     <widget class="PlayerControls" name="controls" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
      </widget>
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="m_menubar">
+  <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>801</width>
      <height>34</height>
     </rect>
    </property>
-   <widget class="QMenu" name="m_menuMedia">
+   <widget class="QMenu" name="menuMedia">
     <property name="minimumSize">
      <size>
       <width>200</width>
@@ -92,9 +120,9 @@
     <property name="title">
      <string>Media</string>
     </property>
-    <addaction name="m_actionOpen"/>
+    <addaction name="actionOpen"/>
    </widget>
-   <widget class="QMenu" name="m_menuAudio">
+   <widget class="QMenu" name="menuAudio">
     <property name="minimumSize">
      <size>
       <width>200</width>
@@ -104,9 +132,9 @@
     <property name="title">
      <string>Audio</string>
     </property>
-    <addaction name="m_actionAudioNone"/>
+    <addaction name="actionAudioNone"/>
    </widget>
-   <widget class="QMenu" name="m_menuVideo">
+   <widget class="QMenu" name="menuVideo">
     <property name="minimumSize">
      <size>
       <width>200</width>
@@ -116,9 +144,9 @@
     <property name="title">
      <string>Video</string>
     </property>
-    <addaction name="m_actionVideoNone"/>
+    <addaction name="actionVideoNone"/>
    </widget>
-   <widget class="QMenu" name="m_menuSubtitle">
+   <widget class="QMenu" name="menuSubtitle">
     <property name="minimumSize">
      <size>
       <width>200</width>
@@ -128,18 +156,18 @@
     <property name="title">
      <string>Subtitle</string>
     </property>
-    <widget class="QMenu" name="m_menuSubtitleTwo">
+    <widget class="QMenu" name="menuSubtitleTwo">
      <property name="title">
       <string>Second Track</string>
      </property>
-     <addaction name="m_actionSubtitleTwoNone"/>
+     <addaction name="actionSubtitleTwoNone"/>
     </widget>
-    <addaction name="m_actionAddSubtitle"/>
-    <addaction name="m_menuSubtitleTwo"/>
+    <addaction name="actionAddSubtitle"/>
+    <addaction name="menuSubtitleTwo"/>
     <addaction name="separator"/>
-    <addaction name="m_actionSubtitleNone"/>
+    <addaction name="actionSubtitleNone"/>
    </widget>
-   <widget class="QMenu" name="m_menuSettings">
+   <widget class="QMenu" name="menuSettings">
     <property name="geometry">
      <rect>
       <x>465</x>
@@ -157,7 +185,7 @@
     <property name="title">
      <string>Settings</string>
     </property>
-    <widget class="QMenu" name="m_menuAnkiProfile">
+    <widget class="QMenu" name="menuAnkiProfile">
      <property name="geometry">
       <rect>
        <x>664</x>
@@ -170,19 +198,19 @@
       <string>Anki Profile</string>
      </property>
     </widget>
-    <addaction name="m_actionAnki"/>
-    <addaction name="m_menuAnkiProfile"/>
+    <addaction name="actionAnki"/>
+    <addaction name="menuAnkiProfile"/>
     <addaction name="separator"/>
-    <addaction name="m_actionUpdateJMDict"/>
-    <addaction name="m_actionUpdate"/>
+    <addaction name="actionUpdateJMDict"/>
+    <addaction name="actionUpdate"/>
    </widget>
-   <addaction name="m_menuMedia"/>
-   <addaction name="m_menuAudio"/>
-   <addaction name="m_menuVideo"/>
-   <addaction name="m_menuSubtitle"/>
-   <addaction name="m_menuSettings"/>
+   <addaction name="menuMedia"/>
+   <addaction name="menuAudio"/>
+   <addaction name="menuVideo"/>
+   <addaction name="menuSubtitle"/>
+   <addaction name="menuSettings"/>
   </widget>
-  <action name="m_actionOpen">
+  <action name="actionOpen">
    <property name="text">
     <string>Open</string>
    </property>
@@ -190,7 +218,7 @@
     <string>Ctrl+O</string>
    </property>
   </action>
-  <action name="m_actionAudioNone">
+  <action name="actionAudioNone">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -201,7 +229,7 @@
     <string>None</string>
    </property>
   </action>
-  <action name="m_actionVideoNone">
+  <action name="actionVideoNone">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -212,7 +240,7 @@
     <string>None</string>
    </property>
   </action>
-  <action name="m_actionSubtitleNone">
+  <action name="actionSubtitleNone">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -223,12 +251,12 @@
     <string>None</string>
    </property>
   </action>
-  <action name="m_actionAnki">
+  <action name="actionAnki">
    <property name="text">
     <string>Anki Integration</string>
    </property>
   </action>
-  <action name="m_actionUpdateJMDict">
+  <action name="actionUpdateJMDict">
    <property name="text">
     <string>Update JMDict</string>
    </property>
@@ -241,7 +269,7 @@
     <string>Default</string>
    </property>
   </action>
-  <action name="m_actionSubtitleTwoNone">
+  <action name="actionSubtitleTwoNone">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -252,12 +280,12 @@
     <string>None</string>
    </property>
   </action>
-  <action name="m_actionAddSubtitle">
+  <action name="actionAddSubtitle">
    <property name="text">
     <string>Add Subtitle File</string>
    </property>
   </action>
-  <action name="m_actionUpdate">
+  <action name="actionUpdate">
    <property name="text">
     <string>Check for Updates</string>
    </property>

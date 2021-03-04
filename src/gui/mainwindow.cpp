@@ -41,17 +41,18 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Video Action Groups
     m_actionGroupAudio = new QActionGroup(this);
-    m_ui->m_actionAudioNone->setActionGroup(m_actionGroupAudio);
+    m_ui->actionAudioNone->setActionGroup(m_actionGroupAudio);
     m_actionGroupVideo = new QActionGroup(this);
-    m_ui->m_actionVideoNone->setActionGroup(m_actionGroupVideo);
+    m_ui->actionVideoNone->setActionGroup(m_actionGroupVideo);
     m_actionGroupSubtitle = new QActionGroup(this);
-    m_ui->m_actionSubtitleNone->setActionGroup(m_actionGroupSubtitle);
+    m_ui->actionSubtitleNone->setActionGroup(m_actionGroupSubtitle);
     m_actionGroupSubtitleTwo = new QActionGroup(this);
-    m_ui->m_actionSubtitleTwoNone->setActionGroup(m_actionGroupSubtitleTwo);
+    m_ui->actionSubtitleTwoNone->setActionGroup(m_actionGroupSubtitleTwo);
 
     // Player behaviors
-    m_player = new MpvAdapter(m_ui->m_mpv, this);
+    m_player = new MpvAdapter(m_ui->mpv, this);
     m_player->pause();
+    m_ui->listSubtitles->hide();
 
     // Anki
     m_ankiClient = new AnkiClient(this, m_player);
@@ -59,15 +60,15 @@ MainWindow::MainWindow(QWidget *parent)
     m_ankiSettings->hide();
 
     // Definitions
-    m_definition = new DefinitionWidget(m_ankiClient, m_ui->m_mpv);
-    m_ui->m_controls->setVolumeLimit(m_player->getMaxVolume());
+    m_definition = new DefinitionWidget(m_ankiClient, m_ui->mpv);
+    m_ui->controls->setVolumeLimit(m_player->getMaxVolume());
 
     m_actionGroupAnkiProfile = new QActionGroup(this);
     updateAnkiProfileMenu();
 
     // Toolbar Actions
-    connect(m_ui->m_actionOpen, &QAction::triggered, this, &MainWindow::open);
-    connect(m_ui->m_actionAddSubtitle, &QAction::triggered, [=] {
+    connect(m_ui->actionOpen, &QAction::triggered, this, &MainWindow::open);
+    connect(m_ui->actionAddSubtitle, &QAction::triggered, [=] {
         QString file = QFileDialog::getOpenFileName(0, "Open Subtitle");
         if (!file.isEmpty())
         {
@@ -75,52 +76,52 @@ MainWindow::MainWindow(QWidget *parent)
             setTracks(m_player->getTracks());
         }
     });
-    connect(m_ui->m_actionAnki, &QAction::triggered,
+    connect(m_ui->actionAnki, &QAction::triggered,
         m_ankiSettings, &QWidget::show);
-    connect(m_ui->m_actionUpdateJMDict, &QAction::triggered,
+    connect(m_ui->actionUpdateJMDict, &QAction::triggered,
         this, &MainWindow::updateJMDict);
-    connect(m_ui->m_actionUpdate, &QAction::triggered,
+    connect(m_ui->actionUpdate, &QAction::triggered,
         this, &MainWindow::checkForUpdates);
 
     // Buttons
-    connect(m_ui->m_controls, &PlayerControls::play,
+    connect(m_ui->controls, &PlayerControls::play,
         m_player, &PlayerAdapter::play);
-    connect(m_ui->m_controls, &PlayerControls::pause,
+    connect(m_ui->controls, &PlayerControls::pause,
         m_player, &PlayerAdapter::pause);
-    connect(m_ui->m_controls, &PlayerControls::stop,
+    connect(m_ui->controls, &PlayerControls::stop,
         m_player, &PlayerAdapter::stop);
-    connect(m_ui->m_controls, &PlayerControls::skipForward,
+    connect(m_ui->controls, &PlayerControls::skipForward,
         m_player, &PlayerAdapter::skipForward);
-    connect(m_ui->m_controls, &PlayerControls::skipBackward,
+    connect(m_ui->controls, &PlayerControls::skipBackward,
         m_player, &PlayerAdapter::skipBackward);
-    connect(m_ui->m_controls, &PlayerControls::seekForward,
+    connect(m_ui->controls, &PlayerControls::seekForward,
         m_player, &PlayerAdapter::seekForward);
-    connect(m_ui->m_controls, &PlayerControls::seekBackward,
+    connect(m_ui->controls, &PlayerControls::seekBackward,
         m_player, &PlayerAdapter::seekBackward);
-    connect(m_ui->m_controls, &PlayerControls::fullscreenChanged,
+    connect(m_ui->controls, &PlayerControls::fullscreenChanged,
         m_player, &PlayerAdapter::setFullscreen);
 
     // Slider
-    connect(m_ui->m_controls, &PlayerControls::volumeSliderMoved,
+    connect(m_ui->controls, &PlayerControls::volumeSliderMoved,
         m_player, &PlayerAdapter::setVolume);
-    connect(m_ui->m_controls, &PlayerControls::sliderMoved,
+    connect(m_ui->controls, &PlayerControls::sliderMoved,
         m_player, &PlayerAdapter::seek);
     connect(m_player, &PlayerAdapter::durationChanged,
-        m_ui->m_controls, &PlayerControls::setDuration);
+        m_ui->controls, &PlayerControls::setDuration);
     connect(m_player, &PlayerAdapter::positionChanged,
-        m_ui->m_controls, &PlayerControls::setPosition);
+        m_ui->controls, &PlayerControls::setPosition);
 
     // State changes
     connect(m_player, &PlayerAdapter::subtitleChanged,
-        m_ui->m_controls, &PlayerControls::setSubtitle);
+        m_ui->controls, &PlayerControls::setSubtitle);
     connect(m_player, &PlayerAdapter::stateChanged,
-        m_ui->m_controls, &PlayerControls::setPaused);
+        m_ui->controls, &PlayerControls::setPaused);
     connect(m_player, &PlayerAdapter::fullscreenChanged,
         this, &MainWindow::setFullscreen);
     connect(m_player, &PlayerAdapter::fullscreenChanged,
-        m_ui->m_controls, &PlayerControls::setFullscreen);
+        m_ui->controls, &PlayerControls::setFullscreen);
     connect(m_player, &PlayerAdapter::volumeChanged,
-        m_ui->m_controls, &PlayerControls::setVolume);
+        m_ui->controls, &PlayerControls::setVolume);
     connect(m_player, &PlayerAdapter::hideCursor,
         this, &MainWindow::hideControls);
     connect(m_player, &PlayerAdapter::hideCursor,
@@ -163,34 +164,34 @@ MainWindow::MainWindow(QWidget *parent)
             } );
 
     connect(m_player, &PlayerAdapter::audioDisabled,
-        [=] { m_ui->m_actionAudioNone->setChecked(true); } );
+        [=] { m_ui->actionAudioNone->setChecked(true); } );
     connect(m_player, &PlayerAdapter::videoDisabled,
-        [=] { m_ui->m_actionVideoNone->setChecked(true); } );
+        [=] { m_ui->actionVideoNone->setChecked(true); } );
     connect(m_player, &PlayerAdapter::subtitleDisabled,
-        [=] { m_ui->m_actionSubtitleNone->setChecked(true); } );
+        [=] { m_ui->actionSubtitleNone->setChecked(true); } );
     connect(m_player, &PlayerAdapter::subtitleTwoDisabled,
-        [=] { m_ui->m_actionSubtitleTwoNone->setChecked(true); } );
+        [=] { m_ui->actionSubtitleTwoNone->setChecked(true); } );
 
-    connect(m_ui->m_actionAudioNone, &QAction::triggered,
+    connect(m_ui->actionAudioNone, &QAction::triggered,
         m_player, &PlayerAdapter::disableAudio);
-    connect(m_ui->m_actionVideoNone, &QAction::triggered,
+    connect(m_ui->actionVideoNone, &QAction::triggered,
         m_player, &PlayerAdapter::disableVideo);
-    connect(m_ui->m_actionSubtitleNone, &QAction::triggered,
+    connect(m_ui->actionSubtitleNone, &QAction::triggered,
         m_player, &PlayerAdapter::disableSubtitles);
-    connect(m_ui->m_actionSubtitleTwoNone, &QAction::triggered,
+    connect(m_ui->actionSubtitleTwoNone, &QAction::triggered,
         m_player, &PlayerAdapter::disableSubtitleTwo);
 
     // Definition changes
-    connect(m_ui->m_controls, &PlayerControls::entriesChanged,
+    connect(m_ui->controls, &PlayerControls::entriesChanged,
         m_definition, &DefinitionWidget::setEntries);
-    connect(m_ui->m_controls, &PlayerControls::entriesChanged,
+    connect(m_ui->controls, &PlayerControls::entriesChanged,
         this, &MainWindow::setDefinitionWidgetLocation);
-    connect(m_ui->m_controls, &PlayerControls::hideDefinition,
+    connect(m_ui->controls, &PlayerControls::hideDefinition,
         m_definition, &DefinitionWidget::hide);
     connect(m_definition, &DefinitionWidget::definitionHidden,
-        m_ui->m_controls, &PlayerControls::definitionHidden);
+        m_ui->controls, &PlayerControls::definitionHidden);
     connect(this, &MainWindow::jmDictUpdated,
-        m_ui->m_controls, &PlayerControls::jmDictUpdated);
+        m_ui->controls, &PlayerControls::jmDictUpdated);
 
     // Thread message box signals
     connect(this, &MainWindow::threadError, 
@@ -266,11 +267,11 @@ void MainWindow::setFullscreen(bool value)
     {
         m_maximized = isMaximized();
         showFullScreen();
-        m_ui->m_menubar->hide();
+        m_ui->menubar->hide();
         QApplication::processEvents();
-        m_ui->m_controls->hide();
-        m_ui->m_centralwidget->layout()->removeWidget(m_ui->m_controls);
-        m_ui->m_controls->raise();
+        m_ui->controls->hide();
+        m_ui->centralwidget->layout()->removeWidget(m_ui->controls);
+        m_ui->controls->raise();
     }
     else
     {
@@ -289,19 +290,19 @@ void MainWindow::setFullscreen(bool value)
         }
     #endif
         
-        m_ui->m_menubar->show();
-        m_ui->m_controls->show();
-        m_ui->m_centralwidget->layout()->addWidget(m_ui->m_controls);
+        m_ui->menubar->show();
+        m_ui->controls->show();
+        m_ui->centralwidget->layout()->addWidget(m_ui->controls);
     }
 }
 
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
-    if (isFullScreen() && m_ui->m_controls->isHidden())
+    if (isFullScreen() && m_ui->controls->isHidden())
     {
-        m_ui->m_controls->show();
+        m_ui->controls->show();
     }
-    m_ui->m_mpv->setCursor(Qt::ArrowCursor);
+    m_ui->mpv->setCursor(Qt::ArrowCursor);
 }
 
 void MainWindow::setTracks(QList<const PlayerAdapter::Track *> tracks)
@@ -324,7 +325,7 @@ void MainWindow::setTracks(QList<const PlayerAdapter::Track *> tracks)
         switch (track->type)
         {
         case PlayerAdapter::Track::track_type::audio:
-            m_ui->m_menuAudio->addAction(action);
+            m_ui->menuAudio->addAction(action);
             action->setActionGroup(m_actionGroupAudio);
             connect(action, &QAction::triggered, 
                 [=] (const bool checked) { 
@@ -333,7 +334,7 @@ void MainWindow::setTracks(QList<const PlayerAdapter::Track *> tracks)
             trackList = &m_audioTracks;
             break;
         case PlayerAdapter::Track::track_type::video:
-            m_ui->m_menuVideo->addAction(action);
+            m_ui->menuVideo->addAction(action);
             action->setActionGroup(m_actionGroupVideo);
             connect(action, &QAction::triggered, 
                 [=] (const bool checked) { 
@@ -343,7 +344,7 @@ void MainWindow::setTracks(QList<const PlayerAdapter::Track *> tracks)
             break;
         case PlayerAdapter::Track::track_type::subtitle:
         {
-            m_ui->m_menuSubtitle->addAction(action);
+            m_ui->menuSubtitle->addAction(action);
             action->setActionGroup(m_actionGroupSubtitle);
             connect(action, &QAction::triggered, 
                 [=] (const bool checked) { 
@@ -354,7 +355,7 @@ void MainWindow::setTracks(QList<const PlayerAdapter::Track *> tracks)
             QAction *actionSubTwo = new QAction(this);
             actionSubTwo->setText(actionText);
             actionSubTwo->setCheckable(true);
-            m_ui->m_menuSubtitleTwo->addAction(actionSubTwo);
+            m_ui->menuSubtitleTwo->addAction(actionSubTwo);
             actionSubTwo->setActionGroup(m_actionGroupSubtitleTwo);
             connect(actionSubTwo, &QAction::triggered, 
                 [=] (const bool checked) { 
@@ -378,7 +379,7 @@ void MainWindow::updateAnkiProfileMenu()
     for (auto it = m_ankiProfiles.begin(); it != m_ankiProfiles.end(); ++it)
     {
         m_actionGroupAnkiProfile->removeAction(*it);
-        m_ui->m_menuAnkiProfile->removeAction(*it);
+        m_ui->menuAnkiProfile->removeAction(*it);
         delete *it;
     }
     m_ankiProfiles.clear();
@@ -394,7 +395,7 @@ void MainWindow::updateAnkiProfileMenu()
         profileAction->setText(*it);
         profileAction->setCheckable(true);
         profileAction->setChecked(m_ankiClient->getProfile() == *it);
-        m_ui->m_menuAnkiProfile->addAction(profileAction);
+        m_ui->menuAnkiProfile->addAction(profileAction);
         profileAction->setActionGroup(m_actionGroupAnkiProfile);
         m_ankiProfiles.append(profileAction);
 
@@ -412,7 +413,7 @@ void MainWindow::updateAnkiProfileMenu()
     }
 
     // Handle disabled Anki Integration
-    m_ui->m_menuAnkiProfile->
+    m_ui->menuAnkiProfile->
         menuAction()->setVisible(m_ankiClient->isEnabled());
 }
 
@@ -425,44 +426,44 @@ void MainWindow::setDefinitionWidgetLocation()
     {
         x = 0;
     }
-    else if (x > m_ui->m_mpv->width() - m_definition->width())
+    else if (x > m_ui->mpv->width() - m_definition->width())
     {
-        x = m_ui->m_mpv->width() - m_definition->width();
+        x = m_ui->mpv->width() - m_definition->width();
     }
 
-    int y = m_ui->m_mpv->height() - m_definition->height();
-    y = isFullScreen() ? y - m_ui->m_controls->height() : y;
+    int y = m_ui->mpv->height() - m_definition->height();
+    y = isFullScreen() ? y - m_ui->controls->height() : y;
 
     m_definition->move(x, y);
 }
 
 void MainWindow::hideControls()
 {
-    if (isFullScreen() && !m_ui->m_controls->underMouse() && 
+    if (isFullScreen() && !m_ui->controls->underMouse() && 
         !m_definition->underMouse())
     {
-        m_ui->m_controls->hide();
+        m_ui->controls->hide();
     }
 }
 
 void MainWindow::hidePlayerCursor()
 {
-    if (!m_ui->m_controls->underMouse() && !m_definition->underMouse()) 
+    if (!m_ui->controls->underMouse() && !m_definition->underMouse()) 
     {
-        m_ui->m_mpv->setCursor(Qt::BlankCursor);
+        m_ui->mpv->setCursor(Qt::BlankCursor);
     }
 }
 
 void MainWindow::clearTracks()
 {
-    clearTrack(m_audioTracks, m_ui->m_menuAudio, m_actionGroupAudio,
-               m_ui->m_actionAudioNone);
-    clearTrack(m_videoTracks, m_ui->m_menuVideo, m_actionGroupVideo,
-               m_ui->m_actionVideoNone);
-    clearTrack(m_subtitleTracks, m_ui->m_menuSubtitle, m_actionGroupSubtitle,
-               m_ui->m_actionSubtitleNone);
-    clearTrack(m_subtitleTwoTracks, m_ui->m_menuSubtitleTwo,
-               m_actionGroupSubtitleTwo, m_ui->m_actionSubtitleTwoNone);
+    clearTrack(m_audioTracks, m_ui->menuAudio, m_actionGroupAudio,
+               m_ui->actionAudioNone);
+    clearTrack(m_videoTracks, m_ui->menuVideo, m_actionGroupVideo,
+               m_ui->actionVideoNone);
+    clearTrack(m_subtitleTracks, m_ui->menuSubtitle, m_actionGroupSubtitle,
+               m_ui->actionSubtitleNone);
+    clearTrack(m_subtitleTwoTracks, m_ui->menuSubtitleTwo,
+               m_actionGroupSubtitleTwo, m_ui->actionSubtitleTwoNone);
     
 }
 
