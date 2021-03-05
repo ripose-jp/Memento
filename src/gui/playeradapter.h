@@ -117,7 +117,8 @@ Q_SIGNALS:
 
     void subtitleChanged(const QString &subtitle,
                          const double start,
-                         const double end);
+                         const double end,
+                         const double delay);
 
     void durationChanged(const double value);
     void positionChanged(const double value);

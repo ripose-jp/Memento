@@ -209,6 +209,7 @@ MainWindow::~MainWindow()
     clearTracks();
     delete m_ui;
     delete m_player;
+    delete m_subtitleListHandler;
     delete m_actionGroupAudio;
     delete m_actionGroupVideo;
     delete m_actionGroupSubtitle;

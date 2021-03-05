@@ -49,7 +49,8 @@ public Q_SLOTS:
     void setPosition(const double value);
     void setSubtitle(const QString &subtitle,
                      const double start,
-                     const double end);
+                     const double end,
+                     const double delay);
 
 Q_SIGNALS:
     void play();

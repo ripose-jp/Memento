@@ -192,11 +192,12 @@ void PlayerControls::setVolume(const int64_t value)
 
 void PlayerControls::setSubtitle(const QString &subtitle,
                                  const double start, 
-                                 const double end)
+                                 const double end,
+                                 const double delay)
 {
     m_ui->m_subtitle->updateText(subtitle);
-    m_startTime = start;
-    m_endTime = end;
+    m_startTime = start + delay;
+    m_endTime = end + delay;
 }
 
 QString PlayerControls::formatTime(const int time)

@@ -38,15 +38,20 @@ public:
                         QObject *parent = nullptr);
     ~SubtitleListHandler();
 
-public Q_SLOTS:
-    void open(const QString &file);
-    void populateList(int64_t track);
+private Q_SLOTS:
+    void addSubtitle(const QString &subtitle,
+                     const double start,
+                     const double end,
+                     const double delay);
+    void clearSubtitles();
+    void seekToSubtitle(const QListWidgetItem *item);
 
 private:
     QListWidget *m_list;
     mpv_handle *m_mpv;
     PlayerAdapter *m_player;
-    QList<double> m_startTimes;
+    QMultiMap<double, QString> *m_seenSubtitles;
+    QMultiHash<QString, double> *m_subStartTimes;
 };
 
 #endif // SUBTITLELISTHANDLER_H

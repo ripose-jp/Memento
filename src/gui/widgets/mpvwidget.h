@@ -60,7 +60,8 @@ Q_SIGNALS:
     void subtitleTwoDisabled();
     void subtitleChanged(const QString &subtitle, 
                          const double start, 
-                         const double end);
+                         const double end,
+                         const double delay);
     void hideCursor();
     void shutdown();
 

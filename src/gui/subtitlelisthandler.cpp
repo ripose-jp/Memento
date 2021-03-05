@@ -20,139 +20,67 @@
 
 #include "subtitlelisthandler.h"
 
-#include <mpv/client.h>
-
 #include "../util/directoryutils.h"
+
+#include <iterator>
+#include <QMultiMap>
 
 SubtitleListHandler::SubtitleListHandler(QListWidget *list,
                                          PlayerAdapter *player,
                                          QObject *parent)
-    : m_list(list), m_player(player), QObject(parent)
+    : m_list(list), m_player(player), QObject(parent),
+      m_seenSubtitles(new QMultiMap<double, QString>),
+      m_subStartTimes(new QMultiHash<QString, double>)
 {
-    m_mpv = mpv_create();
-    if (!m_mpv)
-    {
-        fprintf(stderr, "Could not create mpv context\n");
-        exit(EXIT_FAILURE);
-    }
-    
-    mpv_set_option_string(m_mpv, "no-terminal", "yes");
-    mpv_set_option_string(m_mpv, "idle", "yes");
-    mpv_set_option_string(m_mpv, "keep-open", "yes");
-    mpv_set_option_string(m_mpv, "osd-level", "0");
-    mpv_set_option_string(m_mpv, "force-window", "no");
-    mpv_set_option_string(m_mpv, "config", "yes");
-    mpv_set_option_string(m_mpv, "config-dir",
-                          DirectoryUtils::getConfigDir().toLatin1());
-
-    if (mpv_initialize(m_mpv) < 0)
-    {
-        fprintf(stderr, "Could not initialize mpv context\n");
-        exit(EXIT_FAILURE);
-    }
-
-    /*
-    int val = 0;
-    mpv_set_property(m_mpv, "osd-level", MPV_FORMAT_INT64, &val);
-    val = 1;
-    mpv_set_property(m_mpv, "idle", MPV_FORMAT_FLAG, &val);
-    val = 1;
-    mpv_set_property(m_mpv, "keep-open", MPV_FORMAT_FLAG, &val);
-    val = 0;
-    mpv_set_property(m_mpv, "force-window", MPV_FORMAT_FLAG, &val);
-    */
-
-    connect(m_player, &PlayerAdapter::fileChanged,
-        this, &SubtitleListHandler::open);
+    connect(m_player, &PlayerAdapter::subtitleChanged,
+        this, &SubtitleListHandler::addSubtitle);
     connect(m_player, &PlayerAdapter::subtitleTrackChanged,
-        this, &SubtitleListHandler::populateList);
+        this, &SubtitleListHandler::clearSubtitles);
+    connect(m_player, &PlayerAdapter::subtitleDisabled,
+        this, &SubtitleListHandler::clearSubtitles);
+    
+    connect(m_list, &QListWidget::itemDoubleClicked,
+        this, &SubtitleListHandler::seekToSubtitle);
 }
 
 SubtitleListHandler::~SubtitleListHandler()
 {
-    mpv_destroy(m_mpv);
+    delete m_seenSubtitles;
+    delete m_subStartTimes;
 }
 
-void SubtitleListHandler::open(const QString &file)
+void SubtitleListHandler::addSubtitle(const QString &subtitle,
+                                      const double start,
+                                      const double end,
+                                      const double delay)
 {
-    const char *args[3] = {
-        "loadfile",
-        file.toLatin1().data(),
-        NULL
-    };
-
-    if (mpv_command(m_mpv, args) < 0)
+    size_t i;
+    auto it = m_seenSubtitles->constFind(start);
+    if (it == m_seenSubtitles->constEnd() || *it != subtitle)
     {
-        fprintf(stderr, "Could not load file %s\n", file.toLatin1().data());
+        auto end = m_seenSubtitles->insert(start, subtitle);
+        m_subStartTimes->insert(subtitle, start);
+
+        i = std::distance(m_seenSubtitles->begin(), end);
+        m_list->insertItem(i, subtitle);
     }
+    else
+    {
+        i = std::distance(m_seenSubtitles->constBegin(), it);
+    }
+
+    m_list->setCurrentRow(i);
 }
 
-void SubtitleListHandler::populateList(int64_t track)
+void SubtitleListHandler::clearSubtitles()
 {
-    // Set track and seek to start
-    if (mpv_set_property(m_mpv, "sid", MPV_FORMAT_INT64, &track) < 0)
-        return;
-    int paused = 1;
-    if (mpv_set_property(m_mpv, "pause", MPV_FORMAT_FLAG, &paused) < 0)
-        return;
-    double pos = 0.0;
-    if (mpv_set_property(m_mpv, "time-pos", MPV_FORMAT_DOUBLE, &pos) < 0)
-        return;
+    m_list->clear();
+    m_seenSubtitles->clear();
+    m_subStartTimes->clear();
+}
 
-    const char *sub_seek_args[3] = {
-        "sub-seek",
-        "1",
-        NULL
-    };
-
-    fprintf(stderr, "Seeked to start\n");
-
-    // Get the first subtitle
-    char *subtext = NULL;
-    if (mpv_get_property(m_mpv, "sub-text", MPV_FORMAT_STRING, &subtext) < 0)
-        return;
-    fprintf(stderr, "Got first subtitle to start %s\n", subtext);
-    if (*subtext == '\0')
-    {
-        mpv_free(subtext);
-        if (mpv_command(m_mpv, sub_seek_args) < 0)
-            return;
-        if (mpv_get_property(m_mpv, "sub-text", MPV_FORMAT_STRING, &subtext) < 0)
-            return;
-    }
-    double lastpos = -1.0;
-    if (mpv_get_property(m_mpv, "time-pos", MPV_FORMAT_DOUBLE, &pos) < 0)
-    {
-        mpv_free(subtext);
-        return;
-    }
-
-    fprintf(stderr, "Got first subtitle to start %s\n", subtext);
-
-    // Add all the subtitles to the list
-    while (pos != lastpos && *subtext)
-    {
-        m_list->addItem(subtext);
-        m_startTimes.append(pos);
-
-        lastpos = pos;
-        mpv_free(subtext);
-        if (mpv_command(m_mpv, sub_seek_args) < 0)
-        {
-            return;
-        }
-        if (mpv_get_property(m_mpv, "time-pos", MPV_FORMAT_DOUBLE, &pos) < 0)
-        {
-            return;
-        }
-        if (mpv_get_property(m_mpv, "sub-text", MPV_FORMAT_STRING, &subtext) < 0)
-        {
-            return;
-        }
-    }
-
-    fprintf(stderr, "Finished seeking last: %f end: %f\n", pos, lastpos);
-
-    // Free up any memory that might not be free
-    mpv_free(subtext);
+void SubtitleListHandler::seekToSubtitle(const QListWidgetItem *item)
+{
+    double pos = m_subStartTimes->value(item->text()) + m_player->getSubDelay();
+    m_player->seek(pos);
 }
