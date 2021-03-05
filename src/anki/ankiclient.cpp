@@ -658,8 +658,8 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
                 int ret = transcode_aac(
                     m_player->getPath().toLatin1(), path.toLatin1(), 
                     m_player->getAudioTrack() - 1,
-                    m_player->getSubStart() + m_player->getSubDelay(),
-                    m_player->getSubEnd() + m_player->getSubDelay()
+                    m_player->getSubStart() + m_player->getSubDelay() + m_player->getAudioDelay(),
+                    m_player->getSubEnd() + m_player->getSubDelay() + m_player->getAudioDelay()
                 );
 
                 QString filename = generateMD5(path) + ".aac";
