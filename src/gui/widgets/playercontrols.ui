@@ -338,6 +338,12 @@
      </item>
      <item>
       <widget class="QToolButton" name="buttonToggleSubList">
+       <property name="minimumSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+       </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
