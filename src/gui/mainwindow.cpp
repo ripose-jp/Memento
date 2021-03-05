@@ -54,7 +54,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_player->pause();
 
     // Subtitle list
-    //m_ui->listSubtitles->hide();
+    m_ui->listSubtitles->hide();
     m_ui->listSubtitles->setPlayer(m_player);
 
     // Anki
@@ -103,6 +103,9 @@ MainWindow::MainWindow(QWidget *parent)
         m_player, &PlayerAdapter::seekBackward);
     connect(m_ui->controls, &PlayerControls::fullscreenChanged,
         m_player, &PlayerAdapter::setFullscreen);
+    connect(m_ui->controls, &PlayerControls::subtitleListToggled, [=] { 
+        m_ui->listSubtitles->setVisible(!m_ui->listSubtitles->isVisible()); 
+    } );
 
     // Slider
     connect(m_ui->controls, &PlayerControls::volumeSliderMoved,

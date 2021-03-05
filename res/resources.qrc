@@ -5,5 +5,6 @@
     <file>images/restore.svg</file>
     <file>images/plus.svg</file>
     <file>images/minus.svg</file>
+    <file>images/hamburger.svg</file>
 </qresource>
 </RCC>

@@ -36,7 +36,7 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="SubtitleWidget" name="m_subtitle">
+    <widget class="SubtitleWidget" name="subtitle">
      <property name="font">
       <font>
        <family>Noto Sans JP</family>
@@ -60,7 +60,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="m_layoutTop">
+    <layout class="QHBoxLayout" name="layoutTop">
      <property name="leftMargin">
       <number>6</number>
      </property>
@@ -74,7 +74,7 @@
       <number>6</number>
      </property>
      <item>
-      <widget class="QLabel" name="m_labelCurrent">
+      <widget class="QLabel" name="labelCurrent">
        <property name="enabled">
         <bool>true</bool>
        </property>
@@ -93,7 +93,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QSlider" name="m_sliderProgress">
+      <widget class="QSlider" name="sliderProgress">
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
@@ -103,7 +103,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="m_labelTotal">
+      <widget class="QLabel" name="labelTotal">
        <property name="minimumSize">
         <size>
          <width>69</width>
@@ -121,7 +121,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="m_layoutBottom" stretch="0,0,0,0,0">
+    <layout class="QHBoxLayout" name="layoutBottom" stretch="0,0,0,0,0,0">
      <property name="spacing">
       <number>6</number>
      </property>
@@ -138,12 +138,12 @@
       <number>6</number>
      </property>
      <item>
-      <layout class="QHBoxLayout" name="m_layoutButtons">
+      <layout class="QHBoxLayout" name="layoutButtons">
        <property name="spacing">
         <number>0</number>
        </property>
        <item>
-        <widget class="QToolButton" name="m_buttonPlay">
+        <widget class="QToolButton" name="buttonPlay">
          <property name="minimumSize">
           <size>
            <width>30</width>
@@ -166,7 +166,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="m_buttonSkipBackward">
+        <widget class="QToolButton" name="buttonSkipBackward">
          <property name="minimumSize">
           <size>
            <width>30</width>
@@ -189,7 +189,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="m_buttonSeekBackward">
+        <widget class="QToolButton" name="buttonSeekBackward">
          <property name="minimumSize">
           <size>
            <width>30</width>
@@ -212,7 +212,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="m_buttonSeekForward">
+        <widget class="QToolButton" name="buttonSeekForward">
          <property name="minimumSize">
           <size>
            <width>30</width>
@@ -235,7 +235,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="m_buttonSkipForward">
+        <widget class="QToolButton" name="buttonSkipForward">
          <property name="minimumSize">
           <size>
            <width>30</width>
@@ -258,7 +258,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="m_buttonStop">
+        <widget class="QToolButton" name="buttonStop">
          <property name="minimumSize">
           <size>
            <width>30</width>
@@ -283,7 +283,7 @@
       </layout>
      </item>
      <item>
-      <spacer name="m_horizontalSpacer">
+      <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -296,7 +296,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QSlider" name="m_sliderVolume">
+      <widget class="QSlider" name="sliderVolume">
        <property name="minimumSize">
         <size>
          <width>150</width>
@@ -321,7 +321,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="m_labelVolume">
+      <widget class="QLabel" name="labelVolume">
        <property name="minimumSize">
         <size>
          <width>39</width>
@@ -337,7 +337,20 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="m_buttonFullscreen">
+      <widget class="QToolButton" name="buttonToggleSubList">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Toggle subtitle list visibility</string>
+       </property>
+       <property name="text">
+        <string>三</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="buttonFullscreen">
        <property name="minimumSize">
         <size>
          <width>30</width>

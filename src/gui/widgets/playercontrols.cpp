@@ -36,53 +36,55 @@ PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent),
 
     m_iconFactory = IconFactory::create(this);
     setIcons();
-    m_ui->m_buttonStop->hide(); // stop button may be removed entirely
+    m_ui->buttonStop->hide(); // stop button may be removed entirely
 
-    m_ui->m_sliderProgress->setStyle(
-        new SliderJumpStyle(m_ui->m_sliderProgress->style()));
-    m_ui->m_sliderVolume->setStyle(
-        new SliderJumpStyle(m_ui->m_sliderVolume->style()));
+    m_ui->sliderProgress->setStyle(
+        new SliderJumpStyle(m_ui->sliderProgress->style()));
+    m_ui->sliderVolume->setStyle(
+        new SliderJumpStyle(m_ui->sliderVolume->style()));
 
-    connect(m_ui->m_sliderProgress, &QSlider::sliderPressed, [=] {
+    connect(m_ui->sliderProgress, &QSlider::sliderPressed, [=] {
         blockSignals(true);
         Q_EMIT pause();
         blockSignals(false);
     });
-    connect(m_ui->m_sliderProgress, &QSlider::sliderReleased, [=] {
+    connect(m_ui->sliderProgress, &QSlider::sliderReleased, [=] {
         if (!m_paused)
         {
             Q_EMIT play();
         }
     });
-    connect(m_ui->m_sliderProgress, &QSlider::valueChanged,
+    connect(m_ui->sliderProgress, &QSlider::valueChanged,
         this, &PlayerControls::sliderMoved, Qt::QueuedConnection);
 
-    connect(m_ui->m_sliderVolume, &QSlider::valueChanged,
+    connect(m_ui->sliderVolume, &QSlider::valueChanged,
         this, &PlayerControls::volumeSliderMoved);
 
-    connect(m_ui->m_buttonPlay, &QToolButton::clicked,
+    connect(m_ui->buttonPlay, &QToolButton::clicked,
         this, &PlayerControls::pauseResume);
-    connect(m_ui->m_buttonSeekForward, &QToolButton::clicked,
+    connect(m_ui->buttonSeekForward, &QToolButton::clicked,
         this, &PlayerControls::seekForward);
-    connect(m_ui->m_buttonSeekBackward, &QToolButton::clicked,
+    connect(m_ui->buttonSeekBackward, &QToolButton::clicked,
         this, &PlayerControls::seekBackward);
-    connect(m_ui->m_buttonSkipForward, &QToolButton::clicked,
+    connect(m_ui->buttonSkipForward, &QToolButton::clicked,
         this, &PlayerControls::skipForward);
-    connect(m_ui->m_buttonSkipBackward, &QToolButton::clicked,
+    connect(m_ui->buttonSkipBackward, &QToolButton::clicked,
         this, &PlayerControls::skipBackward);
-    connect(m_ui->m_buttonStop, &QToolButton::clicked,
+    connect(m_ui->buttonStop, &QToolButton::clicked,
         this, &PlayerControls::stop);
-    connect(m_ui->m_buttonFullscreen, &QToolButton::clicked,
+    connect(m_ui->buttonFullscreen, &QToolButton::clicked,
         this, &PlayerControls::toggleFullscreen);
+    connect(m_ui->buttonToggleSubList, &QToolButton::clicked,
+        this, &PlayerControls::subtitleListToggled);
 
-    connect(m_ui->m_subtitle, &SubtitleWidget::entriesChanged,
+    connect(m_ui->subtitle, &SubtitleWidget::entriesChanged,
         this, &PlayerControls::entriesChanged);
-    connect(m_ui->m_subtitle, &SubtitleWidget::textChanged,
+    connect(m_ui->subtitle, &SubtitleWidget::textChanged,
         this, &PlayerControls::hideDefinition);
     connect(this, &PlayerControls::definitionHidden,
-        m_ui->m_subtitle, &SubtitleWidget::deselectText);
+        m_ui->subtitle, &SubtitleWidget::deselectText);
     connect(this, &PlayerControls::jmDictUpdated,
-        m_ui->m_subtitle, &SubtitleWidget::jmDictUpdated);
+        m_ui->subtitle, &SubtitleWidget::jmDictUpdated);
 }
 
 PlayerControls::~PlayerControls()
@@ -93,23 +95,26 @@ PlayerControls::~PlayerControls()
 
 void PlayerControls::setIcons()
 {
-    m_ui->m_buttonPlay->setIcon(
+    m_ui->buttonPlay->setIcon(
         m_iconFactory->getIcon(IconFactory::Icon::play));
-    m_ui->m_buttonStop->setIcon(
+    m_ui->buttonStop->setIcon(
         m_iconFactory->getIcon(IconFactory::Icon::stop));
 
-    m_ui->m_buttonFullscreen->setIcon(
+    m_ui->buttonFullscreen->setIcon(
         m_iconFactory->getIcon(IconFactory::Icon::fullscreen));
 
-    m_ui->m_buttonSeekBackward->setIcon(
+    m_ui->buttonSeekBackward->setIcon(
         m_iconFactory->getIcon(IconFactory::Icon::seek_backward));
-    m_ui->m_buttonSeekForward->setIcon(
+    m_ui->buttonSeekForward->setIcon(
         m_iconFactory->getIcon(IconFactory::Icon::seek_forward));
 
-    m_ui->m_buttonSkipBackward->setIcon(
+    m_ui->buttonSkipBackward->setIcon(
         m_iconFactory->getIcon(IconFactory::Icon::skip_backward));
-    m_ui->m_buttonSkipForward->setIcon(
+    m_ui->buttonSkipForward->setIcon(
         m_iconFactory->getIcon(IconFactory::Icon::skip_forward));
+
+    m_ui->buttonToggleSubList->setIcon(
+        m_iconFactory->getIcon(IconFactory::Icon::hamburger));
 }
 
 void PlayerControls::setDuration(const double value)
@@ -118,8 +123,8 @@ void PlayerControls::setDuration(const double value)
     m_duration = value;
     m_startTime = -1;
     m_endTime = -1;
-    m_ui->m_sliderProgress->setRange(0, value);
-    m_ui->m_labelTotal->setText(formatTime(value));
+    m_ui->sliderProgress->setRange(0, value);
+    m_ui->labelTotal->setText(formatTime(value));
 }
 
 void PlayerControls::setPosition(const double value)
@@ -127,19 +132,19 @@ void PlayerControls::setPosition(const double value)
     if (value > m_duration)
         return;
     
-    m_ui->m_sliderProgress->blockSignals(true);
-    m_ui->m_sliderProgress->setValue(value);
-    m_ui->m_sliderProgress->blockSignals(false);
-    m_ui->m_labelCurrent->setText(formatTime(value));
+    m_ui->sliderProgress->blockSignals(true);
+    m_ui->sliderProgress->setValue(value);
+    m_ui->sliderProgress->blockSignals(false);
+    m_ui->labelCurrent->setText(formatTime(value));
 
     if (value < m_startTime - DOUBLE_DELTA || value > m_endTime + DOUBLE_DELTA)
-        m_ui->m_subtitle->updateText("");
+        m_ui->subtitle->updateText("");
 }
 
 void PlayerControls::setPaused(const bool paused)
 {
     m_paused = paused;
-    m_ui->m_buttonPlay->setIcon(
+    m_ui->buttonPlay->setIcon(
         m_iconFactory->getIcon(
             m_paused ? IconFactory::Icon::play : IconFactory::Icon::pause));
 }
@@ -161,12 +166,12 @@ void PlayerControls::setFullscreen(const bool value)
     m_fullscreen = value;
     if (m_fullscreen)
     {
-        m_ui->m_buttonFullscreen->setIcon(
+        m_ui->buttonFullscreen->setIcon(
             m_iconFactory->getIcon(IconFactory::Icon::restore));
     }
     else
     {
-        m_ui->m_buttonFullscreen->setIcon(
+        m_ui->buttonFullscreen->setIcon(
             m_iconFactory->getIcon(IconFactory::Icon::fullscreen));
     }
 }
@@ -178,16 +183,16 @@ void PlayerControls::toggleFullscreen()
 
 void PlayerControls::setVolumeLimit(const int64_t value)
 {
-    m_ui->m_sliderVolume->setRange(0, value);
+    m_ui->sliderVolume->setRange(0, value);
 }
 
 void PlayerControls::setVolume(const int64_t value)
 {
-    m_ui->m_sliderVolume->blockSignals(true);
-    m_ui->m_sliderVolume->setValue(value);
-    m_ui->m_sliderVolume->blockSignals(false);
+    m_ui->sliderVolume->blockSignals(true);
+    m_ui->sliderVolume->setValue(value);
+    m_ui->sliderVolume->blockSignals(false);
     QString volume = QString::number(value) + "%";
-    m_ui->m_labelVolume->setText(volume);
+    m_ui->labelVolume->setText(volume);
 }
 
 void PlayerControls::setSubtitle(const QString &subtitle,
@@ -195,7 +200,7 @@ void PlayerControls::setSubtitle(const QString &subtitle,
                                  const double end,
                                  const double delay)
 {
-    m_ui->m_subtitle->updateText(subtitle);
+    m_ui->subtitle->updateText(subtitle);
     m_startTime = start + delay;
     m_endTime = end + delay;
 }
@@ -220,9 +225,9 @@ QString PlayerControls::formatTime(const int time)
 void PlayerControls::mouseMoveEvent(QMouseEvent *event)
 {
     event->ignore();
-    if (!m_ui->m_subtitle->underMouse())
+    if (!m_ui->subtitle->underMouse())
     {
-        m_ui->m_subtitle->deselectText();
+        m_ui->subtitle->deselectText();
         Q_EMIT hideDefinition();
     }
 }

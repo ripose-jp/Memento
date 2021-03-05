@@ -26,7 +26,7 @@
 #include <QStyle>
 #include <QString>
 
-#define ICON_ENUM_SIZE 11
+#define ICON_ENUM_SIZE 12
 #define XDG_ICONS 9
 
 class IconFactory
@@ -46,7 +46,8 @@ public:
         restore,
         // All icons without an xdg spec should be put past this point
         plus,
-        minus
+        minus,
+        hamburger
     };
 
     virtual QIcon getIcon(IconFactory::Icon icon) = 0;

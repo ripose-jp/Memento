@@ -70,6 +70,7 @@ StyleFactory::StyleFactory(const QWidget *parent) : IconFactory(parent)
     icons[restore] = QIcon(":/images/restore.svg");
     icons[plus] = QIcon(":/images/plus.svg");
     icons[minus] = QIcon(":/images/minus.svg");
+    icons[hamburger] = QIcon(":/images/hamburger.svg");
 }
 
 QIcon StyleFactory::getIcon(IconFactory::Icon icon)
@@ -100,6 +101,7 @@ ThemeFactory::ThemeFactory(const QWidget *parent) : IconFactory(parent)
     }
     icons[plus] = QIcon(":/images/plus.svg");
     icons[minus] = QIcon(":/images/minus.svg");
+    icons[hamburger] = QIcon(":/images/hamburger.svg");
 }
 
 QIcon ThemeFactory::getIcon(IconFactory::Icon icon)
