@@ -246,7 +246,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 void MainWindow::wheelEvent(QWheelEvent *event)
 {
-    Q_EMIT wheelMoved(event);
+    if (!m_ui->listSubtitles->underMouse())
+    {
+        Q_EMIT wheelMoved(event);
+    }
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)
