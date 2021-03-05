@@ -40,11 +40,6 @@ if(UNIX)
 		COMPONENT binaries
 	)
 	install(
-		FILES config/input.conf
-		DESTINATION /etc/memento
-		COMPONENT config
-	)
-	install(
 		FILES config/dict/JMDict
 		DESTINATION /etc/memento
 		COMPONENT config
@@ -57,4 +52,7 @@ if(UNIX)
 		FILES res/memento.svg
 		DESTINATION share/icons/hicolor/scalable/apps
 	)
+
+	# Remove unused files from older versions
+	file(REMOVE /etc/memento/input.conf)
 endif()

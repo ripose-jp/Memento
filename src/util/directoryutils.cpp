@@ -97,18 +97,5 @@ QString DirectoryUtils::getJmdict()
 
 QString DirectoryUtils::getMpvInputConfig()
 {
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     return getConfigDir() + MPV_INPUT_CONF_FILE;
-#elif __linux__
-    QString path = getConfigDir() + MPV_INPUT_CONF_FILE;
-    QFile file(path);
-    if (file.exists())
-    {
-        return path;
-    }
-
-    path = GLOBAL_CONFIG_PATH;
-    path += MPV_INPUT_CONF_FILE;
-    return path;
-#endif
 }

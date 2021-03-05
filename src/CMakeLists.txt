@@ -14,8 +14,6 @@ add_executable(
     ${WINDOWS_EXE_OPTION}
     main.cpp 
     ../res/resources.qrc
-    ../config/input.conf
-    ../config/dict/JMDict
     ${APP_ICON_RESOURCE_WINDOWS}
 )
 target_link_libraries(memento mainwindow)

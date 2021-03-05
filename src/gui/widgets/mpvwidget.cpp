@@ -60,7 +60,10 @@ MpvWidget::MpvWidget(QWidget *parent)
 
     mpv = mpv_create();
     if (!mpv)
-        throw std::runtime_error("could not create mpv context");
+    {
+        qDebug() << "Could not create mpv context";
+        exit(EXIT_FAILURE);
+    }
 
     mpv_set_option_string(mpv, "terminal", "yes");
     mpv_set_option_string(mpv, "msg-level", "all=v");
@@ -68,6 +71,7 @@ MpvWidget::MpvWidget(QWidget *parent)
     mpv_set_option_string(mpv, "config", "yes");
     mpv_set_option_string(mpv, "config-dir",
                           DirectoryUtils::getConfigDir().toLatin1());
+    mpv_set_option_string(mpv, "input-default-bindings", "yes");
     mpv_set_option_string(mpv, "input-conf", 
                           DirectoryUtils::getMpvInputConfig().toLatin1());
 
