@@ -84,6 +84,7 @@ MpvWidget::MpvWidget(QWidget *parent)
     mpv_observe_property(mpv, 0, "fullscreen", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "volume", MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "media-title", MPV_FORMAT_STRING);
+    mpv_observe_property(mpv, 0, "path", MPV_FORMAT_STRING);
 
     mpv_observe_property(mpv, 0, "aid", MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "vid", MPV_FORMAT_INT64);
@@ -184,6 +185,24 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                 Q_EMIT durationChanged(time);
             }
         }
+        else if (strcmp(prop->name, "sub-text") == 0)
+        {
+            if (prop->format == MPV_FORMAT_STRING)
+            {
+                const char **subtitle = (const char **) prop->data;
+                if (strcmp(*subtitle, ""))
+                {
+                    double delay;
+                    mpv_get_property(mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay);
+                    double start;
+                    mpv_get_property(mpv, "sub-start", MPV_FORMAT_DOUBLE, &start);
+                    double end;
+                    mpv_get_property(mpv, "sub-end", MPV_FORMAT_DOUBLE, &end);
+
+                    Q_EMIT subtitleChanged(*subtitle, start + delay, end + delay);
+                }
+            }
+        }
         else if (strcmp(prop->name, "pause") == 0)
         {
             if (prop->format == MPV_FORMAT_FLAG)
@@ -242,31 +261,6 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                 Q_EMIT stateChanged(paused);
             }
         }
-        else if (strcmp(prop->name, "fullscreen") == 0)
-        {
-            if (prop->format == MPV_FORMAT_FLAG)
-            {
-                setCursor(Qt::BlankCursor);
-                bool full = *(int *) prop->data;
-                Q_EMIT fullscreenChanged(full);
-            }
-        }
-        else if (strcmp(prop->name, "volume") == 0)
-        {
-            if (prop->format == MPV_FORMAT_INT64)
-            {
-                int volume = *(int64_t *) prop->data;
-                Q_EMIT volumeChanged(volume);
-            }
-        }
-        else if (strcmp(prop->name, "media-title") == 0)
-        {
-            if (prop->format == MPV_FORMAT_STRING)
-            {
-                const char **name = (const char **) prop->data;
-                Q_EMIT titleChanged(name);
-            }
-        }
         else if (strcmp(prop->name, "aid") == 0)
         {
             if (prop->format == MPV_FORMAT_INT64)
@@ -319,22 +313,37 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                     Q_EMIT subtitleTwoDisabled();
             }
         }
-        else if (strcmp(prop->name, "sub-text") == 0)
+        else if (strcmp(prop->name, "fullscreen") == 0)
+        {
+            if (prop->format == MPV_FORMAT_FLAG)
+            {
+                setCursor(Qt::BlankCursor);
+                bool full = *(int *) prop->data;
+                Q_EMIT fullscreenChanged(full);
+            }
+        }
+        else if (strcmp(prop->name, "volume") == 0)
+        {
+            if (prop->format == MPV_FORMAT_INT64)
+            {
+                int volume = *(int64_t *) prop->data;
+                Q_EMIT volumeChanged(volume);
+            }
+        }
+        else if (strcmp(prop->name, "media-title") == 0)
         {
             if (prop->format == MPV_FORMAT_STRING)
             {
-                const char **subtitle = (const char **) prop->data;
-                if (strcmp(*subtitle, ""))
-                {
-                    double delay;
-                    mpv_get_property(mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay);
-                    double start;
-                    mpv_get_property(mpv, "sub-start", MPV_FORMAT_DOUBLE, &start);
-                    double end;
-                    mpv_get_property(mpv, "sub-end", MPV_FORMAT_DOUBLE, &end);
-
-                    Q_EMIT subtitleChanged(*subtitle, start + delay, end + delay);
-                }
+                const char **name = (const char **) prop->data;
+                Q_EMIT titleChanged(*name);
+            }
+        }
+        else if (strcmp(prop->name, "path") == 0)
+        {
+            if (prop->format == MPV_FORMAT_STRING)
+            {
+                const char **path = (const char **) prop->data;
+                Q_EMIT fileChanged(*path);
             }
         }
         break;

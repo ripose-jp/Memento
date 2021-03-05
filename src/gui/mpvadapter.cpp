@@ -60,7 +60,9 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     connect(m_mpv, &MpvWidget::volumeChanged,
         this, &MpvAdapter::volumeChanged);
     connect(m_mpv, &MpvWidget::titleChanged,
-        [=] (const char **name) { Q_EMIT titleChanged(QString(*name)); } );
+        this, &MpvAdapter::titleChanged);
+    connect(m_mpv, &MpvWidget::fileChanged,
+        this, &MpvAdapter::fileChanged);
 
     connect(m_mpv, &MpvWidget::hideCursor, this, &MpvAdapter::hideCursor);
     connect(m_mpv, &MpvWidget::shutdown, this, &MpvAdapter::close);
@@ -138,7 +140,18 @@ int64_t MpvAdapter::getAudioTrack() const
     if (mpv_get_property(m_handle, "aid", MPV_FORMAT_INT64, &track) < 0)
     {
         qDebug() << "Could not get mpv aid property";
-        return 0;
+        return -1;
+    }
+    return track;
+}
+
+int64_t MpvAdapter::getSubtitleTrack() const
+{
+    int64_t track;
+    if (mpv_get_property(m_handle, "sid", MPV_FORMAT_INT64, &track) < 0)
+    {
+        qDebug() << "Could not get mpv sid property";
+        return -1;
     }
     return track;
 }

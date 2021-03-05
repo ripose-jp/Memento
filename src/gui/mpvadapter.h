@@ -40,6 +40,7 @@ public:
 
     QList<const PlayerAdapter::Track *> getTracks() Q_DECL_OVERRIDE;
     int64_t getAudioTrack() const Q_DECL_OVERRIDE;
+    int64_t getSubtitleTrack() const Q_DECL_OVERRIDE;
 
     QString getPath() const Q_DECL_OVERRIDE;
 

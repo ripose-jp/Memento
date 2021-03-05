@@ -64,6 +64,7 @@ public:
 
     virtual QList<const PlayerAdapter::Track *> getTracks() = 0;
     virtual int64_t getAudioTrack() const = 0;
+    virtual int64_t getSubtitleTrack() const = 0;
 
     virtual QString getPath() const = 0;
 
@@ -125,6 +126,7 @@ Q_SIGNALS:
     void volumeChanged(const int64_t value);
     void tracksChanged(QList<const PlayerAdapter::Track *> tracks);
     void titleChanged(const QString &name);
+    void fileChanged(const QString &path);
 
     void hideCursor();
     void close();

@@ -16,6 +16,7 @@ set(
     GUI_SRCS
     mainwindow.cpp
     mainwindow.ui
+    subtitlelisthandler.cpp
 )
 
 set(

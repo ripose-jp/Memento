@@ -52,7 +52,11 @@ MainWindow::MainWindow(QWidget *parent)
     // Player behaviors
     m_player = new MpvAdapter(m_ui->mpv, this);
     m_player->pause();
-    m_ui->listSubtitles->hide();
+
+    // Subtitle list
+    //m_ui->listSubtitles->hide();
+    m_subtitleListHandler =
+        new SubtitleListHandler(m_ui->listSubtitles, m_player, this);
 
     // Anki
     m_ankiClient = new AnkiClient(this, m_player);
