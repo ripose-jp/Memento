@@ -53,6 +53,16 @@ target_link_libraries(
 )
 
 add_library(
+    subtitlelist
+    subtitlelistwidget.cpp
+)
+target_link_libraries(
+    subtitlelist
+    Qt5::Widgets
+    mpvadapter
+)
+
+add_library(
     playercontrols
     playercontrols.ui
     playercontrols.cpp

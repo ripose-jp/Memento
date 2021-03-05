@@ -1,5 +1,3 @@
-add_subdirectory(widgets)
-
 add_library(
     mpvadapter
     mpvadapter.cpp
@@ -12,11 +10,12 @@ target_link_libraries(
     Qt5::Core
 )
 
+add_subdirectory(widgets)
+
 set(
     GUI_SRCS
     mainwindow.cpp
     mainwindow.ui
-    subtitlelisthandler.cpp
 )
 
 set(
@@ -25,6 +24,7 @@ set(
     Qt5::Core
     mpvwidget
     mpvadapter
+    subtitlelist
     playercontrols
     definitionwidget
     ankisettings

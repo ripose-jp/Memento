@@ -22,7 +22,6 @@
 #define MAINWINDOW_H
 
 #include "playeradapter.h"
-#include "subtitlelisthandler.h"
 #include "widgets/definitionwidget.h"
 #include "widgets/ankisettings.h"
 #include "../anki/ankiclient.h"
@@ -86,7 +85,6 @@ private:
 
     PlayerAdapter *m_player;
     DefinitionWidget *m_definition;
-    SubtitleListHandler *m_subtitleListHandler;
 
     AnkiSettings *m_ankiSettings;
     AnkiClient *m_ankiClient;

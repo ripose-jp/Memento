@@ -55,8 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Subtitle list
     //m_ui->listSubtitles->hide();
-    m_subtitleListHandler =
-        new SubtitleListHandler(m_ui->listSubtitles, m_player, this);
+    m_ui->listSubtitles->setPlayer(m_player);
 
     // Anki
     m_ankiClient = new AnkiClient(this, m_player);
@@ -64,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_ankiSettings->hide();
 
     // Definitions
-    m_definition = new DefinitionWidget(m_ankiClient, m_ui->mpv);
+    m_definition = new DefinitionWidget(m_ankiClient, this);
     m_ui->controls->setVolumeLimit(m_player->getMaxVolume());
 
     m_actionGroupAnkiProfile = new QActionGroup(this);
@@ -209,7 +208,6 @@ MainWindow::~MainWindow()
     clearTracks();
     delete m_ui;
     delete m_player;
-    delete m_subtitleListHandler;
     delete m_actionGroupAudio;
     delete m_actionGroupVideo;
     delete m_actionGroupSubtitle;
@@ -431,14 +429,12 @@ void MainWindow::setDefinitionWidgetLocation()
     {
         x = 0;
     }
-    else if (x > m_ui->mpv->width() - m_definition->width())
+    else if (x > width() - m_definition->width())
     {
-        x = m_ui->mpv->width() - m_definition->width();
+        x = width() - m_definition->width();
     }
 
-    int y = m_ui->mpv->height() - m_definition->height();
-    y = isFullScreen() ? y - m_ui->controls->height() : y;
-
+    int y = height() - m_definition->height() - m_ui->controls->height();
     m_definition->move(x, y);
 }
 

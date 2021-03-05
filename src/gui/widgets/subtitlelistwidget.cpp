@@ -18,38 +18,45 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "subtitlelisthandler.h"
+#include "subtitlelistwidget.h"
 
-#include "../util/directoryutils.h"
+#include "../../util/directoryutils.h"
 
 #include <iterator>
 #include <QMultiMap>
 
-SubtitleListHandler::SubtitleListHandler(QListWidget *list,
-                                         PlayerAdapter *player,
-                                         QObject *parent)
-    : m_list(list), m_player(player), QObject(parent),
+SubtitleListWidget::SubtitleListWidget(QWidget *parent)
+    : m_player(nullptr), QListWidget(parent),
       m_seenSubtitles(new QMultiMap<double, QString>),
       m_subStartTimes(new QMultiHash<QString, double>)
-{
-    connect(m_player, &PlayerAdapter::subtitleChanged,
-        this, &SubtitleListHandler::addSubtitle);
-    connect(m_player, &PlayerAdapter::subtitleTrackChanged,
-        this, &SubtitleListHandler::clearSubtitles);
-    connect(m_player, &PlayerAdapter::subtitleDisabled,
-        this, &SubtitleListHandler::clearSubtitles);
-    
-    connect(m_list, &QListWidget::itemDoubleClicked,
-        this, &SubtitleListHandler::seekToSubtitle);
+{    
+    connect(this, &QListWidget::itemDoubleClicked,
+        this, &SubtitleListWidget::seekToSubtitle);
 }
 
-SubtitleListHandler::~SubtitleListHandler()
+SubtitleListWidget::~SubtitleListWidget()
 {
     delete m_seenSubtitles;
     delete m_subStartTimes;
 }
 
-void SubtitleListHandler::addSubtitle(const QString &subtitle,
+void SubtitleListWidget::setPlayer(PlayerAdapter *player)
+{
+    if (m_player)
+    {
+        return;
+    }
+    
+    m_player = player;
+    connect(m_player, &PlayerAdapter::subtitleChanged,
+        this, &SubtitleListWidget::addSubtitle);
+    connect(m_player, &PlayerAdapter::subtitleTrackChanged,
+        this, &SubtitleListWidget::clearSubtitles);
+    connect(m_player, &PlayerAdapter::subtitleDisabled,
+        this, &SubtitleListWidget::clearSubtitles);
+}
+
+void SubtitleListWidget::addSubtitle(const QString &subtitle,
                                       const double start,
                                       const double end,
                                       const double delay)
@@ -62,24 +69,24 @@ void SubtitleListHandler::addSubtitle(const QString &subtitle,
         m_subStartTimes->insert(subtitle, start);
 
         i = std::distance(m_seenSubtitles->begin(), end);
-        m_list->insertItem(i, subtitle);
+        insertItem(i, subtitle);
     }
     else
     {
         i = std::distance(m_seenSubtitles->constBegin(), it);
     }
 
-    m_list->setCurrentRow(i);
+    setCurrentRow(i);
 }
 
-void SubtitleListHandler::clearSubtitles()
+void SubtitleListWidget::clearSubtitles()
 {
-    m_list->clear();
+    clear();
     m_seenSubtitles->clear();
     m_subStartTimes->clear();
 }
 
-void SubtitleListHandler::seekToSubtitle(const QListWidgetItem *item)
+void SubtitleListWidget::seekToSubtitle(const QListWidgetItem *item)
 {
     double pos = m_subStartTimes->value(item->text()) + m_player->getSubDelay();
     m_player->seek(pos);

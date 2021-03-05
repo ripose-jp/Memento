@@ -82,7 +82,7 @@
         <bool>true</bool>
        </property>
       </widget>
-      <widget class="QListWidget" name="listSubtitles">
+      <widget class="SubtitleListWidget" name="listSubtitles">
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -316,6 +316,11 @@
    <extends>QWidget</extends>
    <header>src/gui/widgets/playercontrols.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SubtitleListWidget</class>
+   <extends>QListWidget</extends>
+   <header>src/gui/widgets/subtitlelistwidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

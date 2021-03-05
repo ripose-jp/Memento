@@ -18,25 +18,21 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef SUBTITLELISTHANDLER_H
-#define SUBTITLELISTHANDLER_H
+#ifndef SUBTITLELISTWIDGET_H
+#define SUBTITLELISTWIDGET_H
 
 #include <QListWidget>
 
-#include "playeradapter.h"
+#include "../playeradapter.h"
 
-struct mpv_handle;
-struct mpv_event;
-
-class SubtitleListHandler : public QObject
+class SubtitleListWidget : public QListWidget
 {
     Q_OBJECT
 
 public:
-    SubtitleListHandler(QListWidget *list,
-                        PlayerAdapter *player,
-                        QObject *parent = nullptr);
-    ~SubtitleListHandler();
+    SubtitleListWidget(QWidget *parent = nullptr);
+    ~SubtitleListWidget();
+    void setPlayer(PlayerAdapter *player);
 
 private Q_SLOTS:
     void addSubtitle(const QString &subtitle,
@@ -47,11 +43,9 @@ private Q_SLOTS:
     void seekToSubtitle(const QListWidgetItem *item);
 
 private:
-    QListWidget *m_list;
-    mpv_handle *m_mpv;
     PlayerAdapter *m_player;
     QMultiMap<double, QString> *m_seenSubtitles;
     QMultiHash<QString, double> *m_subStartTimes;
 };
 
-#endif // SUBTITLELISTHANDLER_H
+#endif // SUBTITLELISTWIDGET_H
