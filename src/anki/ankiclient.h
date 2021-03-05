@@ -31,12 +31,14 @@
 
 #include "../dict/entry.h"
 #include "../gui/playeradapter.h"
+#include "../gui/widgets/subtitlelistwidget.h"
 
 #define REPLACE_AUDIO "{audio}"
 #define REPLACE_AUDIO_MEDIA "{audio-media}"
 #define REPLACE_CLOZE_BODY "{cloze-body}"
 #define REPLACE_CLOZE_PREFIX "{cloze-prefix}"
 #define REPLACE_CLOZE_SUFFIX "{cloze-suffix}"
+#define REPLACE_CONTEXT "{context}"
 #define REPLACE_DOCUMENT_TITLE "{document-title}"
 #define REPLACE_EXPRESSION "{expression}"
 #define REPLACE_ALT_EXPRESSION "{expression-alt}"
@@ -58,7 +60,7 @@ class AnkiClient : public QObject
     Q_OBJECT
 
 public:
-    AnkiClient(QObject *parent, PlayerAdapter *player);
+    AnkiClient(QObject *parent, PlayerAdapter *player, SubtitleListWidget *list);
     ~AnkiClient();
     
     void setServer(const QString &address, const QString &port);
@@ -106,6 +108,7 @@ private:
     QString m_port;
 
     PlayerAdapter *m_player;
+    SubtitleListWidget *m_list;
 
     QNetworkAccessManager *m_manager;
     

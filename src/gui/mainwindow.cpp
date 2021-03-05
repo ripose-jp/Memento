@@ -58,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->listSubtitles->setPlayer(m_player);
 
     // Anki
-    m_ankiClient = new AnkiClient(this, m_player);
+    m_ankiClient = new AnkiClient(this, m_player, m_ui->listSubtitles);
     m_ankiSettings = new AnkiSettings(m_ankiClient);
     m_ankiSettings->hide();
 

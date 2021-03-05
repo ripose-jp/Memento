@@ -97,9 +97,12 @@ extern "C"
 #define CONFIG_MODEL "model"
 #define CONFIG_FIELDS "fields"
 
-AnkiClient::AnkiClient(QObject *parent, PlayerAdapter *player)
+AnkiClient::AnkiClient(QObject *parent,
+                       PlayerAdapter *player,
+                       SubtitleListWidget *list)
     : QObject(parent),
       m_player(player),
+      m_list(list),
       m_configs(new QHash<QString, const AnkiConfig *>),
       m_currentConfig(0),
       m_enabled(false)
@@ -614,6 +617,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
         value = value.replace(REPLACE_CLOZE_BODY, *entry.m_clozeBody);
         value = value.replace(REPLACE_CLOZE_PREFIX, *entry.m_clozePrefix);
         value = value.replace(REPLACE_CLOZE_SUFFIX, *entry.m_clozeSuffix);
+        value = value.replace(REPLACE_CONTEXT, m_list->getContext());
         value = value.replace(
             REPLACE_EXPRESSION,
             entry.m_kanji->isEmpty() ? *entry.m_kana : *entry.m_kanji

@@ -56,6 +56,17 @@ void SubtitleListWidget::setPlayer(PlayerAdapter *player)
         this, &SubtitleListWidget::clearSubtitles);
 }
 
+QString SubtitleListWidget::getContext()
+{
+    QList<QListWidgetItem *> items = selectedItems();
+    QString context;
+    for (auto it = items.constBegin(); it != items.constEnd(); ++it)
+    {
+        context += (*it)->text() + "<br/>";
+    }
+    return context;
+}
+
 void SubtitleListWidget::addSubtitle(const QString &subtitle,
                                       const double start,
                                       const double end,
@@ -76,6 +87,7 @@ void SubtitleListWidget::addSubtitle(const QString &subtitle,
         i = std::distance(m_seenSubtitles->constBegin(), it);
     }
 
+    clearSelection();
     setCurrentRow(i);
 }
 

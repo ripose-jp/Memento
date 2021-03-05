@@ -33,6 +33,7 @@ public:
     SubtitleListWidget(QWidget *parent = nullptr);
     ~SubtitleListWidget();
     void setPlayer(PlayerAdapter *player);
+    QString getContext();
 
 private Q_SLOTS:
     void addSubtitle(const QString &subtitle,
