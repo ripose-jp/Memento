@@ -52,7 +52,4 @@ if(UNIX)
 		FILES res/memento.svg
 		DESTINATION share/icons/hicolor/scalable/apps
 	)
-
-	# Remove unused files from older versions
-	file(REMOVE /etc/memento/input.conf)
 endif()
