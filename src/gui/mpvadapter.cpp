@@ -131,7 +131,9 @@ QList<const PlayerAdapter::Track *> MpvAdapter::getTracks()
         qDebug() << "Could not get track-list property";
         return QList<const PlayerAdapter::Track *>();
     }
-    return processTracks(&node);
+    QList<const PlayerAdapter::Track *> tracks = processTracks(&node);
+    mpv_free_node_contents(&node);
+    return tracks;
 }
 
 int64_t MpvAdapter::getAudioTrack() const

@@ -353,6 +353,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
         mpv_node node;
         mpv_get_property(mpv, "track-list", MPV_FORMAT_NODE, &node);
         Q_EMIT tracklistChanged(&node);
+        mpv_free_node_contents(&node);
         break;
     }
     case MPV_EVENT_SHUTDOWN:
