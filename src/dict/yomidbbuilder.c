@@ -125,8 +125,9 @@ static int drop_all_tables_callback(void *db, int argc, char **argv, char **)
  */
 static int create_db(sqlite3 *db, const int version)
 {
-    int  ret     = 0;
-    char *errmsg = NULL;
+    int   ret    = 0;
+    char *errmsg = NULL,
+         *pragma = NULL;
 
     /* Drops all the tables in the db */
     /* This behavior may change in future versions */
@@ -211,9 +212,26 @@ static int create_db(sqlite3 *db, const int version)
         ret = DB_CREATE_TABLE_ERR;
         goto cleanup;
     }
+    
+    /* Update the user_version pragma */
+    pragma = sqlite3_mprintf("PRAGMA user_version = %d;", YOMI_DB_VERSION);
+    if (pragma == NULL)
+    {
+        fprintf(stderr, "Could not allocate memory for query\n");
+        ret = MALLOC_FAILURE_ERR;
+        goto cleanup;
+    }
+    sqlite3_exec(db, pragma, NULL, NULL, &errmsg);
+    if (errmsg)
+    {
+        fprintf(stderr, "Failed to create tables\nError: %s\n", errmsg);
+        ret = DB_CREATE_TABLE_ERR;
+        goto cleanup;
+    }
 
 cleanup:
     sqlite3_free(errmsg);
+    sqlite3_free(pragma);
 }
 
 /**
@@ -223,10 +241,10 @@ cleanup:
  */
 static int prepare_db(sqlite3 *db)
 {
-    int          ret          = 0;
-    sqlite3_stmt *stmt        = NULL;
-    int          step         = 0,
-                 user_version = 0;
+    int           ret          = 0;
+    sqlite3_stmt *stmt         = NULL;
+    int           step         = 0,
+                  user_version = 0;
 
     /* Check if the schema is an empty file */
     if (sqlite3_prepare_v2(db, "PRAGMA user_version;", -1, &stmt, NULL) != SQLITE_OK)
@@ -270,11 +288,11 @@ cleanup:
  */
 static int get_json_obj(zip_t *archive, const char *filename, json_object **obj)
 {
-    int             ret         = 0;
-    struct zip_stat st;
+    int              ret        = 0;
+    struct zip_stat  st;
     char            *contents   = NULL;
     zip_file        *file       = NULL;
-    zip_int64_t     bytes_read  = 0;
+    zip_int64_t      bytes_read = 0;
 
     /* Get the size of the file */
     zip_stat_init(&st);
@@ -373,16 +391,16 @@ static int get_obj_from_obj(const json_object *parent, const char *key,
  */
 static int add_index(zip_t *dict_archive, sqlite3 *db, char **name)
 {
-    int          ret        = 0;
+    int           ret       = 0;
     json_object  *index_obj = NULL,
                  *ret_obj   = NULL;
     const char   *title     = NULL;
-    size_t       title_len  = 0;
-    int32_t      format     = 0;
+    size_t        title_len = 0;
+    int32_t       format    = 0;
     const char   *revision  = NULL;
-    json_bool    sequenced  = 0;
+    json_bool     sequenced = 0;
     sqlite3_stmt *stmt      = NULL;
-    int          step       = 0;
+    int           step      = 0;
 
     /* Get the index object from the index file */
     if (get_json_obj(dict_archive, INDEX_FILE, &index_obj))
@@ -471,11 +489,11 @@ cleanup:
  */
 int process_dictionary(const char *dict_file, const char *db_file)
 {
-    int     ret             = 0;
-    zip_t   *dict_archive   = NULL;
-    sqlite3 *db             = NULL;
-    char    *name           = NULL;
-    int     prepare_code    = 0;
+    int      ret          = 0;
+    zip_t   *dict_archive = NULL;
+    sqlite3 *db           = NULL;
+    char    *name         = NULL;
+    int      prepare_code = 0;
 
     /* Open dictionary archive */
     int err = 0;
