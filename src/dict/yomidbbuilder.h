@@ -27,6 +27,7 @@
 #define YOMI_ERR_DB             2
 #define YOMI_ERR_NEWER_VERSION  3
 #define YOMI_ERR_ADDING_INDEX   4
+#define YOMI_ERR_ADDING_TAGS    5
 
 /**
  * Process the archive in dict_file and add it the sqlite database in db_file
