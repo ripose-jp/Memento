@@ -21,9 +21,12 @@
 #ifndef YOMIDBBUILDER_H
 #define YOMIDBBUILDER_H
 
+#define YOMI_DB_VERSION         1
+
 #define YOMI_ERR_OPENING_DIC    1
-#define YOMI_ERR_OPENING_DB     2
-#define YOMI_ERR_ADDING_INDEX   3
+#define YOMI_ERR_DB             2
+#define YOMI_ERR_NEWER_VERSION  3
+#define YOMI_ERR_ADDING_INDEX   4
 
 /**
  * Process the archive in dict_file and add it the sqlite database in db_file
