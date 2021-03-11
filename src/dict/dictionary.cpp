@@ -141,6 +141,7 @@ QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
     MeCab::Lattice *lattice = MeCab::createLattice();
     char buffer[BUFSIZ];
     strncpy(buffer, query.toUtf8().data(), BUFSIZ);
+    buffer[BUFSIZ - 1] = '\0';
     lattice->set_sentence(buffer);
     if (!m_tagger->parse(lattice))
     {
