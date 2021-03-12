@@ -21,13 +21,18 @@
 #ifndef YOMIDBBUILDER_H
 #define YOMIDBBUILDER_H
 
-#define YOMI_DB_VERSION         1
+#define YOMI_DB_VERSION                 1
+#define YOMI_DB_FORMAT_VERSION          3
 
-#define YOMI_ERR_OPENING_DIC    1
-#define YOMI_ERR_DB             2
-#define YOMI_ERR_NEWER_VERSION  3
-#define YOMI_ERR_ADDING_INDEX   4
-#define YOMI_ERR_ADDING_TAGS    5
+#define YOMI_ERR_OPENING_DIC            1
+#define YOMI_ERR_DB                     2
+#define YOMI_ERR_NEWER_VERSION          3
+#define YOMI_ERR_ADDING_INDEX           4
+#define YOMI_ERR_ADDING_TAGS            5
+#define YOMI_ERR_ADDING_TERMS           6
+#define YOMI_ERR_ADDING_TERMS_META      7
+#define YOMI_ERR_ADDING_KANJI           8
+#define YOMI_ERR_ADDING_KANJI_META      9
 
 /**
  * Process the archive in dict_file and add it the sqlite database in db_file
@@ -35,6 +40,6 @@
  * @param   db_file     Path to the sqlite database
  * @return Error code
  */
-int process_dictionary(const char *dict_file, const char *db_file);
+int yomi_process_dictionary(const char *dict_file, const char *db_file);
 
 #endif // YOMIDBBUILDER_H

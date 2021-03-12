@@ -33,26 +33,41 @@
 #define TAG_BANK_FORMAT         "tag_bank_%u.json"
 #define TERM_BANK_FORMAT        "term_bank_%u.json"
 #define TERM_META_BANK_FORMAT   "term_meta_bank_%u.json"
-#define TERM_BANK_FORMAT        "kanji_bank_%u.json"
-#define TERM_META_BANK_FORMAT   "kanji_meta_bank_%u.json"
+#define KANJI_BANK_FORMAT       "kanji_bank_%u.json"
+#define KANJI_META_BANK_FORMAT  "kanji_meta_bank_%u.json"
 
 #define FILENAME_BUFFER_SIZE  256
 
-#define STAT_ERR              -1
-#define INVALID_SIZE_ERR      -2
-#define MALLOC_FAILURE_ERR    -3
-#define ZIP_FILE_OPEN_ERR     -4
-#define ZIP_FILE_READ_ERR     -5
-#define JSON_WRONG_TYPE_ERR   -7
-#define JSON_MISSING_KEY_ERR  -8
-#define STATEMENT_PREPARE_ERR -9
-#define STATEMENT_BIND_ERR    -10
-#define STATEMENT_STEP_ERR    -11
-#define DB_NEW_VERSION_ERR    -12
-#define CREATE_DB_ERR         -13
-#define DB_TABLE_DROP_ERR     -14
-#define DB_CREATE_TABLE_ERR   -15
-#define TAG_WRONG_SIZE_ERR    -16
+#define STAT_ERR                    -1
+#define INVALID_SIZE_ERR            -2
+#define MALLOC_FAILURE_ERR          -3
+#define ZIP_FILE_OPEN_ERR           -4
+#define ZIP_FILE_READ_ERR           -5
+#define UNSUPPORTED_FORMAT_ERR      -6
+#define JSON_WRONG_TYPE_ERR         -7
+#define JSON_MISSING_KEY_ERR        -8
+#define STATEMENT_PREPARE_ERR       -9
+#define STATEMENT_BIND_ERR          -10
+#define STATEMENT_STEP_ERR          -11
+#define DB_NEW_VERSION_ERR          -12
+#define CREATE_DB_ERR               -13
+#define DB_TABLE_DROP_ERR           -14
+#define DB_CREATE_TABLE_ERR         -15
+#define TAG_WRONG_SIZE_ERR          -16
+#define TERM_WRONG_SIZE_ERR         -17
+#define TERM_META_WRONG_SIZE_ERR    -18
+#define KANJI_WRONG_SIZE_ERR        -19
+#define KANJI_META_WRONG_SIZE_ERR   -20
+#define UNKNOWN_BANK_TYPE_ERR       -21
+
+enum bank_type
+{
+    tag_bank,
+    term_bank,
+    term_meta_bank,
+    kanji_bank,
+    kanji_meta_bank
+} typedef bank_type;
 
 struct yomi_index
 {
@@ -131,8 +146,8 @@ static int drop_all_tables_callback(void *db, int argc, char **argv, char **)
 static int create_db(sqlite3 *db, const int version)
 {
     int   ret    = 0;
-    char *errmsg = NULL,
-         *pragma = NULL;
+    char *errmsg = NULL;
+    char *pragma = NULL;
 
     /* Drops all the tables in the db */
     /* This behavior may change in future versions */
@@ -249,9 +264,9 @@ cleanup:
 static int prepare_db(sqlite3 *db)
 {
     int           ret          = 0;
+    int           user_version = 0;
     sqlite3_stmt *stmt         = NULL;
-    int           step         = 0,
-                  user_version = 0;
+    int           step         = 0;
 
     /* Check if the schema is an empty file */
     if (sqlite3_prepare_v2(db, "PRAGMA user_version;", -1, &stmt, NULL) != SQLITE_OK)
@@ -398,13 +413,15 @@ static int get_obj_from_obj(const json_object *parent, const char *key,
 static int add_index(zip_t *dict_archive, sqlite3 *db, sqlite3_int64 *id)
 {
     int           ret       = 0;
-    json_object  *index_obj = NULL,
-                 *ret_obj   = NULL;
+    json_object  *index_obj = NULL;
+    json_object  *ret_obj   = NULL;
+
     const char   *title     = NULL;
     size_t        title_len = 0;
     int32_t       format    = 0;
     const char   *revision  = NULL;
     json_bool     sequenced = 0;
+
     sqlite3_stmt *stmt      = NULL;
     int           step      = 0;
 
@@ -437,6 +454,15 @@ static int add_index(zip_t *dict_archive, sqlite3 *db, sqlite3_int64 *id)
     if (ret = get_obj_from_obj(index_obj, SEQ_KEY, json_type_boolean, &ret_obj))
         goto cleanup;
     sequenced = json_object_get_boolean(ret_obj);
+
+    /* Check that the format is valid */
+    if (format != YOMI_DB_FORMAT_VERSION)
+    {
+        fprintf(stderr, "Unsuppored dictionary format %d different from supported %d\n",
+                format, YOMI_DB_FORMAT_VERSION);
+        ret = UNSUPPORTED_FORMAT_ERR;
+        goto cleanup;
+    }
 
     /* Put dictionary metadata into the index table */
     if (sqlite3_prepare_v2(db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
@@ -523,7 +549,7 @@ static int get_obj_from_array(json_object *arr, size_t idx, json_type type, json
 #define QUERY_SCORE_INDEX     6
 
 /**
- * Add the tag stored in the json array, tag
+ * Add the tag stored in the json array
  * @param db  The database to add the tag to
  * @param tag The tag array to add to the database
  * @param id  The id of the dictionary the tag belongs to
@@ -533,11 +559,13 @@ static int add_tag(sqlite3 *db, json_object *tag, const sqlite3_int64 id)
 {
     int           ret      = 0;
     json_object  *ret_obj  = NULL;
-    const char   *name     = NULL,
-                 *category = NULL;
+
+    const char   *name     = NULL;
+    const char   *category = NULL;
     int           order    = 0;
     const char   *notes    = NULL;
     int           score    = 0;
+
     sqlite3_stmt *stmt     = NULL;
     int           step     = 0;
 
@@ -621,32 +649,227 @@ cleanup:
 #undef QUERY_NOTES_INDEX
 #undef QUERY_SCORE_INDEX
 
+#define TERM_ARRAY_SIZE  5
+
+#define QUERY   "INSERT INTO term_bank "\
+                    "(dic_id, expression, reading, def_tags, rules, score, glossary, sequence, term_tags) "\
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);"
+
+#define EXPRESSION_INDEX    0
+#define READING_INDEX       1
+#define DEF_TAGS_INDEX      2
+#define RULES_INDEX         3
+#define SCORE_INDEX         4
+#define GLOSSARY_INDEX      5
+#define SEQUENCE_INDEX      6
+#define TERM_TAGS_INDEX     7
+
+#define QUERY_DIC_ID_INDEX          1
+#define QUERY_EXPRESSION_INDEX      2
+#define QUERY_READING_INDEX         3
+#define QUERY_DEF_TAGS_INDEX        4
+#define QUERY_RULES_INDEX           5
+#define QUERY_SCORE_INDEX           6
+#define QUERY_GLOSSARY_INDEX        7
+#define QUERY_SEQUENCE_INDEX        8
+#define QUERY_TERM_TAGS_INDEX       9
+
 /**
- * Add the tag files to the database
+ * Add the term stored in the json array
+ * @param db  The database to add the tag to
+ * @param tag The tag array to add to the database
+ * @param id  The id of the dictionary the tag belongs to
+ * @return Error code
+ */
+static int add_term(sqlite3 *db, json_object *term, const sqlite3_int64 id)
+{
+    int           ret       = 0;
+    json_object  *ret_obj   = NULL;
+
+    const char   *exp       = NULL;
+    const char   *reading   = NULL;
+    const char   *def_tags  = NULL;
+    const char   *rules     = NULL;
+    int           score     = 0;
+    const char   *glossary  = NULL;
+    int           sequence  = 0;
+    const char   *term_tags = NULL;
+
+    sqlite3_stmt *stmt      = NULL;
+    int           step      = 0;
+
+    /*
+    "CREATE TABLE term_bank ("
+            "dic_id     INTEGER     NOT NULL,"
+            "expression TEXT        NOT NULL,"
+            "reading    TEXT        NOT NULL,"
+            "def_tags   TEXT        NOT NULL,"  // Space seperated list
+            "rules      TEXT        NOT NULL,"  // Space seperated list
+            "score      INTEGER     NOT NULL,"
+            "glossary   TEXT        NOT NULL,"  // Json array
+            "sequence   INTEGER     NOT NULL,"
+            "term_tags  TEXT        NOT NULL"   // Space seperated list
+        ");" */
+
+    /* Make sure the length of the term array is correct */
+    if (json_object_array_length(term) != TERM_ARRAY_SIZE)
+    {
+        fprintf(stderr, "Expected term array of size %ul, got %ul\n", 
+                TERM_ARRAY_SIZE, json_object_array_length(term));
+        ret = TERM_WRONG_SIZE_ERR;
+        goto cleanup;
+    }
+
+    /* Get the objects to add to the database */
+    if (ret = get_obj_from_array(term, EXPRESSION_INDEX, json_type_string, &ret_obj))
+        goto cleanup;
+    exp = json_object_get_string(ret_obj);
+
+    if (ret = get_obj_from_array(term, READING_INDEX, json_type_string, &ret_obj))
+        goto cleanup;
+    reading = json_object_get_string(ret_obj);
+
+    if (ret = get_obj_from_array(term, DEF_TAGS_INDEX, json_type_string, &ret_obj))
+        goto cleanup;
+    def_tags = json_object_get_string(ret_obj);
+
+    if (ret = get_obj_from_array(term, RULES_INDEX, json_type_string, &ret_obj))
+        goto cleanup;
+    rules = json_object_get_string(ret_obj);
+
+    if (ret = get_obj_from_array(term, SCORE_INDEX, json_type_int, &ret_obj))
+        goto cleanup;
+    score = json_object_get_int(ret_obj);
+
+    if (ret = get_obj_from_array(term, GLOSSARY_INDEX, json_type_array, &ret_obj))
+        goto cleanup;
+    glossary = json_object_to_json_string(ret_obj);
+
+    if (ret = get_obj_from_array(term, SEQUENCE_INDEX, json_type_int, &ret_obj))
+        goto cleanup;
+    sequence = json_object_get_int(ret_obj);
+
+    if (ret = get_obj_from_array(term, TERM_TAGS_INDEX, json_type_string, &ret_obj))
+        goto cleanup;
+    term_tags = json_object_get_string(ret_obj);
+
+    /* Add term to the database */
+    if (sqlite3_prepare_v2(db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+    {
+        fprintf(stderr, "Could not prepare sqlite statement\n");
+        fprintf(stderr, "Query: \n", QUERY);
+        ret = STATEMENT_PREPARE_ERR;
+        goto cleanup;
+    }
+    if (sqlite3_bind_int (stmt, QUERY_DIC_ID_INDEX,     id                 ) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_EXPRESSION_INDEX, exp,       -1, NULL) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_READING_INDEX,    reading,   -1, NULL) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_DEF_TAGS_INDEX,   def_tags,  -1, NULL) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_RULES_INDEX,      rules,     -1, NULL) != SQLITE_OK ||
+        sqlite3_bind_int (stmt, QUERY_SCORE_INDEX,      score              ) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_GLOSSARY_INDEX,   glossary,  -1, NULL) != SQLITE_OK ||
+        sqlite3_bind_int (stmt, QUERY_SEQUENCE_INDEX,   sequence           ) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_TERM_TAGS_INDEX,  term_tags, -1, NULL) != SQLITE_OK)
+    {
+        fprintf(stderr, "Could not bind values to sqlite statement\n");
+        ret = STATEMENT_BIND_ERR;
+        goto cleanup;
+    }
+    step = sqlite3_step(stmt);
+    if (IS_STEP_ERR(step))
+    {
+        fprintf(stderr, "Could not commit to database, sqlite3 error code %d\n", step);
+        ret = STATEMENT_STEP_ERR;
+        goto cleanup;
+    }
+
+cleanup:
+    sqlite3_finalize(stmt);
+
+    return ret;
+}
+
+#undef TERM_ARRAY_SIZE
+
+#undef QUERY
+
+#undef EXPRESSION_INDEX
+#undef READING_INDEX
+#undef DEF_TAGS_INDEX
+#undef RULES_INDEX
+#undef SCORE_INDEX
+#undef GLOSSARY_INDEX
+#undef SEQUENCE_INDEX
+#undef TERM_TAGS_INDEX
+
+#undef QUERY_DIC_ID_INDEX
+#undef QUERY_EXPRESSION_INDEX
+#undef QUERY_READING_INDEX
+#undef QUERY_DEF_TAGS_INDEX
+#undef QUERY_RULES_INDEX
+#undef QUERY_SCORE_INDEX
+#undef QUERY_GLOSSARY_INDEX
+#undef QUERY_SEQUENCE_INDEX
+#undef QUERY_TERM_TAGS_INDEX
+
+/**
+ * Adds a yomichan bank type to the database
  * @param dict_archive The dictionary archive holding index.json
  * @param db           The database
  * @param id           The id of the dictionary
+ * @param type         The type of bank to add to the database
  * @return Error code
  */
-static int add_tags(zip_t *dict_archive, sqlite3 *db, const sqlite3_int64 id)
+static int add_dic_files(zip_t *dict_archive, sqlite3 *db, const sqlite3_int64 id, bank_type type)
 {
-    int           ret       = 0;
-    size_t        fileno    = 1;
-    json_object  *tags_arr  = NULL;
-    json_object  *inner_arr = NULL;
+    int           ret         = 0;
+    const char   *file_format = NULL;
+    size_t        fileno      = 1;
+    json_object  *outer_arr   = NULL;
+    json_object  *inner_arr   = NULL;
+    int (*add_item)(sqlite3 *, json_object *, const sqlite3_int64) = NULL;
+
+    /* Set the type of files to iterate over and the function used to add them */
+    switch (type)
+    {
+    case tag_bank:
+        file_format = TAG_BANK_FORMAT;
+        add_item    = add_tag;     
+        break;
+    case term_bank:
+        file_format = TERM_BANK_FORMAT;
+        add_item    = add_term;
+        break;
+    case term_meta_bank:
+        file_format = TERM_META_BANK_FORMAT;
+        //add_item    = add_term_meta;
+        break;
+    case kanji_bank:
+        file_format = KANJI_BANK_FORMAT;
+        //add_item    = add_kanji;
+        break;
+    case kanji_meta_bank:
+        file_format = KANJI_META_BANK_FORMAT;
+        //add_item    = add_kanji_meta;
+        break;
+    default:
+        fprintf(stderr, "Unknown bank_type value %d\n", type);
+        ret = UNKNOWN_BANK_TYPE_ERR;
+        goto cleanup;
+    }
 
     /* Iterate over all the files  */
     char filename[FILENAME_BUFFER_SIZE];
-    snprintf(filename, FILENAME_BUFFER_SIZE, TAG_BANK_FORMAT, fileno++);
+    snprintf(filename, FILENAME_BUFFER_SIZE, file_format, fileno++);
     filename[FILENAME_BUFFER_SIZE - 1] = '\0';
     while (zip_name_locate(dict_archive, filename, 0) != -1)
     {
         /* Parse the current tag bank into Json */
-        if (ret = get_json_obj(dict_archive, filename, &tags_arr))
+        if (ret = get_json_obj(dict_archive, filename, &outer_arr))
         {
             goto cleanup;
         }
-        if (!json_object_is_type(tags_arr, json_type_array))
+        if (!json_object_is_type(outer_arr, json_type_array))
         {
             fprintf(stderr, "Returned object was not of type array\n");
             ret = JSON_WRONG_TYPE_ERR;
@@ -654,10 +877,10 @@ static int add_tags(zip_t *dict_archive, sqlite3 *db, const sqlite3_int64 id)
         }
 
         /* Iterate over all the outer arrays */
-        for (size_t i = 0; i < json_object_array_length(tags_arr); ++i)
+        for (size_t i = 0; i < json_object_array_length(outer_arr); ++i)
         {
             /* Get the inner array which contains tag info */
-            inner_arr = json_object_array_get_idx(tags_arr, i);
+            inner_arr = json_object_array_get_idx(outer_arr, i);
             if (!json_object_is_type(inner_arr, json_type_array))
             {
                 fprintf(stderr, "Tag array is of the incorrect type\n");
@@ -666,22 +889,22 @@ static int add_tags(zip_t *dict_archive, sqlite3 *db, const sqlite3_int64 id)
             }
 
             /* Add the tag to the database */
-            if (ret = add_tag(db, inner_arr, id))
+            if (ret = (*add_item)(db, inner_arr, id))
             {
-                fprintf(stderr, "Could not add tag at index %ul\n", i);
+                fprintf(stderr, "Could not add %s\n", filename);
                 goto cleanup;
             }
         }
 
         /* Prepare for the next iteration of the loop */
-        snprintf(filename, FILENAME_BUFFER_SIZE, TAG_BANK_FORMAT, fileno++);
+        snprintf(filename, FILENAME_BUFFER_SIZE, file_format, fileno++);
         filename[FILENAME_BUFFER_SIZE - 1] = '\0';
-        tags_arr  = NULL;
+        outer_arr  = NULL;
         inner_arr = NULL;
     }
 
 cleanup:
-    json_object_put(tags_arr);
+    json_object_put(outer_arr);
 
     return ret;
 }
@@ -692,10 +915,10 @@ cleanup:
  * @param   db_file     Path to the sqlite database
  * @return Error code
  */
-int process_dictionary(const char *dict_file, const char *db_file)
+int yomi_process_dictionary(const char *dict_file, const char *db_file)
 {
-    int            ret          = 0,
-                   err          = 0;
+    int            ret          = 0;
+    int            err          = 0;
     zip_t         *dict_archive = NULL;
     sqlite3       *db           = NULL;
     sqlite3_int64  id           = 0;
@@ -731,9 +954,37 @@ int process_dictionary(const char *dict_file, const char *db_file)
     }
 
     /* Process the tag banks */
-    if (add_tags(dict_archive, db, id))
+    if (add_dic_files(dict_archive, db, id, tag_bank))
     {
         ret = YOMI_ERR_ADDING_TAGS;
+        goto cleanup;
+    }
+
+    /* Process term banks */
+    if (add_dic_files(dict_archive, db, id, term_bank))
+    {
+        ret = YOMI_ERR_ADDING_TERMS;
+        goto cleanup;
+    }
+
+    /* Process term bank metadata */
+    if (add_dic_files(dict_archive, db, id, term_meta_bank))
+    {
+        ret = YOMI_ERR_ADDING_TERMS_META;
+        goto cleanup;
+    }
+
+    /* Process kanji banks */
+    if (add_dic_files(dict_archive, db, id, kanji_bank))
+    {
+        ret = YOMI_ERR_ADDING_KANJI;
+        goto cleanup;
+    }
+
+    /* Process kanji bank metadata */
+    if (add_dic_files(dict_archive, db, id, kanji_meta_bank))
+    {
+        ret = YOMI_ERR_ADDING_KANJI_META;
         goto cleanup;
     }
 
@@ -753,5 +1004,5 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    return process_dictionary(argv[1], argv[2]);
+    return yomi_process_dictionary(argv[1], argv[2]);
 }
