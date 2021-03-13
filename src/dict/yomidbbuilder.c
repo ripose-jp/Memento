@@ -1062,41 +1062,36 @@ static int add_meta(sqlite3 *db, json_object *meta, const sqlite3_int64 id, cons
 
     /* Get the proper type from the data field of the array */
     ret_obj = json_object_array_get_idx(meta, DATA_INDEX);
-    if (json_object_is_type(ret_obj, json_type_array) || 
-        json_object_is_type(ret_obj, json_type_object))
+    switch (json_object_get_type(ret_obj))
     {
+    case json_type_array:
+    case json_type_object:
         data = json_object_to_json_string_length(ret_obj, JSON_C_TO_STRING_SPACED, &data_len);
         ++data_len;
-    }
-    else if (json_object_is_type(ret_obj, json_type_int))
-    {
+        break;
+    case json_type_int:
         data_int = json_object_get_int64(ret_obj);
         data = &data_int;
         data_len = sizeof(int64_t);
-    }
-    else if (json_object_is_type(ret_obj, json_type_boolean))
-    {
+        break;
+    case json_type_boolean:
         data_bool = json_object_get_boolean(ret_obj);
         data = &data_bool;
         data_len = sizeof(json_bool);
-    }
-    else if (json_object_is_type(ret_obj, json_type_double))
-    {
+        break;
+    case json_type_double:
         data_double = json_object_get_double(ret_obj);
         data = &data_double;
         data_len = sizeof(double);
-    }
-    else if (json_object_is_type(ret_obj, json_type_null))
-    {
-        data_null = 1;
-    }
-    else if (json_object_is_type(ret_obj, json_type_string))
-    {
+        break;
+    case json_type_string:
         data = json_object_get_string(ret_obj);
         data_len = json_object_get_string_len(ret_obj) + 1;
-    }
-    else
-    {
+        break;
+    case json_type_null:
+        data_null = 1;
+        break;
+    default:
         fprintf(stderr, "Unknown json type stored in data\n");
         ret = UNKNOWN_DATA_TYPE_ERR;
         goto cleanup;
