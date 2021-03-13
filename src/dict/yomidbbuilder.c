@@ -59,7 +59,7 @@
 #define META_WRONG_SIZE_ERR         -19
 #define UNKNOWN_BANK_TYPE_ERR       -20
 #define UNKNOWN_DATA_TYPE_ERR       -21
-#define PRAGMA_OPTIMIZE_ERR         -22
+#define PRAGMA_SET_ERR              -22
 #define TRANSACTION_ERR             -23
 
 enum bank_type
@@ -152,6 +152,11 @@ static int drop_all_tables_callback(void *db, int argc, char **argv, char **unus
 {
     for (char **ptr = argv; ptr < &argv[argc]; ++ptr)
     {
+        if (strncmp(*ptr, "sqlite_", 8) == 0)
+        {
+            continue;
+        }
+        
         char *drop_query = sqlite3_mprintf("DROP TABLE IF EXISTS %Q;", *ptr);
         char *errmsg     = NULL;
         
@@ -200,12 +205,20 @@ static int create_db(sqlite3 *db, const int version)
     sqlite3_exec(
         db,
         "CREATE TABLE directory ("
-            "dic_id     INTEGER     PRIMARY KEY AUTOINCREMENT,"
+            "dic_id     INTEGER     PRIMARY KEY,"
             "title      TEXT        NOT NULL UNIQUE,"
             "format     INTEGER     NOT NULL,"
             "revision   TEXT        NOT NULL,"
             "sequenced  INTEGER     NOT NULL"   // Boolean
         ");"
+        "CREATE TRIGGER directory_remove AFTER DELETE ON directory "
+        "BEGIN "
+            "DELETE FROM tag_bank        WHERE dic_id = old.dic_id;"
+            "DELETE FROM term_bank       WHERE dic_id = old.dic_id;"
+            "DELETE FROM term_meta_bank  WHERE dic_id = old.dic_id;"
+            "DELETE FROM kanji_bank      WHERE dic_id = old.dic_id;"
+            "DELETE FROM kanji_meta_bank WHERE dic_id = old.dic_id;"
+        "END;"
 
         "CREATE TABLE tag_bank ("
             "dic_id     INTEGER     NOT NULL,"
@@ -330,6 +343,15 @@ static int prepare_db(sqlite3 *db)
         goto cleanup;
     }
 
+    /* Set all PRAGMA value to their expected values */
+    sqlite3_exec(db, "PRAGMA recursive_triggers = true;", NULL, NULL, &errmsg);
+    if (errmsg)
+    {
+        fprintf(stderr, "Could not set PRAGMA values\nError: %s\n", errmsg);
+        ret = PRAGMA_SET_ERR;
+        goto cleanup;
+    }
+
 cleanup:
     sqlite3_finalize(stmt);
     sqlite3_free(errmsg);
@@ -438,7 +460,7 @@ static int get_obj_from_obj(json_object *parent, const char *key,
 #define REV_KEY       "revision"
 #define SEQ_KEY       "sequenced"
 
-#define QUERY "INSERT INTO directory (title, format, revision, sequenced) VALUES (?, ?, ?, ?);"
+#define QUERY   "INSERT OR REPLACE INTO directory (title, format, revision, sequenced) VALUES (?, ?, ?, ?);"
 #define TITLE_INDEX     1
 #define FORMAT_INDEX    2
 #define REV_INDEX       3
