@@ -236,8 +236,7 @@ static int create_db(sqlite3 *db, const int version)
             "dic_id     INTEGER     NOT NULL,"
             "expression TEXT        NOT NULL,"
             "mode       TEXT        NOT NULL,"
-            "data       BLOB,"                  // Data defined by mode
-            "PRIMARY KEY(dic_id, expression)"
+            "data       BLOB"                   // Data defined by mode
         ");"
         "CREATE INDEX idx_term_meta_exp ON term_meta_bank(expression);"
 
@@ -256,8 +255,7 @@ static int create_db(sqlite3 *db, const int version)
             "dic_id     INTEGER     NOT NULL,"
             "expression TEXT        NOT NULL,"
             "mode       TEXT        NOT NULL,"
-            "data       BLOB,"                 // Data defined by mode
-            "PRIMARY KEY(dic_id, expression)"
+            "data       BLOB"                  // Data defined by mode
         ");"
         "CREATE INDEX idx_kanji_meta_exp ON kanji_meta_bank(expression);",
         NULL, NULL, &errmsg
@@ -414,17 +412,19 @@ cleanup:
  * @param[out] obj    The object to set to the value object
  * @return Error code
  */
-static int get_obj_from_obj(const json_object *parent, const char *key,
+static int get_obj_from_obj(json_object *parent, const char *key,
                             json_type type, json_object **obj)
 {
     if (!json_object_object_get_ex(parent, key, obj))
     {
-        fprintf(stderr, "Could not get \"%s\" key from the object\n", key);
+        fprintf(stderr, "Could not get \"%s\" key from object\n%s\n", key,
+                json_object_to_json_string_ext(parent, JSON_C_TO_STRING_PRETTY));
         return JSON_MISSING_KEY_ERR;
     }
     if (!json_object_is_type(*obj, type))
     {
-        fprintf(stderr, "Key \"%s\" is not of type %s\n", key, json_type_to_name(type));
+        fprintf(stderr, "Key \"%s\" is not of type %s\n%s\n", key, json_type_to_name(type),
+                json_object_to_json_string_ext(parent, JSON_C_TO_STRING_PRETTY));
         return JSON_WRONG_TYPE_ERR;
     }
 
@@ -566,7 +566,8 @@ static int get_obj_from_array(json_object *arr, size_t idx, json_type type, json
     *ret_obj = json_object_array_get_idx(arr, idx);
     if (!json_object_is_type(*ret_obj, type))
     {
-        fprintf(stderr, "Expected index %lu to be of type %s\n", idx, json_type_to_name(type));
+        fprintf(stderr, "Expected index %lu to be of type %s\n%s\n", idx, json_type_to_name(type),
+                json_object_to_json_string_ext(arr, JSON_C_TO_STRING_PRETTY));
         *ret_obj = NULL;
         return JSON_WRONG_TYPE_ERR;
     }
@@ -1038,8 +1039,7 @@ static int add_meta(sqlite3 *db, json_object *meta, const sqlite3_int64 id, cons
     mode = json_object_get_string(ret_obj);
 
     /* Get the proper type from the data field of the array */
-    if (ret = get_obj_from_array(meta, DATA_INDEX, json_type_string, &ret_obj))
-        goto cleanup;
+    ret_obj = json_object_array_get_idx(meta, DATA_INDEX);
     if (json_object_is_type(ret_obj, json_type_array) || 
         json_object_is_type(ret_obj, json_type_object))
     {
