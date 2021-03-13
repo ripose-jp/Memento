@@ -60,6 +60,7 @@
 #define UNKNOWN_BANK_TYPE_ERR       -20
 #define UNKNOWN_DATA_TYPE_ERR       -21
 #define PRAGMA_OPTIMIZE_ERR         -22
+#define TRANSACTION_ERR             -23
 
 enum bank_type
 {
@@ -105,6 +106,40 @@ struct yomi_term
     int     sequence;
     char    **term_tags;
 } typedef yomi_term;
+
+/**
+ * Begins an database transaction
+ * @param db The database to begin a transaction on
+ * @returns Error code
+ */
+static int begin_transaction(sqlite3 *db)
+{
+    char *errmsg = NULL;
+    sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, &errmsg);
+    if (errmsg)
+    {
+        fprintf(stderr, "Could not begin transaction\nError: %s\n", errmsg);
+        return TRANSACTION_ERR;
+    }
+    return 0;
+}
+
+/**
+ * Commits a database transaction
+ * @param db The database commit to
+ * @returns Error code
+ */
+static int commit_transaction(sqlite3 *db)
+{
+    char *errmsg = NULL;
+    sqlite3_exec(db, "COMMIT;", NULL, NULL, &errmsg);
+    if (errmsg)
+    {
+        fprintf(stderr, "Could not commit transaction\nError: %s\n", errmsg);
+        return TRANSACTION_ERR;
+    }
+    return 0;
+}
 
 /**
  * Drops all the tables provided in argv
@@ -294,18 +329,6 @@ static int prepare_db(sqlite3 *db)
     else if (user_version < YOMI_DB_VERSION && (ret = create_db(db, user_version)))
     {
         fprintf(stderr, "Could not update the database, reported version %d\n", user_version);
-        goto cleanup;
-    }
-
-    /* Set PRAGMA optimized for fast writes */
-    sqlite3_exec(db,
-                 "PRAGMA synchronous  = OFF;"
-                 "PRAGMA journal_mode = OFF;",
-                 NULL, NULL, &errmsg);
-    if (errmsg)
-    {
-        fprintf(stderr, "Could not set optimized PRAGMA values\nError: %s\n", errmsg);
-        ret = PRAGMA_OPTIMIZE_ERR;
         goto cleanup;
     }
 
@@ -1169,6 +1192,7 @@ static int add_dic_files(zip_t *dict_archive, sqlite3 *db, const sqlite3_int64 i
     size_t        fileno      = 1;
     json_object  *outer_arr   = NULL;
     json_object  *inner_arr   = NULL;
+    char         *errmsg      = NULL;
     int (*add_item)(sqlite3 *, json_object *, const sqlite3_int64) = NULL;
 
     /* Set the type of files to iterate over and the function used to add them */
@@ -1219,6 +1243,8 @@ static int add_dic_files(zip_t *dict_archive, sqlite3 *db, const sqlite3_int64 i
         }
 
         /* Iterate over all the outer arrays */
+        if (ret = begin_transaction(db))
+            goto cleanup;
         for (size_t i = 0; i < json_object_array_length(outer_arr); ++i)
         {
             /* Get the inner array which contains tag info */
@@ -1237,6 +1263,8 @@ static int add_dic_files(zip_t *dict_archive, sqlite3 *db, const sqlite3_int64 i
                 goto cleanup;
             }
         }
+        if (ret = commit_transaction(db))
+            goto cleanup;
 
         /* Prepare for the next iteration of the loop */
         snprintf(filename, FILENAME_BUFFER_SIZE, file_format, fileno++);
@@ -1248,6 +1276,7 @@ static int add_dic_files(zip_t *dict_archive, sqlite3 *db, const sqlite3_int64 i
 
 cleanup:
     json_object_put(outer_arr);
+    sqlite3_free(errmsg);
 
     return ret;
 }
