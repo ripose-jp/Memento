@@ -223,7 +223,10 @@ static int create_db(sqlite3 *db, const int version)
             "data       BLOB,"                 // Data defined by mode
             "PRIMARY KEY(dic_id, expression)"
         ");"
-        "CREATE INDEX idx_kanji_meta_exp ON kanji_meta_bank(expression);",
+        "CREATE INDEX idx_kanji_meta_exp ON kanji_meta_bank(expression);"
+        
+        "PRAGMA synchronous  = OFF;"
+        "PRAGMA journal_mode = OFF;",
         NULL, NULL, &errmsg
     );
     if (errmsg)
@@ -812,7 +815,7 @@ cleanup:
 /* End add_term defines */
 /* Begin add_kanji defines */
 
-#define KANJI_ARRAY_SIZE     5
+#define KANJI_ARRAY_SIZE     6
 
 #define QUERY   "INSERT INTO kanji_bank "\
                     "(dic_id, char, onyomi, kunyomi, tags, meanings, stats) "\
@@ -1226,6 +1229,7 @@ static int add_dic_files(zip_t *dict_archive, sqlite3 *db, const sqlite3_int64 i
         /* Prepare for the next iteration of the loop */
         snprintf(filename, FILENAME_BUFFER_SIZE, file_format, fileno++);
         filename[FILENAME_BUFFER_SIZE - 1] = '\0';
+        json_object_put(outer_arr);
         outer_arr  = NULL;
         inner_arr = NULL;
     }
