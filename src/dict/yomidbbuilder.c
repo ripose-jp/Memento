@@ -59,6 +59,7 @@
 #define META_WRONG_SIZE_ERR         -19
 #define UNKNOWN_BANK_TYPE_ERR       -20
 #define UNKNOWN_DATA_TYPE_ERR       -21
+#define PRAGMA_OPTIMIZE_ERR         -22
 
 enum bank_type
 {
@@ -223,10 +224,7 @@ static int create_db(sqlite3 *db, const int version)
             "data       BLOB,"                 // Data defined by mode
             "PRIMARY KEY(dic_id, expression)"
         ");"
-        "CREATE INDEX idx_kanji_meta_exp ON kanji_meta_bank(expression);"
-        
-        "PRAGMA synchronous  = OFF;"
-        "PRAGMA journal_mode = OFF;",
+        "CREATE INDEX idx_kanji_meta_exp ON kanji_meta_bank(expression);",
         NULL, NULL, &errmsg
     );
     if (errmsg)
@@ -270,6 +268,7 @@ static int prepare_db(sqlite3 *db)
     int           user_version = 0;
     sqlite3_stmt *stmt         = NULL;
     int           step         = 0;
+    char         *errmsg       = NULL;
 
     /* Check if the schema is an empty file */
     if (sqlite3_prepare_v2(db, "PRAGMA user_version;", -1, &stmt, NULL) != SQLITE_OK)
@@ -298,8 +297,21 @@ static int prepare_db(sqlite3 *db)
         goto cleanup;
     }
 
+    /* Set PRAGMA optimized for fast writes */
+    sqlite3_exec(db,
+                 "PRAGMA synchronous  = OFF;"
+                 "PRAGMA journal_mode = OFF;",
+                 NULL, NULL, &errmsg);
+    if (errmsg)
+    {
+        fprintf(stderr, "Could not set optimized PRAGMA values\nError: %s\n", errmsg);
+        ret = PRAGMA_OPTIMIZE_ERR;
+        goto cleanup;
+    }
+
 cleanup:
     sqlite3_finalize(stmt);
+    sqlite3_free(errmsg);
 
     return ret;
 }
