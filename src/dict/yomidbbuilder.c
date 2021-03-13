@@ -112,12 +112,12 @@ struct yomi_term
  * @param   argv The array of table names to drop
  * @return Error code
  */
-static int drop_all_tables_callback(void *db, int argc, char **argv, char **)
+static int drop_all_tables_callback(void *db, int argc, char **argv, char **unused)
 {
     for (char **ptr = argv; ptr < &argv[argc]; ++ptr)
     {
-        char *drop_query = sqlite3_mprintf("DROP TABLE IF EXISTS %Q;", *ptr),
-             *errmsg     = NULL;
+        char *drop_query = sqlite3_mprintf("DROP TABLE IF EXISTS %Q;", *ptr);
+        char *errmsg     = NULL;
         
         if (drop_query == NULL)
         {
@@ -163,7 +163,7 @@ static int create_db(sqlite3 *db, const int version)
     /* Create all needed tables */
     sqlite3_exec(
         db,
-        "CREATE TABLE index ("
+        "CREATE TABLE directory ("
             "dic_id     INTEGER     PRIMARY KEY AUTOINCREMENT,"
             "title      TEXT        NOT NULL UNIQUE,"
             "format     INTEGER     NOT NULL,"
@@ -175,12 +175,12 @@ static int create_db(sqlite3 *db, const int version)
             "dic_id     INTEGER     NOT NULL,"
             "name       TEXT        NOT NULL,"
             "category   TEXT        NOT NULL,"
-            "order      INTEGER     NOT NULL,"
+            "ord        INTEGER     NOT NULL,"
             "notes      TEXT        NOT NULL,"
             "score      INTEGER     NOT NULL,"
             "PRIMARY KEY(dic_id, name)"
         ");"
-        "CREATE INDEX idx_tag_bank_name     ON term_bank(dic_id, name);"
+        "CREATE INDEX idx_tag_bank_name ON tag_bank(dic_id, name);"
 
         "CREATE TABLE term_bank ("
             "dic_id     INTEGER     NOT NULL,"
@@ -203,7 +203,7 @@ static int create_db(sqlite3 *db, const int version)
             "data       BLOB,"                  // Data defined by mode
             "PRIMARY KEY(dic_id, expression)"
         ");"
-        "CREATE INDEX idx_term_meta_exp     ON term_bank(expression);"
+        "CREATE INDEX idx_term_meta_exp ON term_meta_bank(expression);"
 
         "CREATE TABLE kanji_bank ("
             "dic_id     INTEGER     NOT NULL,"
@@ -214,7 +214,7 @@ static int create_db(sqlite3 *db, const int version)
             "meanings   TEXT        NOT NULL,"  // Json array
             "stats      TEXT        NOT NULL"   // Json object
         ");"
-        "CREATE INDEX idx_kanji_bank_char   ON term_bank(char);"
+        "CREATE INDEX idx_kanji_bank_char ON kanji_bank(char);"
 
         "CREATE TABLE kanji_meta_bank ("
             "dic_id     INTEGER     NOT NULL,"
@@ -223,7 +223,7 @@ static int create_db(sqlite3 *db, const int version)
             "data       BLOB,"                 // Data defined by mode
             "PRIMARY KEY(dic_id, expression)"
         ");"
-        "CREATE INDEX idx_kanji_meta_exp    ON term_bank(expression);",
+        "CREATE INDEX idx_kanji_meta_exp ON kanji_meta_bank(expression);",
         NULL, NULL, &errmsg
     );
     if (errmsg)
@@ -313,7 +313,7 @@ static int get_json_obj(zip_t *archive, const char *filename, json_object **obj)
     int              ret        = 0;
     struct zip_stat  st;
     char            *contents   = NULL;
-    zip_file        *file       = NULL;
+    struct zip_file *file       = NULL;
     zip_int64_t      bytes_read = 0;
 
     /* Get the size of the file */
@@ -352,7 +352,7 @@ static int get_json_obj(zip_t *archive, const char *filename, json_object **obj)
     if (bytes_read == -1 || bytes_read != st.size)
     {
         fprintf(stderr, "Did not read expected number of bytes in %s\n", filename);
-        fprintf(stderr, "Expected bytes: %dl\tActual bytes read %dl\n", st.size, bytes_read);
+        fprintf(stderr, "Expected bytes: %ld\tActual bytes read %ld\n", st.size, bytes_read);
         ret = ZIP_FILE_READ_ERR;
         goto cleanup;
     }
@@ -400,7 +400,7 @@ static int get_obj_from_obj(const json_object *parent, const char *key,
 #define REV_KEY       "revision"
 #define SEQ_KEY       "sequenced"
 
-#define QUERY "INSERT INTO index (title, format, revision, sequenced) VALUES (?, ?, ?, ?);"
+#define QUERY "INSERT INTO directory (title, format, revision, sequenced) VALUES (?, ?, ?, ?);"
 #define TITLE_INDEX     1
 #define FORMAT_INDEX    2
 #define REV_INDEX       3
@@ -528,7 +528,7 @@ static int get_obj_from_array(json_object *arr, size_t idx, json_type type, json
     *ret_obj = json_object_array_get_idx(arr, idx);
     if (!json_object_is_type(*ret_obj, type))
     {
-        fprintf(stderr, "Expected index %ul to be of type %s\n", idx, json_type_to_name(type));
+        fprintf(stderr, "Expected index %lu to be of type %s\n", idx, json_type_to_name(type));
         *ret_obj = NULL;
         return JSON_WRONG_TYPE_ERR;
     }
@@ -539,7 +539,7 @@ static int get_obj_from_array(json_object *arr, size_t idx, json_type type, json
 
 #define TAG_ARRAY_SIZE  5
 
-#define QUERY   "INSERT INTO tag_bank (dic_id, name, category, order, notes, score) "\
+#define QUERY   "INSERT INTO tag_bank (dic_id, name, category, ord, notes, score) "\
                     "VALUES (?, ?, ?, ?, ?, ?);"
 
 #define NAME_INDEX      0
@@ -579,7 +579,7 @@ static int add_tag(sqlite3 *db, json_object *tag, const sqlite3_int64 id)
     /* Make sure the length of the tag array is correct */
     if (json_object_array_length(tag) != TAG_ARRAY_SIZE)
     {
-        fprintf(stderr, "Expected tag array of size %ul, got %ul\n", 
+        fprintf(stderr, "Expected tag array of size %u, got %lu\n", 
                 TAG_ARRAY_SIZE, json_object_array_length(tag));
         ret = TAG_WRONG_SIZE_ERR;
         goto cleanup;
@@ -711,7 +711,7 @@ static int add_term(sqlite3 *db, json_object *term, const sqlite3_int64 id)
     /* Make sure the length of the term array is correct */
     if (json_object_array_length(term) != TERM_ARRAY_SIZE)
     {
-        fprintf(stderr, "Expected term array of size %ul, got %ul\n", 
+        fprintf(stderr, "Expected term array of size %u, got %lu\n", 
                 TERM_ARRAY_SIZE, json_object_array_length(term));
         ret = TERM_WRONG_SIZE_ERR;
         goto cleanup;
@@ -858,7 +858,7 @@ static int add_kanji(sqlite3 *db, json_object *kanji, const sqlite3_int64 id)
     /* Make sure the length of the term array is correct */
     if (json_object_array_length(kanji) != KANJI_ARRAY_SIZE)
     {
-        fprintf(stderr, "Expected kanji array of size %ul, got %ul\n", 
+        fprintf(stderr, "Expected kanji array of size %u, got %lu\n", 
                 KANJI_ARRAY_SIZE, json_object_array_length(kanji));
         ret = KANJI_WRONG_SIZE_ERR;
         goto cleanup;
@@ -984,7 +984,7 @@ static int add_meta(sqlite3 *db, json_object *meta, const sqlite3_int64 id, cons
     /* Make sure the length of the metadata array is correct */
     if (json_object_array_length(meta) != META_ARRAY_SIZE)
     {
-        fprintf(stderr, "Expected metadata array of size %ul, got %ul\n", 
+        fprintf(stderr, "Expected metadata array of size %u, got %lu\n", 
                 META_ARRAY_SIZE, json_object_array_length(meta));
         ret = META_WRONG_SIZE_ERR;
         goto cleanup;
