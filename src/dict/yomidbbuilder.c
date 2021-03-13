@@ -55,10 +55,10 @@
 #define DB_CREATE_TABLE_ERR         -15
 #define TAG_WRONG_SIZE_ERR          -16
 #define TERM_WRONG_SIZE_ERR         -17
-#define TERM_META_WRONG_SIZE_ERR    -18
-#define KANJI_WRONG_SIZE_ERR        -19
-#define KANJI_META_WRONG_SIZE_ERR   -20
-#define UNKNOWN_BANK_TYPE_ERR       -21
+#define KANJI_WRONG_SIZE_ERR        -18
+#define META_WRONG_SIZE_ERR         -19
+#define UNKNOWN_BANK_TYPE_ERR       -20
+#define UNKNOWN_DATA_TYPE_ERR       -21
 
 enum bank_type
 {
@@ -200,7 +200,7 @@ static int create_db(sqlite3 *db, const int version)
             "dic_id     INTEGER     NOT NULL,"
             "expression TEXT        NOT NULL,"
             "mode       TEXT        NOT NULL,"
-            "data       BLOB        NOT NULL,"   // Data defined by mode
+            "data       BLOB,"                  // Data defined by mode
             "PRIMARY KEY(dic_id, expression)"
         ");"
         "CREATE INDEX idx_term_meta_exp     ON term_bank(expression);"
@@ -220,7 +220,7 @@ static int create_db(sqlite3 *db, const int version)
             "dic_id     INTEGER     NOT NULL,"
             "expression TEXT        NOT NULL,"
             "mode       TEXT        NOT NULL,"
-            "data       BLOB        NOT NULL,"   // Data defined by mode
+            "data       BLOB,"                 // Data defined by mode
             "PRIMARY KEY(dic_id, expression)"
         ");"
         "CREATE INDEX idx_kanji_meta_exp    ON term_bank(expression);",
@@ -284,7 +284,8 @@ static int prepare_db(sqlite3 *db)
     user_version = sqlite3_column_int(stmt, 0);
     if (user_version > YOMI_DB_VERSION)
     {
-        fprintf(stderr, "Expected user_version %d, got newer version %d\n", YOMI_DB_VERSION, user_version);
+        fprintf(stderr, "Expected user_version %d, got newer version %d\n",
+                YOMI_DB_VERSION, user_version);
         ret = DB_NEW_VERSION_ERR;
         goto cleanup;
     }
@@ -391,6 +392,8 @@ static int get_obj_from_obj(const json_object *parent, const char *key,
 
     return 0;
 }
+
+/* Begin add_index defines */
 
 #define TITLE_KEY     "title"
 #define FORMAT_KEY    "format"
@@ -510,6 +513,8 @@ cleanup:
 #undef REV_INDEX
 #undef SEQ_INDEX
 
+/* End add_index defines */
+
 /**
  * Checks the type and returns an array object
  * @param      arr     The array to obtains values from
@@ -529,6 +534,8 @@ static int get_obj_from_array(json_object *arr, size_t idx, json_type type, json
     }
     return 0;
 }
+
+/* Begin add_tag defines */
 
 #define TAG_ARRAY_SIZE  5
 
@@ -649,7 +656,10 @@ cleanup:
 #undef QUERY_NOTES_INDEX
 #undef QUERY_SCORE_INDEX
 
-#define TERM_ARRAY_SIZE  5
+/* End add_tag defines */
+/* Begin add_term defines */
+
+#define TERM_ARRAY_SIZE     8
 
 #define QUERY   "INSERT INTO term_bank "\
                     "(dic_id, expression, reading, def_tags, rules, score, glossary, sequence, term_tags) "\
@@ -676,9 +686,9 @@ cleanup:
 
 /**
  * Add the term stored in the json array
- * @param db  The database to add the tag to
- * @param tag The tag array to add to the database
- * @param id  The id of the dictionary the tag belongs to
+ * @param db   The database to add the tag to
+ * @param term The term array to add to the database
+ * @param id   The id of the dictionary the tag belongs to
  * @return Error code
  */
 static int add_term(sqlite3 *db, json_object *term, const sqlite3_int64 id)
@@ -697,19 +707,6 @@ static int add_term(sqlite3 *db, json_object *term, const sqlite3_int64 id)
 
     sqlite3_stmt *stmt      = NULL;
     int           step      = 0;
-
-    /*
-    "CREATE TABLE term_bank ("
-            "dic_id     INTEGER     NOT NULL,"
-            "expression TEXT        NOT NULL,"
-            "reading    TEXT        NOT NULL,"
-            "def_tags   TEXT        NOT NULL,"  // Space seperated list
-            "rules      TEXT        NOT NULL,"  // Space seperated list
-            "score      INTEGER     NOT NULL,"
-            "glossary   TEXT        NOT NULL,"  // Json array
-            "sequence   INTEGER     NOT NULL,"
-            "term_tags  TEXT        NOT NULL"   // Space seperated list
-        ");" */
 
     /* Make sure the length of the term array is correct */
     if (json_object_array_length(term) != TERM_ARRAY_SIZE)
@@ -812,6 +809,336 @@ cleanup:
 #undef QUERY_SEQUENCE_INDEX
 #undef QUERY_TERM_TAGS_INDEX
 
+/* End add_term defines */
+/* Begin add_kanji defines */
+
+#define KANJI_ARRAY_SIZE     5
+
+#define QUERY   "INSERT INTO kanji_bank "\
+                    "(dic_id, char, onyomi, kunyomi, tags, meanings, stats) "\
+                    "VALUES (?, ?, ?, ?, ?, ?, ?);"
+
+#define CHAR_INDEX          0
+#define ONYOMI_INDEX        1
+#define KUNYOMI_INDEX       2
+#define TAGS_INDEX          3
+#define MEANINGS_INDEX      4
+#define STATS_INDEX         5
+
+#define QUERY_DIC_ID_INDEX        1
+#define QUERY_CHAR_INDEX          2
+#define QUERY_ONYOMI_INDEX        3
+#define QUERY_KUNYOMI_INDEX       4
+#define QUERY_TAGS_INDEX          5
+#define QUERY_MEANINGS_INDEX      6
+#define QUERY_STATS_INDEX         7
+
+/**
+ * Add the kanji stored in the json array
+ * @param db    The database to add the tag to
+ * @param kanji The kanji array to add to the database
+ * @param id    The id of the dictionary the tag belongs to
+ * @return Error code
+ */
+static int add_kanji(sqlite3 *db, json_object *kanji, const sqlite3_int64 id)
+{
+    int           ret       = 0;
+    json_object  *ret_obj   = NULL;
+    
+    const char   *character = NULL;
+    const char   *onyomi    = NULL;
+    const char   *kunyomi   = NULL;
+    const char   *tags      = NULL;
+    const char   *meanings  = NULL;
+    const char   *stats     = NULL;
+
+    sqlite3_stmt *stmt      = NULL;
+    int           step      = 0;
+
+    /* Make sure the length of the term array is correct */
+    if (json_object_array_length(kanji) != KANJI_ARRAY_SIZE)
+    {
+        fprintf(stderr, "Expected kanji array of size %ul, got %ul\n", 
+                KANJI_ARRAY_SIZE, json_object_array_length(kanji));
+        ret = KANJI_WRONG_SIZE_ERR;
+        goto cleanup;
+    }
+
+    /* Get the objects to add to the database */
+    if (ret = get_obj_from_array(kanji, CHAR_INDEX, json_type_string, &ret_obj))
+        goto cleanup;
+    character = json_object_get_string(ret_obj);
+
+    if (ret = get_obj_from_array(kanji, ONYOMI_INDEX, json_type_string, &ret_obj))
+        goto cleanup;
+    onyomi = json_object_get_string(ret_obj);
+
+    if (ret = get_obj_from_array(kanji, KUNYOMI_INDEX, json_type_string, &ret_obj))
+        goto cleanup;
+    kunyomi = json_object_get_string(ret_obj);
+
+    if (ret = get_obj_from_array(kanji, TAGS_INDEX, json_type_string, &ret_obj))
+        goto cleanup;
+    tags = json_object_get_string(ret_obj);
+
+    if (ret = get_obj_from_array(kanji, MEANINGS_INDEX, json_type_array, &ret_obj))
+        goto cleanup;
+    meanings = json_object_to_json_string(ret_obj);
+
+    if (ret = get_obj_from_array(kanji, STATS_INDEX, json_type_object, &ret_obj))
+        goto cleanup;
+    stats = json_object_to_json_string(ret_obj);
+
+    /* Add term to the database */
+    if (sqlite3_prepare_v2(db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+    {
+        fprintf(stderr, "Could not prepare sqlite statement\n");
+        fprintf(stderr, "Query: \n", QUERY);
+        ret = STATEMENT_PREPARE_ERR;
+        goto cleanup;
+    }
+    if (sqlite3_bind_int (stmt, QUERY_DIC_ID_INDEX,   id                 ) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_CHAR_INDEX,     character, -1, NULL) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_ONYOMI_INDEX,   onyomi,    -1, NULL) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_KUNYOMI_INDEX,  kunyomi,   -1, NULL) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_TAGS_INDEX,     tags,      -1, NULL) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_MEANINGS_INDEX, meanings,  -1, NULL) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_STATS_INDEX,    stats,     -1, NULL) != SQLITE_OK)
+    {
+        fprintf(stderr, "Could not bind values to sqlite statement\n");
+        ret = STATEMENT_BIND_ERR;
+        goto cleanup;
+    }
+    step = sqlite3_step(stmt);
+    if (IS_STEP_ERR(step))
+    {
+        fprintf(stderr, "Could not commit to database, sqlite3 error code %d\n", step);
+        ret = STATEMENT_STEP_ERR;
+        goto cleanup;
+    }
+
+cleanup:
+    sqlite3_finalize(stmt);
+
+    return ret;
+}
+
+#undef KANJI_ARRAY_SIZE
+
+#undef QUERY
+
+#undef CHAR_INDEX
+#undef ONYOMI_INDEX
+#undef KUNYOMI_INDEX
+#undef TAGS_INDEX
+#undef MEANINGS_INDEX
+#undef STATS_INDEX
+
+#undef QUERY_DIC_ID_INDEX
+#undef QUERY_CHAR_INDEX
+#undef QUERY_ONYOMI_INDEX
+#undef QUERY_KUNYOMI_INDEX
+#undef QUERY_TAGS_INDEX
+#undef QUERY_MEANINGS_INDEX
+#undef QUERY_STATS_INDEX
+
+/* End add_kanji defines */
+/* Begin add_meta defines */
+
+#define META_ARRAY_SIZE     3
+
+#define EXPRESSION_INDEX    0
+#define MODE_INDEX          1
+#define DATA_INDEX          2
+
+#define QUERY_DIC_ID_INDEX          1
+#define QUERY_EXPRESSION_INDEX      2
+#define QUERY_MODE_INDEX            3
+#define QUERY_DATA_INDEX            4
+
+/**
+ * Add the metadata stored in the json array
+ * @param db    The database to add the tag to
+ * @param meta  The tag array to add to the database
+ * @param id    The id of the dictionary the tag belongs to
+ * @param query The query to execute on the database with (?, ?, ?) bindable fields
+ * @return Error code
+ */
+static int add_meta(sqlite3 *db, json_object *meta, const sqlite3_int64 id, const char *query)
+{
+    int           ret         = 0;
+    json_object  *ret_obj     = NULL;
+
+    const char   *exp         = NULL;
+    const char   *mode        = NULL;
+    const void   *data        = NULL;
+    size_t        data_len    = 0;
+    int64_t       data_int    = 0;
+    json_bool     data_bool   = 0;
+    double        data_double = 0.0;
+    int           data_null   = 0;
+
+    sqlite3_stmt *stmt        = NULL;
+    int           step        = 0;
+
+    /* Make sure the length of the metadata array is correct */
+    if (json_object_array_length(meta) != META_ARRAY_SIZE)
+    {
+        fprintf(stderr, "Expected metadata array of size %ul, got %ul\n", 
+                META_ARRAY_SIZE, json_object_array_length(meta));
+        ret = META_WRONG_SIZE_ERR;
+        goto cleanup;
+    }
+
+    /* Get the objects to add to the database */
+    if (ret = get_obj_from_array(meta, EXPRESSION_INDEX, json_type_string, &ret_obj))
+        goto cleanup;
+    exp = json_object_get_string(ret_obj);
+
+    if (ret = get_obj_from_array(meta, MODE_INDEX, json_type_string, &ret_obj))
+        goto cleanup;
+    mode = json_object_get_string(ret_obj);
+
+    /* Get the proper type from the data field of the array */
+    if (ret = get_obj_from_array(meta, DATA_INDEX, json_type_string, &ret_obj))
+        goto cleanup;
+    if (json_object_is_type(ret_obj, json_type_array) || 
+        json_object_is_type(ret_obj, json_type_object))
+    {
+        data = json_object_to_json_string_length(ret_obj, JSON_C_TO_STRING_SPACED, &data_len);
+        ++data_len;
+    }
+    else if (json_object_is_type(ret_obj, json_type_int))
+    {
+        data_int = json_object_get_int64(ret_obj);
+        data = &data_int;
+        data_len = sizeof(int64_t);
+    }
+    else if (json_object_is_type(ret_obj, json_type_boolean))
+    {
+        data_bool = json_object_get_boolean(ret_obj);
+        data = &data_bool;
+        data_len = sizeof(json_bool);
+    }
+    else if (json_object_is_type(ret_obj, json_type_double))
+    {
+        data_double = json_object_get_double(ret_obj);
+        data = &data_double;
+        data_len = sizeof(double);
+    }
+    else if (json_object_is_type(ret_obj, json_type_null))
+    {
+        data_null = 1;
+    }
+    else if (json_object_is_type(ret_obj, json_type_string))
+    {
+        data = json_object_get_string(ret_obj);
+        data_len = json_object_get_string_len(ret_obj) + 1;
+    }
+    else
+    {
+        fprintf(stderr, "Unknown json type stored in data\n");
+        ret = UNKNOWN_DATA_TYPE_ERR;
+        goto cleanup;
+    }
+
+    /* Add metadata to the database */
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, NULL) != SQLITE_OK)
+    {
+        fprintf(stderr, "Could not prepare sqlite statement\n");
+        fprintf(stderr, "Query: \n", query);
+        ret = STATEMENT_PREPARE_ERR;
+        goto cleanup;
+    }
+    if (sqlite3_bind_int (stmt, QUERY_DIC_ID_INDEX,     id            ) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_EXPRESSION_INDEX, exp,  -1, NULL) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_MODE_INDEX,       mode, -1, NULL) != SQLITE_OK)
+    {
+        fprintf(stderr, "Could not bind values to sqlite statement\n");
+        ret = STATEMENT_BIND_ERR;
+        goto cleanup;
+    }
+    if (data_null)
+    {
+        if (sqlite3_bind_null(stmt, QUERY_DATA_INDEX) != SQLITE_OK)
+        {
+            fprintf(stderr, "Could not bind null data to statement\n");
+            ret = STATEMENT_BIND_ERR;
+            goto cleanup;
+        }
+    }
+    else
+    {
+        if (sqlite3_bind_blob(stmt, QUERY_DATA_INDEX, data, data_len, NULL) != SQLITE_OK)
+        {
+            fprintf(stderr, "Could not bind data blob to statement\n");
+            ret = STATEMENT_BIND_ERR;
+            goto cleanup;
+        }
+    }
+    step = sqlite3_step(stmt);
+    if (IS_STEP_ERR(step))
+    {
+        fprintf(stderr, "Could not commit to database, sqlite3 error code %d\n", step);
+        ret = STATEMENT_STEP_ERR;
+        goto cleanup;
+    }
+
+cleanup:
+    sqlite3_finalize(stmt);
+
+    return ret;
+}
+
+#undef META_ARRAY_SIZE
+
+#undef EXPRESSION_INDEX
+#undef MODE_INDEX
+#undef DATA_INDEX
+
+#undef QUERY_DIC_ID_INDEX
+#undef QUERY_EXPRESSION_INDEX
+#undef QUERY_MODE_INDEX
+#undef QUERY_DATA_INDEX
+
+/* End add_meta defines */
+
+/**
+ * Add the term meta data stored in the json object
+ * @param db        The database to add the metadata to
+ * @param term_meta The term metadata json array to add
+ * @param id        The id of the dictionary the term metadata belongs to
+ * @return Error code
+ */
+static int add_term_meta(sqlite3 *db, json_object *term_meta, const sqlite3_int64 id)
+{
+    return add_meta(
+        db,
+        term_meta,
+        id,
+        "INSERT INTO term_meta_bank (dic_id, expression, mode, data) "
+            "VALUES (?, ?, ?, ?);"
+    );
+}
+
+/**
+ * Add the kanji meta data stored in the json object
+ * @param db         The database to add the metadata to
+ * @param kanji_meta The kanji metadata json array to add
+ * @param id         The id of the dictionary the kanji metadata belongs to
+ * @return Error code
+ */
+static int add_kanji_meta(sqlite3 *db, json_object *kanji_meta, const sqlite3_int64 id)
+{
+    return add_meta(
+        db, 
+        kanji_meta,
+        id,
+        "INSERT INTO kanji_meta_bank (dic_id, expression, mode, data) "
+            "VALUES (?, ?, ?, ?);"
+    );
+}
+
 /**
  * Adds a yomichan bank type to the database
  * @param dict_archive The dictionary archive holding index.json
@@ -842,15 +1169,15 @@ static int add_dic_files(zip_t *dict_archive, sqlite3 *db, const sqlite3_int64 i
         break;
     case term_meta_bank:
         file_format = TERM_META_BANK_FORMAT;
-        //add_item    = add_term_meta;
+        add_item    = add_term_meta;
         break;
     case kanji_bank:
         file_format = KANJI_BANK_FORMAT;
-        //add_item    = add_kanji;
+        add_item    = add_kanji;
         break;
     case kanji_meta_bank:
         file_format = KANJI_META_BANK_FORMAT;
-        //add_item    = add_kanji_meta;
+        add_item    = add_kanji_meta;
         break;
     default:
         fprintf(stderr, "Unknown bank_type value %d\n", type);
