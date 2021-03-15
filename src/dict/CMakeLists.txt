@@ -27,3 +27,18 @@ target_link_libraries(
     ${SQLITE}
     ${EXPAT}
 )
+
+add_library(
+    dictionary_db
+    dictionary.cpp
+    databasemanager.cpp
+    yomidbbuilder.c
+    expression.h
+)
+target_link_libraries(
+    dictionary_db
+    ${SQLITE}
+    ${JSONC}
+    ${LIBZIP}
+    Qt::Core
+)

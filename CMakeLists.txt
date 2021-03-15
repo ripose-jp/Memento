@@ -21,6 +21,8 @@ find_library(SQLITE sqlite3)
 find_library(EXPAT expat)
 find_library(MPV_LIB mpv)
 find_library(MECAB_LIB mecab)
+find_library(JSONC json-c)
+find_library(LIBZIP zip)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET

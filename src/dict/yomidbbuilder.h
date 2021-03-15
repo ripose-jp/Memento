@@ -33,6 +33,15 @@
 #define YOMI_ERR_ADDING_TERMS_META      7
 #define YOMI_ERR_ADDING_KANJI           8
 #define YOMI_ERR_ADDING_KANJI_META      9
+#define YOMI_ERR_DELETE                 10
+
+/**
+ * Prepare a dictionary database if one doesn't already exist
+ * @param      db_file The location of the database file
+ * @param[out] db      A pointer to the database to set. Safe if NULL.
+ * @return Error code
+ */
+int yomi_prepare_db(const char *db_file, sqlite3 **db);
 
 /**
  * Process the archive in dict_file and add it the sqlite database in db_file
@@ -41,5 +50,13 @@
  * @return Error code
  */
 int yomi_process_dictionary(const char *dict_file, const char *db_file);
+
+/**
+ * Remove a dictionary from a database if it exists
+ * @param dict_name Name of the dictionary to remove
+ * @param db_file   The location of the database file
+ * @return Error code
+ */
+int yomi_delete_dictionary(const char *dict_name, const char *db_file);
 
 #endif // YOMIDBBUILDER_H

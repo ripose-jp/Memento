@@ -27,8 +27,6 @@
 #include <string.h>
 #include <zip.h>
 
-#define IS_STEP_ERR(x) ((x) != SQLITE_OK && (x) != SQLITE_ROW && (x) != SQLITE_DONE)
-
 #define INDEX_FILE              "index.json"
 #define TAG_BANK_FORMAT         "tag_bank_%u.json"
 #define TERM_BANK_FORMAT        "term_bank_%u.json"
@@ -70,42 +68,6 @@ enum bank_type
     kanji_bank,
     kanji_meta_bank
 } typedef bank_type;
-
-struct yomi_index
-{
-    char    *title;
-    int     format;
-    char    *revision;
-    int     sequenced;
-} typedef yomi_index;
-
-struct yomi_tag
-{
-    char    *name;
-    char    *category;
-    int     order;
-    char    *notes;
-    int     score;
-} typedef yomi_tag;
-
-struct yomi_meta
-{
-    char    *expression;
-    char    *mode;
-    char    *data;
-} typedef yomi_meta;
-
-struct yomi_term
-{
-    char    *expression;
-    char    *reading;
-    char    **definition_tags;
-    char    **rules;
-    int     score;
-    char    *glossary;
-    int     sequence;
-    char    **term_tags;
-} typedef yomi_term;
 
 /**
  * Begins an database transaction
@@ -244,6 +206,7 @@ static int create_db(sqlite3 *db, const int version)
         ");"
         "CREATE INDEX idx_term_bank_exp     ON term_bank(expression);"
         "CREATE INDEX idx_term_bank_reading ON term_bank(reading);"
+        "CREATE INDEX idx_term_bank_combo   ON term_bank(expression, reading);"
 
         "CREATE TABLE term_meta_bank ("
             "dic_id     INTEGER     NOT NULL,"
@@ -251,7 +214,7 @@ static int create_db(sqlite3 *db, const int version)
             "mode       TEXT        NOT NULL,"
             "data       BLOB"                   // Data defined by mode
         ");"
-        "CREATE INDEX idx_term_meta_exp ON term_meta_bank(expression);"
+        "CREATE INDEX idx_term_meta_exp ON term_meta_bank(expression, mode);"
 
         "CREATE TABLE kanji_bank ("
             "dic_id     INTEGER     NOT NULL,"
@@ -270,7 +233,7 @@ static int create_db(sqlite3 *db, const int version)
             "mode       TEXT        NOT NULL,"
             "data       BLOB"                  // Data defined by mode
         ");"
-        "CREATE INDEX idx_kanji_meta_exp ON kanji_meta_bank(expression);",
+        "CREATE INDEX idx_kanji_meta_exp ON kanji_meta_bank(expression, mode);",
         NULL, NULL, &errmsg
     );
     if (errmsg)
@@ -313,7 +276,6 @@ static int prepare_db(sqlite3 *db)
     int           ret          = 0;
     int           user_version = 0;
     sqlite3_stmt *stmt         = NULL;
-    int           step         = 0;
     char         *errmsg       = NULL;
 
     /* Check if the schema is an empty file */
@@ -322,8 +284,7 @@ static int prepare_db(sqlite3 *db)
         ret = STATEMENT_PREPARE_ERR;
         goto cleanup;
     }
-    step = sqlite3_step(stmt);
-    if (IS_STEP_ERR(step))
+    if (sqlite3_step(stmt) != SQLITE_ROW)
     {
         fprintf(stderr, "Could not execute user_version check\n");
         ret = STATEMENT_STEP_ERR;
@@ -544,8 +505,7 @@ static int add_index(zip_t *dict_archive, sqlite3 *db, sqlite3_int64 *id)
         ret = STATEMENT_BIND_ERR;
         goto cleanup;
     }
-    step = sqlite3_step(stmt);
-    if (IS_STEP_ERR(step))
+    if ((step = sqlite3_step(stmt)) != SQLITE_DONE)
     {
         fprintf(stderr, "Could not commit to database, sqlite3 error code %d\n", step);
         ret = STATEMENT_STEP_ERR;
@@ -686,8 +646,7 @@ static int add_tag(sqlite3 *db, json_object *tag, const sqlite3_int64 id)
         ret = STATEMENT_BIND_ERR;
         goto cleanup;
     }
-    step = sqlite3_step(stmt);
-    if (IS_STEP_ERR(step))
+    if ((step = sqlite3_step(stmt)) != SQLITE_DONE)
     {
         fprintf(stderr, "Could not commit to database, sqlite3 error code %d\n", step);
         ret = STATEMENT_STEP_ERR;
@@ -833,8 +792,7 @@ static int add_term(sqlite3 *db, json_object *term, const sqlite3_int64 id)
         ret = STATEMENT_BIND_ERR;
         goto cleanup;
     }
-    step = sqlite3_step(stmt);
-    if (IS_STEP_ERR(step))
+    if ((step = sqlite3_step(stmt)) != SQLITE_DONE)
     {
         fprintf(stderr, "Could not commit to database, sqlite3 error code %d\n", step);
         ret = STATEMENT_STEP_ERR;
@@ -970,8 +928,7 @@ static int add_kanji(sqlite3 *db, json_object *kanji, const sqlite3_int64 id)
         ret = STATEMENT_BIND_ERR;
         goto cleanup;
     }
-    step = sqlite3_step(stmt);
-    if (IS_STEP_ERR(step))
+    if ((step = sqlite3_step(stmt)) != SQLITE_DONE)
     {
         fprintf(stderr, "Could not commit to database, sqlite3 error code %d\n", step);
         ret = STATEMENT_STEP_ERR;
@@ -1131,8 +1088,7 @@ static int add_meta(sqlite3 *db, json_object *meta, const sqlite3_int64 id, cons
             goto cleanup;
         }
     }
-    step = sqlite3_step(stmt);
-    if (IS_STEP_ERR(step))
+    if ((step = sqlite3_step(stmt)) != SQLITE_DONE)
     {
         fprintf(stderr, "Could not commit to database, sqlite3 error code %d\n", step);
         ret = STATEMENT_STEP_ERR;
@@ -1299,6 +1255,45 @@ cleanup:
 }
 
 /**
+ * Prepare a dictionary database if one doesn't already exist
+ * @param      db_file The location of the database file
+ * @param[out] db      A pointer to the database to set. Safe if NULL.
+ * @return Error code
+ */
+int yomi_prepare_db(const char *db_file, sqlite3 **db)
+{
+    int      ret          = 0;
+    sqlite3 *db_loc       = NULL;
+    int      prepare_code = 0;
+
+    /* Open or create the database */
+    if (sqlite3_open_v2(db_file, &db_loc, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK)
+    {
+        ret = YOMI_ERR_DB;
+        goto cleanup;
+    }
+
+    /* Make sure the database is setup */
+    if (prepare_code = prepare_db(db_loc))
+    {
+        ret = prepare_code == DB_NEW_VERSION_ERR ? YOMI_ERR_NEWER_VERSION : YOMI_ERR_DB;
+        goto cleanup;
+    }
+
+    /* Return the create database if not null */
+    if (db)
+    {
+        *db = db_loc;
+        return ret;
+    }
+
+cleanup:
+    sqlite3_close_v2(db);
+
+    return ret;
+}
+
+/**
  * Process the archive in dict_file and add it the sqlite database in db_file
  * @param   dict_file   The zip archive containing the yomichan dictionary
  * @param   db_file     Path to the sqlite database
@@ -1311,7 +1306,6 @@ int yomi_process_dictionary(const char *dict_file, const char *db_file)
     zip_t         *dict_archive = NULL;
     sqlite3       *db           = NULL;
     sqlite3_int64  id           = 0;
-    int            prepare_code = 0;
 
     /* Open dictionary archive */
     dict_archive = zip_open(dict_file, ZIP_RDONLY, &err);
@@ -1322,16 +1316,8 @@ int yomi_process_dictionary(const char *dict_file, const char *db_file)
     }
 
     /* Open or create the database */
-    if (sqlite3_open_v2(db_file, &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK)
+    if (ret = yomi_prepare_db(db_file, &db))
     {
-        ret = YOMI_ERR_DB;
-        goto cleanup;
-    }
-
-    /* Make sure the database is setup */
-    if (prepare_code = prepare_db(db))
-    {
-        ret = prepare_code == DB_NEW_VERSION_ERR ? YOMI_ERR_NEWER_VERSION : YOMI_ERR_DB;
         goto cleanup;
     }
 
@@ -1379,6 +1365,49 @@ int yomi_process_dictionary(const char *dict_file, const char *db_file)
 
 cleanup:
     zip_close(dict_archive);
+    sqlite3_close_v2(db);
+
+    return ret;
+}
+
+/**
+ * Remove a dictionary from a database if it exists
+ * @param dict_name Name of the dictionary to remove
+ * @param db_file   The location of the database file
+ * @return Error code
+ */
+int yomi_delete_dictionary(const char *dict_name, const char *db_file)
+{
+    int            ret          = 0;
+    sqlite3       *db           = NULL;
+    sqlite3_stmt  *stmt         = NULL;
+    int            step         = 0;
+
+    /* Open or create the database */
+    if (ret = yomi_prepare_db(db_file, &db))
+    {
+        goto cleanup;
+    }
+
+    /* Remove the dictionary from the index */
+    if (sqlite3_prepare_v2(db, "DELETE FROM directory WHERE (title = ?);", -1, &stmt, NULL) != SQLITE_OK)
+    {
+        ret = YOMI_ERR_DELETE;
+        goto cleanup;
+    }
+    if (sqlite3_bind_text(stmt, 1, dict_name, -1, NULL) != SQLITE_OK)
+    {
+        ret = YOMI_ERR_DELETE;
+        goto cleanup;
+    }
+    if ((step = sqlite3_step(stmt)) != SQLITE_DONE)
+    {
+        ret = YOMI_ERR_DELETE;
+        goto cleanup;
+    }
+
+cleanup:
+    sqlite3_finalize(stmt);
     sqlite3_close_v2(db);
 
     return ret;
