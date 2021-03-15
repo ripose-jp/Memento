@@ -35,6 +35,7 @@ public:
     int addDictionary(const QString &path);
     int deleteDictionary(const QString &name);
     QString errorCodeToString(const int code);
+    QStringList getDictionaries();
     QString queryTerms(const QString &query, QList<Term *> &terms);
 
 private:

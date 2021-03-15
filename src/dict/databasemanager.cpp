@@ -168,6 +168,25 @@ QString DatabaseManager::errorCodeToString(const int code)
     }
 }
 
+QStringList DatabaseManager::getDictionaries()
+{
+    QStringList   dictionaries;
+    sqlite3_stmt *stmt = NULL;
+    int           step = 0;
+
+    if (sqlite3_prepare_v2(m_db, "SELECT title FROM directory;", -1, &stmt, NULL) != SQLITE_OK)
+        goto cleanup;
+    while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
+    {
+        dictionaries.append((const char *)sqlite3_column_text(stmt, 0));
+    }
+
+cleanup:
+    sqlite3_finalize(stmt);
+
+    return dictionaries;
+}
+
 #define QUERY               "SELECT expression, reading "\
                                 "FROM term_bank "\
                                 "WHERE (expression = ? OR reading = ?) "\
