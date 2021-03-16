@@ -105,10 +105,10 @@ QList<Term *> *Dictionary::search(const QString &query,
     }
 
     // Wait for the exact thread to finish
-    for (auto it = threads.begin(); it != threads.end(); ++it)
+    for (QThread *thread : threads)
     {
-        (*it)->wait();
-        delete *it;
+        thread->wait();
+        delete thread;
     }
     
     // Sort by the length of the cloze match
@@ -186,9 +186,6 @@ void Dictionary::ExactWorker::run()
         QList<Term *> results;
         db->queryTerms(query, results);
 
-        if (results.isEmpty())
-            continue;
-        
         // Generate cloze data in entries
         for (Term *term : results)
         {
@@ -211,9 +208,6 @@ void Dictionary::MeCabWorker::run()
         QList<Term *> results;
         db->queryTerms(pair.first, results);
 
-        if (results.isEmpty())
-            continue;
-        
         // Generate cloze data in entries
         for (Term *term : results)
         {

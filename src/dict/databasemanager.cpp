@@ -223,19 +223,19 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
                            -1, &stmt, NULL) != SQLITE_OK)
     {
         ret = "Could not prepare database query";
-        goto cleanup;
+        goto error;
     }
     if (sqlite3_bind_text(stmt, QUERY_EXP_IDX,          query.toUtf8(),    -1, NULL) != SQLITE_OK ||
         sqlite3_bind_text(stmt, QUERY_READING_HIRA_IDX, hiragana.toUtf8(), -1, NULL) != SQLITE_OK)
     {
         ret = "Could not bind values to statement";
-        goto cleanup;
+        goto error;
     }
     if (containsKata && 
         sqlite3_bind_text(stmt, QUERY_READING_KATA_IDX, query.toUtf8(), -1, NULL) != SQLITE_OK)
     {
         ret = "Could not bind values to statement";
-        goto cleanup;
+        goto error;
     }
 
     /* Create a term for each entry */
@@ -251,20 +251,26 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
     if (isStepError(step))
     {
         ret = "Error when executing sqlite query. Code " + step;
-        goto cleanup;
+        goto error;
     }
 
     /* Add data to each term */
     if (populateTerms(termList))
     {
-        for (Term *term : termList)
-            delete term;
         ret = "Error getting term information";
-        goto cleanup;
+        goto error;
     }
 
-cleanup:
+    /* Return results on success */
     sqlite3_finalize(stmt);
+    terms.append(termList);
+
+    return ret;
+
+error:
+    sqlite3_finalize(stmt);
+    for (Term *term : termList)
+            delete term;
 
     return ret;
 }
@@ -350,7 +356,7 @@ int DatabaseManager::populateTerms(const QList<Term *> &terms)
             goto cleanup;
         }
         if (sqlite3_bind_text(stmt, QUERY_EXP_IDX,     term->expression.toUtf8(), -1, NULL) != SQLITE_OK ||
-            sqlite3_bind_text(stmt, QUERY_READING_IDX, term->expression.toUtf8(), -1, NULL) != SQLITE_OK)
+            sqlite3_bind_text(stmt, QUERY_READING_IDX, term->reading.toUtf8(),    -1, NULL) != SQLITE_OK)
         {
             ret = -1;
             goto cleanup;
@@ -367,7 +373,7 @@ int DatabaseManager::populateTerms(const QList<Term *> &terms)
             def.dictionary = getDictionary(id);
             if (addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_DEF_TAGS), def.tags))
                 qDebug() << "Could not get definition tags for" << term->expression;
-            def.glossary = jsonArrayToStringList((const char *)sqlite3_column_text(stmt, COLUMN_TERM_TAGS));
+            def.glossary = jsonArrayToStringList((const char *)sqlite3_column_text(stmt, COLUMN_GLOSSARY));
             term->definitions.append(def);
         }
         if (isStepError(step))
@@ -422,7 +428,7 @@ cleanup:
 
 #define QUERY   "SELECT category, ord, notes, score "\
                     "FROM tag_bank "\
-                    "WHERE (dic_ic = ? AND name = ?) "\
+                    "WHERE (dic_id = ? AND name = ?) "\
                     "ORDER BY score DESC, ord ASC;"
 
 #define QUERY_DIC_ID_IDX    1
@@ -438,31 +444,40 @@ int DatabaseManager::addTags(const uint64_t id, const QString &tagStr, QList<Tag
     int           ret     = 0;
     QStringList   tagList = tagStr.split(" ");
     sqlite3_stmt *stmt    = NULL;
+    int           step    = 0;
 
-    for (auto it = tagList.constBegin(); it != tagList.constEnd(); ++it)
+    for (const QString &tagName : tagList)
     {
         if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
         {
+            qDebug() << "Error preparing tag query";
             ret = -1;
             goto cleanup;
         }
 
-        if (sqlite3_bind_int (stmt, QUERY_DIC_ID_IDX, id)                     != SQLITE_OK ||
-            sqlite3_bind_text(stmt, QUERY_NAME_IDX,   it->toUtf8(), -1, NULL) != SQLITE_OK)
+        if (sqlite3_bind_int (stmt, QUERY_DIC_ID_IDX, id)                         != SQLITE_OK ||
+            sqlite3_bind_text(stmt, QUERY_NAME_IDX,   tagName.toUtf8(), -1, NULL) != SQLITE_OK)
         {
+            qDebug() << "Error binding values to tag query";
             ret = -1;
             goto cleanup;
         }
 
-        while (sqlite3_step(stmt) == SQLITE_ROW)
+        while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
         {
             Tag tag;
-            tag.name     = *it;
+            tag.name     = tagName;
             tag.category = (const char *)sqlite3_column_text(stmt, COLUMN_CATEGORY);
             tag.notes    = (const char *)sqlite3_column_text(stmt, COLUMN_NOTES);
             tag.order    = sqlite3_column_int(stmt, COLUMN_ORDER);
             tag.score    = sqlite3_column_int(stmt, COLUMN_SCORE);
             tags.append(tag);
+        }
+        if (isStepError(step))
+        {
+            qDebug() << "Error when during step. Error code" << step;
+            ret = -1;
+            goto cleanup;
         }
 
         sqlite3_finalize(stmt);

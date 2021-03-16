@@ -60,9 +60,9 @@ QString SubtitleListWidget::getContext()
 {
     QList<QListWidgetItem *> items = selectedItems();
     QString context;
-    for (auto it = items.constBegin(); it != items.constEnd(); ++it)
+    for (const QListWidgetItem *item : items)
     {
-        context += (*it)->text() + "<br/>";
+        context += item->text() + "\n";
     }
     return context;
 }
