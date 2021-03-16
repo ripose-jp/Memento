@@ -23,7 +23,7 @@
 
 #include <QWidget>
 
-#include "../../dict/entry.h"
+#include "../../dict/expression.h"
 #include "../../anki/ankiclient.h"
 
 #include <QWheelEvent>
@@ -34,7 +34,7 @@ namespace Ui
     class DefinitionWidget;
 }
 
-class Definition;
+class DefinitionBox;
 
 class DefinitionWidget : public QWidget
 {
@@ -48,7 +48,7 @@ public Q_SLOTS:
     /**
      * Sets the entries of this widget, deletes the old entry
      */
-    void setEntries(const QList<Entry *> *entries);
+    void setTerms(const QList<Term *> *terms);
 
 Q_SIGNALS:
     void definitionHidden();
@@ -69,7 +69,7 @@ private:
     Ui::DefinitionWidget *m_ui;
     AnkiClient *m_client;
 
-    QList<Definition *> *m_definitions;
+    QList<DefinitionBox *> m_definitions;
     unsigned int m_searchId;
     QMutex m_searchIdMutex;
     QMutex m_entryMutex;

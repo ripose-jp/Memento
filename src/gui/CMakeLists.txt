@@ -29,7 +29,7 @@ set(
     definitionwidget
     ankisettings
     anki
-    jmdict_builder
+    dictionary_db
 )
 
 add_library(mainwindow ${GUI_SRCS})

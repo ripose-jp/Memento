@@ -33,13 +33,13 @@ add_library(
     definitionwidget
     definitionwidget.cpp
     definitionwidget.ui
-    definition.cpp
-    definition.ui
+    definitionbox.cpp
+    definitionbox.ui
 )
 target_link_libraries(
     definitionwidget
     Qt5::Widgets
-    jmdict
+    dictionary_db
 )
 
 add_library(
@@ -49,7 +49,7 @@ add_library(
 target_link_libraries(
     subtitlewidget
     Qt5::Widgets
-    jmdict
+    dictionary_db
 )
 
 add_library(

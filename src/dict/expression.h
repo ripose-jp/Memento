@@ -24,24 +24,19 @@
 #include <QString>
 #include <QStringList>
 
-struct Term
+struct Tag
 {
-    QString                 expression;
-    QString                 reading;
-    QList<Tag>              tags;
-    QList<Definition>       definitions;
-    QList<TermFrequency>    frequencies;
-
-    /* Cloze values will be set outside of database manager */
-    QString                 clozeBody;
-    QString                 clozePrefix;
-    QString                 clozeSuffix;
-} typedef Term;
+    QString name;
+    QString category;
+    QString notes;
+    int     order;
+    int     score;
+} typedef Tag;
 
 struct TermFrequency
 {
     QString         dictionary;
-    unsigned int    freq;
+    uint64_t        freq;
 } typedef TermFrequency;
 
 struct Definition
@@ -51,13 +46,19 @@ struct Definition
     QStringList glossary;
 } typedef Definition;
 
-struct Tag
+struct Term
 {
-    QString name;
-    QString category;
-    QString notes;
-    int     order;
-    int     score;
-} typedef Tag;
+    QString                 expression;
+    QString                 reading;
+    QList<Tag>              tags;
+    QList<Definition>       definitions;
+    QList<TermFrequency>    frequencies;
+
+    /* Cloze values will be set outside of database manager */
+    QString                 sentence;
+    QString                 clozeBody;
+    QString                 clozePrefix;
+    QString                 clozeSuffix;
+} typedef Term;
 
 #endif // EXPRESSION_H

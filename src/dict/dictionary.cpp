@@ -40,7 +40,7 @@
 
 Dictionary::Dictionary()
 {
-    m_dictionary = new JMDict(DirectoryUtils::getJmdict());
+    m_db = new DatabaseManager(DirectoryUtils::getDictionaryDB());
 
     m_tagger = MeCab::createTagger(MECAB_ARG);
     if (m_tagger == nullptr)
@@ -49,16 +49,16 @@ Dictionary::Dictionary()
 
 Dictionary::~Dictionary()
 {
-    delete m_dictionary;
+    delete m_db;
     delete m_tagger;
 }
 
-QList<Entry *> *Dictionary::search(const QString &query, 
-                                   const QString &subtitle,
-                                   const int index,
-                                   const int *currentIndex)
+QList<Term *> *Dictionary::search(const QString &query, 
+                                  const QString &subtitle,
+                                  const int index,
+                                  const int *currentIndex)
 {
-    QList<Entry *> *entries = new QList<Entry *>();
+    QList<Term *> *terms = new QList<Term *>;
 
     // Fork worker threads for exact queries
     QList<QThread *> threads;
@@ -75,7 +75,7 @@ QList<Entry *> *Dictionary::search(const QString &query,
 
         QThread *worker =
             new ExactWorker(str, endSize, subtitle, index, currentIndex,
-                            entries, m_dictionary);
+                            terms, m_db);
         
         worker->start();
         threads.append(worker);
@@ -97,7 +97,7 @@ QList<Entry *> *Dictionary::search(const QString &query,
             QThread *worker = 
                 new MeCabWorker(
                     queries.constBegin() + queriesPerThread * i, endIt,
-                    subtitle, index, currentIndex, entries, m_dictionary);
+                    subtitle, index, currentIndex, terms, m_db);
             
             worker->start();
             threads.append(worker);
@@ -114,19 +114,17 @@ QList<Entry *> *Dictionary::search(const QString &query,
     // Sort by the length of the cloze match
     struct cloze_compare
     {
-        bool operator()(const Entry *lhs, const Entry *rhs)
+        bool operator()(const Term *lhs, const Term *rhs)
         {
-            return lhs->m_clozeBody->size() > rhs->m_clozeBody->size() || 
-                   (lhs->m_clozeBody->size() == rhs->m_clozeBody->size() &&
-                   lhs->m_exact && !rhs->m_exact);
+            return lhs->clozeBody.size() > rhs->clozeBody.size();
         }
     } comp;
     if (index == *currentIndex)
     {
-        std::sort(entries->begin(), entries->end(), comp);
+        std::sort(terms->begin(), terms->end(), comp);
     }
 
-    return entries;
+    return terms;
 }
 
 QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
@@ -185,29 +183,22 @@ void Dictionary::ExactWorker::run()
 {
     while (query.size() > endSize && index == *currentIndex)
     {
-        QList<Entry *> *results = dictionary->query(query, JMDict::EXACT);
+        QList<Term *> results;
+        db->queryTerms(query, results);
 
-        if (!results->isEmpty())
+        if (results.isEmpty())
+            continue;
+        
+        // Generate cloze data in entries
+        for (Term *term : results)
         {
-            // Generate cloze data in entries
-            for (auto it = results->begin(); it != results->end(); ++it)
-            {
-                (*it)->m_sentence = new QString(subtitle);
-                QString *sentence = (*it)->m_sentence;
-                (*it)->m_clozePrefix = 
-                    new QString(sentence->left(index));
-                (*it)->m_clozeBody = 
-                    new QString(sentence->mid(index, query.size()));
-                (*it)->m_clozeSuffix = 
-                    new QString(
-                        sentence->right(
-                            sentence->size() - (index + query.size())));
-                (*it)->m_exact = true;
-            }
+            term->sentence    = subtitle;
+            term->clozePrefix = term->sentence.left(index);
+            term->clozeBody   = term->sentence.mid(index, query.size());
+            term->clozeSuffix = term->sentence.right(index + query.size());
         }
-        entries->append(*results);
 
-        delete results;
+        terms->append(results);
         query.chop(1);
     }
 }
@@ -216,31 +207,23 @@ void Dictionary::MeCabWorker::run()
 {
     while(begin != end && index == *currentIndex)
     {
-        QPair<QString, QString> pair = *begin;
-        QList<Entry *> *results = dictionary->query(pair.first, JMDict::EXACT);
+        const QPair<QString, QString> &pair = *begin;
+        QList<Term *> results;
+        db->queryTerms(pair.first, results);
 
-        if (!results->isEmpty())
+        if (results.isEmpty())
+            continue;
+        
+        // Generate cloze data in entries
+        for (Term *term : results)
         {
-            // Generate cloze data
-            for (auto it = results->begin(); it != results->end(); ++it)
-            {
-                (*it)->m_sentence = new QString(subtitle);
-                QString *sentence = (*it)->m_sentence;
-                (*it)->m_clozePrefix = new QString(sentence->left(index));
-                (*it)->m_clozeBody = new QString(pair.second);
-                (*it)->m_clozeSuffix = 
-                    new QString(sentence->right(
-                        sentence->size() - (index + pair.second.size())));
-                }
-            entries->append(*results);
+            term->sentence    = subtitle;
+            term->clozePrefix = term->sentence.left(index);
+            term->clozeBody   = term->sentence.mid(index, pair.second.size());
+            term->clozeSuffix = term->sentence.right(index + pair.second.size());
         }
-            
-        delete results;
+
+        terms->append(results);
         ++begin;
     }
-}
-
-void Dictionary::reopenDictionary()
-{
-    m_dictionary->reopenDictionary(DirectoryUtils::getJmdict());
 }

@@ -21,6 +21,8 @@
 #ifndef YOMIDBBUILDER_H
 #define YOMIDBBUILDER_H
 
+#include <sqlite3.h>
+
 #define YOMI_DB_VERSION                 1
 #define YOMI_DB_FORMAT_VERSION          3
 

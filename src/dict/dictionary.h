@@ -24,8 +24,8 @@
 #include <QString>
 #include <QList>
 #include <QThread>
-#include "entry.h"
-#include "jmdict.h"
+#include "databasemanager.h"
+#include "expression.h"
 
 namespace MeCab
 {
@@ -38,14 +38,13 @@ class Dictionary
 public:
     Dictionary();
     ~Dictionary();
-    QList<Entry *> *search(const QString &query,
-                           const QString &subtitle,
-                           const int index,
-                           const int *currentIndex);
-    void reopenDictionary();
+    QList<Term *> *search(const QString &query,
+                          const QString &subtitle,
+                          const int index,
+                          const int *currentIndex);
 
 private:
-    JMDict *m_dictionary;
+    DatabaseManager *m_db;
     MeCab::Tagger *m_tagger;
 
     QList<QPair<QString, QString>> generateQueries(const QString &query);
@@ -58,15 +57,15 @@ private:
                     const QString &subtitle,
                     const int index,
                     const int *currentIndex,
-                    QList<Entry *> *entries,
-                    JMDict *dictionary)
+                    QList<Term *> *terms,
+                    DatabaseManager *db)
                         : query(query),
                           endSize(endSize),
                           subtitle(subtitle),
                           index(index),
                           currentIndex(currentIndex),
-                          entries(entries),
-                          dictionary(dictionary) {}
+                          terms(terms),
+                          db(db) {}
         void run() override;
 
     private:
@@ -75,8 +74,8 @@ private:
         const QString &subtitle;
         const int index;
         const int *currentIndex;
-        QList<Entry *> *entries;
-        JMDict *dictionary;
+        QList<Term *> *terms;
+        DatabaseManager *db;
     };
 
     class MeCabWorker : public QThread
@@ -87,15 +86,15 @@ private:
                     const QString &subtitle,
                     const int index,
                     const int *currentIndex,
-                    QList<Entry *> *entries,
-                    JMDict *dictionary)
+                    QList<Term *> *terms,
+                    DatabaseManager *db)
                         : begin(begin),
                           end(end),
                           subtitle(subtitle),
                           index(index),
                           currentIndex(currentIndex),
-                          entries(entries),
-                          dictionary(dictionary) {}
+                          terms(terms),
+                          db(db) {}
         void run() override;
 
     private:
@@ -103,8 +102,8 @@ private:
         const QString &subtitle;
         const int index;
         const int *currentIndex;
-        QList<Entry *> *entries;
-        JMDict *dictionary;
+        QList<Term *> *terms;
+        DatabaseManager *db;
     };
 };
 

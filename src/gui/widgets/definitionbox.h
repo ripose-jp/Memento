@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2021 Ripose
+// Copyright (c) 2020 Ripose
 //
 // This file is part of Memento.
 //
@@ -18,19 +18,40 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef DICTIONARYBUILDER_H
-#define DICTIONARYBUILDER_H
+#ifndef DEFINITIONBOX_H
+#define DEFINITIONBOX_H
 
-#include <string>
+#include <QWidget>
 
-class DictionaryBuilder
+#include "../../dict/expression.h"
+#include "../../anki/ankiclient.h"
+
+namespace Ui
 {
+    class DefinitionBox;
+}
+
+class DefinitionBox : public QWidget
+{
+    Q_OBJECT
+
 public:
-    static std::string buildDictionary(const std::string &dict_file,
-                                       const std::string &database_name);
-    
+    DefinitionBox(const Term *term, AnkiClient *client, QWidget *parent = 0);
+    ~DefinitionBox();
+
+    void setAddable(bool value);
+
+private Q_SLOTS:
+    void addNote();
+
 private:
-    DictionaryBuilder() {}
+    Ui::DefinitionBox *m_ui;
+    const Term *m_term;
+    AnkiClient *m_client;
+
+    void setTerm(const Term &term);
+    QString generateJishoLink(const QString &word);
+    QString buildDefinition(const QList<Definition> &definitions);
 };
 
-#endif // DICTIONARYBUILDER_H
+#endif // DEFINITIONBOX_H

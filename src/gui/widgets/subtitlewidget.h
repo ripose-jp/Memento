@@ -39,10 +39,9 @@ public:
 public Q_SLOTS:
     void updateText(const QString &text);
     void deselectText();
-    void jmDictUpdated();
 
 Q_SIGNALS:
-    void entriesChanged(const QList<Entry *> *entry);
+    void termsChanged(const QList<Term *> *terms);
 
 protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
@@ -50,7 +49,7 @@ protected:
     void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
-    void findEntry();
+    void findTerms();
 
 private:
     Dictionary *m_dictionary;
@@ -58,7 +57,7 @@ private:
     QTimer *m_findDelay;
     QString m_rawText;
 
-    void deleteEntries(QList<Entry *> *entries);
+    void deleteTerms(QList<Term *> *terms);
 };
 
 #endif // SUBTITLEWIDGET_H

@@ -472,13 +472,13 @@ void AnkiClient::requestStringList(
     });
 }
 
-void AnkiClient::entriesAddable(
+void AnkiClient::termsAddable(
     std::function<void(const QList<bool> *, const QString &)> callback,
-    const QList<Entry *> *entries)
+    const QList<Term *> *terms)
 {
     QJsonArray notes;
-    for (auto it = entries->begin(); it != entries->end(); ++it)
-        notes.append(createAnkiNoteObject(**it));
+    for (const Term *term : *terms)
+        notes.append(createAnkiNoteObject(*term));
     QJsonObject params;
     params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
     QNetworkReply *reply = makeRequest(ANKI_CAN_ADD_NOTES, params);
@@ -515,12 +515,12 @@ void AnkiClient::entriesAddable(
     });
 }
 
-void AnkiClient::addEntry(
+void AnkiClient::addTerm(
     std::function<void(const int, const QString &)> callback,
-    const Entry *entry)
+    const Term *term)
 {
     QJsonObject params;
-    params[ANKI_ADD_NOTE_PARAM] = createAnkiNoteObject(*entry, true);
+    params[ANKI_ADD_NOTE_PARAM] = createAnkiNoteObject(*term, true);
     QNetworkReply *reply = makeRequest(ANKI_ADD_NOTE, params);
     connect(reply, &QNetworkReply::finished, [=] {
         QString error;
@@ -541,7 +541,7 @@ void AnkiClient::addEntry(
     });
 }
 
-QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
+QJsonObject AnkiClient::createAnkiNoteObject(const Term &term,
                                              const bool media)
 {
     QJsonObject note;
@@ -568,18 +568,18 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
     }
 
     // Processed fields
-    QString audioFile = AUDIO_FILENAME_FORMAT_STRING.arg(*entry.m_kana)
-                            .arg(*entry.m_kanji);
-    QString furigana =
-        entry.m_kanji->isEmpty() ? *entry.m_kana :
-                                   FURIGANA_FORMAT_STRING.arg(*entry.m_kanji)
-                                   .arg(*entry.m_kana);
-    QString furiganaPlain;
-    if (entry.m_kanji->isEmpty())
-        furiganaPlain = *entry.m_kana;
+    QString audioFile = AUDIO_FILENAME_FORMAT_STRING.arg(term.reading).arg(term.expression);
+    QString furigana;
+    if (term.reading.isEmpty())
+        furigana = term.expression;
     else
-        furiganaPlain = *entry.m_altkanji + "[" + *entry.m_kana + "]";
-    QString glossary = buildGlossary(*entry.m_descriptions);
+        furigana = FURIGANA_FORMAT_STRING.arg(term.expression).arg(term.reading);
+    QString furiganaPlain;
+    if (term.reading.isEmpty())
+        furiganaPlain = term.expression;
+    else
+        furiganaPlain = term.expression + "[" + term.reading + "]";
+    QString glossary = buildGlossary(term.definitions);
 
     // Find and replace fields with processed fields
     QStringList fields = m_currentConfig->fields.keys();
@@ -614,21 +614,18 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
         }
         value = value.replace(REPLACE_SCREENSHOT_VIDEO, "");
 
-        value = value.replace(REPLACE_CLOZE_BODY, *entry.m_clozeBody);
-        value = value.replace(REPLACE_CLOZE_PREFIX, *entry.m_clozePrefix);
-        value = value.replace(REPLACE_CLOZE_SUFFIX, *entry.m_clozeSuffix);
+        value = value.replace(REPLACE_CLOZE_BODY, term.clozeBody);
+        value = value.replace(REPLACE_CLOZE_PREFIX, term.clozePrefix);
+        value = value.replace(REPLACE_CLOZE_SUFFIX, term.clozeSuffix);
         value = value.replace(REPLACE_CONTEXT, m_list->getContext());
-        value = value.replace(
-            REPLACE_EXPRESSION,
-            entry.m_kanji->isEmpty() ? *entry.m_kana : *entry.m_kanji
-        );
-        value = value.replace(REPLACE_ALT_EXPRESSION, *entry.m_altkanji);
+        value = value.replace(REPLACE_EXPRESSION, term.expression);
+        value = value.replace(REPLACE_ALT_EXPRESSION, "");
         value = value.replace(REPLACE_FURIGANA, furigana);
         value = value.replace(REPLACE_FURIGANA_PLAIN, furiganaPlain);
         value = value.replace(REPLACE_GLOSSARY, glossary);
-        value = value.replace(REPLACE_READING, *entry.m_kana);
-        value = value.replace(REPLACE_ALT_READING, *entry.m_altkana);
-        value = value.replace(REPLACE_SENTENCE, *entry.m_sentence);
+        value = value.replace(REPLACE_READING, term.reading.isEmpty() ? term.expression : term.reading);
+        value = value.replace(REPLACE_ALT_READING, "");
+        value = value.replace(REPLACE_SENTENCE, term.sentence);
 
         fieldsObj[*it] = value;
     }
@@ -640,8 +637,18 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Entry &entry,
         if (!fieldsWithAudio.isEmpty())
         {
             QJsonObject audObj;
-            audObj[ANKI_NOTE_URL] = AUDIO_URL_FORMAT_STRING.arg(*entry.m_kanji)
-                                                           .arg(*entry.m_kana);
+            QString kanji, kana;
+            if (term.reading.isEmpty())
+            {
+                kana = term.expression;
+            }
+            else
+            {
+                kanji = term.expression;
+                kana  = term.reading;
+            }
+
+            audObj[ANKI_NOTE_URL] = AUDIO_URL_FORMAT_STRING.arg(kanji).arg(kana);
             audObj[ANKI_NOTE_FILENAME] = audioFile;
             audObj[ANKI_NOTE_FIELDS] = fieldsWithAudio;
             audObj[ANKI_NOTE_SKIPHASH] = JAPANESE_POD_STUB_MD5;
@@ -759,24 +766,28 @@ QString AnkiClient::generateMD5(const QString &filename)
     return "";
 }
 
-QString AnkiClient::buildGlossary(const QList<QList<QString>> &definitions)
+QString AnkiClient::buildGlossary(const QList<Definition> &definitions)
 {
     QString glossary;
     glossary.append("<div style=\"text-align: left;\"><ol>");
 
-    for (size_t i = 0; i < definitions.size(); ++i)
+    for (const Definition &def : definitions)
     {
         glossary += "<li>";
 
         glossary += "<i>(";
-        glossary += definitions[i].front();
+        for (const Tag &tag : def.tags)
+        {
+            glossary += tag.name + ", ";
+        }
+        glossary += def.dictionary;
         glossary += ")</i>";
 
         glossary += "<ul>";
-        for (size_t j = 1; j < definitions[i].size(); ++j)
+        for (const QString &glos : def.glossary)
         {
             glossary += "<li>";
-            glossary += definitions[i][j];
+            glossary += glos;
             glossary += "</li>";
         }
         glossary += "</ul>";

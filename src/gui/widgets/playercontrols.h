@@ -30,7 +30,7 @@ namespace Ui
     class PlayerControls;
 }
 
-struct Entry;
+struct Term;
 
 class PlayerControls : public QWidget
 {
@@ -64,10 +64,9 @@ Q_SIGNALS:
     void volumeSliderMoved(const int value);
     void fullscreenChanged(const bool value);
     void subtitleListToggled();
-    void entriesChanged(const QList<Entry *> *entries);
+    void termsChanged(const QList<Term *> *terms);
     void definitionHidden();
     void hideDefinition();
-    void jmDictUpdated();
 
 private Q_SLOTS:
     void pauseResume();

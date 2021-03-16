@@ -29,7 +29,7 @@
 
 #include "ankiconfig.h"
 
-#include "../dict/entry.h"
+#include "../dict/expression.h"
 #include "../gui/playeradapter.h"
 #include "../gui/widgets/subtitlelistwidget.h"
 
@@ -87,12 +87,12 @@ public:
     void getFieldNames(
         std::function<void(const QStringList *, const QString &)> callback,
         const QString &model);
-    void entriesAddable(
+    void termsAddable(
         std::function<void(const QList<bool> *, const QString &)> callback,
-        const QList<Entry *> *entries);
-    void addEntry(
+        const QList<Term *> *terms);
+    void addTerm(
         std::function<void(const int, const QString &)> callback,
-        const Entry *entry);
+        const Term *term);
 
 Q_SIGNALS:
     void settingsChanged() const;
@@ -121,9 +121,9 @@ private:
         std::function<void(const QStringList *, const QString &)> callback,
         const QString &action,
         const QJsonObject &params = QJsonObject());
-    QJsonObject createAnkiNoteObject(const Entry &entry,
+    QJsonObject createAnkiNoteObject(const Term &term,
                                      const bool media = false);
-    QString buildGlossary(const QList<QList<QString>> &definitions);
+    QString buildGlossary(const QList<Definition> &definitions);
     QString generateMD5(const QString &filename);
 };
 

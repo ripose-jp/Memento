@@ -45,11 +45,7 @@ int main(int argc, char *argv[])
                      << DirectoryUtils::getConfigDir();
             return EXIT_FAILURE;
         }
-    }
 
-    // Create dictionary dir if it doesn't exist
-    if (!QDir(DirectoryUtils::getDictionaryDir()).exists())
-    {
         if (!QDir().mkdir(DirectoryUtils::getDictionaryDir()))
         {
             qDebug() << "Could not make dictionary dir at"
@@ -58,24 +54,6 @@ int main(int argc, char *argv[])
         }
     }
     
-    // Check that jmdict exists, create a placeholder if it doesn't
-    if (!QFile(DirectoryUtils::getJmdict()).exists())
-    {
-        qDebug() << "Could not find JMDict at" 
-                 << DirectoryUtils::getJmdict();
-
-        QFile db(DirectoryUtils::getDictionaryDir() + JMDICT_DB_FILE);
-        if (!db.open(QIODevice::WriteOnly))
-        {
-            qDebug() << "Could not create placeholder file in JMDict directory";
-            return EXIT_FAILURE;
-        }
-        db.close();
-
-        qDebug() << "Created a placeholder file. Please download the latest "
-                    "JMDict file and update it from within the Memento.";
-    }
-
     QApplication memento(argc, argv);
     setlocale(LC_NUMERIC, "C");
     MainWindow main_window;

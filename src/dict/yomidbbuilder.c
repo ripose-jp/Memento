@@ -21,7 +21,6 @@
 #include "yomidbbuilder.h"
 
 #include <json-c/json.h>
-#include <sqlite3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1288,7 +1287,9 @@ int yomi_prepare_db(const char *db_file, sqlite3 **db)
     }
 
 cleanup:
-    sqlite3_close_v2(db);
+    sqlite3_close_v2(db_loc);
+    if (db)
+        *db = NULL;
 
     return ret;
 }
@@ -1411,16 +1412,4 @@ cleanup:
     sqlite3_close_v2(db);
 
     return ret;
-}
-
-int main(int argc, char **argv)
-{
-    if (argc != 3)
-    {
-        fprintf(stderr, "Invalid arguement count %d\n", argc);
-        printf("Usage: <dictionary> <database>\n");
-        return -1;
-    }
-
-    return yomi_process_dictionary(argv[1], argv[2]);
 }

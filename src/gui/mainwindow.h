@@ -55,7 +55,6 @@ public:
 Q_SIGNALS:
     void keyPressed(const QKeyEvent *event);
     void wheelMoved(const QWheelEvent *event);
-    void jmDictUpdated() const;
     void threadError(const QString& title, const QString &error) const;
     void threadInfo(const QString& title, const QString &error) const;
 
@@ -112,13 +111,13 @@ private:
         QActionGroup *actionGroup,
         QAction *actionDisable
     );
-    void updateJMDict();
+    void addDictionary();
     void checkForUpdates();
 
-    class JMDictUpdaterThread : public QRunnable
+    class DatabaseUpdaterThread : public QRunnable
     {
     public:
-        JMDictUpdaterThread(MainWindow *parent, const QString &path)
+        DatabaseUpdaterThread(MainWindow *parent, const QString &path)
             : m_parent(parent), m_path(path) {}
         void run() override;
 

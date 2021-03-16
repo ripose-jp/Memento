@@ -28,7 +28,6 @@
 #elif __linux__
     #define BASE_DIR getenv("HOME")
     #define CONFIG_PATH ".config/memento"
-    #define GLOBAL_CONFIG_PATH "/etc/memento/"
 #elif __APPLE__
     #if TARGET_OS_MAC
         #define BASE_DIR getenv("HOME")
@@ -65,11 +64,7 @@ QString DirectoryUtils::getConfigDir()
 
 QString DirectoryUtils::getGlobalConfigDir()
 {
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     return getConfigDir();
-#elif __linux__
-    return GLOBAL_CONFIG_PATH;
-#endif
 }
 
 QString DirectoryUtils::getDictionaryDir()
@@ -77,22 +72,9 @@ QString DirectoryUtils::getDictionaryDir()
     return getConfigDir() + DICTIONARY_DIR + SLASH;
 }
 
-QString DirectoryUtils::getJmdict()
+QString DirectoryUtils::getDictionaryDB()
 {
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    return getDictionaryDir() + JMDICT_DB_FILE;
-#elif __linux__
-    QString path = getDictionaryDir() + JMDICT_DB_FILE;
-    QFile file(path);
-    if (file.exists())
-    {
-        return path;
-    }
-        
-    path = GLOBAL_CONFIG_PATH;
-    path += JMDICT_DB_FILE;
-    return path;
-#endif
+    return getDictionaryDir() + DICT_DB_FILE;
 }
 
 QString DirectoryUtils::getMpvInputConfig()

@@ -21,7 +21,7 @@
 #include "definitionwidget.h"
 #include "ui_definitionwidget.h"
 
-#include "definition.h"
+#include "definitionbox.h"
 
 #include <QFrame>
 #include <QScrollBar>
@@ -30,7 +30,6 @@ DefinitionWidget::DefinitionWidget(AnkiClient *client, QWidget *parent)
     : QWidget(parent),
       m_ui(new Ui::DefinitionWidget),
       m_client(client),
-      m_definitions(new QList<Definition *>), 
       m_searchId(0)
 {
     m_ui->setupUi(this);
@@ -41,34 +40,33 @@ DefinitionWidget::~DefinitionWidget()
 {
     clearEntries();
     delete m_ui;
-    delete m_definitions;
 }
 
-void DefinitionWidget::setEntries(const QList<Entry *> *entries)
+void DefinitionWidget::setTerms(const QList<Term *> *terms)
 {
     m_searchIdMutex.lock();
     unsigned int searchId = ++m_searchId;
     m_searchIdMutex.unlock();
 
     clearEntries();
-    if (entries->empty())
+    if (terms->empty())
     {
-        delete entries;
+        delete terms;
         return;
     }
 
-    Definition *definition = new Definition(*entries->begin(), m_client, this);
-    m_definitions->append(definition);
+    DefinitionBox *definition = new DefinitionBox(terms->first(), m_client, this);
+    m_definitions.append(definition);
     m_ui->m_scrollAreaWidgetContents->layout()->addWidget(definition);
 
-    for (auto it = entries->begin() + 1; it != entries->end(); ++it)
+    for (auto it = terms->begin() + 1; it != terms->end(); ++it)
     {
         QFrame *line = new QFrame(this);
         line->setFrameShape(QFrame::HLine);
         line->setFrameShadow(QFrame::Sunken);
         line->setLineWidth(1);
-        definition = new Definition(*it, m_client, this);
-        m_definitions->append(definition);
+        definition = new DefinitionBox(*it, m_client, this);
+        m_definitions.append(definition);
         m_ui->m_scrollAreaWidgetContents->layout()->addWidget(line);
         m_ui->m_scrollAreaWidgetContents->layout()->addWidget(definition);
     }
@@ -79,7 +77,7 @@ void DefinitionWidget::setEntries(const QList<Entry *> *entries)
     // Check if entries are addable to anki
     if (m_client->isEnabled())
     {
-        m_client->entriesAddable(
+        m_client->termsAddable(
             [=](const QList<bool> *addable, const QString &error)
             {
                 if (error.isEmpty())
@@ -89,14 +87,14 @@ void DefinitionWidget::setEntries(const QList<Entry *> *entries)
                     if (searchId == m_searchId)
                     {
                         for (size_t i = 0; i < addable->size(); ++i)
-                            m_definitions->at(i)->setAddable(addable->at(i));
+                            m_definitions[i]->setAddable(addable->at(i));
                     }
                     m_entryMutex.unlock();
                     m_searchIdMutex.unlock();
                 }
                 delete addable;
-                delete entries;
-            }, entries);
+                delete terms;
+            }, terms);
     }
 }
 
@@ -109,7 +107,7 @@ void DefinitionWidget::clearEntries()
         delete child->widget();
         delete child;
     }
-    m_definitions->clear();
+    m_definitions.clear();
     m_entryMutex.unlock();
 }
 

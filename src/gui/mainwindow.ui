@@ -190,7 +190,7 @@
    <widget class="QMenu" name="menuSettings">
     <property name="geometry">
      <rect>
-      <x>465</x>
+      <x>581</x>
       <y>170</y>
       <width>200</width>
       <height>181</height>
@@ -221,7 +221,7 @@
     <addaction name="actionAnki"/>
     <addaction name="menuAnkiProfile"/>
     <addaction name="separator"/>
-    <addaction name="actionUpdateJMDict"/>
+    <addaction name="actionAddDict"/>
     <addaction name="actionUpdate"/>
    </widget>
    <addaction name="menuMedia"/>
@@ -276,9 +276,9 @@
     <string>Anki Integration</string>
    </property>
   </action>
-  <action name="actionUpdateJMDict">
+  <action name="actionAddDict">
    <property name="text">
-    <string>Update JMDict</string>
+    <string>Add Dictionary</string>
    </property>
   </action>
   <action name="m_actionProfileDefault">

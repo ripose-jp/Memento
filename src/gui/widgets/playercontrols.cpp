@@ -77,14 +77,12 @@ PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent),
     connect(m_ui->buttonToggleSubList, &QToolButton::clicked,
         this, &PlayerControls::subtitleListToggled);
 
-    connect(m_ui->subtitle, &SubtitleWidget::entriesChanged,
-        this, &PlayerControls::entriesChanged);
+    connect(m_ui->subtitle, &SubtitleWidget::termsChanged,
+        this, &PlayerControls::termsChanged);
     connect(m_ui->subtitle, &SubtitleWidget::textChanged,
         this, &PlayerControls::hideDefinition);
     connect(this, &PlayerControls::definitionHidden,
         m_ui->subtitle, &SubtitleWidget::deselectText);
-    connect(this, &PlayerControls::jmDictUpdated,
-        m_ui->subtitle, &SubtitleWidget::jmDictUpdated);
 }
 
 PlayerControls::~PlayerControls()

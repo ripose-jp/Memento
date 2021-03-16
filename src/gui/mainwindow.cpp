@@ -23,8 +23,8 @@
 #include "mpvadapter.h"
 #include "widgets/definitionwidget.h"
 #include "widgets/ankisettings.h"
-#include "../dict/builder/dictionarybuilder.h"
 #include "../util/constants.h"
+#include "../dict/databasemanager.h"
 
 #include <QCursor>
 #include <QFileDialog>
@@ -81,8 +81,8 @@ MainWindow::MainWindow(QWidget *parent)
     });
     connect(m_ui->actionAnki, &QAction::triggered,
         m_ankiSettings, &QWidget::show);
-    connect(m_ui->actionUpdateJMDict, &QAction::triggered,
-        this, &MainWindow::updateJMDict);
+    connect(m_ui->actionAddDict, &QAction::triggered,
+        this, &MainWindow::addDictionary);
     connect(m_ui->actionUpdate, &QAction::triggered,
         this, &MainWindow::checkForUpdates);
 
@@ -188,16 +188,14 @@ MainWindow::MainWindow(QWidget *parent)
         m_player, &PlayerAdapter::disableSubtitleTwo);
 
     // Definition changes
-    connect(m_ui->controls, &PlayerControls::entriesChanged,
-        m_definition, &DefinitionWidget::setEntries);
-    connect(m_ui->controls, &PlayerControls::entriesChanged,
+    connect(m_ui->controls, &PlayerControls::termsChanged,
+        m_definition, &DefinitionWidget::setTerms);
+    connect(m_ui->controls, &PlayerControls::termsChanged,
         this, &MainWindow::setDefinitionWidgetLocation);
     connect(m_ui->controls, &PlayerControls::hideDefinition,
         m_definition, &DefinitionWidget::hide);
     connect(m_definition, &DefinitionWidget::definitionHidden,
         m_ui->controls, &PlayerControls::definitionHidden);
-    connect(this, &MainWindow::jmDictUpdated,
-        m_ui->controls, &PlayerControls::jmDictUpdated);
 
     // Thread message box signals
     connect(this, &MainWindow::threadError, 
@@ -501,31 +499,24 @@ void MainWindow::open()
     }
 }
 
-void MainWindow::updateJMDict()
+void MainWindow::addDictionary()
 {
-    QString jmdictFile = 
-        QFileDialog::getOpenFileName(0, "Open the JMDict file");
-    if (!jmdictFile.isEmpty())
+    QString file = QFileDialog::getOpenFileName(0, "Open the dictionary");
+    if (!file.isEmpty())
     {
-        JMDictUpdaterThread *thread = new JMDictUpdaterThread(this, jmdictFile);
+        DatabaseUpdaterThread *thread = new DatabaseUpdaterThread(this, file);
         QThreadPool::globalInstance()->start(thread);
     }
     
 }
 
-void MainWindow::JMDictUpdaterThread::run()
+void MainWindow::DatabaseUpdaterThread::run()
 {
-    QString error = QString::fromStdString(DictionaryBuilder::buildDictionary(
-        m_path.toStdString(), 
-        (DirectoryUtils::getDictionaryDir() + JMDICT_DB_FILE).toStdString()
-    ));
-    if (error.isEmpty())
+    DatabaseManager db(DirectoryUtils::getDictionaryDB());
+    int err = db.addDictionary(m_path);
+    if (err)
     {
-        Q_EMIT m_parent->jmDictUpdated();
-    }
-    else
-    {
-        Q_EMIT m_parent->threadError("Error Updating JMDict", error);
+        Q_EMIT m_parent->threadError("Error adding dictionary", db.errorCodeToString(err));
     }
 }
 

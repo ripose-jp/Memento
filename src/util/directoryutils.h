@@ -37,7 +37,7 @@
     #error "OS not supported"
 #endif
 
-#define JMDICT_DB_FILE "JMDict"
+#define DICT_DB_FILE        "dictionaries.sqlite"
 #define MPV_INPUT_CONF_FILE "input.conf"
 
 class DirectoryUtils
@@ -47,7 +47,7 @@ public:
     static QString getConfigDir();
     static QString getGlobalConfigDir();
     static QString getDictionaryDir();
-    static QString getJmdict();
+    static QString getDictionaryDB();
     static QString getMpvInputConfig();
     
 private:

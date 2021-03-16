@@ -30,7 +30,7 @@ extern "C"
 DatabaseManager::DatabaseManager(const QString &path) : m_dbpath(path)
 {
     if (yomi_prepare_db(m_dbpath.toLocal8Bit(), NULL) ||
-        sqlite3_open_v2(m_dbpath.toLocal8Bit(), &m_db, SQLITE_READONLY, NULL) != SQLITE_OK)
+        sqlite3_open_v2(m_dbpath.toLocal8Bit(), &m_db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
     {
         m_db = nullptr;
         qDebug() << "Could not open dictionary database";

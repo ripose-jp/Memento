@@ -39,17 +39,12 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
     setStyleSheet("QLineEdit { color : white; background-color : black; }");
 
     m_findDelay->setSingleShot(true);
-    connect(m_findDelay, &QTimer::timeout, this, &SubtitleWidget::findEntry);
+    connect(m_findDelay, &QTimer::timeout, this, &SubtitleWidget::findTerms);
 }
 
 SubtitleWidget::~SubtitleWidget()
 {
     delete m_findDelay;
-}
-
-void SubtitleWidget::jmDictUpdated()
-{
-    m_dictionary->reopenDictionary();
 }
 
 void SubtitleWidget::updateText(const QString &text)
@@ -66,7 +61,7 @@ void SubtitleWidget::deselectText()
     deselect();
 }
 
-void SubtitleWidget::findEntry()
+void SubtitleWidget::findTerms()
 {
     int index = m_currentIndex;
     QString queryStr = m_rawText;
@@ -78,20 +73,20 @@ void SubtitleWidget::findEntry()
     }
 
     QThreadPool::globalInstance()->start([=] () {
-        QList<Entry *> *entries = 
+        QList<Term *> *terms = 
             m_dictionary->search(queryStr, m_rawText, index, &m_currentIndex);
         
         if (index != m_currentIndex)
         {
-            deleteEntries(entries);
+            deleteTerms(terms);
         }
         else
         {
-            if (!entries->isEmpty())
+            if (!terms->isEmpty())
             {
-                setSelection(index, entries->first()->m_clozeBody->size());
+                setSelection(index, terms->first()->clozeBody.size());
             }
-            Q_EMIT entriesChanged(entries);
+            Q_EMIT termsChanged(terms);
         }
     });
 }
@@ -116,11 +111,11 @@ void SubtitleWidget::leaveEvent(QEvent *event)
     m_findDelay->stop();
 }
 
-void SubtitleWidget::deleteEntries(QList<Entry *> *entries)
+void SubtitleWidget::deleteTerms(QList<Term *> *terms)
 {
-    for (auto it = entries->begin(); it != entries->end(); ++it)
+    for (Term *term : *terms)
     {
-        delete *it;
+        delete term;
     }
-    delete entries;
+    delete terms;
 }
