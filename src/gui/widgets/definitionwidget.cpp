@@ -36,20 +36,24 @@ DefinitionWidget::DefinitionWidget(AnkiClient *client, QWidget *parent)
 
 DefinitionWidget::~DefinitionWidget()
 {
+    m_termMutex.lock();
     clearTerms();
+    m_termMutex.unlock();
     delete m_ui;
 }
 
 void DefinitionWidget::setTerms(const QList<Term *> *terms)
 {
+    m_termMutex.lock();
     m_searchIdMutex.lock();
     unsigned int searchId = ++m_searchId;
     m_searchIdMutex.unlock();
 
     clearTerms();
-    if (terms->empty())
+    if (terms->isEmpty())
     {
         delete terms;
+        hide();
         return;
     }
 
@@ -73,33 +77,35 @@ void DefinitionWidget::setTerms(const QList<Term *> *terms)
     m_ui->scrollArea->verticalScrollBar()->setValue(0);
     show();
 
+    m_termMutex.unlock();
+
     // Check if entries are addable to anki
     if (m_client->isEnabled())
     {
         m_client->termsAddable(
-            [=](const QList<bool> *addable, const QString &error)
+            [=] (const QList<bool> *addable, const QString &error)
             {
                 if (error.isEmpty())
                 {
+                    m_termMutex.lock();
                     m_searchIdMutex.lock();
-                    m_entryMutex.lock();
                     if (searchId == m_searchId)
                     {
                         for (size_t i = 0; i < addable->size(); ++i)
                             m_termWidgets[i]->setAddable(addable->at(i));
                     }
-                    m_entryMutex.unlock();
                     m_searchIdMutex.unlock();
+                    m_termMutex.unlock();
                 }
                 delete addable;
-                delete terms;
             }, terms);
     }
+
+    delete terms;
 }
 
 void DefinitionWidget::clearTerms()
 {
-    m_entryMutex.lock();
     QLayoutItem* child;
     while (child = m_ui->scrollAreaContents->layout()->takeAt(0))
     {
@@ -107,7 +113,6 @@ void DefinitionWidget::clearTerms()
         delete child;
     }
     m_termWidgets.clear();
-    m_entryMutex.unlock();
 }
 
 void DefinitionWidget::leaveEvent(QEvent *event)

@@ -26,47 +26,12 @@
                             "padding-left: 5px;"\
                             "padding-right: 5px;"\
                             "color: white;"\
+                            "border-radius: 5px;"\
                             "background: %1;"\
                             "border: 2px solid %1;"\
-                            "border-radius: 5px;"\
                         ))
 
-/*
-#define FREQ_FORMAT     (QString(\
-                            "<style>"\
-                                ".freq {"\
-                                    "font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"\
-                                    "padding-left: 5px;"\
-                                    "padding-right: 5px;"\
-                                    "border-bottom: 2px solid #5cb85c;"\
-                                    "border-top: 2px solid #5cb85c;"\
-                                "}"\
-                                ".freq-tag {"\
-                                    "font-weight: bold;"\
-                                    "color: white;"\
-                                    "background: #5cb85c;"\
-                                    "border-left: 2px solid #5cb85c;"\
-                                    "border-radius: 5px 0px 0px 5px;"\
-                                "}"\
-                                ".freq-body {"\
-                                    "font-weight: normal;"\
-                                    "color: black;"\
-                                    "background: white;"\
-                                    "border-right: 2px solid #5cb85c;"\
-                                    "border-radius: 0px 5px 5px 0px;"\
-                                "}"\
-                            "</style>"\
-                            "<span class=\"freq-tag\">%1</span><span class=\"freq-body\">%2</span>"\
-                        )) */
-
-#define FREQ_FORMAT     (QString(\
-                            "<style>"\
-                                ".freq-body {"\
-                                    "color: black;"\
-                                "}"\
-                            "</style>"\
-                            "%1 <span class=\"freq-body\"> %2 </span>"\
-                        ))
+#define FREQ_FORMAT     (QString("%1 <span style=\"color: black;\">%2</span>"))
 
 TagWidget::TagWidget(const Tag &tag, QWidget *parent) : TagWidget(parent)
 {
@@ -133,8 +98,8 @@ TagWidget::TagWidget(const QString &dicName, QWidget *parent) : TagWidget(parent
 
 TagWidget::TagWidget(QWidget *parent) : QLabel(parent)
 {
+    setTextInteractionFlags(Qt::TextSelectableByMouse);
     setWordWrap(true);
-    setTextFormat(Qt::RichText);
     setAlignment(Qt::AlignCenter);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 }

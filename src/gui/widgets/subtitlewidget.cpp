@@ -72,21 +72,25 @@ void SubtitleWidget::findTerms()
         return;
     }
 
-    QThreadPool::globalInstance()->start([=] () {
+    QThreadPool::globalInstance()->start([=] {
         QList<Term *> *terms = 
             m_dictionary->search(queryStr, m_rawText, index, &m_currentIndex);
-                    
+
         if (index != m_currentIndex)
         {
             deleteTerms(terms);
         }
         else
         {
-            if (!terms->isEmpty())
+            if (terms->isEmpty())
+            {
+                delete terms;
+            }
+            else
             {
                 setSelection(index, terms->first()->clozeBody.size());
+                Q_EMIT termsChanged(terms);
             }
-            Q_EMIT termsChanged(terms);
         }
     });
 }

@@ -70,8 +70,8 @@ private:
 
     QList<TermWidget *> m_termWidgets;
     unsigned int m_searchId;
+    QMutex m_termMutex;
     QMutex m_searchIdMutex;
-    QMutex m_entryMutex;
 
     void clearTerms();
 };
