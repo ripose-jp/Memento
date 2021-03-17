@@ -70,10 +70,10 @@ MpvWidget::MpvWidget(QWidget *parent)
     mpv_set_option_string(mpv, "keep-open", "yes");
     mpv_set_option_string(mpv, "config", "yes");
     mpv_set_option_string(mpv, "config-dir",
-                          DirectoryUtils::getConfigDir().toLatin1());
+                          DirectoryUtils::getConfigDir().toLocal8Bit());
     mpv_set_option_string(mpv, "input-default-bindings", "yes");
     mpv_set_option_string(mpv, "input-conf", 
-                          DirectoryUtils::getMpvInputConfig().toLatin1());
+                          DirectoryUtils::getMpvInputConfig().toLocal8Bit());
 
     if (mpv_initialize(mpv) < 0)
         throw std::runtime_error("could not initialize mpv context");
@@ -406,7 +406,7 @@ void MpvWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     const char *args[3] = {
         "keypress",
-        convertToMouseString(event).toLatin1().data(),
+        convertToMouseString(event).toLocal8Bit().data(),
         NULL
     };
     if (mpv_command_async(mpv, -1, args) < 0)
@@ -419,7 +419,7 @@ void MpvWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     const char *args[3] = {
         "keypress",
-        (convertToMouseString(event) + "_DBL").toLatin1().data(),
+        (convertToMouseString(event) + "_DBL").toLocal8Bit().data(),
         NULL
     };
     if (mpv_command_async(mpv, -1, args) < 0)

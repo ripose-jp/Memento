@@ -34,8 +34,11 @@
 #include <QThreadPool>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), m_ui(new Ui::MainWindow), m_maximized(false),
-      m_manager(new QNetworkAccessManager)
+    : QMainWindow(parent),
+      m_ui(new Ui::MainWindow),
+      m_maximized(false),
+      m_manager(new QNetworkAccessManager),
+      m_definition(nullptr)
 {
     m_ui->setupUi(this);
 
@@ -52,6 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Player behaviors
     m_player = new MpvAdapter(m_ui->mpv, this);
     m_player->pause();
+    m_ui->controls->setVolumeLimit(m_player->getMaxVolume());
 
     // Subtitle list
     m_ui->listSubtitles->hide();
@@ -61,10 +65,6 @@ MainWindow::MainWindow(QWidget *parent)
     m_ankiClient = new AnkiClient(this, m_player, m_ui->listSubtitles);
     m_ankiSettings = new AnkiSettings(m_ankiClient);
     m_ankiSettings->hide();
-
-    // Definitions
-    m_definition = new DefinitionWidget(m_ankiClient, this);
-    m_ui->controls->setVolumeLimit(m_player->getMaxVolume());
 
     m_actionGroupAnkiProfile = new QActionGroup(this);
     updateAnkiProfileMenu();
@@ -189,13 +189,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Definition changes
     connect(m_ui->controls, &PlayerControls::termsChanged,
-        m_definition, &DefinitionWidget::setTerms);
-    connect(m_ui->controls, &PlayerControls::termsChanged,
-        this, &MainWindow::setDefinitionWidgetLocation);
+        this, &MainWindow::setTerms);
     connect(m_ui->controls, &PlayerControls::hideDefinition,
-        m_definition, &DefinitionWidget::hide);
-    connect(m_definition, &DefinitionWidget::definitionHidden,
-        m_ui->controls, &PlayerControls::definitionHidden);
+        [=] {
+            if (m_definition)
+                m_definition->deleteLater(); 
+            m_definition = nullptr;
+        }
+    );
 
     // Thread message box signals
     connect(this, &MainWindow::threadError, 
@@ -380,6 +381,25 @@ void MainWindow::setTracks(QList<const PlayerAdapter::Track *> tracks)
     }
 }
 
+void MainWindow::setTerms(const QList<Term *> *terms)
+{
+    if (m_definition)
+        m_definition->deleteLater();
+    
+    m_definition = new DefinitionWidget(terms, m_ankiClient, this);
+    setDefinitionWidgetLocation();
+    m_definition->show();
+
+    connect(m_definition, &DefinitionWidget::definitionHidden,
+        m_ui->controls, &PlayerControls::definitionHidden);
+    connect(m_definition, &DefinitionWidget::definitionHidden,
+        [=] {
+            delete m_definition;
+            m_definition = nullptr;
+        }
+    );
+}
+
 void MainWindow::updateAnkiProfileMenu()
 {
     // Remove all profiles
@@ -445,7 +465,7 @@ void MainWindow::setDefinitionWidgetLocation()
 void MainWindow::hideControls()
 {
     if (isFullScreen() && !m_ui->controls->underMouse() && 
-        !m_definition->underMouse())
+        m_definition && !m_definition->underMouse())
     {
         m_ui->controls->hide();
     }
@@ -453,7 +473,7 @@ void MainWindow::hideControls()
 
 void MainWindow::hidePlayerCursor()
 {
-    if (!m_ui->controls->underMouse() && !m_definition->underMouse()) 
+    if (!m_ui->controls->underMouse() && m_definition && !m_definition->underMouse()) 
     {
         m_ui->mpv->setCursor(Qt::BlankCursor);
     }

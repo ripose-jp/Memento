@@ -55,6 +55,19 @@
 class QNetworkReply;
 class QNetworkAccessManager;
 
+class AnkiReply : public QObject
+{
+    Q_OBJECT
+public:
+    using QObject::QObject;
+
+Q_SIGNALS:
+    void finishedBool(const bool value, const QString &error);
+    void finishedStringList(const QStringList &value, const QString &error);
+    void finishedBoolList(const QList<bool> &value, const QString &error);
+    void finishedInt(const int, const QString &error);
+};
+
 class AnkiClient : public QObject
 {
     Q_OBJECT
@@ -78,21 +91,12 @@ public:
 
     void writeChanges();
 
-    void testConnection(
-        std::function<void(const bool, const QString &)> callback);
-    void getDeckNames(
-        std::function<void(const QStringList *, const QString &)> callback);
-    void getModelNames(
-        std::function<void(const QStringList *, const QString &)> callback);
-    void getFieldNames(
-        std::function<void(const QStringList *, const QString &)> callback,
-        const QString &model);
-    void termsAddable(
-        std::function<void(const QList<bool> *, const QString &)> callback,
-        const QList<Term *> *terms);
-    void addTerm(
-        std::function<void(const int, const QString &)> callback,
-        const Term *term);
+    AnkiReply *testConnection();
+    AnkiReply *getDeckNames();
+    AnkiReply *getModelNames();
+    AnkiReply *getFieldNames(const QString &model);
+    AnkiReply *termsAddable(const QList<Term *> *terms);
+    AnkiReply *addTerm(const Term *term);
 
 Q_SIGNALS:
     void settingsChanged() const;
@@ -117,10 +121,7 @@ private:
     QNetworkReply *makeRequest(const QString &action,
                                const QJsonObject &params = QJsonObject());
     QJsonObject processReply(QNetworkReply *reply, QString &error);
-    void requestStringList(
-        std::function<void(const QStringList *, const QString &)> callback,
-        const QString &action,
-        const QJsonObject &params = QJsonObject());
+    AnkiReply *requestStringList(const QString &action, const QJsonObject &params = QJsonObject());
     QJsonObject createAnkiNoteObject(const Term &term,
                                      const bool media = false);
     QString buildGlossary(const QList<Definition> &definitions);

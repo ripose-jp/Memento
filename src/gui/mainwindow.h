@@ -64,6 +64,7 @@ public Q_SLOTS:
 private Q_SLOTS:
     void open();
     void setTracks(QList<const PlayerAdapter::Track *> tracks);
+    void setTerms(const QList<Term *> *terms);
     void updateAnkiProfileMenu();
     void setDefinitionWidgetLocation();
     void hideControls();

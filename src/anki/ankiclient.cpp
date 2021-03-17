@@ -392,89 +392,85 @@ void AnkiClient::writeChanges()
     Q_EMIT settingsChanged();
 }
 
-void AnkiClient::testConnection(
-    std::function<void(const bool, const QString &)> callback)
+AnkiReply *AnkiClient::testConnection()
 {
     QNetworkReply *reply = makeRequest(ANKI_ACTION_VERSION);
+    AnkiReply *ankiReply = new AnkiReply;
     connect(reply, &QNetworkReply::finished, [=] {
         QString error;
         QJsonObject replyObj = processReply(reply, error);
         if (replyObj.isEmpty())
         {
-            callback(false, error);
+            Q_EMIT ankiReply->finishedBool(false, error);
         }
         else if (!replyObj[ANKI_RESULT].isDouble())
         {
-            callback(false, "AnkiConnect result is not a number");
+            Q_EMIT ankiReply->finishedBool(false, "AnkiConnect result is not a number");
         }
         else if (replyObj[ANKI_RESULT].toInt() < MIN_ANKICONNECT_VERSION)
         {
             error = "AnkiConnect version %1 < %2";
             error = error.arg(QString::number(replyObj[ANKI_RESULT].toInt()),
                               QString::number(MIN_ANKICONNECT_VERSION));
-            callback(false, error);
+            Q_EMIT ankiReply->finishedBool(false, error);
         }
         else
         {
-            callback(true, error);
+            Q_EMIT ankiReply->finishedBool(true, error);
         }
-        delete reply;
+        ankiReply->deleteLater();
+        reply->deleteLater();
     });
+    return ankiReply;
 }
 
-void AnkiClient::getDeckNames(
-    std::function<void(const QStringList *, const QString &)> callback)
+AnkiReply *AnkiClient::getDeckNames()
 {
-    requestStringList(callback, ANKI_DECK_NAMES);
+    return requestStringList(ANKI_DECK_NAMES);
 }
 
-void AnkiClient::getModelNames(
-    std::function<void(const QStringList *, const QString &)> callback)
+AnkiReply *AnkiClient::getModelNames()
 {
-    requestStringList(callback, ANKI_MODEL_NAMES);
+    return requestStringList(ANKI_MODEL_NAMES);
 }
 
-void AnkiClient::getFieldNames(
-    std::function<void(const QStringList *, const QString &)> callback,
-    const QString &model)
+AnkiReply *AnkiClient::getFieldNames(const QString &model)
 {
     QJsonObject params;
     params[ANKI_PARAM_MODEL_NAME] = model;
-    requestStringList(callback, ANKI_FIELD_NAMES, params);
+    return requestStringList(ANKI_FIELD_NAMES, params);
 }
 
-void AnkiClient::requestStringList(
-    std::function<void(const QStringList *, const QString &)> callback,
-    const QString &action,
-    const QJsonObject &params)
+AnkiReply *AnkiClient::requestStringList(const QString &action, const QJsonObject &params)
 {
     QNetworkReply *reply = makeRequest(action, params);
+    AnkiReply *ankiReply = new AnkiReply;
     connect(reply, &QNetworkReply::finished, [=] {
         QString error;
         QJsonObject replyObj = processReply(reply, error);
         if (replyObj.isEmpty())
         {
-            callback(0, error);
+            Q_EMIT ankiReply->finishedStringList(QStringList(), error);
         }
         else if (!replyObj[ANKI_RESULT].isArray())
         {
-            callback(0, "Result is not an array");
+            Q_EMIT ankiReply->finishedStringList(QStringList(), "Result is not an array");
         }
         else
         {
-            QStringList *decks = new QStringList();
+            QStringList decks;
             QJsonArray deckNames = replyObj[ANKI_RESULT].toArray();
-            for (auto it = deckNames.begin(); it != deckNames.end(); ++it)
-                decks->append((*it).toString());
-            callback(decks, error);
+            for (const QJsonValueRef &name : deckNames)
+                decks.append(name.toString());
+            Q_EMIT ankiReply->finishedStringList(decks, error);
         }
-        delete reply;
+        ankiReply->deleteLater();
+        reply->deleteLater();
     });
+    return ankiReply;
 }
 
-void AnkiClient::termsAddable(
-    std::function<void(const QList<bool> *, const QString &)> callback,
-    const QList<Term *> *terms)
+AnkiReply *AnkiClient::termsAddable(const QList<Term *> *terms)
 {
     QJsonArray notes;
     for (const Term *term : *terms)
@@ -482,63 +478,66 @@ void AnkiClient::termsAddable(
     QJsonObject params;
     params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
     QNetworkReply *reply = makeRequest(ANKI_CAN_ADD_NOTES, params);
+    AnkiReply *ankiReply = new AnkiReply;
     connect(reply, &QNetworkReply::finished, [=] {
         QString error;
         QJsonObject replyObj = processReply(reply, error);
         if (replyObj.isEmpty())
         {
-            callback(0, error);
+            Q_EMIT ankiReply->finishedBoolList(QList<bool>(), error);
         }
         else if (!replyObj[ANKI_RESULT].isArray())
         {
-            callback(0, "Result is not an array");
+            Q_EMIT ankiReply->finishedBoolList(QList<bool>(), "Result is not an array");
         }
         else
         {
-            QList<bool> *response = new QList<bool>();
+            QList<bool> response;
             QJsonArray resultArray = replyObj[ANKI_RESULT].toArray();
-            for (auto it = resultArray.begin(); it != resultArray.end(); ++it)
+            for (const QJsonValueRef &addable : resultArray)
             {
-                if (it->isBool())
+                if (addable.isBool())
                 {
-                    response->append(it->toBool());
+                    response.append(addable.toBool());
                 }
                 else
                 {
-                    delete response;
-                    callback(0, "Response was not an array of bool");
+                    Q_EMIT ankiReply->finishedBoolList(QList<bool>(), "Response was not an array of bool");
                 }
             }
-            callback(response, error);
+            Q_EMIT ankiReply->finishedBoolList(response, error);
         }
-        delete reply;
+        ankiReply->deleteLater();
+        reply->deleteLater();
     });
+    return ankiReply;
 }
 
-void AnkiClient::addTerm(
-    std::function<void(const int, const QString &)> callback,
-    const Term *term)
+AnkiReply *AnkiClient::addTerm(const Term *term)
 {
     QJsonObject params;
     params[ANKI_ADD_NOTE_PARAM] = createAnkiNoteObject(*term, true);
     QNetworkReply *reply = makeRequest(ANKI_ADD_NOTE, params);
+    AnkiReply *ankiReply = new AnkiReply;
     connect(reply, &QNetworkReply::finished, [=] {
         QString error;
         QJsonObject replyObj = processReply(reply, error);
         if (replyObj.isEmpty())
         {
-            callback(false, error);
+            Q_EMIT ankiReply->finishedInt(0, error);
         }
         else if (!replyObj[ANKI_RESULT].isDouble())
         {
-            callback(false, "AnkiConnect result is not a bool");
+            Q_EMIT ankiReply->finishedInt(0, "AnkiConnect result is not a double");
         }
         else
         {
-            callback(replyObj[ANKI_RESULT].toInt(), error);
+            Q_EMIT ankiReply->finishedInt(replyObj[ANKI_RESULT].toInt(), error);
         }
-        delete reply;
+        ankiReply->deleteLater();
+        reply->deleteLater();
     });
+    return ankiReply;
 }
 
 QJsonObject AnkiClient::createAnkiNoteObject(const Term &term,
@@ -667,7 +666,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term,
                 audObj[ANKI_NOTE_PATH] = path;
 
                 int ret = transcode_aac(
-                    m_player->getPath().toLatin1(), path.toLatin1(), 
+                    m_player->getPath().toLocal8Bit(), path.toLocal8Bit(), 
                     m_player->getAudioTrack() - 1,
                     m_player->getSubStart() + m_player->getSubDelay() - m_player->getAudioDelay(),
                     m_player->getSubEnd() + m_player->getSubDelay() - m_player->getAudioDelay()

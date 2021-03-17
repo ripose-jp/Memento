@@ -240,15 +240,19 @@ void AnkiSettings::connectToClient(const bool showErrors)
 
     m_client->setServer(m_ui->m_lineEditHost->text(),
                         m_ui->m_lineEditPort->text());
-    m_client->testConnection([=](const bool val, const QString &error) {
+
+    AnkiReply *reply = m_client->testConnection();
+    connect(reply, &AnkiReply::finishedBool,
+        [=] (const bool val, const QString &error) {
         if (val)
         {
-            m_client->getDeckNames(
-                [=](const QStringList *decks, const QString &error) {
+            AnkiReply *reply = m_client->getDeckNames();
+            connect(reply, &AnkiReply::finishedStringList,
+                [=] (const QStringList &decks, const QString &error) {
                     if (error.isEmpty())
                     {
                         m_ui->m_comboBoxDeck->clear();
-                        m_ui->m_comboBoxDeck->addItems(*decks);
+                        m_ui->m_comboBoxDeck->addItems(decks);
                         m_ui->m_comboBoxDeck->
                             setCurrentText(
                                 m_client->getConfig(
@@ -260,15 +264,16 @@ void AnkiSettings::connectToClient(const bool showErrors)
                         QMessageBox messageBox;
                         messageBox.critical(0, "Error", error);
                     }
-                    delete decks;
                 });
-            m_client->getModelNames(
-                [=](const QStringList *models, const QString &error) {
+            
+            reply = m_client->getModelNames();
+            connect(reply, &AnkiReply::finishedStringList,
+                [=] (const QStringList &models, const QString &error) {
                     if (error.isEmpty())
                     {
                         m_ui->m_comboBoxModel->blockSignals(true);
                         m_ui->m_comboBoxModel->clear();
-                        m_ui->m_comboBoxModel->addItems(*models);
+                        m_ui->m_comboBoxModel->addItems(models);
                         m_ui->m_comboBoxModel->
                             setCurrentText(
                                 m_client->getConfig(
@@ -281,7 +286,6 @@ void AnkiSettings::connectToClient(const bool showErrors)
                         QMessageBox messageBox;
                         messageBox.critical(0, "Error", error);
                     }
-                    delete models;
                 });
         }
         else if (showErrors)
@@ -297,19 +301,20 @@ void AnkiSettings::connectToClient(const bool showErrors)
 void AnkiSettings::updateModelFields(const QString &model)
 {
     m_mutexUpdateModelFields.lock();
-    m_client->getFieldNames(
-        [=](const QStringList *fields, const QString error) {
+    AnkiReply *reply = m_client->getFieldNames(model);
+    connect(reply, &AnkiReply::finishedStringList,
+        [=] (const QStringList &fields, const QString error) {
             if (error.isEmpty())
             {
-                m_ui->m_tableFields->setRowCount(fields->size());
-                for (size_t i = 0; i < fields->size(); ++i)
+                m_ui->m_tableFields->setRowCount(fields.size());
+                for (size_t i = 0; i < fields.size(); ++i)
                 {
                     QTableWidgetItem *item =
-                        new QTableWidgetItem(fields->at(i));
+                        new QTableWidgetItem(fields[i]);
                     item->setFlags(item->flags() ^ Qt::ItemIsEditable);
                     m_ui->m_tableFields->setItem(i, 0, item);
                 }
-                for (size_t i = 0; i < fields->size(); ++i)
+                for (size_t i = 0; i < fields.size(); ++i)
                 {
                     QTableWidgetItem *item = new QTableWidgetItem("");
                     m_ui->m_tableFields->setItem(i, 1, item);
@@ -321,9 +326,7 @@ void AnkiSettings::updateModelFields(const QString &model)
                 messageBox.critical(0, "Error", error);
             }
             m_mutexUpdateModelFields.unlock();
-            delete fields;
-        },
-        model);
+        });
 }
 
 void AnkiSettings::applyChanges()

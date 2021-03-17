@@ -93,6 +93,7 @@ void TermWidget::setTerm(const Term &term)
     m_ui->layoutTermTags->addStretch();
 
     QLabel *label = new QLabel(this);
+    label->setWordWrap(true);
     label->setText(buildDefinition(term.definitions));
     m_ui->layoutGlossary->addWidget(label);
 }
@@ -144,11 +145,14 @@ void TermWidget::setAddable(bool value)
 void TermWidget::addNote()
 {
     m_ui->buttonAddCard->setEnabled(false);
-    m_client->addTerm([=](const int id, const QString &error) {
-        if (!error.isEmpty())
-        {
-            QMessageBox messageBox;
-            messageBox.critical(0,"Error", error);
+    AnkiReply *reply = m_client->addTerm(m_term);
+    connect(reply, &AnkiReply::finishedInt,
+        [=](const int id, const QString &error) {
+            if (!error.isEmpty())
+            {
+                QMessageBox messageBox;
+                messageBox.critical(0,"Error", error);
+            }
         }
-    }, m_term);
+    );
 }

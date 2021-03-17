@@ -28,7 +28,6 @@
 #include "termwidget.h"
 
 #include <QWheelEvent>
-#include <QMutex>
 
 namespace Ui
 {
@@ -40,20 +39,17 @@ class DefinitionWidget : public QWidget
     Q_OBJECT
 
 public:
-    DefinitionWidget(AnkiClient *client, QWidget *parent = 0);
+    DefinitionWidget(const QList<Term *> *terms, AnkiClient *client, QWidget *parent = 0);
     ~DefinitionWidget();
-
-public Q_SLOTS:  
-    /**
-     * Sets the entries of this widget, deletes the old entry
-     */
-    void setTerms(const QList<Term *> *terms);
 
 Q_SIGNALS:
     void definitionHidden();
 
 protected:
-    void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
+    void leaveEvent(QEvent *event) Q_DECL_OVERRIDE
+        { Q_EMIT definitionHidden(); }
+     void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE
+        { Q_EMIT definitionHidden(); }
     // Prevents these events from being sent to mpv when widget has focus
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE 
         { event->accept(); }
@@ -67,13 +63,7 @@ protected:
 private:
     Ui::DefinitionWidget *m_ui;
     AnkiClient *m_client;
-
     QList<TermWidget *> m_termWidgets;
-    unsigned int m_searchId;
-    QMutex m_termMutex;
-    QMutex m_searchIdMutex;
-
-    void clearTerms();
 };
 
 #endif // DEFINITIONWIDGET_H

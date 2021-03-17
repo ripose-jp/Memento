@@ -20,6 +20,8 @@
 
 #include "tagwidget.h"
 
+#include <QDebug>
+
 #define STYLE_FORMAT    (QString(\
                             "font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"\
                             "font-weight: bold;"\

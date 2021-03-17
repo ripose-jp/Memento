@@ -20,7 +20,6 @@
 
 #include "subtitlewidget.h"
 
-#include "definitionwidget.h"
 #include "../../util/directoryutils.h"
 
 #include <QApplication>

@@ -137,10 +137,8 @@ QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
 
     // Lemmatize the query
     MeCab::Lattice *lattice = MeCab::createLattice();
-    char buffer[BUFSIZ];
-    strncpy(buffer, query.toUtf8().data(), BUFSIZ);
-    buffer[BUFSIZ - 1] = '\0';
-    lattice->set_sentence(buffer);
+    QByteArray queryArr = query.toUtf8();
+    lattice->set_sentence(queryArr);
     if (!m_tagger->parse(lattice))
     {
         qDebug() << "Cannot access MeCab";

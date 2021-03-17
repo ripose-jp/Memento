@@ -211,7 +211,8 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
         return "Database is invalid";
 
     QString       ret;
-    QString       hiragana     = kataToHira(query);
+    QByteArray    exp          = query.toUtf8();
+    QByteArray    hiragana     = kataToHira(query).toUtf8();
     bool          containsKata = hiragana != query;
     sqlite3_stmt *stmt         = NULL;
     int           step         = 0;
@@ -225,14 +226,14 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
         ret = "Could not prepare database query";
         goto error;
     }
-    if (sqlite3_bind_text(stmt, QUERY_EXP_IDX,          query.toUtf8(),    -1, NULL) != SQLITE_OK ||
-        sqlite3_bind_text(stmt, QUERY_READING_HIRA_IDX, hiragana.toUtf8(), -1, NULL) != SQLITE_OK)
+    if (sqlite3_bind_text(stmt, QUERY_EXP_IDX,          exp,      -1, NULL) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_READING_HIRA_IDX, hiragana, -1, NULL) != SQLITE_OK)
     {
         ret = "Could not bind values to statement";
         goto error;
     }
     if (containsKata && 
-        sqlite3_bind_text(stmt, QUERY_READING_KATA_IDX, query.toUtf8(), -1, NULL) != SQLITE_OK)
+        sqlite3_bind_text(stmt, QUERY_READING_KATA_IDX, exp, -1, NULL) != SQLITE_OK)
     {
         ret = "Could not bind values to statement";
         goto error;
@@ -294,6 +295,7 @@ int DatabaseManager::addFrequencies(Term *term)
     int           ret  = 0;
     sqlite3_stmt *stmt = NULL;
     int           step = 0;
+    QByteArray    exp  = term->expression.toUtf8();
 
     if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
     {
@@ -301,7 +303,7 @@ int DatabaseManager::addFrequencies(Term *term)
         ret = -1;
         goto cleanup;
     }
-    if (sqlite3_bind_text(stmt, 1, term->expression.toUtf8(), -1, NULL) != SQLITE_OK)
+    if (sqlite3_bind_text(stmt, 1, exp, -1, NULL) != SQLITE_OK)
     {
         qDebug() << "Error binding expression to frequency query";
         ret = -1;
@@ -345,19 +347,24 @@ cleanup:
 
 int DatabaseManager::populateTerms(const QList<Term *> &terms)
 {
-    int           ret  = 0;
-    sqlite3_stmt *stmt = NULL;
-    int           step = 0;
+    int           ret     = 0;
+    sqlite3_stmt *stmt    = NULL;
+    int           step    = 0;
+    QByteArray    exp;
+    QByteArray    reading;
 
     for (Term *term : terms)
     {
+        exp     = term->expression.toUtf8();
+        reading = term->reading.toUtf8();
+
         if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
         {
             ret = -1;
             goto cleanup;
         }
-        if (sqlite3_bind_text(stmt, QUERY_EXP_IDX,     term->expression.toUtf8(), -1, NULL) != SQLITE_OK ||
-            sqlite3_bind_text(stmt, QUERY_READING_IDX, term->reading.toUtf8(),    -1, NULL) != SQLITE_OK)
+        if (sqlite3_bind_text(stmt, QUERY_EXP_IDX,     exp,     -1, NULL) != SQLITE_OK ||
+            sqlite3_bind_text(stmt, QUERY_READING_IDX, reading, -1, NULL) != SQLITE_OK)
         {
             ret = -1;
             goto cleanup;
@@ -448,9 +455,12 @@ int DatabaseManager::addTags(const uint64_t id, const QString &tagStr, QList<Tag
     QStringList   tagList = tagStr.split(" ");
     sqlite3_stmt *stmt    = NULL;
     int           step    = 0;
+    QByteArray    name;
 
     for (const QString &tagName : tagList)
     {
+        name = tagName.toUtf8();
+
         if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
         {
             qDebug() << "Error preparing tag query";
@@ -458,8 +468,8 @@ int DatabaseManager::addTags(const uint64_t id, const QString &tagStr, QList<Tag
             goto cleanup;
         }
 
-        if (sqlite3_bind_int (stmt, QUERY_DIC_ID_IDX, id)                         != SQLITE_OK ||
-            sqlite3_bind_text(stmt, QUERY_NAME_IDX,   tagName.toUtf8(), -1, NULL) != SQLITE_OK)
+        if (sqlite3_bind_int (stmt, QUERY_DIC_ID_IDX, id)             != SQLITE_OK ||
+            sqlite3_bind_text(stmt, QUERY_NAME_IDX,   name, -1, NULL) != SQLITE_OK)
         {
             qDebug() << "Error binding values to tag query";
             ret = -1;

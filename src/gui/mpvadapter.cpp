@@ -178,7 +178,7 @@ void MpvAdapter::open(const QString &file, const bool append)
     
     const char *args[4] = {
         "loadfile",
-        file.toLatin1().data(),
+        file.toLocal8Bit().data(),
         append ? "append" : NULL,
         NULL
     };
@@ -206,7 +206,7 @@ void MpvAdapter::addSubtitle(const QString &file)
 {
     const char *args[3] = {
         "sub-add",
-        file.toLatin1().data(),
+        file.toLocal8Bit().data(),
         NULL
     };
     if (mpv_command(m_handle, args) < 0)
@@ -220,7 +220,7 @@ void MpvAdapter::seek(const int64_t time)
     QString timestr = QString::number(time);
     const char *args[4] = {
         "seek",
-        timestr.toLatin1().data(),
+        timestr.toLocal8Bit().data(),
         "absolute",
         NULL
     };
@@ -405,7 +405,7 @@ QString MpvAdapter::tempScreenshot(const bool subtitles, const QString &ext)
 
     const char *args[4] = {
         "screenshot-to-file",
-        filename.toLatin1().data(),
+        filename.toLocal8Bit().data(),
         subtitles ? NULL : "video",
         NULL
     };
@@ -491,7 +491,7 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
 
     const char *args[3] = {
         "keypress",
-        key.toLatin1().data(),
+        key.toLocal8Bit().data(),
         NULL
     };
     if (mpv_command_async(m_handle, -1, args) < 0)
@@ -522,7 +522,7 @@ void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
 
     const char *args[3] = {
         "keypress",
-        direction.toLatin1().data(),
+        direction.toLocal8Bit().data(),
         NULL
     };
     if (mpv_command_async(m_handle, -1, args) < 0)
