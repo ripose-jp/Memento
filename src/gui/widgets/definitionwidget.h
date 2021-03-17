@@ -42,20 +42,15 @@ public:
     DefinitionWidget(const QList<Term *> *terms, AnkiClient *client, QWidget *parent = 0);
     ~DefinitionWidget();
 
-Q_SIGNALS:
-    void definitionHidden();
-
 protected:
-    void leaveEvent(QEvent *event) Q_DECL_OVERRIDE
-        { Q_EMIT definitionHidden(); }
-     void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE
-        { Q_EMIT definitionHidden(); }
     // Prevents these events from being sent to mpv when widget has focus
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE 
         { event->accept(); }
     void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE 
         { event->accept(); }
     void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE 
+        { event->accept(); }
+    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE 
         { event->accept(); }
     void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE
         { event->accept(); }

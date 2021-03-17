@@ -72,9 +72,6 @@ private Q_SLOTS:
     void pauseResume();
     void toggleFullscreen();
 
-protected:
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-
 private:
     Ui::PlayerControls *m_ui;
     bool m_paused;

@@ -219,13 +219,3 @@ QString PlayerControls::formatTime(const int time)
 
     return formatted;
 }
-
-void PlayerControls::mouseMoveEvent(QMouseEvent *event)
-{
-    event->ignore();
-    if (!m_ui->subtitle->underMouse())
-    {
-        m_ui->subtitle->deselectText();
-        Q_EMIT hideDefinition();
-    }
-}

@@ -120,6 +120,8 @@ MainWindow::MainWindow(QWidget *parent)
     // State changes
     connect(m_player, &PlayerAdapter::subtitleChanged,
         m_ui->controls, &PlayerControls::setSubtitle);
+    connect(m_player, &PlayerAdapter::subtitleChanged,
+        this, &MainWindow::deleteDefinitionWidget);
     connect(m_player, &PlayerAdapter::stateChanged,
         m_ui->controls, &PlayerControls::setPaused);
     connect(m_player, &PlayerAdapter::fullscreenChanged,
@@ -190,13 +192,8 @@ MainWindow::MainWindow(QWidget *parent)
     // Definition changes
     connect(m_ui->controls, &PlayerControls::termsChanged,
         this, &MainWindow::setTerms);
-    connect(m_ui->controls, &PlayerControls::hideDefinition,
-        [=] {
-            if (m_definition)
-                m_definition->deleteLater(); 
-            m_definition = nullptr;
-        }
-    );
+    connect(this, &MainWindow::definitionHidden,
+        m_ui->controls, &PlayerControls::definitionHidden);
 
     // Thread message box signals
     connect(this, &MainWindow::threadError, 
@@ -313,6 +310,13 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     m_ui->mpv->setCursor(Qt::ArrowCursor);
 }
 
+void MainWindow::mousePressEvent(QMouseEvent *event)
+{
+    event->ignore();
+    Q_EMIT definitionHidden();
+    deleteDefinitionWidget();
+}
+
 void MainWindow::setTracks(QList<const PlayerAdapter::Track *> tracks)
 {
     clearTracks();
@@ -383,21 +387,11 @@ void MainWindow::setTracks(QList<const PlayerAdapter::Track *> tracks)
 
 void MainWindow::setTerms(const QList<Term *> *terms)
 {
-    if (m_definition)
-        m_definition->deleteLater();
+    deleteDefinitionWidget();
     
     m_definition = new DefinitionWidget(terms, m_ankiClient, this);
     setDefinitionWidgetLocation();
     m_definition->show();
-
-    connect(m_definition, &DefinitionWidget::definitionHidden,
-        m_ui->controls, &PlayerControls::definitionHidden);
-    connect(m_definition, &DefinitionWidget::definitionHidden,
-        [=] {
-            delete m_definition;
-            m_definition = nullptr;
-        }
-    );
 }
 
 void MainWindow::updateAnkiProfileMenu()
@@ -460,6 +454,15 @@ void MainWindow::setDefinitionWidgetLocation()
 
     int y = height() - m_definition->height() - m_ui->controls->height();
     m_definition->move(x, y);
+}
+
+void MainWindow::deleteDefinitionWidget()
+{
+    if (m_definition)
+    {
+        m_definition->deleteLater();
+    }
+    m_definition = nullptr;
 }
 
 void MainWindow::hideControls()

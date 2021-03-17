@@ -57,6 +57,7 @@ Q_SIGNALS:
     void wheelMoved(const QWheelEvent *event);
     void threadError(const QString& title, const QString &error) const;
     void threadInfo(const QString& title, const QString &error) const;
+    void definitionHidden() const;
 
 public Q_SLOTS:
     void setFullscreen(bool value);
@@ -67,6 +68,7 @@ private Q_SLOTS:
     void setTerms(const QList<Term *> *terms);
     void updateAnkiProfileMenu();
     void setDefinitionWidgetLocation();
+    void deleteDefinitionWidget();
     void hideControls();
     void hidePlayerCursor();
     void showErrorMessage(const QString& title, const QString &error) const;
@@ -76,6 +78,7 @@ protected:
     void showEvent(QShowEvent *event) override;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
     void dragEnterEvent(QDragEnterEvent *event) Q_DECL_OVERRIDE;
     void dropEvent(QDropEvent *event) Q_DECL_OVERRIDE;

@@ -213,7 +213,7 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
     QString       ret;
     QByteArray    exp          = query.toUtf8();
     QByteArray    hiragana     = kataToHira(query).toUtf8();
-    bool          containsKata = hiragana != query;
+    bool          containsKata = hiragana != exp;
     sqlite3_stmt *stmt         = NULL;
     int           step         = 0;
     QList<Term *> termList;
