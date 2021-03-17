@@ -31,6 +31,15 @@ struct Tag
     QString notes;
     int     order;
     int     score;
+
+    bool operator==(const Tag &lhs)
+    {
+        return name == lhs.name && 
+               category == lhs.category &&
+               notes == lhs.notes &&
+               order == lhs.order && 
+               score == lhs.score;
+    }
 } typedef Tag;
 
 struct TermFrequency
@@ -43,6 +52,7 @@ struct Definition
 {
     QString     dictionary;
     QList<Tag>  tags;
+    QList<Tag>  rules;
     QStringList glossary;
 } typedef Definition;
 

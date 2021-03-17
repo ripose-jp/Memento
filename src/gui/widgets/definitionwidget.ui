@@ -35,22 +35,22 @@
    <string>Form</string>
   </property>
   <property name="autoFillBackground">
-   <bool>false</bool>
+   <bool>true</bool>
   </property>
   <property name="windowFilePath">
    <string notr="true"/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QScrollArea" name="m_scrollArea">
+    <widget class="QScrollArea" name="scrollArea">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="autoFillBackground">
-      <bool>true</bool>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -61,7 +61,7 @@
      <property name="widgetResizable">
       <bool>true</bool>
      </property>
-     <widget class="QWidget" name="m_scrollAreaWidgetContents">
+     <widget class="QWidget" name="scrollAreaContents">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -75,6 +75,9 @@
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background: white;</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2"/>
      </widget>

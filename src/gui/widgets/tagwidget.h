@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 Ripose
+// Copyright (c) 2021 Ripose
 //
 // This file is part of Memento.
 //
@@ -18,40 +18,53 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef DEFINITIONBOX_H
-#define DEFINITIONBOX_H
+#ifndef TAGWIDGET_H
+#define TAGWIDGET_H
 
-#include <QWidget>
+#include <QLabel>
 
 #include "../../dict/expression.h"
-#include "../../anki/ankiclient.h"
 
-namespace Ui
-{
-    class DefinitionBox;
-}
-
-class DefinitionBox : public QWidget
+class TagWidget : public QLabel
 {
     Q_OBJECT
 
 public:
-    DefinitionBox(const Term *term, AnkiClient *client, QWidget *parent = 0);
-    ~DefinitionBox();
-
-    void setAddable(bool value);
-
-private Q_SLOTS:
-    void addNote();
+    TagWidget(const Tag &tag, QWidget *parent = 0);
+    TagWidget(const TermFrequency &freq, QWidget *parent = 0);
+    TagWidget(const QString &dicName, QWidget *parent = 0);
 
 private:
-    Ui::DefinitionBox *m_ui;
-    const Term *m_term;
-    AnkiClient *m_client;
+    TagWidget(QWidget *parent = 0);
 
-    void setTerm(const Term &term);
-    QString generateJishoLink(const QString &word);
-    QString buildDefinition(const QList<Definition> &definitions);
+    enum TagColor
+    {
+        def,
+        name,
+        expression,
+        popular,
+        frequent,
+        archaism,
+        dictionary,
+        frequency,
+        pos,
+        search,
+        pitch
+    };
+
+    const char *colors[pitch + 1] = {
+        "#8a8a91",
+        "#b6327a",
+        "#f0ad4e",
+        "#0275d8",
+        "#5bc0de",
+        "#d9534f",
+        "#aa66cc",
+        "#5cb85c",
+        "#565656",
+        "#8a8a91",
+        "#6640be"
+    };
 };
 
-#endif // DEFINITIONBOX_H
+#endif // TAGWIDGET_H

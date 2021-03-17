@@ -474,9 +474,16 @@ static int add_index(zip_t *dict_archive, sqlite3 *db, sqlite3_int64 *id)
         goto cleanup;
     revision = json_object_get_string(ret_obj);
 
-    if (ret = get_obj_from_obj(index_obj, SEQ_KEY, json_type_boolean, &ret_obj))
-        goto cleanup;
-    sequenced = json_object_get_boolean(ret_obj);
+    if (!json_object_object_get_ex(index_obj, SEQ_KEY, &ret_obj))
+    {
+        sequenced = 0;
+    }
+    else
+    {
+        if (ret = get_obj_from_obj(index_obj, SEQ_KEY, json_type_boolean, &ret_obj))
+            goto cleanup;
+        sequenced = json_object_get_boolean(ret_obj);
+    }
 
     /* Check that the format is valid */
     if (format != YOMI_DB_FORMAT_VERSION)

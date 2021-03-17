@@ -25,6 +25,7 @@
 
 #include "../../dict/expression.h"
 #include "../../anki/ankiclient.h"
+#include "termwidget.h"
 
 #include <QWheelEvent>
 #include <QMutex>
@@ -33,8 +34,6 @@ namespace Ui
 {
     class DefinitionWidget;
 }
-
-class DefinitionBox;
 
 class DefinitionWidget : public QWidget
 {
@@ -69,12 +68,12 @@ private:
     Ui::DefinitionWidget *m_ui;
     AnkiClient *m_client;
 
-    QList<DefinitionBox *> m_definitions;
+    QList<TermWidget *> m_termWidgets;
     unsigned int m_searchId;
     QMutex m_searchIdMutex;
     QMutex m_entryMutex;
 
-    void clearEntries();
+    void clearTerms();
 };
 
 #endif // DEFINITIONWIDGET_H

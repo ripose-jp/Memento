@@ -18,15 +18,16 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "definitionbox.h"
-#include "ui_definitionbox.h"
+#include "termwidget.h"
+#include "ui_termwidget.h"
 
+#include "tagwidget.h"
 #include "../../util/iconfactory.h"
 
 #include <QMessageBox>
 
-DefinitionBox::DefinitionBox(const Term *term, AnkiClient *client, QWidget *parent) 
-    : QWidget(parent), m_ui(new Ui::DefinitionBox), m_term(term),
+TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent) 
+    : QWidget(parent), m_ui(new Ui::TermWidget), m_term(term),
       m_client(client)
 {
     m_ui->setupUi(this);
@@ -38,16 +39,32 @@ DefinitionBox::DefinitionBox(const Term *term, AnkiClient *client, QWidget *pare
 
     setTerm(*term);
 
-    connect(m_ui->buttonAddCard, &QToolButton::clicked, this, &DefinitionBox::addNote);
+    connect(m_ui->buttonAddCard, &QToolButton::clicked, this, &TermWidget::addNote);
 }
 
-DefinitionBox::~DefinitionBox()
+TermWidget::~TermWidget()
 {
+    QLayoutItem *item;
+    while (item = m_ui->layoutFrequency->takeAt(0))
+    {
+        delete item->widget();
+        delete item;
+    }
+    while (item = m_ui->layoutGlossary->takeAt(0))
+        {
+        delete item->widget();
+        delete item;
+    }
+    while (item = m_ui->layoutTermTags->takeAt(0))
+    {
+        delete item->widget();
+        delete item;
+    }
     delete m_ui;
     delete m_term;
 }
 
-void DefinitionBox::setTerm(const Term &term)
+void TermWidget::setTerm(const Term &term)
 {
     if (term.reading.isEmpty())
     {
@@ -61,15 +78,31 @@ void DefinitionBox::setTerm(const Term &term)
     m_ui->labelKanji->setText(term.expression);
     m_ui->labelJisho->setText(generateJishoLink(term.expression));
 
-    m_ui->labelDefinition->setText(buildDefinition(term.definitions));
+    for (const TermFrequency &freq : term.frequencies)
+    {
+        TagWidget *tag = new TagWidget(freq, this);
+        m_ui->layoutFrequency->addWidget(tag);
+    }
+    m_ui->layoutFrequency->addStretch();
+
+    for (const Tag &termTag : term.tags)
+    {
+        TagWidget *tag = new TagWidget(termTag, this);
+        m_ui->layoutTermTags->addWidget(tag);
+    }
+    m_ui->layoutTermTags->addStretch();
+
+    QLabel *label = new QLabel(this);
+    label->setText(buildDefinition(term.definitions));
+    m_ui->layoutGlossary->addWidget(label);
 }
 
-QString DefinitionBox::generateJishoLink(const QString &word)
+QString TermWidget::generateJishoLink(const QString &word)
 {
     return QString("<a href=\"https://jisho.org/search/%1\">Jisho</a>").arg(word);
 }
 
-QString DefinitionBox::buildDefinition(const QList<Definition> &definitions)
+QString TermWidget::buildDefinition(const QList<Definition> &definitions)
 {
     QString glossary;
     glossary.append("<div style=\"text-align: left;\"><ol>");
@@ -103,12 +136,12 @@ QString DefinitionBox::buildDefinition(const QList<Definition> &definitions)
     return glossary;
 }
 
-void DefinitionBox::setAddable(bool value)
+void TermWidget::setAddable(bool value)
 {
     m_ui->buttonAddCard->setEnabled(value);
 }
 
-void DefinitionBox::addNote()
+void TermWidget::addNote()
 {
     m_ui->buttonAddCard->setEnabled(false);
     m_client->addTerm([=](const int id, const QString &error) {

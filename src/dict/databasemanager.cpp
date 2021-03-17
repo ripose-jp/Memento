@@ -329,7 +329,7 @@ cleanup:
 
 #undef QUERY
 
-#define QUERY   "SELECT dic_id, def_tags, glossary, term_tags "\
+#define QUERY   "SELECT dic_id, def_tags, glossary, rules, term_tags "\
                     "FROM term_bank "\
                     "WHERE (expression = ? AND reading = ?) "\
                     "ORDER BY dic_id, score DESC;"
@@ -340,7 +340,8 @@ cleanup:
 #define COLUMN_DIC_ID       0
 #define COLUMN_DEF_TAGS     1
 #define COLUMN_GLOSSARY     2
-#define COLUMN_TERM_TAGS    3
+#define COLUMN_RULES        3
+#define COLUMN_TERM_TAGS    4
 
 int DatabaseManager::populateTerms(const QList<Term *> &terms)
 {
@@ -366,13 +367,15 @@ int DatabaseManager::populateTerms(const QList<Term *> &terms)
         {
             const uint64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
 
-            if (addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_DEF_TAGS), term->tags))
+            if (addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_TERM_TAGS), term->tags))
                 qDebug() << "Could not get term tags for" << term->expression;
 
             Definition def;
             def.dictionary = getDictionary(id);
             if (addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_DEF_TAGS), def.tags))
                 qDebug() << "Could not get definition tags for" << term->expression;
+            if (addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_RULES), def.rules))
+                qDebug() << "Could not get rules for" << term->expression;
             def.glossary = jsonArrayToStringList((const char *)sqlite3_column_text(stmt, COLUMN_GLOSSARY));
             term->definitions.append(def);
         }
@@ -471,7 +474,8 @@ int DatabaseManager::addTags(const uint64_t id, const QString &tagStr, QList<Tag
             tag.notes    = (const char *)sqlite3_column_text(stmt, COLUMN_NOTES);
             tag.order    = sqlite3_column_int(stmt, COLUMN_ORDER);
             tag.score    = sqlite3_column_int(stmt, COLUMN_SCORE);
-            tags.append(tag);
+            if (!tags.contains(tag))
+                tags.append(tag);
         }
         if (isStepError(step))
         {

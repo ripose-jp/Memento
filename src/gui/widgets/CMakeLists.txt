@@ -33,8 +33,9 @@ add_library(
     definitionwidget
     definitionwidget.cpp
     definitionwidget.ui
-    definitionbox.cpp
-    definitionbox.ui
+    termwidget.cpp
+    termwidget.ui
+    tagwidget.cpp
 )
 target_link_libraries(
     definitionwidget

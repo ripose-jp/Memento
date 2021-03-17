@@ -21,8 +21,6 @@
 #include "definitionwidget.h"
 #include "ui_definitionwidget.h"
 
-#include "definitionbox.h"
-
 #include <QFrame>
 #include <QScrollBar>
 
@@ -38,7 +36,7 @@ DefinitionWidget::DefinitionWidget(AnkiClient *client, QWidget *parent)
 
 DefinitionWidget::~DefinitionWidget()
 {
-    clearEntries();
+    clearTerms();
     delete m_ui;
 }
 
@@ -48,30 +46,31 @@ void DefinitionWidget::setTerms(const QList<Term *> *terms)
     unsigned int searchId = ++m_searchId;
     m_searchIdMutex.unlock();
 
-    clearEntries();
+    clearTerms();
     if (terms->empty())
     {
         delete terms;
         return;
     }
 
-    DefinitionBox *definition = new DefinitionBox(terms->first(), m_client, this);
-    m_definitions.append(definition);
-    m_ui->m_scrollAreaWidgetContents->layout()->addWidget(definition);
-
-    for (auto it = terms->begin() + 1; it != terms->end(); ++it)
+    QFrame *line = nullptr;
+    for (const Term *term : *terms)
     {
-        QFrame *line = new QFrame(this);
+        if (line)
+            m_ui->scrollAreaContents->layout()->addWidget(line);
+
+        TermWidget *termWidget = new TermWidget(term, m_client, this);
+        m_termWidgets.append(termWidget);
+        m_ui->scrollAreaContents->layout()->addWidget(termWidget);
+
+        line = new QFrame(this);
         line->setFrameShape(QFrame::HLine);
         line->setFrameShadow(QFrame::Sunken);
         line->setLineWidth(1);
-        definition = new DefinitionBox(*it, m_client, this);
-        m_definitions.append(definition);
-        m_ui->m_scrollAreaWidgetContents->layout()->addWidget(line);
-        m_ui->m_scrollAreaWidgetContents->layout()->addWidget(definition);
     }
+    delete line;
 
-    m_ui->m_scrollArea->verticalScrollBar()->setValue(0);
+    m_ui->scrollArea->verticalScrollBar()->setValue(0);
     show();
 
     // Check if entries are addable to anki
@@ -87,7 +86,7 @@ void DefinitionWidget::setTerms(const QList<Term *> *terms)
                     if (searchId == m_searchId)
                     {
                         for (size_t i = 0; i < addable->size(); ++i)
-                            m_definitions[i]->setAddable(addable->at(i));
+                            m_termWidgets[i]->setAddable(addable->at(i));
                     }
                     m_entryMutex.unlock();
                     m_searchIdMutex.unlock();
@@ -98,16 +97,16 @@ void DefinitionWidget::setTerms(const QList<Term *> *terms)
     }
 }
 
-void DefinitionWidget::clearEntries()
+void DefinitionWidget::clearTerms()
 {
     m_entryMutex.lock();
     QLayoutItem* child;
-    while (child = m_ui->m_scrollAreaWidgetContents->layout()->takeAt(0))
+    while (child = m_ui->scrollAreaContents->layout()->takeAt(0))
     {
         delete child->widget();
         delete child;
     }
-    m_definitions.clear();
+    m_termWidgets.clear();
     m_entryMutex.unlock();
 }
 
