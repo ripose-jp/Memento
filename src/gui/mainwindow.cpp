@@ -266,6 +266,13 @@ void MainWindow::dropEvent(QDropEvent *event)
     }   
 }
 
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    event->ignore();
+    deleteDefinitionWidget();
+    Q_EMIT definitionHidden();
+}
+
 void MainWindow::setFullscreen(bool value)
 {
     if (value)

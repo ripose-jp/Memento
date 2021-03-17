@@ -146,8 +146,8 @@ void TermWidget::addNote()
 {
     m_ui->buttonAddCard->setEnabled(false);
     AnkiReply *reply = m_client->addTerm(m_term);
-    connect(reply, &AnkiReply::finishedInt,
-        [=](const int id, const QString &error) {
+    connect(reply, &AnkiReply::finishedInt, this,
+        [=] (const int id, const QString &error) {
             if (!error.isEmpty())
             {
                 QMessageBox messageBox;

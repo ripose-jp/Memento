@@ -42,6 +42,9 @@ public:
     DefinitionWidget(const QList<Term *> *terms, AnkiClient *client, QWidget *parent = 0);
     ~DefinitionWidget();
 
+private Q_SLOTS:
+    void setAddable(const QList<bool> &addable, const QString &error);
+
 protected:
     // Prevents these events from being sent to mpv when widget has focus
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE 

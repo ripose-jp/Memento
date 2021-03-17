@@ -23,6 +23,7 @@
 
 #include <QFrame>
 #include <QScrollBar>
+#include <QMessageBox>
 
 DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, AnkiClient *client, QWidget *parent)
     : QWidget(parent),
@@ -54,16 +55,7 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, AnkiClient *clien
     if (m_client->isEnabled())
     {
         AnkiReply *reply = m_client->termsAddable(terms);
-        connect(reply, &AnkiReply::finishedBoolList,
-            [=] (const QList<bool> &addable, const QString &error)
-            {
-                if (error.isEmpty())
-                {
-                    for (size_t i = 0; i < addable.size(); ++i)
-                        m_termWidgets[i]->setAddable(addable[i]);
-                }
-            }
-        );
+        connect(reply, &AnkiReply::finishedBoolList, this, &DefinitionWidget::setAddable);
     }
 
     delete terms;
@@ -78,4 +70,18 @@ DefinitionWidget::~DefinitionWidget()
         delete child;
     }
     delete m_ui;
+}
+
+void DefinitionWidget::setAddable(const QList<bool> &addable, const QString &error)
+{
+    if (error.isEmpty())
+    {
+        for (size_t i = 0; i < addable.size(); ++i)
+        m_termWidgets[i]->setAddable(addable[i]);
+    }
+    else
+    {
+        QMessageBox messageBox;
+        messageBox.critical(0,"Error Communicating with Anki", error);
+    }
 }
