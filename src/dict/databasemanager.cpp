@@ -131,11 +131,13 @@ DatabaseManager::~DatabaseManager()
 
 int DatabaseManager::addDictionary(const QString &path)
 {
+    m_dictionaries.clear();
     return yomi_process_dictionary(path.toLocal8Bit(), m_dbpath.toLocal8Bit());
 }
 
 int DatabaseManager::deleteDictionary(const QString &name)
 {
+    m_dictionaries.clear();
     return yomi_delete_dictionary(name.toUtf8(), m_dbpath.toLocal8Bit());
 }
 
@@ -412,21 +414,30 @@ cleanup:
 #undef COLUMN_GLOSSARY
 #undef COLUMN_TERM_TAGS
 
-#define QUERY "SELECT title FROM directory WHERE (dic_id = ?);"
+#define QUERY "SELECT dic_id, title FROM directory;"
 
-QString DatabaseManager::getDictionary(const uint64_t id)
+int DatabaseManager::cacheDictionaries()
 {
-    QString       ret;
+    int           ret;
     sqlite3_stmt *stmt = NULL;
+    int           step = 0;
 
     if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+    {
+        ret = -1;
         goto cleanup;
-    if (sqlite3_bind_int64(stmt, 1, id) != SQLITE_OK)
+    }
+    while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
+    {
+        uint64_t id   = sqlite3_column_int64(stmt, 0);
+        QString title = (const char *)sqlite3_column_text(stmt, 1);
+        m_dictionaries.insert(id, title);
+    }
+    if (isStepError(step))
+    {
+        ret = -1;
         goto cleanup;
-    if (sqlite3_step(stmt) != SQLITE_ROW)
-        goto cleanup;
-    
-    ret = (const char *)sqlite3_column_text(stmt, 0);
+    }
 
 cleanup:
     sqlite3_finalize(stmt);
@@ -435,6 +446,14 @@ cleanup:
 }
 
 #undef QUERY
+
+QString DatabaseManager::getDictionary(const uint64_t id)
+{
+    if (m_dictionaries.isEmpty())
+        cacheDictionaries();
+
+    return m_dictionaries.value(id);
+}
 
 #define QUERY   "SELECT category, ord, notes, score "\
                     "FROM tag_bank "\

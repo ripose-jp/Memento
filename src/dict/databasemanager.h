@@ -42,11 +42,13 @@ private:
     sqlite3 *m_db;
     const QString m_dbpath;
     QHash<QString, QString> m_kataToHira;
+    QHash<const uint64_t, QString> m_dictionaries;
 
     int populateTerms(const QList<Term *> &terms);
     QString getDictionary(const uint64_t id);
     int addFrequencies(Term *term);
     int addTags(const uint64_t id, const QString &tagStr, QList<Tag> &tags);
+    int cacheDictionaries();
 
     QString kataToHira(const QString &query);
     QStringList jsonArrayToStringList(const char *jsonstr);
