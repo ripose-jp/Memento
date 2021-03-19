@@ -515,7 +515,7 @@ cleanup:
 void inline DatabaseManager::validateCache(uint64_t id)
 {
     int limit = 100;
-    while (limit-- && !m_dictionaryCache.contains(id))
+    while (!m_dictionaryCache.contains(id) && limit--)
         buildCache();
 }
 
