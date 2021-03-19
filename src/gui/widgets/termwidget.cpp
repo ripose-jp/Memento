@@ -27,10 +27,17 @@
 #include <QMessageBox>
 
 TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent) 
-    : QWidget(parent), m_ui(new Ui::TermWidget), m_term(term),
-      m_client(client)
+    : QWidget(parent), m_ui(new Ui::TermWidget), m_term(term), m_client(client)
 {
     m_ui->setupUi(this);
+
+    m_layoutTermTags = new FlowLayout;
+    m_layoutFreqTags = new FlowLayout;
+    m_layoutGlossary = new QVBoxLayout;
+
+    m_ui->verticalLayout->addLayout(m_layoutTermTags);
+    m_ui->verticalLayout->addLayout(m_layoutFreqTags);
+    m_ui->verticalLayout->addLayout(m_layoutGlossary);
 
     IconFactory *factory = IconFactory::create(this);
     m_ui->buttonAddCard->setIcon(factory->getIcon(IconFactory::Icon::plus));
@@ -45,21 +52,27 @@ TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent)
 TermWidget::~TermWidget()
 {
     QLayoutItem *item;
-    while (item = m_ui->layoutFrequency->takeAt(0))
+    while (item = m_layoutTermTags->takeAt(0))
     {
         delete item->widget();
         delete item;
     }
-    while (item = m_ui->layoutGlossary->takeAt(0))
+    delete m_layoutTermTags;
+
+    while (item = m_layoutFreqTags->takeAt(0))
         {
         delete item->widget();
         delete item;
     }
-    while (item = m_ui->layoutTermTags->takeAt(0))
+    delete m_layoutFreqTags;
+
+    while (item = m_layoutGlossary->takeAt(0))
     {
         delete item->widget();
         delete item;
     }
+    delete m_layoutGlossary;
+    
     delete m_ui;
     delete m_term;
 }
@@ -81,21 +94,19 @@ void TermWidget::setTerm(const Term &term)
     for (const TermFrequency &freq : term.frequencies)
     {
         TagWidget *tag = new TagWidget(freq, this);
-        m_ui->layoutFrequency->addWidget(tag);
+        m_layoutFreqTags->addWidget(tag);
     }
-    m_ui->layoutFrequency->addStretch();
 
     for (const Tag &termTag : term.tags)
     {
         TagWidget *tag = new TagWidget(termTag, this);
-        m_ui->layoutTermTags->addWidget(tag);
+        m_layoutTermTags->addWidget(tag);
     }
-    m_ui->layoutTermTags->addStretch();
 
     QLabel *label = new QLabel(this);
     label->setWordWrap(true);
     label->setText(buildDefinition(term.definitions));
-    m_ui->layoutGlossary->addWidget(label);
+    m_layoutGlossary->addWidget(label);
 }
 
 QString TermWidget::generateJishoLink(const QString &word)

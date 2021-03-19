@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>221</height>
+    <height>79</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -149,15 +149,6 @@
       </widget>
      </item>
     </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="layoutTermTags"/>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="layoutFrequency"/>
-   </item>
-   <item>
-    <layout class="QVBoxLayout" name="layoutGlossary"/>
    </item>
   </layout>
  </widget>

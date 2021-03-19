@@ -1,4 +1,13 @@
 add_library(
+    flowlayout
+    flowlayout.cpp
+)
+target_link_libraries(
+    flowlayout
+    Qt::Widgets
+)
+
+add_library(
     sliderjumpstyle
     sliderjumpstyle.cpp
 )
@@ -42,6 +51,7 @@ target_link_libraries(
     Qt5::Widgets
     Qt5::Network
     dictionary_db
+    flowlayout
 )
 
 add_library(

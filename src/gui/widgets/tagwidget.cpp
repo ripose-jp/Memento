@@ -100,7 +100,6 @@ TagWidget::TagWidget(const QString &dicName, QWidget *parent) : TagWidget(parent
 TagWidget::TagWidget(QWidget *parent) : QLabel(parent)
 {
     setTextInteractionFlags(Qt::TextSelectableByMouse);
-    setWordWrap(true);
     setAlignment(Qt::AlignCenter);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 }

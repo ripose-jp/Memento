@@ -23,6 +23,7 @@
 
 #include <QWidget>
 
+#include "flowlayout.h"
 #include "../../dict/expression.h"
 #include "../../anki/ankiclient.h"
 
@@ -46,8 +47,12 @@ private Q_SLOTS:
 
 private:
     Ui::TermWidget *m_ui;
-    const Term *m_term;
-    AnkiClient *m_client;
+    const Term     *m_term;
+    AnkiClient     *m_client;
+
+    FlowLayout  *m_layoutTermTags;
+    FlowLayout  *m_layoutFreqTags;
+    QVBoxLayout *m_layoutGlossary;
 
     void setTerm(const Term &term);
     QString generateJishoLink(const QString &word);
