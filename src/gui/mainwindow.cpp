@@ -194,6 +194,15 @@ MainWindow::MainWindow(QWidget *parent)
         this, &MainWindow::setTerms);
     connect(this, &MainWindow::definitionHidden,
         m_ui->controls, &PlayerControls::definitionHidden);
+    connect(m_player, &PlayerAdapter::stateChanged, this, 
+        [=] (const bool paused) {
+            if (!paused)
+            {
+                deleteDefinitionWidget();
+                Q_EMIT definitionHidden();
+            }
+        }
+    );
 
     // Thread message box signals
     connect(this, &MainWindow::threadError, 

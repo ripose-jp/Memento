@@ -116,7 +116,8 @@ QList<Term *> *Dictionary::search(const QString &query,
     {
         bool operator()(const Term *lhs, const Term *rhs)
         {
-            return lhs->clozeBody.size() > rhs->clozeBody.size();
+            return lhs->clozeBody.size() > rhs->clozeBody.size() ||
+                   (lhs->clozeBody.size() == rhs->clozeBody.size() && lhs->score > rhs->score);
         }
     } comp;
     if (index == *currentIndex)

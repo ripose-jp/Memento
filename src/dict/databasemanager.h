@@ -24,6 +24,7 @@
 #include <sqlite3.h>
 #include <QString>
 #include <QHash>
+#include <QMutex>
 #include "expression.h"
 
 class DatabaseManager
@@ -39,16 +40,24 @@ public:
     QString queryTerms(const QString &query, QList<Term *> &terms);
 
 private:
-    sqlite3 *m_db;
-    const QString m_dbpath;
+    sqlite3                *m_db;
+    const QString           m_dbpath;
     QHash<QString, QString> m_kataToHira;
-    QHash<const uint64_t, QString> m_dictionaries;
+
+    QMutex   m_databaseLock;
+    QMutex   m_readerLock;
+    uint32_t m_readerCount;
+
+    QHash<const uint64_t, QString>             m_dictionaryCache;
+    QHash<const uint64_t, QHash<QString, Tag>> m_tagCache;
 
     int populateTerms(const QList<Term *> &terms);
     QString getDictionary(const uint64_t id);
     int addFrequencies(Term *term);
-    int addTags(const uint64_t id, const QString &tagStr, QList<Tag> &tags);
-    int cacheDictionaries();
+    void addTags(const uint64_t id, const QString &tagStr, QList<Tag> &tags);
+
+    void invalidateCache();
+    int buildCache();
 
     QString kataToHira(const QString &query);
     QStringList jsonArrayToStringList(const char *jsonstr);

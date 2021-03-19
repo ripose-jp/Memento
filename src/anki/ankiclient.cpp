@@ -23,7 +23,7 @@
 #include "../util/directoryutils.h"
 extern "C"
 {
-    #include "../ffmpeg/transcode_aac.h"
+#include "../ffmpeg/transcode_aac.h"
 }
 
 #include <QNetworkAccessManager>
@@ -820,7 +820,9 @@ QNetworkReply *AnkiClient::makeRequest(const QString &action,
 
 QJsonObject AnkiClient::processReply(QNetworkReply *reply, QString &error)
 {
-    if (reply->error() == QNetworkReply::NoError)
+    switch (reply->error())
+    {
+    case QNetworkReply::NoError:
     {
         QJsonDocument replyDoc = QJsonDocument::fromJson(reply->readAll());
         if (replyDoc.isNull())
@@ -857,8 +859,7 @@ QJsonObject AnkiClient::processReply(QNetworkReply *reply, QString &error)
             return replyObj;
         }
     }
-    else
-    {
+    default:
         error = reply->errorString();
     }
 

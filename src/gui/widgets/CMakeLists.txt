@@ -40,6 +40,7 @@ add_library(
 target_link_libraries(
     definitionwidget
     Qt5::Widgets
+    Qt5::Network
     dictionary_db
 )
 

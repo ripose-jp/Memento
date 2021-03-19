@@ -23,7 +23,6 @@
 
 #include <QFrame>
 #include <QScrollBar>
-#include <QMessageBox>
 
 DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, AnkiClient *client, QWidget *parent)
     : QWidget(parent),
@@ -78,10 +77,5 @@ void DefinitionWidget::setAddable(const QList<bool> &addable, const QString &err
     {
         for (size_t i = 0; i < addable.size(); ++i)
         m_termWidgets[i]->setAddable(addable[i]);
-    }
-    else
-    {
-        QMessageBox messageBox;
-        messageBox.critical(0,"Error Communicating with Anki", error);
     }
 }

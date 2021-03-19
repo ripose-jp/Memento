@@ -39,6 +39,7 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
 
     m_findDelay->setSingleShot(true);
     connect(m_findDelay, &QTimer::timeout, this, &SubtitleWidget::findTerms);
+    setAlignment(Qt::AlignCenter);
 }
 
 SubtitleWidget::~SubtitleWidget()
@@ -50,7 +51,6 @@ void SubtitleWidget::updateText(const QString &text)
 {
     m_rawText = text;
     setText(m_rawText.replace(QChar::fromLatin1('\n'), "/"));
-    setAlignment(Qt::AlignCenter);
     m_currentIndex = -1;
 }
 

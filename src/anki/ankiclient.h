@@ -52,8 +52,8 @@
 #define REPLACE_SENTENCE "{sentence}"
 #define REPLACE_TAGS "{tags}"
 
-class QNetworkReply;
 class QNetworkAccessManager;
+class QNetworkReply;
 
 class AnkiReply : public QObject
 {

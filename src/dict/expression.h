@@ -58,11 +58,14 @@ struct Definition
 
 struct Term
 {
+    Term() : score(0) {}
+
     QString                 expression;
     QString                 reading;
     QList<Tag>              tags;
     QList<Definition>       definitions;
     QList<TermFrequency>    frequencies;
+    int                     score;
 
     /* Cloze values will be set outside of database manager */
     QString                 sentence;

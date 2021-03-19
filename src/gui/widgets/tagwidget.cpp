@@ -30,7 +30,6 @@
                             "color: white;"\
                             "border-radius: 5px;"\
                             "background: %1;"\
-                            "border: 2px solid %1;"\
                         ))
 
 #define FREQ_FORMAT     (QString("%1 <span style=\"color: black;\">%2</span>"))
