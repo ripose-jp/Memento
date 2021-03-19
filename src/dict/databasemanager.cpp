@@ -123,9 +123,7 @@ DatabaseManager::DatabaseManager(const QString &path) : m_dbpath(path), m_reader
     m_kataToHira["ペ"] = "ぺ";
     m_kataToHira["ポ"] = "ぽ";
 
-    m_databaseLock.lock();
     buildCache();
-    m_databaseLock.unlock();
 }
 
 DatabaseManager::~DatabaseManager()
@@ -136,9 +134,7 @@ DatabaseManager::~DatabaseManager()
 int DatabaseManager::addDictionary(const QString &path)
 {
     m_databaseLock.lock();
-    invalidateCache();
     int ret = yomi_process_dictionary(path.toLocal8Bit(), m_dbpath.toLocal8Bit());
-    buildCache();
     m_databaseLock.unlock();
     return ret;
 }
@@ -146,9 +142,7 @@ int DatabaseManager::addDictionary(const QString &path)
 int DatabaseManager::deleteDictionary(const QString &name)
 {
     m_databaseLock.lock();
-    invalidateCache();
     int ret = yomi_delete_dictionary(name.toUtf8(), m_dbpath.toLocal8Bit());
-    buildCache();
     m_databaseLock.unlock();
     return ret;
 }
@@ -184,6 +178,8 @@ QString DatabaseManager::errorCodeToString(const int code)
 
 QStringList DatabaseManager::getDictionaries()
 {
+    incrementReaders();
+
     QStringList   dictionaries;
     sqlite3_stmt *stmt = NULL;
     int           step = 0;
@@ -197,6 +193,7 @@ QStringList DatabaseManager::getDictionaries()
 
 cleanup:
     sqlite3_finalize(stmt);
+    decrementReaders();
 
     return dictionaries;
 }
@@ -221,14 +218,11 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
 {
     if (m_db == nullptr)
         return "Database is invalid";
-    
-    /* Increment the reader count */
-    m_readerLock.lock();
-    ++m_readerCount;
-    if (m_readerCount == 1)
-        m_databaseLock.lock();
-    m_readerLock.unlock();
 
+    /* Try to acquire the database lock, early return if we can't */
+    if (!incrementReaders())
+        return "";
+    
     QString       ret;
     QByteArray    exp          = query.toUtf8();
     QByteArray    hiragana     = kataToHira(query).toUtf8();
@@ -261,7 +255,7 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
     /* Create a term for each entry */
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
-        Term *term = new Term;
+        Term *term       = new Term;
         term->expression = (const char *)sqlite3_column_text(stmt, COLUMN_EXPRESSION);
         term->reading    = (const char *)sqlite3_column_text(stmt, COLUMN_READING);
         if (addFrequencies(term))
@@ -281,28 +275,16 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
         goto error;
     }
 
-    /* Decrement reader count */
-    m_readerLock.lock();
-    --m_readerCount;
-    if (m_readerCount == 0)
-        m_databaseLock.unlock();
-    m_readerLock.unlock();
-
     /* Return results on success */
+    decrementReaders();
     sqlite3_finalize(stmt);
     terms.append(termList);
 
     return ret;
 
 error:
-    /* Decrement reader count */
-    m_readerLock.lock();
-    --m_readerCount;
-    if (m_readerCount == 0)
-        m_databaseLock.unlock();
-    m_readerLock.unlock();
-
     /* Free up memory on failure */
+    decrementReaders();
     sqlite3_finalize(stmt);
     for (Term *term : termList)
         delete term;
@@ -463,6 +445,10 @@ int DatabaseManager::buildCache()
     sqlite3_stmt *stmt = NULL;
     int           step = 0;
 
+    /* Empty the cache */
+    m_tagCache.clear();
+    m_dictionaryCache.clear();
+
     /* Build dictionary cache */
     if (sqlite3_prepare_v2(m_db, QUERY_DICTIONARY, -1, &stmt, NULL) != SQLITE_OK)
     {
@@ -526,19 +512,23 @@ cleanup:
 #undef COLUMN_NOTES
 #undef COLUMN_SCORE
 
-void DatabaseManager::invalidateCache()
+void inline DatabaseManager::validateCache(uint64_t id)
 {
-    m_tagCache.clear();
-    m_dictionaryCache.clear();
+    int limit = 100;
+    while (limit-- && !m_dictionaryCache.contains(id))
+        buildCache();
 }
 
 QString DatabaseManager::getDictionary(const uint64_t id)
 {
+    validateCache(id);
     return m_dictionaryCache[id];
 }
 
 void DatabaseManager::addTags(const uint64_t id, const QString &tagStr, QList<Tag> &tags)
 {
+    validateCache(id);
+
     QStringList tagList = tagStr.split(" ");
 
     for (const QString &tagName : tagList)
@@ -549,6 +539,32 @@ void DatabaseManager::addTags(const uint64_t id, const QString &tagStr, QList<Ta
             tags.append(tag);
         }
     }
+}
+
+bool DatabaseManager::incrementReaders()
+{
+    bool ret = true;
+
+    m_readerLock.lock();
+    if (m_readerCount == 0)
+    {
+        if (ret = m_databaseLock.tryLock())
+            goto cleanup;
+    }
+    ++m_readerCount;
+cleanup:
+    m_readerLock.unlock();
+
+    return ret;
+}
+
+void DatabaseManager::decrementReaders()
+{
+    m_readerLock.lock();
+    --m_readerCount;
+    if (m_readerCount == 0)
+        m_databaseLock.unlock();
+    m_readerLock.unlock();
 }
 
 QString DatabaseManager::kataToHira(const QString &query)

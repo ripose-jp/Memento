@@ -56,8 +56,11 @@ private:
     int addFrequencies(Term *term);
     void addTags(const uint64_t id, const QString &tagStr, QList<Tag> &tags);
 
-    void invalidateCache();
     int buildCache();
+    void inline validateCache(uint64_t id);
+
+    bool incrementReaders();
+    void decrementReaders();
 
     QString kataToHira(const QString &query);
     QStringList jsonArrayToStringList(const char *jsonstr);

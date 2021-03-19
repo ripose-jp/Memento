@@ -76,7 +76,7 @@ enum bank_type
 static int begin_transaction(sqlite3 *db)
 {
     char *errmsg = NULL;
-    sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, &errmsg);
+    sqlite3_exec(db, "BEGIN EXCLUSIVE TRANSACTION;", NULL, NULL, &errmsg);
     if (errmsg)
     {
         fprintf(stderr, "Could not begin transaction\nError: %s\n", errmsg);
@@ -1222,8 +1222,6 @@ static int add_dic_files(zip_t *dict_archive, sqlite3 *db, const sqlite3_int64 i
         }
 
         /* Iterate over all the outer arrays */
-        if (ret = begin_transaction(db))
-            goto cleanup;
         for (size_t i = 0; i < json_object_array_length(outer_arr); ++i)
         {
             /* Get the inner array which contains tag info */
@@ -1242,8 +1240,6 @@ static int add_dic_files(zip_t *dict_archive, sqlite3 *db, const sqlite3_int64 i
                 goto cleanup;
             }
         }
-        if (ret = commit_transaction(db))
-            goto cleanup;
 
         /* Prepare for the next iteration of the loop */
         snprintf(filename, FILENAME_BUFFER_SIZE, file_format, fileno++);
@@ -1330,6 +1326,8 @@ int yomi_process_dictionary(const char *dict_file, const char *db_file)
     }
 
     /* Process the index file */
+    if (ret = begin_transaction(db))
+        goto cleanup;
     if (add_index(dict_archive, db, &id))
     {
         ret = YOMI_ERR_ADDING_INDEX;
@@ -1372,6 +1370,7 @@ int yomi_process_dictionary(const char *dict_file, const char *db_file)
     }
 
 cleanup:
+    commit_transaction(db);
     zip_close(dict_archive);
     sqlite3_close_v2(db);
 
@@ -1398,6 +1397,8 @@ int yomi_delete_dictionary(const char *dict_name, const char *db_file)
     }
 
     /* Remove the dictionary from the index */
+    if (ret = begin_transaction(db))
+        goto cleanup;
     if (sqlite3_prepare_v2(db, "DELETE FROM directory WHERE (title = ?);", -1, &stmt, NULL) != SQLITE_OK)
     {
         ret = YOMI_ERR_DELETE;
@@ -1415,6 +1416,7 @@ int yomi_delete_dictionary(const char *dict_name, const char *db_file)
     }
 
 cleanup:
+    commit_transaction(db);
     sqlite3_finalize(stmt);
     sqlite3_close_v2(db);
 
