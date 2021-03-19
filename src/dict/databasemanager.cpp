@@ -514,9 +514,11 @@ cleanup:
 
 void inline DatabaseManager::validateCache(uint64_t id)
 {
+    m_validateCacheLock.lock();
     int limit = 100;
     while (!m_dictionaryCache.contains(id) && limit--)
         buildCache();
+    m_validateCacheLock.unlock();
 }
 
 QString DatabaseManager::getDictionary(const uint64_t id)

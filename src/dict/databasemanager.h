@@ -47,6 +47,7 @@ private:
     QMutex   m_databaseLock;
     QMutex   m_readerLock;
     uint32_t m_readerCount;
+    QMutex   m_validateCacheLock;
 
     QHash<const uint64_t, QString>             m_dictionaryCache;
     QHash<const uint64_t, QHash<QString, Tag>> m_tagCache;
