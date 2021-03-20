@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>79</height>
+    <height>76</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -41,14 +41,8 @@
            <pointsize>12</pointsize>
           </font>
          </property>
-         <property name="text">
-          <string>とどめる</string>
-         </property>
          <property name="alignment">
           <set>Qt::AlignBottom|Qt::AlignHCenter</set>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -72,14 +66,8 @@
            <kerning>true</kerning>
           </font>
          </property>
-         <property name="text">
-          <string>留める</string>
-         </property>
          <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
+          <set>Qt::AlignHCenter|Qt::AlignTop</set>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -95,7 +83,7 @@
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>40</width>
+         <width>0</width>
          <height>0</height>
         </size>
        </property>
@@ -104,7 +92,7 @@
      <item>
       <widget class="QLabel" name="labelJisho">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
