@@ -550,7 +550,7 @@ bool DatabaseManager::incrementReaders()
     m_readerLock.lock();
     if (m_readerCount == 0)
     {
-        if (ret = m_databaseLock.tryLock())
+        if (!(ret = m_databaseLock.tryLock()))
             goto cleanup;
     }
     ++m_readerCount;
