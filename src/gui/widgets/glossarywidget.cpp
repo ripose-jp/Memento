@@ -71,7 +71,7 @@ GlossaryWidget::GlossaryWidget(size_t number, const Definition &def, QWidget *pa
     for (QString def : m_def.glossary)
     {
         glos += "<li>";
-        glos += def.replace('\n', "<br>");
+        glos += def.replace('\n', "</li><li>");
         glos += "</li>";
     }
     glos += "</ul>";

@@ -783,10 +783,10 @@ QString AnkiClient::buildGlossary(const QList<Definition> &definitions)
         glossary += ")</i>";
 
         glossary += "<ul>";
-        for (const QString &glos : def.glossary)
+        for (QString glos : def.glossary)
         {
             glossary += "<li>";
-            glossary += glos;
+            glossary += glos.replace('\n', "</li><li>");
             glossary += "</li>";
         }
         glossary += "</ul>";
