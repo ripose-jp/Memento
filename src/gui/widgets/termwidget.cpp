@@ -39,6 +39,8 @@ TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent)
     m_ui->verticalLayout->addLayout(m_layoutTermTags);
     m_ui->verticalLayout->addLayout(m_layoutFreqTags);
     m_ui->verticalLayout->addLayout(m_layoutGlossary);
+    
+    m_ui->verticalLayout->addStretch();
 
     IconFactory *factory = IconFactory::create(this);
     m_ui->buttonAddCard->setIcon(factory->getIcon(IconFactory::Icon::plus));
