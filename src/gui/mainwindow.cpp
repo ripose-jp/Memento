@@ -487,6 +487,8 @@ void MainWindow::hideControls()
         m_definition && !m_definition->underMouse())
     {
         m_ui->controls->hide();
+        deleteDefinitionWidget();
+        Q_EMIT definitionHidden();
     }
 }
 
