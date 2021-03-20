@@ -494,7 +494,7 @@ void MainWindow::hideControls()
 
 void MainWindow::hidePlayerCursor()
 {
-    if (!m_ui->controls->underMouse() && m_definition && !m_definition->underMouse()) 
+    if (!m_ui->controls->underMouse() && (m_definition == nullptr || m_definition && !m_definition->underMouse())) 
     {
         m_ui->mpv->setCursor(Qt::BlankCursor);
     }
