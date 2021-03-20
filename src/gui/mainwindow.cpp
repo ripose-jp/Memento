@@ -483,8 +483,8 @@ void MainWindow::deleteDefinitionWidget()
 
 void MainWindow::hideControls()
 {
-    if (isFullScreen() && !m_ui->controls->underMouse() && 
-        m_definition && !m_definition->underMouse())
+    if (isFullScreen() && !m_ui->controls->underMouse() &&
+        (m_definition == nullptr || m_definition && !m_definition->underMouse()))
     {
         m_ui->controls->hide();
         deleteDefinitionWidget();
