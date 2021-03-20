@@ -25,9 +25,8 @@
 
 #include "../util/directoryutils.h"
 
-#define WORD_INDEX 6
-#define MECAB_QUERY_THREADS 3
-#define EXACT_QUERY_THREADS 3
+#define WORD_INDEX          6
+#define QUERIES_PER_THREAD  4
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #define MECAB_ARG ("-r " + DirectoryUtils::getDictionaryDir() + \
@@ -62,20 +61,13 @@ QList<Term *> *Dictionary::search(const QString &query,
 
     // Fork worker threads for exact queries
     QList<QThread *> threads;
-    size_t queriesPerThread = query.size() / EXACT_QUERY_THREADS + 1;
-    for (size_t i = 0; 
-         i < EXACT_QUERY_THREADS && queriesPerThread * i < query.size();
-         ++i)
+    for (QString str = query; !str.isEmpty(); str.chop(QUERIES_PER_THREAD))
     {
-        QString str = query;
-        str.chop(queriesPerThread * i);
+        int endSize = str.size() - QUERIES_PER_THREAD;
+        if (endSize < 0)
+            endSize = 0;
 
-        int endSize = str.size() - queriesPerThread;
-        endSize = endSize < 0 ? 0 : endSize;
-
-        QThread *worker =
-            new ExactWorker(str, endSize, subtitle, index, currentIndex,
-                            terms, m_db);
+        QThread *worker = new ExactWorker(str, endSize, subtitle, index, currentIndex, terms, m_db);
         
         worker->start();
         threads.append(worker);
@@ -85,19 +77,14 @@ QList<Term *> *Dictionary::search(const QString &query,
     QList<QPair<QString, QString>> queries = generateQueries(query);
     if (!queries.isEmpty())
     {
-        queriesPerThread = queries.size() / MECAB_QUERY_THREADS + 1;
-        for (size_t i = 0;
-             i < MECAB_QUERY_THREADS && 
-             queries.constBegin() + queriesPerThread * i < queries.constEnd();
-             ++i)
+        for (size_t i = 0; queries.constBegin() + i < queries.constEnd(); i += QUERIES_PER_THREAD)
         {
-            auto endIt = queries.constBegin() + queriesPerThread * (i + 1);
-            endIt = endIt < queries.constEnd() ? endIt : queries.constEnd();
+            auto endIt = queries.constBegin() + i + QUERIES_PER_THREAD;
+            if (endIt > queries.constEnd())
+                endIt = queries.constEnd();
 
             QThread *worker = 
-                new MeCabWorker(
-                    queries.constBegin() + queriesPerThread * i, endIt,
-                    subtitle, index, currentIndex, terms, m_db);
+                new MeCabWorker(queries.constBegin() + i, endIt, subtitle, index, currentIndex, terms, m_db);
             
             worker->start();
             threads.append(worker);
