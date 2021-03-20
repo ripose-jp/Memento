@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 Ripose
+// Copyright (c) 2021 Ripose
 //
 // This file is part of Memento.
 //
@@ -18,44 +18,36 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef TERMWIDGET_H
-#define TERMWIDGET_H
+#ifndef GLOSSARYWIDGET_H
+#define GLOSSARYWIDGET_H
 
 #include <QWidget>
 
 #include "flowlayout.h"
+#include <QLabel>
+#include <QCheckBox>
+
 #include "../../dict/expression.h"
-#include "../../anki/ankiclient.h"
 
-namespace Ui
-{
-    class TermWidget;
-}
-
-class TermWidget : public QWidget
+class GlossaryWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    TermWidget(const Term *term, AnkiClient *client, QWidget *parent = 0);
-    ~TermWidget();
+    GlossaryWidget(size_t number, const Definition &def, QWidget *parent = nullptr);
+    ~GlossaryWidget();
 
-    void setAddable(bool value);
-
-private Q_SLOTS:
-    void addNote();
+    void setCheckable(const bool value);
+    bool isChecked() const;
 
 private:
-    Ui::TermWidget *m_ui;
-    const Term     *m_term;
-    AnkiClient     *m_client;
+    const Definition &m_def;
 
-    FlowLayout  *m_layoutTermTags;
-    FlowLayout  *m_layoutFreqTags;
-    QVBoxLayout *m_layoutGlossary;
-
-    void setTerm(const Term &term);
-    QString generateJishoLink(const QString &word);
+    QVBoxLayout *m_parentLayout;
+    FlowLayout  *m_layoutHeader;
+    QCheckBox   *m_checkBoxAdd;
+    QLabel      *m_labelNumber;
+    QLabel      *m_labelGlossary;
 };
 
-#endif // TERMWIDGET_H
+#endif // GLOSSARYWIDGET_H

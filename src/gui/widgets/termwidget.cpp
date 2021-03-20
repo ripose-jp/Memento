@@ -22,6 +22,7 @@
 #include "ui_termwidget.h"
 
 #include "tagwidget.h"
+#include "glossarywidget.h"
 #include "../../util/iconfactory.h"
 
 #include <QMessageBox>
@@ -103,10 +104,10 @@ void TermWidget::setTerm(const Term &term)
         m_layoutTermTags->addWidget(tag);
     }
 
-    QLabel *label = new QLabel(this);
-    label->setWordWrap(true);
-    label->setText(buildDefinition(term.definitions));
-    m_layoutGlossary->addWidget(label);
+    for (size_t i = 0; i < term.definitions.size(); ++i)
+    {
+        m_layoutGlossary->addWidget(new GlossaryWidget(i + 1, term.definitions[i]));
+    }
 }
 
 QString TermWidget::generateJishoLink(const QString &word)
@@ -114,49 +115,30 @@ QString TermWidget::generateJishoLink(const QString &word)
     return QString("<a href=\"https://jisho.org/search/%1\">Jisho</a>").arg(word);
 }
 
-QString TermWidget::buildDefinition(const QList<Definition> &definitions)
-{
-    QString glossary;
-    glossary.append("<div style=\"text-align: left;\"><ol>");
-
-    for (const Definition &def : definitions)
-    {
-        glossary += "<li>";
-
-        glossary += "<i>(";
-        for (const Tag &tag : def.tags)
-        {
-            glossary += tag.name + ", ";
-        }
-        glossary += def.dictionary;
-        glossary += ")</i>";
-
-        glossary += "<ul>";
-        for (const QString &glos : def.glossary)
-        {
-            glossary += "<li>";
-            glossary += glos;
-            glossary += "</li>";
-        }
-        glossary += "</ul>";
-
-        glossary += "</li>";
-    }
-
-    glossary.append("</ol></div>");
-
-    return glossary;
-}
-
 void TermWidget::setAddable(bool value)
 {
     m_ui->buttonAddCard->setEnabled(value);
+    for (size_t i = 0; i < m_layoutGlossary->count(); ++i)
+        ((GlossaryWidget *)m_layoutGlossary->itemAt(i)->widget())->setCheckable(value);
 }
 
 void TermWidget::addNote()
 {
     m_ui->buttonAddCard->setEnabled(false);
-    AnkiReply *reply = m_client->addTerm(m_term);
+
+    Term term(*m_term);
+    term.definitions.clear();
+    for (size_t i = 0; i < m_layoutGlossary->count(); ++i)
+    {
+        GlossaryWidget *widget = (GlossaryWidget *)m_layoutGlossary->itemAt(i)->widget();
+        if (widget->isChecked())
+        {
+            term.definitions.append(Definition(m_term->definitions[i]));
+        }
+        widget->setCheckable(false);
+    }
+
+    AnkiReply *reply = m_client->addTerm(&term);
     connect(reply, &AnkiReply::finishedInt, this,
         [=] (const int id, const QString &error) {
             if (!error.isEmpty())

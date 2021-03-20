@@ -45,6 +45,7 @@ add_library(
     termwidget.cpp
     termwidget.ui
     tagwidget.cpp
+    glossarywidget.cpp
 )
 target_link_libraries(
     definitionwidget
