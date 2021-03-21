@@ -137,6 +137,7 @@ void SubtitleWidget::mouseDoubleClickEvent(QMouseEvent *event)
 void SubtitleWidget::leaveEvent(QEvent *event)
 {
     m_findDelay->stop();
+    m_currentIndex = -1;
 }
 
 void SubtitleWidget::deleteTerms(QList<Term *> *terms)
