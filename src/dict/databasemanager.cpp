@@ -348,7 +348,7 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
         def.onyomi     = QString((const char *)sqlite3_column_text(stmt, COLUMN_ONYOMI)).split(' ');
         def.kunyomi    = QString((const char *)sqlite3_column_text(stmt, COLUMN_KUNYOMI)).split(' ');
         def.glossary   = jsonArrayToStringList((const char *)sqlite3_column_text(stmt, COLUMN_MEANINGS));
-        def.stats      = QJsonDocument::fromJson((const char *)sqlite3_column_text(stmt, COLUMN_STATS)).toVariant();
+        def.stats      = QJsonDocument::fromJson((const char *)sqlite3_column_text(stmt, COLUMN_STATS)).toVariant().toMap();
         addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_TAGS), def.tags);
         kanji.definitions.append(def);
     }

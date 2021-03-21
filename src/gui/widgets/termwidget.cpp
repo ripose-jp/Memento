@@ -176,4 +176,5 @@ void TermWidget::searchKanji(const QString &ch)
     DatabaseManager *db = GlobalMediator::getGlobalMediator()->getDatabaseManager();
     Kanji kanji;
     db->queryKanji(ch, kanji);
+    Q_EMIT kanjiSearched(kanji);
 }

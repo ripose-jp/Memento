@@ -44,6 +44,7 @@ add_library(
     definitionwidget.ui
     termwidget.cpp
     termwidget.ui
+    kanjiwidget.cpp
     tagwidget.cpp
     glossarywidget.cpp
 )

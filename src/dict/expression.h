@@ -82,7 +82,7 @@ struct KanjiDefinition
     QStringList kunyomi;
     QStringList glossary;
     QList<Tag>  tags;
-    QVariant    stats;
+    QVariantMap stats;
 } typedef KanjiDefinition;
 
 struct Kanji

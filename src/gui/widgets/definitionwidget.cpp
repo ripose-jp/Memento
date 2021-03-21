@@ -42,6 +42,7 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, AnkiClient *clien
             m_ui->scrollAreaContents->layout()->addWidget(line);
 
         TermWidget *termWidget = new TermWidget(term, m_client, this);
+        connect(termWidget, &TermWidget::kanjiSearched, this, &DefinitionWidget::showKanji);
         m_termWidgets.append(termWidget);
         m_ui->scrollAreaContents->layout()->addWidget(termWidget);
 
@@ -82,6 +83,11 @@ void DefinitionWidget::setAddable(const QList<bool> &addable, const QString &err
         for (size_t i = 0; i < addable.size(); ++i)
         m_termWidgets[i]->setAddable(addable[i]);
     }
+}
+
+void DefinitionWidget::showKanji(const Kanji &kanji)
+{
+    
 }
 
 void DefinitionWidget::hideEvent(QHideEvent *event)

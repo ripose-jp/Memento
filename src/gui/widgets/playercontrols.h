@@ -54,7 +54,8 @@ private Q_SLOTS:
 
 private:
     Ui::PlayerControls *m_ui;
-    bool m_paused;
+    bool   m_paused;
+    bool   m_ignorePause;
     double m_duration;
     double m_startTime;
     double m_endTime;

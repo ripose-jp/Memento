@@ -44,7 +44,9 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     /* Slots */
-    connect(mediator,    &GlobalMediator::definitionsHidden,     this, &QLineEdit::deselect);
+    connect(mediator,    &GlobalMediator::definitionsHidden,     this, 
+        [=] { m_currentIndex = -1; deselect(); }
+    );
     connect(mediator,    &GlobalMediator::definitionsShown,      this, 
         [=] { setSelection(m_lastEmittedIndex, m_lastEmittedSize); }
     );

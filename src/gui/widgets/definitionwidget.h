@@ -26,6 +26,7 @@
 #include "../../dict/expression.h"
 #include "../../anki/ankiclient.h"
 #include "termwidget.h"
+#include "kanjiwidget.h"
 
 #include <QWheelEvent>
 
@@ -44,6 +45,7 @@ public:
 
 private Q_SLOTS:
     void setAddable(const QList<bool> &addable, const QString &error);
+    void showKanji(const Kanji &kanji);
 
 protected:
     void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;

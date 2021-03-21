@@ -61,6 +61,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     /* Slots */
     connect(mediator, &GlobalMediator::controlsPlay,              this, &PlayerAdapter::play);
     connect(mediator, &GlobalMediator::controlsPause,             this, &PlayerAdapter::pause);
+    connect(mediator, &GlobalMediator::controlsPositionChanged,   this, &PlayerAdapter::seek);
     connect(mediator, &GlobalMediator::controlsSkipForward,       this, &PlayerAdapter::skipForward);
     connect(mediator, &GlobalMediator::controlsSkipBackward,      this, &PlayerAdapter::skipBackward);
     connect(mediator, &GlobalMediator::controlsSeekForward,       this, &PlayerAdapter::seekForward);

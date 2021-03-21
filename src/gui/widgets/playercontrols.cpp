@@ -32,7 +32,9 @@
 
 PlayerControls::PlayerControls(QWidget *parent) 
     : QWidget(parent), 
-      m_ui(new Ui::PlayerControls)
+      m_ui(new Ui::PlayerControls),
+      m_ignorePause(false),
+      m_paused(true)
 {
     m_ui->setupUi(this);
 
@@ -47,15 +49,15 @@ PlayerControls::PlayerControls(QWidget *parent)
     /* Signals */
     connect(m_ui->sliderProgress, &QSlider::sliderPressed, this, 
         [=] {
-            blockSignals(true);
+            m_ignorePause = !m_paused;
             Q_EMIT mediator->controlsPause();
-            blockSignals(false);
         }
     );
     connect(m_ui->sliderProgress, &QSlider::sliderReleased, this, 
         [=] {
-            if (!m_paused)
+            if (m_ignorePause)
             {
+                m_ignorePause = false;
                 Q_EMIT mediator->controlsPlay();
             }
         }
@@ -120,14 +122,11 @@ void PlayerControls::setPosition(const double value)
 void PlayerControls::setPaused(const bool paused)
 {
     m_paused = paused;
-    m_ui->buttonPlay->setIcon(
-        m_iconFactory->getIcon(
-            m_paused ? IconFactory::Icon::play : IconFactory::Icon::pause));
+    m_ui->buttonPlay->setIcon(m_iconFactory->getIcon(m_paused ? IconFactory::Icon::play : IconFactory::Icon::pause));
 }
 
 void PlayerControls::pauseResume()
 {
-    
     if (m_paused)
     {
         Q_EMIT GlobalMediator::getGlobalMediator()->controlsPlay();
