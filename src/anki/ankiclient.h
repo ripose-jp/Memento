@@ -124,7 +124,7 @@ private:
 
     QJsonObject createAnkiNoteObject(const Term &term, const bool media = false);
 
-    QString buildGlossary(const QList<Definition> &definitions);
+    QString buildGlossary(const QList<TermDefinition> &definitions);
 
     QString generateMD5(const QString &filename);
 };

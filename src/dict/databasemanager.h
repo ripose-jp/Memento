@@ -38,6 +38,7 @@ public:
     QString errorCodeToString(const int code);
     QStringList getDictionaries();
     QString queryTerms(const QString &query, QList<Term *> &terms);
+    QString queryKanji(const QString &query, Kanji &kanji);
 
 private:
     sqlite3                *m_db;
@@ -53,8 +54,11 @@ private:
 
     int populateTerms(const QList<Term *> &terms);
     QString getDictionary(const uint64_t id);
-    int addFrequencies(Term *term);
     void addTags(const uint64_t id, const QString &tagStr, QList<Tag> &tags);
+
+    int addFrequencies(Term &term);
+    int addFrequencies(Kanji &kanji);
+    int addFrequencies(QList<Frequency> &freq, const QString &expression, const char *query);
 
     int buildCache();
 

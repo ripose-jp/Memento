@@ -44,6 +44,7 @@ public:
 
 private Q_SLOTS:
     void addNote();
+    void searchKanji(const QString &ch);
 
 private:
     Ui::TermWidget *m_ui;
@@ -55,7 +56,8 @@ private:
     QVBoxLayout *m_layoutGlossary;
 
     void setTerm(const Term &term);
-    QString generateJishoLink(const QString &word);
+    inline QString generateJishoLink(const QString &word);
+    inline bool isKanji(const QString &ch);
 };
 
 #endif // TERMWIDGET_H

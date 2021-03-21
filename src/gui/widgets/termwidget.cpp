@@ -25,6 +25,15 @@
 #include "glossarywidget.h"
 #include "../../util/iconfactory.h"
 #include "../../util/globalmediator.h"
+#include "../../dict/databasemanager.h"
+
+#define KANJI_UNICODE_LOWER_COMMON  "\u4e00"
+#define KANJI_UNICODE_UPPER_COMMON  "\u9faf"
+#define KANJI_UNICODE_LOWER_RARE    "\u3400"
+#define KANJI_UNICODE_UPPER_RARE    "\u4dbf"
+
+#define KANJI_STYLE_STRING      (QString("<style>a { color: black; border: 0; text-decoration: none; }</style>"))
+#define KANJI_FORMAT_STRING     (QString("<a href=\"%1\">%1</a>"))
 
 TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent) 
     : QWidget(parent), m_ui(new Ui::TermWidget), m_term(term), m_client(client)
@@ -48,7 +57,8 @@ TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent)
 
     setTerm(*term);
 
-    connect(m_ui->buttonAddCard, &QToolButton::clicked, this, &TermWidget::addNote);
+    connect(m_ui->buttonAddCard, &QToolButton::clicked,  this, &TermWidget::addNote);
+    connect(m_ui->labelKanji,    &QLabel::linkActivated, this, &TermWidget::searchKanji);
 }
 
 TermWidget::~TermWidget()
@@ -90,10 +100,15 @@ void TermWidget::setTerm(const Term &term)
         m_ui->labelKana->show();
     }
     m_ui->labelKana->setText(term.reading);
-    m_ui->labelKanji->setText(term.expression);
+    QString kanjiLabelText = KANJI_STYLE_STRING;
+    for (const QString &ch : term.expression)
+    {
+        kanjiLabelText += isKanji(ch) ? KANJI_FORMAT_STRING.arg(ch) : ch;
+    }
+    m_ui->labelKanji->setText(kanjiLabelText);
     m_ui->labelJisho->setText(generateJishoLink(term.expression));
 
-    for (const TermFrequency &freq : term.frequencies)
+    for (const Frequency &freq : term.frequencies)
     {
         TagWidget *tag = new TagWidget(freq, this);
         m_layoutFreqTags->addWidget(tag);
@@ -111,9 +126,15 @@ void TermWidget::setTerm(const Term &term)
     }
 }
 
-QString TermWidget::generateJishoLink(const QString &word)
+inline QString TermWidget::generateJishoLink(const QString &word)
 {
     return QString("<a href=\"https://jisho.org/search/%1\">Jisho</a>").arg(word);
+}
+
+inline bool TermWidget::isKanji(const QString &ch)
+{
+    return ch >= KANJI_UNICODE_LOWER_COMMON && ch <= KANJI_UNICODE_UPPER_COMMON ||
+           ch >= KANJI_UNICODE_LOWER_RARE   && ch <= KANJI_UNICODE_UPPER_RARE;
 }
 
 void TermWidget::setAddable(bool value)
@@ -134,7 +155,7 @@ void TermWidget::addNote()
         GlossaryWidget *widget = (GlossaryWidget *)m_layoutGlossary->itemAt(i)->widget();
         if (widget->isChecked())
         {
-            term.definitions.append(Definition(m_term->definitions[i]));
+            term.definitions.append(TermDefinition(m_term->definitions[i]));
         }
         widget->setCheckable(false);
     }
@@ -148,4 +169,11 @@ void TermWidget::addNote()
             }
         }
     );
+}
+
+void TermWidget::searchKanji(const QString &ch)
+{
+    DatabaseManager *db = GlobalMediator::getGlobalMediator()->getDatabaseManager();
+    Kanji kanji;
+    db->queryKanji(ch, kanji);
 }

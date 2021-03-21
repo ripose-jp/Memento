@@ -234,9 +234,7 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
     QList<Term *> termList;
 
     /* Query for all the different terms in the database */
-    if (sqlite3_prepare_v2(m_db,
-                           containsKata ? QUERY_WITH_KATAKANA : QUERY,
-                           -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_prepare_v2(m_db, containsKata ? QUERY_WITH_KATAKANA : QUERY, -1, &stmt, NULL) != SQLITE_OK)
     {
         ret = "Could not prepare database query";
         goto error;
@@ -260,7 +258,7 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
         Term *term       = new Term;
         term->expression = (const char *)sqlite3_column_text(stmt, COLUMN_EXPRESSION);
         term->reading    = (const char *)sqlite3_column_text(stmt, COLUMN_READING);
-        if (addFrequencies(term))
+        if (addFrequencies(*term))
             qDebug() << "Could not add frequencies for" << term->expression;
         termList.append(term);
     }
@@ -304,18 +302,108 @@ error:
 #undef COLUMN_EXPRESSION
 #undef COLUMN_READING
 
+#define QUERY   "SELECT dic_id, onyomi, kunyomi, tags, meanings, stats FROM kanji_bank "\
+                    "WHERE (char = ?);"
+
+#define COLUMN_DIC_ID       0
+#define COLUMN_ONYOMI       1
+#define COLUMN_KUNYOMI      2
+#define COLUMN_TAGS         3
+#define COLUMN_MEANINGS     4
+#define COLUMN_STATS        5
+
+QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
+{
+    if (m_db == nullptr)
+        return "Database is invalid";
+
+    /* Try to acquire the database lock, early return if we can't */
+    if (!incrementReaders())
+        return "";
+    
+    QString       ret;
+    QByteArray    ch   = query.toUtf8();
+    sqlite3_stmt *stmt = NULL;
+    int           step = 0;
+
+    kanji.character = query;
+    addFrequencies(kanji);
+
+    /* Query for the database for the definitions */
+    if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+    {
+        ret = "Could not prepare database query";
+        goto cleanup;
+    }
+    if (sqlite3_bind_text(stmt, 1, ch, -1, NULL) != SQLITE_OK)
+    {
+        ret = "Could not bind values to statement";
+        goto cleanup;
+    }
+    while ((step = sqlite3_step(stmt)) != SQLITE_DONE)
+    {
+        uint64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
+        KanjiDefinition def;
+        def.dictionary = getDictionary(id);
+        def.onyomi     = QString((const char *)sqlite3_column_text(stmt, COLUMN_ONYOMI)).split(' ');
+        def.kunyomi    = QString((const char *)sqlite3_column_text(stmt, COLUMN_KUNYOMI)).split(' ');
+        def.glossary   = jsonArrayToStringList((const char *)sqlite3_column_text(stmt, COLUMN_MEANINGS));
+        def.stats      = QJsonDocument::fromJson((const char *)sqlite3_column_text(stmt, COLUMN_STATS)).toVariant();
+        addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_TAGS), def.tags);
+        kanji.definitions.append(def);
+    }
+    if (isStepError(step))
+    {
+        ret = "Error while executing kanji query";
+        goto cleanup;
+    }
+    
+cleanup:
+    decrementReaders();
+    sqlite3_finalize(stmt);
+    
+    return ret;
+}
+
+#undef QUERY
+
+#undef COLUMN_DIC_ID
+#undef COLUMN_ONYOMI
+#undef COLUMN_KUNYOMI
+#undef COLUMN_TAGS
+#undef COLUMN_MEANINGS
+#undef COLUMN_STATS
+
 #define QUERY   "SELECT dic_id, data "\
                     "FROM term_meta_bank "\
                     "WHERE (expression = ? AND mode = 'freq');"
 
-int DatabaseManager::addFrequencies(Term *term)
+int DatabaseManager::addFrequencies(Term &term)
+{
+    return addFrequencies(term.frequencies, term.expression, QUERY);
+}
+
+#undef QUERY
+
+#define QUERY   "SELECT dic_id, data "\
+                    "FROM kanji_meta_bank "\
+                    "WHERE (expression = ? AND mode = 'freq');"
+
+int DatabaseManager::addFrequencies(Kanji &kanji)
+{
+    return addFrequencies(kanji.frequencies, kanji.character, QUERY);
+}
+
+#undef QUERY
+
+int DatabaseManager::addFrequencies(QList<Frequency> &freq, const QString &expression, const char *query)
 {
     int           ret  = 0;
     sqlite3_stmt *stmt = NULL;
     int           step = 0;
-    QByteArray    exp  = term->expression.toUtf8();
+    QByteArray    exp  = expression.toUtf8();
 
-    if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_prepare_v2(m_db, query, -1, &stmt, NULL) != SQLITE_OK)
     {
         qDebug() << "Could not prepare frequency query";
         ret = -1;
@@ -329,7 +417,7 @@ int DatabaseManager::addFrequencies(Term *term)
     }
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
-        term->frequencies.append(TermFrequency {
+        freq.append(Frequency {
             getDictionary(sqlite3_column_int64(stmt, 0)),
             *(const uint64_t *)sqlite3_column_blob(stmt, 1)
         });
@@ -346,8 +434,6 @@ cleanup:
 
     return ret;
 }
-
-#undef QUERY
 
 #define QUERY   "SELECT dic_id, score, def_tags, glossary, rules, term_tags "\
                     "FROM term_bank "\
@@ -396,7 +482,7 @@ int DatabaseManager::populateTerms(const QList<Term *> &terms)
 
             addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_TERM_TAGS), term->tags);
 
-            Definition def;
+            TermDefinition def;
             def.dictionary = getDictionary(id);
             addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_DEF_TAGS), def.tags);
             addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_RULES), def.rules);
@@ -576,10 +662,10 @@ QStringList DatabaseManager::jsonArrayToStringList(const char *jsonstr)
     QJsonArray    array    = document.array();
     QStringList   list;
 
-    for (auto it = array.constBegin(); it != array.constEnd(); ++it)
+    for (const QJsonValue &val : array)
     {
-        if (it->isString())
-            list.append(it->toString());
+        if (val.isString())
+            list.append(val.toString());
     }
 
     return list;

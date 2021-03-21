@@ -23,6 +23,7 @@
 
 #include <QString>
 #include <QStringList>
+#include <QVariant>
 
 struct Tag
 {
@@ -42,19 +43,19 @@ struct Tag
     }
 } typedef Tag;
 
-struct TermFrequency
+struct Frequency
 {
     QString         dictionary;
     uint64_t        freq;
-} typedef TermFrequency;
+} typedef Frequency;
 
-struct Definition
+struct TermDefinition
 {
     QString     dictionary;
     QList<Tag>  tags;
     QList<Tag>  rules;
     QStringList glossary;
-} typedef Definition;
+} typedef TermDefinition;
 
 struct Term
 {
@@ -63,8 +64,8 @@ struct Term
     QString                 expression;
     QString                 reading;
     QList<Tag>              tags;
-    QList<Definition>       definitions;
-    QList<TermFrequency>    frequencies;
+    QList<TermDefinition>   definitions;
+    QList<Frequency>        frequencies;
     int                     score;
 
     /* Cloze values will be set outside of database manager */
@@ -73,5 +74,22 @@ struct Term
     QString                 clozePrefix;
     QString                 clozeSuffix;
 } typedef Term;
+
+struct KanjiDefinition
+{
+    QString     dictionary;
+    QStringList onyomi;
+    QStringList kunyomi;
+    QStringList glossary;
+    QList<Tag>  tags;
+    QVariant    stats;
+} typedef KanjiDefinition;
+
+struct Kanji
+{
+    QString                character;
+    QList<KanjiDefinition> definitions;
+    QList<Frequency>       frequencies;
+} typedef Kanji;
 
 #endif // EXPRESSION_H

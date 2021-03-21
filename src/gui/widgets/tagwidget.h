@@ -31,7 +31,7 @@ class TagWidget : public QLabel
 
 public:
     TagWidget(const Tag &tag, QWidget *parent = 0);
-    TagWidget(const TermFrequency &freq, QWidget *parent = 0);
+    TagWidget(const Frequency &freq, QWidget *parent = 0);
     TagWidget(const QString &dicName, QWidget *parent = 0);
 
 private:

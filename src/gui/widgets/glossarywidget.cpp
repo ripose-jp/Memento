@@ -32,7 +32,7 @@
                                         "color: black;"\
                                         "font-size: 11pt;"))
 
-GlossaryWidget::GlossaryWidget(size_t number, const Definition &def, QWidget *parent) : QWidget(parent), m_def(def)
+GlossaryWidget::GlossaryWidget(size_t number, const TermDefinition &def, QWidget *parent) : QWidget(parent), m_def(def)
 {
     m_parentLayout  = new QVBoxLayout(this);
     m_layoutHeader  = new FlowLayout;

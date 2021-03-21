@@ -766,12 +766,12 @@ QString AnkiClient::generateMD5(const QString &filename)
     return "";
 }
 
-QString AnkiClient::buildGlossary(const QList<Definition> &definitions)
+QString AnkiClient::buildGlossary(const QList<TermDefinition> &definitions)
 {
     QString glossary;
     glossary.append("<div style=\"text-align: left;\"><ol>");
 
-    for (const Definition &def : definitions)
+    for (const TermDefinition &def : definitions)
     {
         glossary += "<li>";
 

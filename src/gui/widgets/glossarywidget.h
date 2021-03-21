@@ -34,14 +34,14 @@ class GlossaryWidget : public QWidget
     Q_OBJECT
 
 public:
-    GlossaryWidget(size_t number, const Definition &def, QWidget *parent = nullptr);
+    GlossaryWidget(size_t number, const TermDefinition &def, QWidget *parent = nullptr);
     ~GlossaryWidget();
 
     void setCheckable(const bool value);
     bool isChecked() const;
 
 private:
-    const Definition &m_def;
+    const TermDefinition &m_def;
 
     QVBoxLayout *m_parentLayout;
     FlowLayout  *m_layoutHeader;

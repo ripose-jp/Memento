@@ -84,7 +84,7 @@ TagWidget::TagWidget(const Tag &tag, QWidget *parent) : TagWidget(parent)
     setText(tag.name);
 }
 
-TagWidget::TagWidget(const TermFrequency &freq, QWidget *parent) : TagWidget(parent)
+TagWidget::TagWidget(const Frequency &freq, QWidget *parent) : TagWidget(parent)
 {
     setStyleSheet(STYLE_FORMAT.arg(colors[frequency]));
     setText(FREQ_FORMAT.arg(freq.dictionary).arg(freq.freq));
