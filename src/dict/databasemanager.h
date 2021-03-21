@@ -47,7 +47,6 @@ private:
     QMutex   m_databaseLock;
     QMutex   m_readerLock;
     uint32_t m_readerCount;
-    QMutex   m_validateCacheLock;
 
     QHash<const uint64_t, QString>             m_dictionaryCache;
     QHash<const uint64_t, QHash<QString, Tag>> m_tagCache;
@@ -58,7 +57,6 @@ private:
     void addTags(const uint64_t id, const QString &tagStr, QList<Tag> &tags);
 
     int buildCache();
-    void inline validateCache(uint64_t id);
 
     bool incrementReaders();
     void decrementReaders();

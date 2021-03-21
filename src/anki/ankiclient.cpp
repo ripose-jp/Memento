@@ -21,10 +21,13 @@
 #include "ankiclient.h"
 
 #include "../util/directoryutils.h"
+#include "../util/globalmediator.h"
 extern "C"
 {
 #include "../ffmpeg/transcode_aac.h"
 }
+#include "../gui/playeradapter.h"
+#include "../gui/widgets/subtitlelistwidget.h"
 
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
@@ -97,12 +100,8 @@ extern "C"
 #define CONFIG_MODEL "model"
 #define CONFIG_FIELDS "fields"
 
-AnkiClient::AnkiClient(QObject *parent,
-                       PlayerAdapter *player,
-                       SubtitleListWidget *list)
+AnkiClient::AnkiClient(QObject *parent)
     : QObject(parent),
-      m_player(player),
-      m_list(list),
       m_configs(new QHash<QString, const AnkiConfig *>),
       m_currentConfig(0),
       m_enabled(false)
@@ -389,7 +388,7 @@ void AnkiClient::setEnabled(const bool value)
 void AnkiClient::writeChanges()
 {
     writeConfigToFile(CONFIG_FILE);
-    Q_EMIT settingsChanged();
+    Q_EMIT GlobalMediator::getGlobalMediator()->ankiSettingsChanged();
 }
 
 AnkiReply *AnkiClient::testConnection()
@@ -616,7 +615,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term,
         value = value.replace(REPLACE_CLOZE_BODY, term.clozeBody);
         value = value.replace(REPLACE_CLOZE_PREFIX, term.clozePrefix);
         value = value.replace(REPLACE_CLOZE_SUFFIX, term.clozeSuffix);
-        value = value.replace(REPLACE_CONTEXT, m_list->getContext());
+        value = value.replace(REPLACE_CONTEXT, GlobalMediator::getGlobalMediator()->getSubtitleListWidget()->getContext());
         value = value.replace(REPLACE_EXPRESSION, term.expression);
         value = value.replace(REPLACE_ALT_EXPRESSION, "");
         value = value.replace(REPLACE_FURIGANA, furigana);
@@ -665,11 +664,13 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term,
 
                 audObj[ANKI_NOTE_PATH] = path;
 
+                PlayerAdapter *player = GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+
                 int ret = transcode_aac(
-                    m_player->getPath().toLocal8Bit(), path.toLocal8Bit(), 
-                    m_player->getAudioTrack() - 1,
-                    m_player->getSubStart() + m_player->getSubDelay() - m_player->getAudioDelay(),
-                    m_player->getSubEnd() + m_player->getSubDelay() - m_player->getAudioDelay()
+                    player->getPath().toLocal8Bit(), path.toLocal8Bit(), 
+                    player->getAudioTrack() - 1,
+                    player->getSubStart() + player->getSubDelay() - player->getAudioDelay(),
+                    player->getSubEnd()   + player->getSubDelay() - player->getAudioDelay()
                 );
 
                 QString filename = generateMD5(path) + ".aac";
@@ -708,7 +709,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term,
         if (!fieldsWithScreenshot.isEmpty())
         {
             QJsonObject image;
-            QString path = m_player->tempScreenshot(true, imageExt);
+            QString path = GlobalMediator::getGlobalMediator()->getPlayerAdapter()->tempScreenshot(true, imageExt);
             image[ANKI_NOTE_PATH] = path;
 
             QString filename = generateMD5(path) + imageExt;
@@ -725,7 +726,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term,
         if (!fieldWithScreenshotVideo.isEmpty())
         {
             QJsonObject image;
-            QString path = m_player->tempScreenshot(false, imageExt);
+            QString path = GlobalMediator::getGlobalMediator()->getPlayerAdapter()->tempScreenshot(false, imageExt);
             image[ANKI_NOTE_PATH] = path;
 
             QString filename = generateMD5(path) + imageExt;

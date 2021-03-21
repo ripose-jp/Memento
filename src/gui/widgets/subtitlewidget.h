@@ -36,13 +36,6 @@ public:
     SubtitleWidget(QWidget *parent = 0);
     ~SubtitleWidget();
 
-public Q_SLOTS:
-    void updateText(const QString &text);
-    void deselectText();
-
-Q_SIGNALS:
-    void termsChanged(const QList<Term *> *terms);
-
 protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
@@ -50,12 +43,22 @@ protected:
 
 private Q_SLOTS:
     void findTerms();
+    void postitionChanged(const double value);
+    void setSubtitle(QString subtitle,
+                     const double start,
+                     const double end,
+                     const double delay);
 
 private:
     Dictionary *m_dictionary;
-    int m_currentIndex;
-    QTimer *m_findDelay;
-    QString m_rawText;
+    int         m_currentIndex;
+    int         m_lastEmittedIndex;
+    int         m_lastEmittedSize;
+    QTimer     *m_findDelay;
+
+    QString     m_rawText;
+    double      m_startTime;
+    double      m_endTime;
 
     void deleteTerms(QList<Term *> *terms);
 };

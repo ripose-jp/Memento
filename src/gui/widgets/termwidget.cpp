@@ -24,8 +24,7 @@
 #include "tagwidget.h"
 #include "glossarywidget.h"
 #include "../../util/iconfactory.h"
-
-#include <QMessageBox>
+#include "../../util/globalmediator.h"
 
 TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent) 
     : QWidget(parent), m_ui(new Ui::TermWidget), m_term(term), m_client(client)
@@ -145,8 +144,7 @@ void TermWidget::addNote()
         [=] (const int id, const QString &error) {
             if (!error.isEmpty())
             {
-                QMessageBox messageBox;
-                messageBox.critical(0,"Error", error);
+                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical("Error", error);
             }
         }
     );

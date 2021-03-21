@@ -46,7 +46,9 @@ private Q_SLOTS:
     void setAddable(const QList<bool> &addable, const QString &error);
 
 protected:
-    // Prevents these events from being sent to mpv when widget has focus
+    void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
+    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+    /* Prevents these events from being sent to mpv when widget has focus */
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE 
         { event->accept(); }
     void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE 

@@ -1,5 +1,20 @@
-add_library(directoryutils directoryutils.cpp)
-target_link_libraries(directoryutils Qt::Core)
+add_library(
+    directoryutils
+    directoryutils.cpp
+)
+target_link_libraries(
+    directoryutils
+    Qt::Core
+)
+
+add_library(
+    globalmediator
+    globalmediator.cpp
+)
+target_link_libraries(
+    globalmediator
+    Qt::Core
+)
 
 add_library(
     iconfactory 

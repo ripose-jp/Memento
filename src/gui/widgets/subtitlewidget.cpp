@@ -21,14 +21,16 @@
 #include "subtitlewidget.h"
 
 #include "../../util/directoryutils.h"
+#include "../../util/globalmediator.h"
 
 #include <QApplication>
 #include <QClipboard>
 #include <QThreadPool>
 #include <QDebug>
 
-#define TIMER_DELAY 250
-#define MAX_QUERY_LENGTH 37
+#define TIMER_DELAY         250
+#define MAX_QUERY_LENGTH    37
+#define DOUBLE_DELTA        0.05
 
 SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
                                                   m_dictionary(new Dictionary),
@@ -38,7 +40,18 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
     setStyleSheet("QLineEdit { color : white; background-color : black; }");
 
     m_findDelay->setSingleShot(true);
-    connect(m_findDelay, &QTimer::timeout, this, &SubtitleWidget::findTerms);
+
+    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+
+    /* Slots */
+    connect(mediator,    &GlobalMediator::definitionsHidden,     this, &QLineEdit::deselect);
+    connect(mediator,    &GlobalMediator::definitionsShown,      this, 
+        [=] { setSelection(m_lastEmittedIndex, m_lastEmittedSize); }
+    );
+    connect(mediator,    &GlobalMediator::playerSubtitleChanged, this, &SubtitleWidget::setSubtitle);
+    connect(mediator,    &GlobalMediator::playerPositionChanged, this, &SubtitleWidget::postitionChanged);
+    connect(m_findDelay, &QTimer::timeout,                       this, &SubtitleWidget::findTerms);
+
     setAlignment(Qt::AlignCenter);
 }
 
@@ -47,17 +60,26 @@ SubtitleWidget::~SubtitleWidget()
     delete m_findDelay;
 }
 
-void SubtitleWidget::updateText(const QString &text)
+void SubtitleWidget::setSubtitle(QString subtitle,
+                                 const double start, 
+                                 const double end,
+                                 const double delay)
 {
-    m_rawText = text;
-    setText(m_rawText.replace(QChar::fromLatin1('\n'), "/"));
+    m_rawText = subtitle;
+    setText(subtitle.replace(QChar::fromLatin1('\n'), "/"));
+    m_startTime = start + delay;
+    m_endTime = end + delay;
     m_currentIndex = -1;
 }
 
-void SubtitleWidget::deselectText()
+void SubtitleWidget::postitionChanged(const double value)
 {
-    m_currentIndex = -1;
-    deselect();
+    if (value < m_startTime - DOUBLE_DELTA || value > m_endTime + DOUBLE_DELTA)
+    {
+        clear();
+        m_currentIndex = -1;
+        Q_EMIT GlobalMediator::getGlobalMediator()->subtitleExpired();
+    }
 }
 
 void SubtitleWidget::findTerms()
@@ -87,8 +109,9 @@ void SubtitleWidget::findTerms()
             }
             else
             {
-                setSelection(index, terms->first()->clozeBody.size());
-                Q_EMIT termsChanged(terms);
+                Q_EMIT GlobalMediator::getGlobalMediator()->termsChanged(terms);
+                m_lastEmittedIndex = index;
+                m_lastEmittedSize  = terms->first()->clozeBody.size();
             }
         }
     });

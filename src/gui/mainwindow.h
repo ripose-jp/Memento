@@ -21,6 +21,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "../util/globalmediator.h"
 #include "playeradapter.h"
 #include "widgets/definitionwidget.h"
 #include "widgets/ankisettings.h"
@@ -53,19 +54,12 @@ public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-Q_SIGNALS:
-    void keyPressed(const QKeyEvent *event);
-    void wheelMoved(const QWheelEvent *event);
-    void threadError(const QString& title, const QString &error) const;
-    void threadInfo(const QString& title, const QString &error) const;
-    void definitionHidden() const;
-
 public Q_SLOTS:
     void setFullscreen(bool value);
 
 private Q_SLOTS:
     void open();
-    void setTracks(QList<const PlayerAdapter::Track *> tracks);
+    void setTracks(QList<const Track *> tracks);
     void setTerms(const QList<Term *> *terms);
     void updateAnkiProfileMenu();
     void setDefinitionWidgetLocation();
@@ -73,7 +67,7 @@ private Q_SLOTS:
     void hideControls();
     void hidePlayerCursor();
     void showErrorMessage(const QString& title, const QString &error) const;
-    void showInfoMessage(const QString& title, const QString &error) const;
+    void showInfoMessage (const QString& title, const QString &error) const;
 
 protected:
     void showEvent(QShowEvent *event) override;
@@ -86,22 +80,22 @@ protected:
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
 
 private:
-    Ui::MainWindow *m_ui;
+    Ui::MainWindow   *m_ui;
 
-    PlayerAdapter *m_player;
+    GlobalMediator   *m_mediator;
+    PlayerAdapter    *m_player;
     DefinitionWidget *m_definition;
-
-    AnkiSettings *m_ankiSettings;
-    AnkiClient *m_ankiClient;
+    AnkiSettings     *m_ankiSettings;
+    AnkiClient       *m_ankiClient;
 
     QActionGroup *m_actionGroupAudio;
-    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_audioTracks;
+    QList<QPair<QAction *, const Track *>> m_audioTracks;
     QActionGroup *m_actionGroupVideo;
-    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_videoTracks;
+    QList<QPair<QAction *, const Track *>> m_videoTracks;
     QActionGroup *m_actionGroupSubtitle;
-    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_subtitleTracks;
+    QList<QPair<QAction *, const Track *>> m_subtitleTracks;
     QActionGroup *m_actionGroupSubtitleTwo;
-    QList<QPair<QAction *, const PlayerAdapter::Track *>> m_subtitleTwoTracks;
+    QList<QPair<QAction *, const Track *>> m_subtitleTwoTracks;
 
     QActionGroup *m_actionGroupAnkiProfile;
     QList<QAction *> m_ankiProfiles;
@@ -112,7 +106,7 @@ private:
 
     void clearTracks();
     void clearTrack(
-        QList<QPair<QAction *, const PlayerAdapter::Track *>> &tracks, 
+        QList<QPair<QAction *, const Track *>> &tracks, 
         QMenu *menu,
         QActionGroup *actionGroup,
         QAction *actionDisable
@@ -120,17 +114,7 @@ private:
     void addDictionary();
     void checkForUpdates();
 
-    class DatabaseUpdaterThread : public QRunnable
-    {
-    public:
-        DatabaseUpdaterThread(MainWindow *parent, const QString &path)
-            : m_parent(parent), m_path(path) {}
-        void run() override;
-
-    private:
-        const MainWindow *m_parent;
-        const QString m_path;
-    };
+    inline bool isMouseOverPlayer();
 };
 
 #endif // MAINWINDOW_H

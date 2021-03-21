@@ -25,6 +25,27 @@
 #include <QKeyEvent>
 #include <QWheelEvent>
 
+struct Track
+    {
+    enum track_type
+        {
+        audio,
+        video,
+        subtitle
+    };
+    int64_t id;
+    track_type type;
+    int64_t src_id;
+    QString title;
+    QString lang;
+    bool albumart;
+    bool def;
+    bool selected;
+    bool external;
+    QString external_filename;
+    QString codec;
+} typedef Track;
+
 class PlayerAdapter : public QObject
 {
     Q_OBJECT
@@ -32,27 +53,6 @@ class PlayerAdapter : public QObject
 public:
     using QObject::QObject;
     virtual ~PlayerAdapter() {}
-
-    struct Track
-    {
-        enum track_type
-        {
-            audio,
-            video,
-            subtitle
-        };
-        int64_t id;
-        track_type type;
-        int64_t src_id;
-        QString title;
-        QString lang;
-        bool albumart;
-        bool def;
-        bool selected;
-        bool external;
-        QString external_filename;
-        QString codec;
-    } typedef Track;
 
     virtual int64_t getMaxVolume() const = 0;
 
@@ -62,11 +62,13 @@ public:
 
     virtual double getAudioDelay() const = 0;
 
-    virtual QList<const PlayerAdapter::Track *> getTracks() = 0;
+    virtual QList<const Track *> getTracks() = 0;
     virtual int64_t getAudioTrack() const = 0;
     virtual int64_t getSubtitleTrack() const = 0;
 
     virtual QString getPath() const = 0;
+
+    virtual bool isFullScreen() const = 0;
 
 public Q_SLOTS:
     virtual void open(const QString &file, const bool append = false) = 0;
@@ -103,34 +105,6 @@ public Q_SLOTS:
 
     virtual void keyPressed(const QKeyEvent *event) = 0;
     virtual void mouseWheelMoved(const QWheelEvent *event) = 0;
-
-Q_SIGNALS:
-    void audioTrackChanged(const int64_t id);
-    void videoTrackChanged(const int64_t id);
-    void subtitleTrackChanged(const int64_t id);
-    void subtitleTwoTrackChanged(const int64_t id);
-
-    void audioDisabled();
-    void videoDisabled();
-    void subtitleDisabled();
-    void subtitleTwoDisabled();
-
-    void subtitleChanged(const QString &subtitle,
-                         const double start,
-                         const double end,
-                         const double delay);
-
-    void durationChanged(const double value);
-    void positionChanged(const double value);
-    void stateChanged(const bool paused);
-    void fullscreenChanged(const bool full);
-    void volumeChanged(const int64_t value);
-    void tracksChanged(QList<const PlayerAdapter::Track *> tracks);
-    void titleChanged(const QString &name);
-    void fileChanged(const QString &path);
-
-    void hideCursor();
-    void close();
 };
 
 #endif // PLAYERADAPTER_H

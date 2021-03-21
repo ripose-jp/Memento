@@ -30,8 +30,6 @@
 #include "ankiconfig.h"
 
 #include "../dict/expression.h"
-#include "../gui/playeradapter.h"
-#include "../gui/widgets/subtitlelistwidget.h"
 
 #define REPLACE_AUDIO "{audio}"
 #define REPLACE_AUDIO_MEDIA "{audio-media}"
@@ -73,17 +71,19 @@ class AnkiClient : public QObject
     Q_OBJECT
 
 public:
-    AnkiClient(QObject *parent, PlayerAdapter *player, SubtitleListWidget *list);
+    AnkiClient(QObject *parent = nullptr);
     ~AnkiClient();
     
     void setServer(const QString &address, const QString &port);
 
-    QString getProfile() const;
+    QString     getProfile() const;
     QStringList getProfiles() const;
-    const AnkiConfig *getConfig(const QString &profile) const;
-    QHash<QString, AnkiConfig *> *getConfigs() const;
-    bool setProfile(const QString &profile);
-    void addProfile(const QString &profile, const AnkiConfig &config);
+    bool        setProfile(const QString &profile);
+    void        addProfile(const QString &profile, const AnkiConfig &config);
+
+    const AnkiConfig             *getConfig(const QString &profile) const;
+    QHash<QString, AnkiConfig *> *getConfigs()                      const;
+    
     void clearProfiles();
 
     bool isEnabled() const;
@@ -95,8 +95,8 @@ public:
     AnkiReply *getDeckNames();
     AnkiReply *getModelNames();
     AnkiReply *getFieldNames(const QString &model);
-    AnkiReply *termsAddable(const QList<Term *> *terms);
-    AnkiReply *addTerm(const Term *term);
+    AnkiReply *termsAddable (const QList<Term *> *terms);
+    AnkiReply *addTerm      (const Term *term);
 
 Q_SIGNALS:
     void settingsChanged() const;
@@ -111,20 +111,21 @@ private:
     QString m_address;
     QString m_port;
 
-    PlayerAdapter *m_player;
-    SubtitleListWidget *m_list;
-
     QNetworkAccessManager *m_manager;
     
     void readConfigFromFile(const QString &filename);
-    bool writeConfigToFile(const QString &filename);
-    QNetworkReply *makeRequest(const QString &action,
-                               const QJsonObject &params = QJsonObject());
+    bool writeConfigToFile (const QString &filename);
+
+    QNetworkReply *makeRequest(const QString &action, const QJsonObject &params = QJsonObject());
+
     QJsonObject processReply(QNetworkReply *reply, QString &error);
+
     AnkiReply *requestStringList(const QString &action, const QJsonObject &params = QJsonObject());
-    QJsonObject createAnkiNoteObject(const Term &term,
-                                     const bool media = false);
+
+    QJsonObject createAnkiNoteObject(const Term &term, const bool media = false);
+
     QString buildGlossary(const QList<Definition> &definitions);
+
     QString generateMD5(const QString &filename);
 };
 

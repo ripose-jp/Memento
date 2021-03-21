@@ -20,52 +20,55 @@
 
 #include "mpvadapter.h"
 
+#include "../util/globalmediator.h"
+
 #include <QDebug>
 #include <QTemporaryFile>
 
 MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     : m_mpv(mpv), m_handle(mpv->get_handle()), PlayerAdapter(parent)
 {
-    connect(m_mpv, &MpvWidget::tracklistChanged, [=] (const mpv_node *node) {
-        Q_EMIT tracksChanged(processTracks(node));
-    });
-    connect(m_mpv, &MpvWidget::audioTrackChanged, 
-        this, &MpvAdapter::audioTrackChanged);
-    connect(m_mpv, &MpvWidget::videoTrackChanged, 
-        this, &MpvAdapter::videoTrackChanged);
-    connect(m_mpv, &MpvWidget::subtitleTrackChanged,
-        this, &MpvAdapter::subtitleTrackChanged);
-    connect(m_mpv, &MpvWidget::subtitleTwoTrackChanged,
-        this, &MpvAdapter::subtitleTwoTrackChanged);
+    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+    connect(m_mpv, &MpvWidget::tracklistChanged, this, 
+        [=] (const mpv_node *node) {
+            Q_EMIT mediator->playerTracksChanged(processTracks(node));
+        }
+    );
 
-    connect(m_mpv, &MpvWidget::audioDisabled,
-        this, &MpvAdapter::audioDisabled);
-    connect(m_mpv, &MpvWidget::videoDisabled,
-        this, &MpvAdapter::videoDisabled);
-    connect(m_mpv, &MpvWidget::subtitleDisabled,
-        this, &MpvAdapter::subtitleDisabled);
-    connect(m_mpv, &MpvWidget::subtitleTwoDisabled,
-        this, &MpvAdapter::subtitleTwoDisabled);
+    /* Signals */
+    connect(m_mpv, &MpvWidget::audioTrackChanged,       mediator, &GlobalMediator::playerAudioTrackChanged);
+    connect(m_mpv, &MpvWidget::videoTrackChanged,       mediator, &GlobalMediator::playerVideoTrackChanged);
+    connect(m_mpv, &MpvWidget::subtitleTrackChanged,    mediator, &GlobalMediator::playerSubtitleTrackChanged);
+    connect(m_mpv, &MpvWidget::subtitleTwoTrackChanged, mediator, &GlobalMediator::playerSecondSubtitleTrackChanged);
 
-    connect(m_mpv, &MpvWidget::subtitleChanged,
-        this, &MpvAdapter::subtitleChanged);
-    connect(m_mpv, &MpvWidget::durationChanged,
-        this, &MpvAdapter::durationChanged);
-    connect(m_mpv, &MpvWidget::positionChanged,
-        this, &MpvAdapter::positionChanged);
-    connect(m_mpv, &MpvWidget::stateChanged,
-        this, &MpvAdapter::stateChanged);
-    connect(m_mpv, &MpvWidget::fullscreenChanged,
-        this, &MpvAdapter::fullscreenChanged);
-    connect(m_mpv, &MpvWidget::volumeChanged,
-        this, &MpvAdapter::volumeChanged);
-    connect(m_mpv, &MpvWidget::titleChanged,
-        this, &MpvAdapter::titleChanged);
-    connect(m_mpv, &MpvWidget::fileChanged,
-        this, &MpvAdapter::fileChanged);
+    connect(m_mpv, &MpvWidget::audioDisabled,           mediator, &GlobalMediator::playerAudioDisabled);
+    connect(m_mpv, &MpvWidget::videoDisabled,           mediator, &GlobalMediator::playerVideoDisabled);
+    connect(m_mpv, &MpvWidget::subtitleDisabled,        mediator, &GlobalMediator::playerSubtitlesDisabled);
+    connect(m_mpv, &MpvWidget::subtitleTwoDisabled,     mediator, &GlobalMediator::playerSecondSubtitlesDisabled);
 
-    connect(m_mpv, &MpvWidget::hideCursor, this, &MpvAdapter::hideCursor);
-    connect(m_mpv, &MpvWidget::shutdown, this, &MpvAdapter::close);
+    connect(m_mpv, &MpvWidget::subtitleChanged,         mediator, &GlobalMediator::playerSubtitleChanged);
+    connect(m_mpv, &MpvWidget::durationChanged,         mediator, &GlobalMediator::playerDurationChanged);
+    connect(m_mpv, &MpvWidget::positionChanged,         mediator, &GlobalMediator::playerPositionChanged);
+    connect(m_mpv, &MpvWidget::stateChanged,            mediator, &GlobalMediator::playerPauseStateChanged);
+    connect(m_mpv, &MpvWidget::fullscreenChanged,       mediator, &GlobalMediator::playerFullscreenChanged);
+    connect(m_mpv, &MpvWidget::volumeChanged,           mediator, &GlobalMediator::playerVolumeChanged);
+    connect(m_mpv, &MpvWidget::titleChanged,            mediator, &GlobalMediator::playerTitleChanged);
+    connect(m_mpv, &MpvWidget::fileChanged,             mediator, &GlobalMediator::playerFileChanged);
+
+    connect(m_mpv, &MpvWidget::hideCursor,              mediator, &GlobalMediator::playerCursorHidden);
+    connect(m_mpv, &MpvWidget::shutdown,                mediator, &GlobalMediator::playerClosed);
+
+    /* Slots */
+    connect(mediator, &GlobalMediator::controlsPlay,              this, &PlayerAdapter::play);
+    connect(mediator, &GlobalMediator::controlsPause,             this, &PlayerAdapter::pause);
+    connect(mediator, &GlobalMediator::controlsSkipForward,       this, &PlayerAdapter::skipForward);
+    connect(mediator, &GlobalMediator::controlsSkipBackward,      this, &PlayerAdapter::skipBackward);
+    connect(mediator, &GlobalMediator::controlsSeekForward,       this, &PlayerAdapter::seekForward);
+    connect(mediator, &GlobalMediator::controlsSeekBackward,      this, &PlayerAdapter::seekBackward);
+    connect(mediator, &GlobalMediator::controlsFullscreenChanged, this, &PlayerAdapter::setFullscreen);
+
+    connect(mediator, &GlobalMediator::keyPressed,                this, &PlayerAdapter::keyPressed);
+    connect(mediator, &GlobalMediator::wheelMoved,                this, &PlayerAdapter::mouseWheelMoved);
 }
 
 int64_t MpvAdapter::getMaxVolume() const
@@ -123,15 +126,15 @@ double MpvAdapter::getAudioDelay() const
     return delay;
 }
 
-QList<const PlayerAdapter::Track *> MpvAdapter::getTracks()
+QList<const Track *> MpvAdapter::getTracks()
 {
     mpv_node node;
     if (mpv_get_property(m_handle, "track-list", MPV_FORMAT_NODE, &node) < 0)
     {
         qDebug() << "Could not get track-list property";
-        return QList<const PlayerAdapter::Track *>();
+        return QList<const Track *>();
     }
-    QList<const PlayerAdapter::Track *> tracks = processTracks(&node);
+    QList<const Track *> tracks = processTracks(&node);
     mpv_free_node_contents(&node);
     return tracks;
 }
@@ -169,6 +172,17 @@ QString MpvAdapter::getPath() const
     QString path_str(path);
     mpv_free(path);
     return path_str;
+}
+
+bool MpvAdapter::isFullScreen() const
+{
+    int flag;
+    if (mpv_get_property(m_handle, "fullscreen", MPV_FORMAT_FLAG, &flag))
+    {
+        qDebug() << "Could not get mpv property fullscreen";
+        return false;
+    }
+    return flag;
 }
 
 void MpvAdapter::open(const QString &file, const bool append)
@@ -380,7 +394,8 @@ void MpvAdapter::setSubtitleTwoTrack(int64_t id)
 
 void MpvAdapter::setFullscreen(bool value)
 {
-    if (mpv_set_property(m_handle, "fullscreen", MPV_FORMAT_FLAG, &value) < 0)
+    int flag = value ? 1 : 0;
+    if (mpv_set_property(m_handle, "fullscreen", MPV_FORMAT_FLAG, &flag) < 0)
     {
         qDebug() << "Could not set mpv property fullscreen";
     }
@@ -532,16 +547,16 @@ void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
     }
 }
 
-// Code modified from loadTracks()
-// https://github.com/u8sand/Baka-MPlayer/blob/master/src/mpvhandler.cpp
-QList<const PlayerAdapter::Track *> MpvAdapter::processTracks(const mpv_node *node)
+/* Code modified from loadTracks() */
+/* https://github.com/u8sand/Baka-MPlayer/blob/master/src/mpvhandler.cpp */
+QList<const Track *> MpvAdapter::processTracks(const mpv_node *node)
 {
-    QList<const PlayerAdapter::Track *> tracks;
+    QList<const Track *> tracks;
     if (node->format == MPV_FORMAT_NODE_ARRAY)
     {
         for (size_t i = 0; i < node->u.list->num; i++)
         {
-            PlayerAdapter::Track *track = new PlayerAdapter::Track;
+            Track *track = new Track;
             if (node->u.list->values[i].format == MPV_FORMAT_NODE_MAP)
             {
                 for (size_t n = 0; n < node->u.list->values[i].u.list->num; n++)

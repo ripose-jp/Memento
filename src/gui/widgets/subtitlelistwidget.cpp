@@ -21,39 +21,29 @@
 #include "subtitlelistwidget.h"
 
 #include "../../util/directoryutils.h"
+#include "../../util/globalmediator.h"
+#include "../playeradapter.h"
 
 #include <iterator>
 #include <QMultiMap>
 
 SubtitleListWidget::SubtitleListWidget(QWidget *parent)
-    : m_player(nullptr), QListWidget(parent),
+    : QListWidget(parent),
       m_seenSubtitles(new QMultiMap<double, QString>),
       m_subStartTimes(new QMultiHash<QString, double>)
-{    
-    connect(this, &QListWidget::itemDoubleClicked,
-        this, &SubtitleListWidget::seekToSubtitle);
+{
+    connect(this, &QListWidget::itemDoubleClicked, this, &SubtitleListWidget::seekToSubtitle);
+
+    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+    connect(mediator, &GlobalMediator::playerSubtitleChanged,      this, &SubtitleListWidget::addSubtitle);
+    connect(mediator, &GlobalMediator::playerSubtitleTrackChanged, this, &SubtitleListWidget::clearSubtitles);
+    connect(mediator, &GlobalMediator::playerSubtitlesDisabled,    this, &SubtitleListWidget::clearSubtitles);
 }
 
 SubtitleListWidget::~SubtitleListWidget()
 {
     delete m_seenSubtitles;
     delete m_subStartTimes;
-}
-
-void SubtitleListWidget::setPlayer(PlayerAdapter *player)
-{
-    if (m_player)
-    {
-        return;
-    }
-    
-    m_player = player;
-    connect(m_player, &PlayerAdapter::subtitleChanged,
-        this, &SubtitleListWidget::addSubtitle);
-    connect(m_player, &PlayerAdapter::subtitleTrackChanged,
-        this, &SubtitleListWidget::clearSubtitles);
-    connect(m_player, &PlayerAdapter::subtitleDisabled,
-        this, &SubtitleListWidget::clearSubtitles);
 }
 
 QString SubtitleListWidget::getContext()
@@ -67,10 +57,7 @@ QString SubtitleListWidget::getContext()
     return context;
 }
 
-void SubtitleListWidget::addSubtitle(const QString &subtitle,
-                                      const double start,
-                                      const double end,
-                                      const double delay)
+void SubtitleListWidget::addSubtitle(const QString &subtitle, const double start, const double end, const double delay)
 {
     size_t i;
     auto it = m_seenSubtitles->constFind(start);
@@ -100,6 +87,7 @@ void SubtitleListWidget::clearSubtitles()
 
 void SubtitleListWidget::seekToSubtitle(const QListWidgetItem *item)
 {
-    double pos = m_subStartTimes->value(item->text()) + m_player->getSubDelay();
-    m_player->seek(pos);
+    PlayerAdapter *player = GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+    double pos = m_subStartTimes->value(item->text()) + player->getSubDelay();
+    player->seek(pos);
 }

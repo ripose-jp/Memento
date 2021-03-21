@@ -62,6 +62,7 @@ add_library(
 target_link_libraries(
     subtitlewidget
     Qt5::Widgets
+    globalmediator
     dictionary_db
 )
 
@@ -95,9 +96,9 @@ add_library(
     ankisettingshelp.cpp
     ankisettingshelp.ui
 )
-
 target_link_libraries(
     ankisettings
+    globalmediator
     Qt5::Widgets
     anki
 )

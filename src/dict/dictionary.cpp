@@ -24,6 +24,7 @@
 #include <mecab.h>
 
 #include "../util/directoryutils.h"
+#include "../util/globalmediator.h"
 
 #define WORD_INDEX          6
 #define QUERIES_PER_THREAD  4
@@ -39,7 +40,12 @@
 
 Dictionary::Dictionary()
 {
-    m_db = new DatabaseManager(DirectoryUtils::getDictionaryDB());
+    m_db = GlobalMediator::getGlobalMediator()->getDatabaseManager();
+    if (m_db == nullptr)
+    {
+        m_db = new DatabaseManager(DirectoryUtils::getDictionaryDB());
+        GlobalMediator::getGlobalMediator()->setDatabaseManager(m_db);
+    }
 
     m_tagger = MeCab::createTagger(MECAB_ARG);
     if (m_tagger == nullptr)

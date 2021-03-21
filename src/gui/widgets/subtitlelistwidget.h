@@ -23,8 +23,6 @@
 
 #include <QListWidget>
 
-#include "../playeradapter.h"
-
 class SubtitleListWidget : public QListWidget
 {
     Q_OBJECT
@@ -32,7 +30,7 @@ class SubtitleListWidget : public QListWidget
 public:
     SubtitleListWidget(QWidget *parent = nullptr);
     ~SubtitleListWidget();
-    void setPlayer(PlayerAdapter *player);
+
     QString getContext();
 
 private Q_SLOTS:
@@ -44,7 +42,6 @@ private Q_SLOTS:
     void seekToSubtitle(const QListWidgetItem *item);
 
 private:
-    PlayerAdapter *m_player;
     QMultiMap<double, QString> *m_seenSubtitles;
     QMultiHash<QString, double> *m_subStartTimes;
 };

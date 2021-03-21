@@ -4,7 +4,8 @@ add_library(
     playeradapter.h
 )
 target_link_libraries(
-    mpvadapter 
+    mpvadapter
+    globalmediator
     mpvwidget
     Qt5::Gui
     Qt5::Core
@@ -22,6 +23,7 @@ set(
     GUI_LIBS
     Qt5::Gui
     Qt5::Core
+    globalmediator
     mpvwidget
     mpvadapter
     subtitlelist

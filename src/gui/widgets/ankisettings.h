@@ -25,8 +25,9 @@
 
 #include <QMutex>
 
-#include "../../anki/ankiclient.h"
 #include "ankisettingshelp.h"
+#include "../../anki/ankiclient.h"
+#include "../../anki/ankiconfig.h"
 
 namespace Ui
 {
@@ -38,7 +39,7 @@ class AnkiSettings : public QWidget
     Q_OBJECT
 
 public:
-    AnkiSettings(AnkiClient *client, QWidget *parent = 0);
+    AnkiSettings(QWidget *parent = 0);
     ~AnkiSettings();
 
 protected:
@@ -47,8 +48,8 @@ protected:
 
 private Q_SLOTS:
     void enabledStateChanged(int state);
-    void connectToClient(const bool showErrors = true);
-    void updateModelFields(const QString &model);
+    void connectToClient    (const bool showErrors = true);
+    void updateModelFields  (const QString &model);
     void applyChanges();
     void restoreDefaults();
     void restoreSaved();
@@ -57,20 +58,26 @@ private Q_SLOTS:
     void changeProfile(const QString &text);
 
 private:
-    Ui::AnkiSettings *m_ui;
-    AnkiSettingsHelp *m_ankiSettingsHelp;
-    AnkiClient *m_client;
+    Ui::AnkiSettings             *m_ui;
+    AnkiSettingsHelp             *m_ankiSettingsHelp;
     QHash<QString, AnkiConfig *> *m_configs;
-    QString m_currentProfile;
-    QMutex m_mutexUpdateModelFields;
+    QString                       m_currentProfile;
+    QMutex                        m_mutexUpdateModelFields;
 
     void clearConfigs();
+
     void populateFields(const QString &profile, const AnkiConfig *config);
+
     QString duplicatePolicyToString(AnkiConfig::DuplicatePolicy policy);
+
     AnkiConfig::DuplicatePolicy stringToDuplicatePolicy(const QString &str);
+
     QString fileTypeToString(AnkiConfig::FileType type);
+
     AnkiConfig::FileType stringToFileType(const QString &str);
+
     void applyToConfig(const QString &profile);
+
     void renameProfile(const QString &oldName, const QString &newName);
 };
 

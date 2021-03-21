@@ -135,6 +135,7 @@ int DatabaseManager::addDictionary(const QString &path)
 {
     m_databaseLock.lock();
     int ret = yomi_process_dictionary(path.toLocal8Bit(), m_dbpath.toLocal8Bit());
+    buildCache();
     m_databaseLock.unlock();
     return ret;
 }
@@ -143,6 +144,7 @@ int DatabaseManager::deleteDictionary(const QString &name)
 {
     m_databaseLock.lock();
     int ret = yomi_delete_dictionary(name.toUtf8(), m_dbpath.toLocal8Bit());
+    buildCache();
     m_databaseLock.unlock();
     return ret;
 }
@@ -512,25 +514,13 @@ cleanup:
 #undef COLUMN_NOTES
 #undef COLUMN_SCORE
 
-void inline DatabaseManager::validateCache(uint64_t id)
-{
-    m_validateCacheLock.lock();
-    int limit = 100;
-    while (!m_dictionaryCache.contains(id) && limit--)
-        buildCache();
-    m_validateCacheLock.unlock();
-}
-
 QString DatabaseManager::getDictionary(const uint64_t id)
 {
-    validateCache(id);
     return m_dictionaryCache[id];
 }
 
 void DatabaseManager::addTags(const uint64_t id, const QString &tagStr, QList<Tag> &tags)
 {
-    validateCache(id);
-
     QStringList tagList = tagStr.split(" ");
 
     for (const QString &tagName : tagList)

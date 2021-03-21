@@ -21,6 +21,8 @@
 #include "definitionwidget.h"
 #include "ui_definitionwidget.h"
 
+#include "../../util/globalmediator.h"
+
 #include <QFrame>
 #include <QScrollBar>
 
@@ -30,6 +32,8 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, AnkiClient *clien
       m_client(client)
 {
     m_ui->setupUi(this);
+
+    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     QFrame *line = nullptr;
     for (const Term *term : *terms)
@@ -78,4 +82,14 @@ void DefinitionWidget::setAddable(const QList<bool> &addable, const QString &err
         for (size_t i = 0; i < addable.size(); ++i)
         m_termWidgets[i]->setAddable(addable[i]);
     }
+}
+
+void DefinitionWidget::hideEvent(QHideEvent *event)
+{
+    Q_EMIT GlobalMediator::getGlobalMediator()->definitionsHidden();
+}
+
+void DefinitionWidget::showEvent(QShowEvent *event)
+{
+    Q_EMIT GlobalMediator::getGlobalMediator()->definitionsShown();
 }

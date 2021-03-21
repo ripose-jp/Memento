@@ -47,27 +47,7 @@ public Q_SLOTS:
     void setVolumeLimit(const int64_t value);
     void setVolume(const int64_t value);
     void setPosition(const double value);
-    void setSubtitle(const QString &subtitle,
-                     const double start,
-                     const double end,
-                     const double delay);
-
-Q_SIGNALS:
-    void play();
-    void pause();
-    void stop();
-    void seekForward();
-    void seekBackward();
-    void skipForward();
-    void skipBackward();
-    void sliderMoved(const int value);
-    void volumeSliderMoved(const int value);
-    void fullscreenChanged(const bool value);
-    void subtitleListToggled();
-    void termsChanged(const QList<Term *> *terms);
-    void definitionHidden();
-    void hideDefinition();
-
+    
 private Q_SLOTS:
     void pauseResume();
     void toggleFullscreen();
@@ -75,7 +55,6 @@ private Q_SLOTS:
 private:
     Ui::PlayerControls *m_ui;
     bool m_paused;
-    bool m_fullscreen;
     double m_duration;
     double m_startTime;
     double m_endTime;
