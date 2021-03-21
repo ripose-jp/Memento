@@ -44,9 +44,7 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     /* Slots */
-    connect(mediator,    &GlobalMediator::definitionsHidden,     this, 
-        [=] { m_currentIndex = -1; deselect(); }
-    );
+    connect(mediator,    &GlobalMediator::definitionsHidden,     this, &QLineEdit::deselect);
     connect(mediator,    &GlobalMediator::definitionsShown,      this, 
         [=] { setSelection(m_lastEmittedIndex, m_lastEmittedSize); }
     );
@@ -123,7 +121,9 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (cursorPositionAt(event->pos()) != m_currentIndex)
     {
+        qDebug() << "Old Index" << m_currentIndex;
         m_currentIndex = cursorPositionAt(event->pos());
+        qDebug() << "New Index" << m_currentIndex;
         m_findDelay->start(TIMER_DELAY);
     }
     event->ignore();
