@@ -1397,8 +1397,6 @@ int yomi_delete_dictionary(const char *dict_name, const char *db_file)
     }
 
     /* Remove the dictionary from the index */
-    if (ret = begin_transaction(db))
-        goto cleanup;
     if (sqlite3_prepare_v2(db, "DELETE FROM directory WHERE (title = ?);", -1, &stmt, NULL) != SQLITE_OK)
     {
         ret = YOMI_ERR_DELETE;
@@ -1416,7 +1414,6 @@ int yomi_delete_dictionary(const char *dict_name, const char *db_file)
     }
 
 cleanup:
-    commit_transaction(db);
     sqlite3_finalize(stmt);
     sqlite3_close_v2(db);
 
