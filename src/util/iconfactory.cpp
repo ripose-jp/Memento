@@ -67,10 +67,11 @@ StyleFactory::StyleFactory(const QWidget *parent) : IconFactory(parent)
         icons[i] = m_parent->style()->standardIcon(pixmaps[i]);
     }
     icons[fullscreen] = QIcon(":/images/fullscreen.svg");
-    icons[restore] = QIcon(":/images/restore.svg");
-    icons[plus] = QIcon(":/images/plus.svg");
-    icons[minus] = QIcon(":/images/minus.svg");
-    icons[hamburger] = QIcon(":/images/hamburger.svg");
+    icons[restore]    = QIcon(":/images/restore.svg");
+    icons[plus]       = QIcon(":/images/plus.svg");
+    icons[minus]      = QIcon(":/images/minus.svg");
+    icons[back]       = QIcon(":/images/back.svg");
+    icons[hamburger]  = QIcon(":/images/hamburger.svg");
 }
 
 QIcon StyleFactory::getIcon(IconFactory::Icon icon)
@@ -99,9 +100,10 @@ ThemeFactory::ThemeFactory(const QWidget *parent) : IconFactory(parent)
             QIcon::fromTheme(names[i]) : 
             styleFactory.getIcon((IconFactory::Icon) i);
     }
-    icons[plus] = QIcon(":/images/plus.svg");
-    icons[minus] = QIcon(":/images/minus.svg");
-    icons[hamburger] = QIcon(":/images/hamburger.svg");
+    for (size_t i = XDG_ICONS; i < ICON_ENUM_SIZE; ++i)
+    {
+        icons[i] = styleFactory.getIcon((IconFactory::Icon) i);
+    }
 }
 
 QIcon ThemeFactory::getIcon(IconFactory::Icon icon)

@@ -22,6 +22,7 @@
 #include <QDir>
 #include <QFile>
 #include <QDebug>
+#include <QFontDatabase>
 
 #include "gui/mainwindow.h"
 #include "util/directoryutils.h"
@@ -32,11 +33,15 @@ int main(int argc, char *argv[])
         QCoreApplication::addLibraryPath(DirectoryUtils::getProgramDirectory());
     #endif
     QGuiApplication::setWindowIcon(QIcon(":memento.svg"));
-    // HiDPI support
+    /* HiDPI support */
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    /* Fonts */
+    //QFontDatabase::addApplicationFont(":/fonts/stroke_order/KanjiStrokeOrders.ttf");
+    //QFontDatabase::addApplicationFont(":/fonts/noto_sans/NotoSansCJKjp-Regular.otf");
+    //QFontDatabase::addApplicationFont(":/fonts/noto_sans/NotoSansCJKjp-Bold.otf");
 
-    // Create the config dir if it doesn't exist
+    /* Create the configuration directory if it doesn't exist */
     if (!QDir(DirectoryUtils::getConfigDir()).exists())
     {
         if (!QDir().mkdir(DirectoryUtils::getConfigDir()))

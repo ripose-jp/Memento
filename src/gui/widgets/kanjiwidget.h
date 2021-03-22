@@ -31,7 +31,9 @@ class KanjiWidget : public QWidget
 
 public:
     KanjiWidget(const Kanji &kanji, QWidget *parent = nullptr);
-    ~KanjiWidget();
+
+Q_SIGNALS:
+    void backPressed();
 
 private:
     const Kanji kanji;

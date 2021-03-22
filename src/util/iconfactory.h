@@ -26,7 +26,7 @@
 #include <QStyle>
 #include <QString>
 
-#define ICON_ENUM_SIZE 12
+#define ICON_ENUM_SIZE 13
 #define XDG_ICONS 9
 
 class IconFactory
@@ -47,6 +47,7 @@ public:
         // All icons without an xdg spec should be put past this point
         plus,
         minus,
+        back,
         hamburger
     };
 

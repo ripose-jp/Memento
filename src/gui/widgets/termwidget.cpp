@@ -63,28 +63,6 @@ TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent)
 
 TermWidget::~TermWidget()
 {
-    QLayoutItem *item;
-    while (item = m_layoutTermTags->takeAt(0))
-    {
-        delete item->widget();
-        delete item;
-    }
-    delete m_layoutTermTags;
-
-    while (item = m_layoutFreqTags->takeAt(0))
-        {
-        delete item->widget();
-        delete item;
-    }
-    delete m_layoutFreqTags;
-
-    while (item = m_layoutGlossary->takeAt(0))
-    {
-        delete item->widget();
-        delete item;
-    }
-    delete m_layoutGlossary;
-    
     delete m_ui;
     delete m_term;
 }

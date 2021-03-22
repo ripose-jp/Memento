@@ -121,9 +121,7 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (cursorPositionAt(event->pos()) != m_currentIndex)
     {
-        qDebug() << "Old Index" << m_currentIndex;
         m_currentIndex = cursorPositionAt(event->pos());
-        qDebug() << "New Index" << m_currentIndex;
         m_findDelay->start(TIMER_DELAY);
     }
     event->ignore();

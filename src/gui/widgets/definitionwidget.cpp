@@ -67,12 +67,6 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, AnkiClient *clien
 
 DefinitionWidget::~DefinitionWidget()
 {
-    QLayoutItem* child;
-    while (child = m_ui->scrollAreaContents->layout()->takeAt(0))
-    {
-        delete child->widget();
-        delete child;
-    }
     delete m_ui;
 }
 
@@ -87,8 +81,28 @@ void DefinitionWidget::setAddable(const QList<bool> &addable, const QString &err
 
 void DefinitionWidget::showKanji(const Kanji &kanji)
 {
-    
+    for (size_t i = 0; i < m_ui->scrollAreaContents->layout()->count(); ++i)
+    {
+        m_ui->scrollAreaContents->layout()->itemAt(i)->widget()->hide();
+    }
+    KanjiWidget *kanjiWidget = new KanjiWidget(kanji);
+    connect(kanjiWidget, &KanjiWidget::backPressed, this, &DefinitionWidget::hideKanji);
+    m_ui->scrollAreaContents->layout()->addWidget(kanjiWidget);
 }
+
+void DefinitionWidget::hideKanji()
+{
+    QLayout *scrollLayout = m_ui->scrollAreaContents->layout();
+    QLayoutItem *kanjiItem = scrollLayout->takeAt(scrollLayout->count() - 1);
+    delete kanjiItem->widget();
+    delete kanjiItem;
+
+    for (size_t i = 0; i < scrollLayout->count(); ++i)
+    {
+        scrollLayout->itemAt(i)->widget()->show();
+    }
+}
+
 
 void DefinitionWidget::hideEvent(QHideEvent *event)
 {
