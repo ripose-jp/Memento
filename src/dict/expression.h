@@ -77,12 +77,15 @@ struct Term
 
 struct KanjiDefinition
 {
-    QString     dictionary;
-    QStringList onyomi;
-    QStringList kunyomi;
-    QStringList glossary;
-    QList<Tag>  tags;
-    QVariantMap stats;
+    QString                    dictionary;
+    QStringList                onyomi;
+    QStringList                kunyomi;
+    QStringList                glossary;
+    QList<Tag>                 tags;
+    QList<QPair<Tag, QString>> stats;
+    QList<QPair<Tag, QString>> clas;
+    QList<QPair<Tag, QString>> code;
+    QList<QPair<Tag, QString>> index;
 } typedef KanjiDefinition;
 
 struct Kanji

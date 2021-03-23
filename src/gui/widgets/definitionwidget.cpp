@@ -46,7 +46,7 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, AnkiClient *clien
         m_termWidgets.append(termWidget);
         m_ui->scrollAreaContents->layout()->addWidget(termWidget);
 
-        line = new QFrame(this);
+        line = new QFrame;
         line->setFrameShape(QFrame::HLine);
         line->setFrameShadow(QFrame::Sunken);
         line->setLineWidth(1);
@@ -81,6 +81,7 @@ void DefinitionWidget::setAddable(const QList<bool> &addable, const QString &err
 
 void DefinitionWidget::showKanji(const Kanji &kanji)
 {
+    m_savedScroll = m_ui->scrollArea->verticalScrollBar()->value();
     for (size_t i = 0; i < m_ui->scrollAreaContents->layout()->count(); ++i)
     {
         m_ui->scrollAreaContents->layout()->itemAt(i)->widget()->hide();
@@ -88,6 +89,7 @@ void DefinitionWidget::showKanji(const Kanji &kanji)
     KanjiWidget *kanjiWidget = new KanjiWidget(kanji);
     connect(kanjiWidget, &KanjiWidget::backPressed, this, &DefinitionWidget::hideKanji);
     m_ui->scrollAreaContents->layout()->addWidget(kanjiWidget);
+    m_ui->scrollArea->verticalScrollBar()->setValue(0);
 }
 
 void DefinitionWidget::hideKanji()
@@ -101,6 +103,8 @@ void DefinitionWidget::hideKanji()
     {
         scrollLayout->itemAt(i)->widget()->show();
     }
+    QApplication::processEvents();
+    m_ui->scrollArea->verticalScrollBar()->setValue(m_savedScroll);
 }
 
 

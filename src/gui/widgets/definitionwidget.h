@@ -65,8 +65,9 @@ protected:
 
 private:
     Ui::DefinitionWidget *m_ui;
-    AnkiClient *m_client;
-    QList<TermWidget *> m_termWidgets;
+    AnkiClient           *m_client;
+    QList<TermWidget *>   m_termWidgets;
+    int                   m_savedScroll;
 };
 
 #endif // DEFINITIONWIDGET_H

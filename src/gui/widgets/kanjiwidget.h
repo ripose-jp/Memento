@@ -25,6 +25,10 @@
 
 #include "../../dict/expression.h"
 
+class QLabel;
+class QFrame;
+class QVBoxLayout;
+
 class KanjiWidget : public QWidget
 {
     Q_OBJECT
@@ -37,6 +41,14 @@ Q_SIGNALS:
 
 private:
     const Kanji kanji;
+
+    void buildDefinitionLabel(const KanjiDefinition &def, QVBoxLayout *layout);
+    QFrame *createLine();
+    QLabel *createLabel(const QString &text,
+                        const bool bold = false,
+                        const Qt::AlignmentFlag alignment = Qt::AlignLeft);
+    QLayout *createKVLabel(const QString &key, const QString &value);
+    void addKVSection(const QString &title, const QList<QPair<Tag, QString>> &pairs, QVBoxLayout *layout);
 };
 
 #endif // KANJIWIDGET_H

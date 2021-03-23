@@ -312,6 +312,11 @@ error:
 #define COLUMN_MEANINGS     4
 #define COLUMN_STATS        5
 
+#define TAG_NAME_STATS      "misc"
+#define TAG_NAME_CLAS       "class"
+#define TAG_NAME_CODE       "code"
+#define TAG_NAME_INDEX      "index"
+
 QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
 {
     if (m_db == nullptr)
@@ -348,8 +353,36 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
         def.onyomi     = QString((const char *)sqlite3_column_text(stmt, COLUMN_ONYOMI)).split(' ');
         def.kunyomi    = QString((const char *)sqlite3_column_text(stmt, COLUMN_KUNYOMI)).split(' ');
         def.glossary   = jsonArrayToStringList((const char *)sqlite3_column_text(stmt, COLUMN_MEANINGS));
-        def.stats      = QJsonDocument::fromJson((const char *)sqlite3_column_text(stmt, COLUMN_STATS)).toVariant().toMap();
         addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_TAGS), def.tags);
+
+        QVariantMap map = QJsonDocument::fromJson((const char *)sqlite3_column_text(stmt, COLUMN_STATS)).toVariant().toMap();
+        for (auto it = map.constKeyValueBegin(); it != map.constKeyValueEnd(); ++it)
+        {
+            const Tag                  *tag  = &m_tagCache[id][it->first];
+            QList<QPair<Tag, QString>> *list = nullptr;
+            if (tag->category == TAG_NAME_INDEX)
+            {
+                list = &def.index;
+            }
+            else if (tag->category == TAG_NAME_STATS)
+            {
+                list = &def.stats;
+            }
+            else if (tag->category == TAG_NAME_CLAS)
+            {
+                list = &def.clas;
+            }
+            else if (tag->category == TAG_NAME_CODE)
+            {
+                list = &def.code;
+            }
+            else
+            {
+                continue;
+            }
+            list->append(QPair<Tag, QString>(*tag, it->second.toString()));
+        }
+        
         kanji.definitions.append(def);
     }
     if (isStepError(step))
@@ -373,6 +406,11 @@ cleanup:
 #undef COLUMN_TAGS
 #undef COLUMN_MEANINGS
 #undef COLUMN_STATS
+
+#undef TAG_NAME_STATS
+#undef TAG_NAME_CLAS
+#undef TAG_NAME_CODE
+#undef TAG_NAME_INDEX
 
 #define QUERY   "SELECT dic_id, data "\
                     "FROM term_meta_bank "\
