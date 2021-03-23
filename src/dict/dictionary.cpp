@@ -181,8 +181,6 @@ QString Dictionary::addDictionary(const QString &path)
         return m_db->errorCodeToString(err);
     }
     Q_EMIT GlobalMediator::getGlobalMediator()->dictionaryAdded();
-    QApplication::processEvents();
-    buildPriorities();
     return "";
 }
 
@@ -193,7 +191,6 @@ QString Dictionary::deleteDictionary(const QString &name)
     {
         return m_db->errorCodeToString(err);
     }
-    buildPriorities();
     return "";
 }
 
