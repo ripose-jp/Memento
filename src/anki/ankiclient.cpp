@@ -110,6 +110,8 @@ AnkiClient::AnkiClient(QObject *parent)
     m_manager->setTransferTimeout(TIMEOUT);
 
     readConfigFromFile(CONFIG_FILE);
+
+    GlobalMediator::getGlobalMediator()->setAnkiClient(this);
 }
 
 AnkiClient::~AnkiClient()

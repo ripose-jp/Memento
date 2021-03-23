@@ -79,7 +79,7 @@ void DefinitionWidget::setAddable(const QList<bool> &addable, const QString &err
     }
 }
 
-void DefinitionWidget::showKanji(const Kanji &kanji)
+void DefinitionWidget::showKanji(const Kanji *kanji)
 {
     m_savedScroll = m_ui->scrollArea->verticalScrollBar()->value();
     for (size_t i = 0; i < m_ui->scrollAreaContents->layout()->count(); ++i)

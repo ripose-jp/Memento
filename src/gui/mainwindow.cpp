@@ -24,7 +24,7 @@
 #include "widgets/definitionwidget.h"
 #include "widgets/ankisettings.h"
 #include "../util/constants.h"
-#include "../dict/databasemanager.h"
+#include "../dict/dictionary.h"
 
 #include <QCursor>
 #include <QFileDialog>
@@ -56,7 +56,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     /* Player Adapter */
     m_player = new MpvAdapter(m_ui->mpv, this);
-    m_mediator->setPlayerAdapter(m_player);
     m_player->pause();
     m_ui->controls->setVolumeLimit(m_player->getMaxVolume());
 
@@ -66,8 +65,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     /* Anki */
     m_ankiClient   = new AnkiClient(this);
-    m_mediator->setAnkiClient(m_ankiClient);
-
     m_ankiSettings = new AnkiSettings;
     m_ankiSettings->hide();
 
@@ -502,12 +499,12 @@ void MainWindow::addDictionary()
     
     QThreadPool::globalInstance()->start([=]
         {
-            DatabaseManager *db = GlobalMediator::getGlobalMediator()->getDatabaseManager();
-            int err = db->addDictionary(file);
-            if (err)
+            Dictionary *dic = GlobalMediator::getGlobalMediator()->getDictionary();
+            QString err = dic->addDictionary(file);
+            if (!err.isEmpty())
             {
                 Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
-                    "Error adding dictionary", db->errorCodeToString(err)
+                    "Error adding dictionary", err
                 );
             }
         }

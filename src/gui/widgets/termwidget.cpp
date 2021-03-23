@@ -25,7 +25,7 @@
 #include "glossarywidget.h"
 #include "../../util/iconfactory.h"
 #include "../../util/globalmediator.h"
-#include "../../dict/databasemanager.h"
+#include "../../dict/dictionary.h"
 
 #define KANJI_UNICODE_LOWER_COMMON  "\u4e00"
 #define KANJI_UNICODE_UPPER_COMMON  "\u9faf"
@@ -151,8 +151,7 @@ void TermWidget::addNote()
 
 void TermWidget::searchKanji(const QString &ch)
 {
-    DatabaseManager *db = GlobalMediator::getGlobalMediator()->getDatabaseManager();
-    Kanji kanji;
-    db->queryKanji(ch, kanji);
-    Q_EMIT kanjiSearched(kanji);
+    Kanji *kanji = GlobalMediator::getGlobalMediator()->getDictionary()->searchKanji(ch);
+    if (kanji)
+        Q_EMIT kanjiSearched(kanji);
 }

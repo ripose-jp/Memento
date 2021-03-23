@@ -38,16 +38,23 @@ class Dictionary
 public:
     Dictionary();
     ~Dictionary();
-    QList<Term *> *search(const QString &query,
-                          const QString &subtitle,
-                          const int index,
-                          const int *currentIndex);
+    QList<Term *> *searchTerms(const QString &query,
+                               const QString &subtitle,
+                               const int index,
+                               const int *currentIndex);
+    Kanji *searchKanji(const QString &character);
+
+    QString addDictionary(const QString &path);
+    QString deleteDictionary(const QString &name);
+
+    QStringList getDictionaries();
 
 private:
     DatabaseManager *m_db;
     MeCab::Tagger *m_tagger;
 
     QList<QPair<QString, QString>> generateQueries(const QString &query);
+    void sortTags(QList<Tag> &tags);
                                                    
     class ExactWorker : public QThread
     {

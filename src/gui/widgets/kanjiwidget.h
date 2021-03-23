@@ -34,13 +34,14 @@ class KanjiWidget : public QWidget
     Q_OBJECT
 
 public:
-    KanjiWidget(const Kanji &kanji, QWidget *parent = nullptr);
+    KanjiWidget(const Kanji *kanji, QWidget *parent = nullptr);
+    ~KanjiWidget();
 
 Q_SIGNALS:
     void backPressed();
 
 private:
-    const Kanji kanji;
+    const Kanji *kanji;
 
     void buildDefinitionLabel(const KanjiDefinition &def, QVBoxLayout *layout);
     QFrame *createLine();

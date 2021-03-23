@@ -43,7 +43,7 @@ public:
     void setAddable(bool value);
 
 Q_SIGNALS:
-    void kanjiSearched(const Kanji &kanji);
+    void kanjiSearched(const Kanji *kanji);
 
 private Q_SLOTS:
     void addNote();

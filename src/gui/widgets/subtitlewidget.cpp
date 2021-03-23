@@ -95,7 +95,7 @@ void SubtitleWidget::findTerms()
 
     QThreadPool::globalInstance()->start([=] {
         QList<Term *> *terms = 
-            m_dictionary->search(queryStr, m_rawText, index, &m_currentIndex);
+            m_dictionary->searchTerms(queryStr, m_rawText, index, &m_currentIndex);
 
         if (index != m_currentIndex)
         {

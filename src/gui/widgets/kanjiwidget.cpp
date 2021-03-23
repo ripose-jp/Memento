@@ -32,7 +32,7 @@
 
 #define KEY_VALUE_FORMAT (QString("<span class="desc">%1</span><span class="value">%2</span>"))
 
-KanjiWidget::KanjiWidget(const Kanji &kanji, QWidget *parent) : QWidget(parent), kanji(kanji)
+KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent), kanji(kanji)
 {
     QVBoxLayout *layoutParent = new QVBoxLayout(this);
 
@@ -50,7 +50,7 @@ KanjiWidget::KanjiWidget(const Kanji &kanji, QWidget *parent) : QWidget(parent),
     layoutTop->setAlignment(buttonBack, Qt::AlignTop | Qt::AlignLeft);
 
     QLabel *labelKanjiStroke = new QLabel;
-    labelKanjiStroke->setText(kanji.character);
+    labelKanjiStroke->setText(kanji->character);
     labelKanjiStroke->setFont(QFont("KanjiStrokeOrders", 100));
     labelKanjiStroke->setAlignment(Qt::AlignHCenter);
     labelKanjiStroke->setTextInteractionFlags(Qt::TextSelectableByMouse);
@@ -68,7 +68,7 @@ KanjiWidget::KanjiWidget(const Kanji &kanji, QWidget *parent) : QWidget(parent),
     delete factory;
 
     FlowLayout *frequencies = new FlowLayout;
-    for (const Frequency &freq : kanji.frequencies)
+    for (const Frequency &freq : kanji->frequencies)
         frequencies->addWidget(new TagWidget(freq));
     layoutParent->addLayout(frequencies);
 
@@ -76,7 +76,7 @@ KanjiWidget::KanjiWidget(const Kanji &kanji, QWidget *parent) : QWidget(parent),
     layoutParent->addLayout(layoutDefinitions);
 
     QFrame *line = nullptr;
-    for (const KanjiDefinition &def : kanji.definitions)
+    for (const KanjiDefinition &def : kanji->definitions)
     {
         if (line)
             layoutDefinitions->addWidget(line);
@@ -86,6 +86,11 @@ KanjiWidget::KanjiWidget(const Kanji &kanji, QWidget *parent) : QWidget(parent),
     delete line;
 
     layoutParent->addStretch();
+}
+
+KanjiWidget::~KanjiWidget()
+{
+    delete kanji;
 }
 
 void KanjiWidget::buildDefinitionLabel(const KanjiDefinition &def, QVBoxLayout *layout)

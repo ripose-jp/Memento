@@ -23,7 +23,7 @@
 
 #include <QObject>
 
-class DatabaseManager;
+class Dictionary;
 class PlayerAdapter;
 class AnkiClient;
 class SubtitleListWidget;
@@ -44,16 +44,16 @@ public:
     static GlobalMediator *createGlobalMedaitor();
     static GlobalMediator *getGlobalMediator();
 
-    DatabaseManager    *getDatabaseManager()    const;
+    Dictionary         *getDictionary()         const;
     PlayerAdapter      *getPlayerAdapter()      const;
     AnkiClient         *getAnkiClient()         const;
     SubtitleListWidget *getSubtitleListWidget() const;
 
     /* Mediator does not take ownership */
-    GlobalMediator *setDatabaseManager(DatabaseManager    *manager);
-    GlobalMediator *setPlayerAdapter  (PlayerAdapter      *player);
-    GlobalMediator *setAnkiClient     (AnkiClient         *client);
-    GlobalMediator *setSubtitleList   (SubtitleListWidget *subList);
+    GlobalMediator *setDictionary   (Dictionary         *dictionary);
+    GlobalMediator *setPlayerAdapter(PlayerAdapter      *player);
+    GlobalMediator *setAnkiClient   (AnkiClient         *client);
+    GlobalMediator *setSubtitleList (SubtitleListWidget *subList);
 
 Q_SIGNALS:
     /* Message Box Signals */
@@ -121,7 +121,7 @@ private:
     inline static GlobalMediator *m_mediator = nullptr;
 
     /* Mediator does not take ownership */
-    DatabaseManager    *m_dbManager;
+    Dictionary         *m_dictionary;
     AnkiClient         *m_ankiClient;
     PlayerAdapter      *m_player;
     SubtitleListWidget *m_subList;

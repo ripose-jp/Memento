@@ -24,7 +24,7 @@
 
 GlobalMediator::GlobalMediator(QObject *parent) : QObject(parent)
 {
-    m_dbManager  = nullptr;
+    m_dictionary  = nullptr;
     m_ankiClient = nullptr;
     m_player     = nullptr;
     m_subList    = nullptr;
@@ -41,9 +41,9 @@ GlobalMediator *GlobalMediator::getGlobalMediator()
     return m_mediator;
 }
 
-DatabaseManager *GlobalMediator::getDatabaseManager() const
+Dictionary *GlobalMediator::getDictionary() const
 {
-    return m_dbManager;
+    return m_dictionary;
 }
 
 PlayerAdapter *GlobalMediator::getPlayerAdapter() const
@@ -61,9 +61,9 @@ SubtitleListWidget *GlobalMediator::getSubtitleListWidget() const
     return m_subList;
 }
 
-GlobalMediator *GlobalMediator::setDatabaseManager(DatabaseManager *manager)
+GlobalMediator *GlobalMediator::setDictionary(Dictionary *dictionary)
 {
-    m_dbManager = manager;
+    m_dictionary = dictionary;
     return m_mediator;
 }
 

@@ -70,6 +70,8 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
 
     connect(mediator, &GlobalMediator::keyPressed,                this, &PlayerAdapter::keyPressed);
     connect(mediator, &GlobalMediator::wheelMoved,                this, &PlayerAdapter::mouseWheelMoved);
+
+    GlobalMediator::getGlobalMediator()->setPlayerAdapter(this);
 }
 
 int64_t MpvAdapter::getMaxVolume() const

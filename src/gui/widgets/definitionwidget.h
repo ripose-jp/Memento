@@ -45,7 +45,7 @@ public:
 
 private Q_SLOTS:
     void setAddable(const QList<bool> &addable, const QString &error);
-    void showKanji(const Kanji &kanji);
+    void showKanji(const Kanji *kanji);
     void hideKanji();
 
 protected:

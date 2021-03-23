@@ -40,16 +40,13 @@
 
 Dictionary::Dictionary()
 {
-    m_db = GlobalMediator::getGlobalMediator()->getDatabaseManager();
-    if (m_db == nullptr)
-    {
-        m_db = new DatabaseManager(DirectoryUtils::getDictionaryDB());
-        GlobalMediator::getGlobalMediator()->setDatabaseManager(m_db);
-    }
+    m_db = new DatabaseManager(DirectoryUtils::getDictionaryDB());
 
     m_tagger = MeCab::createTagger(MECAB_ARG);
     if (m_tagger == nullptr)
         qDebug() << MeCab::getLastError();
+
+    GlobalMediator::getGlobalMediator()->setDictionary(this);
 }
 
 Dictionary::~Dictionary()
@@ -58,10 +55,10 @@ Dictionary::~Dictionary()
     delete m_tagger;
 }
 
-QList<Term *> *Dictionary::search(const QString &query, 
-                                  const QString &subtitle,
-                                  const int index,
-                                  const int *currentIndex)
+QList<Term *> *Dictionary::searchTerms(const QString &query, 
+                                       const QString &subtitle,
+                                       const int index,
+                                       const int *currentIndex)
 {
     QList<Term *> *terms = new QList<Term *>;
 
@@ -116,9 +113,55 @@ QList<Term *> *Dictionary::search(const QString &query,
     if (index == *currentIndex)
     {
         std::sort(terms->begin(), terms->end(), comp);
+        for (Term *term : *terms)
+        {
+            sortTags(term->tags);
+            for (TermDefinition &def : term->definitions)
+            {
+                sortTags(def.tags);
+                sortTags(def.rules);
+            }
+        }
     }
 
     return terms;
+}
+
+Kanji *Dictionary::searchKanji(const QString &ch)
+{
+    Kanji *kanji = new Kanji;
+    m_db->queryKanji(ch, *kanji);
+    if (kanji->definitions.isEmpty())
+    {
+        delete kanji;
+        return nullptr;
+    }
+    return kanji;
+}
+
+QString Dictionary::addDictionary(const QString &path)
+{
+    int err;
+    if (err = m_db->addDictionary(path))
+    {
+        return m_db->errorCodeToString(err);
+    }
+    return "";
+}
+
+QString Dictionary::deleteDictionary(const QString &name)
+{
+    int err;
+    if (err = m_db->deleteDictionary(name))
+    {
+        return m_db->errorCodeToString(err);
+    }
+    return "";
+}
+
+QStringList Dictionary::getDictionaries()
+{
+    return m_db->getDictionaries();
 }
 
 QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
@@ -212,4 +255,18 @@ void Dictionary::MeCabWorker::run()
         terms->append(results);
         ++begin;
     }
+}
+
+
+void Dictionary::sortTags(QList<Tag> &tags)
+{
+    struct compare
+    {
+        bool operator()(const Tag &lhs, const Tag &rhs)
+        {
+            return lhs.order < rhs.order ||
+                   (lhs.order == rhs.order && lhs.score > rhs.score);
+        }
+    } comp;
+    std::sort(tags.begin(), tags.end(), comp);
 }
