@@ -26,7 +26,7 @@
 #include <QStyle>
 #include <QString>
 
-#define ICON_ENUM_SIZE 13
+#define ICON_ENUM_SIZE 15
 #define XDG_ICONS 9
 
 class IconFactory
@@ -48,6 +48,8 @@ public:
         plus,
         minus,
         back,
+        up,
+        down,
         hamburger
     };
 

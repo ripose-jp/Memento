@@ -146,6 +146,7 @@ QString Dictionary::addDictionary(const QString &path)
     {
         return m_db->errorCodeToString(err);
     }
+    Q_EMIT GlobalMediator::getGlobalMediator()->dictionaryAdded();
     return "";
 }
 

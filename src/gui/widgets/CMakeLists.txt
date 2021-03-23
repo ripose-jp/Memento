@@ -103,3 +103,15 @@ target_link_libraries(
     Qt5::Widgets
     anki
 )
+
+add_library(
+    dictionarysettings
+    dictionarysettings.cpp
+    dictionarysettings.ui
+)
+target_link_libraries(
+    dictionarysettings
+    globalmediator
+    Qt5::Widgets
+    dictionary_db
+)

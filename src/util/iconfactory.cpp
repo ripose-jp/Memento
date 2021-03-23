@@ -71,6 +71,8 @@ StyleFactory::StyleFactory(const QWidget *parent) : IconFactory(parent)
     icons[plus]       = QIcon(":/images/plus.svg");
     icons[minus]      = QIcon(":/images/minus.svg");
     icons[back]       = QIcon(":/images/back.svg");
+    icons[up]         = QIcon(":/images/uparrow.svg");
+    icons[down]       = QIcon(":/images/downarrow.svg");
     icons[hamburger]  = QIcon(":/images/hamburger.svg");
 }
 

@@ -91,3 +91,12 @@ void SubtitleListWidget::seekToSubtitle(const QListWidgetItem *item)
     double pos = m_subStartTimes->value(item->text()) + player->getSubDelay();
     player->seek(pos);
 }
+
+void SubtitleListWidget::showEvent(QShowEvent *event)
+{
+    const QList<QListWidgetItem *> &items = selectedItems();
+    if (!items.isEmpty())
+    {
+        scrollToItem(items.last());
+    }
+}

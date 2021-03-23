@@ -32,6 +32,7 @@ set(
     ankisettings
     anki
     dictionary_db
+    dictionarysettings
 )
 
 add_library(mainwindow ${GUI_SRCS})

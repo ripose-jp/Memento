@@ -33,6 +33,9 @@ public:
 
     QString getContext();
 
+protected:
+    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+
 private Q_SLOTS:
     void addSubtitle(const QString &subtitle,
                      const double start,

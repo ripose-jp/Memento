@@ -69,13 +69,17 @@ MainWindow::MainWindow(QWidget *parent)
     m_ankiSettings->hide();
 
     m_actionGroupAnkiProfile = new QActionGroup(this);
-    updateAnkiProfileMenu();
+    updateAnkiProfileMenu();    
+
+    /* Dictionary Settings */
+    m_dictionarySettings = new DictionarySettings;
+    m_dictionarySettings->hide();
 
     /* Toolbar Actions */
-    connect(m_ui->actionAnki,        &QAction::triggered, m_ankiSettings, &QWidget::show);
-    connect(m_ui->actionOpen,        &QAction::triggered, this,           &MainWindow::open);
-    connect(m_ui->actionAddDict,     &QAction::triggered, this,           &MainWindow::addDictionary);
-    connect(m_ui->actionUpdate,      &QAction::triggered, this,           &MainWindow::checkForUpdates);
+    connect(m_ui->actionAnki,        &QAction::triggered, m_ankiSettings,       &QWidget::show);
+    connect(m_ui->actionOpen,        &QAction::triggered, this,                 &MainWindow::open);
+    connect(m_ui->actionDict,        &QAction::triggered, m_dictionarySettings, &DictionarySettings::show);
+    connect(m_ui->actionUpdate,      &QAction::triggered, this,                 &MainWindow::checkForUpdates);
     connect(m_ui->actionAddSubtitle, &QAction::triggered, this,
         [=] {
             QString file = QFileDialog::getOpenFileName(0, "Open Subtitle");
@@ -174,6 +178,7 @@ MainWindow::~MainWindow()
     delete m_definition;
     delete m_ankiClient;
     delete m_ankiSettings;
+    delete m_dictionarySettings;
     delete m_actionGroupAnkiProfile;
     delete m_manager;
 }
@@ -489,26 +494,6 @@ void MainWindow::open()
         m_player->open(files);
         m_player->play();
     }
-}
-
-void MainWindow::addDictionary()
-{
-    QString file = QFileDialog::getOpenFileName(0, "Open the dictionary");
-    if (file.isEmpty())
-        return;
-    
-    QThreadPool::globalInstance()->start([=]
-        {
-            Dictionary *dic = GlobalMediator::getGlobalMediator()->getDictionary();
-            QString err = dic->addDictionary(file);
-            if (!err.isEmpty())
-            {
-                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
-                    "Error adding dictionary", err
-                );
-            }
-        }
-    );
 }
 
 void MainWindow::checkForUpdates()

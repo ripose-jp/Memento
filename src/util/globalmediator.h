@@ -117,6 +117,9 @@ Q_SIGNALS:
     void definitionsShown()  const;
     void definitionsHidden() const;
 
+    /* Dictionary Signals */
+    void dictionaryAdded() const;
+
 private:
     inline static GlobalMediator *m_mediator = nullptr;
 

@@ -45,7 +45,7 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent),
     buttonBack->setIcon(factory->getIcon(IconFactory::Icon::back));
     buttonBack->setMinimumSize(QSize(30, 30));
     buttonBack->setToolTip("Return to search results");
-    connect(buttonBack, &QToolButton::pressed, this, &KanjiWidget::backPressed);
+    connect(buttonBack, &QToolButton::clicked, this, &KanjiWidget::backPressed);
     layoutTop->addWidget(buttonBack);
     layoutTop->setAlignment(buttonBack, Qt::AlignTop | Qt::AlignLeft);
 

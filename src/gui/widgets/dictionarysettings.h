@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 Ripose
+// Copyright (c) 2021 Ripose
 //
 // This file is part of Memento.
 //
@@ -18,13 +18,39 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#ifndef DICTIONARYSETTINGS_H
+#define DICTIONARYSETTINGS_H
 
-#define VERSION         (QString("v0.3.1-alpha"))
-#define GITHUB_API_LINK (QString("https://api.github.com/repos/ripose-jp/memento/releases"))
-#define GITHUB_RELEASES (QString("https://github.com/ripose-jp/memento/releases"))
+#include <QWidget>
 
-#define DICTIONARIES_SETTINGS_KEY "dictionaries"
+namespace Ui
+{
+    class DictionarySettings;
+}
 
-#endif // CONSTANTS_H
+class DictionarySettings : public QWidget
+{
+    Q_OBJECT
+
+public:
+    DictionarySettings(QWidget *parent = nullptr);
+    ~DictionarySettings();
+
+protected:
+    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+    void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
+
+private Q_SLOTS:
+    void refresh();
+    void applySettings();
+    void setButtonsEnabled(const bool value);
+    void moveUp();
+    void moveDown();
+    void addDictionary();
+    void deleteDictionary();
+
+private:
+    Ui::DictionarySettings *m_ui;
+};
+
+#endif // DICTIONARYSETTINGS_H

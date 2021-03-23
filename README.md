@@ -113,5 +113,5 @@ https://github.com/u8sand/Baka-MPlayer
 This project uses icons made by Georgiana Ionescu for the Noun Project.
 https://thenounproject.com/georgiana.ionescu/
 
-Plus, minus, back, and hamburger button images were sourced from here.
+Plus, minus, back, up, down, and hamburger button images were sourced from here.
 https://www.iconfinder.com/iconsets/ionicons
