@@ -525,6 +525,7 @@ int DatabaseManager::populateTerms(const QList<Term *> &terms)
             addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_DEF_TAGS), def.tags);
             addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_RULES), def.rules);
             def.glossary   = jsonArrayToStringList((const char *)sqlite3_column_text(stmt, COLUMN_GLOSSARY));
+            def.score      = sqlite3_column_int(stmt, COLUMN_SCORE);
             term->definitions.append(def);
         }
         if (isStepError(step))

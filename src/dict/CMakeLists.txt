@@ -12,4 +12,5 @@ target_link_libraries(
     ${LIBZIP}
     ${MECAB}
     Qt::Core
+    Qt::Widgets
 )

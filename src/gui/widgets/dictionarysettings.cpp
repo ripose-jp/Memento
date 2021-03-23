@@ -47,8 +47,8 @@ DictionarySettings::DictionarySettings(QWidget *parent) : QWidget(parent), m_ui(
     connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Apply), &QPushButton::clicked,
         this, &DictionarySettings::applySettings);
 
-    connect(m_ui->listDictionaries, &QListWidget::itemSelectionChanged, this,
-        [=] { setButtonsEnabled(m_ui->listDictionaries->count()); } );
+    connect(m_ui->listDictionaries, &QListWidget::currentRowChanged, this,
+        [=] (int row) { setButtonsEnabled(row != -1); } );
     
     connect(m_ui->buttonUp,     &QToolButton::clicked, this, &DictionarySettings::moveUp);
     connect(m_ui->buttonDown,   &QToolButton::clicked, this, &DictionarySettings::moveDown);
@@ -79,13 +79,14 @@ void DictionarySettings::refresh()
     m_ui->listDictionaries->addItems(
         GlobalMediator::getGlobalMediator()->getDictionary()->getDictionaries()
     );
+    applySettings();
 }
 
 void DictionarySettings::applySettings()
 {
     QSettings settings;
-    settings.remove(DICTIONARIES_SETTINGS_KEY);
     settings.beginGroup(DICTIONARIES_SETTINGS_KEY);
+    settings.clear();
     for (int i = 0; i < m_ui->listDictionaries->count(); ++i)
     {
         settings.setValue(m_ui->listDictionaries->item(i)->text(), i);   
@@ -128,10 +129,9 @@ void DictionarySettings::addDictionary()
     if (file.isEmpty())
         return;
 
-    applySettings();
-    
     QThreadPool::globalInstance()->start([=]
         {
+            setEnabled(false);
             Dictionary *dic = GlobalMediator::getGlobalMediator()->getDictionary();
             QString err = dic->addDictionary(file);
             if (!err.isEmpty())
@@ -140,6 +140,7 @@ void DictionarySettings::addDictionary()
                     "Error adding dictionary", err
                 );
             }
+            setEnabled(true);
         }
     );
 }
@@ -149,11 +150,14 @@ void DictionarySettings::deleteDictionary()
     if (!m_ui->listDictionaries->count())
         return;
     
-    applySettings();
-
     QListWidgetItem *item = m_ui->listDictionaries->takeItem(m_ui->listDictionaries->currentRow());
+    QSettings settings;
+    settings.beginGroup(DICTIONARIES_SETTINGS_KEY);
+    settings.remove(item->text());
+    settings.endGroup();
     QThreadPool::globalInstance()->start(
         [=] {
+            setEnabled(false);
             Dictionary *dic = GlobalMediator::getGlobalMediator()->getDictionary();
             QString err = dic->deleteDictionary(item->text());
             if (!err.isEmpty())
@@ -163,6 +167,7 @@ void DictionarySettings::deleteDictionary()
                 );
             }
             delete item;
+            setEnabled(true);
         } 
     );
 }

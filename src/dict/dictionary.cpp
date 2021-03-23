@@ -20,11 +20,15 @@
 
 #include "dictionary.h"
 
+#include <QApplication>
 #include <QDebug>
+#include <QSettings>
 #include <mecab.h>
+#include <algorithm>
 
 #include "../util/directoryutils.h"
 #include "../util/globalmediator.h"
+#include "../util/constants.h"
 
 #define WORD_INDEX          6
 #define QUERIES_PER_THREAD  4
@@ -45,6 +49,8 @@ Dictionary::Dictionary()
     m_tagger = MeCab::createTagger(MECAB_ARG);
     if (m_tagger == nullptr)
         qDebug() << MeCab::getLastError();
+
+    buildPriorities();
 
     GlobalMediator::getGlobalMediator()->setDictionary(this);
 }
@@ -102,19 +108,29 @@ QList<Term *> *Dictionary::searchTerms(const QString &query,
     }
     
     // Sort by the length of the cloze match
-    struct cloze_compare
-    {
-        bool operator()(const Term *lhs, const Term *rhs)
-        {
-            return lhs->clozeBody.size() > rhs->clozeBody.size() ||
-                   (lhs->clozeBody.size() == rhs->clozeBody.size() && lhs->score > rhs->score);
-        }
-    } comp;
     if (index == *currentIndex)
     {
-        std::sort(terms->begin(), terms->end(), comp);
+        std::sort(terms->begin(), terms->end(), 
+            [] (const Term *lhs, const Term *rhs) -> bool {
+                return lhs->clozeBody.size() > rhs->clozeBody.size() ||
+                       (lhs->clozeBody.size() == rhs->clozeBody.size() && lhs->score > rhs->score);
+            }
+        );
         for (Term *term : *terms)
         {
+            QMap<QString, uint32_t> priorities = buildPriorities();
+            std::sort(term->definitions.begin(), term->definitions.end(),
+                [=] (const TermDefinition &lhs, const TermDefinition &rhs) -> bool {
+                    uint32_t lhsPriority = priorities[lhs.dictionary];
+                    uint32_t rhsPriority = priorities[rhs.dictionary];
+                    return lhsPriority < rhsPriority || (lhsPriority == rhsPriority && lhs.score > rhs.score);
+                }
+            );
+            std::sort(term->frequencies.begin(), term->frequencies.end(),
+                [=] (const Frequency &lhs, const Frequency &rhs) -> bool {
+                    return priorities[lhs.dictionary] < priorities[rhs.dictionary];
+                }
+            );
             sortTags(term->tags);
             for (TermDefinition &def : term->definitions)
             {
@@ -136,6 +152,24 @@ Kanji *Dictionary::searchKanji(const QString &ch)
         delete kanji;
         return nullptr;
     }
+
+    /* Sort all the information */
+    QMap<QString, uint32_t> priorities = buildPriorities();
+    std::sort(kanji->frequencies.begin(), kanji->frequencies.end(),
+        [=] (const Frequency &lhs, const Frequency &rhs) -> bool {
+            return priorities[lhs.dictionary] < priorities[rhs.dictionary];
+        }
+    );
+    std::sort(kanji->definitions.begin(), kanji->definitions.end(),
+        [=] (const KanjiDefinition &lhs, const KanjiDefinition &rhs) -> bool {
+            return priorities[lhs.dictionary] < priorities[rhs.dictionary];
+        }
+    );
+    for (KanjiDefinition &def : kanji->definitions)
+    {
+        sortTags(def.tags);
+    }
+
     return kanji;
 }
 
@@ -147,6 +181,8 @@ QString Dictionary::addDictionary(const QString &path)
         return m_db->errorCodeToString(err);
     }
     Q_EMIT GlobalMediator::getGlobalMediator()->dictionaryAdded();
+    QApplication::processEvents();
+    buildPriorities();
     return "";
 }
 
@@ -157,12 +193,34 @@ QString Dictionary::deleteDictionary(const QString &name)
     {
         return m_db->errorCodeToString(err);
     }
+    buildPriorities();
     return "";
 }
 
 QStringList Dictionary::getDictionaries()
 {
-    return m_db->getDictionaries();
+    QStringList dictionaries = m_db->getDictionaries();
+    QMap<QString, uint32_t> priorities = buildPriorities();
+    std::sort(dictionaries.begin(), dictionaries.end(), 
+        [=] (const QString &lhs, const QString &rhs) -> bool {
+            return priorities[lhs] < priorities[rhs];
+        }
+    );
+    return dictionaries;
+}
+
+QMap<QString, uint32_t> Dictionary::buildPriorities()
+{
+    QMap<QString, uint32_t> priorities;
+    QSettings settings;
+    settings.beginGroup(DICTIONARIES_SETTINGS_KEY);
+    QStringList dicts = m_db->getDictionaries();
+    for (const QString &dict : dicts)
+    {
+        priorities[dict] = settings.value(dict, -1).toUInt();
+    }
+    settings.endGroup();
+    return priorities;
 }
 
 QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
@@ -261,13 +319,9 @@ void Dictionary::MeCabWorker::run()
 
 void Dictionary::sortTags(QList<Tag> &tags)
 {
-    struct compare
-    {
-        bool operator()(const Tag &lhs, const Tag &rhs)
-        {
-            return lhs.order < rhs.order ||
-                   (lhs.order == rhs.order && lhs.score > rhs.score);
+    std::sort(tags.begin(), tags.end(), 
+        [] (const Tag &lhs, const Tag &rhs) -> bool {
+            return lhs.order < rhs.order || (lhs.order == rhs.order && lhs.score > rhs.score);
         }
-    } comp;
-    std::sort(tags.begin(), tags.end(), comp);
+    );
 }

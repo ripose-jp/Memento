@@ -55,6 +55,7 @@ struct TermDefinition
     QList<Tag>  tags;
     QList<Tag>  rules;
     QStringList glossary;
+    int         score;
 } typedef TermDefinition;
 
 struct Term

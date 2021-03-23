@@ -50,11 +50,12 @@ public:
     QStringList getDictionaries();
 
 private:
-    DatabaseManager *m_db;
-    MeCab::Tagger *m_tagger;
+    DatabaseManager         *m_db;
+    MeCab::Tagger           *m_tagger;
 
     QList<QPair<QString, QString>> generateQueries(const QString &query);
     void sortTags(QList<Tag> &tags);
+    QMap<QString, uint32_t> buildPriorities();
                                                    
     class ExactWorker : public QThread
     {
