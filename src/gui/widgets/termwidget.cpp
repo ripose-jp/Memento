@@ -126,19 +126,19 @@ void TermWidget::addNote()
 {
     m_ui->buttonAddCard->setEnabled(false);
 
-    Term term(*m_term);
-    term.definitions.clear();
+    Term *term = new Term(*m_term);
+    term->definitions.clear();
     for (size_t i = 0; i < m_layoutGlossary->count(); ++i)
     {
         GlossaryWidget *widget = (GlossaryWidget *)m_layoutGlossary->itemAt(i)->widget();
         if (widget->isChecked())
         {
-            term.definitions.append(TermDefinition(m_term->definitions[i]));
+            term->definitions.append(TermDefinition(m_term->definitions[i]));
         }
         widget->setCheckable(false);
     }
 
-    AnkiReply *reply = m_client->addTerm(&term);
+    AnkiReply *reply = m_client->addTerm(term);
     connect(reply, &AnkiReply::finishedInt, this,
         [=] (const int id, const QString &error) {
             if (!error.isEmpty())

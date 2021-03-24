@@ -99,7 +99,10 @@ public:
     AnkiReply *addTerm      (const Term *term);
 
 Q_SIGNALS:
-    void settingsChanged() const;
+    void sendIntRequest(const QString &action, const QJsonObject &params, AnkiReply *ankiReply);
+
+private Q_SLOTS:
+    void recieveIntRequest(const QString &action, const QJsonObject &params, AnkiReply *ankiReply);
 
 private:
     bool m_enabled;

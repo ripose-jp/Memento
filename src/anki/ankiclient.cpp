@@ -36,6 +36,7 @@ extern "C"
 #include <QFile>
 #include <QTemporaryFile>
 #include <QTextStream>
+#include <QThreadPool>
 #include <QDebug>
 
 // Anki request fields
@@ -110,6 +111,8 @@ AnkiClient::AnkiClient(QObject *parent)
     m_manager->setTransferTimeout(TIMEOUT);
 
     readConfigFromFile(CONFIG_FILE);
+
+    connect(this, &AnkiClient::sendIntRequest, this, &AnkiClient::recieveIntRequest);
 
     GlobalMediator::getGlobalMediator()->setAnkiClient(this);
 }
@@ -516,28 +519,18 @@ AnkiReply *AnkiClient::termsAddable(const QList<Term *> *terms)
 
 AnkiReply *AnkiClient::addTerm(const Term *term)
 {
-    QJsonObject params;
-    params[ANKI_ADD_NOTE_PARAM] = createAnkiNoteObject(*term, true);
-    QNetworkReply *reply = makeRequest(ANKI_ADD_NOTE, params);
     AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, [=] {
-        QString error;
-        QJsonObject replyObj = processReply(reply, error);
-        if (replyObj.isEmpty())
-        {
-            Q_EMIT ankiReply->finishedInt(0, error);
+    
+    QThreadPool::globalInstance()->start(
+        [=] {
+            QJsonObject params;
+            params[ANKI_ADD_NOTE_PARAM] = createAnkiNoteObject(*term, true);
+            delete term;
+            
+            Q_EMIT sendIntRequest(ANKI_ADD_NOTE, params, ankiReply);
         }
-        else if (!replyObj[ANKI_RESULT].isDouble())
-        {
-            Q_EMIT ankiReply->finishedInt(0, "AnkiConnect result is not a double");
-        }
-        else
-        {
-            Q_EMIT ankiReply->finishedInt(replyObj[ANKI_RESULT].toInt(), error);
-        }
-        ankiReply->deleteLater();
-        reply->deleteLater();
-    });
+    );
+
     return ankiReply;
 }
 
@@ -802,8 +795,7 @@ QString AnkiClient::buildGlossary(const QList<TermDefinition> &definitions)
     return glossary;
 }
 
-QNetworkReply *AnkiClient::makeRequest(const QString &action,
-                                       const QJsonObject &params)
+QNetworkReply *AnkiClient::makeRequest(const QString &action, const QJsonObject &params)
 {
     QNetworkRequest request;
     request.setUrl(QUrl("http://" + m_address + ":" + m_port));
@@ -819,6 +811,31 @@ QNetworkReply *AnkiClient::makeRequest(const QString &action,
     QJsonDocument jsonDoc(jsonMsg);
 
     return m_manager->post(request, jsonDoc.toJson());
+}
+
+void AnkiClient::recieveIntRequest(const QString &action, const QJsonObject &params, AnkiReply *ankiReply)
+{
+    QNetworkReply *reply = makeRequest(action, params);
+    connect(reply, &QNetworkReply::finished, this,
+        [=] {
+            QString error;
+            QJsonObject replyObj = processReply(reply, error);
+            if (replyObj.isEmpty())
+            {
+                Q_EMIT ankiReply->finishedInt(0, error);
+            }
+            else if (!replyObj[ANKI_RESULT].isDouble())
+            {
+                Q_EMIT ankiReply->finishedInt(0, "AnkiConnect result is not a double");
+            }
+            else
+            {
+                Q_EMIT ankiReply->finishedInt(replyObj[ANKI_RESULT].toInt(), error);
+            }
+            ankiReply->deleteLater();
+            reply->deleteLater();
+        }
+    );
 }
 
 QJsonObject AnkiClient::processReply(QNetworkReply *reply, QString &error)
