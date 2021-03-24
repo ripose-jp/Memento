@@ -24,11 +24,11 @@
 #include "../../dict/dictionary.h"
 
 #include <QLabel>
-#include <QLineEdit>
+#include <QTextEdit>
 #include <QMouseEvent>
 #include <QTimer>
 
-class SubtitleWidget : public QLineEdit
+class SubtitleWidget : public QTextEdit
 {
     Q_OBJECT
 
@@ -40,6 +40,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
+    void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
     void findTerms();
@@ -48,9 +49,12 @@ private Q_SLOTS:
                      const double start,
                      const double end,
                      const double delay);
+    void setSelectedText();
+    void deselectText();
 
 private:
     Dictionary *m_dictionary;
+    int         m_fontHeight;
     int         m_currentIndex;
     int         m_lastEmittedIndex;
     int         m_lastEmittedSize;
@@ -61,6 +65,7 @@ private:
     double      m_endTime;
 
     void deleteTerms(QList<Term *> *terms);
+    void resizeToContents();
 };
 
 #endif // SUBTITLEWIDGET_H

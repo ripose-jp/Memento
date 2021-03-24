@@ -78,15 +78,6 @@ GlossaryWidget::GlossaryWidget(size_t number, const TermDefinition &def, QWidget
     m_labelGlossary->setText(glos);
 }
 
-GlossaryWidget::~GlossaryWidget()
-{
-    m_parentLayout->deleteLater();
-    m_layoutHeader->deleteLater();
-    m_checkBoxAdd->deleteLater();
-    m_labelNumber->deleteLater();
-    m_labelGlossary->deleteLater();
-}
-
 void GlossaryWidget::setCheckable(const bool value)
 {
     m_checkBoxAdd->setVisible(value);

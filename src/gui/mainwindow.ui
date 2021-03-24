@@ -7,11 +7,8 @@
     <x>0</x>
     <y>0</y>
     <width>801</width>
-    <height>600</height>
+    <height>644</height>
    </rect>
-  </property>
-  <property name="mouseTracking">
-   <bool>true</bool>
   </property>
   <property name="focusPolicy">
    <enum>Qt::StrongFocus</enum>
@@ -23,9 +20,6 @@
    <string>Memento</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <property name="mouseTracking">
-    <bool>true</bool>
-   </property>
    <property name="acceptDrops">
     <bool>false</bool>
    </property>
@@ -53,38 +47,72 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <property name="mouseTracking">
-       <bool>true</bool>
-      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
       <property name="childrenCollapsible">
        <bool>false</bool>
       </property>
-      <widget class="MpvWidget" name="mpv">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>500</width>
-         <height>400</height>
-        </size>
-       </property>
-       <property name="cursor">
-        <cursorShape>BlankCursor</cursorShape>
-       </property>
-       <property name="mouseTracking">
-        <bool>true</bool>
-       </property>
+      <widget class="QWidget" name="verticalLayoutWidget">
+       <layout class="QVBoxLayout" name="layoutPlayerSubs">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="MpvWidget" name="player">
+          <property name="minimumSize">
+           <size>
+            <width>500</width>
+            <height>400</height>
+           </size>
+          </property>
+          <property name="cursor">
+           <cursorShape>BlankCursor</cursorShape>
+          </property>
+          <property name="mouseTracking">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="SubtitleWidget" name="subtitleWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
+          <property name="acceptDrops">
+           <bool>false</bool>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="lineWrapMode">
+           <enum>QTextEdit::NoWrap</enum>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+          <property name="acceptRichText">
+           <bool>false</bool>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::NoTextInteraction</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
       <widget class="SubtitleListWidget" name="listSubtitles">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -327,6 +355,11 @@
    <class>SubtitleListWidget</class>
    <extends>QListWidget</extends>
    <header>src/gui/widgets/subtitlelistwidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SubtitleWidget</class>
+   <extends>QTextEdit</extends>
+   <header>src/gui/widgets/subtitlewidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

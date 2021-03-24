@@ -36,30 +36,6 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="SubtitleWidget" name="subtitle">
-     <property name="font">
-      <font>
-       <family>Noto Sans JP</family>
-       <pointsize>20</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="cursor">
-      <cursorShape>ArrowCursor</cursorShape>
-     </property>
-     <property name="focusPolicy">
-      <enum>Qt::NoFocus</enum>
-     </property>
-     <property name="frame">
-      <bool>false</bool>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item>
     <layout class="QHBoxLayout" name="layoutTop">
      <property name="leftMargin">
       <number>6</number>
@@ -359,13 +335,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>SubtitleWidget</class>
-   <extends>QLineEdit</extends>
-   <header>src/gui/widgets/subtitlewidget.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

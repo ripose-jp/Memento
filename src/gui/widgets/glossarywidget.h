@@ -35,7 +35,6 @@ class GlossaryWidget : public QWidget
 
 public:
     GlossaryWidget(size_t number, const TermDefinition &def, QWidget *parent = nullptr);
-    ~GlossaryWidget();
 
     void setCheckable(const bool value);
     bool isChecked() const;

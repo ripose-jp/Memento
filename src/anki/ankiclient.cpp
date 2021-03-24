@@ -610,7 +610,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term,
         value = value.replace(REPLACE_CLOZE_BODY, term.clozeBody);
         value = value.replace(REPLACE_CLOZE_PREFIX, term.clozePrefix);
         value = value.replace(REPLACE_CLOZE_SUFFIX, term.clozeSuffix);
-        value = value.replace(REPLACE_CONTEXT, GlobalMediator::getGlobalMediator()->getSubtitleListWidget()->getContext());
+        value = value.replace(REPLACE_CONTEXT, GlobalMediator::getGlobalMediator()->getSubtitleListWidget()->getContext("<br>"));
         value = value.replace(REPLACE_EXPRESSION, term.expression);
         value = value.replace(REPLACE_ALT_EXPRESSION, "");
         value = value.replace(REPLACE_FURIGANA, furigana);

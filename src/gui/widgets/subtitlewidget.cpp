@@ -27,32 +27,43 @@
 #include <QClipboard>
 #include <QThreadPool>
 #include <QDebug>
+#include <QScrollBar>
 
+#define TEXT_PADDING_HEIGHT 0
 #define TIMER_DELAY         250
 #define MAX_QUERY_LENGTH    37
 #define DOUBLE_DELTA        0.05
 
-SubtitleWidget::SubtitleWidget(QWidget *parent) : QLineEdit(parent),
+SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
                                                   m_dictionary(new Dictionary),
                                                   m_currentIndex(-1),
                                                   m_findDelay(new QTimer(this))
 {
-    setStyleSheet("QLineEdit { color : white; background-color : black; }");
+    setStyleSheet(
+        "QTextEdit {"
+            "color : white;"
+            "background-color : black;"
+        "}"
+    );
+
+    QFont font;
+    font.setFamily(QString::fromUtf8("Noto Sans CJK JP"));
+    font.setPointSize(20);
+    setFont(font);
+    m_fontHeight = QFontMetrics(font).height() + TEXT_PADDING_HEIGHT;
+
+    setFixedHeight(m_fontHeight);
 
     m_findDelay->setSingleShot(true);
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     /* Slots */
-    connect(mediator,    &GlobalMediator::definitionsHidden,     this, &QLineEdit::deselect);
-    connect(mediator,    &GlobalMediator::definitionsShown,      this, 
-        [=] { setSelection(m_lastEmittedIndex, m_lastEmittedSize); }
-    );
+    connect(mediator,    &GlobalMediator::definitionsHidden,     this, &SubtitleWidget::deselectText);
+    connect(mediator,    &GlobalMediator::definitionsShown,      this, &SubtitleWidget::setSelectedText);
     connect(mediator,    &GlobalMediator::playerSubtitleChanged, this, &SubtitleWidget::setSubtitle);
     connect(mediator,    &GlobalMediator::playerPositionChanged, this, &SubtitleWidget::postitionChanged);
     connect(m_findDelay, &QTimer::timeout,                       this, &SubtitleWidget::findTerms);
-
-    setAlignment(Qt::AlignCenter);
 }
 
 SubtitleWidget::~SubtitleWidget()
@@ -66,19 +77,47 @@ void SubtitleWidget::setSubtitle(QString subtitle,
                                  const double delay)
 {
     m_rawText = subtitle;
-    setText(subtitle.replace(QChar::fromLatin1('\n'), "/"));
+    setPlainText(subtitle.replace(QChar::fromLatin1('\n'), "/"));
     m_startTime = start + delay;
     m_endTime = end + delay;
     m_currentIndex = -1;
+    resizeToContents();
+}
+
+void SubtitleWidget::setSelectedText()
+{
+    QTextCursor q = textCursor();
+    q.setPosition(m_lastEmittedIndex);
+    q.setPosition(m_lastEmittedIndex + m_lastEmittedSize, QTextCursor::KeepAnchor);
+    setTextCursor(q);
+}
+
+void SubtitleWidget::deselectText()
+{
+    QTextCursor q = textCursor();
+    q.clearSelection();
+    setTextCursor(q);
 }
 
 void SubtitleWidget::postitionChanged(const double value)
 {
     if (value < m_startTime - DOUBLE_DELTA || value > m_endTime + DOUBLE_DELTA)
     {
-        clear();
-        m_currentIndex = -1;
+        setSubtitle("", 0, 0, 0);
         Q_EMIT GlobalMediator::getGlobalMediator()->subtitleExpired();
+    }
+}
+
+void SubtitleWidget::resizeToContents()
+{
+    setAlignment(Qt::AlignCenter);
+    if (horizontalScrollBar()->isVisible())
+    {
+        setFixedHeight(m_fontHeight + horizontalScrollBar()->height());
+    }
+    else
+    {
+        setFixedHeight(m_fontHeight);
     }
 }
 
@@ -119,12 +158,13 @@ void SubtitleWidget::findTerms()
 
 void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    if (cursorPositionAt(event->pos()) != m_currentIndex)
+    event->ignore();
+    int position = cursorForPosition(event->pos()).position();
+    if (position != m_currentIndex)
     {
-        m_currentIndex = cursorPositionAt(event->pos());
+        m_currentIndex = position;
         m_findDelay->start(TIMER_DELAY);
     }
-    event->ignore();
 }
 
 void SubtitleWidget::mouseDoubleClickEvent(QMouseEvent *event)
@@ -136,6 +176,14 @@ void SubtitleWidget::leaveEvent(QEvent *event)
 {
     m_findDelay->stop();
     m_currentIndex = -1;
+}
+
+void SubtitleWidget::resizeEvent(QResizeEvent *event)
+{
+    event->ignore();
+    resizeToContents();
+    Q_EMIT GlobalMediator::getGlobalMediator()->requestDefinitionDelete();
+    Q_EMIT GlobalMediator::getGlobalMediator()->requestFullscreenResize();
 }
 
 void SubtitleWidget::deleteTerms(QList<Term *> *terms)

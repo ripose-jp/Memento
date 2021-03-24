@@ -68,13 +68,13 @@ private Q_SLOTS:
     void deleteDefinitionWidget();
     void hideControls();
     void hidePlayerCursor();
-    void showErrorMessage(const QString& title, const QString &error) const;
-    void showInfoMessage (const QString& title, const QString &error) const;
+    void showErrorMessage(const QString title, const QString error) const;
+    void showInfoMessage (const QString title, const QString error) const;
+    void resizeFullscreenControls();
 
 protected:
     void showEvent(QShowEvent *event) override;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
     void dragEnterEvent(QDragEnterEvent *event) Q_DECL_OVERRIDE;

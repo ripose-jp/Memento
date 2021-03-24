@@ -48,8 +48,8 @@ Q_SIGNALS:
     void stateChanged(const bool paused);
     void fullscreenChanged(const bool full);
     void tracklistChanged(const mpv_node *node);
-    void titleChanged(const QString &name);
-    void fileChanged(const QString &path);
+    void titleChanged(QString name);
+    void fileChanged(QString path);
     void videoTrackChanged(const int64_t id);
     void audioTrackChanged(const int64_t id);
     void subtitleTrackChanged(const int64_t id);
@@ -58,11 +58,12 @@ Q_SIGNALS:
     void videoDisabled();
     void subtitleDisabled();
     void subtitleTwoDisabled();
-    void subtitleChanged(const QString &subtitle, 
+    void subtitleChanged(QString subtitle, 
                          const double start, 
                          const double end,
                          const double delay);
     void hideCursor();
+    void mouseMoved(QMouseEvent *event);
     void shutdown();
 
 protected:

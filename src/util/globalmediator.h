@@ -30,6 +30,7 @@ class SubtitleListWidget;
 
 class QKeyEvent;
 class QWheelEvent;
+class QMouseEvent;
 
 struct Track;
 struct Term;
@@ -57,8 +58,8 @@ public:
 
 Q_SIGNALS:
     /* Message Box Signals */
-    void showInformation(const QString &title, const QString &content) const;
-    void showCritical   (const QString &title, const QString &content) const;
+    void showInformation(QString title, QString content) const;
+    void showCritical   (QString title, QString content) const;
 
     /* Interrupts */
     void keyPressed(const QKeyEvent   *event) const;
@@ -77,7 +78,7 @@ Q_SIGNALS:
     void playerSubtitlesDisabled()       const;
     void playerSecondSubtitlesDisabled() const;
 
-    void playerSubtitleChanged  (const QString &subtitle, 
+    void playerSubtitleChanged  (QString        subtitle, 
                                  const double   start, 
                                  const double   end, 
                                  const double   delay)  const;
@@ -86,11 +87,12 @@ Q_SIGNALS:
     void playerPauseStateChanged(const bool     paused) const;
     void playerFullscreenChanged(const bool     full)   const;
     void playerVolumeChanged    (const int64_t  value)  const;
-    void playerTitleChanged     (const QString &title)  const;
-    void playerFileChanged      (const QString &path)   const;
+    void playerTitleChanged     (QString        title)  const;
+    void playerFileChanged      (QString        path)   const;
 
-    void playerCursorHidden() const;
-    void playerClosed()       const;
+    void playerCursorHidden()                 const;
+    void playerMouseMoved(QMouseEvent *event) const;
+    void playerClosed()                       const;
 
     /* Anki Client Signals */
     void ankiSettingsChanged() const;
@@ -114,11 +116,19 @@ Q_SIGNALS:
     void subtitleExpired() const;
 
     /* Definition Signals */
-    void definitionsShown()  const;
-    void definitionsHidden() const;
+    void definitionsShown()        const;
+    void definitionsHidden()       const;
 
     /* Dictionary Signals */
     void dictionaryAdded() const;
+
+    /* Subtitle List Widget */
+    void subtitleListHidden();
+    void subtitleListShown();
+
+    /* Request Changes */
+    void requestDefinitionDelete() const;
+    void requestFullscreenResize() const;
 
 private:
     inline static GlobalMediator *m_mediator = nullptr;

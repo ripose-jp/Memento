@@ -400,6 +400,7 @@ void MpvWidget::mouseMoveEvent(QMouseEvent *event)
         setCursor(Qt::ArrowCursor);
     }
     m_cursorTimer->start(TIMEOUT);
+    Q_EMIT mouseMoved(event);
 }
 
 void MpvWidget::mouseReleaseEvent(QMouseEvent *event)

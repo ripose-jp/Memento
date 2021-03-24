@@ -16,9 +16,6 @@
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
-  <property name="mouseTracking">
-   <bool>false</bool>
-  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>

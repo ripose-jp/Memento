@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->actionSubtitleTwoNone->setActionGroup(m_actionGroupSubtitleTwo);
 
     /* Player Adapter */
-    m_player = new MpvAdapter(m_ui->mpv, this);
+    m_player = new MpvAdapter(m_ui->player, this);
     m_player->pause();
     m_ui->controls->setVolumeLimit(m_player->getMaxVolume());
 
@@ -91,6 +91,12 @@ MainWindow::MainWindow(QWidget *parent)
         }
     );
 
+    /* Control Management */
+    connect(m_mediator, &GlobalMediator::requestFullscreenResize, 
+        this, &MainWindow::resizeFullscreenControls);
+    connect(m_ui->splitterPlayerSubtitles, &QSplitter::splitterMoved, 
+        this, &MainWindow::resizeFullscreenControls);
+
     /* State Changes */
     connect(m_mediator, &GlobalMediator::playerCursorHidden,      this, &MainWindow::hideControls);
     connect(m_mediator, &GlobalMediator::playerCursorHidden,      this, &MainWindow::hidePlayerCursor);
@@ -98,11 +104,35 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_mediator, &GlobalMediator::playerFullscreenChanged, this, &MainWindow::setFullscreen);
     connect(m_mediator, &GlobalMediator::playerClosed,            this, &QApplication::quit);
     connect(m_mediator, &GlobalMediator::playerTitleChanged,      this, 
-        [=] (const QString &name) { setWindowTitle(name + " - Memento"); }
+        [=] (const QString name) { setWindowTitle(name + " - Memento"); }
     );
-    connect(m_mediator, &GlobalMediator::controlsSubtitleListToggled,      this,
-        [=] { 
-            m_ui->listSubtitles->setVisible(!m_ui->listSubtitles->isVisible()); 
+    connect(m_mediator, &GlobalMediator::controlsSubtitleListToggled, this,
+        [=] {
+            bool visible = !m_ui->listSubtitles->isVisible();
+            m_ui->listSubtitles->setVisible(visible); 
+            if (isFullScreen())
+            {
+                QApplication::processEvents();
+                if (visible)
+                {
+                    m_ui->controls->setFixedWidth(m_ui->player->width());
+                    m_ui->subtitleWidget->setFixedWidth(m_ui->player->width());
+                }
+                else
+                {
+                    m_ui->controls->setFixedWidth(width());
+                    m_ui->subtitleWidget->setFixedWidth(width());
+                }
+            }
+        }
+    );
+    connect(m_mediator, &GlobalMediator::playerMouseMoved, this,
+        [=] {
+            if (isFullScreen())
+            {
+                m_ui->controls->show();
+                m_ui->subtitleWidget->show();
+            }
         }
     );
 
@@ -154,6 +184,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     /* Definition Changes */
     connect(m_mediator, &GlobalMediator::termsChanged,            this, &MainWindow::setTerms);
+    connect(m_mediator, &GlobalMediator::requestDefinitionDelete, this, &MainWindow::deleteDefinitionWidget);
     connect(m_mediator, &GlobalMediator::playerSubtitleChanged,   this, &MainWindow::deleteDefinitionWidget);
     connect(m_mediator, &GlobalMediator::subtitleExpired,         this, &MainWindow::deleteDefinitionWidget);
     connect(m_mediator, &GlobalMediator::playerPauseStateChanged, this, 
@@ -245,9 +276,18 @@ void MainWindow::setFullscreen(bool value)
         showFullScreen();
         m_ui->menubar->hide();
         QApplication::processEvents();
+
+        /* Position the subtitle widget */
+        m_ui->subtitleWidget->hide();
+        m_ui->layoutPlayerSubs->layout()->removeWidget(m_ui->subtitleWidget);
+        m_ui->subtitleWidget->raise();
+
+        /* Position the controls */
         m_ui->controls->hide();
         m_ui->centralwidget->layout()->removeWidget(m_ui->controls);
         m_ui->controls->raise();
+
+        resizeFullscreenControls();
     }
     else
     {
@@ -265,20 +305,30 @@ void MainWindow::setFullscreen(bool value)
             showMaximized();
         }
     #endif
-        
         m_ui->menubar->show();
+
+        m_ui->subtitleWidget->setMinimumWidth(0);
+        m_ui->subtitleWidget->setMaximumWidth(QWIDGETSIZE_MAX);
+        m_ui->subtitleWidget->show();
+        m_ui->layoutPlayerSubs->layout()->addWidget(m_ui->subtitleWidget);
+
+        m_ui->controls->setMinimumWidth(0);
+        m_ui->controls->setMaximumWidth(QWIDGETSIZE_MAX);
         m_ui->controls->show();
         m_ui->centralwidget->layout()->addWidget(m_ui->controls);
     }
 }
 
-void MainWindow::mouseMoveEvent(QMouseEvent *event)
+void MainWindow::resizeFullscreenControls()
 {
-    if (isFullScreen() && m_ui->controls->isHidden())
-    {
-        m_ui->controls->show();
-    }
-    m_ui->mpv->setCursor(Qt::ArrowCursor);
+    if (!isFullScreen())
+        return;
+
+    m_ui->controls->setFixedWidth(m_ui->player->width());
+    m_ui->controls->move(0, height() - m_ui->controls->height());
+
+    m_ui->subtitleWidget->setFixedWidth(m_ui->player->width());
+    m_ui->subtitleWidget->move(0, height() - m_ui->controls->height() - m_ui->subtitleWidget->height());
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
@@ -414,12 +464,13 @@ void MainWindow::setDefinitionWidgetLocation()
     {
         x = 0;
     }
-    else if (x > width() - m_definition->width())
+    else if (x > m_ui->player->width() - m_definition->width())
     {
-        x = width() - m_definition->width();
+        x = m_ui->player->width() - m_definition->width();
     }
+    
+    int y = height() - m_ui->controls->height() - m_ui->subtitleWidget->height() - m_definition->height();
 
-    int y = height() - m_definition->height() - m_ui->controls->height();
     m_definition->move(x, y);
 }
 
@@ -435,7 +486,7 @@ void MainWindow::deleteDefinitionWidget()
 
 inline bool MainWindow::isMouseOverPlayer()
 {
-    return !m_ui->controls->underMouse() && 
+    return !m_ui->controls->underMouse() && !m_ui->subtitleWidget->underMouse() &&
            (m_definition == nullptr || m_definition && !m_definition->underMouse());
 }
 
@@ -444,16 +495,14 @@ void MainWindow::hideControls()
     if (isFullScreen() && isMouseOverPlayer())
     {
         m_ui->controls->hide();
+        m_ui->subtitleWidget->hide();
         deleteDefinitionWidget();
     }
 }
 
 void MainWindow::hidePlayerCursor()
 {
-    if (isMouseOverPlayer()) 
-    {
-        m_ui->mpv->setCursor(Qt::BlankCursor);
-    }
+    m_ui->player->setCursor(Qt::BlankCursor);
 }
 
 void MainWindow::clearTracks()
@@ -553,15 +602,15 @@ void MainWindow::checkForUpdates()
     });
 }
 
-void MainWindow::showErrorMessage(const QString &title, 
-                                  const QString &error) const
+void MainWindow::showErrorMessage(const QString title, 
+                                  const QString error) const
 {
     QMessageBox message;
     message.critical(0, title, error);
 }
 
-void MainWindow::showInfoMessage(const QString &title, 
-                                 const QString &error) const
+void MainWindow::showInfoMessage(const QString title, 
+                                 const QString error) const
 {
     QMessageBox message;
     message.information(0, title, error);

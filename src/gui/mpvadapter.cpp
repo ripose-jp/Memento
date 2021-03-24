@@ -56,6 +56,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     connect(m_mpv, &MpvWidget::fileChanged,             mediator, &GlobalMediator::playerFileChanged);
 
     connect(m_mpv, &MpvWidget::hideCursor,              mediator, &GlobalMediator::playerCursorHidden);
+    connect(m_mpv, &MpvWidget::mouseMoved,              mediator, &GlobalMediator::playerMouseMoved);
     connect(m_mpv, &MpvWidget::shutdown,                mediator, &GlobalMediator::playerClosed);
 
     /* Slots */

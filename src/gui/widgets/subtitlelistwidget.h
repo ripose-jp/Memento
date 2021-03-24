@@ -31,10 +31,11 @@ public:
     SubtitleListWidget(QWidget *parent = nullptr);
     ~SubtitleListWidget();
 
-    QString getContext();
+    QString getContext(const QString &seperator);
 
 protected:
     void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+    void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
     void addSubtitle(const QString &subtitle,

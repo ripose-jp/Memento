@@ -26,6 +26,7 @@
 
 #include <iterator>
 #include <QMultiMap>
+#include <QApplication>
 
 SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     : QListWidget(parent),
@@ -46,13 +47,13 @@ SubtitleListWidget::~SubtitleListWidget()
     delete m_subStartTimes;
 }
 
-QString SubtitleListWidget::getContext()
+QString SubtitleListWidget::getContext(const QString &seperator)
 {
     QList<QListWidgetItem *> items = selectedItems();
     QString context;
     for (const QListWidgetItem *item : items)
     {
-        context += item->text() + "\n";
+        context += item->text() + seperator;
     }
     return context;
 }
@@ -97,6 +98,19 @@ void SubtitleListWidget::showEvent(QShowEvent *event)
     const QList<QListWidgetItem *> &items = selectedItems();
     if (!items.isEmpty())
     {
+        QApplication::processEvents();
         scrollToItem(items.last());
     }
+    Q_EMIT GlobalMediator::getGlobalMediator()->subtitleListShown();
+}
+
+void SubtitleListWidget::hideEvent(QHideEvent *event)
+{
+    const QList<QListWidgetItem *> &items = selectedItems();
+    if (!items.isEmpty())
+    {
+        QApplication::processEvents();
+        scrollToItem(items.last());
+    }
+    Q_EMIT GlobalMediator::getGlobalMediator()->subtitleListHidden();
 }
