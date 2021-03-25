@@ -94,6 +94,8 @@ add_library(
     ankisettings
     ankisettings.cpp
     ankisettings.ui
+    cardbuilder.cpp
+    cardbuilder.ui
     ankisettingshelp.cpp
     ankisettingshelp.ui
 )

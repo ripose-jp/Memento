@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QCheckBox" name="m_checkBoxEnabled">
+    <widget class="QCheckBox" name="checkBoxEnabled">
      <property name="text">
       <string>Enable Anki Integration</string>
      </property>
@@ -24,7 +24,7 @@
    <item>
     <layout class="QGridLayout" name="gridLayout">
      <item row="2" column="1">
-      <widget class="QComboBox" name="m_comboBoxProfile">
+      <widget class="QComboBox" name="comboBoxProfile">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -45,7 +45,7 @@
       </widget>
      </item>
      <item row="2" column="3">
-      <widget class="QToolButton" name="m_buttonAdd">
+      <widget class="QToolButton" name="buttonAdd">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -70,7 +70,7 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLabel" name="m_labelProfile">
+      <widget class="QLabel" name="labelProfile">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -86,7 +86,7 @@
       </widget>
      </item>
      <item row="2" column="2">
-      <widget class="QToolButton" name="m_buttonDelete">
+      <widget class="QToolButton" name="buttonDelete">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -114,7 +114,7 @@ Profile Default cannot be removed.</string>
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="m_labelProfileName">
+    <widget class="QLabel" name="labelProfileName">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -130,7 +130,7 @@ Profile Default cannot be removed.</string>
     </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="m_lineEditProfileName">
+    <widget class="QLineEdit" name="lineEditProfileName">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -144,9 +144,9 @@ Becomes the name of a new profile when add is clicked.</string>
     </widget>
    </item>
    <item>
-    <layout class="QGridLayout" name="m_layoutConnect">
+    <layout class="QGridLayout" name="layoutConnect">
      <item row="2" column="1">
-      <widget class="QLineEdit" name="m_lineEditPort">
+      <widget class="QLineEdit" name="lineEditPort">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -163,7 +163,7 @@ Only change this if you know what you're doing.</string>
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="m_labelHostName">
+      <widget class="QLabel" name="labelHostName">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -185,7 +185,7 @@ Only change this if you know what you're doing.</string>
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLabel" name="m_labelPort">
+      <widget class="QLabel" name="labelPort">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -207,7 +207,7 @@ Only change this if you know what you're doing.</string>
       </widget>
      </item>
      <item row="2" column="2">
-      <widget class="QPushButton" name="m_buttonConnect">
+      <widget class="QPushButton" name="buttonConnect">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -217,7 +217,7 @@ Only change this if you know what you're doing.</string>
       </widget>
      </item>
      <item row="2" column="0">
-      <widget class="QLineEdit" name="m_lineEditHost">
+      <widget class="QLineEdit" name="lineEditHost">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -236,7 +236,7 @@ Only change this if you know what you're doing.</string>
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="m_labelDuplicates">
+    <widget class="QLabel" name="labelDuplicates">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -252,7 +252,7 @@ Only change this if you know what you're doing.</string>
     </widget>
    </item>
    <item>
-    <widget class="QComboBox" name="m_comboBoxDuplicates">
+    <widget class="QComboBox" name="comboBoxDuplicates">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -274,7 +274,7 @@ Only change this if you know what you're doing.</string>
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="m_labelScreenshot">
+    <widget class="QLabel" name="labelScreenshot">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -290,7 +290,7 @@ Only change this if you know what you're doing.</string>
     </widget>
    </item>
    <item>
-    <widget class="QComboBox" name="m_comboBoxScreenshot">
+    <widget class="QComboBox" name="comboBoxScreenshot">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -312,7 +312,7 @@ Only change this if you know what you're doing.</string>
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="m_labelTags">
+    <widget class="QLabel" name="labelTags">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -334,7 +334,7 @@ Only change this if you know what you're doing.</string>
     </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="m_lineEditTags">
+    <widget class="QLineEdit" name="lineEditTags">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -351,113 +351,64 @@ Comma or space seperated list.</string>
     </widget>
    </item>
    <item>
-    <layout class="QGridLayout" name="m_layoutCards">
-     <item row="1" column="1">
-      <widget class="QComboBox" name="m_comboBoxModel">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="insertPolicy">
-        <enum>QComboBox::InsertAlphabetically</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLabel" name="m_labelModel">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Model</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QComboBox" name="m_comboBoxDeck">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="insertPolicy">
-        <enum>QComboBox::InsertAlphabetically</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="m_labelDeck">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Deck</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="QTableWidget" name="m_tableFields">
-     <property name="enabled">
-      <bool>false</bool>
+    <widget class="QTabWidget" name="tabTermKanji">
+     <property name="currentIndex">
+      <number>0</number>
      </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>675</width>
-       <height>0</height>
-      </size>
-     </property>
-     <attribute name="horizontalHeaderStretchLastSection">
-      <bool>true</bool>
-     </attribute>
-     <attribute name="verticalHeaderVisible">
-      <bool>false</bool>
-     </attribute>
-     <attribute name="verticalHeaderStretchLastSection">
-      <bool>false</bool>
-     </attribute>
-     <column>
-      <property name="text">
-       <string>Field</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Value</string>
-      </property>
-     </column>
+     <widget class="QWidget" name="layoutTerms">
+      <attribute name="title">
+       <string>Term Cards</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="CardBuilder" name="termCardBuilder" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="layoutKanji">
+      <attribute name="title">
+       <string>Kanji Cards</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="CardBuilder" name="kanjiCardBuilder" native="true"/>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="m_buttonBox">
+    <widget class="QDialogButtonBox" name="buttonBox">
      <property name="standardButtons">
       <set>QDialogButtonBox::Apply|QDialogButtonBox::Close|QDialogButtonBox::Help|QDialogButtonBox::Reset|QDialogButtonBox::RestoreDefaults</set>
      </property>
@@ -465,6 +416,14 @@ Comma or space seperated list.</string>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CardBuilder</class>
+   <extends>QWidget</extends>
+   <header>src/gui/widgets/cardbuilder.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
