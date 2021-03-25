@@ -33,10 +33,10 @@
 
 /* Shared Markers */
 #define REPLACE_AUDIO_MEDIA         "{audio-media}"
-#define REPLACE_CONTEXT             "{context}"
 #define REPLACE_CLOZE_BODY          "{cloze-body}"
 #define REPLACE_CLOZE_PREFIX        "{cloze-prefix}"
 #define REPLACE_CLOZE_SUFFIX        "{cloze-suffix}"
+#define REPLACE_CONTEXT             "{context}"
 #define REPLACE_FREQUENCIES         "{frequencies}"
 #define REPLACE_GLOSSARY            "{glossary}"
 #define REPLACE_SCREENSHOT          "{screenshot}"
