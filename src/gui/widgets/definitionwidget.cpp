@@ -58,7 +58,7 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, AnkiClient *clien
     // Check if entries are addable to anki
     if (m_client->isEnabled())
     {
-        AnkiReply *reply = m_client->termsAddable(terms);
+        AnkiReply *reply = m_client->notesAddable(*terms);
         connect(reply, &AnkiReply::finishedBoolList, this, &DefinitionWidget::setAddable);
     }
 

@@ -53,7 +53,7 @@ QString SubtitleListWidget::getContext(const QString &seperator)
     QString context;
     for (const QListWidgetItem *item : items)
     {
-        context += item->text() + seperator;
+        context += item->text().replace('\n', seperator) + seperator;
     }
     return context;
 }

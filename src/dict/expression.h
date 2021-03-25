@@ -94,6 +94,12 @@ struct Kanji
     QString                character;
     QList<KanjiDefinition> definitions;
     QList<Frequency>       frequencies;
+
+    /* Cloze values will be set outside of database manager */
+    QString                 sentence;
+    QString                 clozeBody;
+    QString                 clozePrefix;
+    QString                 clozeSuffix;
 } typedef Kanji;
 
 #endif // EXPRESSION_H

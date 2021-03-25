@@ -67,6 +67,7 @@ public:
     virtual int64_t getSubtitleTrack() const = 0;
 
     virtual QString getPath() const = 0;
+    virtual QString getTitle() const = 0;
 
     virtual bool isFullScreen() const = 0;
 

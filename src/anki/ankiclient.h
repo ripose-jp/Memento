@@ -31,24 +31,34 @@
 
 #include "../dict/expression.h"
 
-#define REPLACE_AUDIO               "{audio}"
+/* Shared Markers */
 #define REPLACE_AUDIO_MEDIA         "{audio-media}"
+#define REPLACE_CONTEXT             "{context}"
 #define REPLACE_CLOZE_BODY          "{cloze-body}"
 #define REPLACE_CLOZE_PREFIX        "{cloze-prefix}"
 #define REPLACE_CLOZE_SUFFIX        "{cloze-suffix}"
-#define REPLACE_CONTEXT             "{context}"
-#define REPLACE_DOCUMENT_TITLE      "{document-title}"
-#define REPLACE_EXPRESSION          "{expression}"
-#define REPLACE_ALT_EXPRESSION      "{expression-alt}"
-#define REPLACE_FURIGANA            "{furigana}"
-#define REPLACE_FURIGANA_PLAIN      "{furigana-plain}"
+#define REPLACE_FREQUENCIES         "{frequencies}"
 #define REPLACE_GLOSSARY            "{glossary}"
-#define REPLACE_READING             "{reading}"
-#define REPLACE_ALT_READING         "{reading-alt}"
 #define REPLACE_SCREENSHOT          "{screenshot}"
 #define REPLACE_SCREENSHOT_VIDEO    "{screenshot-video}"
 #define REPLACE_SENTENCE            "{sentence}"
 #define REPLACE_TAGS                "{tags}"
+#define REPLACE_TITLE               "{title}"
+
+
+/* Term Markers */
+#define REPLACE_AUDIO               "{audio}"
+#define REPLACE_EXPRESSION          "{expression}"
+#define REPLACE_FURIGANA            "{furigana}"
+#define REPLACE_FURIGANA_PLAIN      "{furigana-plain}"
+#define REPLACE_GLOSSARY_BRIEF      "{glossary-brief}"
+#define REPLACE_READING             "{reading}"
+
+/* Kanji Markers */
+#define REPLACE_CHARACTER           "{character}"
+#define REPLACE_KUNYOMI             "{kunyomi}"
+#define REPLACE_ONYOMI              "{onyomi}"
+#define REPLACE_STROKE_COUNT        "{stroke-count}"
 
 class QNetworkAccessManager;
 class QNetworkReply;
@@ -95,8 +105,10 @@ public:
     AnkiReply *getDeckNames();
     AnkiReply *getModelNames();
     AnkiReply *getFieldNames(const QString &model);
-    AnkiReply *termsAddable (const QList<Term *> *terms);
-    AnkiReply *addTerm      (const Term *term);
+    AnkiReply *notesAddable (const QList<Term *>        &terms);
+    AnkiReply *notesAddable (const QList<const Kanji *> &kanjiList);
+    AnkiReply *addNote      (const Term *term);
+    AnkiReply *addNote      (const Kanji *kanji);
 
 Q_SIGNALS:
     void sendIntRequest(const QString &action, const QJsonObject &params, AnkiReply *ankiReply);
@@ -125,9 +137,18 @@ private:
 
     AnkiReply *requestStringList(const QString &action, const QJsonObject &params = QJsonObject());
 
-    QJsonObject createAnkiNoteObject(const Term &term, const bool media = false);
+    QJsonObject createAnkiNoteObject(const Term  &term,  const bool media = false);
+    QJsonObject createAnkiNoteObject(const Kanji &kanji, const bool media = false);
 
-    QString buildGlossary(const QList<TermDefinition> &definitions);
+    void     buildCommonNote (QJsonObject                  &note,
+                              QJsonObject                  &fieldObj, 
+                              const QJsonObject            &configFields,
+                              const bool                    media);
+    QString  buildFrequencies(const QList<Frequency>       &freq);
+    QString  buildGlossary   (const QList<TermDefinition>  &definitions);
+    QString  buildGlossary   (const QList<KanjiDefinition> &definitions);
+    QString &accumulateTags  (const QList<Tag>             &tags,         
+                              QString                      &tagStr);
 
     QString generateMD5(const QString &filename);
 };

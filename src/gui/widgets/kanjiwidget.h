@@ -28,6 +28,7 @@
 class QLabel;
 class QFrame;
 class QVBoxLayout;
+class QToolButton;
 
 class KanjiWidget : public QWidget
 {
@@ -40,8 +41,12 @@ public:
 Q_SIGNALS:
     void backPressed();
 
+private Q_SLOTS:
+    void addKanji();
+
 private:
-    const Kanji *kanji;
+    const Kanji *m_kanji;
+    QToolButton *m_buttonAnkiAdd;
 
     void buildDefinitionLabel(const KanjiDefinition &def, QVBoxLayout *layout);
     QFrame *createLine();

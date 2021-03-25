@@ -138,7 +138,7 @@ void TermWidget::addNote()
         widget->setCheckable(false);
     }
 
-    AnkiReply *reply = m_client->addTerm(term);
+    AnkiReply *reply = m_client->addNote(term);
     connect(reply, &AnkiReply::finishedInt, this,
         [=] (const int id, const QString &error) {
             if (!error.isEmpty())
@@ -153,5 +153,11 @@ void TermWidget::searchKanji(const QString &ch)
 {
     Kanji *kanji = GlobalMediator::getGlobalMediator()->getDictionary()->searchKanji(ch);
     if (kanji)
+    {
+        kanji->sentence    = m_term->sentence;
+        kanji->clozePrefix = m_term->clozePrefix;
+        kanji->clozeBody   = m_term->clozeBody;
+        kanji->clozeSuffix = m_term->clozeSuffix;
         Q_EMIT kanjiSearched(kanji);
+    }
 }

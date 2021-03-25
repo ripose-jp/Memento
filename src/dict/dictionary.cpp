@@ -285,7 +285,7 @@ void Dictionary::ExactWorker::run()
         {
             clozePrefix = subtitle.left(index);
             clozeBody   = subtitle.mid(index, query.size());
-            clozeSuffix = subtitle.right(index + query.size());
+            clozeSuffix = subtitle.right(subtitle.size() - (index + query.size()));
         }
 
         for (Term *term : results)
@@ -317,7 +317,7 @@ void Dictionary::MeCabWorker::run()
         {
             clozePrefix = subtitle.left(index);
             clozeBody   = subtitle.mid(index, pair.second.size());
-            clozeSuffix = subtitle.right(index + pair.second.size());
+            clozeSuffix = subtitle.right(subtitle.size() - (index + pair.second.size()));
         }
 
         for (Term *term : results)

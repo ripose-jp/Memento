@@ -178,6 +178,19 @@ QString MpvAdapter::getPath() const
     return path_str;
 }
 
+QString MpvAdapter::getTitle() const
+{
+    char *title = NULL;
+    if (mpv_get_property(m_handle, "media-title", MPV_FORMAT_STRING, &title) < 0)
+    {
+        qDebug() << "Could not get mpv media-title property";
+        return "";
+    }
+    QString title_str(title);
+    mpv_free(title);
+    return title_str;
+}
+
 bool MpvAdapter::isFullScreen() const
 {
     int flag;

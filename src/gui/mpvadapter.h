@@ -43,6 +43,7 @@ public:
     int64_t getSubtitleTrack() const Q_DECL_OVERRIDE;
 
     QString getPath() const Q_DECL_OVERRIDE;
+    QString getTitle() const Q_DECL_OVERRIDE;
 
     bool isFullScreen() const Q_DECL_OVERRIDE;
 

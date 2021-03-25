@@ -29,10 +29,12 @@
 #include "flowlayout.h"
 #include "tagwidget.h"
 #include "../../util/iconfactory.h"
+#include "../../util/globalmediator.h"
+#include "../../anki/ankiclient.h"
 
 #define KEY_VALUE_FORMAT (QString("<span class="desc">%1</span><span class="value">%2</span>"))
 
-KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent), kanji(kanji)
+KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent), m_kanji(kanji)
 {
     QVBoxLayout *layoutParent = new QVBoxLayout(this);
 
@@ -56,14 +58,29 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent),
     labelKanjiStroke->setTextInteractionFlags(Qt::TextSelectableByMouse);
     labelKanjiStroke->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     layoutTop->addWidget(labelKanjiStroke);
-    layoutTop->setAlignment(labelKanjiStroke, Qt::AlignTop | Qt::AlignHCenter);
+    layoutTop->setAlignment(labelKanjiStroke, Qt::AlignTop | Qt::AlignCenter);
+    layoutTop->addStretch();
 
     QToolButton *buttonAnkiAdd = new QToolButton;
     buttonAnkiAdd->setIcon(factory->getIcon(IconFactory::Icon::plus));
     buttonAnkiAdd->setMinimumSize(QSize(30, 30));
     buttonAnkiAdd->setToolTip("Add Anki note");
+    buttonAnkiAdd->setEnabled(false);
+    buttonAnkiAdd->setVisible(GlobalMediator::getGlobalMediator()->getAnkiClient()->isEnabled());
     layoutTop->addWidget(buttonAnkiAdd);
     layoutTop->setAlignment(buttonAnkiAdd, Qt::AlignTop | Qt::AlignRight);
+
+    AnkiReply *reply = GlobalMediator::getGlobalMediator()->getAnkiClient()->notesAddable(QList<const Kanji *>({kanji}));
+    connect(reply, &AnkiReply::finishedBoolList, this,
+        [=] (const QList<bool> &value, const QString &error) {
+            if (error.isEmpty())
+            {
+                buttonAnkiAdd->setEnabled(value.first());
+            }
+        }
+    );
+    connect(buttonAnkiAdd, &QToolButton::clicked, this, &KanjiWidget::addKanji);
+    m_buttonAnkiAdd = buttonAnkiAdd;
 
     delete factory;
 
@@ -90,7 +107,7 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent),
 
 KanjiWidget::~KanjiWidget()
 {
-    delete kanji;
+    delete m_kanji;
 }
 
 void KanjiWidget::buildDefinitionLabel(const KanjiDefinition &def, QVBoxLayout *layout)
@@ -205,4 +222,11 @@ void KanjiWidget::addKVSection(const QString &title, const QList<QPair<Tag, QStr
     {
         layout->addLayout(createKVLabel(kv.first.notes, kv.second));
     }
+}
+
+void KanjiWidget::addKanji()
+{
+    m_buttonAnkiAdd->setEnabled(false);
+    Kanji *kanji = new Kanji(*m_kanji);
+    GlobalMediator::getGlobalMediator()->getAnkiClient()->addNote(kanji);
 }
