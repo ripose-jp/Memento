@@ -34,6 +34,8 @@ namespace Ui
     class AnkiSettings;
 }
 
+class CardBuilder;
+
 class AnkiSettings : public QWidget
 {
     Q_OBJECT
@@ -48,8 +50,8 @@ protected:
 
 private Q_SLOTS:
     void enabledStateChanged(int state);
-    void connectToClient    (const bool showErrors = true);
-    void updateModelFields  (const QString &model);
+    void connectToClient(const bool showErrors = true);
+    void updateModelFields(CardBuilder *cb, const QString &model);
     void applyChanges();
     void restoreDefaults();
     void restoreSaved();

@@ -47,7 +47,7 @@ AnkiSettings::AnkiSettings(QWidget *parent)
     : QWidget(parent),
       m_ui(new Ui::AnkiSettings),
       m_ankiSettingsHelp(new AnkiSettingsHelp),
-      m_configs(0)
+      m_configs(nullptr)
 {
     m_ui->setupUi(this);
 
@@ -56,35 +56,46 @@ AnkiSettings::AnkiSettings(QWidget *parent)
     m_ui->buttonDelete->setIcon(factory->getIcon(IconFactory::Icon::minus));
     delete factory;
 
-    connect(m_ui->checkBoxEnabled, &QCheckBox::stateChanged,
-            this, &AnkiSettings::enabledStateChanged);
-    connect(m_ui->comboBoxProfile, &QComboBox::currentTextChanged,
-            this, &AnkiSettings::changeProfile);
-    connect(m_ui->buttonConnect, &QPushButton::clicked,
-            [=] { connectToClient(true); });
-    connect(m_ui->termCardBuilder, &CardBuilder::modelTextChanged,
-            this, &AnkiSettings::updateModelFields);
+    connect(m_ui->checkBoxEnabled,  &QCheckBox::stateChanged,       this, &AnkiSettings::enabledStateChanged);
+    connect(m_ui->comboBoxProfile,  &QComboBox::currentTextChanged, this, &AnkiSettings::changeProfile);
+    connect(m_ui->buttonConnect,    &QPushButton::clicked,          this, [=] { connectToClient(true); } );
+    connect(m_ui->termCardBuilder,  &CardBuilder::modelTextChanged, this, 
+        [=] (const QString &model) {
+            updateModelFields(m_ui->termCardBuilder, model);
+        }
+    );
+    connect(m_ui->kanjiCardBuilder, &CardBuilder::modelTextChanged, this, 
+        [=] (const QString &model) {
+            updateModelFields(m_ui->kanjiCardBuilder, model);
+        }
+    );
 
-    // Dialog Buttons
-    connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Reset),
-            &QPushButton::clicked, this, &AnkiSettings::restoreSaved);
-    connect(m_ui->buttonBox->button(
-                QDialogButtonBox::StandardButton::RestoreDefaults),
-            &QPushButton::clicked, this, &AnkiSettings::restoreDefaults);
-    connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Apply),
-            &QPushButton::clicked, this, &AnkiSettings::applyChanges);
-    connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Close),
-            &QPushButton::clicked, this, &AnkiSettings::hide);
-    connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Help),
-        &QPushButton::clicked, m_ankiSettingsHelp, &AnkiSettingsHelp::show);
+    /* Dialog Buttons */
+    connect(
+        m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Reset),
+        &QPushButton::clicked, this, &AnkiSettings::restoreSaved
+    );
+    connect(
+        m_ui->buttonBox->button(QDialogButtonBox::StandardButton::RestoreDefaults),
+        &QPushButton::clicked, this, &AnkiSettings::restoreDefaults
+    );
+    connect(
+        m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Apply),
+        &QPushButton::clicked, this, &AnkiSettings::applyChanges
+    );
+    connect(
+        m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Close),
+        &QPushButton::clicked, this, &AnkiSettings::hide
+    );
+    connect(
+        m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Help), 
+        &QPushButton::clicked, m_ankiSettingsHelp, &AnkiSettingsHelp::show
+    );
 
-    // Profile actions
-    connect(m_ui->buttonAdd, &QToolButton::clicked,
-            this, &AnkiSettings::addProfile);
-    connect(m_ui->buttonDelete, &QToolButton::clicked,
-            this, &AnkiSettings::deleteProfile);
-    connect(m_ui->comboBoxProfile, &QComboBox::currentTextChanged,
-            this, &AnkiSettings::changeProfile);
+    /* Profile actions */
+    connect(m_ui->buttonAdd,       &QToolButton::clicked,          this, &AnkiSettings::addProfile);
+    connect(m_ui->buttonDelete,    &QToolButton::clicked,          this, &AnkiSettings::deleteProfile);
+    connect(m_ui->comboBoxProfile, &QComboBox::currentTextChanged, this, &AnkiSettings::changeProfile);
 }
 
 AnkiSettings::~AnkiSettings()
@@ -240,7 +251,8 @@ void AnkiSettings::connectToClient(const bool showErrors)
                 [=] (const QStringList &decks, const QString &error) {
                     if (error.isEmpty())
                     {
-                        m_ui->termCardBuilder->setDecks(decks, client->getConfig(client->getProfile())->deck);
+                        m_ui->termCardBuilder->setDecks(decks, client->getConfig(client->getProfile())->termDeck);
+                        m_ui->kanjiCardBuilder->setDecks(decks, client->getConfig(client->getProfile())->kanjiDeck);
                     }
                     else if (showErrors)
                     {
@@ -254,8 +266,12 @@ void AnkiSettings::connectToClient(const bool showErrors)
                     if (error.isEmpty())
                     {
                         m_ui->termCardBuilder->blockSignals(true);
-                        m_ui->termCardBuilder->setModels(models, client->getConfig(client->getProfile())->model);
+                        m_ui->termCardBuilder->setModels(models, client->getConfig(client->getProfile())->termModel);
                         m_ui->termCardBuilder->blockSignals(false);
+
+                        m_ui->kanjiCardBuilder->blockSignals(true);
+                        m_ui->kanjiCardBuilder->setModels(models, client->getConfig(client->getProfile())->kanjiModel);
+                        m_ui->kanjiCardBuilder->blockSignals(false);
                     }
                     else if (showErrors)
                     {
@@ -272,7 +288,7 @@ void AnkiSettings::connectToClient(const bool showErrors)
     });
 }
 
-void AnkiSettings::updateModelFields(const QString &model)
+void AnkiSettings::updateModelFields(CardBuilder *cb, const QString &model)
 {
     m_mutexUpdateModelFields.lock();
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
@@ -281,7 +297,7 @@ void AnkiSettings::updateModelFields(const QString &model)
         [=] (const QStringList &fields, const QString error) {
             if (error.isEmpty())
             {
-                m_ui->termCardBuilder->setFields(fields);
+                cb->setFields(fields);
             }
             else
             {
@@ -327,11 +343,19 @@ void AnkiSettings::restoreDefaults()
     defaultConfig.duplicatePolicy = DEFAULT_DUPLICATE_POLICY;
     defaultConfig.screenshotType  = DEFAULT_SCREENSHOT;
     defaultConfig.tags.append(DEFAULT_TAGS);
-    defaultConfig.deck            = m_ui->termCardBuilder->getDeckText();
-    defaultConfig.model           = m_ui->termCardBuilder->getModelText();
-    QStringList fields            = m_configs->value(m_ui->comboBoxProfile->currentText())->fields.keys();
+
+    defaultConfig.termDeck        = m_ui->termCardBuilder->getDeckText();
+    defaultConfig.termModel       = m_ui->termCardBuilder->getModelText();
+    QStringList fields            = m_configs->value(m_ui->comboBoxProfile->currentText())->termFields.keys();
     for (const QString &field : fields)
-        defaultConfig.fields[field] = "";
+        defaultConfig.termFields[field] = "";
+
+    defaultConfig.kanjiDeck       = m_ui->kanjiCardBuilder->getDeckText();
+    defaultConfig.kanjiModel      = m_ui->kanjiCardBuilder->getModelText();
+    fields                        = m_configs->value(m_ui->comboBoxProfile->currentText())->kanjiFields.keys();
+    for (const QString &field : fields)
+        defaultConfig.kanjiFields[field] = "";
+    
     populateFields(m_ui->comboBoxProfile->currentText(), &defaultConfig);
 }
 
@@ -355,8 +379,7 @@ void AnkiSettings::restoreSaved()
     m_currentProfile = client->getProfile();
 }
 
-void AnkiSettings::populateFields(const QString &profile,
-                                  const AnkiConfig *config)
+void AnkiSettings::populateFields(const QString &profile, const AnkiConfig *config)
 {
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
 
@@ -388,11 +411,18 @@ void AnkiSettings::populateFields(const QString &profile,
     m_ui->lineEditTags->setText(tags);
 
     m_ui->termCardBuilder->blockSignals(true);
-    m_ui->termCardBuilder->setDeckCurrentText(config->deck);
-    m_ui->termCardBuilder->setModelCurrentText(config->model);
+    m_ui->termCardBuilder->setDeckCurrentText(config->termDeck);
+    m_ui->termCardBuilder->setModelCurrentText(config->termModel);
     m_ui->termCardBuilder->blockSignals(false);
 
-    m_ui->termCardBuilder->setFields(config->fields);
+    m_ui->termCardBuilder->setFields(config->termFields);
+
+    m_ui->kanjiCardBuilder->blockSignals(true);
+    m_ui->kanjiCardBuilder->setDeckCurrentText(config->kanjiDeck);
+    m_ui->kanjiCardBuilder->setModelCurrentText(config->kanjiModel);
+    m_ui->kanjiCardBuilder->blockSignals(false);
+
+    m_ui->kanjiCardBuilder->setFields(config->kanjiFields);
 }
 
 QString AnkiSettings::duplicatePolicyToString(
@@ -485,14 +515,23 @@ void AnkiSettings::applyToConfig(const QString &profile)
 
     if (!m_ui->termCardBuilder->getDeckText().isEmpty())
     {
-        config->deck = m_ui->termCardBuilder->getDeckText();
+        config->termDeck = m_ui->termCardBuilder->getDeckText();
     }
     if (!m_ui->termCardBuilder->getModelText().isEmpty())
     {
-        config->model = m_ui->termCardBuilder->getModelText();
+        config->termModel = m_ui->termCardBuilder->getModelText();
     }
+    config->termFields = m_ui->termCardBuilder->getFields();
 
-    config->fields = m_ui->termCardBuilder->getFields();
+    if (!m_ui->kanjiCardBuilder->getDeckText().isEmpty())
+    {
+        config->kanjiDeck = m_ui->kanjiCardBuilder->getDeckText();
+    }
+    if (!m_ui->kanjiCardBuilder->getModelText().isEmpty())
+    {
+        config->kanjiModel = m_ui->kanjiCardBuilder->getModelText();
+    }
+    config->kanjiFields = m_ui->kanjiCardBuilder->getFields();
 }
 
 void AnkiSettings::renameProfile(const QString &oldName, const QString &newName)

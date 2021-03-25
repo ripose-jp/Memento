@@ -45,61 +45,63 @@ extern "C"
 #define ANKI_PARAMS "params"
 
 // Anki reply fields
-#define ANKI_ERROR "error"
-#define ANKI_VERSION "version"
+#define ANKI_ERROR                      "error"
+#define ANKI_VERSION                    "version"
 
 // Anki actions
-#define ANKI_DECK_NAMES "deckNames"
-#define ANKI_MODEL_NAMES "modelNames"
-#define ANKI_FIELD_NAMES "modelFieldNames"
-#define ANKI_ACTION_VERSION "version"
-#define ANKI_CAN_ADD_NOTES "canAddNotes"
-#define ANKI_ADD_NOTE "addNote"
-#define ANKI_ADD_NOTE_PARAM "note"
+#define ANKI_DECK_NAMES                 "deckNames"
+#define ANKI_MODEL_NAMES                "modelNames"
+#define ANKI_FIELD_NAMES                "modelFieldNames"
+#define ANKI_ACTION_VERSION             "version"
+#define ANKI_CAN_ADD_NOTES              "canAddNotes"
+#define ANKI_ADD_NOTE                   "addNote"
+#define ANKI_ADD_NOTE_PARAM             "note"
 
 // Anki param fields
-#define ANKI_PARAM_MODEL_NAME "modelName"
+#define ANKI_PARAM_MODEL_NAME           "modelName"
 
 // Anki note fields
-#define ANKI_CAN_ADD_NOTES_PARAM "notes"
-#define ANKI_NOTE_DECK "deckName"
-#define ANKI_NOTE_MODEL "modelName"
-#define ANKI_NOTE_FIELDS "fields"
-#define ANKI_NOTE_OPTIONS "options"
-#define ANKI_NOTE_TAGS "tags"
-#define ANKI_NOTE_AUDIO "audio"
-#define ANKI_NOTE_PICTURE "picture"
-#define ANKI_NOTE_URL "url"
-#define ANKI_NOTE_PATH "path"
-#define ANKI_NOTE_FILENAME "filename"
-#define ANKI_NOTE_SKIPHASH "skipHash"
+#define ANKI_CAN_ADD_NOTES_PARAM        "notes"
+#define ANKI_NOTE_DECK                  "deckName"
+#define ANKI_NOTE_MODEL                 "modelName"
+#define ANKI_NOTE_FIELDS                "fields"
+#define ANKI_NOTE_OPTIONS               "options"
+#define ANKI_NOTE_TAGS                  "tags"
+#define ANKI_NOTE_AUDIO                 "audio"
+#define ANKI_NOTE_PICTURE               "picture"
+#define ANKI_NOTE_URL                   "url"
+#define ANKI_NOTE_PATH                  "path"
+#define ANKI_NOTE_FILENAME              "filename"
+#define ANKI_NOTE_SKIPHASH              "skipHash"
 
 // Anki note option fields
-#define ANKI_NOTE_OPTIONS_ALLOW_DUP "allowDuplicate"
-#define ANKI_NOTE_OPTIONS_SCOPE "duplicateScope"
-#define ANKI_NOTE_OPTIONS_SCOPE_CHECK_DECK "deck"
+#define ANKI_NOTE_OPTIONS_ALLOW_DUP         "allowDuplicate"
+#define ANKI_NOTE_OPTIONS_SCOPE             "duplicateScope"
+#define ANKI_NOTE_OPTIONS_SCOPE_CHECK_DECK  "deck"
 
-#define MIN_ANKICONNECT_VERSION 6
-#define TIMEOUT 5000
-#define CONFIG_FILE "anki_connect.json"
-#define FURIGANA_FORMAT_STRING (QString("<ruby>%1<rt>%2</rt></ruby>"))
-#define AUDIO_URL_FORMAT_STRING (QString("http://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kanji=%1&kana=%2"))
-#define JAPANESE_POD_STUB_MD5 "7e2c2f954ef6051373ba916f000168dc"
-#define AUDIO_FILENAME_FORMAT_STRING (QString("memento_%1_%2.mp3"))
+#define MIN_ANKICONNECT_VERSION         6
+#define TIMEOUT                         5000
+#define CONFIG_FILE                     "anki_connect.json"
+#define FURIGANA_FORMAT_STRING          (QString("<ruby>%1<rt>%2</rt></ruby>"))
+#define AUDIO_URL_FORMAT_STRING         (QString("http://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kanji=%1&kana=%2"))
+#define JAPANESE_POD_STUB_MD5           "7e2c2f954ef6051373ba916f000168dc"
+#define AUDIO_FILENAME_FORMAT_STRING    (QString("memento_%1_%2.mp3"))
 
 // Config file fields
-#define CONFIG_ENABLED "enabled"
-#define CONFIG_PROFILES "profiles"
-#define CONFIG_SET_PROFILE "setProfile"
-#define CONFIG_NAME "name"
-#define CONFIG_HOST "host"
-#define CONFIG_PORT "port"
-#define CONFIG_DUPLICATE "duplicate"
-#define CONFIG_SCREENSHOT "screenshot"
-#define CONFIG_TAGS "tags"
-#define CONFIG_DECK "deck"
-#define CONFIG_MODEL "model"
-#define CONFIG_FIELDS "fields"
+#define CONFIG_ENABLED      "enabled"
+#define CONFIG_PROFILES     "profiles"
+#define CONFIG_SET_PROFILE  "setProfile"
+#define CONFIG_NAME         "name"
+#define CONFIG_HOST         "host"
+#define CONFIG_PORT         "port"
+#define CONFIG_DUPLICATE    "duplicate"
+#define CONFIG_SCREENSHOT   "screenshot"
+#define CONFIG_TERM         "term"
+#define CONFIG_KANJI        "kanji"
+#define CONFIG_TAGS         "tags"
+#define CONFIG_DECK         "deck"
+#define CONFIG_MODEL        "model"
+#define CONFIG_FIELDS       "fields"
 
 AnkiClient::AnkiClient(QObject *parent)
     : QObject(parent),
@@ -174,26 +176,41 @@ void AnkiClient::readConfigFromFile(const QString &filename)
         return;
     }
     QJsonArray profiles = jsonObj[CONFIG_PROFILES].toArray();
-    for (auto it = profiles.begin(); it != profiles.end(); ++it)
+    for (size_t i = 0; i < profiles.size(); ++i)
     {
-        if (!it->isObject())
+        if (!profiles[i].isObject())
         {
             qDebug() << CONFIG_PROFILES << "element is not an object";
             return;
         }
-        QJsonObject profile = it->toObject();
+        QJsonObject profile = profiles[i].toObject();
 
-        // Initilize default values for old configs
+        /* Initilize default values for old configs */
+        bool modified = false;
         if (profile[CONFIG_DUPLICATE].isNull())
         {
-            profile[CONFIG_DUPLICATE] =
-                AnkiConfig::DuplicatePolicy::DifferentDeck;
+            modified = true;
+            profile[CONFIG_DUPLICATE] = AnkiConfig::DuplicatePolicy::DifferentDeck;
         }
         if (profile[CONFIG_SCREENSHOT].isNull())
         {
+            modified = true;
             profile[CONFIG_SCREENSHOT] = AnkiConfig::FileType::jpg;
         }
+        if (profile[CONFIG_TERM].isNull())
+        {
+            modified = true;
+            QJsonObject obj;
+            obj[CONFIG_DECK]      = profile[CONFIG_DECK].toString("");
+            obj[CONFIG_MODEL]     = profile[CONFIG_MODEL].toString("");
+            obj[CONFIG_FIELDS]    = profile[CONFIG_FIELDS].toObject();
+            profile[CONFIG_TERM]  = obj;
+            profile[CONFIG_KANJI] = QJsonObject();
+        }
+        if (modified)
+            profiles[i] = profile;
 
+        /* Error check values */
         if (!profile[CONFIG_NAME].isString())
         {
             qDebug() << CONFIG_NAME << "is not a string";
@@ -224,41 +241,39 @@ void AnkiClient::readConfigFromFile(const QString &filename)
             qDebug() << CONFIG_TAGS << "is not an array";
             return;
         }
-        else if (!profile[CONFIG_DECK].isString())
+        else if (!profile[CONFIG_TERM].isObject())
         {
-            qDebug() << CONFIG_DECK << "is not a string";
+            qDebug() << CONFIG_TERM << "is not an object";
             return;
         }
-        else if (!profile[CONFIG_MODEL].isString())
+        else if (!profile[CONFIG_KANJI].isObject())
         {
-            qDebug() << CONFIG_MODEL << "is not a string";
-            return;
-        }
-        else if (!profile[CONFIG_FIELDS].isObject())
-        {
-            qDebug() << CONFIG_FIELDS << "is not an object";
+            qDebug() << CONFIG_KANJI << "is not an object";
             return;
         }
     }
 
     m_enabled = jsonObj[CONFIG_ENABLED].toBool();
     m_currentProfile = jsonObj[CONFIG_SET_PROFILE].toString();
-    for (auto it = profiles.begin(); it != profiles.end(); ++it)
+    for (const QJsonValue &val : profiles)
     {
-        QJsonObject profile = it->toObject();
-        AnkiConfig *config = new AnkiConfig;
-        config->address = profile[CONFIG_HOST].toString();
-        config->port = profile[CONFIG_PORT].toString();
-        config->duplicatePolicy = 
-            (AnkiConfig::DuplicatePolicy)profile[CONFIG_DUPLICATE].toInt(
-                AnkiConfig::DuplicatePolicy::DifferentDeck);
-        config->screenshotType =
-            (AnkiConfig::FileType)profile[CONFIG_SCREENSHOT].toInt(
-                AnkiConfig::FileType::jpg);
-        config->tags = profile[CONFIG_TAGS].toArray();
-        config->deck = profile[CONFIG_DECK].toString();
-        config->model = profile[CONFIG_MODEL].toString();
-        config->fields = profile[CONFIG_FIELDS].toObject();
+        QJsonObject profile     = val.toObject();
+        AnkiConfig *config      = new AnkiConfig;
+        config->address         = profile[CONFIG_HOST].toString();
+        config->port            = profile[CONFIG_PORT].toString();
+        config->duplicatePolicy = (AnkiConfig::DuplicatePolicy)profile[CONFIG_DUPLICATE].toInt(AnkiConfig::DuplicatePolicy::DifferentDeck);
+        config->screenshotType  = (AnkiConfig::FileType)profile[CONFIG_SCREENSHOT].toInt(AnkiConfig::FileType::jpg);
+        config->tags            = profile[CONFIG_TAGS].toArray();
+
+        QJsonObject obj         = profile[CONFIG_TERM].toObject();
+        config->termDeck        = obj[CONFIG_DECK].toString();
+        config->termModel       = obj[CONFIG_MODEL].toString();
+        config->termFields      = obj[CONFIG_FIELDS].toObject();
+
+        obj                     = profile[CONFIG_KANJI].toObject();
+        config->kanjiDeck       = obj[CONFIG_DECK].toString();
+        config->kanjiModel      = obj[CONFIG_MODEL].toString();
+        config->kanjiFields     = obj[CONFIG_FIELDS].toObject();
 
         QString profileName = profile[CONFIG_NAME].toString();
         m_configs->insert(profileName, config);
@@ -286,24 +301,27 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
     jsonObj[CONFIG_SET_PROFILE] = m_currentProfile;
     QJsonArray configArr;
     QList<QString> profiles = m_configs->keys();
-    for (auto it = profiles.begin(); it != profiles.end(); ++it)
+    for (const QString &profile : profiles)
     {
         QJsonObject configObj;
-        configObj[CONFIG_NAME] = *it;
-        const AnkiConfig *config = m_configs->value(*it);
-        configObj[CONFIG_HOST] = config->address;
-        configObj[CONFIG_PORT] = config->port;
-        configObj[CONFIG_DUPLICATE] = config->duplicatePolicy;
+        const AnkiConfig *config     = m_configs->value(profile);
+        configObj[CONFIG_NAME]       = profile;
+        configObj[CONFIG_HOST]       = config->address;
+        configObj[CONFIG_PORT]       = config->port;
+        configObj[CONFIG_DUPLICATE]  = config->duplicatePolicy;
         configObj[CONFIG_SCREENSHOT] = config->screenshotType;
-        QJsonArray tagsArr;
-        for (size_t i = 0; i < config->tags.size(); ++i)
-        {
-            tagsArr.append(config->tags[i]);
-        }
-        configObj[CONFIG_TAGS] = tagsArr;
-        configObj[CONFIG_DECK] = config->deck;
-        configObj[CONFIG_MODEL] = config->model;
-        configObj[CONFIG_FIELDS] = config->fields;
+        configObj[CONFIG_TAGS]       = config->tags;
+
+        QJsonObject obj;
+        obj[CONFIG_DECK]       = config->termDeck;
+        obj[CONFIG_MODEL]      = config->termModel;
+        obj[CONFIG_FIELDS]     = config->termFields;
+        configObj[CONFIG_TERM] = obj;
+
+        obj[CONFIG_DECK]        = config->kanjiDeck;
+        obj[CONFIG_MODEL]       = config->kanjiModel;
+        obj[CONFIG_FIELDS]      = config->kanjiFields;
+        configObj[CONFIG_KANJI] = obj;
 
         configArr.append(configObj);
     }
@@ -534,12 +552,11 @@ AnkiReply *AnkiClient::addTerm(const Term *term)
     return ankiReply;
 }
 
-QJsonObject AnkiClient::createAnkiNoteObject(const Term &term,
-                                             const bool media)
+QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
 {
     QJsonObject note;
-    note[ANKI_NOTE_DECK] = m_currentConfig->deck;
-    note[ANKI_NOTE_MODEL] = m_currentConfig->model;
+    note[ANKI_NOTE_DECK] = m_currentConfig->termDeck;
+    note[ANKI_NOTE_MODEL] = m_currentConfig->termModel;
 
     switch (m_currentConfig->duplicatePolicy)
     {
@@ -575,35 +592,35 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term,
     QString glossary = buildGlossary(term.definitions);
 
     // Find and replace fields with processed fields
-    QStringList fields = m_currentConfig->fields.keys();
+    QStringList fields = m_currentConfig->termFields.keys();
     QJsonArray fieldsWithAudio, fieldsWithAudioMedia, 
                fieldsWithScreenshot, fieldWithScreenshotVideo;
     QJsonObject fieldsObj;
-    for (auto it = fields.begin(); it != fields.end(); ++it)
+    for (const QString &field : fields)
     {
-        QString value = m_currentConfig->fields[*it].toString();
+        QString value = m_currentConfig->termFields[field].toString();
 
         if (value.contains(REPLACE_AUDIO))
         {
-            fieldsWithAudio.append(*it);
+            fieldsWithAudio.append(field);
         }
         value = value.replace(REPLACE_AUDIO, "");
 
         if (value.contains(REPLACE_AUDIO_MEDIA))
         {
-            fieldsWithAudioMedia.append(*it);
+            fieldsWithAudioMedia.append(field);
         }
         value = value.replace(REPLACE_AUDIO_MEDIA, "");
 
         if (value.contains(REPLACE_SCREENSHOT))
         {
-            fieldsWithScreenshot.append(*it);
+            fieldsWithScreenshot.append(field);
         }
         value = value.replace(REPLACE_SCREENSHOT, "");
 
         if (value.contains(REPLACE_SCREENSHOT_VIDEO))
         {
-            fieldWithScreenshotVideo.append(*it);
+            fieldWithScreenshotVideo.append(field);
         }
         value = value.replace(REPLACE_SCREENSHOT_VIDEO, "");
 
@@ -620,7 +637,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term,
         value = value.replace(REPLACE_ALT_READING, "");
         value = value.replace(REPLACE_SENTENCE, term.sentence);
 
-        fieldsObj[*it] = value;
+        fieldsObj[field] = value;
     }
 
     // Add media secions to the request

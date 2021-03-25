@@ -195,6 +195,9 @@ QLayout *KanjiWidget::createKVLabel(const QString &key, const QString &value)
 
 void KanjiWidget::addKVSection(const QString &title, const QList<QPair<Tag, QString>> &pairs, QVBoxLayout *layout)
 {
+    if (pairs.isEmpty())
+        return;
+    
     layout->addWidget(createLine());
     layout->addWidget(createLabel(title, true));
     layout->addWidget(createLine());

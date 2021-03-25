@@ -42,39 +42,35 @@ struct AnkiConfig
         webp = 2
     };
 
-    QString address;
-    QString port;
+    QString         address;
+    QString         port;
     DuplicatePolicy duplicatePolicy;
-    FileType screenshotType;
-    QJsonArray tags;
-    QString deck;
-    QString model;
-    QJsonObject fields;
+    FileType        screenshotType;
+    QJsonArray      tags;
+
+    QString         termDeck;
+    QString         termModel;
+    QJsonObject     termFields;
+
+    QString         kanjiDeck;
+    QString         kanjiModel;
+    QJsonObject     kanjiFields;
 
     AnkiConfig() {}
 
-    AnkiConfig(const AnkiConfig &config)
-    {
-        address = config.address;
-        port = config.port;
-        duplicatePolicy = config.duplicatePolicy;
-        screenshotType = config.screenshotType;
-        tags = config.tags;
-        deck = config.deck;
-        model = config.model;
-        fields = config.fields;
-    }
-
     AnkiConfig &operator=(const AnkiConfig &rhs)
     {
-        address = rhs.address;
-        port = rhs.port;
+        address         = rhs.address;
+        port            = rhs.port;
         duplicatePolicy = rhs.duplicatePolicy;
-        screenshotType = rhs.screenshotType;
-        tags = rhs.tags;
-        deck = rhs.deck;
-        model = rhs.model;
-        fields = rhs.fields;
+        screenshotType  = rhs.screenshotType;
+        tags            = rhs.tags;
+        termDeck        = rhs.termDeck;
+        termModel       = rhs.termModel;
+        termFields      = rhs.termFields;
+        kanjiDeck       = rhs.kanjiDeck;
+        kanjiModel      = rhs.kanjiModel;
+        kanjiFields     = rhs.kanjiFields;
         
         return *this;
     }
