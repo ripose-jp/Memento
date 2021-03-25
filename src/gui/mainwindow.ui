@@ -82,6 +82,12 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="font">
+           <font>
+            <family>Noto Sans CJK JP</family>
+            <pointsize>20</pointsize>
+           </font>
+          </property>
           <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
@@ -119,6 +125,7 @@
        </property>
        <property name="font">
         <font>
+         <family>Noto Sans CJK JP</family>
          <pointsize>14</pointsize>
         </font>
        </property>

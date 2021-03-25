@@ -221,6 +221,15 @@ void MainWindow::showEvent(QShowEvent *event)
         }
         m_player->play();
     }
+
+    if (m_mediator->getDictionary()->getDictionaries().isEmpty())
+    {
+        Q_EMIT m_mediator->showInformation(
+            "No Dictionaries Installed",
+            "No dictionaries are installed. For subtitle searching to work, please install a dictionary.<br>"
+            "Dictionaries can be found <a href='https://foosoft.net/projects/yomichan/'>here</a>."
+        );
+    }
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
