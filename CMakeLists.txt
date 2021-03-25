@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1.0)
-project(memento VERSION "0.3.1")
+project(memento VERSION "0.4.0")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
@@ -39,11 +39,6 @@ if(UNIX)
 		TARGETS memento 
 		DESTINATION bin
 		COMPONENT binaries
-	)
-	install(
-		FILES config/dict/JMDict
-		DESTINATION /etc/memento
-		COMPONENT config
 	)
 	install(
 		FILES res/memento.desktop
