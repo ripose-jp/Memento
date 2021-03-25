@@ -200,18 +200,13 @@ MainWindow::~MainWindow()
 {
     clearTracks();
     delete m_ui;
-    delete m_mediator;
-    delete m_player;
-    delete m_actionGroupAudio;
-    delete m_actionGroupVideo;
-    delete m_actionGroupSubtitle;
-    delete m_actionGroupSubtitleTwo;
     delete m_definition;
-    delete m_ankiClient;
-    delete m_ankiSettings;
-    delete m_dictionarySettings;
-    delete m_actionGroupAnkiProfile;
-    delete m_manager;
+    m_mediator->deleteLater();
+    m_player->deleteLater();
+    m_ankiClient->deleteLater();
+    m_ankiSettings->deleteLater();
+    m_dictionarySettings->deleteLater();
+    m_manager->deleteLater();
 }
 
 void MainWindow::showEvent(QShowEvent *event)

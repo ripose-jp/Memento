@@ -59,6 +59,7 @@ private:
     int         m_lastEmittedIndex;
     int         m_lastEmittedSize;
     QTimer     *m_findDelay;
+    bool        m_paused;
 
     QString     m_rawText;
     double      m_startTime;

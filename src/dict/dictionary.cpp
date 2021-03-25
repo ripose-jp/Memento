@@ -277,13 +277,23 @@ void Dictionary::ExactWorker::run()
         QList<Term *> results;
         db->queryTerms(query, results);
 
-        // Generate cloze data in entries
+        /* Generate cloze data in entries */
+        QString clozePrefix;
+        QString clozeBody;
+        QString clozeSuffix;
+        if (!results.isEmpty())
+        {
+            clozePrefix = subtitle.left(index);
+            clozeBody   = subtitle.mid(index, query.size());
+            clozeSuffix = subtitle.right(index + query.size());
+        }
+
         for (Term *term : results)
         {
             term->sentence    = subtitle;
-            term->clozePrefix = term->sentence.left(index);
-            term->clozeBody   = term->sentence.mid(index, query.size());
-            term->clozeSuffix = term->sentence.right(index + query.size());
+            term->clozePrefix = clozePrefix;
+            term->clozeBody   = clozeBody;
+            term->clozeSuffix = clozeSuffix;
         }
 
         terms->append(results);
@@ -299,13 +309,23 @@ void Dictionary::MeCabWorker::run()
         QList<Term *> results;
         db->queryTerms(pair.first, results);
 
-        // Generate cloze data in entries
+        /* Generate cloze data in entries */
+        QString clozePrefix;
+        QString clozeBody;
+        QString clozeSuffix;
+        if (!results.isEmpty())
+        {
+            clozePrefix = subtitle.left(index);
+            clozeBody   = subtitle.mid(index, pair.second.size());
+            clozeSuffix = subtitle.right(index + pair.second.size());
+        }
+
         for (Term *term : results)
         {
             term->sentence    = subtitle;
-            term->clozePrefix = term->sentence.left(index);
-            term->clozeBody   = term->sentence.mid(index, pair.second.size());
-            term->clozeSuffix = term->sentence.right(index + pair.second.size());
+            term->clozePrefix = clozePrefix;
+            term->clozeBody   = clozeBody;
+            term->clozeSuffix = clozeSuffix;
         }
 
         terms->append(results);

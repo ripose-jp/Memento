@@ -37,7 +37,8 @@
 SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
                                                   m_dictionary(new Dictionary),
                                                   m_currentIndex(-1),
-                                                  m_findDelay(new QTimer(this))
+                                                  m_findDelay(new QTimer(this)),
+                                                  m_paused(true)
 {
     setStyleSheet(
         "QTextEdit {"
@@ -59,11 +60,16 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     /* Slots */
-    connect(mediator,    &GlobalMediator::definitionsHidden,     this, &SubtitleWidget::deselectText);
-    connect(mediator,    &GlobalMediator::definitionsShown,      this, &SubtitleWidget::setSelectedText);
-    connect(mediator,    &GlobalMediator::playerSubtitleChanged, this, &SubtitleWidget::setSubtitle);
-    connect(mediator,    &GlobalMediator::playerPositionChanged, this, &SubtitleWidget::postitionChanged);
-    connect(m_findDelay, &QTimer::timeout,                       this, &SubtitleWidget::findTerms);
+    connect(mediator,    &GlobalMediator::definitionsHidden,       this, &SubtitleWidget::deselectText);
+    connect(mediator,    &GlobalMediator::definitionsShown,        this, &SubtitleWidget::setSelectedText);
+    connect(mediator,    &GlobalMediator::playerSubtitleChanged,   this, &SubtitleWidget::setSubtitle);
+    connect(mediator,    &GlobalMediator::playerPositionChanged,   this, &SubtitleWidget::postitionChanged);
+    connect(mediator,    &GlobalMediator::playerPauseStateChanged, this, 
+        [=] (const bool paused) {
+            m_paused = paused;
+        }
+    );
+    connect(m_findDelay, &QTimer::timeout,                         this, &SubtitleWidget::findTerms);
 }
 
 SubtitleWidget::~SubtitleWidget()
@@ -123,6 +129,9 @@ void SubtitleWidget::resizeToContents()
 
 void SubtitleWidget::findTerms()
 {
+    if (!m_paused)
+        return;
+
     int index = m_currentIndex;
     QString queryStr = m_rawText;
     queryStr.remove(0, index);
@@ -133,10 +142,9 @@ void SubtitleWidget::findTerms()
     }
 
     QThreadPool::globalInstance()->start([=] {
-        QList<Term *> *terms = 
-            m_dictionary->searchTerms(queryStr, m_rawText, index, &m_currentIndex);
+        QList<Term *> *terms = m_dictionary->searchTerms(queryStr, m_rawText, index, &m_currentIndex);
 
-        if (index != m_currentIndex)
+        if (!m_paused || index != m_currentIndex)
         {
             deleteTerms(terms);
         }
@@ -160,7 +168,7 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
 {
     event->ignore();
     int position = cursorForPosition(event->pos()).position();
-    if (position != m_currentIndex)
+    if (m_paused && position != m_currentIndex)
     {
         m_currentIndex = position;
         m_findDelay->start(TIMER_DELAY);
