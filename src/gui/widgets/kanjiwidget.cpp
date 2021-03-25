@@ -65,24 +65,39 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent),
     buttonAnkiAdd->setIcon(factory->getIcon(IconFactory::Icon::plus));
     buttonAnkiAdd->setMinimumSize(QSize(30, 30));
     buttonAnkiAdd->setToolTip("Add Anki note");
-    buttonAnkiAdd->setEnabled(false);
-    buttonAnkiAdd->setVisible(GlobalMediator::getGlobalMediator()->getAnkiClient()->isEnabled());
+    buttonAnkiAdd->setVisible(false);
     layoutTop->addWidget(buttonAnkiAdd);
     layoutTop->setAlignment(buttonAnkiAdd, Qt::AlignTop | Qt::AlignRight);
-
-    AnkiReply *reply = GlobalMediator::getGlobalMediator()->getAnkiClient()->notesAddable(QList<const Kanji *>({kanji}));
-    connect(reply, &AnkiReply::finishedBoolList, this,
-        [=] (const QList<bool> &value, const QString &error) {
-            if (error.isEmpty())
-            {
-                buttonAnkiAdd->setEnabled(value.first());
-            }
-        }
-    );
     connect(buttonAnkiAdd, &QToolButton::clicked, this, &KanjiWidget::addKanji);
     m_buttonAnkiAdd = buttonAnkiAdd;
 
+    QToolButton *buttonAnkiOpen = new QToolButton;
+    buttonAnkiOpen->setIcon(factory->getIcon(IconFactory::Icon::hamburger));
+    buttonAnkiOpen->setMinimumSize(QSize(30, 30));
+    buttonAnkiOpen->setToolTip("Show in Anki");
+    buttonAnkiOpen->setVisible(false);
+    layoutTop->addWidget(buttonAnkiOpen);
+    layoutTop->setAlignment(buttonAnkiOpen, Qt::AlignTop | Qt::AlignRight);
+    connect(buttonAnkiOpen, &QToolButton::clicked, this, &KanjiWidget::openAnki);
+    m_buttonAnkiOpen = buttonAnkiOpen;
+
     delete factory;
+
+    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
+    if (client->isEnabled())
+    {
+        AnkiReply *reply = client->notesAddable(QList<const Kanji *>({kanji}));
+        connect(reply, &AnkiReply::finishedBoolList, this,
+            [=] (const QList<bool> &value, const QString &error) {
+                if (error.isEmpty())
+                {
+                    m_buttonAnkiAdd->setVisible(value.first());
+                    m_buttonAnkiOpen->setVisible(!value.first());
+                }
+            }
+        );
+    }
+    
 
     FlowLayout *frequencies = new FlowLayout;
     for (const Frequency &freq : kanji->frequencies)
@@ -226,7 +241,37 @@ void KanjiWidget::addKVSection(const QString &title, const QList<QPair<Tag, QStr
 
 void KanjiWidget::addKanji()
 {
-    m_buttonAnkiAdd->setEnabled(false);
+    m_buttonAnkiAdd->setVisible(false);
     Kanji *kanji = new Kanji(*m_kanji);
-    GlobalMediator::getGlobalMediator()->getAnkiClient()->addNote(kanji);
+    AnkiReply *reply = GlobalMediator::getGlobalMediator()->getAnkiClient()->addNote(kanji);
+    connect(reply, &AnkiReply::finishedInt, this,
+        [=] (const int id, const QString &error) {
+            if (!error.isEmpty())
+            {
+                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical("Error Adding Note", error);
+            }
+            else
+            {
+                m_buttonAnkiOpen->setVisible(true);
+                m_buttonAnkiAdd->setVisible(false);
+            }
+        }
+    );
+}
+
+void KanjiWidget::openAnki()
+{
+    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
+    QString deck = client->getConfig()->kanjiDeck;
+    AnkiReply *reply = client->openBrowse(deck, m_kanji->character);
+    connect(reply, &AnkiReply::finishedIntList, this,
+        [=] (const QList<int> &value, const QString &error) {
+            if (!error.isEmpty())
+            {
+                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+                    "Error Opening Anki", error
+                );
+            }
+        }
+    );
 }

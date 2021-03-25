@@ -56,9 +56,11 @@ extern "C"
 #define ANKI_CAN_ADD_NOTES              "canAddNotes"
 #define ANKI_ADD_NOTE                   "addNote"
 #define ANKI_ADD_NOTE_PARAM             "note"
+#define ANKI_GUI_BROWSE                 "guiBrowse"
 
 // Anki param fields
 #define ANKI_PARAM_MODEL_NAME           "modelName"
+#define ANKI_PARAM_QUERY                "query"
 
 // Anki note fields
 #define ANKI_CAN_ADD_NOTES_PARAM        "notes"
@@ -360,6 +362,11 @@ const AnkiConfig *AnkiClient::getConfig(const QString &profile) const
     return m_configs->value(profile);
 }
 
+const AnkiConfig *AnkiClient::getConfig() const
+{
+    return m_currentConfig;
+}
+
 QHash<QString, AnkiConfig *> *AnkiClient::getConfigs() const
 {
     QList<QString> keys = m_configs->keys();
@@ -418,7 +425,7 @@ AnkiReply *AnkiClient::testConnection()
 {
     QNetworkReply *reply = makeRequest(ANKI_ACTION_VERSION);
     AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, [=] {
+    connect(reply, &QNetworkReply::finished, this, [=] {
         QString error;
         QJsonObject replyObj = processReply(reply, error);
         if (replyObj.isEmpty())
@@ -467,7 +474,7 @@ AnkiReply *AnkiClient::requestStringList(const QString &action, const QJsonObjec
 {
     QNetworkReply *reply = makeRequest(action, params);
     AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, [=] {
+    connect(reply, &QNetworkReply::finished, this, [=] {
         QString error;
         QJsonObject replyObj = processReply(reply, error);
         if (replyObj.isEmpty())
@@ -501,7 +508,7 @@ AnkiReply *AnkiClient::notesAddable(const QList<Term *> &terms)
     params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
     QNetworkReply *reply = makeRequest(ANKI_CAN_ADD_NOTES, params);
     AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, [=] {
+    connect(reply, &QNetworkReply::finished, this, [=] {
         QString error;
         QJsonObject replyObj = processReply(reply, error);
         if (replyObj.isEmpty())
@@ -544,7 +551,7 @@ AnkiReply *AnkiClient::notesAddable(const QList<const Kanji *> &kanjiList)
     params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
     QNetworkReply *reply = makeRequest(ANKI_CAN_ADD_NOTES, params);
     AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, [=] {
+    connect(reply, &QNetworkReply::finished, this, [=] {
         QString error;
         QJsonObject replyObj = processReply(reply, error);
         if (replyObj.isEmpty())
@@ -1102,6 +1109,48 @@ QString &AnkiClient::accumulateTags(const QList<Tag> &tags, QString &tagStr)
     }
 
     return tagStr;
+}
+
+AnkiReply *AnkiClient::openBrowse(const QString &deck, const QString &query)
+{
+    QJsonObject params;
+    params[ANKI_PARAM_QUERY] = "\"deck:" + deck + "\" " + query;
+    QNetworkReply *reply = makeRequest(ANKI_GUI_BROWSE, params);
+    AnkiReply *ankiReply = new AnkiReply;
+    connect(reply, &QNetworkReply::finished, this, 
+        [=] {
+            QString error;
+            QJsonObject replyObj = processReply(reply, error);
+            if (replyObj.isEmpty())
+            {
+                Q_EMIT ankiReply->finishedIntList(QList<int>(), error);
+            }
+            else if (!replyObj[ANKI_RESULT].isArray())
+            {
+                Q_EMIT ankiReply->finishedIntList(QList<int>(), "Result is not an array");
+            }
+            else
+            {
+                QList<int> response;
+                QJsonArray resultArray = replyObj[ANKI_RESULT].toArray();
+                for (const QJsonValueRef &addable : resultArray)
+                {
+                    if (addable.isDouble())
+                    {
+                        response.append(addable.toInt());
+                    }
+                    else
+                    {
+                        Q_EMIT ankiReply->finishedIntList(QList<int>(), "Response was not an array of bool");
+                    }
+                }
+            Q_EMIT ankiReply->finishedIntList(response, error);
+        }
+        ankiReply->deleteLater();
+        reply->deleteLater();
+        }
+    );
+    return ankiReply;
 }
 
 QNetworkReply *AnkiClient::makeRequest(const QString &action, const QJsonObject &params)

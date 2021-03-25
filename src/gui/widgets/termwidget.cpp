@@ -51,14 +51,20 @@ TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent)
     m_ui->verticalLayout->addStretch();
 
     IconFactory *factory = IconFactory::create(this);
+
     m_ui->buttonAddCard->setIcon(factory->getIcon(IconFactory::Icon::plus));
+    m_ui->buttonAddCard->setVisible(false);
+
+    m_ui->buttonAnkiOpen->setIcon(factory->getIcon(IconFactory::Icon::hamburger));
+    m_ui->buttonAnkiOpen->setVisible(false);
+
     delete factory;
-    m_ui->buttonAddCard->setVisible(m_client->isEnabled());
 
     setTerm(*term);
 
-    connect(m_ui->buttonAddCard, &QToolButton::clicked,  this, &TermWidget::addNote);
-    connect(m_ui->labelKanji,    &QLabel::linkActivated, this, &TermWidget::searchKanji);
+    connect(m_ui->buttonAddCard,  &QToolButton::clicked,  this, &TermWidget::addNote);
+    connect(m_ui->buttonAnkiOpen, &QToolButton::clicked,  this, &TermWidget::openAnki);
+    connect(m_ui->labelKanji,     &QLabel::linkActivated, this, &TermWidget::searchKanji);
 }
 
 TermWidget::~TermWidget()
@@ -117,7 +123,8 @@ inline bool TermWidget::isKanji(const QString &ch)
 
 void TermWidget::setAddable(bool value)
 {
-    m_ui->buttonAddCard->setEnabled(value);
+    m_ui->buttonAddCard->setVisible(value);
+    m_ui->buttonAnkiOpen->setVisible(!value);
     for (size_t i = 0; i < m_layoutGlossary->count(); ++i)
         ((GlossaryWidget *)m_layoutGlossary->itemAt(i)->widget())->setCheckable(value);
 }
@@ -143,7 +150,28 @@ void TermWidget::addNote()
         [=] (const int id, const QString &error) {
             if (!error.isEmpty())
             {
-                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical("Error", error);
+                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical("Error Adding Note", error);
+            }
+            else
+            {
+                m_ui->buttonAnkiOpen->setVisible(true);
+                m_ui->buttonAddCard->setVisible(false);
+            }
+        }
+    );
+}
+
+void TermWidget::openAnki()
+{
+    QString deck = m_client->getConfig()->termDeck;
+    AnkiReply *reply = m_client->openBrowse(deck, m_term->expression);
+    connect(reply, &AnkiReply::finishedIntList, this,
+        [=] (const QList<int> &value, const QString &error) {
+            if (!error.isEmpty())
+            {
+                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+                    "Error Opening Anki", error
+                );
             }
         }
     );

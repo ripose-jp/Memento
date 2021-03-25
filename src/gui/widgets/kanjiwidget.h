@@ -43,10 +43,12 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void addKanji();
+    void openAnki();
 
 private:
     const Kanji *m_kanji;
     QToolButton *m_buttonAnkiAdd;
+    QToolButton *m_buttonAnkiOpen;
 
     void buildDefinitionLabel(const KanjiDefinition &def, QVBoxLayout *layout);
     QFrame *createLine();

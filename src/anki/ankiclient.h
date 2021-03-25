@@ -73,7 +73,8 @@ Q_SIGNALS:
     void finishedBool(const bool value, const QString &error);
     void finishedStringList(const QStringList &value, const QString &error);
     void finishedBoolList(const QList<bool> &value, const QString &error);
-    void finishedInt(const int, const QString &error);
+    void finishedInt(const int value, const QString &error);
+    void finishedIntList(const QList<int> &value, const QString &error);
 };
 
 class AnkiClient : public QObject
@@ -92,6 +93,7 @@ public:
     void        addProfile(const QString &profile, const AnkiConfig &config);
 
     const AnkiConfig             *getConfig(const QString &profile) const;
+    const AnkiConfig             *getConfig()                       const;
     QHash<QString, AnkiConfig *> *getConfigs()                      const;
     
     void clearProfiles();
@@ -107,8 +109,9 @@ public:
     AnkiReply *getFieldNames(const QString &model);
     AnkiReply *notesAddable (const QList<Term *>        &terms);
     AnkiReply *notesAddable (const QList<const Kanji *> &kanjiList);
-    AnkiReply *addNote      (const Term *term);
+    AnkiReply *addNote      (const Term  *term);
     AnkiReply *addNote      (const Kanji *kanji);
+    AnkiReply *openBrowse   (const QString &deck, const QString &query);
 
 Q_SIGNALS:
     void sendIntRequest(const QString &action, const QJsonObject &params, AnkiReply *ankiReply);

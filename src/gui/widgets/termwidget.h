@@ -47,6 +47,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void addNote();
+    void openAnki();
     void searchKanji(const QString &ch);
 
 private:
