@@ -244,8 +244,8 @@ void AnkiSettings::connectToClient(const bool showErrors)
     AnkiReply *reply = client->testConnection();
     connect(reply, &AnkiReply::finishedBool,
         [=] (const bool val, const QString &error) {
-        if (val)
-        {
+            if (val)
+            {
             AnkiReply *reply = client->getDeckNames();
             connect(reply, &AnkiReply::finishedStringList,
                 [=] (const QStringList &decks, const QString &error) {
@@ -258,7 +258,8 @@ void AnkiSettings::connectToClient(const bool showErrors)
                     {
                         Q_EMIT GlobalMediator::getGlobalMediator()->showCritical("Error", error);
                     }
-                });
+                }
+            );
             
             reply = client->getModelNames();
             connect(reply, &AnkiReply::finishedStringList,
@@ -277,7 +278,8 @@ void AnkiSettings::connectToClient(const bool showErrors)
                     {
                         Q_EMIT GlobalMediator::getGlobalMediator()->showCritical("Error", error);
                     }
-                });
+                }
+            );
         }
         else if (showErrors)
         {
