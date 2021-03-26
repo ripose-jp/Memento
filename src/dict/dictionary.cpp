@@ -49,8 +49,10 @@ Dictionary::Dictionary()
     QByteArray mecabArg = MECAB_ARG;
     m_tagger = MeCab::createTagger(mecabArg);
     if (m_tagger == nullptr)
-        qDebug() << MeCab::getLastError();
-
+    {
+        qDebug() << MeCab::getTaggerError();
+    }
+    
     buildPriorities();
 
     GlobalMediator::getGlobalMediator()->setDictionary(this);
@@ -224,7 +226,7 @@ QMap<QString, uint32_t> Dictionary::buildPriorities()
 QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
 {
     QList<QPair<QString, QString>> queries;
-    if (query.isEmpty())
+    if (query.isEmpty() || m_tagger == nullptr)
     {
         return queries;
     }
