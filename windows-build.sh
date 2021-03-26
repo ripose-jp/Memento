@@ -141,22 +141,7 @@ $PREFIX/bin/libpcre2-16-0.dll \
 $PREFIX/bin/Qt5Gui.dll \
 $PREFIX/bin/Qt5Widgets.dll \
 $PREFIX/bin/Qt5Network.dll Memento_$arch
-mkdir Memento_$arch/bearer
-mkdir Memento_$arch/iconengines
-mkdir Memento_$arch/imageformats
-mkdir Memento_$arch/platforms
-mkdir Memento_$arch/styles
-cp $PREFIX/share/qt5/plugins/imageformats/qgif.dll \
-$PREFIX/share/qt5/plugins/imageformats/qicns.dll \
-$PREFIX/share/qt5/plugins/imageformats/qico.dll \
-$PREFIX/share/qt5/plugins/imageformats/qjp2.dll \
-$PREFIX/share/qt5/plugins/imageformats/qjpeg.dll \
-$PREFIX/share/qt5/plugins/imageformats/qsvg.dll \
-$PREFIX/share/qt5/plugins/imageformats/qtga.dll \
-$PREFIX/share/qt5/plugins/imageformats/qtiff.dll \
-$PREFIX/share/qt5/plugins/imageformats/qwbmp.dll \
-$PREFIX/share/qt5/plugins/imageformats/qwebp.dll Memento_$arch/imageformats
-cp $PREFIX/share/qt5/plugins/bearer/qgenericbearer.dll Memento_$arch/bearer
-cp $PREFIX/share/qt5/plugins/iconengines/qsvgicon.dll Memento_$arch/iconengines
-cp $PREFIX/share/qt5/plugins/platforms/qwindows.dll Memento_$arch/platforms
-cp $PREFIX/share/qt5/plugins/styles/qwindowsvistastyle.dll Memento_$arch/styles
+
+cd Memento_$arch/
+windeployqt memento.exe
+rm -rf translations
