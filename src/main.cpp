@@ -29,7 +29,12 @@
 
 int main(int argc, char *argv[])
 {
+    /* Originization Info */
+    QCoreApplication::setOrganizationName("memento");
+    QCoreApplication::setOrganizationDomain("ripose.projects");
+    QCoreApplication::setApplicationName("memento");
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    /* Image Formats Windows */
     QCoreApplication::addLibraryPath(DirectoryUtils::getProgramDirectory());
 #endif
     QGuiApplication::setWindowIcon(QIcon(":memento.svg"));
@@ -40,10 +45,6 @@ int main(int argc, char *argv[])
     //QFontDatabase::addApplicationFont(":/fonts/stroke_order/KanjiStrokeOrders.ttf");
     //QFontDatabase::addApplicationFont(":/fonts/noto_sans/NotoSansCJKjp-Regular.otf");
     //QFontDatabase::addApplicationFont(":/fonts/noto_sans/NotoSansCJKjp-Bold.otf");
-    /* Originization Info */
-    QCoreApplication::setOrganizationName("memento");
-    QCoreApplication::setOrganizationDomain("ripose.projects");
-    QCoreApplication::setApplicationName("memento");
 
     /* Create the configuration directory if it doesn't exist */
     if (!QDir(DirectoryUtils::getConfigDir()).exists())
