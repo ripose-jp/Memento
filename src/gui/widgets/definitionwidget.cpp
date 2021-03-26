@@ -35,6 +35,11 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, AnkiClient *clien
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
+    setAutoFillBackground(true);
+    QPalette pallet;
+    pallet.setColor(QPalette::Window, Qt::white);
+    m_ui->scrollAreaContents->setPalette(pallet);
+
     QFrame *line = nullptr;
     for (const Term *term : *terms)
     {
