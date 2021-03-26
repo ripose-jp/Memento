@@ -41,8 +41,8 @@ Memento is a FOSS, mpv-based video player intended for studying Japanese.
 ## Dependencies
 
 * Qt5
-* mpv
 * ffmpeg
+* mpv
 * sqlite3
 * MeCab
 * Json-C
@@ -71,9 +71,9 @@ sudo make install
     pacman -Sy --needed msys2-runtime pacman
     pacman -Su
     ```
-1. Install the needed tools and dependencies:
+1. Install the necessary tools and dependencies:
     ```
-    pacman -S git mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-expat mingw-w64-x86_64-mecab
+    pacman -S git mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake mingw-w64-x86_64-ffmpeg mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-mecab mingw-w64-x86_64-json-c mingw-w64-x86_64-libzip
     ```
 1. Clone the repository:
     ```

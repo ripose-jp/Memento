@@ -46,7 +46,8 @@ Dictionary::Dictionary()
 {
     m_db = new DatabaseManager(DirectoryUtils::getDictionaryDB());
 
-    m_tagger = MeCab::createTagger(MECAB_ARG);
+    QByteArray mecabArg = MECAB_ARG;
+    m_tagger = MeCab::createTagger(mecabArg);
     if (m_tagger == nullptr)
         qDebug() << MeCab::getLastError();
 

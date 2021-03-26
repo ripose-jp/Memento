@@ -42,7 +42,7 @@ public:
 
 private:
     sqlite3                *m_db;
-    const QString           m_dbpath;
+    const QByteArray        m_dbpath;
     QHash<QString, QString> m_kataToHira;
 
     QMutex   m_databaseLock;

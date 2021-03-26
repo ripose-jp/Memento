@@ -27,10 +27,10 @@ extern "C"
 #include <QJsonDocument>
 #include <QJsonArray>
 
-DatabaseManager::DatabaseManager(const QString &path) : m_dbpath(path), m_readerCount(0)
+DatabaseManager::DatabaseManager(const QString &path) : m_dbpath(path.toLocal8Bit()), m_readerCount(0)
 {
-    if (yomi_prepare_db(m_dbpath.toLocal8Bit(), NULL) ||
-        sqlite3_open_v2(m_dbpath.toLocal8Bit(), &m_db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
+    if (yomi_prepare_db(m_dbpath, NULL) ||
+        sqlite3_open_v2(m_dbpath, &m_db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
     {
         m_db = nullptr;
         qDebug() << "Could not open dictionary database";
@@ -134,7 +134,8 @@ DatabaseManager::~DatabaseManager()
 int DatabaseManager::addDictionary(const QString &path)
 {
     m_databaseLock.lock();
-    int ret = yomi_process_dictionary(path.toLocal8Bit(), m_dbpath.toLocal8Bit());
+    QByteArray cpath = path.toLocal8Bit();
+    int ret = yomi_process_dictionary(cpath, m_dbpath);
     buildCache();
     m_databaseLock.unlock();
     return ret;
@@ -143,7 +144,8 @@ int DatabaseManager::addDictionary(const QString &path)
 int DatabaseManager::deleteDictionary(const QString &name)
 {
     m_databaseLock.lock();
-    int ret = yomi_delete_dictionary(name.toUtf8(), m_dbpath.toLocal8Bit());
+    QByteArray cname = name.toUtf8();
+    int ret = yomi_delete_dictionary(cname, m_dbpath);
     buildCache();
     m_databaseLock.unlock();
     return ret;

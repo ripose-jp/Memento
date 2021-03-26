@@ -933,8 +933,10 @@ void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
 
                 PlayerAdapter *player = GlobalMediator::getGlobalMediator()->getPlayerAdapter();
 
+                QByteArray inputFile  = player->getPath().toLocal8Bit();
+                QByteArray outputFile = path.toLocal8Bit();
                 int ret = transcode_aac(
-                    player->getPath().toLocal8Bit(), path.toLocal8Bit(), 
+                    inputFile, outputFile, 
                     player->getAudioTrack() - 1,
                     player->getSubStart() + player->getSubDelay() - player->getAudioDelay(),
                     player->getSubEnd()   + player->getSubDelay() - player->getAudioDelay()

@@ -206,10 +206,12 @@ void MpvAdapter::open(const QString &file, const bool append)
 {
     if (file.isEmpty())
         return;
+
+    QByteArray fileName = file.toLocal8Bit();
     
     const char *args[4] = {
         "loadfile",
-        file.toLocal8Bit().data(),
+        fileName,
         append ? "append" : NULL,
         NULL
     };
@@ -235,9 +237,14 @@ void MpvAdapter::open(const QList<QUrl> &files)
 
 void MpvAdapter::addSubtitle(const QString &file)
 {
+    if (file.isEmpty())
+        return;
+    
+    QByteArray fileName = file.toLocal8Bit();
+
     const char *args[3] = {
         "sub-add",
-        file.toLocal8Bit().data(),
+        fileName,
         NULL
     };
     if (mpv_command(m_handle, args) < 0)
@@ -248,10 +255,10 @@ void MpvAdapter::addSubtitle(const QString &file)
 
 void MpvAdapter::seek(const int64_t time)
 {
-    QString timestr = QString::number(time);
+    QByteArray timestr = QString::number(time).toLocal8Bit();
     const char *args[4] = {
         "seek",
-        timestr.toLocal8Bit().data(),
+        timestr,
         "absolute",
         NULL
     };
@@ -432,12 +439,12 @@ QString MpvAdapter::tempScreenshot(const bool subtitles, const QString &ext)
     QTemporaryFile file;
     if (!file.open())
         return "";
-    QString filename = file.fileName() + ext;
+    QByteArray filename = (file.fileName() + ext).toLocal8Bit();
     file.close();
 
     const char *args[4] = {
         "screenshot-to-file",
-        filename.toLocal8Bit().data(),
+        filename,
         subtitles ? NULL : "video",
         NULL
     };
@@ -521,9 +528,10 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
     }
     }
 
+    QByteArray keypress = key.toLocal8Bit();
     const char *args[3] = {
         "keypress",
-        key.toLocal8Bit().data(),
+        keypress,
         NULL
     };
     if (mpv_command_async(m_handle, -1, args) < 0)
@@ -534,7 +542,7 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
 
 void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
 {
-    QString direction = "WHEEL_";
+    QByteArray direction = "WHEEL_";
     if (event->angleDelta().y() > 0)
     {
         direction += "UP";
@@ -554,7 +562,7 @@ void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
 
     const char *args[3] = {
         "keypress",
-        direction.toLocal8Bit().data(),
+        direction,
         NULL
     };
     if (mpv_command_async(m_handle, -1, args) < 0)
