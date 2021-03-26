@@ -22,8 +22,8 @@ fi
 # build Memento
 mkdir build
 cd build
-cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
-make
+cmake -G "MSYS Makefiles" ..
+cmake --build . --config Release
 
 #release dlls and exe to a new directory
 mkdir Memento_$arch
