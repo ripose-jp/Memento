@@ -27,7 +27,7 @@ extern "C"
 #include <QJsonDocument>
 #include <QJsonArray>
 
-DatabaseManager::DatabaseManager(const QString &path) : m_dbpath(path.toLocal8Bit()), m_readerCount(0)
+DatabaseManager::DatabaseManager(const QString &path) : m_dbpath(path.toUtf8()), m_readerCount(0)
 {
     if (yomi_prepare_db(m_dbpath, NULL) ||
         sqlite3_open_v2(m_dbpath, &m_db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
@@ -134,7 +134,7 @@ DatabaseManager::~DatabaseManager()
 int DatabaseManager::addDictionary(const QString &path)
 {
     m_databaseLock.lock();
-    QByteArray cpath = path.toLocal8Bit();
+    QByteArray cpath = path.toUtf8();
     int ret = yomi_process_dictionary(cpath, m_dbpath);
     buildCache();
     m_databaseLock.unlock();

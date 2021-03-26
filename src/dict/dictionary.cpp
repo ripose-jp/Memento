@@ -37,7 +37,7 @@
     #define MECAB_ARG ("-r " + DirectoryUtils::getDictionaryDir() + \
                        "ipadic" + SLASH + "dicrc " \
                        "-d " + DirectoryUtils::getDictionaryDir() + \
-                       "ipadic").toLocal8Bit()
+                       "ipadic").toUtf8()
 #elif __linux__
     #define MECAB_ARG ("")
 #endif

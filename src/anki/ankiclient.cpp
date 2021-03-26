@@ -147,8 +147,7 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
 
     // Read the file into memory
     QTextStream stream(&configFile);
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(
-        stream.readAll().toLocal8Bit());
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(stream.readAll().toUtf8());
     configFile.close();
 
     // Error check the JSON
@@ -955,8 +954,8 @@ void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
 
                 PlayerAdapter *player = GlobalMediator::getGlobalMediator()->getPlayerAdapter();
 
-                QByteArray inputFile  = player->getPath().toLocal8Bit();
-                QByteArray outputFile = path.toLocal8Bit();
+                QByteArray inputFile  = player->getPath().toUtf8();
+                QByteArray outputFile = path.toUtf8();
                 int ret = transcode_aac(
                     inputFile, outputFile, 
                     player->getAudioTrack() - 1,

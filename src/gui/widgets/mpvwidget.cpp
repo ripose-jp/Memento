@@ -69,10 +69,10 @@ MpvWidget::MpvWidget(QWidget *parent)
     mpv_set_option_string(mpv, "msg-level", "all=v");
     mpv_set_option_string(mpv, "keep-open", "yes");
     mpv_set_option_string(mpv, "config", "yes");
-    QByteArray configDir = DirectoryUtils::getConfigDir().toLocal8Bit();
+    QByteArray configDir = DirectoryUtils::getConfigDir().toUtf8();
     mpv_set_option_string(mpv, "config-dir", configDir);
     mpv_set_option_string(mpv, "input-default-bindings", "yes");
-    QByteArray inputFile = DirectoryUtils::getMpvInputConfig().toLocal8Bit();
+    QByteArray inputFile = DirectoryUtils::getMpvInputConfig().toUtf8();
     mpv_set_option_string(mpv, "input-conf", inputFile);
 
     if (mpv_initialize(mpv) < 0)
@@ -405,7 +405,7 @@ void MpvWidget::mouseMoveEvent(QMouseEvent *event)
 
 void MpvWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    QByteArray release = convertToMouseString(event).toLocal8Bit();
+    QByteArray release = convertToMouseString(event).toUtf8();
     const char *args[3] = {
         "keypress",
         release,
@@ -419,7 +419,7 @@ void MpvWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void MpvWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    QByteArray press = (convertToMouseString(event) + "_DBL").toLocal8Bit();
+    QByteArray press = (convertToMouseString(event) + "_DBL").toUtf8();
     const char *args[3] = {
         "keypress",
         press,

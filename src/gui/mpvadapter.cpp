@@ -207,7 +207,7 @@ void MpvAdapter::open(const QString &file, const bool append)
     if (file.isEmpty())
         return;
 
-    QByteArray fileName = file.toLocal8Bit();
+    QByteArray fileName = file.toUtf8();
     
     const char *args[4] = {
         "loadfile",
@@ -240,7 +240,7 @@ void MpvAdapter::addSubtitle(const QString &file)
     if (file.isEmpty())
         return;
     
-    QByteArray fileName = file.toLocal8Bit();
+    QByteArray fileName = file.toUtf8();
 
     const char *args[3] = {
         "sub-add",
@@ -255,7 +255,7 @@ void MpvAdapter::addSubtitle(const QString &file)
 
 void MpvAdapter::seek(const int64_t time)
 {
-    QByteArray timestr = QString::number(time).toLocal8Bit();
+    QByteArray timestr = QString::number(time).toUtf8();
     const char *args[4] = {
         "seek",
         timestr,
@@ -439,7 +439,7 @@ QString MpvAdapter::tempScreenshot(const bool subtitles, const QString &ext)
     QTemporaryFile file;
     if (!file.open())
         return "";
-    QByteArray filename = (file.fileName() + ext).toLocal8Bit();
+    QByteArray filename = (file.fileName() + ext).toUtf8();
     file.close();
 
     const char *args[4] = {
@@ -528,7 +528,7 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
     }
     }
 
-    QByteArray keypress = key.toLocal8Bit();
+    QByteArray keypress = key.toUtf8();
     const char *args[3] = {
         "keypress",
         keypress,
