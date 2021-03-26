@@ -27,11 +27,11 @@
     #define CONFIG_PATH "config"
 #elif __linux__
     #define BASE_DIR getenv("HOME")
-    #define CONFIG_PATH ".config/memento"
+    #define CONFIG_PATH ".config/memento/"
 #elif __APPLE__
     #if TARGET_OS_MAC
         #define BASE_DIR getenv("HOME")
-        #define CONFIG_PATH ".config/memento"
+        #define CONFIG_PATH ".config/memento/"
     #else
         #error "Apple OS type no supported"
     #endif
@@ -56,7 +56,6 @@ QString DirectoryUtils::getProgramDirectory()
 QString DirectoryUtils::getConfigDir()
 {
     QString path = getProgramDirectory();
-    path += SLASH;
     path += CONFIG_PATH;
     path += SLASH;
     return path;
