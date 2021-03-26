@@ -352,6 +352,9 @@ Comma or space seperated list.</string>
    </item>
    <item>
     <widget class="QTabWidget" name="tabTermKanji">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>

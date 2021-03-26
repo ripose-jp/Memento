@@ -60,6 +60,14 @@
 #define REPLACE_ONYOMI              "{onyomi}"
 #define REPLACE_STROKE_COUNT        "{stroke-count}"
 
+/* Default AnkiConfig Values */
+#define DEFAULT_PROFILE                 "Default"
+#define DEFAULT_HOST                    "localhost"
+#define DEFAULT_PORT                    "8765"
+#define DEFAULT_SCREENSHOT              AnkiConfig::FileType::jpg
+#define DEFAULT_DUPLICATE_POLICY        AnkiConfig::DuplicatePolicy::DifferentDeck
+#define DEFAULT_TAGS                    "memento"
+
 class QNetworkAccessManager;
 class QNetworkReply;
 
@@ -131,8 +139,10 @@ private:
 
     QNetworkAccessManager *m_manager;
     
-    void readConfigFromFile(const QString &filename);
+    bool readConfigFromFile(const QString &filename);
     bool writeConfigToFile (const QString &filename);
+
+    void setDefaultConfig();
 
     QNetworkReply *makeRequest(const QString &action, const QJsonObject &params = QJsonObject());
 

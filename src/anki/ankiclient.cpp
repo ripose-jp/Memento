@@ -40,9 +40,9 @@ extern "C"
 #include <QDebug>
 
 // Anki request fields
-#define ANKI_ACTION "action"
-#define ANKI_RESULT "result"
-#define ANKI_PARAMS "params"
+#define ANKI_ACTION                     "action"
+#define ANKI_RESULT                     "result"
+#define ANKI_PARAMS                     "params"
 
 // Anki reply fields
 #define ANKI_ERROR                      "error"
@@ -114,7 +114,10 @@ AnkiClient::AnkiClient(QObject *parent)
     m_manager = new QNetworkAccessManager(this);
     m_manager->setTransferTimeout(TIMEOUT);
 
-    readConfigFromFile(CONFIG_FILE);
+    if (!readConfigFromFile(CONFIG_FILE) || m_currentConfig == nullptr)
+    {
+        setDefaultConfig();
+    }
 
     connect(this, &AnkiClient::sendIntRequest, this, &AnkiClient::recieveIntRequest);
 
@@ -128,18 +131,18 @@ AnkiClient::~AnkiClient()
     delete m_manager;
 }
 
-void AnkiClient::readConfigFromFile(const QString &filename)
+bool AnkiClient::readConfigFromFile(const QString &filename)
 {
     QFile configFile(DirectoryUtils::getConfigDir() + filename);
     if (!configFile.exists())
     {
-        return;
+        return false;
     }
 
     if (!configFile.open(QIODevice::ReadOnly))
     {
         qDebug() << "AnkiConnect config file exists, can't open it";
-        return;
+        return false;
     }
 
     // Read the file into memory
@@ -152,12 +155,12 @@ void AnkiClient::readConfigFromFile(const QString &filename)
     if (jsonDoc.isNull())
     {
         qDebug() << filename << "is not JSON";
-        return;
+        return false;
     }
     else if (!jsonDoc.isObject())
     {
         qDebug() << filename << "is not an object";
-        return;
+        return false;
     }
 
     QJsonObject jsonObj = jsonDoc.object();
@@ -165,17 +168,17 @@ void AnkiClient::readConfigFromFile(const QString &filename)
     if (!jsonObj[CONFIG_ENABLED].isBool())
     {
         qDebug() << CONFIG_ENABLED << "is not a boolean";
-        return;
+        return false;
     }
     else if (!jsonObj[CONFIG_SET_PROFILE].isString())
     {
         qDebug() << CONFIG_SET_PROFILE << "is not a string";
-        return;
+        return false;
     }
     else if (!jsonObj[CONFIG_PROFILES].isArray())
     {
         qDebug() << CONFIG_PROFILES << "is not an array";
-        return;
+        return false;
     }
     QJsonArray profiles = jsonObj[CONFIG_PROFILES].toArray();
     for (size_t i = 0; i < profiles.size(); ++i)
@@ -183,7 +186,7 @@ void AnkiClient::readConfigFromFile(const QString &filename)
         if (!profiles[i].isObject())
         {
             qDebug() << CONFIG_PROFILES << "element is not an object";
-            return;
+            return false;
         }
         QJsonObject profile = profiles[i].toObject();
 
@@ -216,42 +219,42 @@ void AnkiClient::readConfigFromFile(const QString &filename)
         if (!profile[CONFIG_NAME].isString())
         {
             qDebug() << CONFIG_NAME << "is not a string";
-            return;
+            return false;
         }
         else if (!profile[CONFIG_HOST].isString())
         {
             qDebug() << CONFIG_HOST << "is not a string";
-            return;
+            return false;
         }
         else if (!profile[CONFIG_PORT].isString())
         {
             qDebug() << CONFIG_PORT << "is not a string";
-            return;
+            return false;
         }
         else if (!profile[CONFIG_DUPLICATE].isDouble())
         {
             qDebug() << CONFIG_DUPLICATE << "is not a double";
-            return;
+            return false;
         }
         else if (!profile[CONFIG_SCREENSHOT].isDouble())
         {
             qDebug() << CONFIG_SCREENSHOT << "is not a double";
-            return;
+            return false;
         }
         else if (!profile[CONFIG_TAGS].isArray())
         {
             qDebug() << CONFIG_TAGS << "is not an array";
-            return;
+            return false;
         }
         else if (!profile[CONFIG_TERM].isObject())
         {
             qDebug() << CONFIG_TERM << "is not an object";
-            return;
+            return false;
         }
         else if (!profile[CONFIG_KANJI].isObject())
         {
             qDebug() << CONFIG_KANJI << "is not an object";
-            return;
+            return false;
         }
     }
 
@@ -285,7 +288,10 @@ void AnkiClient::readConfigFromFile(const QString &filename)
         }
     }
 
-    setServer(m_currentConfig->address, m_currentConfig->port);
+    if (m_currentConfig)
+        setServer(m_currentConfig->address, m_currentConfig->port);
+    
+    return true;
 }
 
 bool AnkiClient::writeConfigToFile(const QString &filename)
@@ -335,6 +341,22 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
     configFile.close();
 
     return true;
+}
+
+void AnkiClient::setDefaultConfig()
+{
+    AnkiConfig *config = new AnkiConfig;
+    config->address         = DEFAULT_HOST;
+    config->port            = DEFAULT_PORT;
+    config->duplicatePolicy = DEFAULT_DUPLICATE_POLICY;
+    config->screenshotType  = DEFAULT_SCREENSHOT;
+    config->tags.append(DEFAULT_TAGS);
+
+    m_configs->insert(DEFAULT_PROFILE, config);
+    m_currentConfig  = config;
+    m_currentProfile = DEFAULT_PROFILE;
+    
+    setServer(config->address, config->port);
 }
 
 void AnkiClient::setServer(const QString &address, const QString &port)

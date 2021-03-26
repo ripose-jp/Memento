@@ -34,13 +34,6 @@
 #define SCREENSHOT_JPG              "JPG"
 #define SCREENSHOT_WEBP             "WebP"
 
-#define DEFAULT_PROFILE             "Default"
-#define DEFAULT_HOST                "localhost"
-#define DEFAULT_PORT                "8765"
-#define DEFAULT_SCREENSHOT          AnkiConfig::FileType::jpg
-#define DEFAULT_DUPLICATE_POLICY    AnkiConfig::DuplicatePolicy::DifferentDeck
-#define DEFAULT_TAGS                "memento"
-
 #define REGEX_REMOVE_SPACES_COMMAS "[, ]+"
 
 AnkiSettings::AnkiSettings(QWidget *parent)
