@@ -86,6 +86,7 @@
            <font>
             <family>Noto Sans CJK JP</family>
             <pointsize>20</pointsize>
+            <stylestrategy>PreferAntialias</stylestrategy>
            </font>
           </property>
           <property name="focusPolicy">
@@ -127,6 +128,7 @@
         <font>
          <family>Noto Sans CJK JP</family>
          <pointsize>14</pointsize>
+         <stylestrategy>PreferAntialias</stylestrategy>
         </font>
        </property>
        <property name="focusPolicy">
@@ -162,7 +164,7 @@
      <x>0</x>
      <y>0</y>
      <width>801</width>
-     <height>34</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMedia">
@@ -228,7 +230,7 @@
       <x>496</x>
       <y>170</y>
       <width>200</width>
-      <height>181</height>
+      <height>147</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -245,8 +247,8 @@
       <rect>
        <x>664</x>
        <y>189</y>
-       <width>142</width>
-       <height>60</height>
+       <width>135</width>
+       <height>50</height>
       </rect>
      </property>
      <property name="title">
