@@ -355,7 +355,7 @@ void AnkiClient::setDefaultConfig()
     m_configs->insert(DEFAULT_PROFILE, config);
     m_currentConfig  = config;
     m_currentProfile = DEFAULT_PROFILE;
-    
+
     setServer(config->address, config->port);
 }
 
@@ -1138,7 +1138,17 @@ QString &AnkiClient::accumulateTags(const QList<Tag> &tags, QString &tagStr)
 AnkiReply *AnkiClient::openBrowse(const QString &deck, const QString &query)
 {
     QJsonObject params;
-    params[ANKI_PARAM_QUERY] = "\"deck:" + deck + "\" " + query;
+    QString queryStr;
+    switch (m_currentConfig->duplicatePolicy)
+    {
+    case AnkiConfig::DifferentDeck:
+    case AnkiConfig::SameDeck:
+        queryStr += "\"deck:" + deck + "\" ";
+    case AnkiConfig::None:
+    default:
+        queryStr += query;
+    }
+    params[ANKI_PARAM_QUERY] = queryStr;
     QNetworkReply *reply = makeRequest(ANKI_GUI_BROWSE, params);
     AnkiReply *ankiReply = new AnkiReply;
     connect(reply, &QNetworkReply::finished, this, 
