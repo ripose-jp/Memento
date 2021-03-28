@@ -68,6 +68,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     connect(mediator, &GlobalMediator::controlsSeekForward,       this, &PlayerAdapter::seekForward);
     connect(mediator, &GlobalMediator::controlsSeekBackward,      this, &PlayerAdapter::seekBackward);
     connect(mediator, &GlobalMediator::controlsFullscreenChanged, this, &PlayerAdapter::setFullscreen);
+    connect(mediator, &GlobalMediator::controlsVolumeChanged,     this, &PlayerAdapter::setVolume);
 
     connect(mediator, &GlobalMediator::keyPressed,                this, &PlayerAdapter::keyPressed);
     connect(mediator, &GlobalMediator::wheelMoved,                this, &PlayerAdapter::mouseWheelMoved);
