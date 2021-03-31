@@ -110,7 +110,7 @@ QList<Term *> *Dictionary::searchTerms(const QString &query,
         delete thread;
     }
     
-    // Sort by the length of the cloze match
+    /* Sort the results by cloze length and score */
     if (index == *currentIndex)
     {
         std::sort(terms->begin(), terms->end(), 
@@ -119,6 +119,24 @@ QList<Term *> *Dictionary::searchTerms(const QString &query,
                        (lhs->clozeBody.size() == rhs->clozeBody.size() && lhs->score > rhs->score);
             }
         );
+    }
+
+    /* Discard results that are beyond the limit */
+    QSettings settings;
+    settings.beginGroup(SETTINGS_SEARCH);
+    int limit = settings.value(SETTINGS_SEARCH_LIMIT, DEFAULT_LIMIT).toInt();
+    settings.endGroup();
+    if (limit != 0)
+    {
+        while (terms->size() > limit)
+        {
+            delete terms->takeLast();
+        }
+    }
+
+    /* Sort internal term data */
+    if (index == *currentIndex)
+    {
         for (Term *term : *terms)
         {
             QMap<QString, uint32_t> priorities = buildPriorities();
