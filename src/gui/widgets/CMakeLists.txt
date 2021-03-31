@@ -119,6 +119,17 @@ target_link_libraries(
 )
 
 add_library(
+    searchsettings
+    searchsettings.cpp
+    searchsettings.ui
+)
+target_link_libraries(
+    searchsettings
+    Qt5::Widgets
+    Qt5::Core
+)
+
+add_library(
     optionswindow
     optionswindow.cpp
     optionswindow.ui
@@ -127,4 +138,5 @@ target_link_libraries(
     optionswindow
     dictionarysettings
     ankisettings
+    searchsettings
 )

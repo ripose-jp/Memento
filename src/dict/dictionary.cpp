@@ -213,7 +213,7 @@ QMap<QString, uint32_t> Dictionary::buildPriorities()
 {
     QMap<QString, uint32_t> priorities;
     QSettings settings;
-    settings.beginGroup(DICTIONARIES_SETTINGS_KEY);
+    settings.beginGroup(SETTINGS_DICTIONARIES);
     QStringList dicts = m_db->getDictionaries();
     for (const QString &dict : dicts)
     {

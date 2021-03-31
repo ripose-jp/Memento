@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 Ripose
+// Copyright (c) 2021 Ripose
 //
 // This file is part of Memento.
 //
@@ -23,9 +23,11 @@
 
 #include "ankisettings.h"
 #include "dictionarysettings.h"
+#include "searchsettings.h"
 
 #define NAME_ANKI           "Anki Integration"
 #define NAME_DICTIONARIES   "Dictionaries"
+#define NAME_SEARCH         "Search"
 
 OptionsWindow::OptionsWindow(QWidget *parent)
     : QWidget(parent), m_ui(new Ui::OptionsWindow), m_currentWidget(nullptr)
@@ -34,6 +36,7 @@ OptionsWindow::OptionsWindow(QWidget *parent)
 
     m_ui->listOptions->addItem(NAME_ANKI);
     m_ui->listOptions->addItem(NAME_DICTIONARIES);
+    m_ui->listOptions->addItem(NAME_SEARCH);
 
     AnkiSettings *ankiSettings = new AnkiSettings;
     ankiSettings->hide();
@@ -44,6 +47,11 @@ OptionsWindow::OptionsWindow(QWidget *parent)
     dictSettings->hide();
     m_ui->layoutWidgets->addWidget(dictSettings);
     widgets.insert(NAME_DICTIONARIES, dictSettings);
+
+    SearchSettings *searchSettings = new SearchSettings;
+    searchSettings->hide();
+    m_ui->layoutWidgets->addWidget(searchSettings);
+    widgets.insert(NAME_SEARCH, searchSettings);
 
     connect(m_ui->listOptions, &QListWidget::itemSelectionChanged, this, &OptionsWindow::showSelectedOption);
 }

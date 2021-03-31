@@ -18,39 +18,36 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef OPTIONSWINDOW_H
-#define OPTIONSWINDOW_H
+#ifndef SEARCHSETTINGS_H
+#define SEARCHSETTINGS_H
 
 #include <QWidget>
 
-#include <QMap>
-
 namespace Ui
 {
-    class OptionsWindow;
+    class SearchSettings;
 }
 
-class AnkiSettings;
-class DictionarySettings;
-
-class OptionsWindow : public QWidget
+class SearchSettings : public QWidget
 {
     Q_OBJECT
 
 public:
-    OptionsWindow(QWidget *parent = nullptr);
-    ~OptionsWindow();
+    SearchSettings(QWidget *parent = nullptr);
+    ~SearchSettings();
 
 protected:
     void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
 
+private Q_SLOTS:
+    void resetSaved();
+    void resetDefault();
+    void applySettings();
+
+    void methodTextChanged(const QString &text);
+
 private:
-    Ui::OptionsWindow *m_ui;
-
-    QWidget                  *m_currentWidget;
-    QMap<QString, QWidget *>  widgets;
-
-    void showSelectedOption();
+    Ui::SearchSettings *m_ui;
 };
 
-#endif // OPTIONSWINDOW_H
+#endif

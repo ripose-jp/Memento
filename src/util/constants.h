@@ -25,6 +25,12 @@
 #define GITHUB_API_LINK (QString("https://api.github.com/repos/ripose-jp/memento/releases"))
 #define GITHUB_RELEASES (QString("https://github.com/ripose-jp/memento/releases"))
 
-#define DICTIONARIES_SETTINGS_KEY "dictionaries"
+#define SETTINGS_DICTIONARIES       "dictionaries"
+
+#define SETTINGS_SEARCH             "search"
+#define SETTINGS_SEARCH_LIMIT       "limit"
+#define SETTINGS_SEARCH_METHOD      "method"
+#define SETTINGS_SEARCH_DELAY       "delay"
+#define SETTINGS_SEARCH_MODIFIER    "modifier"
 
 #endif // CONSTANTS_H
