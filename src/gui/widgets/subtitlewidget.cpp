@@ -192,22 +192,23 @@ void SubtitleWidget::findTerms()
     QThreadPool::globalInstance()->start([=] {
         QList<Term *> *terms = m_dictionary->searchTerms(queryStr, m_rawText, index, &m_currentIndex);
 
-        if (!m_paused || index != m_currentIndex)
+        if (terms == nullptr)
+        {
+            return;
+        }
+        else if (!m_paused || index != m_currentIndex)
         {
             deleteTerms(terms);
         }
+        else if (terms->isEmpty())
+        {
+            delete terms;
+        }
         else
         {
-            if (terms->isEmpty())
-            {
-                delete terms;
-            }
-            else
-            {
-                Q_EMIT GlobalMediator::getGlobalMediator()->termsChanged(terms);
-                m_lastEmittedIndex = index;
-                m_lastEmittedSize  = terms->first()->clozeBody.size();
-            }
+            Q_EMIT GlobalMediator::getGlobalMediator()->termsChanged(terms);
+            m_lastEmittedIndex = index;
+            m_lastEmittedSize  = terms->first()->clozeBody.size();
         }
     });
 }
