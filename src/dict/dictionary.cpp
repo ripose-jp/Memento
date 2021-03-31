@@ -71,7 +71,7 @@ QList<Term *> *Dictionary::searchTerms(const QString &query,
 {
     QList<Term *> *terms = new QList<Term *>;
 
-    // Fork worker threads for exact queries
+    /* Fork worker threads for exact queries */
     QList<QThread *> threads;
     for (QString str = query; !str.isEmpty(); str.chop(QUERIES_PER_THREAD))
     {
@@ -85,7 +85,7 @@ QList<Term *> *Dictionary::searchTerms(const QString &query,
         threads.append(worker);
     }
 
-    // Get lematized queries
+    /* Get lematized queries */
     QList<QPair<QString, QString>> queries = generateQueries(query);
     if (!queries.isEmpty())
     {
@@ -103,7 +103,7 @@ QList<Term *> *Dictionary::searchTerms(const QString &query,
         }
     }
 
-    // Wait for the exact thread to finish
+    /* Wait for the exact thread to finish */
     for (QThread *thread : threads)
     {
         thread->wait();
