@@ -1,16 +1,18 @@
 .PHONY: setup compile debug install clean
 
-all: setup
-	cmake --build ./build --config Release
+release: setup
+	cd build; cmake -DCMAKE_BUILD_TYPE=Release ..
+	cmake --build ./build
 
 debug: setup
-	cmake --build ./build --config Debug
+	cd build; cmake -DCMAKE_BUILD_TYPE=Debug ..
+	cmake --build ./build
 
 install:
 	cmake --build ./build --target install
 
 setup:
-	mkdir build; cd build; cmake ..
+	mkdir build
 
 clean:
 	rm -rf build/
