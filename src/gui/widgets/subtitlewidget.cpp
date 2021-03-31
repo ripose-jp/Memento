@@ -136,6 +136,10 @@ void SubtitleWidget::loadSettings()
     QSettings settings;
     settings.beginGroup(SETTINGS_SEARCH);
     m_delay = settings.value(SETTINGS_SEARCH_DELAY, DEFAULT_DELAY).toInt();
+    if (m_delay < 0)
+    {
+        m_delay = DEFAULT_DELAY;
+    }
 
     QString modifier = settings.value(SETTINGS_SEARCH_MODIFIER, DEFAULT_MODIFIER).toString();
     if (modifier == MODIFIER_ALT)
