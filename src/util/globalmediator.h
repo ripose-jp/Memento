@@ -94,8 +94,9 @@ Q_SIGNALS:
     void playerMouseMoved(QMouseEvent *event) const;
     void playerClosed()                       const;
 
-    /* Anki Client Signals */
-    void ankiSettingsChanged() const;
+    /* Settings Signals */
+    void ankiSettingsChanged()   const;
+    void searchSettingsChanged() const;
 
     /* Player Control Signals */
     void controlsPlay()         const;

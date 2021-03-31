@@ -21,23 +21,11 @@
 #include "searchsettings.h"
 #include "ui_searchsettings.h"
 
+#include "../../util/globalmediator.h"
 #include "../../util/constants.h"
 
 #include <QSettings>
 #include <QPushButton>
-
-#define MODIFIER_ALT            "Alt"
-#define MODIFIER_CTRL           "Control"
-#define MODIFIER_SHIFT          "Shift"
-#define MODIFIER_SUPER          "Super"
-
-#define SEARCH_METHOD_HOVER     "Hover"
-#define SEARCH_METHOD_MODIFIER  "Modifier"
-
-#define DEFAULT_LIMIT           30
-#define DEFAULT_METHOD          SEARCH_METHOD_HOVER
-#define DEFAULT_DELAY           250
-#define DEFAULT_MODIFIER        MODIFIER_SHIFT
 
 SearchSettings::SearchSettings(QWidget *parent) : QWidget(parent), m_ui(new Ui::SearchSettings)
 {
@@ -97,6 +85,8 @@ void SearchSettings::applySettings()
     settings.setValue(SETTINGS_SEARCH_DELAY,    m_ui->spinBoxDelay->value());
     settings.setValue(SETTINGS_SEARCH_MODIFIER, m_ui->comboBoxModifier->currentText());
     settings.endGroup();
+
+    Q_EMIT GlobalMediator::getGlobalMediator()->searchSettingsChanged();
 }
 
 void SearchSettings::methodTextChanged(const QString &text)

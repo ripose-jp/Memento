@@ -51,6 +51,7 @@ private Q_SLOTS:
                      const double delay);
     void setSelectedText();
     void deselectText();
+    void loadSettings();
 
 private:
     Dictionary *m_dictionary;
@@ -64,6 +65,16 @@ private:
     QString     m_rawText;
     double      m_startTime;
     double      m_endTime;
+
+    enum SearchMethod
+    {
+        Hover,
+        Modifier
+    };
+
+    SearchMethod    m_method;
+    int             m_delay;
+    Qt::Modifier    m_modifier;
 
     void deleteTerms(QList<Term *> *terms);
     void resizeToContents();

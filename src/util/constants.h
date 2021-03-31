@@ -33,4 +33,17 @@
 #define SETTINGS_SEARCH_DELAY       "delay"
 #define SETTINGS_SEARCH_MODIFIER    "modifier"
 
+#define MODIFIER_ALT                "Alt"
+#define MODIFIER_CTRL               "Control"
+#define MODIFIER_SHIFT              "Shift"
+#define MODIFIER_SUPER              "Super"
+
+#define SEARCH_METHOD_HOVER         "Hover"
+#define SEARCH_METHOD_MODIFIER      "Modifier"
+
+#define DEFAULT_LIMIT               30
+#define DEFAULT_METHOD              SEARCH_METHOD_HOVER
+#define DEFAULT_DELAY               250
+#define DEFAULT_MODIFIER            MODIFIER_SHIFT
+
 #endif // CONSTANTS_H
