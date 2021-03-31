@@ -102,6 +102,7 @@ target_link_libraries(
 
 add_library(
     ankisettings
+    scrollcombobox.h
     ankisettings.cpp
     ankisettings.ui
     cardbuilder.cpp

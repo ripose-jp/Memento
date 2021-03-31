@@ -48,12 +48,9 @@
        <item>
         <layout class="QGridLayout" name="gridLayout">
          <item row="2" column="1">
-          <widget class="QComboBox" name="comboBoxProfile">
+          <widget class="ScrollComboBox" name="comboBoxProfile">
            <property name="enabled">
             <bool>false</bool>
-           </property>
-           <property name="focusPolicy">
-            <enum>Qt::NoFocus</enum>
            </property>
            <property name="toolTip">
             <string>The currently selected profile.</string>
@@ -279,12 +276,9 @@ Only change this if you know what you're doing.</string>
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="comboBoxDuplicates">
+        <widget class="ScrollComboBox" name="comboBoxDuplicates">
          <property name="enabled">
           <bool>false</bool>
-         </property>
-         <property name="focusPolicy">
-          <enum>Qt::NoFocus</enum>
          </property>
          <item>
           <property name="text">
@@ -320,12 +314,9 @@ Only change this if you know what you're doing.</string>
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="comboBoxScreenshot">
+        <widget class="ScrollComboBox" name="comboBoxScreenshot">
          <property name="enabled">
           <bool>false</bool>
-         </property>
-         <property name="focusPolicy">
-          <enum>Qt::NoFocus</enum>
          </property>
          <item>
           <property name="text">
@@ -474,6 +465,11 @@ Comma or space seperated list.</string>
    <extends>QWidget</extends>
    <header>src/gui/widgets/cardbuilder.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ScrollComboBox</class>
+   <extends>QComboBox</extends>
+   <header>src/gui/widgets/scrollcombobox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
