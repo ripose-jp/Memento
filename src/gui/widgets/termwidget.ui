@@ -37,7 +37,7 @@
          </property>
          <property name="font">
           <font>
-           <family>Noto Sans</family>
+           <family>Noto Sans,Noto Sans CJK JP,sans-serif</family>
            <pointsize>12</pointsize>
           </font>
          </property>
@@ -63,11 +63,8 @@ color: black;</string>
          </property>
          <property name="font">
           <font>
-           <family>Noto Sans</family>
+           <family>Noto Sans,Noto Sans CJK JP,sans-serif</family>
            <pointsize>20</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-           <kerning>true</kerning>
           </font>
          </property>
          <property name="styleSheet">
@@ -143,6 +140,12 @@ color: black;</string>
      </item>
      <item>
       <widget class="QToolButton" name="buttonAnkiOpen">
+       <property name="minimumSize">
+        <size>
+         <width>30</width>
+         <height>30</height>
+        </size>
+       </property>
        <property name="toolTip">
         <string>Show in Anki</string>
        </property>
