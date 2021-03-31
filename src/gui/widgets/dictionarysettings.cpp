@@ -86,7 +86,7 @@ void DictionarySettings::applySettings()
 {
     QSettings settings;
     settings.beginGroup(SETTINGS_DICTIONARIES);
-    settings.clear();
+    settings.remove("");
     for (int i = 0; i < m_ui->listDictionaries->count(); ++i)
     {
         settings.setValue(m_ui->listDictionaries->item(i)->text(), i);   
