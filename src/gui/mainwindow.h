@@ -21,15 +21,16 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QMainWindow>
+
 #include "widgets/definitionwidget.h"
-#include "widgets/ankisettings.h"
-#include "widgets/dictionarysettings.h"
+#include "widgets/optionswindow.h"
+#include "widgets/aboutwindow.h"
 
 #include "../util/globalmediator.h"
 #include "playeradapter.h"
 #include "../anki/ankiclient.h"
 
-#include <QMainWindow>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QWheelEvent>
@@ -84,12 +85,12 @@ protected:
 private:
     Ui::MainWindow   *m_ui;
 
-    GlobalMediator     *m_mediator;
-    PlayerAdapter      *m_player;
-    DefinitionWidget   *m_definition;
-    AnkiSettings       *m_ankiSettings;
-    AnkiClient         *m_ankiClient;
-    DictionarySettings *m_dictionarySettings;
+    GlobalMediator   *m_mediator;
+    PlayerAdapter    *m_player;
+    DefinitionWidget *m_definition;
+    AnkiClient       *m_ankiClient;
+    OptionsWindow    *m_optionsWindow;  
+    AboutWindow      *m_aboutWindow;
 
     QActionGroup *m_actionGroupAudio;
     QList<QPair<QAction *, const Track *>> m_audioTracks;

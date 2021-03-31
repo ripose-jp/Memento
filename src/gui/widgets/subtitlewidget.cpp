@@ -22,17 +22,18 @@
 
 #include "../../util/directoryutils.h"
 #include "../../util/globalmediator.h"
+#include "../../util/constants.h"
 
 #include <QApplication>
 #include <QClipboard>
 #include <QThreadPool>
 #include <QDebug>
 #include <QScrollBar>
+#include <QSettings>
 
-#define TEXT_PADDING_HEIGHT 0
-#define TIMER_DELAY         250
-#define MAX_QUERY_LENGTH    37
-#define DOUBLE_DELTA        0.05
+#define TEXT_PADDING_HEIGHT     0
+#define MAX_QUERY_LENGTH        37
+#define DOUBLE_DELTA            0.05
 
 SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
                                                   m_dictionary(new Dictionary),
@@ -57,9 +58,13 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
 
     m_findDelay->setSingleShot(true);
 
+    loadSettings();
+
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     /* Slots */
+    connect(m_findDelay, &QTimer::timeout,                         this, &SubtitleWidget::findTerms);
+    connect(mediator,    &GlobalMediator::searchSettingsChanged,   this, &SubtitleWidget::loadSettings);
     connect(mediator,    &GlobalMediator::definitionsHidden,       this, &SubtitleWidget::deselectText);
     connect(mediator,    &GlobalMediator::definitionsShown,        this, &SubtitleWidget::setSelectedText);
     connect(mediator,    &GlobalMediator::playerSubtitleChanged,   this, &SubtitleWidget::setSubtitle);
@@ -69,7 +74,6 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
             m_paused = paused;
         }
     );
-    connect(m_findDelay, &QTimer::timeout,                         this, &SubtitleWidget::findTerms);
 }
 
 SubtitleWidget::~SubtitleWidget()
@@ -127,6 +131,54 @@ void SubtitleWidget::resizeToContents()
     }
 }
 
+void SubtitleWidget::loadSettings()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_SEARCH);
+    m_delay = settings.value(SETTINGS_SEARCH_DELAY, DEFAULT_DELAY).toInt();
+    if (m_delay < 0)
+    {
+        m_delay = DEFAULT_DELAY;
+    }
+
+    QString modifier = settings.value(SETTINGS_SEARCH_MODIFIER, DEFAULT_MODIFIER).toString();
+    if (modifier == MODIFIER_ALT)
+    {
+        m_modifier = Qt::Modifier::ALT;
+    }
+    else if (modifier == MODIFIER_CTRL)
+    {
+        m_modifier = Qt::Modifier::CTRL;
+    }
+    else if (modifier == MODIFIER_SHIFT)
+    {
+        m_modifier = Qt::Modifier::SHIFT;
+    }
+    else if (modifier == MODIFIER_SUPER)
+    {
+        m_modifier = Qt::Modifier::META;
+    }
+    else
+    {
+        m_modifier = Qt::Modifier::SHIFT;
+    }
+
+    QString method = settings.value(SETTINGS_SEARCH_METHOD, DEFAULT_METHOD).toString();
+    if (method == SEARCH_METHOD_HOVER)
+    {
+        m_method = SearchMethod::Hover;
+    }
+    else if (method == SEARCH_METHOD_MODIFIER)
+    {
+        m_method = SearchMethod::Modifier;
+    }
+    else
+    {
+        m_method = SearchMethod::Hover;
+    }
+    settings.endGroup();
+}
+
 void SubtitleWidget::findTerms()
 {
     if (!m_paused)
@@ -144,22 +196,23 @@ void SubtitleWidget::findTerms()
     QThreadPool::globalInstance()->start([=] {
         QList<Term *> *terms = m_dictionary->searchTerms(queryStr, m_rawText, index, &m_currentIndex);
 
-        if (!m_paused || index != m_currentIndex)
+        if (terms == nullptr)
+        {
+            return;
+        }
+        else if (!m_paused || index != m_currentIndex)
         {
             deleteTerms(terms);
         }
+        else if (terms->isEmpty())
+        {
+            delete terms;
+        }
         else
         {
-            if (terms->isEmpty())
-            {
-                delete terms;
-            }
-            else
-            {
-                Q_EMIT GlobalMediator::getGlobalMediator()->termsChanged(terms);
-                m_lastEmittedIndex = index;
-                m_lastEmittedSize  = terms->first()->clozeBody.size();
-            }
+            Q_EMIT GlobalMediator::getGlobalMediator()->termsChanged(terms);
+            m_lastEmittedIndex = index;
+            m_lastEmittedSize  = terms->first()->clozeBody.size();
         }
     });
 }
@@ -168,10 +221,23 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
 {
     event->ignore();
     int position = cursorForPosition(event->pos()).position();
+
     if (m_paused && position != m_currentIndex)
     {
-        m_currentIndex = position;
-        m_findDelay->start(TIMER_DELAY);
+        switch (m_method)
+        {
+        case SearchMethod::Hover:
+            m_currentIndex = position;
+            m_findDelay->start(m_delay);
+            break;
+        case SearchMethod::Modifier:
+            if (QGuiApplication::keyboardModifiers() & m_modifier)
+            {
+                m_currentIndex = position;
+                findTerms();
+            }
+            break;
+        }
     }
 }
 

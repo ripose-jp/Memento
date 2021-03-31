@@ -29,13 +29,23 @@ set(
 if(UNIX)
     set(
         MPV_WIDGET_LIBS 
-	${MPV_WIDGET_LIBS} 
-	Qt5::DBus
+	    ${MPV_WIDGET_LIBS} 
+	    Qt5::DBus
     )
 endif()
 target_link_libraries(
     mpvwidget
     ${MPV_WIDGET_LIBS}
+)
+
+add_library(
+    aboutwindow
+    aboutwindow.cpp
+)
+target_link_libraries(
+    aboutwindow
+    Qt5::Widgets
+    Qt5::Core
 )
 
 add_library(
@@ -92,6 +102,7 @@ target_link_libraries(
 
 add_library(
     ankisettings
+    scrollcombobox.h
     ankisettings.cpp
     ankisettings.ui
     cardbuilder.cpp
@@ -116,4 +127,27 @@ target_link_libraries(
     globalmediator
     Qt5::Widgets
     dictionary_db
+)
+
+add_library(
+    searchsettings
+    searchsettings.cpp
+    searchsettings.ui
+)
+target_link_libraries(
+    searchsettings
+    Qt5::Widgets
+    Qt5::Core
+)
+
+add_library(
+    optionswindow
+    optionswindow.cpp
+    optionswindow.ui
+)
+target_link_libraries(
+    optionswindow
+    dictionarysettings
+    ankisettings
+    searchsettings
 )

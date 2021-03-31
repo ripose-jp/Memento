@@ -42,10 +42,10 @@ DictionarySettings::DictionarySettings(QWidget *parent) : QWidget(parent), m_ui(
     m_ui->buttonDown->  setIcon(factory->getIcon(IconFactory::Icon::down));
     delete factory;
 
-    connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Close), &QPushButton::clicked,
-        this, &QWidget::hide);
     connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Apply), &QPushButton::clicked,
         this, &DictionarySettings::applySettings);
+    connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Reset), &QPushButton::clicked,
+        this, &DictionarySettings::refresh);
 
     connect(m_ui->listDictionaries, &QListWidget::currentRowChanged, this,
         [=] (int row) { setButtonsEnabled(row != -1); } );
@@ -85,8 +85,8 @@ void DictionarySettings::refresh()
 void DictionarySettings::applySettings()
 {
     QSettings settings;
-    settings.beginGroup(DICTIONARIES_SETTINGS_KEY);
-    settings.clear();
+    settings.beginGroup(SETTINGS_DICTIONARIES);
+    settings.remove("");
     for (int i = 0; i < m_ui->listDictionaries->count(); ++i)
     {
         settings.setValue(m_ui->listDictionaries->item(i)->text(), i);   
@@ -152,7 +152,7 @@ void DictionarySettings::deleteDictionary()
     
     QListWidgetItem *item = m_ui->listDictionaries->takeItem(m_ui->listDictionaries->currentRow());
     QSettings settings;
-    settings.beginGroup(DICTIONARIES_SETTINGS_KEY);
+    settings.beginGroup(SETTINGS_DICTIONARIES);
     settings.remove(item->text());
     settings.endGroup();
     QThreadPool::globalInstance()->start(

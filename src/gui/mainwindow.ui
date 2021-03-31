@@ -164,7 +164,7 @@
      <x>0</x>
      <y>0</y>
      <width>801</width>
-     <height>21</height>
+     <height>34</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMedia">
@@ -227,10 +227,10 @@
    <widget class="QMenu" name="menuSettings">
     <property name="geometry">
      <rect>
-      <x>496</x>
+      <x>494</x>
       <y>170</y>
       <width>200</width>
-      <height>147</height>
+      <height>181</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -247,19 +247,19 @@
       <rect>
        <x>664</x>
        <y>189</y>
-       <width>135</width>
-       <height>50</height>
+       <width>142</width>
+       <height>60</height>
       </rect>
      </property>
      <property name="title">
       <string>Anki Profile</string>
      </property>
     </widget>
-    <addaction name="actionAnki"/>
     <addaction name="menuAnkiProfile"/>
+    <addaction name="actionOptions"/>
     <addaction name="separator"/>
-    <addaction name="actionDict"/>
     <addaction name="actionUpdate"/>
+    <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuMedia"/>
    <addaction name="menuAudio"/>
@@ -308,24 +308,6 @@
     <string>None</string>
    </property>
   </action>
-  <action name="actionAnki">
-   <property name="text">
-    <string>Anki Integration</string>
-   </property>
-  </action>
-  <action name="actionDict">
-   <property name="text">
-    <string>Manage Dictionaries</string>
-   </property>
-  </action>
-  <action name="m_actionProfileDefault">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Default</string>
-   </property>
-  </action>
   <action name="actionSubtitleTwoNone">
    <property name="checkable">
     <bool>true</bool>
@@ -345,6 +327,16 @@
   <action name="actionUpdate">
    <property name="text">
     <string>Check for Updates</string>
+   </property>
+  </action>
+  <action name="actionOptions">
+   <property name="text">
+    <string>Options</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About Memento</string>
    </property>
   </action>
  </widget>

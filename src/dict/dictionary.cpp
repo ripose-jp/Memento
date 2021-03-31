@@ -71,7 +71,13 @@ QList<Term *> *Dictionary::searchTerms(const QString &query,
 {
     QList<Term *> *terms = new QList<Term *>;
 
-    // Fork worker threads for exact queries
+    /* Get the limit number */
+    QSettings settings;
+    settings.beginGroup(SETTINGS_SEARCH);
+    int limit = settings.value(SETTINGS_SEARCH_LIMIT, DEFAULT_LIMIT).toInt();
+    settings.endGroup();
+
+    /* Fork worker threads for exact queries */
     QList<QThread *> threads;
     for (QString str = query; !str.isEmpty(); str.chop(QUERIES_PER_THREAD))
     {
@@ -85,7 +91,7 @@ QList<Term *> *Dictionary::searchTerms(const QString &query,
         threads.append(worker);
     }
 
-    // Get lematized queries
+    /* Get lematized queries */
     QList<QPair<QString, QString>> queries = generateQueries(query);
     if (!queries.isEmpty())
     {
@@ -103,47 +109,68 @@ QList<Term *> *Dictionary::searchTerms(const QString &query,
         }
     }
 
-    // Wait for the exact thread to finish
+    /* Wait for the exact thread to finish */
     for (QThread *thread : threads)
     {
         thread->wait();
         delete thread;
     }
     
-    // Sort by the length of the cloze match
-    if (index == *currentIndex)
+    /* Sort the results by cloze length and score */
+    if (index != *currentIndex)
+        goto early_exit;
+    std::sort(terms->begin(), terms->end(), 
+        [] (const Term *lhs, const Term *rhs) -> bool {
+            return lhs->clozeBody.size() > rhs->clozeBody.size() ||
+                   (lhs->clozeBody.size() == rhs->clozeBody.size() && lhs->score > rhs->score);
+        }
+    );
+
+    /* Discard results that are beyond the limit */
+    if (limit > 0)
     {
-        std::sort(terms->begin(), terms->end(), 
-            [] (const Term *lhs, const Term *rhs) -> bool {
-                return lhs->clozeBody.size() > rhs->clozeBody.size() ||
-                       (lhs->clozeBody.size() == rhs->clozeBody.size() && lhs->score > rhs->score);
+        while (terms->size() > limit)
+        {
+            delete terms->takeLast();
+        }
+    }
+
+    /* Sort internal term data */
+    if (index != *currentIndex)
+        goto early_exit;
+    for (Term *term : *terms)
+    {
+        QMap<QString, uint32_t> priorities = buildPriorities();
+        std::sort(term->definitions.begin(), term->definitions.end(),
+            [=] (const TermDefinition &lhs, const TermDefinition &rhs) -> bool {
+                uint32_t lhsPriority = priorities[lhs.dictionary];
+                uint32_t rhsPriority = priorities[rhs.dictionary];
+                return lhsPriority < rhsPriority || (lhsPriority == rhsPriority && lhs.score > rhs.score);
             }
         );
-        for (Term *term : *terms)
-        {
-            QMap<QString, uint32_t> priorities = buildPriorities();
-            std::sort(term->definitions.begin(), term->definitions.end(),
-                [=] (const TermDefinition &lhs, const TermDefinition &rhs) -> bool {
-                    uint32_t lhsPriority = priorities[lhs.dictionary];
-                    uint32_t rhsPriority = priorities[rhs.dictionary];
-                    return lhsPriority < rhsPriority || (lhsPriority == rhsPriority && lhs.score > rhs.score);
-                }
-            );
-            std::sort(term->frequencies.begin(), term->frequencies.end(),
-                [=] (const Frequency &lhs, const Frequency &rhs) -> bool {
-                    return priorities[lhs.dictionary] < priorities[rhs.dictionary];
-                }
-            );
-            sortTags(term->tags);
-            for (TermDefinition &def : term->definitions)
-            {
-                sortTags(def.tags);
-                sortTags(def.rules);
+        std::sort(term->frequencies.begin(), term->frequencies.end(),
+            [=] (const Frequency &lhs, const Frequency &rhs) -> bool {
+                return priorities[lhs.dictionary] < priorities[rhs.dictionary];
             }
+        );
+        sortTags(term->tags);
+        for (TermDefinition &def : term->definitions)
+        {
+            sortTags(def.tags);
+            sortTags(def.rules);
         }
     }
 
     return terms;
+
+early_exit:
+    for (Term *term : *terms)
+    {
+        delete term;
+    }
+    delete terms;
+
+    return nullptr;
 }
 
 Kanji *Dictionary::searchKanji(const QString &ch)
@@ -213,7 +240,7 @@ QMap<QString, uint32_t> Dictionary::buildPriorities()
 {
     QMap<QString, uint32_t> priorities;
     QSettings settings;
-    settings.beginGroup(DICTIONARIES_SETTINGS_KEY);
+    settings.beginGroup(SETTINGS_DICTIONARIES);
     QStringList dicts = m_db->getDictionaries();
     for (const QString &dict : dicts)
     {
