@@ -18,6 +18,9 @@
     <layout class="QGridLayout" name="layoutCards">
      <item row="2" column="0">
       <widget class="QComboBox" name="comboBoxDeck">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="insertPolicy">
         <enum>QComboBox::InsertAlphabetically</enum>
        </property>
@@ -25,6 +28,9 @@
      </item>
      <item row="2" column="1">
       <widget class="QComboBox" name="comboBoxModel">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="insertPolicy">
         <enum>QComboBox::InsertAlphabetically</enum>
        </property>

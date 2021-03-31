@@ -52,6 +52,9 @@
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="toolTip">
             <string>The currently selected profile.</string>
            </property>
@@ -280,6 +283,9 @@ Only change this if you know what you're doing.</string>
          <property name="enabled">
           <bool>false</bool>
          </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <item>
           <property name="text">
            <string>None</string>
@@ -317,6 +323,9 @@ Only change this if you know what you're doing.</string>
         <widget class="QComboBox" name="comboBoxScreenshot">
          <property name="enabled">
           <bool>false</bool>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
          </property>
          <item>
           <property name="text">
