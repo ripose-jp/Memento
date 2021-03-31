@@ -64,22 +64,18 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->listSubtitles->hide();
 
     /* Anki */
-    m_ankiClient   = new AnkiClient(this);
-    m_ankiSettings = new AnkiSettings;
-    m_ankiSettings->hide();
-
+    m_ankiClient = new AnkiClient(this);
     m_actionGroupAnkiProfile = new QActionGroup(this);
-    updateAnkiProfileMenu();    
+    updateAnkiProfileMenu();
 
-    /* Dictionary Settings */
-    m_dictionarySettings = new DictionarySettings;
-    m_dictionarySettings->hide();
+    /* Options */
+    m_optionsWindow = new OptionsWindow;
+    m_optionsWindow->hide();
 
     /* Toolbar Actions */
-    connect(m_ui->actionAnki,        &QAction::triggered, m_ankiSettings,       &QWidget::show);
-    connect(m_ui->actionOpen,        &QAction::triggered, this,                 &MainWindow::open);
-    connect(m_ui->actionDict,        &QAction::triggered, m_dictionarySettings, &DictionarySettings::show);
-    connect(m_ui->actionUpdate,      &QAction::triggered, this,                 &MainWindow::checkForUpdates);
+    connect(m_ui->actionOptions,     &QAction::triggered, m_optionsWindow, &OptionsWindow::show);
+    connect(m_ui->actionOpen,        &QAction::triggered, this,            &MainWindow::open);
+    connect(m_ui->actionUpdate,      &QAction::triggered, this,            &MainWindow::checkForUpdates);
     connect(m_ui->actionAddSubtitle, &QAction::triggered, this,
         [=] {
             QString file = QFileDialog::getOpenFileName(0, "Open Subtitle");
@@ -204,9 +200,8 @@ MainWindow::~MainWindow()
     m_mediator->deleteLater();
     m_player->deleteLater();
     m_ankiClient->deleteLater();
-    m_ankiSettings->deleteLater();
-    m_dictionarySettings->deleteLater();
     m_manager->deleteLater();
+    m_optionsWindow->deleteLater();
 }
 
 void MainWindow::showEvent(QShowEvent *event)

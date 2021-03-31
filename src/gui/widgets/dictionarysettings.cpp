@@ -42,8 +42,6 @@ DictionarySettings::DictionarySettings(QWidget *parent) : QWidget(parent), m_ui(
     m_ui->buttonDown->  setIcon(factory->getIcon(IconFactory::Icon::down));
     delete factory;
 
-    connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Close), &QPushButton::clicked,
-        this, &QWidget::hide);
     connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Apply), &QPushButton::clicked,
         this, &DictionarySettings::applySettings);
 

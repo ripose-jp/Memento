@@ -29,10 +29,9 @@ set(
     subtitlelist
     playercontrols
     definitionwidget
-    ankisettings
     anki
     dictionary_db
-    dictionarysettings
+    optionswindow
 )
 
 add_library(mainwindow ${GUI_SRCS})

@@ -29,8 +29,8 @@ set(
 if(UNIX)
     set(
         MPV_WIDGET_LIBS 
-	${MPV_WIDGET_LIBS} 
-	Qt5::DBus
+	    ${MPV_WIDGET_LIBS} 
+	    Qt5::DBus
     )
 endif()
 target_link_libraries(
@@ -116,4 +116,15 @@ target_link_libraries(
     globalmediator
     Qt5::Widgets
     dictionary_db
+)
+
+add_library(
+    optionswindow
+    optionswindow.cpp
+    optionswindow.ui
+)
+target_link_libraries(
+    optionswindow
+    dictionarysettings
+    ankisettings
 )

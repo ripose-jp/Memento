@@ -77,10 +77,6 @@ AnkiSettings::AnkiSettings(QWidget *parent)
         &QPushButton::clicked, this, &AnkiSettings::applyChanges
     );
     connect(
-        m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Close),
-        &QPushButton::clicked, this, &AnkiSettings::hide
-    );
-    connect(
         m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Help), 
         &QPushButton::clicked, m_ankiSettingsHelp, &AnkiSettingsHelp::show
     );
