@@ -39,6 +39,16 @@ target_link_libraries(
 )
 
 add_library(
+    aboutwindow
+    aboutwindow.cpp
+)
+target_link_libraries(
+    aboutwindow
+    Qt5::Widgets
+    Qt5::Core
+)
+
+add_library(
     definitionwidget
     definitionwidget.cpp
     definitionwidget.ui

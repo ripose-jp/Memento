@@ -25,6 +25,7 @@
 
 #include "widgets/definitionwidget.h"
 #include "widgets/optionswindow.h"
+#include "widgets/aboutwindow.h"
 
 #include "../util/globalmediator.h"
 #include "playeradapter.h"
@@ -89,6 +90,7 @@ private:
     DefinitionWidget *m_definition;
     AnkiClient       *m_ankiClient;
     OptionsWindow    *m_optionsWindow;  
+    AboutWindow      *m_aboutWindow;
 
     QActionGroup *m_actionGroupAudio;
     QList<QPair<QAction *, const Track *>> m_audioTracks;

@@ -230,7 +230,7 @@
       <x>494</x>
       <y>170</y>
       <width>200</width>
-      <height>150</height>
+      <height>181</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -256,8 +256,10 @@
      </property>
     </widget>
     <addaction name="menuAnkiProfile"/>
-    <addaction name="actionUpdate"/>
     <addaction name="actionOptions"/>
+    <addaction name="separator"/>
+    <addaction name="actionUpdate"/>
+    <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuMedia"/>
    <addaction name="menuAudio"/>
@@ -330,6 +332,11 @@
   <action name="actionOptions">
    <property name="text">
     <string>Options</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About Memento</string>
    </property>
   </action>
  </widget>
