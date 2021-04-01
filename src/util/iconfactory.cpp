@@ -20,6 +20,8 @@
 
 #include "iconfactory.h"
 
+#include <QPainter>
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #define FACTORY_CLASS(p) new StyleFactory(p)
 #elif __linux__
@@ -66,19 +68,33 @@ StyleFactory::StyleFactory(const QWidget *parent) : IconFactory(parent)
     {
         icons[i] = m_parent->style()->standardIcon(pixmaps[i]);
     }
-    icons[fullscreen] = QIcon(":/images/fullscreen.svg");
-    icons[restore]    = QIcon(":/images/restore.svg");
-    icons[plus]       = QIcon(":/images/plus.svg");
-    icons[minus]      = QIcon(":/images/minus.svg");
-    icons[back]       = QIcon(":/images/back.svg");
-    icons[up]         = QIcon(":/images/uparrow.svg");
-    icons[down]       = QIcon(":/images/downarrow.svg");
-    icons[hamburger]  = QIcon(":/images/hamburger.svg");
+    icons[fullscreen] = buildIcon(":/images/fullscreen.svg");
+    icons[restore]    = buildIcon(":/images/restore.svg");
+    icons[plus]       = buildIcon(":/images/plus.svg");
+    icons[minus]      = buildIcon(":/images/minus.svg");
+    icons[back]       = buildIcon(":/images/back.svg");
+    icons[up]         = buildIcon(":/images/uparrow.svg");
+    icons[down]       = buildIcon(":/images/downarrow.svg");
+    icons[hamburger]  = buildIcon(":/images/hamburger.svg");
 }
 
 QIcon StyleFactory::getIcon(IconFactory::Icon icon)
 {
     return icons[icon];
+}
+
+QIcon StyleFactory::buildIcon(const QString &path)
+{
+    QColor color = m_parent->palette().color(m_parent->foregroundRole());
+    QPixmap pixmap(path);
+
+    QPainter painter(&pixmap);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    painter.setBrush(color);
+    painter.setPen(color);
+    painter.drawRect(pixmap.rect());
+
+    return QIcon(pixmap);
 }
 
 ThemeFactory::ThemeFactory(const QWidget *parent) : IconFactory(parent)

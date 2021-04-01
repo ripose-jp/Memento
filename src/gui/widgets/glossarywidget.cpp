@@ -24,12 +24,10 @@
 
 #define LABEL_NUMBER_STYLESHEET (QString(\
                                     "font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"\
-                                    "color: #777777;"\
                                     "font-size: 11pt;"))
 
 #define LABEL_GLOSSARY_STYLESHEET   (QString(\
                                         "font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"\
-                                        "color: black;"\
                                         "font-size: 11pt;"))
 
 GlossaryWidget::GlossaryWidget(size_t number, const TermDefinition &def, QWidget *parent) : QWidget(parent), m_def(def)

@@ -32,7 +32,7 @@
 #define KANJI_UNICODE_LOWER_RARE    "\u3400"
 #define KANJI_UNICODE_UPPER_RARE    "\u4dbf"
 
-#define KANJI_STYLE_STRING      (QString("<style>a { color: black; border: 0; text-decoration: none; }</style>"))
+#define KANJI_STYLE_STRING      (QString("<style>a { color: %1; border: 0; text-decoration: none; }</style>"))
 #define KANJI_FORMAT_STRING     (QString("<a href=\"%1\">%1</a>"))
 
 TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent) 
@@ -84,7 +84,7 @@ void TermWidget::setTerm(const Term &term)
         m_ui->labelKana->show();
     }
     m_ui->labelKana->setText(term.reading);
-    QString kanjiLabelText = KANJI_STYLE_STRING;
+    QString kanjiLabelText = KANJI_STYLE_STRING.arg(m_ui->labelKanji->palette().color(m_ui->labelKanji->foregroundRole()).name());
     for (const QString &ch : term.expression)
     {
         kanjiLabelText += isKanji(ch) ? KANJI_FORMAT_STRING.arg(ch) : ch;
