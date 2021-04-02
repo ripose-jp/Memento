@@ -70,8 +70,6 @@ public:
 
 private:
     QIcon icons[ICON_ENUM_SIZE];
-
-    QIcon buildIcon(const QString &path);
 };
 
 class ThemeFactory : public IconFactory
