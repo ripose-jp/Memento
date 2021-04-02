@@ -73,6 +73,8 @@ private:
     QIcon icons[ICON_ENUM_SIZE];
 
     QIcon buildIcon(const QString &path);
+    QIcon buildIcon(const QIcon   &icon);
+    QIcon buildIcon(QPixmap       &pixmap);
 };
 
 class ThemeFactory : public IconFactory

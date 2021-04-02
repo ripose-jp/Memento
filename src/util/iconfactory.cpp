@@ -68,7 +68,7 @@ StyleFactory::StyleFactory(const QWidget *parent) : IconFactory(parent)
 
     for (size_t i = 0; i < fullscreen; ++i)
     {
-        icons[i] = m_parent->style()->standardIcon(pixmaps[i]);
+        icons[i] = buildIcon(m_parent->style()->standardIcon(pixmaps[i]));
     }
     icons[fullscreen] = buildIcon(":/images/fullscreen.svg");
     icons[restore]    = buildIcon(":/images/restore.svg");
@@ -87,8 +87,19 @@ const QIcon &StyleFactory::getIcon(IconFactory::Icon icon) const
 
 QIcon StyleFactory::buildIcon(const QString &path)
 {
-    QColor color = m_parent->palette().color(m_parent->foregroundRole());
     QPixmap pixmap(path);
+    return buildIcon(pixmap);
+}
+
+QIcon StyleFactory::buildIcon(const QIcon &icon)
+{
+    QPixmap pixmap(icon.pixmap(QSize(512, 512)));
+    return buildIcon(pixmap);
+}
+
+QIcon StyleFactory::buildIcon(QPixmap &pixmap)
+{
+    QColor color = m_parent->palette().color(m_parent->foregroundRole());
 
     QPainter painter(&pixmap);
     painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
