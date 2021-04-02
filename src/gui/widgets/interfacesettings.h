@@ -18,40 +18,26 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef OPTIONSWINDOW_H
-#define OPTIONSWINDOW_H
+#ifndef INTERFACESETTINGS_H
+#define INTERFACESETTINGS_H
 
 #include <QWidget>
 
-#include <QMap>
-
 namespace Ui
 {
-    class OptionsWindow;
+    class InterfaceSettings;
 }
 
-class AnkiSettings;
-class DictionarySettings;
-
-class OptionsWindow : public QWidget
+class InterfaceSettings : public QWidget
 {
     Q_OBJECT
 
 public:
-    OptionsWindow(QWidget *parent = nullptr);
-    ~OptionsWindow();
-
-protected:
-    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+    InterfaceSettings(QWidget *parent = nullptr);
+    ~InterfaceSettings();
 
 private:
-    Ui::OptionsWindow *m_ui;
-
-    QWidget                  *m_currentWidget;
-    QMap<QString, QWidget *>  widgets;
-
-    void addOption(const QString &name, QWidget *widget);
-    void showSelectedOption();
+    Ui::InterfaceSettings *m_ui;
 };
 
-#endif // OPTIONSWINDOW_H
+#endif // INTERFACESETTINGS_H
