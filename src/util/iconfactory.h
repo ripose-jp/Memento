@@ -53,7 +53,7 @@ public:
         hamburger
     };
 
-    virtual QIcon getIcon(IconFactory::Icon icon) = 0;
+    virtual const QIcon &getIcon(IconFactory::Icon icon) const = 0;
     static IconFactory *create(const QWidget *parent);
 
 protected:
@@ -67,7 +67,7 @@ class StyleFactory : public IconFactory
 {
 public:
     StyleFactory(const QWidget *parent);
-    QIcon getIcon(IconFactory::Icon icon) Q_DECL_OVERRIDE;
+    const QIcon &getIcon(IconFactory::Icon icon) const Q_DECL_OVERRIDE;
 
 private:
     QIcon icons[ICON_ENUM_SIZE];
@@ -79,7 +79,7 @@ class ThemeFactory : public IconFactory
 {
 public:
     ThemeFactory(const QWidget *parent);
-    QIcon getIcon(IconFactory::Icon icon) Q_DECL_OVERRIDE;
+    const QIcon &getIcon(IconFactory::Icon icon) const Q_DECL_OVERRIDE;
 
 private:
     QIcon icons[ICON_ENUM_SIZE];

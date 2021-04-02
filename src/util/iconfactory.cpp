@@ -80,7 +80,7 @@ StyleFactory::StyleFactory(const QWidget *parent) : IconFactory(parent)
     icons[hamburger]  = buildIcon(":/images/hamburger.svg");
 }
 
-QIcon StyleFactory::getIcon(IconFactory::Icon icon)
+const QIcon &StyleFactory::getIcon(IconFactory::Icon icon) const
 {
     return icons[icon];
 }
@@ -126,7 +126,7 @@ ThemeFactory::ThemeFactory(const QWidget *parent) : IconFactory(parent)
     }
 }
 
-QIcon ThemeFactory::getIcon(IconFactory::Icon icon)
+const QIcon &ThemeFactory::getIcon(IconFactory::Icon icon) const
 {
     return icons[icon];
 }
