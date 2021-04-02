@@ -41,12 +41,10 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
                                                   m_findDelay(new QTimer(this)),
                                                   m_paused(true)
 {
-    setStyleSheet(
-        "QTextEdit {"
-            "color : white;"
-            "background-color : black;"
-        "}"
-    );
+    QPalette pal = palette();
+    pal.setColor(QPalette::ColorRole::Base, QColor(0, 0, 0));
+    pal.setColor(QPalette::ColorRole::Text, QColor(255, 255, 255));
+    setPalette(pal);
 
     QFont font;
     font.setFamily(QString::fromUtf8("Noto Sans CJK JP"));
