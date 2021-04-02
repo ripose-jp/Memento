@@ -147,9 +147,8 @@ void KanjiWidget::buildDefinitionLabel(const KanjiDefinition &def, QVBoxLayout *
     QString text;
     for (size_t i = 0; i < def.glossary.size(); ++i)
     {
-        text += "<span style=\"color: #8a8a91;\">";
         text += QString::number(i + 1);
-        text += ".</span> ";
+        text += ". ";
         text += def.glossary[i];
         text += "<br>";
     }
