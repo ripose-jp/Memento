@@ -33,6 +33,12 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
       m_seenSubtitles(new QMultiMap<double, QString>),
       m_subStartTimes(new QMultiHash<QString, double>)
 {
+    QFont font;
+    font.setFamily(QString::fromUtf8("Noto Sans CJK JP"));
+    font.setPointSize(14);
+    font.setStyleStrategy(QFont::PreferAntialias);
+    setFont(font);
+
     connect(this, &QListWidget::itemDoubleClicked, this, &SubtitleListWidget::seekToSubtitle);
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();

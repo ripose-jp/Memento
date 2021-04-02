@@ -51,10 +51,19 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
     QFont font;
     font.setFamily(QString::fromUtf8("Noto Sans CJK JP"));
     font.setPointSize(20);
+    font.setStyleStrategy(QFont::PreferAntialias);
     setFont(font);
     m_fontHeight = QFontMetrics(font).height() + TEXT_PADDING_HEIGHT;
-
     setFixedHeight(m_fontHeight);
+
+    setFocusPolicy(Qt::FocusPolicy::NoFocus);
+    setAcceptDrops(false);
+    setFrameShape(QFrame::Shape::NoFrame);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setLineWrapMode(QTextEdit::NoWrap);
+    setReadOnly(true);
+    setAcceptRichText(false);
+    setTextInteractionFlags(Qt::NoTextInteraction);
 
     m_findDelay->setSingleShot(true);
 
