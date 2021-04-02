@@ -81,8 +81,6 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent),
     connect(buttonAnkiOpen, &QToolButton::clicked, this, &KanjiWidget::openAnki);
     m_buttonAnkiOpen = buttonAnkiOpen;
 
-    delete factory;
-
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     if (client->isEnabled())
     {

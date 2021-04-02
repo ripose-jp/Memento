@@ -40,7 +40,6 @@ DictionarySettings::DictionarySettings(QWidget *parent) : QWidget(parent), m_ui(
     m_ui->buttonDelete->setIcon(factory->getIcon(IconFactory::Icon::minus));
     m_ui->buttonUp->    setIcon(factory->getIcon(IconFactory::Icon::up));
     m_ui->buttonDown->  setIcon(factory->getIcon(IconFactory::Icon::down));
-    delete factory;
 
     connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Apply), &QPushButton::clicked,
         this, &DictionarySettings::applySettings);

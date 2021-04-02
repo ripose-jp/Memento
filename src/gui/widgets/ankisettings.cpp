@@ -47,7 +47,6 @@ AnkiSettings::AnkiSettings(QWidget *parent)
     IconFactory *factory = IconFactory::create(this);
     m_ui->buttonAdd->setIcon(factory->getIcon(IconFactory::Icon::plus));
     m_ui->buttonDelete->setIcon(factory->getIcon(IconFactory::Icon::minus));
-    delete factory;
 
     connect(m_ui->checkBoxEnabled,  &QCheckBox::stateChanged,       this, &AnkiSettings::enabledStateChanged);
     connect(m_ui->comboBoxProfile,  &QComboBox::currentTextChanged, this, &AnkiSettings::changeProfile);

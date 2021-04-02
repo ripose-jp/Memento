@@ -58,8 +58,6 @@ TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent)
     m_ui->buttonAnkiOpen->setIcon(factory->getIcon(IconFactory::Icon::hamburger));
     m_ui->buttonAnkiOpen->setVisible(false);
 
-    delete factory;
-
     setTerm(*term);
 
     connect(m_ui->buttonAddCard,  &QToolButton::clicked,  this, &TermWidget::addNote);

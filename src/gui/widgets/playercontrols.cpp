@@ -84,7 +84,6 @@ PlayerControls::PlayerControls(QWidget *parent)
 PlayerControls::~PlayerControls()
 {
     delete m_ui;
-    delete m_iconFactory;
 }
 
 void PlayerControls::setIcons()

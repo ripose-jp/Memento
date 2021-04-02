@@ -202,6 +202,7 @@ MainWindow::~MainWindow()
     clearTracks();
     delete m_ui;
     delete m_definition;
+    delete IconFactory::create(this);
     m_mediator->deleteLater();
     m_player->deleteLater();
     m_ankiClient->deleteLater();

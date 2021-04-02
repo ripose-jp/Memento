@@ -58,6 +58,7 @@ public:
 
 protected:
     const QWidget *m_parent;
+    static inline IconFactory *m_factory = nullptr;
 
     IconFactory(const QWidget *parent) : m_parent(parent) {}
 };
@@ -70,6 +71,8 @@ public:
 
 private:
     QIcon icons[ICON_ENUM_SIZE];
+
+    QIcon buildIcon(const QString &path);
 };
 
 class ThemeFactory : public IconFactory
