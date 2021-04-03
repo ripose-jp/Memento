@@ -41,7 +41,7 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent),
     QHBoxLayout *layoutTop = new QHBoxLayout;
     layoutParent->addLayout(layoutTop);
 
-    IconFactory *factory = IconFactory::create(this);
+    IconFactory *factory = IconFactory::create();
 
     QToolButton *buttonBack = new QToolButton;
     buttonBack->setIcon(factory->getIcon(IconFactory::Icon::back));

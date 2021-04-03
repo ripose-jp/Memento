@@ -54,34 +54,37 @@ public:
     };
 
     virtual const QIcon &getIcon(IconFactory::Icon icon) const = 0;
-    static IconFactory *create(const QWidget *parent);
+    virtual void buildIcons() = 0;
+
+    static IconFactory *create();
 
 protected:
-    const QWidget *m_parent;
     static inline IconFactory *m_factory = nullptr;
 
-    IconFactory(const QWidget *parent) : m_parent(parent) {}
+    IconFactory() {}
 };
 
 class StyleFactory : public IconFactory
 {
 public:
-    StyleFactory(const QWidget *parent);
+    StyleFactory();
+
     const QIcon &getIcon(IconFactory::Icon icon) const Q_DECL_OVERRIDE;
+    void buildIcons() Q_DECL_OVERRIDE;
 
 private:
     QIcon icons[ICON_ENUM_SIZE];
 
     QIcon buildIcon(const QString &path);
-    QIcon buildIcon(const QIcon   &icon);
-    QIcon buildIcon(QPixmap       &pixmap);
 };
 
 class ThemeFactory : public IconFactory
 {
 public:
-    ThemeFactory(const QWidget *parent);
+    ThemeFactory();
+
     const QIcon &getIcon(IconFactory::Icon icon) const Q_DECL_OVERRIDE;
+    void buildIcons() Q_DECL_OVERRIDE;
 
 private:
     QIcon icons[ICON_ENUM_SIZE];

@@ -50,7 +50,7 @@ TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent)
     
     m_ui->verticalLayout->addStretch();
 
-    IconFactory *factory = IconFactory::create(this);
+    IconFactory *factory = IconFactory::create();
 
     m_ui->buttonAddCard->setIcon(factory->getIcon(IconFactory::Icon::plus));
     m_ui->buttonAddCard->setVisible(false);

@@ -44,9 +44,7 @@ AnkiSettings::AnkiSettings(QWidget *parent)
 {
     m_ui->setupUi(this);
 
-    IconFactory *factory = IconFactory::create(this);
-    m_ui->buttonAdd->setIcon(factory->getIcon(IconFactory::Icon::plus));
-    m_ui->buttonDelete->setIcon(factory->getIcon(IconFactory::Icon::minus));
+    refreshIcons();
 
     connect(m_ui->checkBoxEnabled,  &QCheckBox::stateChanged,       this, &AnkiSettings::enabledStateChanged);
     connect(m_ui->comboBoxProfile,  &QComboBox::currentTextChanged, this, &AnkiSettings::changeProfile);
@@ -84,6 +82,9 @@ AnkiSettings::AnkiSettings(QWidget *parent)
     connect(m_ui->buttonAdd,       &QToolButton::clicked,          this, &AnkiSettings::addProfile);
     connect(m_ui->buttonDelete,    &QToolButton::clicked,          this, &AnkiSettings::deleteProfile);
     connect(m_ui->comboBoxProfile, &QComboBox::currentTextChanged, this, &AnkiSettings::changeProfile);
+
+    /* Theme Changes */
+    connect(GlobalMediator::getGlobalMediator(), &GlobalMediator::requestThemeRefresh, this, &AnkiSettings::refreshIcons);
 }
 
 AnkiSettings::~AnkiSettings()
@@ -91,6 +92,13 @@ AnkiSettings::~AnkiSettings()
     delete m_ui;
     delete m_ankiSettingsHelp;
     clearConfigs();
+}
+
+void AnkiSettings::refreshIcons()
+{
+    IconFactory *factory = IconFactory::create();
+    m_ui->buttonAdd->setIcon(factory->getIcon(IconFactory::Icon::plus));
+    m_ui->buttonDelete->setIcon(factory->getIcon(IconFactory::Icon::minus));
 }
 
 void AnkiSettings::clearConfigs()

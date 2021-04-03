@@ -46,4 +46,16 @@
 #define DEFAULT_DELAY               250
 #define DEFAULT_MODIFIER            MODIFIER_SHIFT
 
+enum class Theme
+{
+    System       = 0,
+    Light        = 1,
+    Dark         = 2
+};
+
+#define SETTINGS_INTERFACE                          "interface"
+
+#define SETTINGS_INTERFACE_THEME                    "theme"
+#define SETTINGS_INTERFACE_THEME_DEFAULT            Theme::System
+
 #endif // CONSTANTS_H

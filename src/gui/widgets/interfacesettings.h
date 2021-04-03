@@ -36,6 +36,14 @@ public:
     InterfaceSettings(QWidget *parent = nullptr);
     ~InterfaceSettings();
 
+protected:
+    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+
+private Q_SLOTS:
+    void restoreDefaults();
+    void restoreSaved();
+    void applyChanges();
+
 private:
     Ui::InterfaceSettings *m_ui;
 };

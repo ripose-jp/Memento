@@ -20,6 +20,7 @@
 
 #include "playercontrols.h"
 #include "ui_playercontrols.h"
+
 #include "sliderjumpstyle.h"
 #include "../../util/globalmediator.h"
 #include "../playeradapter.h"
@@ -38,8 +39,7 @@ PlayerControls::PlayerControls(QWidget *parent)
 {
     m_ui->setupUi(this);
 
-    m_iconFactory = IconFactory::create(this);
-    setIcons();
+    refreshIcons();
 
     m_ui->sliderProgress->setStyle(new SliderJumpStyle(m_ui->sliderProgress->style()));
     m_ui->sliderVolume->setStyle(new SliderJumpStyle(m_ui->sliderVolume->style()));
@@ -79,6 +79,7 @@ PlayerControls::PlayerControls(QWidget *parent)
     connect(mediator, &GlobalMediator::playerVolumeChanged,     this, &PlayerControls::setVolume);
     connect(mediator, &GlobalMediator::playerDurationChanged,   this, &PlayerControls::setDuration);
     connect(mediator, &GlobalMediator::playerPositionChanged,   this, &PlayerControls::setPosition);
+    connect(mediator, &GlobalMediator::requestThemeRefresh,     this, &PlayerControls::refreshIcons);
 }
 
 PlayerControls::~PlayerControls()
@@ -86,15 +87,16 @@ PlayerControls::~PlayerControls()
     delete m_ui;
 }
 
-void PlayerControls::setIcons()
+void PlayerControls::refreshIcons()
 {
-    m_ui->buttonPlay->         setIcon(m_iconFactory->getIcon(IconFactory::Icon::play));
-    m_ui->buttonFullscreen->   setIcon(m_iconFactory->getIcon(IconFactory::Icon::fullscreen));
-    m_ui->buttonSeekBackward-> setIcon(m_iconFactory->getIcon(IconFactory::Icon::seek_backward));
-    m_ui->buttonSeekForward->  setIcon(m_iconFactory->getIcon(IconFactory::Icon::seek_forward));
-    m_ui->buttonSkipBackward-> setIcon(m_iconFactory->getIcon(IconFactory::Icon::skip_backward));
-    m_ui->buttonSkipForward->  setIcon(m_iconFactory->getIcon(IconFactory::Icon::skip_forward));
-    m_ui->buttonToggleSubList->setIcon(m_iconFactory->getIcon(IconFactory::Icon::hamburger));
+    IconFactory *factory = IconFactory::create();
+    m_ui->buttonPlay->         setIcon(factory->getIcon(m_paused ? IconFactory::Icon::play : IconFactory::Icon::pause));
+    m_ui->buttonFullscreen->   setIcon(factory->getIcon(IconFactory::Icon::fullscreen));
+    m_ui->buttonSeekBackward-> setIcon(factory->getIcon(IconFactory::Icon::seek_backward));
+    m_ui->buttonSeekForward->  setIcon(factory->getIcon(IconFactory::Icon::seek_forward));
+    m_ui->buttonSkipBackward-> setIcon(factory->getIcon(IconFactory::Icon::skip_backward));
+    m_ui->buttonSkipForward->  setIcon(factory->getIcon(IconFactory::Icon::skip_forward));
+    m_ui->buttonToggleSubList->setIcon(factory->getIcon(IconFactory::Icon::hamburger));
 }
 
 void PlayerControls::setDuration(const double value)
@@ -121,7 +123,7 @@ void PlayerControls::setPosition(const double value)
 void PlayerControls::setPaused(const bool paused)
 {
     m_paused = paused;
-    m_ui->buttonPlay->setIcon(m_iconFactory->getIcon(m_paused ? IconFactory::Icon::play : IconFactory::Icon::pause));
+    m_ui->buttonPlay->setIcon(IconFactory::create()->getIcon(m_paused ? IconFactory::Icon::play : IconFactory::Icon::pause));
 }
 
 void PlayerControls::pauseResume()
@@ -140,11 +142,11 @@ void PlayerControls::setFullscreen(const bool value)
 {
     if (value)
     {
-        m_ui->buttonFullscreen->setIcon(m_iconFactory->getIcon(IconFactory::Icon::restore));
+        m_ui->buttonFullscreen->setIcon(IconFactory::create()->getIcon(IconFactory::Icon::restore));
     }
     else
     {
-        m_ui->buttonFullscreen->setIcon(m_iconFactory->getIcon(IconFactory::Icon::fullscreen));
+        m_ui->buttonFullscreen->setIcon(IconFactory::create()->getIcon(IconFactory::Icon::fullscreen));
     }
 }
 

@@ -49,20 +49,20 @@ public Q_SLOTS:
     void setPosition(const double value);
     
 private Q_SLOTS:
+    void refreshIcons();
     void pauseResume();
     void toggleFullscreen();
 
 private:
     Ui::PlayerControls *m_ui;
+    
     bool   m_paused;
     bool   m_ignorePause;
     double m_duration;
     double m_startTime;
     double m_endTime;
-    IconFactory *m_iconFactory;
 
     QString formatTime(int time);
-    void setIcons();
 };
 
 #endif // PLAYERCONTROLS_H

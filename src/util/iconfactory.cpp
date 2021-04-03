@@ -21,6 +21,7 @@
 #include "iconfactory.h"
 
 #include <QPainter>
+#include <QApplication>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #define FACTORY_CLASS(p) new StyleFactory(p)
@@ -47,14 +48,19 @@
 #define RESTORE_THEME "view-restore"
 
 
-IconFactory *IconFactory::create(const QWidget *parent)
+IconFactory *IconFactory::create()
 {
     if (m_factory == nullptr)
-        m_factory = FACTORY_CLASS(parent);
+        m_factory = FACTORY_CLASS();
     return m_factory;
 }
 
-StyleFactory::StyleFactory(const QWidget *parent) : IconFactory(parent)
+StyleFactory::StyleFactory()
+{
+    buildIcons();
+}
+
+void StyleFactory::buildIcons()
 {
     const QStyle::StandardPixmap pixmaps[skip_backward + 1] = {
         QStyle::SP_MediaPlay,
@@ -65,10 +71,10 @@ StyleFactory::StyleFactory(const QWidget *parent) : IconFactory(parent)
         QStyle::SP_MediaSkipForward,
         QStyle::SP_MediaSkipBackward
     };
-
+    
     for (size_t i = 0; i < fullscreen; ++i)
     {
-        icons[i] = buildIcon(m_parent->style()->standardIcon(pixmaps[i]));
+        icons[i] = QApplication::style()->standardIcon(pixmaps[i]);
     }
     icons[fullscreen] = buildIcon(":/images/fullscreen.svg");
     icons[restore]    = buildIcon(":/images/restore.svg");
@@ -88,18 +94,7 @@ const QIcon &StyleFactory::getIcon(IconFactory::Icon icon) const
 QIcon StyleFactory::buildIcon(const QString &path)
 {
     QPixmap pixmap(path);
-    return buildIcon(pixmap);
-}
-
-QIcon StyleFactory::buildIcon(const QIcon &icon)
-{
-    QPixmap pixmap(icon.pixmap(QSize(512, 512)));
-    return buildIcon(pixmap);
-}
-
-QIcon StyleFactory::buildIcon(QPixmap &pixmap)
-{
-    QColor color = m_parent->palette().color(m_parent->foregroundRole());
+    QColor color = QApplication::palette().color(QPalette::ColorRole::WindowText);
 
     QPainter painter(&pixmap);
     painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
@@ -110,7 +105,12 @@ QIcon StyleFactory::buildIcon(QPixmap &pixmap)
     return QIcon(pixmap);
 }
 
-ThemeFactory::ThemeFactory(const QWidget *parent) : IconFactory(parent)
+ThemeFactory::ThemeFactory()
+{
+    buildIcons();
+}
+
+void ThemeFactory::buildIcons()
 {
     const QString names[9] = {
         PLAY_THEME,
@@ -124,12 +124,10 @@ ThemeFactory::ThemeFactory(const QWidget *parent) : IconFactory(parent)
         RESTORE_THEME
     };
 
-    StyleFactory styleFactory(m_parent);
+    StyleFactory styleFactory;
     for (size_t i = 0; i < XDG_ICONS; ++i)
     {
-        icons[i] = QIcon::hasThemeIcon(names[i]) ? 
-            QIcon::fromTheme(names[i]) : 
-            styleFactory.getIcon((IconFactory::Icon) i);
+        icons[i] = QIcon::hasThemeIcon(names[i]) ? QIcon::fromTheme(names[i]) : styleFactory.getIcon((IconFactory::Icon) i);
     }
     for (size_t i = XDG_ICONS; i < ICON_ENUM_SIZE; ++i)
     {

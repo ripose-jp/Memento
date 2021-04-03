@@ -26,6 +26,8 @@
 
 #include "gui/mainwindow.h"
 #include "util/directoryutils.h"
+#include "util/globalmediator.h"
+#include "util/iconfactory.h"
 
 int main(int argc, char *argv[])
 {
@@ -62,7 +64,14 @@ int main(int argc, char *argv[])
     
     QApplication memento(argc, argv);
     setlocale(LC_NUMERIC, "C");
-    MainWindow main_window;
-    main_window.show();
-    return memento.exec();
+    MainWindow *main_window = new MainWindow;
+    main_window->show();
+    int ret = memento.exec();
+
+    /* Deallocate shared resources */
+    delete main_window;
+    delete GlobalMediator::getGlobalMediator();
+    delete IconFactory::create();
+
+    return ret;
 }

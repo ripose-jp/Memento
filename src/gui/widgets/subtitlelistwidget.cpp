@@ -22,11 +22,13 @@
 
 #include "../../util/directoryutils.h"
 #include "../../util/globalmediator.h"
+#include "../../util/constants.h"
 #include "../playeradapter.h"
 
 #include <iterator>
 #include <QMultiMap>
 #include <QApplication>
+#include <QSettings>
 
 SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     : QListWidget(parent),
@@ -39,18 +41,49 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     font.setStyleStrategy(QFont::PreferAntialias);
     setFont(font);
 
+    setTheme();
+
     connect(this, &QListWidget::itemDoubleClicked, this, &SubtitleListWidget::seekToSubtitle);
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     connect(mediator, &GlobalMediator::playerSubtitleChanged,      this, &SubtitleListWidget::addSubtitle);
     connect(mediator, &GlobalMediator::playerSubtitleTrackChanged, this, &SubtitleListWidget::clearSubtitles);
     connect(mediator, &GlobalMediator::playerSubtitlesDisabled,    this, &SubtitleListWidget::clearSubtitles);
+    connect(mediator, &GlobalMediator::requestThemeRefresh,        this, &SubtitleListWidget::setTheme);
 }
 
 SubtitleListWidget::~SubtitleListWidget()
 {
     delete m_seenSubtitles;
     delete m_subStartTimes;
+}
+
+void SubtitleListWidget::setTheme()
+{
+    QPalette pal;
+    QColor darkColor(45, 45, 45);
+    QColor disabledColor(127, 127, 127);
+    QColor white(255, 255, 255);
+    pal.setColor(QPalette::Window, darkColor);
+    pal.setColor(QPalette::WindowText, white);
+    pal.setColor(QPalette::AlternateBase, darkColor);
+    pal.setColor(QPalette::ToolTipBase, white);
+    pal.setColor(QPalette::ToolTipText, darkColor);
+    pal.setColor(QPalette::Disabled, QPalette::Text, disabledColor);
+    pal.setColor(QPalette::Button, darkColor);
+    pal.setColor(QPalette::ButtonText, white);
+    pal.setColor(QPalette::Disabled, QPalette::ButtonText, disabledColor);
+    pal.setColor(QPalette::BrightText, Qt::red);
+    pal.setColor(QPalette::Link, QColor(42, 130, 218));
+    pal.setColor(QPalette::Highlight, QColor(31, 72, 94));
+    pal.setColor(QPalette::HighlightedText, white);
+    pal.setColor(QPalette::Disabled, QPalette::HighlightedText, disabledColor);
+
+    pal.setColor(QPalette::ColorRole::Base, QColor(0, 0, 0));
+    pal.setColor(QPalette::ColorRole::Text, QColor(255, 255, 255));
+
+    setPalette(pal);
+    setStyleSheet("");
 }
 
 QString SubtitleListWidget::getContext(const QString &seperator)

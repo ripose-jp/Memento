@@ -43,6 +43,7 @@ protected:
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
+    void setTheme();
     void findTerms();
     void postitionChanged(const double value);
     void setSubtitle(QString subtitle,

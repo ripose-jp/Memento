@@ -38,6 +38,7 @@ protected:
     void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
+    void setTheme();
     void addSubtitle(const QString &subtitle,
                      const double start,
                      const double end,
