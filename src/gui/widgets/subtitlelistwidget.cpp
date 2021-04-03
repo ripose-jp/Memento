@@ -134,12 +134,9 @@ void SubtitleListWidget::seekToSubtitle(const QListWidgetItem *item)
 
 void SubtitleListWidget::showEvent(QShowEvent *event)
 {
-    const QList<QListWidgetItem *> &items = selectedItems();
-    if (!items.isEmpty())
-    {
-        QApplication::processEvents();
-        scrollToItem(items.last());
-    }
+    QApplication::processEvents();
+    scrollToItem(item(currentRow()));
+
     Q_EMIT GlobalMediator::getGlobalMediator()->subtitleListShown();
 }
 
