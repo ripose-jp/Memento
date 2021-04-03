@@ -59,11 +59,7 @@
          </property>
          <property name="font">
           <font>
-<<<<<<< HEAD
-           <family>Noto Sans,Noto Sans CJK JP,sans-serif</family>
-=======
            <family>Noto Sans CJK JP</family>
->>>>>>> dev
            <pointsize>20</pointsize>
           </font>
          </property>
