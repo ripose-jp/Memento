@@ -67,7 +67,6 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     /* Slots */
-    connect(mediator,    &GlobalMediator::requestThemeRefresh,     this, &SubtitleWidget::setTheme);
     connect(m_findDelay, &QTimer::timeout,                         this, &SubtitleWidget::findTerms);
     connect(mediator,    &GlobalMediator::searchSettingsChanged,   this, &SubtitleWidget::loadSettings);
     connect(mediator,    &GlobalMediator::definitionsHidden,       this, &SubtitleWidget::deselectText);
@@ -88,30 +87,12 @@ SubtitleWidget::~SubtitleWidget()
 
 void SubtitleWidget::setTheme()
 {
-    QPalette pal;
-    QColor darkColor(45, 45, 45);
-    QColor disabledColor(127, 127, 127);
-    QColor white(255, 255, 255);
-    pal.setColor(QPalette::Window, darkColor);
-    pal.setColor(QPalette::WindowText, white);
-    pal.setColor(QPalette::AlternateBase, darkColor);
-    pal.setColor(QPalette::ToolTipBase, white);
-    pal.setColor(QPalette::ToolTipText, darkColor);
-    pal.setColor(QPalette::Disabled, QPalette::Text, disabledColor);
-    pal.setColor(QPalette::Button, darkColor);
-    pal.setColor(QPalette::ButtonText, white);
-    pal.setColor(QPalette::Disabled, QPalette::ButtonText, disabledColor);
-    pal.setColor(QPalette::BrightText, Qt::red);
-    pal.setColor(QPalette::Link, QColor(42, 130, 218));
-    pal.setColor(QPalette::Highlight, QColor(31, 72, 94));
-    pal.setColor(QPalette::HighlightedText, white);
-    pal.setColor(QPalette::Disabled, QPalette::HighlightedText, disabledColor);
-
-    pal.setColor(QPalette::ColorRole::Base, QColor(0, 0, 0));
-    pal.setColor(QPalette::ColorRole::Text, QColor(255, 255, 255));
-
-    setPalette(pal);
-    setStyleSheet("");
+    setStyleSheet(
+        "QTextEdit {"
+            "background: #000000;"
+            "color: #FFFFFF;"
+        "}"
+    );
 }
 
 void SubtitleWidget::setSubtitle(QString subtitle,

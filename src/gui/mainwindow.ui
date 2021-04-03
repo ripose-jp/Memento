@@ -48,7 +48,7 @@
        </sizepolicy>
       </property>
       <property name="styleSheet">
-       <string notr="true">QSplitter {
+       <string notr="true">QSplitter::handle {
 	background: black;
 }</string>
       </property>
@@ -134,7 +134,7 @@
      <x>0</x>
      <y>0</y>
      <width>801</width>
-     <height>34</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMedia">
@@ -200,7 +200,7 @@
       <x>494</x>
       <y>170</y>
       <width>200</width>
-      <height>181</height>
+      <height>147</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -217,8 +217,8 @@
       <rect>
        <x>664</x>
        <y>189</y>
-       <width>142</width>
-       <height>60</height>
+       <width>135</width>
+       <height>50</height>
       </rect>
      </property>
      <property name="title">
