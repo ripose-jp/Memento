@@ -95,8 +95,9 @@ Q_SIGNALS:
     void playerClosed()                       const;
 
     /* Settings Signals */
-    void ankiSettingsChanged()   const;
-    void searchSettingsChanged() const;
+    void ankiSettingsChanged()      const;
+    void searchSettingsChanged()    const;
+    void interfaceSettingsChanged() const;
 
     /* Player Control Signals */
     void controlsPlay()         const;
@@ -130,6 +131,7 @@ Q_SIGNALS:
     /* Request Changes */
     void requestDefinitionDelete() const;
     void requestFullscreenResize() const;
+    void requestThemeRefresh()     const;
 
 private:
     inline static GlobalMediator *m_mediator = nullptr;

@@ -31,6 +31,8 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, AnkiClient *clien
       m_ui(new Ui::DefinitionWidget),
       m_client(client)
 {
+    setUpdatesEnabled(false);
+
     m_ui->setupUi(this);
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
@@ -120,5 +122,6 @@ void DefinitionWidget::hideEvent(QHideEvent *event)
 
 void DefinitionWidget::showEvent(QShowEvent *event)
 {
+    setUpdatesEnabled(true);
     Q_EMIT GlobalMediator::getGlobalMediator()->definitionsShown();
 }

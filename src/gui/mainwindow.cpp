@@ -32,6 +32,7 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QThreadPool>
+#include <QSettings>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -42,6 +43,8 @@ MainWindow::MainWindow(QWidget *parent)
       m_definition(nullptr)
 {
     m_ui->setupUi(this);
+
+    setTheme();
 
     /* Video Action Groups */
     m_actionGroupAudio       = new QActionGroup(this);
@@ -195,19 +198,26 @@ MainWindow::MainWindow(QWidget *parent)
     /* Show message boxes */
     connect(m_mediator, &GlobalMediator::showCritical,    this, &MainWindow::showErrorMessage);
     connect(m_mediator, &GlobalMediator::showInformation, this, &MainWindow::showInfoMessage);
+
+    /* Theme Changes */
+    connect(m_mediator, &GlobalMediator::interfaceSettingsChanged, this, &MainWindow::setTheme);
+    connect(m_mediator, &GlobalMediator::requestThemeRefresh,      this, &MainWindow::deleteDefinitionWidget);
 }
 
 MainWindow::~MainWindow()
 {
     clearTracks();
     delete m_ui;
+
+    /* Widgets */
     delete m_definition;
-    m_mediator->deleteLater();
-    m_player->deleteLater();
-    m_ankiClient->deleteLater();
-    m_manager->deleteLater();
-    m_optionsWindow->deleteLater();
-    m_aboutWindow->deleteLater();
+    delete m_optionsWindow;
+    delete m_aboutWindow;
+
+    /* Wrappers and Clients */
+    delete m_manager;
+    delete m_player;
+    delete m_ankiClient;
 }
 
 void MainWindow::showEvent(QShowEvent *event)
@@ -330,10 +340,10 @@ void MainWindow::resizeFullscreenControls()
     if (!isFullScreen())
         return;
 
-    m_ui->controls->setFixedWidth(m_ui->player->width());
+    m_ui->controls->setFixedWidth(width() - m_ui->listSubtitles->width());
     m_ui->controls->move(0, height() - m_ui->controls->height());
 
-    m_ui->subtitleWidget->setFixedWidth(m_ui->player->width());
+    m_ui->subtitleWidget->setFixedWidth(width() - m_ui->listSubtitles->width());
     m_ui->subtitleWidget->move(0, height() - m_ui->controls->height() - m_ui->subtitleWidget->height());
 }
 
@@ -620,4 +630,80 @@ void MainWindow::showInfoMessage(const QString title,
 {
     QMessageBox message;
     message.information(0, title, error);
+}
+
+void MainWindow::setTheme()
+{
+    /* Generate the dark palette */
+    
+    
+    QSettings settings;
+    settings.beginGroup(SETTINGS_INTERFACE);
+
+    QPalette pal;
+    Theme theme = (Theme)settings.value(SETTINGS_INTERFACE_THEME, (int)SETTINGS_INTERFACE_THEME_DEFAULT).toInt();
+    switch (theme)
+    {
+    case Theme::Light:
+    {
+        m_ui->menubar->setAutoFillBackground(true);
+        QColor lightColor(240, 240, 240);
+        QColor disabledColor(178, 179, 180);
+        QColor white(255, 255, 255);
+        QColor black(0, 0, 0);
+        pal.setColor(QPalette::Window, lightColor);
+        pal.setColor(QPalette::WindowText, black);
+        pal.setColor(QPalette::Base, white);
+        pal.setColor(QPalette::AlternateBase, lightColor);
+        pal.setColor(QPalette::ToolTipBase, white);
+        pal.setColor(QPalette::ToolTipText, black);
+        pal.setColor(QPalette::Text, black);
+        pal.setColor(QPalette::Disabled, QPalette::Text, disabledColor);
+        pal.setColor(QPalette::Button, lightColor);
+        pal.setColor(QPalette::ButtonText, black);
+        pal.setColor(QPalette::Disabled, QPalette::ButtonText, disabledColor);
+        pal.setColor(QPalette::BrightText, Qt::red);
+        pal.setColor(QPalette::Link, QColor(16, 50, 72));
+        pal.setColor(QPalette::Highlight, QColor(61, 174, 233));
+        pal.setColor(QPalette::HighlightedText, white);
+        pal.setColor(QPalette::Disabled, QPalette::HighlightedText, disabledColor);
+        break;
+    }
+    case Theme::Dark:
+    {
+        m_ui->menubar->setAutoFillBackground(true);
+        // Modified from https://forum.qt.io/topic/101391/windows-10-dark-theme/5
+        QColor darkColor(45, 45, 45);
+        QColor disabledColor(127, 127, 127);
+        QColor white(255, 255, 255);
+        pal.setColor(QPalette::Window, darkColor);
+        pal.setColor(QPalette::WindowText, white);
+        pal.setColor(QPalette::Base, QColor(18, 18, 18));
+        pal.setColor(QPalette::AlternateBase, darkColor);
+        pal.setColor(QPalette::ToolTipBase, white);
+        pal.setColor(QPalette::ToolTipText, darkColor);
+        pal.setColor(QPalette::Text, white);
+        pal.setColor(QPalette::Disabled, QPalette::Text, disabledColor);
+        pal.setColor(QPalette::Button, darkColor);
+        pal.setColor(QPalette::ButtonText, white);
+        pal.setColor(QPalette::Disabled, QPalette::ButtonText, disabledColor);
+        pal.setColor(QPalette::BrightText, Qt::red);
+        pal.setColor(QPalette::Link, QColor(42, 130, 218));
+        pal.setColor(QPalette::Highlight, QColor(31, 72, 94));
+        pal.setColor(QPalette::HighlightedText, white);
+        pal.setColor(QPalette::Disabled, QPalette::HighlightedText, disabledColor);
+        break;
+    }
+    case Theme::System:
+    default:
+        m_ui->menubar->setAutoFillBackground(false);
+        pal = QApplication::style()->standardPalette();
+    }
+    QApplication::setPalette(pal);
+
+    settings.endGroup();
+
+    IconFactory::create()->buildIcons();
+
+    Q_EMIT m_mediator->requestThemeRefresh();
 }

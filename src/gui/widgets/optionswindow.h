@@ -50,6 +50,7 @@ private:
     QWidget                  *m_currentWidget;
     QMap<QString, QWidget *>  widgets;
 
+    void addOption(const QString &name, QWidget *widget);
     void showSelectedOption();
 };
 

@@ -41,7 +41,7 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent),
     QHBoxLayout *layoutTop = new QHBoxLayout;
     layoutParent->addLayout(layoutTop);
 
-    IconFactory *factory = IconFactory::create(this);
+    IconFactory *factory = IconFactory::create();
 
     QToolButton *buttonBack = new QToolButton;
     buttonBack->setIcon(factory->getIcon(IconFactory::Icon::back));
@@ -80,8 +80,6 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent),
     layoutTop->setAlignment(buttonAnkiOpen, Qt::AlignTop | Qt::AlignRight);
     connect(buttonAnkiOpen, &QToolButton::clicked, this, &KanjiWidget::openAnki);
     m_buttonAnkiOpen = buttonAnkiOpen;
-
-    delete factory;
 
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     if (client->isEnabled())
@@ -149,9 +147,8 @@ void KanjiWidget::buildDefinitionLabel(const KanjiDefinition &def, QVBoxLayout *
     QString text;
     for (size_t i = 0; i < def.glossary.size(); ++i)
     {
-        text += "<span style=\"color: #8a8a91;\">";
         text += QString::number(i + 1);
-        text += ".</span> ";
+        text += ". ";
         text += def.glossary[i];
         text += "<br>";
     }

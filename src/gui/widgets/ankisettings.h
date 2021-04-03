@@ -49,6 +49,7 @@ protected:
     void hideEvent(QHideEvent *event) override;
 
 private Q_SLOTS:
+    void refreshIcons();
     void enabledStateChanged(int state);
     void connectToClient(const bool showErrors = true);
     void updateModelFields(CardBuilder *cb, const QString &model);

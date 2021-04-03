@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 Ripose
+// Copyright (c) 2021 Ripose
 //
 // This file is part of Memento.
 //
@@ -18,51 +18,34 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef PLAYERCONTROLS_H
-#define PLAYERCONTROLS_H
+#ifndef INTERFACESETTINGS_H
+#define INTERFACESETTINGS_H
 
 #include <QWidget>
 
-#include "../../util/iconfactory.h"
-
 namespace Ui
 {
-    class PlayerControls;
+    class InterfaceSettings;
 }
 
-struct Term;
-
-class PlayerControls : public QWidget
+class InterfaceSettings : public QWidget
 {
     Q_OBJECT
 
 public:
-    PlayerControls(QWidget *parent = 0);
-    ~PlayerControls();
+    InterfaceSettings(QWidget *parent = nullptr);
+    ~InterfaceSettings();
 
-public Q_SLOTS:
-    void setDuration(const double value);
-    void setPaused(const bool paused);
-    void setFullscreen(const bool value);
-    void setVolumeLimit(const int64_t value);
-    void setVolume(const int64_t value);
-    void setPosition(const double value);
-    
+protected:
+    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+
 private Q_SLOTS:
-    void refreshIcons();
-    void pauseResume();
-    void toggleFullscreen();
+    void restoreDefaults();
+    void restoreSaved();
+    void applyChanges();
 
 private:
-    Ui::PlayerControls *m_ui;
-    
-    bool   m_paused;
-    bool   m_ignorePause;
-    double m_duration;
-    double m_startTime;
-    double m_endTime;
-
-    QString formatTime(int time);
+    Ui::InterfaceSettings *m_ui;
 };
 
-#endif // PLAYERCONTROLS_H
+#endif // INTERFACESETTINGS_H

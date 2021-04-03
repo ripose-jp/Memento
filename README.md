@@ -125,10 +125,10 @@ UI inspired by and dictionaries provided by Yomichan.
 
 https://foosoft.net/projects/yomichan/
 
-This project uses icons made by Georgiana Ionescu for the Noun Project.
+Fullscreen icons sourced from here.
 
-https://thenounproject.com/georgiana.ionescu/
+https://www.iconfinder.com/iconsets/material-core
 
-Plus, minus, back, up, down, and hamburger button images were sourced from here.
+Various icons sourced from here.
 
 https://www.iconfinder.com/iconsets/ionicons

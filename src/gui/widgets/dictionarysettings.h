@@ -41,6 +41,7 @@ protected:
     void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
+    void refreshIcons();
     void refresh();
     void applySettings();
     void setButtonsEnabled(const bool value);

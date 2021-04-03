@@ -35,12 +35,7 @@ DictionarySettings::DictionarySettings(QWidget *parent) : QWidget(parent), m_ui(
 {
     m_ui->setupUi(this);
 
-    IconFactory *factory = IconFactory::create(this);
-    m_ui->buttonAdd->   setIcon(factory->getIcon(IconFactory::Icon::plus));
-    m_ui->buttonDelete->setIcon(factory->getIcon(IconFactory::Icon::minus));
-    m_ui->buttonUp->    setIcon(factory->getIcon(IconFactory::Icon::up));
-    m_ui->buttonDown->  setIcon(factory->getIcon(IconFactory::Icon::down));
-    delete factory;
+    refreshIcons();
 
     connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Apply), &QPushButton::clicked,
         this, &DictionarySettings::applySettings);
@@ -55,12 +50,22 @@ DictionarySettings::DictionarySettings(QWidget *parent) : QWidget(parent), m_ui(
     connect(m_ui->buttonAdd,    &QToolButton::clicked, this, &DictionarySettings::addDictionary);
     connect(m_ui->buttonDelete, &QToolButton::clicked, this, &DictionarySettings::deleteDictionary);
 
-    connect(GlobalMediator::getGlobalMediator(), &GlobalMediator::dictionaryAdded, this, &DictionarySettings::refresh);
+    connect(GlobalMediator::getGlobalMediator(), &GlobalMediator::dictionaryAdded,     this, &DictionarySettings::refresh);
+    connect(GlobalMediator::getGlobalMediator(), &GlobalMediator::requestThemeRefresh, this, &DictionarySettings::refreshIcons);
 }
 
 DictionarySettings::~DictionarySettings()
 {
     delete m_ui;
+}
+
+void DictionarySettings::refreshIcons()
+{
+    IconFactory *factory = IconFactory::create();
+    m_ui->buttonAdd->   setIcon(factory->getIcon(IconFactory::Icon::plus));
+    m_ui->buttonDelete->setIcon(factory->getIcon(IconFactory::Icon::minus));
+    m_ui->buttonUp->    setIcon(factory->getIcon(IconFactory::Icon::up));
+    m_ui->buttonDown->  setIcon(factory->getIcon(IconFactory::Icon::down));
 }
 
 void DictionarySettings::showEvent(QShowEvent *event)

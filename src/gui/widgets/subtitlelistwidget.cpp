@@ -22,17 +22,27 @@
 
 #include "../../util/directoryutils.h"
 #include "../../util/globalmediator.h"
+#include "../../util/constants.h"
 #include "../playeradapter.h"
 
 #include <iterator>
 #include <QMultiMap>
 #include <QApplication>
+#include <QSettings>
 
 SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     : QListWidget(parent),
       m_seenSubtitles(new QMultiMap<double, QString>),
       m_subStartTimes(new QMultiHash<QString, double>)
 {
+    QFont font;
+    font.setFamily(QString::fromUtf8("Noto Sans CJK JP"));
+    font.setPointSize(14);
+    font.setStyleStrategy(QFont::PreferAntialias);
+    setFont(font);
+
+    setTheme();
+
     connect(this, &QListWidget::itemDoubleClicked, this, &SubtitleListWidget::seekToSubtitle);
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
@@ -45,6 +55,16 @@ SubtitleListWidget::~SubtitleListWidget()
 {
     delete m_seenSubtitles;
     delete m_subStartTimes;
+}
+
+void SubtitleListWidget::setTheme()
+{
+    setStyleSheet(
+        "QListWidget {"
+            "background: #000000;"
+            "color: #FFFFFF;"
+        "}"
+    );
 }
 
 QString SubtitleListWidget::getContext(const QString &seperator)
@@ -95,12 +115,9 @@ void SubtitleListWidget::seekToSubtitle(const QListWidgetItem *item)
 
 void SubtitleListWidget::showEvent(QShowEvent *event)
 {
-    const QList<QListWidgetItem *> &items = selectedItems();
-    if (!items.isEmpty())
-    {
-        QApplication::processEvents();
-        scrollToItem(items.last());
-    }
+    QApplication::processEvents();
+    scrollToItem(item(currentRow()));
+
     Q_EMIT GlobalMediator::getGlobalMediator()->subtitleListShown();
 }
 

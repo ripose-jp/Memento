@@ -25,33 +25,29 @@
 #include "dictionarysettings.h"
 #include "searchsettings.h"
 
+#ifdef __linux__
+    #include "interfacesettings.h"
+#endif
+
 #define NAME_ANKI           "Anki Integration"
 #define NAME_DICTIONARIES   "Dictionaries"
 #define NAME_SEARCH         "Search"
+
+#ifdef __linux__
+    #define NAME_INTERFACE      "Interface"
+#endif
 
 OptionsWindow::OptionsWindow(QWidget *parent)
     : QWidget(parent), m_ui(new Ui::OptionsWindow), m_currentWidget(nullptr)
 {
     m_ui->setupUi(this);
 
-    m_ui->listOptions->addItem(NAME_ANKI);
-    m_ui->listOptions->addItem(NAME_DICTIONARIES);
-    m_ui->listOptions->addItem(NAME_SEARCH);
-
-    AnkiSettings *ankiSettings = new AnkiSettings;
-    ankiSettings->hide();
-    m_ui->layoutWidgets->addWidget(ankiSettings);
-    widgets.insert(NAME_ANKI, ankiSettings);
-
-    DictionarySettings *dictSettings = new DictionarySettings;
-    dictSettings->hide();
-    m_ui->layoutWidgets->addWidget(dictSettings);
-    widgets.insert(NAME_DICTIONARIES, dictSettings);
-
-    SearchSettings *searchSettings = new SearchSettings;
-    searchSettings->hide();
-    m_ui->layoutWidgets->addWidget(searchSettings);
-    widgets.insert(NAME_SEARCH, searchSettings);
+    addOption(NAME_ANKI,         new AnkiSettings);
+    addOption(NAME_DICTIONARIES, new DictionarySettings);
+    addOption(NAME_SEARCH,       new SearchSettings);
+#ifdef __linux__
+    addOption(NAME_INTERFACE,    new InterfaceSettings);
+#endif
 
     connect(m_ui->listOptions, &QListWidget::itemSelectionChanged, this, &OptionsWindow::showSelectedOption);
 }
@@ -65,6 +61,14 @@ void OptionsWindow::showEvent(QShowEvent *event)
 {
     m_ui->listOptions->setCurrentRow(0);
     showSelectedOption();
+}
+
+void OptionsWindow::addOption(const QString &name, QWidget *widget)
+{
+    m_ui->listOptions->addItem(name);
+    widget->hide();
+    m_ui->layoutWidgets->addWidget(widget);
+    widgets.insert(name, widget);
 }
 
 void OptionsWindow::showSelectedOption()

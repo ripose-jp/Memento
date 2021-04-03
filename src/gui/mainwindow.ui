@@ -47,6 +47,11 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
+      <property name="styleSheet">
+       <string notr="true">QSplitter::handle {
+	background: black;
+}</string>
+      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -82,37 +87,6 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="font">
-           <font>
-            <family>Noto Sans CJK JP</family>
-            <pointsize>20</pointsize>
-            <stylestrategy>PreferAntialias</stylestrategy>
-           </font>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::NoFocus</enum>
-          </property>
-          <property name="acceptDrops">
-           <bool>false</bool>
-          </property>
-          <property name="frameShape">
-           <enum>QFrame::NoFrame</enum>
-          </property>
-          <property name="verticalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="lineWrapMode">
-           <enum>QTextEdit::NoWrap</enum>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-          <property name="acceptRichText">
-           <bool>false</bool>
-          </property>
-          <property name="textInteractionFlags">
-           <set>Qt::NoTextInteraction</set>
-          </property>
          </widget>
         </item>
        </layout>
@@ -124,15 +98,11 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="font">
-        <font>
-         <family>Noto Sans CJK JP</family>
-         <pointsize>14</pointsize>
-         <stylestrategy>PreferAntialias</stylestrategy>
-        </font>
-       </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
        </property>
        <property name="editTriggers">
         <set>QAbstractItemView::NoEditTriggers</set>
@@ -164,7 +134,7 @@
      <x>0</x>
      <y>0</y>
      <width>801</width>
-     <height>34</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMedia">
@@ -230,7 +200,7 @@
       <x>494</x>
       <y>170</y>
       <width>200</width>
-      <height>181</height>
+      <height>147</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -247,8 +217,8 @@
       <rect>
        <x>664</x>
        <y>189</y>
-       <width>142</width>
-       <height>60</height>
+       <width>135</width>
+       <height>50</height>
       </rect>
      </property>
      <property name="title">

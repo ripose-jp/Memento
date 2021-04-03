@@ -20,6 +20,9 @@
 
 #include "iconfactory.h"
 
+#include <QPainter>
+#include <QApplication>
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #define FACTORY_CLASS(p) new StyleFactory(p)
 #elif __linux__
@@ -45,12 +48,19 @@
 #define RESTORE_THEME "view-restore"
 
 
-IconFactory *IconFactory::create(const QWidget *parent)
+IconFactory *IconFactory::create()
 {
-    return FACTORY_CLASS(parent);
+    if (m_factory == nullptr)
+        m_factory = FACTORY_CLASS();
+    return m_factory;
 }
 
-StyleFactory::StyleFactory(const QWidget *parent) : IconFactory(parent)
+StyleFactory::StyleFactory()
+{
+    buildIcons();
+}
+
+void StyleFactory::buildIcons()
 {
     const QStyle::StandardPixmap pixmaps[skip_backward + 1] = {
         QStyle::SP_MediaPlay,
@@ -61,27 +71,46 @@ StyleFactory::StyleFactory(const QWidget *parent) : IconFactory(parent)
         QStyle::SP_MediaSkipForward,
         QStyle::SP_MediaSkipBackward
     };
-
+    
     for (size_t i = 0; i < fullscreen; ++i)
     {
-        icons[i] = m_parent->style()->standardIcon(pixmaps[i]);
+        icons[i] = QApplication::style()->standardIcon(pixmaps[i]);
     }
-    icons[fullscreen] = QIcon(":/images/fullscreen.svg");
-    icons[restore]    = QIcon(":/images/restore.svg");
-    icons[plus]       = QIcon(":/images/plus.svg");
-    icons[minus]      = QIcon(":/images/minus.svg");
-    icons[back]       = QIcon(":/images/back.svg");
-    icons[up]         = QIcon(":/images/uparrow.svg");
-    icons[down]       = QIcon(":/images/downarrow.svg");
-    icons[hamburger]  = QIcon(":/images/hamburger.svg");
+    icons[fullscreen] = buildIcon(":/images/fullscreen.svg");
+    icons[restore]    = buildIcon(":/images/restore.svg");
+    icons[plus]       = buildIcon(":/images/plus.svg");
+    icons[minus]      = buildIcon(":/images/minus.svg");
+    icons[back]       = buildIcon(":/images/back.svg");
+    icons[up]         = buildIcon(":/images/uparrow.svg");
+    icons[down]       = buildIcon(":/images/downarrow.svg");
+    icons[hamburger]  = buildIcon(":/images/hamburger.svg");
 }
 
-QIcon StyleFactory::getIcon(IconFactory::Icon icon)
+const QIcon &StyleFactory::getIcon(IconFactory::Icon icon) const
 {
     return icons[icon];
 }
 
-ThemeFactory::ThemeFactory(const QWidget *parent) : IconFactory(parent)
+QIcon StyleFactory::buildIcon(const QString &path)
+{
+    QPixmap pixmap(path);
+    QColor color = QApplication::palette().color(QPalette::ColorRole::WindowText);
+
+    QPainter painter(&pixmap);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    painter.setBrush(color);
+    painter.setPen(color);
+    painter.drawRect(pixmap.rect());
+
+    return QIcon(pixmap);
+}
+
+ThemeFactory::ThemeFactory()
+{
+    buildIcons();
+}
+
+void ThemeFactory::buildIcons()
 {
     const QString names[9] = {
         PLAY_THEME,
@@ -95,12 +124,10 @@ ThemeFactory::ThemeFactory(const QWidget *parent) : IconFactory(parent)
         RESTORE_THEME
     };
 
-    StyleFactory styleFactory(m_parent);
+    StyleFactory styleFactory;
     for (size_t i = 0; i < XDG_ICONS; ++i)
     {
-        icons[i] = QIcon::hasThemeIcon(names[i]) ? 
-            QIcon::fromTheme(names[i]) : 
-            styleFactory.getIcon((IconFactory::Icon) i);
+        icons[i] = QIcon::hasThemeIcon(names[i]) ? QIcon::fromTheme(names[i]) : styleFactory.getIcon((IconFactory::Icon) i);
     }
     for (size_t i = XDG_ICONS; i < ICON_ENUM_SIZE; ++i)
     {
@@ -108,7 +135,7 @@ ThemeFactory::ThemeFactory(const QWidget *parent) : IconFactory(parent)
     }
 }
 
-QIcon ThemeFactory::getIcon(IconFactory::Icon icon)
+const QIcon &ThemeFactory::getIcon(IconFactory::Icon icon) const
 {
     return icons[icon];
 }

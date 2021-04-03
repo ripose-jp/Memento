@@ -72,6 +72,7 @@ private Q_SLOTS:
     void showErrorMessage(const QString title, const QString error) const;
     void showInfoMessage (const QString title, const QString error) const;
     void resizeFullscreenControls();
+    void setTheme();
 
 protected:
     void showEvent(QShowEvent *event) override;

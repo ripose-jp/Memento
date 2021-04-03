@@ -37,13 +37,9 @@
          </property>
          <property name="font">
           <font>
-           <family>Noto Sans,Noto Sans CJK JP,sans-serif</family>
+           <family>Noto Sans CJK JP</family>
            <pointsize>12</pointsize>
           </font>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">font-family: &quot;Noto Sans&quot;, &quot;Noto Sans CJK JP&quot;, sans-serif;
-color: black;</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignBottom|Qt::AlignHCenter</set>
@@ -63,13 +59,13 @@ color: black;</string>
          </property>
          <property name="font">
           <font>
+<<<<<<< HEAD
            <family>Noto Sans,Noto Sans CJK JP,sans-serif</family>
+=======
+           <family>Noto Sans CJK JP</family>
+>>>>>>> dev
            <pointsize>20</pointsize>
           </font>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">font-family: &quot;Noto Sans&quot;, &quot;Noto Sans CJK JP&quot;, sans-serif;
-color: black;</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignHCenter|Qt::AlignTop</set>
