@@ -38,7 +38,8 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
                                                   m_dictionary(new Dictionary),
                                                   m_currentIndex(-1),
                                                   m_findDelay(new QTimer(this)),
-                                                  m_paused(true)
+                                                  m_paused(true),
+                                                  m_fullscreen(false)
 {
     setTheme();
 
@@ -51,6 +52,7 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
     setReadOnly(true);
     setAcceptRichText(false);
     setTextInteractionFlags(Qt::NoTextInteraction);
+    hide();
 
     m_findDelay->setSingleShot(true);
 
@@ -65,10 +67,16 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
     connect(mediator,    &GlobalMediator::definitionsShown,        this, &SubtitleWidget::setSelectedText);
     connect(mediator,    &GlobalMediator::playerSubtitleChanged,   this, &SubtitleWidget::setSubtitle);
     connect(mediator,    &GlobalMediator::playerPositionChanged,   this, &SubtitleWidget::postitionChanged);
+    connect(mediator,    &GlobalMediator::playerFullscreenChanged, this, 
+        [=] (const bool full) {
+            m_fullscreen = full;
+        }
+    );
     connect(mediator,    &GlobalMediator::playerPauseStateChanged, this, 
         [=] (const bool paused) {
             m_paused = paused;
-            showIfNeeded();
+            if (!m_fullscreen)
+                showIfNeeded();
         }
     );
 }

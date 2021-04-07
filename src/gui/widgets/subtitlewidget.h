@@ -63,6 +63,7 @@ private:
     int         m_lastEmittedSize;
     QTimer     *m_findDelay;
     bool        m_paused;
+    bool        m_fullscreen;
 
     QString     m_rawText;
     double      m_startTime;
