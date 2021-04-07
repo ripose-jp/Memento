@@ -39,6 +39,7 @@ public:
     void showIfNeeded();
 
 protected:
+    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
@@ -48,7 +49,7 @@ private Q_SLOTS:
     void setTheme();
     void findTerms();
     void postitionChanged(const double value);
-    void setSubtitle(const QString &subtitle,
+    void setSubtitle(QString subtitle,
                      const double start,
                      const double end,
                      const double delay);
@@ -64,6 +65,7 @@ private:
     QTimer     *m_findDelay;
     bool        m_paused;
     bool        m_fullscreen;
+    bool        m_firstShow;
 
     QString     m_rawText;
     double      m_startTime;
@@ -75,9 +77,13 @@ private:
         Modifier
     };
 
+    /* Settings */
     SearchMethod    m_method;
     int             m_delay;
     Qt::Modifier    m_modifier;
+    bool            m_hideOnPlay;
+    bool            m_replaceNewLines;
+    QString         m_replaceStr;
 
     void deleteTerms(QList<Term *> *terms);
     void resizeToContents();

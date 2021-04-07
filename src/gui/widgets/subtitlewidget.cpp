@@ -39,11 +39,11 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
                                                   m_currentIndex(-1),
                                                   m_findDelay(new QTimer(this)),
                                                   m_paused(true),
-                                                  m_fullscreen(false)
+                                                  m_fullscreen(false),
+                                                  m_firstShow(true)
 {
     setTheme();
 
-    setFixedHeight(document()->size().toSize().height());
     setFocusPolicy(Qt::FocusPolicy::NoFocus);
     setAcceptDrops(false);
     setFrameShape(QFrame::Shape::NoFrame);
@@ -86,6 +86,17 @@ SubtitleWidget::~SubtitleWidget()
     delete m_findDelay;
 }
 
+void SubtitleWidget::showEvent(QShowEvent *event)
+{
+    if (m_firstShow)
+    {
+        m_firstShow = false;
+        setPlainText("漢");
+        setFixedHeight(document()->size().toSize().height());
+        clear();
+    }
+}
+
 void SubtitleWidget::setTheme()
 {
     setStyleSheet(
@@ -100,17 +111,30 @@ void SubtitleWidget::setTheme()
 
 void SubtitleWidget::showIfNeeded()
 {
-    if (!toPlainText().isEmpty())
+    if (!m_hideOnPlay)
+    {
+        show();
+    }
+    else if (!toPlainText().isEmpty())
+    {
         setVisible(m_paused);
+    } 
 }
 
-void SubtitleWidget::setSubtitle(const QString &subtitle,
+void SubtitleWidget::setSubtitle(QString subtitle,
                                  const double start, 
                                  const double end,
                                  const double delay)
 {
     m_rawText = subtitle;
 
+    /* Process the subtitle */
+    if (m_replaceNewLines)
+    {
+        subtitle.replace('\n', m_replaceStr);
+    }
+    
+    /* Add it to the text edit */
     clear();
     QStringList subList = subtitle.split('\n');
     for (const QString &text : subList)
@@ -121,7 +145,7 @@ void SubtitleWidget::setSubtitle(const QString &subtitle,
         append(text);
         setAlignment(Qt::AlignHCenter);
     }
-
+    
     /* Keep track of when to delete the subtitle */
     m_startTime = start + delay;
     m_endTime = end + delay;
@@ -156,7 +180,12 @@ void SubtitleWidget::postitionChanged(const double value)
 
 void SubtitleWidget::resizeToContents()
 {
-    setAlignment(Qt::AlignHCenter); // For resize events
+    /* Prevents things from getting jumpy */
+    if (!m_hideOnPlay && m_rawText.isEmpty())
+        return;
+    
+    /* For resize events */
+    setAlignment(Qt::AlignHCenter);
 
     int height = document()->size().toSize().height();
     if (horizontalScrollBar()->isVisible())
@@ -215,6 +244,17 @@ void SubtitleWidget::loadSettings()
     {
         m_method = SearchMethod::Hover;
     }
+
+    m_hideOnPlay = settings.value(SETTINGS_SEARCH_HIDE_BAR, DEFAULT_HIDE_BAR).toBool();
+    if (m_hideOnPlay && !m_paused)
+    {
+        hide();
+    }
+    showIfNeeded();
+    
+    m_replaceNewLines = settings.value(SETTINGS_SEARCH_REPLACE_LINES, DEFAULT_REPLACE_LINES).toBool();
+    m_replaceStr      = settings.value(SETTINGS_SERACH_REPLACE_WITH,  DEFAULT_REPLACE_WITH).toString();
+    setSubtitle(m_rawText, m_startTime, m_endTime, m_delay);
     settings.endGroup();
 }
 
