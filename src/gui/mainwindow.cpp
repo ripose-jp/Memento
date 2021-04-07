@@ -135,7 +135,7 @@ MainWindow::MainWindow(QWidget *parent)
             if (isFullScreen())
             {
                 m_ui->controls->show();
-                m_ui->subtitleWidget->show();
+                m_ui->subtitleWidget->showIfNeeded();
             }
         }
     );
@@ -192,7 +192,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_mediator, &GlobalMediator::playerSubtitleChanged,   this, &MainWindow::deleteDefinitionWidget);
     connect(m_mediator, &GlobalMediator::subtitleExpired,         this, &MainWindow::deleteDefinitionWidget);
     connect(m_mediator, &GlobalMediator::playerPauseStateChanged, this, 
-        [=] (const bool paused) { if (!paused) deleteDefinitionWidget(); }
+        [=] (const bool paused) { 
+            if (!paused)
+                deleteDefinitionWidget();
+        }
     );
 
     /* Show message boxes */
@@ -325,7 +328,7 @@ void MainWindow::setFullscreen(bool value)
 
         m_ui->subtitleWidget->setMinimumWidth(0);
         m_ui->subtitleWidget->setMaximumWidth(QWIDGETSIZE_MAX);
-        m_ui->subtitleWidget->show();
+        m_ui->subtitleWidget->showIfNeeded();
         m_ui->layoutPlayerSubs->layout()->addWidget(m_ui->subtitleWidget);
 
         m_ui->controls->setMinimumWidth(0);

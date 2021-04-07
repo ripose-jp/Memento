@@ -23,8 +23,8 @@
 
 #include "../../dict/dictionary.h"
 
-#include <QLabel>
 #include <QTextEdit>
+
 #include <QMouseEvent>
 #include <QTimer>
 
@@ -36,6 +36,8 @@ public:
     SubtitleWidget(QWidget *parent = 0);
     ~SubtitleWidget();
 
+    void showIfNeeded();
+
 protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
@@ -46,7 +48,7 @@ private Q_SLOTS:
     void setTheme();
     void findTerms();
     void postitionChanged(const double value);
-    void setSubtitle(QString subtitle,
+    void setSubtitle(const QString &subtitle,
                      const double start,
                      const double end,
                      const double delay);
@@ -56,7 +58,6 @@ private Q_SLOTS:
 
 private:
     Dictionary *m_dictionary;
-    int         m_fontHeight;
     int         m_currentIndex;
     int         m_lastEmittedIndex;
     int         m_lastEmittedSize;

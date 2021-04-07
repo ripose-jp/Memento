@@ -31,7 +31,6 @@
 #include <QScrollBar>
 #include <QSettings>
 
-#define TEXT_PADDING_HEIGHT     0
 #define MAX_QUERY_LENGTH        37
 #define DOUBLE_DELTA            0.05
 
@@ -43,14 +42,7 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
 {
     setTheme();
 
-    QFont font;
-    font.setFamily(QString::fromUtf8("Noto Sans CJK JP"));
-    font.setPointSize(20);
-    font.setStyleStrategy(QFont::PreferAntialias);
-    setFont(font);
-    m_fontHeight = QFontMetrics(font).height() + TEXT_PADDING_HEIGHT;
-    setFixedHeight(m_fontHeight);
-
+    setFixedHeight(document()->size().toSize().height());
     setFocusPolicy(Qt::FocusPolicy::NoFocus);
     setAcceptDrops(false);
     setFrameShape(QFrame::Shape::NoFrame);
@@ -76,6 +68,7 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
     connect(mediator,    &GlobalMediator::playerPauseStateChanged, this, 
         [=] (const bool paused) {
             m_paused = paused;
+            showIfNeeded();
         }
     );
 }
@@ -91,20 +84,41 @@ void SubtitleWidget::setTheme()
         "QTextEdit {"
             "background: #000000;"
             "color: #FFFFFF;"
+            "font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"
+            "font-size: 20pt;"
         "}"
     );
 }
 
-void SubtitleWidget::setSubtitle(QString subtitle,
+void SubtitleWidget::showIfNeeded()
+{
+    if (!toPlainText().isEmpty())
+        setVisible(m_paused);
+}
+
+void SubtitleWidget::setSubtitle(const QString &subtitle,
                                  const double start, 
                                  const double end,
                                  const double delay)
 {
     m_rawText = subtitle;
-    setPlainText(subtitle.replace(QChar::fromLatin1('\n'), "/"));
+
+    clear();
+    QStringList subList = subtitle.split('\n');
+    for (const QString &text : subList)
+    {
+        if (text.isEmpty())
+            continue;
+        
+        append(text);
+        setAlignment(Qt::AlignHCenter);
+    }
+
+    /* Keep track of when to delete the subtitle */
     m_startTime = start + delay;
     m_endTime = end + delay;
     m_currentIndex = -1;
+
     resizeToContents();
 }
 
@@ -134,15 +148,18 @@ void SubtitleWidget::postitionChanged(const double value)
 
 void SubtitleWidget::resizeToContents()
 {
-    setAlignment(Qt::AlignCenter);
+    setAlignment(Qt::AlignHCenter); // For resize events
+
+    int height = document()->size().toSize().height();
     if (horizontalScrollBar()->isVisible())
     {
-        setFixedHeight(m_fontHeight + horizontalScrollBar()->height());
+        setFixedHeight(height + horizontalScrollBar()->height());
     }
     else
     {
-        setFixedHeight(m_fontHeight);
+        setFixedHeight(height);
     }
+    verticalScrollBar()->setValue(0);
 }
 
 void SubtitleWidget::loadSettings()
