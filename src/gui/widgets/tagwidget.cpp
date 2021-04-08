@@ -23,9 +23,7 @@
 #include <QDebug>
 
 #define STYLE_FORMAT    (QString(\
-                            "font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"\
                             "font-weight: bold;"\
-                            "font-size: 10pt;"\
                             "padding-left: 5px;"\
                             "padding-right: 5px;"\
                             "color: white;"\

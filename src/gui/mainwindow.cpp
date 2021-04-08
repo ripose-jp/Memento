@@ -309,6 +309,7 @@ void MainWindow::setFullscreen(bool value)
         m_ui->centralwidget->layout()->removeWidget(m_ui->controls);
         m_ui->controls->raise();
 
+        QApplication::processEvents();
         resizeFullscreenControls();
     }
     else
@@ -720,8 +721,6 @@ void MainWindow::setTheme()
     }
     QApplication::setPalette(pal);
 
-    settings.endGroup();
-
     IconFactory::create()->buildIcons();
 
     Q_EMIT m_mediator->requestThemeRefresh();
@@ -729,7 +728,7 @@ void MainWindow::setTheme()
     /* Set QSplitter Stylesheet */
     if (settings.value(SETTINGS_INTERFACE_STYLESHEETS, SETTINGS_INTERFACE_STYLESHEETS_DEFAULT).toBool())
     {
-        setStyleSheet(
+        m_ui->splitterPlayerSubtitles->setStyleSheet(
             settings.value(
                 SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE,
                 SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT
@@ -738,6 +737,8 @@ void MainWindow::setTheme()
     }
     else
     {
-        setStyleSheet(SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT);
+        m_ui->splitterPlayerSubtitles->setStyleSheet(SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT);
     }
+
+    settings.endGroup();
 }

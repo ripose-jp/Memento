@@ -37,7 +37,6 @@
          </property>
          <property name="styleSheet">
           <string notr="true">QLabel {
-	font-family: Noto Sans, Noto Sans CJK JP, sans-serif;
     font-size: 12pt;
 }</string>
          </property>
@@ -59,7 +58,6 @@
          </property>
          <property name="styleSheet">
           <string notr="true">QLabel {
-	font-family: Noto Sans, Noto Sans CJK JP, sans-serif;
     font-size: 20pt;
 }</string>
          </property>

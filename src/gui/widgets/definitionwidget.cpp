@@ -41,9 +41,6 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, QWidget *parent)
 
     /* Build the UI */
     setAutoFillBackground(true);
-    QPalette pallet;
-    pallet.setColor(QPalette::Window, Qt::white);
-    m_ui->scrollAreaContents->setPalette(pallet);
     setTheme();
 
     /* Get the term limit */

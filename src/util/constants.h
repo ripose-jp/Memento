@@ -44,7 +44,7 @@
 #define SEARCH_METHOD_HOVER             "Hover"
 #define SEARCH_METHOD_MODIFIER          "Modifier"
 
-#define DEFAULT_LIMIT                   15
+#define DEFAULT_LIMIT                   10
 #define DEFAULT_METHOD                  SEARCH_METHOD_HOVER
 #define DEFAULT_DELAY                   250
 #define DEFAULT_MODIFIER                MODIFIER_SHIFT

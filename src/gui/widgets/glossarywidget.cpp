@@ -22,14 +22,6 @@
 
 #include "tagwidget.h"
 
-#define LABEL_NUMBER_STYLESHEET (QString(\
-                                    "font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"\
-                                    "font-size: 11pt;"))
-
-#define LABEL_GLOSSARY_STYLESHEET   (QString(\
-                                        "font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"\
-                                        "font-size: 11pt;"))
-
 GlossaryWidget::GlossaryWidget(size_t number, const TermDefinition &def, QWidget *parent) : QWidget(parent), m_def(def)
 {
     m_parentLayout  = new QVBoxLayout(this);
@@ -58,10 +50,8 @@ GlossaryWidget::GlossaryWidget(size_t number, const TermDefinition &def, QWidget
     m_checkBoxAdd->setToolTip("Add this entry to an Anki note");
     m_checkBoxAdd->hide();
 
-    m_labelNumber->setStyleSheet(LABEL_NUMBER_STYLESHEET);
     m_labelNumber->setText(QString::number(number) + ".");
 
-    m_labelGlossary->setStyleSheet(LABEL_GLOSSARY_STYLESHEET);
     m_labelGlossary->setWordWrap(true);
     m_labelGlossary->setTextInteractionFlags(Qt::TextInteractionFlag::TextSelectableByMouse);
     QString glos;
