@@ -245,6 +245,8 @@ void MainWindow::showEvent(QShowEvent *event)
             "To install a dictionary, go to Settings -> Options -> Dictionaries."
         );
     }
+
+    m_ui->subtitleWidget->initializeSize();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)

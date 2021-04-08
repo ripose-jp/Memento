@@ -39,11 +39,11 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
                                                   m_currentIndex(-1),
                                                   m_findDelay(new QTimer(this)),
                                                   m_paused(true),
-                                                  m_fullscreen(false),
-                                                  m_firstShow(true)
+                                                  m_fullscreen(false)
 {
     setTheme();
 
+    setFixedHeight(0);
     setFocusPolicy(Qt::FocusPolicy::NoFocus);
     setAcceptDrops(false);
     setFrameShape(QFrame::Shape::NoFrame);
@@ -75,8 +75,14 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
     connect(mediator,    &GlobalMediator::playerPauseStateChanged, this, 
         [=] (const bool paused) {
             m_paused = paused;
-            if (!m_fullscreen)
+            if (m_paused && !m_fullscreen)
+            {
                 showIfNeeded();
+            }
+            else if (!m_paused && m_hideOnPlay)
+            {
+                hide();
+            }
         }
     );
 }
@@ -86,15 +92,14 @@ SubtitleWidget::~SubtitleWidget()
     delete m_findDelay;
 }
 
-void SubtitleWidget::showEvent(QShowEvent *event)
+void SubtitleWidget::initializeSize()
 {
-    if (!m_hideOnPlay && m_firstShow)
-    {
-        m_firstShow = false;
-        setPlainText("漢");
-        setFixedHeight(document()->size().toSize().height());
-        clear();
-    }
+    bool visible = isVisible();
+    show();
+    setPlainText("漢");
+    setFixedHeight(document()->size().toSize().height());
+    clear();
+    setVisible(visible);
 }
 
 void SubtitleWidget::setTheme()
@@ -255,7 +260,7 @@ void SubtitleWidget::loadSettings()
     
     m_replaceNewLines = settings.value(SETTINGS_SEARCH_REPLACE_LINES, DEFAULT_REPLACE_LINES).toBool();
     m_replaceStr      = settings.value(SETTINGS_SERACH_REPLACE_WITH,  DEFAULT_REPLACE_WITH).toString();
-    setSubtitle(m_rawText, m_startTime, m_endTime, m_delay);
+    setSubtitle(m_rawText, m_startTime, m_endTime, 0);
     settings.endGroup();
 }
 

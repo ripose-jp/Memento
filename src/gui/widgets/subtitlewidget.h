@@ -37,9 +37,9 @@ public:
     ~SubtitleWidget();
 
     void showIfNeeded();
+    void initializeSize();
 
 protected:
-    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
@@ -65,7 +65,6 @@ private:
     QTimer     *m_findDelay;
     bool        m_paused;
     bool        m_fullscreen;
-    bool        m_firstShow;
 
     QString     m_rawText;
     double      m_startTime;
