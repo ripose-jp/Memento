@@ -21,7 +21,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QFile>
-#include <QDebug>
+#include <QMessageBox>
 #include <QFontDatabase>
 
 #include "gui/mainwindow.h"
@@ -44,25 +44,33 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain("ripose.projects");
     QCoreApplication::setApplicationName("memento");
 
+    /* Construct the application */
+    QApplication memento(argc, argv);
+
     /* Create the configuration directory if it doesn't exist */
     if (!QDir(DirectoryUtils::getConfigDir()).exists())
     {
         if (!QDir().mkdir(DirectoryUtils::getConfigDir()))
         {
-            qDebug() << "Could not make config dir at"
-                     << DirectoryUtils::getConfigDir();
+            QMessageBox message;
+            message.critical(
+                0, "Error Creating Config Directory",
+                "Could not make configuration directory at " + DirectoryUtils::getConfigDir()
+            );
             return EXIT_FAILURE;
         }
 
         if (!QDir().mkdir(DirectoryUtils::getDictionaryDir()))
         {
-            qDebug() << "Could not make dictionary dir at"
-                     << DirectoryUtils::getDictionaryDir();
+            QMessageBox message;
+            message.critical(
+                0, "Error Creating Dict Directory",
+                "Could not make dictionary directory at " + DirectoryUtils::getConfigDir()
+            );
             return EXIT_FAILURE;
         }
     }
     
-    QApplication memento(argc, argv);
     setlocale(LC_NUMERIC, "C");
     MainWindow *main_window = new MainWindow;
     main_window->show();

@@ -181,9 +181,9 @@ void SubtitleWidget::deselectText()
 
 void SubtitleWidget::postitionChanged(const double value)
 {
-    if (!toPlainText().isEmpty() && (value < m_startTime - DOUBLE_DELTA || value > m_endTime + DOUBLE_DELTA))
+    if (value < m_startTime - DOUBLE_DELTA || value > m_endTime + DOUBLE_DELTA)
     {
-        setSubtitle("", 0, 0, 0);
+        setSubtitle("", 0, std::numeric_limits<double>::infinity(), 0);
         Q_EMIT GlobalMediator::getGlobalMediator()->subtitleExpired();
     }
 }
@@ -256,11 +256,18 @@ void SubtitleWidget::loadSettings()
     }
 
     m_hideOnPlay = settings.value(SETTINGS_SEARCH_HIDE_BAR, DEFAULT_HIDE_BAR).toBool();
-    if (m_hideOnPlay && !m_paused)
+    if (!m_hideOnPlay)
+    {
+        initializeSize();
+    }
+    else if (m_paused)
+    {
+        showIfNeeded();
+    }
+    else
     {
         hide();
     }
-    showIfNeeded();
     
     m_replaceNewLines = settings.value(SETTINGS_SEARCH_REPLACE_LINES, DEFAULT_REPLACE_LINES).toBool();
     m_replaceStr      = settings.value(SETTINGS_SERACH_REPLACE_WITH,  DEFAULT_REPLACE_WITH).toString();

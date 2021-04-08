@@ -225,6 +225,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::showEvent(QShowEvent *event)
 {
+    m_ui->subtitleWidget->initializeSize();
+
     QStringList args = QApplication::arguments();
     if (args.size() > 1)
     {
@@ -245,8 +247,6 @@ void MainWindow::showEvent(QShowEvent *event)
             "To install a dictionary, go to Settings -> Options -> Dictionaries."
         );
     }
-
-    m_ui->subtitleWidget->initializeSize();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
