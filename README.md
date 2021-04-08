@@ -132,3 +132,7 @@ https://www.iconfinder.com/iconsets/material-core
 Various icons sourced from here.
 
 https://www.iconfinder.com/iconsets/ionicons
+
+Pause, play, skip, and seek icons sourced from here and used under the (https://creativecommons.org/licenses/by/3.0/)[CC 3.0 License]
+
+https://www.iconfinder.com/iconsets/play-rounded

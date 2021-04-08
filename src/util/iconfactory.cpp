@@ -62,28 +62,20 @@ StyleFactory::StyleFactory()
 
 void StyleFactory::buildIcons()
 {
-    const QStyle::StandardPixmap pixmaps[skip_backward + 1] = {
-        QStyle::SP_MediaPlay,
-        QStyle::SP_MediaPause,
-        QStyle::SP_MediaStop,
-        QStyle::SP_MediaSeekForward,
-        QStyle::SP_MediaSeekBackward,
-        QStyle::SP_MediaSkipForward,
-        QStyle::SP_MediaSkipBackward
-    };
-    
-    for (size_t i = 0; i < fullscreen; ++i)
-    {
-        icons[i] = QApplication::style()->standardIcon(pixmaps[i]);
-    }
-    icons[fullscreen] = buildIcon(":/images/fullscreen.svg");
-    icons[restore]    = buildIcon(":/images/restore.svg");
-    icons[plus]       = buildIcon(":/images/plus.svg");
-    icons[minus]      = buildIcon(":/images/minus.svg");
-    icons[back]       = buildIcon(":/images/back.svg");
-    icons[up]         = buildIcon(":/images/uparrow.svg");
-    icons[down]       = buildIcon(":/images/downarrow.svg");
-    icons[hamburger]  = buildIcon(":/images/hamburger.svg");
+    icons[play]          = buildIcon(":images/play.svg");
+    icons[pause]         = buildIcon(":images/pause.svg");
+    icons[skip_backward] = buildIcon(":images/skipleft.svg");
+    icons[skip_forward]  = buildIcon(":images/skipright.svg");
+    icons[seek_backward] = buildIcon(":images/seekleft.svg");
+    icons[seek_forward]  = buildIcon(":images/seekright.svg");
+    icons[fullscreen]    = buildIcon(":/images/fullscreen.svg");
+    icons[restore]       = buildIcon(":/images/restore.svg");
+    icons[plus]          = buildIcon(":/images/plus.svg");
+    icons[minus]         = buildIcon(":/images/minus.svg");
+    icons[back]          = buildIcon(":/images/back.svg");
+    icons[up]            = buildIcon(":/images/uparrow.svg");
+    icons[down]          = buildIcon(":/images/downarrow.svg");
+    icons[hamburger]     = buildIcon(":/images/hamburger.svg");
 }
 
 const QIcon &StyleFactory::getIcon(IconFactory::Icon icon) const
