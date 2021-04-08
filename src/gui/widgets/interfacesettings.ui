@@ -14,9 +14,6 @@
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="layoutParent">
-   <property name="spacing">
-    <number>0</number>
-   </property>
    <item>
     <widget class="QScrollArea" name="scrollArea">
      <property name="frameShape">
@@ -31,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>749</width>
-        <height>679</height>
+        <height>673</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">

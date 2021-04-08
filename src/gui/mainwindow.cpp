@@ -33,6 +33,7 @@
 #include <QMessageBox>
 #include <QThreadPool>
 #include <QSettings>
+#include <QStyleFactory>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -651,6 +652,11 @@ void MainWindow::setTheme()
     {
     case Theme::Light:
     {
+    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+        QStyle *style = QStyleFactory::create("fusion");
+        if (style)
+            QApplication::setStyle(style);
+    #endif
         m_ui->menubar->setAutoFillBackground(true);
         QColor lightColor(240, 240, 240);
         QColor disabledColor(178, 179, 180);
@@ -676,6 +682,11 @@ void MainWindow::setTheme()
     }
     case Theme::Dark:
     {
+    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+        QStyle *style = QStyleFactory::create("fusion");
+        if (style)
+            QApplication::setStyle(style);
+    #endif
         m_ui->menubar->setAutoFillBackground(true);
         // Modified from https://forum.qt.io/topic/101391/windows-10-dark-theme/5
         QColor darkColor(45, 45, 45);
@@ -701,6 +712,11 @@ void MainWindow::setTheme()
     }
     case Theme::System:
     default:
+    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+        QStyle *style = QStyleFactory::create("windowsvista");
+        if (style)
+            QApplication::setStyle(style);
+    #endif
         m_ui->menubar->setAutoFillBackground(false);
         pal = QApplication::style()->standardPalette();
     }

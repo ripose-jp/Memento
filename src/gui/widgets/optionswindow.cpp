@@ -24,18 +24,12 @@
 #include "ankisettings.h"
 #include "dictionarysettings.h"
 #include "searchsettings.h"
-
-#ifdef __linux__
-    #include "interfacesettings.h"
-#endif
+#include "interfacesettings.h"
 
 #define NAME_ANKI           "Anki Integration"
 #define NAME_DICTIONARIES   "Dictionaries"
 #define NAME_SEARCH         "Search"
-
-#ifdef __linux__
-    #define NAME_INTERFACE      "Interface"
-#endif
+#define NAME_INTERFACE      "Interface"
 
 OptionsWindow::OptionsWindow(QWidget *parent)
     : QWidget(parent), m_ui(new Ui::OptionsWindow), m_currentWidget(nullptr)
@@ -45,9 +39,7 @@ OptionsWindow::OptionsWindow(QWidget *parent)
     addOption(NAME_ANKI,         new AnkiSettings);
     addOption(NAME_DICTIONARIES, new DictionarySettings);
     addOption(NAME_SEARCH,       new SearchSettings);
-#ifdef __linux__
     addOption(NAME_INTERFACE,    new InterfaceSettings);
-#endif
 
     connect(m_ui->listOptions, &QListWidget::itemSelectionChanged, this, &OptionsWindow::showSelectedOption);
 }
