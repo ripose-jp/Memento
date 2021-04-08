@@ -88,7 +88,7 @@ SubtitleWidget::~SubtitleWidget()
 
 void SubtitleWidget::showEvent(QShowEvent *event)
 {
-    if (m_firstShow)
+    if (!m_hideOnPlay && m_firstShow)
     {
         m_firstShow = false;
         setPlainText("漢");
@@ -152,6 +152,7 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     m_currentIndex = -1;
 
     resizeToContents();
+    showIfNeeded();
 }
 
 void SubtitleWidget::setSelectedText()
