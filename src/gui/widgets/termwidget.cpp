@@ -68,7 +68,6 @@ TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent)
 TermWidget::~TermWidget()
 {
     delete m_ui;
-    delete m_term;
 }
 
 void TermWidget::setTerm(const Term &term)

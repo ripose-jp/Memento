@@ -22,68 +22,141 @@
 #include "ui_definitionwidget.h"
 
 #include "../../util/globalmediator.h"
+#include "../../util/constants.h"
 
 #include <QFrame>
 #include <QScrollBar>
+#include <QSettings>
+#include <QPushButton>
 
-DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, AnkiClient *client, QWidget *parent)
+DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, QWidget *parent)
     : QWidget(parent),
       m_ui(new Ui::DefinitionWidget),
-      m_client(client)
+      m_client(GlobalMediator::getGlobalMediator()->getAnkiClient()),
+      m_terms(terms)
 {
-    setUpdatesEnabled(false);
-
     m_ui->setupUi(this);
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
+    /* Build the UI */
     setAutoFillBackground(true);
     QPalette pallet;
     pallet.setColor(QPalette::Window, Qt::white);
     m_ui->scrollAreaContents->setPalette(pallet);
 
-    QFrame *line = nullptr;
-    for (const Term *term : *terms)
-    {
-        if (line)
-            m_ui->scrollAreaContents->layout()->addWidget(line);
+    /* Get the term limit */
+    QSettings settings;
+    settings.beginGroup(SETTINGS_SEARCH);
+    size_t limit = settings.value(SETTINGS_SEARCH_LIMIT, DEFAULT_LIMIT).toUInt();
+    settings.endGroup();
 
-        TermWidget *termWidget = new TermWidget(term, m_client, this);
-        connect(termWidget, &TermWidget::kanjiSearched, this, &DefinitionWidget::showKanji);
-        m_termWidgets.append(termWidget);
-        m_ui->scrollAreaContents->layout()->addWidget(termWidget);
-
-        line = new QFrame;
-        line->setFrameShape(QFrame::HLine);
-        line->setFrameShadow(QFrame::Sunken);
-        line->setLineWidth(1);
-    }
-    delete line;
-
+    /* Add the terms */
+    showTerms(0, limit);
     m_ui->scrollArea->verticalScrollBar()->setValue(0);
 
-    // Check if entries are addable to anki
+    QPushButton *buttonShowMore = nullptr;
+    /* Add the show more button */
+    if (limit < m_terms->size())
+    {
+        buttonShowMore = new QPushButton;
+        buttonShowMore->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+        buttonShowMore->setText("Show More");
+        buttonShowMore->setEnabled(!m_client->isEnabled());
+        m_ui->scrollAreaContents->layout()->addWidget(buttonShowMore);
+        connect(buttonShowMore, &QPushButton::clicked, this,
+            [=] {
+                QLayoutItem *showMoreItem = 
+                    m_ui->scrollAreaContents->layout()->takeAt(
+                        m_ui->scrollAreaContents->layout()->count() - 1
+                    );
+
+                /* Add the terms */
+                int start = m_termWidgets.size();
+                int end   = start + limit;
+                showTerms(start, end);
+                setAddable(start, end);
+
+                if (end < m_terms->size())
+                {
+                    m_ui->scrollAreaContents->layout()->addItem(showMoreItem);
+                }
+                else
+                {
+                    QLayoutItem *lineItem = m_ui->scrollAreaContents->layout()->takeAt(
+                        m_ui->scrollAreaContents->layout()->count() - 1
+                    );
+                    delete lineItem->widget();
+                    delete lineItem;
+                    delete showMoreItem->widget();
+                    delete showMoreItem;
+                }
+            }
+        );
+    }
+    else
+    {
+        /* Delete the extra line at the end */
+        QLayoutItem *item = m_ui->scrollAreaContents->layout()->takeAt(
+            m_ui->scrollAreaContents->layout()->count() - 1
+        );
+        delete item->widget();
+        delete item;
+    }
+    
+    /* Check if entries are addable to anki */
     if (m_client->isEnabled())
     {
         AnkiReply *reply = m_client->notesAddable(*terms);
-        connect(reply, &AnkiReply::finishedBoolList, this, &DefinitionWidget::setAddable);
+        connect(reply, &AnkiReply::finishedBoolList, this, 
+            [=] (const QList<bool> &addable, const QString &error) {
+                if (error.isEmpty())
+                {
+                    m_addable = addable;
+                    setAddable(0, limit);
+                }
+                if (buttonShowMore)
+                {
+                    buttonShowMore->setEnabled(true);
+                }
+            }
+        );
     }
-
-    delete terms;
 }
 
 DefinitionWidget::~DefinitionWidget()
 {
+    for (const Term *term : *m_terms)
+    {
+        delete term;
+    }
+    delete m_terms;
     delete m_ui;
 }
 
-void DefinitionWidget::setAddable(const QList<bool> &addable, const QString &error)
+void DefinitionWidget::setAddable(const size_t start, const size_t end)
 {
-    if (error.isEmpty())
+    for (size_t i = start; i < m_addable.size() && i < m_terms->size() && i < end; ++i)
+        m_termWidgets[i]->setAddable(m_addable[i]);
+}
+
+void DefinitionWidget::showTerms(const size_t start, const size_t end)
+{
+    setUpdatesEnabled(false);
+    for (size_t i = start; i < m_terms->size() && i < end; ++i)
     {
-        for (size_t i = 0; i < addable.size(); ++i)
-        m_termWidgets[i]->setAddable(addable[i]);
+        TermWidget *termWidget = new TermWidget(m_terms->at(i), m_client, this);
+        connect(termWidget, &TermWidget::kanjiSearched, this, &DefinitionWidget::showKanji);
+        m_termWidgets.append(termWidget);
+        m_ui->scrollAreaContents->layout()->addWidget(termWidget);
+
+        QFrame *line = new QFrame;
+        line->setFrameShape(QFrame::HLine);
+        line->setFrameShadow(QFrame::Sunken);
+        line->setLineWidth(1);
+        m_ui->scrollAreaContents->layout()->addWidget(line);        
     }
+    setUpdatesEnabled(true);
 }
 
 void DefinitionWidget::showKanji(const Kanji *kanji)
@@ -122,6 +195,5 @@ void DefinitionWidget::hideEvent(QHideEvent *event)
 
 void DefinitionWidget::showEvent(QShowEvent *event)
 {
-    setUpdatesEnabled(true);
     Q_EMIT GlobalMediator::getGlobalMediator()->definitionsShown();
 }

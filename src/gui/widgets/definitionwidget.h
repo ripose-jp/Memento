@@ -40,11 +40,12 @@ class DefinitionWidget : public QWidget
     Q_OBJECT
 
 public:
-    DefinitionWidget(const QList<Term *> *terms, AnkiClient *client, QWidget *parent = 0);
+    DefinitionWidget(const QList<Term *> *terms, QWidget *parent = 0);
     ~DefinitionWidget();
 
 private Q_SLOTS:
-    void setAddable(const QList<bool> &addable, const QString &error);
+    void setAddable(const size_t start, const size_t end);
+    void showTerms(const size_t start, const size_t end);
     void showKanji(const Kanji *kanji);
     void hideKanji();
 
@@ -66,6 +67,8 @@ protected:
 private:
     Ui::DefinitionWidget *m_ui;
     AnkiClient           *m_client;
+    const QList<Term *>  *m_terms;
+    QList<bool>           m_addable;
     QList<TermWidget *>   m_termWidgets;
     int                   m_savedScroll;
 };

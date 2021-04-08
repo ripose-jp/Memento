@@ -426,7 +426,7 @@ void MainWindow::setTerms(const QList<Term *> *terms)
 {
     deleteDefinitionWidget();
     
-    m_definition = new DefinitionWidget(terms, m_ankiClient, this);
+    m_definition = new DefinitionWidget(terms, this);
     setDefinitionWidgetLocation();
     m_definition->show();
 }
