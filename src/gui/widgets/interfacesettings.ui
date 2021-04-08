@@ -75,6 +75,10 @@
        </item>
        <item>
         <widget class="QCheckBox" name="checkStyleSheets">
+         <property name="toolTip">
+          <string>Style sheets allow for interface configuration with CSS like syntax
+Click the help button for documentation</string>
+         </property>
          <property name="text">
           <string>Enable custom style sheets</string>
          </property>
