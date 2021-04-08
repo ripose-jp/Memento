@@ -120,10 +120,14 @@ void SubtitleWidget::showIfNeeded()
     {
         show();
     }
-    else if (!toPlainText().isEmpty())
+    else if (toPlainText().isEmpty())
+    {
+        hide();
+    }
+    else
     {
         setVisible(m_paused);
-    } 
+    }
 }
 
 void SubtitleWidget::setSubtitle(QString subtitle,
@@ -177,7 +181,7 @@ void SubtitleWidget::deselectText()
 
 void SubtitleWidget::postitionChanged(const double value)
 {
-    if (value < m_startTime - DOUBLE_DELTA || value > m_endTime + DOUBLE_DELTA)
+    if (!toPlainText().isEmpty() && (value < m_startTime - DOUBLE_DELTA || value > m_endTime + DOUBLE_DELTA))
     {
         setSubtitle("", 0, 0, 0);
         Q_EMIT GlobalMediator::getGlobalMediator()->subtitleExpired();
