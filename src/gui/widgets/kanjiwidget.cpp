@@ -53,7 +53,12 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent),
 
     QLabel *labelKanjiStroke = new QLabel;
     labelKanjiStroke->setText(kanji->character);
-    labelKanjiStroke->setFont(QFont("KanjiStrokeOrders", 100));
+    labelKanjiStroke->setStyleSheet(
+        "QLabel {"\
+            "font-family: \"KanjiStrokeOrders\", \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"\
+            "font-size: 100pt;"\
+        "}"
+    );
     labelKanjiStroke->setAlignment(Qt::AlignHCenter);
     labelKanjiStroke->setTextInteractionFlags(Qt::TextSelectableByMouse);
     labelKanjiStroke->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -202,12 +207,14 @@ QLabel *KanjiWidget::createLabel(const QString &text, const bool bold, const Qt:
     label->setTextInteractionFlags(Qt::TextSelectableByMouse);
     label->setWordWrap(true);
 
-    QFont font;
-    font.setFamily(QString::fromUtf8("Noto Sans CJK JP"));
-    font.setPointSize(11);
-    font.setWeight(75);
-    font.setBold(bold);
-    label->setFont(font);
+    if (bold)
+    {
+        label->setStyleSheet(
+            "QLabel {"\
+                "font-weight: bold;"\
+            "}"
+        );
+    }
 
     return label;
 }

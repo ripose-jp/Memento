@@ -35,11 +35,11 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="font">
-          <font>
-           <family>Noto Sans CJK JP</family>
-           <pointsize>12</pointsize>
-          </font>
+         <property name="styleSheet">
+          <string notr="true">QLabel {
+	font-family: Noto Sans, Noto Sans CJK JP, sans-serif;
+    font-size: 12pt;
+}</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignBottom|Qt::AlignHCenter</set>
@@ -57,11 +57,11 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="font">
-          <font>
-           <family>Noto Sans CJK JP</family>
-           <pointsize>20</pointsize>
-          </font>
+         <property name="styleSheet">
+          <string notr="true">QLabel {
+	font-family: Noto Sans, Noto Sans CJK JP, sans-serif;
+    font-size: 20pt;
+}</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignHCenter|Qt::AlignTop</set>

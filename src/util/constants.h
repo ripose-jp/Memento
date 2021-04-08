@@ -21,11 +21,11 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-#define VERSION         (QString("v0.4.3-alpha"))
-#define GITHUB_API_LINK (QString("https://api.github.com/repos/ripose-jp/memento/releases"))
-#define GITHUB_RELEASES (QString("https://github.com/ripose-jp/memento/releases"))
+#define VERSION                         (QString("v0.4.3-alpha"))
+#define GITHUB_API_LINK                 (QString("https://api.github.com/repos/ripose-jp/memento/releases"))
+#define GITHUB_RELEASES                 (QString("https://github.com/ripose-jp/memento/releases"))
 
-#define SETTINGS_DICTIONARIES       "dictionaries"
+#define SETTINGS_DICTIONARIES           "dictionaries"
 
 #define SETTINGS_SEARCH                 "search"
 #define SETTINGS_SEARCH_LIMIT           "limit"
@@ -59,9 +59,43 @@ enum class Theme
     Dark         = 2
 };
 
-#define SETTINGS_INTERFACE                          "interface"
+#define SETTINGS_INTERFACE                                  "interface"
 
-#define SETTINGS_INTERFACE_THEME                    "theme"
-#define SETTINGS_INTERFACE_THEME_DEFAULT            Theme::System
+#define SETTINGS_INTERFACE_THEME                            "theme"
+#define SETTINGS_INTERFACE_THEME_DEFAULT                    Theme::System
+
+#define SETTINGS_INTERFACE_STYLESHEETS                      "stylesheets-enabled"
+#define SETTINGS_INTERFACE_STYLESHEETS_DEFAULT              false
+
+#define SETTINGS_INTERFACE_SUBTITLE_SEARCH_STYLE            "subsearch-style"
+#define SETTINGS_INTERFACE_SUBTITLE_SEARCH_STYLE_DEFAULT    \
+    "QTextEdit {\n"\
+    "    background: black;\n"\
+    "    color: white;\n"\
+    "    font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
+    "    font-size: 20pt;\n"\
+    "}"
+
+#define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE              "sublist-style"
+#define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT      \
+    "QListWidget {\n"\
+    "    background: black;\n"\
+    "    color: white;\n"\
+    "    font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
+    "    font-size: 14pt;\n"\
+    "}"
+
+#define SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE            "player-splitter-style"
+#define SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT    \
+    "QSplitter::handle {\n"\
+    "    background: black;\n"\
+    "}"
+
+#define SETTINGS_INTERFACE_DEFINITION_STYLE                 "definition-style"
+#define SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT         \
+    "QLabel {\n"\
+    "    font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
+    "    font-size: 11pt;\n"\
+    "}"
 
 #endif // CONSTANTS_H

@@ -640,12 +640,25 @@ void MainWindow::showInfoMessage(const QString title,
 
 void MainWindow::setTheme()
 {
-    /* Generate the dark palette */
-    
-    
     QSettings settings;
     settings.beginGroup(SETTINGS_INTERFACE);
 
+    /* Set QSplitter Stylesheet */
+    if (settings.value(SETTINGS_INTERFACE_STYLESHEETS, SETTINGS_INTERFACE_STYLESHEETS_DEFAULT).toBool())
+    {
+        setStyleSheet(
+            settings.value(
+                SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE,
+                SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT
+            ).toString()
+        );
+    }
+    else
+    {
+        setStyleSheet(SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT);
+    }
+
+    /* Set Palette */
     QPalette pal;
     Theme theme = (Theme)settings.value(SETTINGS_INTERFACE_THEME, (int)SETTINGS_INTERFACE_THEME_DEFAULT).toInt();
     switch (theme)

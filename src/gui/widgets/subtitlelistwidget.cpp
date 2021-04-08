@@ -35,17 +35,12 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
       m_seenSubtitles(new QMultiMap<double, QString>),
       m_subStartTimes(new QMultiHash<QString, double>)
 {
-    QFont font;
-    font.setFamily(QString::fromUtf8("Noto Sans CJK JP"));
-    font.setPointSize(14);
-    font.setStyleStrategy(QFont::PreferAntialias);
-    setFont(font);
-
     setTheme();
 
     connect(this, &QListWidget::itemDoubleClicked, this, &SubtitleListWidget::seekToSubtitle);
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+    connect(mediator, &GlobalMediator::interfaceSettingsChanged,   this, &SubtitleListWidget::setTheme);
     connect(mediator, &GlobalMediator::playerSubtitleChanged,      this, &SubtitleListWidget::addSubtitle);
     connect(mediator, &GlobalMediator::playerSubtitleTrackChanged, this, &SubtitleListWidget::clearSubtitles);
     connect(mediator, &GlobalMediator::playerSubtitlesDisabled,    this, &SubtitleListWidget::clearSubtitles);
@@ -59,12 +54,21 @@ SubtitleListWidget::~SubtitleListWidget()
 
 void SubtitleListWidget::setTheme()
 {
-    setStyleSheet(
-        "QListWidget {"
-            "background: #000000;"
-            "color: #FFFFFF;"
-        "}"
-    );
+    QSettings settings;
+    settings.beginGroup(SETTINGS_INTERFACE);
+    if (settings.value(SETTINGS_INTERFACE_STYLESHEETS, SETTINGS_INTERFACE_STYLESHEETS_DEFAULT).toBool())
+    {
+        setStyleSheet(settings.value(
+                SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE,
+                SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT
+            ).toString()
+        );
+    }
+    else
+    {
+        setStyleSheet(SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT);
+    }
+    settings.endGroup();
 }
 
 QString SubtitleListWidget::getContext(const QString &seperator)

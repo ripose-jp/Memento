@@ -44,6 +44,7 @@ public:
     ~DefinitionWidget();
 
 private Q_SLOTS:
+    void setTheme();
     void setAddable(const size_t start, const size_t end);
     void showTerms(const size_t start, const size_t end);
     void showKanji(const Kanji *kanji);

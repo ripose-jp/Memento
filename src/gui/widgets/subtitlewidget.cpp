@@ -61,13 +61,14 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     /* Slots */
-    connect(m_findDelay, &QTimer::timeout,                         this, &SubtitleWidget::findTerms);
-    connect(mediator,    &GlobalMediator::searchSettingsChanged,   this, &SubtitleWidget::loadSettings);
-    connect(mediator,    &GlobalMediator::definitionsHidden,       this, &SubtitleWidget::deselectText);
-    connect(mediator,    &GlobalMediator::definitionsShown,        this, &SubtitleWidget::setSelectedText);
-    connect(mediator,    &GlobalMediator::playerSubtitleChanged,   this, &SubtitleWidget::setSubtitle);
-    connect(mediator,    &GlobalMediator::playerPositionChanged,   this, &SubtitleWidget::postitionChanged);
-    connect(mediator,    &GlobalMediator::playerFullscreenChanged, this, 
+    connect(m_findDelay, &QTimer::timeout,                          this, &SubtitleWidget::findTerms);
+    connect(mediator,    &GlobalMediator::searchSettingsChanged,    this, &SubtitleWidget::loadSettings);
+    connect(mediator,    &GlobalMediator::interfaceSettingsChanged, this, &SubtitleWidget::setTheme);
+    connect(mediator,    &GlobalMediator::definitionsHidden,        this, &SubtitleWidget::deselectText);
+    connect(mediator,    &GlobalMediator::definitionsShown,         this, &SubtitleWidget::setSelectedText);
+    connect(mediator,    &GlobalMediator::playerSubtitleChanged,    this, &SubtitleWidget::setSubtitle);
+    connect(mediator,    &GlobalMediator::playerPositionChanged,    this, &SubtitleWidget::postitionChanged);
+    connect(mediator,    &GlobalMediator::playerFullscreenChanged,  this, 
         [=] (const bool full) {
             m_fullscreen = full;
         }
@@ -104,14 +105,24 @@ void SubtitleWidget::initializeSize()
 
 void SubtitleWidget::setTheme()
 {
-    setStyleSheet(
-        "QTextEdit {"
-            "background: #000000;"
-            "color: #FFFFFF;"
-            "font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"
-            "font-size: 20pt;"
-        "}"
-    );
+    QSettings settings;
+    settings.beginGroup(SETTINGS_INTERFACE);
+    if (settings.value(SETTINGS_INTERFACE_STYLESHEETS, SETTINGS_INTERFACE_STYLESHEETS_DEFAULT).toBool())
+    {
+        setStyleSheet(
+            settings.value(
+                SETTINGS_INTERFACE_SUBTITLE_SEARCH_STYLE,
+                SETTINGS_INTERFACE_SUBTITLE_SEARCH_STYLE_DEFAULT
+            ).toString()
+        );
+    }
+    else
+    {
+        setStyleSheet(SETTINGS_INTERFACE_SUBTITLE_SEARCH_STYLE_DEFAULT);
+    }
+    settings.endGroup();
+    initializeSize();
+    setSubtitle(m_rawText, m_startTime, m_endTime, 0);
 }
 
 void SubtitleWidget::showIfNeeded()

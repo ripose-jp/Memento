@@ -44,6 +44,7 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, QWidget *parent)
     QPalette pallet;
     pallet.setColor(QPalette::Window, Qt::white);
     m_ui->scrollAreaContents->setPalette(pallet);
+    setTheme();
 
     /* Get the term limit */
     QSettings settings;
@@ -132,6 +133,26 @@ DefinitionWidget::~DefinitionWidget()
     }
     delete m_terms;
     delete m_ui;
+}
+
+void DefinitionWidget::setTheme()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_INTERFACE);
+    if (settings.value(SETTINGS_INTERFACE_STYLESHEETS, SETTINGS_INTERFACE_STYLESHEETS_DEFAULT).toBool())
+    {
+        setStyleSheet(
+            settings.value(
+                SETTINGS_INTERFACE_DEFINITION_STYLE,
+                SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT
+            ).toString()
+        );
+    }
+    else
+    {
+        setStyleSheet(SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT);
+    }
+    settings.endGroup();
 }
 
 void DefinitionWidget::setAddable(const size_t start, const size_t end)

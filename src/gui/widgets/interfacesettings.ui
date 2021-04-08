@@ -82,6 +82,9 @@
        </item>
        <item>
         <widget class="QFrame" name="frameStyleSheets">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
          </property>
