@@ -133,6 +133,6 @@ Various icons sourced from here.
 
 https://www.iconfinder.com/iconsets/ionicons
 
-Pause, play, skip, and seek icons sourced from here and used under the [https://creativecommons.org/licenses/by/3.0/](CC 3.0 License)
+Pause, play, skip, and seek icons sourced from here and used under the [CC 3.0 License](https://creativecommons.org/licenses/by/3.0/)
 
 https://www.iconfinder.com/iconsets/play-rounded
