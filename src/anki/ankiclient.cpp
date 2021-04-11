@@ -1269,6 +1269,7 @@ QJsonObject AnkiClient::processReply(QNetworkReply *reply, QString &error)
         {
             return replyObj;
         }
+        break;
     }
     default:
         error = reply->errorString();
