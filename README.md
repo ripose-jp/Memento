@@ -54,6 +54,9 @@ and the [Kanji Stroke Order](https://drive.google.com/uc?export=download&id=1oyQ
 
 ## Building
 
+**I do not guarentee that any branch will successfully build or be bug-free.** 
+**If you want to build a stable version of Memento, compile a [release](https://github.com/ripose-jp/Memento/releases) from source.**
+
 ### Linux
 
 To install Memento on Linux, type the following commands:
@@ -65,15 +68,16 @@ sudo make install
 
 ### Windows
 
-1. Install [MSys2](https://www.msys2.org/)
-1. Make sure MSys2 is up to date by running these commands:
+1. Install [MSYS2](https://www.msys2.org/)
+1. Open **MSYS2 MinGW 64-bit**
+1. (Optional, may break things if MSYS2 is buggy) Make sure MSYS2 is up to date by running these commands:
     ```
     pacman -Sy --needed msys2-runtime pacman
     pacman -Su
     ```
 1. Install the necessary tools and dependencies:
     ```
-    pacman -S git mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake mingw-w64-x86_64-ffmpeg mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-mecab mingw-w64-x86_64-json-c mingw-w64-x86_64-libzip
+    pacman -S git make mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ffmpeg mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-mecab mingw-w64-x86_64-json-c mingw-w64-x86_64-libzip
     ```
 1. Clone the repository:
     ```
