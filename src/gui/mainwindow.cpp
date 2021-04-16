@@ -45,8 +45,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     m_ui->setupUi(this);
 
-    setTheme();
-
     /* Video Action Groups */
     m_actionGroupAudio       = new QActionGroup(this);
     m_actionGroupVideo       = new QActionGroup(this);
@@ -97,6 +95,16 @@ MainWindow::MainWindow(QWidget *parent)
     m_subtitle.layoutSubtitle->addStretch();
     m_subtitle.layoutSubtitle->addWidget(m_subtitle.subtitleWidget);
     m_subtitle.layoutSubtitle->addStretch();
+
+    m_subtitle.spacerWidget = new QWidget;
+    m_subtitle.spacerWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_subtitle.spacerWidget->setFixedWidth(0);
+    m_subtitle.layoutPlayerOverlay->addWidget(m_subtitle.spacerWidget);
+
+    repositionSubtitles();
+
+    /* Set the theme */
+    setTheme();
 
     /* Toolbar Actions */
     connect(m_ui->actionOptions,     &QAction::triggered, m_optionsWindow, &OptionsWindow::show);
@@ -192,6 +200,10 @@ MainWindow::MainWindow(QWidget *parent)
         }
     );
 
+    /* Subtitle */
+    connect(m_mediator, &GlobalMediator::controlsHidden, this, &MainWindow::repositionSubtitles);
+    connect(m_mediator, &GlobalMediator::controlsShown,  this, &MainWindow::repositionSubtitles);
+
     /* Show message boxes */
     connect(m_mediator, &GlobalMediator::showCritical,    this, &MainWindow::showErrorMessage);
     connect(m_mediator, &GlobalMediator::showInformation, this, &MainWindow::showInfoMessage);
@@ -278,6 +290,7 @@ void MainWindow::dropEvent(QDropEvent *event)
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     event->ignore();
+    repositionSubtitles();
     deleteDefinitionWidget();
 }
 
@@ -398,6 +411,20 @@ void MainWindow::setTerms(const QList<Term *> *terms)
     m_definition = new DefinitionWidget(terms, m_ui->player);
     setDefinitionWidgetLocation();
     m_definition->show();
+}
+
+void MainWindow::repositionSubtitles()
+{
+    int height = m_ui->player->height() * m_subtitle.offsetPercent;
+    if (isFullScreen() && m_ui->controls->isVisible())
+    {
+        height -= m_ui->controls->height();
+        if (height < 0)
+        {
+            height = 0;
+        }
+    }
+    m_subtitle.spacerWidget->setFixedHeight(height);
 }
 
 void MainWindow::updateAnkiProfileMenu()
@@ -698,6 +725,10 @@ void MainWindow::setTheme()
     {
         m_ui->splitterPlayerSubtitles->setStyleSheet(SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT);
     }
+
+    /* Refresh the subtitle offset */
+    m_subtitle.offsetPercent = settings.value(SETTINGS_INTERFACE_SUB_OFFSET, SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT).toDouble();
+    repositionSubtitles();
 
     settings.endGroup();
 }

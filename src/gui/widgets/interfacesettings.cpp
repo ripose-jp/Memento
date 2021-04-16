@@ -64,8 +64,12 @@ void InterfaceSettings::showEvent(QShowEvent *event)
 void InterfaceSettings::restoreDefaults()
 {
     m_ui->comboTheme->setCurrentIndex((int)SETTINGS_INTERFACE_THEME_DEFAULT);
+
+    /* Subtitle */
+    m_ui->spinSubOffset->setValue(SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT);
+
+    /* Style Sheets */
     m_ui->checkStyleSheets->setChecked(SETTINGS_INTERFACE_STYLESHEETS_DEFAULT);
-    m_ui->editSubSearch->setPlainText(SETTINGS_INTERFACE_SUBTITLE_SEARCH_STYLE_DEFAULT);
     m_ui->editSubList->setPlainText(SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT);
     m_ui->editSplitter->setPlainText(SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT);
     m_ui->editDefinitions->setPlainText(SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT);
@@ -81,17 +85,20 @@ void InterfaceSettings::restoreSaved()
             (int)SETTINGS_INTERFACE_THEME_DEFAULT
         ).toInt()
     );
+
+    /* Subtitle */
+    m_ui->spinSubOffset->setValue(settings.value(
+            SETTINGS_INTERFACE_SUB_OFFSET,
+            SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT
+        ).toDouble()
+    );
+
+    /* Style Sheets */
     m_ui->checkStyleSheets->setChecked(
         settings.value(
             SETTINGS_INTERFACE_STYLESHEETS,
             SETTINGS_INTERFACE_STYLESHEETS_DEFAULT
         ).toBool()
-    );
-    m_ui->editSubSearch->setPlainText(
-        settings.value(
-            SETTINGS_INTERFACE_SUBTITLE_SEARCH_STYLE,
-            SETTINGS_INTERFACE_SUBTITLE_SEARCH_STYLE_DEFAULT
-        ).toString()
     );
     m_ui->editSubList->setPlainText(
         settings.value(
@@ -118,12 +125,18 @@ void InterfaceSettings::applyChanges()
 {
     QSettings settings;
     settings.beginGroup(SETTINGS_INTERFACE);
-    settings.setValue(SETTINGS_INTERFACE_THEME,                 m_ui->comboTheme->currentIndex());
+
+    settings.setValue(SETTINGS_INTERFACE_THEME, m_ui->comboTheme->currentIndex());
+
+    /* Subtitle */
+    settings.setValue(SETTINGS_INTERFACE_SUB_OFFSET, m_ui->spinSubOffset->value());
+
+    /* Style Sheets */
     settings.setValue(SETTINGS_INTERFACE_STYLESHEETS,           m_ui->checkStyleSheets->isChecked());
-    settings.setValue(SETTINGS_INTERFACE_SUBTITLE_SEARCH_STYLE, m_ui->editSubSearch->toPlainText());
     settings.setValue(SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE,   m_ui->editSubList->toPlainText());
     settings.setValue(SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE, m_ui->editSplitter->toPlainText());
     settings.setValue(SETTINGS_INTERFACE_DEFINITION_STYLE,      m_ui->editDefinitions->toPlainText());
+
     settings.endGroup();
 
     Q_EMIT GlobalMediator::getGlobalMediator()->interfaceSettingsChanged();

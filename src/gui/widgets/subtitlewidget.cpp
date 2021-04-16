@@ -152,6 +152,7 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     }
         
     /* Add it to the text edit */
+    setUpdatesEnabled(false);
     clear();
     QStringList subList = subtitle.split('\n');
     for (const QString &text : subList)
@@ -178,6 +179,8 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     m_currentIndex = -1;
 
     showIfNeeded();
+
+    setUpdatesEnabled(true);
 }
 
 void SubtitleWidget::setSelectedText()

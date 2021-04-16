@@ -47,6 +47,10 @@ public Q_SLOTS:
     void setVolumeLimit(const int64_t value);
     void setVolume(const int64_t value);
     void setPosition(const double value);
+
+protected:
+    void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
+    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
     
 private Q_SLOTS:
     void refreshIcons();

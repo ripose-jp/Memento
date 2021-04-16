@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>761</width>
-    <height>729</height>
+    <height>780</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -28,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>749</width>
-        <height>673</height>
+        <height>724</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -74,6 +74,284 @@
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="labelSubSearch">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Subtitle Search</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frameSubSearch">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <layout class="QHBoxLayout" name="layoutSubFont">
+            <item>
+             <widget class="QLabel" name="labelSubFont">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Font</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFontComboBox" name="fontComboSub"/>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkSubBold">
+              <property name="text">
+               <string>Bold</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkSubItalic">
+              <property name="text">
+               <string>Italics</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QGridLayout" name="gridLayout">
+            <item row="0" column="1" alignment="Qt::AlignRight">
+             <widget class="QLabel" name="labelSubOffset">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Bottom Offset</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QDoubleSpinBox" name="spinSubOffset">
+              <property name="toolTip">
+               <string>How high the subtitle search should appear from the bottom relative the size of the player.
+A value of 0 positions the subtitle at the bottom.
+A value of 1 positions the subtitle at the top.</string>
+              </property>
+              <property name="decimals">
+               <number>3</number>
+              </property>
+              <property name="maximum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.010000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="4" alignment="Qt::AlignRight">
+             <widget class="QLabel" name="labelSubStrokeSize">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Stroke Size</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="7" alignment="Qt::AlignRight">
+             <widget class="QLabel" name="labelSubScale">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Text Scale</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="8">
+             <widget class="QToolButton" name="buttonSubBackground">
+              <property name="toolTip">
+               <string>The color of the background.</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1" alignment="Qt::AlignRight">
+             <widget class="QLabel" name="labelSubColor">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Text Color</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="9">
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="1" column="4" alignment="Qt::AlignRight">
+             <widget class="QLabel" name="labelSubStrokeColor">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Stroke Color</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="5">
+             <widget class="QToolButton" name="buttonSubStroke">
+              <property name="toolTip">
+               <string>The color of the stroke.</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="0" column="3">
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="1" column="2">
+             <widget class="QToolButton" name="buttonSubColo">
+              <property name="toolTip">
+               <string>The color of the text.</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="8">
+             <widget class="QDoubleSpinBox" name="spinSubScale">
+              <property name="toolTip">
+               <string>How large the text should appear relative to the size of the player.
+A value of 0.1 would make each character 10% of the height of the player.</string>
+              </property>
+              <property name="decimals">
+               <number>3</number>
+              </property>
+              <property name="maximum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.010000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="7" alignment="Qt::AlignRight">
+             <widget class="QLabel" name="labelSubBackground">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Background Color</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="5">
+             <widget class="QDoubleSpinBox" name="doubleSpinBox">
+              <property name="toolTip">
+               <string>Size of the stroke around text.
+A value of 0 disables stroke.</string>
+              </property>
+              <property name="decimals">
+               <number>1</number>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="6">
+             <spacer name="horizontalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="checkStyleSheets">
          <property name="toolTip">
           <string>Style sheets allow for interface customization with CSS-like syntax
@@ -96,22 +374,6 @@ Click the help button for documentation</string>
           <enum>QFrame::Raised</enum>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-           <widget class="QLabel" name="labelSubSearch">
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Subtitle Search</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPlainTextEdit" name="editSubSearch"/>
-          </item>
           <item>
            <widget class="QLabel" name="labelSubList">
             <property name="font">

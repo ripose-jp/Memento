@@ -106,6 +106,8 @@ Q_SIGNALS:
     void controlsSeekBackward() const;
     void controlsSkipForward()  const;
     void controlsSkipBackward() const;
+    void controlsHidden()       const;
+    void controlsShown()        const;
 
     void controlsSubtitleListToggled() const;
 

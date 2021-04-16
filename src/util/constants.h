@@ -67,14 +67,8 @@ enum class Theme
 #define SETTINGS_INTERFACE_STYLESHEETS                      "stylesheets-enabled"
 #define SETTINGS_INTERFACE_STYLESHEETS_DEFAULT              false
 
-#define SETTINGS_INTERFACE_SUBTITLE_SEARCH_STYLE            "subsearch-style"
-#define SETTINGS_INTERFACE_SUBTITLE_SEARCH_STYLE_DEFAULT    \
-    "QTextEdit {\n"\
-    "    background: black;\n"\
-    "    color: white;\n"\
-    "    font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
-    "    font-size: 20pt;\n"\
-    "}"
+#define SETTINGS_INTERFACE_SUB_OFFSET                       "sub-offset-percent"
+#define SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT               0.0
 
 #define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE              "sublist-style"
 #define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT      \

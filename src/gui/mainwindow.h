@@ -44,6 +44,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QResizeEvent>
+#include <QSpacerItem>
 
 namespace Ui
 {
@@ -63,6 +64,7 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void open();
+    void repositionSubtitles();
     void setTracks(QList<const Track *> tracks);
     void setTerms(const QList<Term *> *terms);
     void updateAnkiProfileMenu();
@@ -97,6 +99,8 @@ private:
         QVBoxLayout    *layoutPlayerOverlay;
         QHBoxLayout    *layoutSubtitle;
         SubtitleWidget *subtitleWidget;
+        QWidget        *spacerWidget;
+        double          offsetPercent;
     } m_subtitle;
 
     QActionGroup *m_actionGroupAudio;

@@ -187,3 +187,13 @@ QString PlayerControls::formatTime(const int time)
 
     return formatted;
 }
+
+void PlayerControls::hideEvent(QHideEvent *event)
+{
+    Q_EMIT GlobalMediator::getGlobalMediator()->controlsHidden();
+}
+
+void PlayerControls::showEvent(QShowEvent *event)
+{
+    Q_EMIT GlobalMediator::getGlobalMediator()->controlsShown();
+}
