@@ -44,6 +44,7 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
     setTheme();
 
     setFixedHeight(0);
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
     setFocusPolicy(Qt::FocusPolicy::NoFocus);
     setAcceptDrops(false);
     setFrameShape(QFrame::Shape::NoFrame);
@@ -53,6 +54,7 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
     setAcceptRichText(false);
     setTextInteractionFlags(Qt::NoTextInteraction);
     hide();
+    setCursor(Qt::ArrowCursor);
 
     m_findDelay->setSingleShot(true);
 
@@ -93,18 +95,12 @@ SubtitleWidget::~SubtitleWidget()
     delete m_findDelay;
 }
 
-void SubtitleWidget::initializeSize()
-{
-    bool visible = isVisible();
-    show();
-    setPlainText("漢");
-    setFixedHeight(document()->size().toSize().height());
-    clear();
-    setVisible(visible);
-}
-
 void SubtitleWidget::setTheme()
 {
+    setStyleSheet(
+        "QTextEdit { font-size: 20pt; color: white; background: rgba(0, 0, 0, 0); font-weight: bold; }"
+    );
+    /*
     QSettings settings;
     settings.beginGroup(SETTINGS_INTERFACE);
     if (settings.value(SETTINGS_INTERFACE_STYLESHEETS, SETTINGS_INTERFACE_STYLESHEETS_DEFAULT).toBool())
@@ -123,6 +119,7 @@ void SubtitleWidget::setTheme()
     settings.endGroup();
     initializeSize();
     setSubtitle(m_rawText, m_startTime, m_endTime, 0);
+    */
 }
 
 void SubtitleWidget::showIfNeeded()
@@ -153,7 +150,7 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     {
         subtitle.replace('\n', m_replaceStr);
     }
-    
+        
     /* Add it to the text edit */
     clear();
     QStringList subList = subtitle.split('\n');
@@ -165,13 +162,21 @@ void SubtitleWidget::setSubtitle(QString subtitle,
         append(text);
         setAlignment(Qt::AlignHCenter);
     }
+
+    /* Update Size */
+    updateGeometry();
+    int height = document()->size().toSize().height();
+    if (horizontalScrollBar()->isVisible())
+    {
+        height += horizontalScrollBar()->height();
+    }
+    setFixedHeight(height);
     
     /* Keep track of when to delete the subtitle */
     m_startTime = start + delay;
     m_endTime = end + delay;
     m_currentIndex = -1;
 
-    resizeToContents();
     showIfNeeded();
 }
 
@@ -197,27 +202,6 @@ void SubtitleWidget::postitionChanged(const double value)
         setSubtitle("", 0, std::numeric_limits<double>::infinity(), 0);
         Q_EMIT GlobalMediator::getGlobalMediator()->subtitleExpired();
     }
-}
-
-void SubtitleWidget::resizeToContents()
-{
-    /* Prevents things from getting jumpy */
-    if (!m_hideOnPlay && m_rawText.isEmpty())
-        return;
-    
-    /* For resize events */
-    setAlignment(Qt::AlignHCenter);
-
-    int height = document()->size().toSize().height();
-    if (horizontalScrollBar()->isVisible())
-    {
-        setFixedHeight(height + horizontalScrollBar()->height());
-    }
-    else
-    {
-        setFixedHeight(height);
-    }
-    verticalScrollBar()->setValue(0);
 }
 
 void SubtitleWidget::loadSettings()
@@ -267,15 +251,11 @@ void SubtitleWidget::loadSettings()
     }
 
     m_hideOnPlay = settings.value(SETTINGS_SEARCH_HIDE_BAR, DEFAULT_HIDE_BAR).toBool();
-    if (!m_hideOnPlay)
-    {
-        initializeSize();
-    }
-    else if (m_paused)
+    if (m_paused)
     {
         showIfNeeded();
     }
-    else
+    else if (m_hideOnPlay)
     {
         hide();
     }
@@ -362,7 +342,15 @@ void SubtitleWidget::leaveEvent(QEvent *event)
 void SubtitleWidget::resizeEvent(QResizeEvent *event)
 {
     event->ignore();
-    resizeToContents();
+    setAlignment(Qt::AlignHCenter);
+    int height = document()->size().toSize().height();
+    if (horizontalScrollBar()->isVisible())
+    {
+        height += horizontalScrollBar()->height();
+    }
+    setFixedHeight(height);
+    updateGeometry();
+    QTextEdit::resizeEvent(event);
     Q_EMIT GlobalMediator::getGlobalMediator()->requestDefinitionDelete();
     Q_EMIT GlobalMediator::getGlobalMediator()->requestFullscreenResize();
 }
@@ -374,4 +362,25 @@ void SubtitleWidget::deleteTerms(QList<Term *> *terms)
         delete term;
     }
     delete terms;
+}
+
+void SubtitleWidget::paintEvent(QPaintEvent *event)
+{
+    QTextCharFormat format;
+    format.setTextOutline (QPen (QColor(0, 0, 0), 5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin)); // Color and width of outline
+    QTextCursor cursor (this->document());
+    cursor.select(QTextCursor::Document);
+    cursor.mergeCharFormat(format);
+    QTextEdit::paintEvent(event);
+    format.setTextOutline(QPen (Qt::transparent));
+    cursor.mergeCharFormat(format);
+    QTextEdit::paintEvent(event);
+}
+
+QSize SubtitleWidget::sizeHint() const
+{
+    QSize size = document()->size().toSize();
+    size.rwidth()  = size.width();
+    size.rheight() = size.height();
+    return size;
 }

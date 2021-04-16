@@ -40,6 +40,7 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, QWidget *parent)
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     /* Build the UI */
+    setCursor(Qt::ArrowCursor);
     setAutoFillBackground(true);
     setTheme();
 

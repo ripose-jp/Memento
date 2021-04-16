@@ -37,13 +37,14 @@ public:
     ~SubtitleWidget();
 
     void showIfNeeded();
-    void initializeSize();
 
 protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+    QSize sizeHint() const Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
     void setTheme();
@@ -85,7 +86,6 @@ private:
     QString         m_replaceStr;
 
     void deleteTerms(QList<Term *> *terms);
-    void resizeToContents();
 };
 
 #endif // SUBTITLEWIDGET_H

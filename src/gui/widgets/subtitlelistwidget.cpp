@@ -40,10 +40,15 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     connect(this, &QListWidget::itemDoubleClicked, this, &SubtitleListWidget::seekToSubtitle);
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-    connect(mediator, &GlobalMediator::interfaceSettingsChanged,   this, &SubtitleListWidget::setTheme);
-    connect(mediator, &GlobalMediator::playerSubtitleChanged,      this, &SubtitleListWidget::addSubtitle);
-    connect(mediator, &GlobalMediator::playerSubtitleTrackChanged, this, &SubtitleListWidget::clearSubtitles);
-    connect(mediator, &GlobalMediator::playerSubtitlesDisabled,    this, &SubtitleListWidget::clearSubtitles);
+    connect(mediator, &GlobalMediator::interfaceSettingsChanged,    this, &SubtitleListWidget::setTheme);
+    connect(mediator, &GlobalMediator::playerSubtitleChanged,       this, &SubtitleListWidget::addSubtitle);
+    connect(mediator, &GlobalMediator::playerSubtitleTrackChanged,  this, &SubtitleListWidget::clearSubtitles);
+    connect(mediator, &GlobalMediator::playerSubtitlesDisabled,     this, &SubtitleListWidget::clearSubtitles);
+    connect(mediator, &GlobalMediator::controlsSubtitleListToggled, this, 
+        [=] {
+            setVisible(!isVisible());
+        }
+    );
 }
 
 SubtitleListWidget::~SubtitleListWidget()

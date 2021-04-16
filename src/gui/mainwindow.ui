@@ -47,38 +47,19 @@
       <property name="childrenCollapsible">
        <bool>false</bool>
       </property>
-      <widget class="QWidget" name="verticalLayoutWidget">
-       <layout class="QVBoxLayout" name="layoutPlayerSubs">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <item>
-         <widget class="MpvWidget" name="player">
-          <property name="minimumSize">
-           <size>
-            <width>500</width>
-            <height>400</height>
-           </size>
-          </property>
-          <property name="cursor">
-           <cursorShape>BlankCursor</cursorShape>
-          </property>
-          <property name="mouseTracking">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="SubtitleWidget" name="subtitleWidget">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </item>
-       </layout>
+      <widget class="MpvWidget" name="player">
+       <property name="minimumSize">
+        <size>
+         <width>500</width>
+         <height>400</height>
+        </size>
+       </property>
+       <property name="cursor">
+        <cursorShape>BlankCursor</cursorShape>
+       </property>
+       <property name="mouseTracking">
+        <bool>true</bool>
+       </property>
       </widget>
       <widget class="SubtitleListWidget" name="listSubtitles">
        <property name="sizePolicy">
@@ -123,7 +104,7 @@
      <x>0</x>
      <y>0</y>
      <width>801</width>
-     <height>21</height>
+     <height>34</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMedia">
@@ -189,7 +170,7 @@
       <x>494</x>
       <y>170</y>
       <width>200</width>
-      <height>147</height>
+      <height>181</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -206,8 +187,8 @@
       <rect>
        <x>664</x>
        <y>189</y>
-       <width>135</width>
-       <height>50</height>
+       <width>142</width>
+       <height>60</height>
       </rect>
      </property>
      <property name="title">
@@ -315,11 +296,6 @@
    <class>SubtitleListWidget</class>
    <extends>QListWidget</extends>
    <header>src/gui/widgets/subtitlelistwidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>SubtitleWidget</class>
-   <extends>QTextEdit</extends>
-   <header>src/gui/widgets/subtitlewidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

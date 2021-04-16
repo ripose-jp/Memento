@@ -40,6 +40,7 @@ PlayerControls::PlayerControls(QWidget *parent)
     m_ui->setupUi(this);
 
     refreshIcons();
+    setCursor(Qt::ArrowCursor);
 
     m_ui->sliderProgress->setStyle(new SliderJumpStyle(m_ui->sliderProgress->style()));
     m_ui->sliderVolume->setStyle(new SliderJumpStyle(m_ui->sliderVolume->style()));

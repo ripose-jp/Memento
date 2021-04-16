@@ -26,6 +26,7 @@
 #include "widgets/definitionwidget.h"
 #include "widgets/optionswindow.h"
 #include "widgets/aboutwindow.h"
+#include "widgets/subtitlewidget.h"
 
 #include "../util/globalmediator.h"
 #include "playeradapter.h"
@@ -68,10 +69,8 @@ private Q_SLOTS:
     void setDefinitionWidgetLocation();
     void deleteDefinitionWidget();
     void hideControls();
-    void hidePlayerCursor();
     void showErrorMessage(const QString title, const QString error) const;
     void showInfoMessage (const QString title, const QString error) const;
-    void resizeFullscreenControls();
     void setTheme();
 
 protected:
@@ -92,6 +91,13 @@ private:
     AnkiClient       *m_ankiClient;
     OptionsWindow    *m_optionsWindow;  
     AboutWindow      *m_aboutWindow;
+
+    struct SubtitleUi
+    {
+        QVBoxLayout    *layoutPlayerOverlay;
+        QHBoxLayout    *layoutSubtitle;
+        SubtitleWidget *subtitleWidget;
+    } m_subtitle;
 
     QActionGroup *m_actionGroupAudio;
     QList<QPair<QAction *, const Track *>> m_audioTracks;

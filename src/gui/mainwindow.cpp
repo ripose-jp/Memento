@@ -80,6 +80,24 @@ MainWindow::MainWindow(QWidget *parent)
     m_aboutWindow = new AboutWindow;
     m_aboutWindow->hide();
 
+    /* Subtitle Search */
+    m_subtitle.layoutPlayerOverlay = new QVBoxLayout(m_ui->player);
+    m_subtitle.layoutPlayerOverlay->setSpacing(0);
+    m_subtitle.layoutPlayerOverlay->setContentsMargins(QMargins(0, 0, 0, 0));
+    m_subtitle.layoutPlayerOverlay->setMargin(0);
+    m_subtitle.layoutPlayerOverlay->addStretch();
+
+    m_subtitle.layoutSubtitle = new QHBoxLayout;
+    m_subtitle.layoutSubtitle->setSpacing(0);
+    m_subtitle.layoutSubtitle->setContentsMargins(QMargins(0, 0, 0, 0));
+    m_subtitle.layoutSubtitle->setMargin(0);
+    m_subtitle.layoutPlayerOverlay->addLayout(m_subtitle.layoutSubtitle);
+
+    m_subtitle.subtitleWidget = new SubtitleWidget;
+    m_subtitle.layoutSubtitle->addStretch();
+    m_subtitle.layoutSubtitle->addWidget(m_subtitle.subtitleWidget);
+    m_subtitle.layoutSubtitle->addStretch();
+
     /* Toolbar Actions */
     connect(m_ui->actionOptions,     &QAction::triggered, m_optionsWindow, &OptionsWindow::show);
     connect(m_ui->actionAbout,       &QAction::triggered, m_aboutWindow,   &AboutWindow::show);
@@ -96,47 +114,19 @@ MainWindow::MainWindow(QWidget *parent)
         }
     );
 
-    /* Control Management */
-    connect(m_mediator, &GlobalMediator::requestFullscreenResize, 
-        this, &MainWindow::resizeFullscreenControls);
-    connect(m_ui->splitterPlayerSubtitles, &QSplitter::splitterMoved, 
-        this, &MainWindow::resizeFullscreenControls);
-
     /* State Changes */
     connect(m_mediator, &GlobalMediator::playerCursorHidden,      this, &MainWindow::hideControls);
-    connect(m_mediator, &GlobalMediator::playerCursorHidden,      this, &MainWindow::hidePlayerCursor);
     connect(m_mediator, &GlobalMediator::ankiSettingsChanged,     this, &MainWindow::updateAnkiProfileMenu);
     connect(m_mediator, &GlobalMediator::playerFullscreenChanged, this, &MainWindow::setFullscreen);
     connect(m_mediator, &GlobalMediator::playerClosed,            this, &QApplication::quit);
     connect(m_mediator, &GlobalMediator::playerTitleChanged,      this, 
         [=] (const QString name) { setWindowTitle(name + " - Memento"); }
     );
-    connect(m_mediator, &GlobalMediator::controlsSubtitleListToggled, this,
-        [=] {
-            bool visible = !m_ui->listSubtitles->isVisible();
-            m_ui->listSubtitles->setVisible(visible); 
-            if (isFullScreen())
-            {
-                QApplication::processEvents();
-                if (visible)
-                {
-                    m_ui->controls->setFixedWidth(m_ui->player->width());
-                    m_ui->subtitleWidget->setFixedWidth(m_ui->player->width());
-                }
-                else
-                {
-                    m_ui->controls->setFixedWidth(width());
-                    m_ui->subtitleWidget->setFixedWidth(width());
-                }
-            }
-        }
-    );
     connect(m_mediator, &GlobalMediator::playerMouseMoved, this,
         [=] {
             if (isFullScreen())
             {
                 m_ui->controls->show();
-                m_ui->subtitleWidget->showIfNeeded();
             }
         }
     );
@@ -188,10 +178,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->actionSubtitleTwoNone, &QAction::triggered, m_player, &PlayerAdapter::disableSubtitleTwo);
 
     /* Definition Changes */
+    connect(m_ui->splitterPlayerSubtitles, &QSplitter::splitterMoved, this, &MainWindow::deleteDefinitionWidget);
     connect(m_mediator, &GlobalMediator::termsChanged,            this, &MainWindow::setTerms);
     connect(m_mediator, &GlobalMediator::requestDefinitionDelete, this, &MainWindow::deleteDefinitionWidget);
     connect(m_mediator, &GlobalMediator::playerSubtitleChanged,   this, &MainWindow::deleteDefinitionWidget);
     connect(m_mediator, &GlobalMediator::subtitleExpired,         this, &MainWindow::deleteDefinitionWidget);
+    connect(m_mediator, &GlobalMediator::subtitleListShown,       this, &MainWindow::deleteDefinitionWidget);
+    connect(m_mediator, &GlobalMediator::subtitleListHidden,      this, &MainWindow::deleteDefinitionWidget);
     connect(m_mediator, &GlobalMediator::playerPauseStateChanged, this, 
         [=] (const bool paused) { 
             if (!paused)
@@ -226,8 +219,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::showEvent(QShowEvent *event)
 {
-    m_ui->subtitleWidget->initializeSize();
-
     QStringList args = QApplication::arguments();
     if (args.size() > 1)
     {
@@ -297,20 +288,12 @@ void MainWindow::setFullscreen(bool value)
         m_maximized = isMaximized();
         showFullScreen();
         m_ui->menubar->hide();
-        QApplication::processEvents();
 
-        /* Position the subtitle widget */
-        m_ui->subtitleWidget->hide();
-        m_ui->layoutPlayerSubs->layout()->removeWidget(m_ui->subtitleWidget);
-        m_ui->subtitleWidget->raise();
-
-        /* Position the controls */
+        /* Move the controls */
         m_ui->controls->hide();
         m_ui->centralwidget->layout()->removeWidget(m_ui->controls);
         m_ui->controls->raise();
-
-        QApplication::processEvents();
-        resizeFullscreenControls();
+        m_subtitle.layoutPlayerOverlay->addWidget(m_ui->controls);
     }
     else
     {
@@ -330,28 +313,10 @@ void MainWindow::setFullscreen(bool value)
     #endif
         m_ui->menubar->show();
 
-        m_ui->subtitleWidget->setMinimumWidth(0);
-        m_ui->subtitleWidget->setMaximumWidth(QWIDGETSIZE_MAX);
-        m_ui->subtitleWidget->showIfNeeded();
-        m_ui->layoutPlayerSubs->layout()->addWidget(m_ui->subtitleWidget);
-
-        m_ui->controls->setMinimumWidth(0);
-        m_ui->controls->setMaximumWidth(QWIDGETSIZE_MAX);
-        m_ui->controls->show();
+        m_subtitle.layoutPlayerOverlay->removeWidget(m_ui->controls);
         m_ui->centralwidget->layout()->addWidget(m_ui->controls);
+        m_ui->controls->show();
     }
-}
-
-void MainWindow::resizeFullscreenControls()
-{
-    if (!isFullScreen())
-        return;
-
-    m_ui->controls->setFixedWidth(width() - m_ui->listSubtitles->width());
-    m_ui->controls->move(0, height() - m_ui->controls->height());
-
-    m_ui->subtitleWidget->setFixedWidth(width() - m_ui->listSubtitles->width());
-    m_ui->subtitleWidget->move(0, height() - m_ui->controls->height() - m_ui->subtitleWidget->height());
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
@@ -430,7 +395,7 @@ void MainWindow::setTerms(const QList<Term *> *terms)
 {
     deleteDefinitionWidget();
     
-    m_definition = new DefinitionWidget(terms, this);
+    m_definition = new DefinitionWidget(terms, m_ui->player);
     setDefinitionWidgetLocation();
     m_definition->show();
 }
@@ -492,7 +457,7 @@ void MainWindow::setDefinitionWidgetLocation()
         x = m_ui->player->width() - m_definition->width();
     }
     
-    int y = height() - m_ui->controls->height() - m_ui->subtitleWidget->height() - m_definition->height();
+    int y = m_subtitle.subtitleWidget->pos().y() - m_definition->height();
 
     m_definition->move(x, y);
 }
@@ -509,7 +474,7 @@ void MainWindow::deleteDefinitionWidget()
 
 inline bool MainWindow::isMouseOverPlayer()
 {
-    return !m_ui->controls->underMouse() && !m_ui->subtitleWidget->underMouse() &&
+    return !m_ui->controls->underMouse() && !m_subtitle.subtitleWidget->underMouse() &&
            (m_definition == nullptr || m_definition && !m_definition->underMouse());
 }
 
@@ -518,14 +483,8 @@ void MainWindow::hideControls()
     if (isFullScreen() && isMouseOverPlayer())
     {
         m_ui->controls->hide();
-        m_ui->subtitleWidget->hide();
         deleteDefinitionWidget();
     }
-}
-
-void MainWindow::hidePlayerCursor()
-{
-    m_ui->player->setCursor(Qt::BlankCursor);
 }
 
 void MainWindow::clearTracks()

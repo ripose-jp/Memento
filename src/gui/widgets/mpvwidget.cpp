@@ -20,6 +20,8 @@
 
 #include "mpvwidget.h"
 
+#include "../../util/globalmediator.h"
+
 #include <stdexcept>
 #include <QtGui/QOpenGLContext>
 #include <QApplication>
@@ -101,6 +103,16 @@ MpvWidget::MpvWidget(QWidget *parent)
     mpv_set_wakeup_callback(mpv, wakeup, this);
 
     connect(m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
+    connect(m_cursorTimer, &QTimer::timeout, this, 
+        [=] {
+            setCursor(Qt::BlankCursor);
+        }
+    );
+    connect(GlobalMediator::getGlobalMediator(), &GlobalMediator::definitionsHidden, this, 
+        [=] {
+            m_cursorTimer->start(TIMEOUT);
+        }
+    );
 }
 
 MpvWidget::~MpvWidget()
