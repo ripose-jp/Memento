@@ -421,7 +421,10 @@ void MainWindow::setTerms(const QList<Term *> *terms)
     
     m_definition = new DefinitionWidget(terms, m_ui->player);
     setDefinitionWidgetLocation();
-    m_definition->show();
+    if (m_definition)
+    {
+        m_definition->show();
+    }
 }
 
 void MainWindow::repositionSubtitles()
@@ -528,8 +531,19 @@ void MainWindow::setDefinitionWidgetLocation()
     }
     
     int y = m_subtitle.subtitleWidget->pos().y() - m_definition->height();
+    if (y < 0)
+    {
+        y = m_subtitle.subtitleWidget->pos().y() + m_subtitle.subtitleWidget->height();
+    }
 
-    m_definition->move(x, y);
+    if (y + m_definition->height() > m_ui->player->height())
+    {
+        deleteDefinitionWidget();
+    }
+    else
+    {
+        m_definition->move(x, y);
+    }
 }
 
 void MainWindow::deleteDefinitionWidget()
