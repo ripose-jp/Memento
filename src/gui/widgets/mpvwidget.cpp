@@ -27,6 +27,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QDebug>
+#include <QMessageBox>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #include <winbase.h>
@@ -78,7 +79,11 @@ MpvWidget::MpvWidget(QWidget *parent)
     mpv_set_option_string(mpv, "input-conf", inputFile);
 
     if (mpv_initialize(mpv) < 0)
-        throw std::runtime_error("could not initialize mpv context");
+    {
+        QMessageBox message;
+        message.critical(0, "Could not start mpv", "Failed to initialize mpv context");
+        QCoreApplication::exit(EXIT_FAILURE);
+    }
 
     mpv_observe_property(mpv, 0, "duration", MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv, 0, "time-pos", MPV_FORMAT_DOUBLE);

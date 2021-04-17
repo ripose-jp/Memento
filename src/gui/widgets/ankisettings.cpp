@@ -135,36 +135,7 @@ void AnkiSettings::hideEvent(QHideEvent *event)
 void AnkiSettings::enabledStateChanged(int state)
 {
     bool enabled = state == Qt::CheckState::Checked;
-
-    // Buttons
-    m_ui->buttonConnect->setEnabled(enabled);
-    m_ui->buttonAdd->setEnabled(enabled);
-    m_ui->buttonDelete->setEnabled(enabled);
-
-    // Combo Boxes
-    m_ui->comboBoxProfile->setEnabled(enabled);
-    m_ui->comboBoxDuplicates->setEnabled(enabled);
-    m_ui->comboBoxScreenshot->setEnabled(enabled);
-
-    // Labels
-    m_ui->labelHostName->setEnabled(enabled);
-    m_ui->labelPort->setEnabled(enabled);
-    m_ui->labelTags->setEnabled(enabled);
-    m_ui->labelProfile->setEnabled(enabled);
-    m_ui->labelProfileName->setEnabled(enabled);
-    m_ui->labelDuplicates->setEnabled(enabled);
-    m_ui->labelScreenshot->setEnabled(enabled);
-
-    // Line Edits
-    m_ui->lineEditHost->setEnabled(enabled);
-    m_ui->lineEditPort->setEnabled(enabled);
-    m_ui->lineEditTags->setEnabled(enabled);
-    m_ui->lineEditProfileName->setEnabled(enabled);
-
-    // Tabs
-    m_ui->tabTermKanji->setEnabled(enabled);
-    m_ui->termCardBuilder->setEnabled(enabled);
-    m_ui->kanjiCardBuilder->setEnabled(enabled);
+    m_ui->frameContent->setEnabled(enabled);
 }
 
 void AnkiSettings::addProfile()
