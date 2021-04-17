@@ -465,9 +465,6 @@ QString MpvAdapter::tempScreenshot(const bool subtitles, const QString &ext)
     QByteArray filename = (file.fileName() + ext).toUtf8();
     file.close();
 
-    const bool visibility = getSubVisibility();
-    setSubVisiblity(true);
-
     const char *args[4] = {
         "screenshot-to-file",
         filename,
@@ -479,8 +476,6 @@ QString MpvAdapter::tempScreenshot(const bool subtitles, const QString &ext)
         qDebug() << "Could not take temporary screenshot";
         return "";
     }
-
-    setSubVisiblity(visibility);
 
     return filename;
 }

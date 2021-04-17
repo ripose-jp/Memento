@@ -1024,8 +1024,13 @@ void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
         if (!fieldsWithScreenshot.isEmpty())
         {
             QJsonObject image;
-            QString path = GlobalMediator::getGlobalMediator()->getPlayerAdapter()->tempScreenshot(true, imageExt);
+            
+            PlayerAdapter *player = GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+            const bool visibility = player->getSubVisibility();
+            player->setSubVisiblity(true);
+            QString path = player->tempScreenshot(true, imageExt);
             image[ANKI_NOTE_PATH] = path;
+            player->setSubVisiblity(visibility);
 
             QString filename = generateMD5(path) + imageExt;
             image[ANKI_NOTE_FILENAME] = filename;
