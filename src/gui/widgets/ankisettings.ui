@@ -33,8 +33,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>344</width>
-        <height>1010</height>
+        <width>359</width>
+        <height>890</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -47,6 +47,9 @@
        </item>
        <item>
         <widget class="QFrame" name="frameContent">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="frameShape">
           <enum>QFrame::NoFrame</enum>
          </property>
