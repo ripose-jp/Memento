@@ -65,6 +65,7 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
     /* Slots */
     connect(m_findDelay, &QTimer::timeout,                          this, &SubtitleWidget::findTerms);
     connect(mediator,    &GlobalMediator::searchSettingsChanged,    this, &SubtitleWidget::loadSettings);
+    connect(mediator,    &GlobalMediator::playerResized,            this, &SubtitleWidget::setTheme);
     connect(mediator,    &GlobalMediator::interfaceSettingsChanged, this, &SubtitleWidget::setTheme);
     connect(mediator,    &GlobalMediator::definitionsHidden,        this, &SubtitleWidget::deselectText);
     connect(mediator,    &GlobalMediator::definitionsShown,         this, &SubtitleWidget::setSelectedText);
@@ -97,29 +98,80 @@ SubtitleWidget::~SubtitleWidget()
 
 void SubtitleWidget::setTheme()
 {
-    setStyleSheet(
-        "QTextEdit { font-size: 20pt; color: white; background: rgba(0, 0, 0, 0); font-weight: bold; }"
-    );
-    /*
     QSettings settings;
     settings.beginGroup(SETTINGS_INTERFACE);
-    if (settings.value(SETTINGS_INTERFACE_STYLESHEETS, SETTINGS_INTERFACE_STYLESHEETS_DEFAULT).toBool())
-    {
-        setStyleSheet(
-            settings.value(
-                SETTINGS_INTERFACE_SUBTITLE_SEARCH_STYLE,
-                SETTINGS_INTERFACE_SUBTITLE_SEARCH_STYLE_DEFAULT
-            ).toString()
-        );
-    }
-    else
-    {
-        setStyleSheet(SETTINGS_INTERFACE_SUBTITLE_SEARCH_STYLE_DEFAULT);
-    }
+
+    QFont font(
+        settings.value(
+            SETTINGS_INTERFACE_SUB_FONT,
+            SETTINGS_INTERFACE_SUB_FONT_DEFAULT
+        ).toString()
+    );
+    font.setBold(
+        settings.value(
+            SETTINGS_INTERFACE_SUB_FONT_BOLD,
+            SETTINGS_INTERFACE_SUB_FONT_BOLD_DEFAULT
+        ).toBool()
+    );
+    font.setItalic(
+        settings.value(
+            SETTINGS_INTERFACE_SUB_FONT_ITALICS,
+            SETTINGS_INTERFACE_SUB_FONT_ITALICS_DEFAULT
+        ).toBool()
+    );
+    font.setStyleStrategy(QFont::PreferAntialias);
+    setFont(font);
+
+    QString stylesheetFormat = 
+        "QTextEdit {"
+            "font-size: %1px;"
+            "color: rgba(%2, %3, %4, %5);"
+            "background: rgba(%6, %7, %8, %9);"
+        "}";
+
+    int fontSize = (int)
+        GlobalMediator::getGlobalMediator()->getPlayerWidget()->height() * 
+        settings.value(SETTINGS_INTERFACE_SUB_SCALE, SETTINGS_INTERFACE_SUB_SCALE_DEFAULT).toDouble();
+    QColor fontColor(
+        settings.value(
+            SETTINGS_INTERFACE_SUB_TEXT_COLOR, 
+            SETTINGS_INTERFACE_SUB_TEXT_COLOR_DEFAULT
+        ).toString()
+    );
+    QColor bgColor(
+        settings.value(
+            SETTINGS_INTERFACE_SUB_BG_COLOR, 
+            SETTINGS_INTERFACE_SUB_BG_COLOR_DEFAULT
+        ).toString()
+    );
+
+    setStyleSheet(
+        stylesheetFormat.arg(QString::number(fontSize))
+                        .arg(QString::number(fontColor.red()))
+                        .arg(QString::number(fontColor.green()))
+                        .arg(QString::number(fontColor.blue()))
+                        .arg(QString::number(fontColor.alpha()))
+                        .arg(QString::number(bgColor.red()))
+                        .arg(QString::number(bgColor.green()))
+                        .arg(QString::number(bgColor.blue()))
+                        .arg(QString::number(bgColor.alpha()))
+
+    );
+
+    m_strokeColor.setNamedColor(
+        settings.value(
+            SETTINGS_INTERFACE_SUB_STROKE_COLOR,
+            SETTINGS_INTERFACE_SUB_STROKE_COLOR_DEFAULT
+        ).toString()
+    );
+    m_strokeSize = settings.value(
+        SETTINGS_INTERFACE_SUB_STROKE,
+        SETTINGS_INTERFACE_SUB_STROKE_DEFAULT
+    ).toDouble();
+
     settings.endGroup();
-    initializeSize();
+
     setSubtitle(m_rawText, m_startTime, m_endTime, 0);
-    */
 }
 
 void SubtitleWidget::showIfNeeded()
@@ -370,12 +422,12 @@ void SubtitleWidget::deleteTerms(QList<Term *> *terms)
 void SubtitleWidget::paintEvent(QPaintEvent *event)
 {
     QTextCharFormat format;
-    format.setTextOutline (QPen (QColor(0, 0, 0), 5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin)); // Color and width of outline
-    QTextCursor cursor (this->document());
+    format.setTextOutline(QPen(m_strokeColor, m_strokeSize, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    QTextCursor cursor(document());
     cursor.select(QTextCursor::Document);
     cursor.mergeCharFormat(format);
     QTextEdit::paintEvent(event);
-    format.setTextOutline(QPen (Qt::transparent));
+    format.setTextOutline(QPen(Qt::transparent));
     cursor.mergeCharFormat(format);
     QTextEdit::paintEvent(event);
 }

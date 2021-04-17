@@ -27,6 +27,7 @@ class Dictionary;
 class PlayerAdapter;
 class AnkiClient;
 class SubtitleListWidget;
+class QWidget;
 
 class QKeyEvent;
 class QWheelEvent;
@@ -47,12 +48,14 @@ public:
 
     Dictionary         *getDictionary()         const;
     PlayerAdapter      *getPlayerAdapter()      const;
+    QWidget            *getPlayerWidget()       const;
     AnkiClient         *getAnkiClient()         const;
     SubtitleListWidget *getSubtitleListWidget() const;
 
     /* Mediator does not take ownership */
     GlobalMediator *setDictionary   (Dictionary         *dictionary);
     GlobalMediator *setPlayerAdapter(PlayerAdapter      *player);
+    GlobalMediator *setPlayerWidget (QWidget            *widget);
     GlobalMediator *setAnkiClient   (AnkiClient         *client);
     GlobalMediator *setSubtitleList (SubtitleListWidget *subList);
 
@@ -93,6 +96,8 @@ Q_SIGNALS:
     void playerCursorHidden()                 const;
     void playerMouseMoved(QMouseEvent *event) const;
     void playerClosed()                       const;
+
+    void playerResized() const;
 
     /* Settings Signals */
     void ankiSettingsChanged()      const;
@@ -142,6 +147,7 @@ private:
     Dictionary         *m_dictionary;
     AnkiClient         *m_ankiClient;
     PlayerAdapter      *m_player;
+    QWidget            *m_playerWidget;
     SubtitleListWidget *m_subList;
 
     GlobalMediator(QObject *parent = nullptr);

@@ -102,6 +102,8 @@ MpvWidget::MpvWidget(QWidget *parent)
 
     mpv_set_wakeup_callback(mpv, wakeup, this);
 
+    GlobalMediator::getGlobalMediator()->setPlayerWidget(this);
+
     connect(m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
     connect(m_cursorTimer, &QTimer::timeout, this, 
         [=] {
@@ -457,4 +459,11 @@ QString MpvWidget::convertToMouseString(const QMouseEvent *event) const
         return "MBTN_FORWARD";
     }
     return "";
+}
+
+void MpvWidget::resizeEvent(QResizeEvent *event) 
+{
+    event->ignore();
+    QOpenGLWidget::resizeEvent(event);
+    Q_EMIT GlobalMediator::getGlobalMediator()->playerResized();
 }

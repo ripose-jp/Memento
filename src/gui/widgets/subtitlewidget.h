@@ -84,6 +84,8 @@ private:
     bool            m_hideOnPlay;
     bool            m_replaceNewLines;
     QString         m_replaceStr;
+    QColor          m_strokeColor;
+    double          m_strokeSize;
 
     void deleteTerms(QList<Term *> *terms);
 };

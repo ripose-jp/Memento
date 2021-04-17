@@ -24,10 +24,11 @@
 
 GlobalMediator::GlobalMediator(QObject *parent) : QObject(parent)
 {
-    m_dictionary  = nullptr;
-    m_ankiClient = nullptr;
-    m_player     = nullptr;
-    m_subList    = nullptr;
+    m_dictionary   = nullptr;
+    m_ankiClient   = nullptr;
+    m_player       = nullptr;
+    m_playerWidget = nullptr;
+    m_subList      = nullptr;
 }
 
 GlobalMediator *GlobalMediator::createGlobalMedaitor()
@@ -51,6 +52,11 @@ PlayerAdapter *GlobalMediator::getPlayerAdapter() const
     return m_player;
 }
 
+QWidget *GlobalMediator::getPlayerWidget() const
+{
+    return m_playerWidget;
+}
+
 AnkiClient *GlobalMediator::getAnkiClient() const
 {
     return m_ankiClient;
@@ -70,6 +76,12 @@ GlobalMediator *GlobalMediator::setDictionary(Dictionary *dictionary)
 GlobalMediator *GlobalMediator::setPlayerAdapter(PlayerAdapter *player)
 {
     m_player = player;
+    return m_mediator;
+}
+
+GlobalMediator *GlobalMediator::setPlayerWidget(QWidget *widget)
+{
+    m_playerWidget = widget;
     return m_mediator;
 }
 
