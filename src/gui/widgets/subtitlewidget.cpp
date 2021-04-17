@@ -83,6 +83,7 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
 
 SubtitleWidget::~SubtitleWidget()
 {
+    disconnect();
     delete m_findDelay;
 }
 

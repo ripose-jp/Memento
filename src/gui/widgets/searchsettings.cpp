@@ -54,6 +54,7 @@ SearchSettings::SearchSettings(QWidget *parent) : QWidget(parent), m_ui(new Ui::
 
 SearchSettings::~SearchSettings()
 {
+    disconnect();
     delete m_ui;
 }
 

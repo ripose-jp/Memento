@@ -28,7 +28,7 @@ class MpvAdapter : public PlayerAdapter
 {
 public:
     MpvAdapter(MpvWidget *mpv, QObject *parent = 0);
-    virtual ~MpvAdapter() {}
+    virtual ~MpvAdapter() { disconnect(); }
 
     int64_t getMaxVolume() const Q_DECL_OVERRIDE;
 

@@ -73,6 +73,7 @@ InterfaceSettings::InterfaceSettings(QWidget *parent) : QWidget(parent), m_ui(ne
 
 InterfaceSettings::~InterfaceSettings()
 {
+    disconnect();
     delete m_ui;
 }
 

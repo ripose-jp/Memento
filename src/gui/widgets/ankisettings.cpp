@@ -89,6 +89,7 @@ AnkiSettings::AnkiSettings(QWidget *parent)
 
 AnkiSettings::~AnkiSettings()
 {
+    disconnect();
     delete m_ui;
     delete m_ankiSettingsHelp;
     clearConfigs();

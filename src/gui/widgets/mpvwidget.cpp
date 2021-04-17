@@ -124,6 +124,7 @@ MpvWidget::MpvWidget(QWidget *parent)
 
 MpvWidget::~MpvWidget()
 {
+    disconnect();
     makeCurrent();
     if (mpv_gl)
         mpv_render_context_free(mpv_gl);

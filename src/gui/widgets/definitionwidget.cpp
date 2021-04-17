@@ -125,6 +125,7 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, QWidget *parent)
 
 DefinitionWidget::~DefinitionWidget()
 {
+    disconnect();
     for (const Term *term : *m_terms)
     {
         delete term;

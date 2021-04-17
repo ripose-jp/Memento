@@ -39,11 +39,8 @@ PlayerControls::PlayerControls(QWidget *parent)
 {
     m_ui->setupUi(this);
 
-    refreshIcons();
+    refreshTheme();
     setCursor(Qt::ArrowCursor);
-
-    m_ui->sliderProgress->setStyle(new SliderJumpStyle(m_ui->sliderProgress->style()));
-    m_ui->sliderVolume->setStyle(new SliderJumpStyle(m_ui->sliderVolume->style()));
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
@@ -80,15 +77,16 @@ PlayerControls::PlayerControls(QWidget *parent)
     connect(mediator, &GlobalMediator::playerVolumeChanged,     this, &PlayerControls::setVolume);
     connect(mediator, &GlobalMediator::playerDurationChanged,   this, &PlayerControls::setDuration);
     connect(mediator, &GlobalMediator::playerPositionChanged,   this, &PlayerControls::setPosition);
-    connect(mediator, &GlobalMediator::requestThemeRefresh,     this, &PlayerControls::refreshIcons);
+    connect(mediator, &GlobalMediator::requestThemeRefresh,     this, &PlayerControls::refreshTheme);
 }
 
 PlayerControls::~PlayerControls()
 {
+    disconnect();
     delete m_ui;
 }
 
-void PlayerControls::refreshIcons()
+void PlayerControls::refreshTheme()
 {
     IconFactory *factory = IconFactory::create();
     m_ui->buttonPlay->         setIcon(factory->getIcon(m_paused ? IconFactory::Icon::play : IconFactory::Icon::pause));
@@ -98,6 +96,9 @@ void PlayerControls::refreshIcons()
     m_ui->buttonSkipBackward-> setIcon(factory->getIcon(IconFactory::Icon::skip_backward));
     m_ui->buttonSkipForward->  setIcon(factory->getIcon(IconFactory::Icon::skip_forward));
     m_ui->buttonToggleSubList->setIcon(factory->getIcon(IconFactory::Icon::hamburger));
+
+    m_ui->sliderProgress->setStyle(new SliderJumpStyle(QApplication::style()));
+    m_ui->sliderVolume->setStyle(new SliderJumpStyle(QApplication::style()));
 }
 
 void PlayerControls::setDuration(const double value)

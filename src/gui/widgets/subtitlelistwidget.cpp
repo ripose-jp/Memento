@@ -53,6 +53,7 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
 
 SubtitleListWidget::~SubtitleListWidget()
 {
+    disconnect();
     delete m_seenSubtitles;
     delete m_subStartTimes;
 }

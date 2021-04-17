@@ -53,7 +53,7 @@ protected:
     void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
     
 private Q_SLOTS:
-    void refreshIcons();
+    void refreshTheme();
     void pauseResume();
     void toggleFullscreen();
 

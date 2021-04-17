@@ -56,6 +56,7 @@ DictionarySettings::DictionarySettings(QWidget *parent) : QWidget(parent), m_ui(
 
 DictionarySettings::~DictionarySettings()
 {
+    disconnect();
     delete m_ui;
 }
 

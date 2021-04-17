@@ -46,6 +46,7 @@ OptionsWindow::OptionsWindow(QWidget *parent)
 
 OptionsWindow::~OptionsWindow()
 {
+    disconnect();
     delete m_ui;
 }
 

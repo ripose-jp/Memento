@@ -224,6 +224,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    disconnect();
     clearTracks();
 
     /* Widgets */
