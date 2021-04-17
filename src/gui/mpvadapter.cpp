@@ -73,6 +73,8 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     connect(mediator, &GlobalMediator::keyPressed,                this, &PlayerAdapter::keyPressed);
     connect(mediator, &GlobalMediator::wheelMoved,                this, &PlayerAdapter::mouseWheelMoved);
 
+    connect(mediator, &GlobalMediator::requestSetSubtitleVisibility, this, &PlayerAdapter::setSubVisiblity);
+
     GlobalMediator::getGlobalMediator()->setPlayerAdapter(this);
 }
 

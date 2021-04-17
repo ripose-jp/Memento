@@ -167,10 +167,10 @@
    <widget class="QMenu" name="menuSettings">
     <property name="geometry">
      <rect>
-      <x>494</x>
-      <y>170</y>
+      <x>1003</x>
+      <y>325</y>
       <width>200</width>
-      <height>181</height>
+      <height>211</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -195,11 +195,21 @@
       <string>Anki Profile</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menuSubtitle_Search">
+     <property name="title">
+      <string>Subtitle Search</string>
+     </property>
+     <addaction name="actionIncreaseSize"/>
+     <addaction name="actionDecreaseSize"/>
+     <addaction name="actionMoveUp"/>
+     <addaction name="actionMoveDown"/>
+    </widget>
     <addaction name="menuAnkiProfile"/>
+    <addaction name="menuSubtitle_Search"/>
     <addaction name="actionOptions"/>
     <addaction name="separator"/>
-    <addaction name="actionUpdate"/>
     <addaction name="actionAbout"/>
+    <addaction name="actionUpdate"/>
    </widget>
    <addaction name="menuMedia"/>
    <addaction name="menuAudio"/>
@@ -277,6 +287,38 @@
   <action name="actionAbout">
    <property name="text">
     <string>About Memento</string>
+   </property>
+  </action>
+  <action name="actionIncreaseSize">
+   <property name="text">
+    <string>Increase Size</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
+   </property>
+  </action>
+  <action name="actionDecreaseSize">
+   <property name="text">
+    <string>Decrease Size</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
+  </action>
+  <action name="actionMoveUp">
+   <property name="text">
+    <string>Move Up</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+2</string>
+   </property>
+  </action>
+  <action name="actionMoveDown">
+   <property name="text">
+    <string>Move Down</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+1</string>
    </property>
   </action>
  </widget>

@@ -40,8 +40,7 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
                                                   m_dictionary(new Dictionary),
                                                   m_currentIndex(-1),
                                                   m_findDelay(new QTimer(this)),
-                                                  m_paused(true),
-                                                  m_fullscreen(false)
+                                                  m_paused(true)
 {
     setTheme();
 
@@ -73,22 +72,10 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
     connect(mediator,    &GlobalMediator::definitionsShown,         this, &SubtitleWidget::setSelectedText);
     connect(mediator,    &GlobalMediator::playerSubtitleChanged,    this, &SubtitleWidget::setSubtitle);
     connect(mediator,    &GlobalMediator::playerPositionChanged,    this, &SubtitleWidget::postitionChanged);
-    connect(mediator,    &GlobalMediator::playerFullscreenChanged,  this, 
-        [=] (const bool full) {
-            m_fullscreen = full;
-        }
-    );
-    connect(mediator,    &GlobalMediator::playerPauseStateChanged, this, 
+    connect(mediator,    &GlobalMediator::playerPauseStateChanged,  this, 
         [=] (const bool paused) {
             m_paused = paused;
-            if (m_paused && !m_fullscreen)
-            {
-                showIfNeeded();
-            }
-            else if (!m_paused && m_hideOnPlay)
-            {
-                hide();
-            }
+            adjustVisibility();
         }
     );
 }
@@ -176,19 +163,23 @@ void SubtitleWidget::setTheme()
     setSubtitle(m_rawText, m_startTime, m_endTime, 0);
 }
 
-void SubtitleWidget::showIfNeeded()
+void SubtitleWidget::adjustVisibility()
 {
-    if (!m_hideOnPlay)
+    if (toPlainText().isEmpty())
+    {
+        hide();
+    }
+    else if (m_paused)
     {
         show();
     }
-    else if (toPlainText().isEmpty())
+    else if (m_hideOnPlay)
     {
         hide();
     }
     else
     {
-        setVisible(m_paused);
+        show();
     }
 }
 
@@ -232,7 +223,7 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     m_endTime = end + delay;
     m_currentIndex = -1;
 
-    showIfNeeded();
+    adjustVisibility();
 
     setUpdatesEnabled(true);
 }
@@ -318,14 +309,7 @@ void SubtitleWidget::loadSettings()
     }
 
     m_hideOnPlay = settings.value(SETTINGS_SEARCH_HIDE_BAR, DEFAULT_HIDE_BAR).toBool();
-    if (m_paused)
-    {
-        showIfNeeded();
-    }
-    else if (m_hideOnPlay)
-    {
-        hide();
-    }
+    adjustVisibility();
     
     m_replaceNewLines = settings.value(SETTINGS_SEARCH_REPLACE_LINES, DEFAULT_REPLACE_LINES).toBool();
     m_replaceStr      = settings.value(SETTINGS_SERACH_REPLACE_WITH,  DEFAULT_REPLACE_WITH).toString();
@@ -456,14 +440,14 @@ void SubtitleWidget::showEvent(QShowEvent *event)
 {
     if (m_hideSubsWhenVisible)
     {
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter()->setSubVisiblity(false);
+        Q_EMIT GlobalMediator::getGlobalMediator()->requestSetSubtitleVisibility(false);
     }
 }
 
 void SubtitleWidget::hideEvent(QHideEvent *event)
 {
-    if (m_hideSubsWhenVisible)
+    if (m_hideSubsWhenVisible && m_hideOnPlay)
     {
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter()->setSubVisiblity(true);
+        Q_EMIT GlobalMediator::getGlobalMediator()->requestSetSubtitleVisibility(true);
     }
 }

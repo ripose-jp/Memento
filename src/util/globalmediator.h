@@ -120,6 +120,9 @@ Q_SIGNALS:
     void controlsVolumeChanged    (const int  value) const;
     void controlsFullscreenChanged(const bool value) const;
 
+    /* Player Requests */
+    void requestSetSubtitleVisibility(const bool value) const;
+
     /* Subtitle Widget Signals */
     void termsChanged(const QList<Term *> *terms) const;
     void subtitleExpired() const;
