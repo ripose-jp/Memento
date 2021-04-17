@@ -60,6 +60,8 @@ public:
     virtual double getSubEnd() const = 0;
     virtual double getSubDelay() const = 0;
 
+    virtual bool getSubVisibility() const = 0;
+
     virtual double getAudioDelay() const = 0;
 
     virtual QList<const Track *> getTracks() = 0;
@@ -92,6 +94,8 @@ public Q_SLOTS:
     virtual void disableVideo() = 0;
     virtual void disableSubtitles() = 0;
     virtual void disableSubtitleTwo() = 0;
+
+    virtual void setSubVisiblity(const bool visible) = 0;
 
     virtual void setAudioTrack(int64_t id) = 0;
     virtual void setVideoTrack(int64_t id) = 0;

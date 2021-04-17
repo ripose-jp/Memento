@@ -119,6 +119,17 @@ double MpvAdapter::getSubDelay() const
     }
     return delay;
 }
+
+bool MpvAdapter::getSubVisibility() const
+{
+    int flag;
+    if (mpv_get_property(m_handle, "sub-visibility", MPV_FORMAT_FLAG, &flag) < 0)
+    {
+        qDebug() << "Could not get mpv sub-visibility property";
+        return 0;
+    }
+    return flag;
+}
     
 double MpvAdapter::getAudioDelay() const
 {
@@ -385,6 +396,15 @@ void MpvAdapter::disableSubtitleTwo()
     }
 }
 
+void MpvAdapter::setSubVisiblity(const bool visible)
+{
+    int flag = visible ? 1 : 0;
+    if (mpv_set_property(m_handle, "sub-visibility", MPV_FORMAT_FLAG, &flag) < 0)
+    {
+        qDebug() << "Could not set mpv property sub-visibility to" << flag;
+    }
+}
+
 void MpvAdapter::setAudioTrack(int64_t id)
 {
     if (mpv_set_property(m_handle, "aid", MPV_FORMAT_INT64, &id) < 0)
@@ -443,6 +463,9 @@ QString MpvAdapter::tempScreenshot(const bool subtitles, const QString &ext)
     QByteArray filename = (file.fileName() + ext).toUtf8();
     file.close();
 
+    const bool visibility = getSubVisibility();
+    setSubVisiblity(true);
+
     const char *args[4] = {
         "screenshot-to-file",
         filename,
@@ -454,6 +477,8 @@ QString MpvAdapter::tempScreenshot(const bool subtitles, const QString &ext)
         qDebug() << "Could not take temporary screenshot";
         return "";
     }
+
+    setSubVisiblity(visibility);
 
     return filename;
 }

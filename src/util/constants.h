@@ -32,6 +32,7 @@
 #define SETTINGS_SEARCH_METHOD          "method"
 #define SETTINGS_SEARCH_DELAY           "delay"
 #define SETTINGS_SEARCH_MODIFIER        "modifier"
+#define SETTINGS_SEARCH_HIDE_SUBS       "hide-subs"
 #define SETTINGS_SEARCH_HIDE_BAR        "hide-bar"
 #define SETTINGS_SEARCH_REPLACE_LINES   "replace-lines"
 #define SETTINGS_SERACH_REPLACE_WITH    "replace-with"
@@ -48,6 +49,7 @@
 #define DEFAULT_METHOD                  SEARCH_METHOD_HOVER
 #define DEFAULT_DELAY                   250
 #define DEFAULT_MODIFIER                MODIFIER_SHIFT
+#define DEFAULT_HIDE_SUBS               true
 #define DEFAULT_HIDE_BAR                true
 #define DEFAULT_REPLACE_LINES           false
 #define DEFAULT_REPLACE_WITH            ""

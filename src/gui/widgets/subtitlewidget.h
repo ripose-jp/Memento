@@ -44,6 +44,8 @@ protected:
     void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+    void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
@@ -81,6 +83,7 @@ private:
     SearchMethod    m_method;
     int             m_delay;
     Qt::Modifier    m_modifier;
+    bool            m_hideSubsWhenVisible;
     bool            m_hideOnPlay;
     bool            m_replaceNewLines;
     QString         m_replaceStr;

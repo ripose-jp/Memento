@@ -35,6 +35,8 @@ public:
     double getSubStart() const Q_DECL_OVERRIDE;
     double getSubEnd() const Q_DECL_OVERRIDE;
     double getSubDelay() const Q_DECL_OVERRIDE;
+
+    bool getSubVisibility() const Q_DECL_OVERRIDE;
     
     double getAudioDelay() const Q_DECL_OVERRIDE;
 
@@ -68,6 +70,8 @@ public Q_SLOTS:
     void disableVideo() Q_DECL_OVERRIDE;
     void disableSubtitles() Q_DECL_OVERRIDE;
     void disableSubtitleTwo() Q_DECL_OVERRIDE;
+
+    void setSubVisiblity(const bool visible) Q_DECL_OVERRIDE;
 
     void setAudioTrack(int64_t id) Q_DECL_OVERRIDE;
     void setVideoTrack(int64_t id) Q_DECL_OVERRIDE;

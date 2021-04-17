@@ -75,6 +75,7 @@ target_link_libraries(
     Qt5::Widgets
     globalmediator
     dictionary_db
+    mpvadapter
 )
 
 add_library(

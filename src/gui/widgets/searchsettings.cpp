@@ -65,6 +65,7 @@ void SearchSettings::resetSaved()
     m_ui->comboBoxMethod      ->setCurrentText(settings.value(SETTINGS_SEARCH_METHOD,        DEFAULT_METHOD  ).toString());
     m_ui->spinBoxDelay        ->setValue      (settings.value(SETTINGS_SEARCH_DELAY,         DEFAULT_DELAY   ).toInt());
     m_ui->comboBoxModifier    ->setCurrentText(settings.value(SETTINGS_SEARCH_MODIFIER,      DEFAULT_MODIFIER).toString());
+    m_ui->checkHideSubs       ->setChecked    (settings.value(SETTINGS_SEARCH_HIDE_SUBS,     DEFAULT_HIDE_SUBS).toBool());
     m_ui->checkHideSearch     ->setChecked    (settings.value(SETTINGS_SEARCH_HIDE_BAR,      DEFAULT_HIDE_BAR).toBool());
     m_ui->checkReplaceNewLines->setChecked    (settings.value(SETTINGS_SEARCH_REPLACE_LINES, DEFAULT_REPLACE_LINES).toBool());
     m_ui->lineEditReplace     ->setText       (settings.value(SETTINGS_SERACH_REPLACE_WITH,  DEFAULT_REPLACE_WITH).toString());
@@ -77,6 +78,7 @@ void SearchSettings::resetDefault()
     m_ui->comboBoxMethod      ->setCurrentText(DEFAULT_METHOD);
     m_ui->spinBoxDelay        ->setValue      (DEFAULT_DELAY);
     m_ui->comboBoxModifier    ->setCurrentText(DEFAULT_MODIFIER);
+    m_ui->checkHideSubs       ->setChecked    (DEFAULT_HIDE_SUBS);
     m_ui->checkHideSearch     ->setChecked    (DEFAULT_HIDE_BAR);
     m_ui->checkReplaceNewLines->setChecked    (DEFAULT_REPLACE_LINES);
     m_ui->lineEditReplace     ->setText       (DEFAULT_REPLACE_WITH);
@@ -90,6 +92,7 @@ void SearchSettings::applySettings()
     settings.setValue(SETTINGS_SEARCH_METHOD,        m_ui->comboBoxMethod->currentText());
     settings.setValue(SETTINGS_SEARCH_DELAY,         m_ui->spinBoxDelay->value());
     settings.setValue(SETTINGS_SEARCH_MODIFIER,      m_ui->comboBoxModifier->currentText());
+    settings.setValue(SETTINGS_SEARCH_HIDE_SUBS,     m_ui->checkHideSubs->isChecked());
     settings.setValue(SETTINGS_SEARCH_HIDE_BAR,      m_ui->checkHideSearch->isChecked());
     settings.setValue(SETTINGS_SEARCH_REPLACE_LINES, m_ui->checkReplaceNewLines->isChecked());
     settings.setValue(SETTINGS_SERACH_REPLACE_WITH,  m_ui->lineEditReplace->text());

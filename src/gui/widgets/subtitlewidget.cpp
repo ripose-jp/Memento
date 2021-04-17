@@ -24,6 +24,8 @@
 #include "../../util/globalmediator.h"
 #include "../../util/constants.h"
 
+#include "../playeradapter.h"
+
 #include <QApplication>
 #include <QClipboard>
 #include <QThreadPool>
@@ -305,6 +307,16 @@ void SubtitleWidget::loadSettings()
         m_method = SearchMethod::Hover;
     }
 
+    m_hideSubsWhenVisible = settings.value(SETTINGS_SEARCH_HIDE_SUBS, DEFAULT_HIDE_SUBS).toBool();
+    if (m_hideSubsWhenVisible)
+    {
+        GlobalMediator::getGlobalMediator()->getPlayerAdapter()->setSubVisiblity(!isVisible());
+    }
+    else
+    {
+        GlobalMediator::getGlobalMediator()->getPlayerAdapter()->setSubVisiblity(true);
+    }
+
     m_hideOnPlay = settings.value(SETTINGS_SEARCH_HIDE_BAR, DEFAULT_HIDE_BAR).toBool();
     if (m_paused)
     {
@@ -438,4 +450,20 @@ QSize SubtitleWidget::sizeHint() const
     size.rwidth()  = size.width();
     size.rheight() = size.height();
     return size;
+}
+
+void SubtitleWidget::showEvent(QShowEvent *event)
+{
+    if (m_hideSubsWhenVisible)
+    {
+        GlobalMediator::getGlobalMediator()->getPlayerAdapter()->setSubVisiblity(false);
+    }
+}
+
+void SubtitleWidget::hideEvent(QHideEvent *event)
+{
+    if (m_hideSubsWhenVisible)
+    {
+        GlobalMediator::getGlobalMediator()->getPlayerAdapter()->setSubVisiblity(true);
+    }
 }

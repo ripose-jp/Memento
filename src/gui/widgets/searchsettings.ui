@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>612</width>
-    <height>434</height>
+    <height>517</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -28,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>600</width>
-        <height>378</height>
+        <height>461</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layoutScrollArea">
@@ -172,6 +172,13 @@ Changing this value from the default is not recommended.</string>
            <widget class="QComboBox" name="comboBoxModifier"/>
           </item>
          </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkHideSubs">
+         <property name="text">
+          <string>Hide mpv subtitles when search bar is visible</string>
+         </property>
         </widget>
        </item>
        <item>
