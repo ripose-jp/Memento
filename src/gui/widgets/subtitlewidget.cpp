@@ -50,6 +50,7 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
     setAcceptDrops(false);
     setFrameShape(QFrame::Shape::NoFrame);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setLineWrapMode(QTextEdit::NoWrap);
     setReadOnly(true);
     setAcceptRichText(false);
@@ -418,10 +419,6 @@ void SubtitleWidget::fitToContents()
     }
     setFixedWidth(width);
     int height = document()->size().toSize().height();
-    if (horizontalScrollBar()->isVisible())
-    {
-        height += horizontalScrollBar()->height();
-    }
     setFixedHeight(height);
     updateGeometry();
 }
