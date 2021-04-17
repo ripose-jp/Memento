@@ -137,6 +137,9 @@ void AnkiSettings::enabledStateChanged(int state)
 {
     bool enabled = state == Qt::CheckState::Checked;
     m_ui->frameContent->setEnabled(enabled);
+    m_ui->buttonAdd->setEnabled(enabled);
+    m_ui->buttonDelete->setEnabled(enabled);
+    m_ui->buttonConnect->setEnabled(enabled);
 }
 
 void AnkiSettings::addProfile()

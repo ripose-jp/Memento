@@ -97,6 +97,9 @@
             </item>
             <item row="2" column="2">
              <widget class="QToolButton" name="buttonDelete">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="minimumSize">
                <size>
                 <width>30</width>
@@ -117,6 +120,9 @@ Profile Default cannot be removed.</string>
             </item>
             <item row="2" column="3">
              <widget class="QToolButton" name="buttonAdd">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="minimumSize">
                <size>
                 <width>30</width>
@@ -232,6 +238,9 @@ Only change this if you know what you're doing.</string>
             </item>
             <item row="2" column="2">
              <widget class="QPushButton" name="buttonConnect">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="text">
                <string>Connect</string>
               </property>
