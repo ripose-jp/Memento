@@ -436,7 +436,7 @@ void SubtitleWidget::paintEvent(QPaintEvent *event)
     QTextEdit::paintEvent(event);
     
     format = QTextCharFormat();
-    format.setTextOutline(QPen(Qt::transparent));
+    format.setTextOutline(QPen(Qt::transparent)); // Potential SIGSEGV
     cursor.mergeCharFormat(format);
     QTextEdit::paintEvent(event);
 }
