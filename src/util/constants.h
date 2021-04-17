@@ -59,6 +59,7 @@ enum class Theme
     Dark         = 2
 };
 
+/* Interface Settings */
 #define SETTINGS_INTERFACE                                  "interface"
 
 #define SETTINGS_INTERFACE_THEME                            "theme"
@@ -67,9 +68,35 @@ enum class Theme
 #define SETTINGS_INTERFACE_STYLESHEETS                      "stylesheets-enabled"
 #define SETTINGS_INTERFACE_STYLESHEETS_DEFAULT              false
 
-#define SETTINGS_INTERFACE_SUB_OFFSET                       "sub-offset-percent"
+/* Subtitle Interface */
+#define SETTINGS_INTERFACE_SUB_FONT                         "sub-font"
+#define SETTINGS_INTERFACE_SUB_FONT_DEFAULT                 "Noto Sans CJK JP"
+
+#define SETTINGS_INTERFACE_SUB_FONT_BOLD                    "sub-font-bold"
+#define SETTINGS_INTERFACE_SUB_FONT_BOLD_DEFAULT            false
+
+#define SETTINGS_INTERFACE_SUB_FONT_ITALICS                 "sub-font-italics"
+#define SETTINGS_INTERFACE_SUB_FONT_ITALICS_DEFAULT         false
+
+#define SETTINGS_INTERFACE_SUB_SCALE                        "sub-scale"
+#define SETTINGS_INTERFACE_SUB_SCALE_DEFAULT                0.05
+
+#define SETTINGS_INTERFACE_SUB_OFFSET                       "sub-offset"
 #define SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT               0.0
 
+#define SETTINGS_INTERFACE_SUB_STROKE                       "sub-stroke"
+#define SETTINGS_INTERFACE_SUB_STROKE_DEFAULT               2.0
+
+#define SETTINGS_INTERFACE_SUB_TEXT_COLOR                   "sub-text-color"
+#define SETTINGS_INTERFACE_SUB_TEXT_COLOR_DEFAULT           "#FFFFFFFF"
+
+#define SETTINGS_INTERFACE_SUB_BG_COLOR                     "sub-bg-color"
+#define SETTINGS_INTERFACE_SUB_BG_COLOR_DEFAULT             "#00000000"
+
+#define SETTINGS_INTERFACE_SUB_STROKE_COLOR                 "sub-stroke-color"
+#define SETTINGS_INTERFACE_SUB_STROKE_COLOR_DEFAULT         "#FF000000"
+
+/* Stylesheets */
 #define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE              "sublist-style"
 #define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT      \
     "QListWidget {\n"\

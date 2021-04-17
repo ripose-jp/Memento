@@ -120,7 +120,11 @@
              </widget>
             </item>
             <item>
-             <widget class="QFontComboBox" name="fontComboSub"/>
+             <widget class="QFontComboBox" name="fontComboSub">
+              <property name="writingSystem">
+               <enum>QFontDatabase::Japanese</enum>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="QCheckBox" name="checkSubBold">
@@ -140,7 +144,76 @@
           </item>
           <item>
            <layout class="QGridLayout" name="gridLayout">
+            <item row="1" column="8">
+             <widget class="QToolButton" name="buttonSubStroke">
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>The color of the stroke.</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="7" alignment="Qt::AlignRight">
+             <widget class="QLabel" name="labelSubStrokeColor">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Stroke Color</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QDoubleSpinBox" name="spinSubScale">
+              <property name="toolTip">
+               <string>How large the text should appear relative to the size of the player.
+A value of 0.1 would make each character 10% of the height of the player.</string>
+              </property>
+              <property name="decimals">
+               <number>3</number>
+              </property>
+              <property name="maximum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.010000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="7" alignment="Qt::AlignRight">
+             <widget class="QLabel" name="labelSubStrokeSize">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Stroke Size</string>
+              </property>
+             </widget>
+            </item>
             <item row="0" column="1" alignment="Qt::AlignRight">
+             <widget class="QLabel" name="labelSubScale">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Text Scale</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="4" alignment="Qt::AlignRight">
              <widget class="QLabel" name="labelSubOffset">
               <property name="font">
                <font>
@@ -153,7 +226,83 @@
               </property>
              </widget>
             </item>
-            <item row="0" column="2">
+            <item row="0" column="6">
+             <spacer name="horizontalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="1" column="4" alignment="Qt::AlignRight">
+             <widget class="QLabel" name="labelSubBackground">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Background Color</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="9">
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="1" column="1" alignment="Qt::AlignRight">
+             <widget class="QLabel" name="labelSubColor">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Text Color</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="8">
+             <widget class="QDoubleSpinBox" name="spinSubStroke">
+              <property name="toolTip">
+               <string>Size of the stroke around text.
+A value of 0 disables stroke.</string>
+              </property>
+              <property name="decimals">
+               <number>1</number>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="0" column="5">
              <widget class="QDoubleSpinBox" name="spinSubOffset">
               <property name="toolTip">
                <string>How high the subtitle search should appear from the bottom relative the size of the player.
@@ -171,103 +320,18 @@ A value of 1 positions the subtitle at the top.</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="4" alignment="Qt::AlignRight">
-             <widget class="QLabel" name="labelSubStrokeSize">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Stroke Size</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="7" alignment="Qt::AlignRight">
-             <widget class="QLabel" name="labelSubScale">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Text Scale</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="8">
-             <widget class="QToolButton" name="buttonSubBackground">
-              <property name="toolTip">
-               <string>The color of the background.</string>
-              </property>
-              <property name="text">
-               <string>...</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1" alignment="Qt::AlignRight">
-             <widget class="QLabel" name="labelSubColor">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Text Color</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="9">
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
+            <item row="1" column="2">
+             <widget class="QToolButton" name="buttonSubColor">
+              <property name="minimumSize">
                <size>
                 <width>40</width>
-                <height>20</height>
+                <height>40</height>
                </size>
               </property>
-             </spacer>
-            </item>
-            <item row="1" column="4" alignment="Qt::AlignRight">
-             <widget class="QLabel" name="labelSubStrokeColor">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Stroke Color</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="5">
-             <widget class="QToolButton" name="buttonSubStroke">
               <property name="toolTip">
-               <string>The color of the stroke.</string>
-              </property>
-              <property name="text">
-               <string>...</string>
+               <string>The color of the text.</string>
               </property>
              </widget>
-            </item>
-            <item row="0" column="0">
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
             </item>
             <item row="0" column="3">
              <spacer name="horizontalSpacer_3">
@@ -282,69 +346,18 @@ A value of 1 positions the subtitle at the top.</string>
               </property>
              </spacer>
             </item>
-            <item row="1" column="2">
-             <widget class="QToolButton" name="buttonSubColo">
-              <property name="toolTip">
-               <string>The color of the text.</string>
-              </property>
-              <property name="text">
-               <string>...</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="8">
-             <widget class="QDoubleSpinBox" name="spinSubScale">
-              <property name="toolTip">
-               <string>How large the text should appear relative to the size of the player.
-A value of 0.1 would make each character 10% of the height of the player.</string>
-              </property>
-              <property name="decimals">
-               <number>3</number>
-              </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.010000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="7" alignment="Qt::AlignRight">
-             <widget class="QLabel" name="labelSubBackground">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Background Color</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="5">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox">
-              <property name="toolTip">
-               <string>Size of the stroke around text.
-A value of 0 disables stroke.</string>
-              </property>
-              <property name="decimals">
-               <number>1</number>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="6">
-             <spacer name="horizontalSpacer_4">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
+            <item row="1" column="5">
+             <widget class="QToolButton" name="buttonSubBackground">
+              <property name="minimumSize">
                <size>
                 <width>40</width>
-                <height>20</height>
+                <height>40</height>
                </size>
               </property>
-             </spacer>
+              <property name="toolTip">
+               <string>The color of the background.</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>

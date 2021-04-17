@@ -27,10 +27,30 @@
 #include <QPushButton>
 #include <QSettings>
 #include <QDesktopServices>
+#include <QColorDialog>
 
 InterfaceSettings::InterfaceSettings(QWidget *parent) : QWidget(parent), m_ui(new Ui::InterfaceSettings)
 {
     m_ui->setupUi(this);
+
+    connect(m_ui->buttonSubColor, &QToolButton::clicked, this,
+        [=] {
+            m_subColor = QColorDialog::getColor(m_subColor, nullptr, QString(), QColorDialog::ShowAlphaChannel);
+            setButtonColor(m_ui->buttonSubColor, m_subColor);
+        }
+    );
+    connect(m_ui->buttonSubBackground, &QToolButton::clicked, this,
+        [=] {
+            m_bgColor = QColorDialog::getColor(m_bgColor, nullptr, QString(), QColorDialog::ShowAlphaChannel);
+            setButtonColor(m_ui->buttonSubBackground, m_bgColor);
+        }
+    );
+    connect(m_ui->buttonSubStroke, &QToolButton::clicked, this,
+        [=] {
+            m_strokeColor = QColorDialog::getColor(m_strokeColor, nullptr, QString(), QColorDialog::ShowAlphaChannel);
+            setButtonColor(m_ui->buttonSubStroke, m_strokeColor);
+        }
+    );
 
     connect(m_ui->checkStyleSheets, &QCheckBox::stateChanged, this, 
         [=] (const int state) {
@@ -66,7 +86,21 @@ void InterfaceSettings::restoreDefaults()
     m_ui->comboTheme->setCurrentIndex((int)SETTINGS_INTERFACE_THEME_DEFAULT);
 
     /* Subtitle */
+    m_ui->fontComboSub->setCurrentFont(QFont(SETTINGS_INTERFACE_SUB_FONT_DEFAULT));
+    m_ui->checkSubBold->setChecked(SETTINGS_INTERFACE_SUB_FONT_BOLD_DEFAULT);
+    m_ui->checkSubItalic->setChecked(SETTINGS_INTERFACE_SUB_FONT_ITALICS_DEFAULT);
+
+    m_ui->spinSubScale->setValue(SETTINGS_INTERFACE_SUB_SCALE_DEFAULT);
     m_ui->spinSubOffset->setValue(SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT);
+    m_ui->spinSubStroke->setValue(SETTINGS_INTERFACE_SUB_STROKE_DEFAULT);
+
+    m_subColor.setNamedColor(SETTINGS_INTERFACE_SUB_TEXT_COLOR_DEFAULT);
+    m_bgColor.setNamedColor(SETTINGS_INTERFACE_SUB_BG_COLOR_DEFAULT);
+    m_strokeColor.setNamedColor(SETTINGS_INTERFACE_SUB_STROKE_COLOR_DEFAULT);
+
+    setButtonColor(m_ui->buttonSubColor, m_subColor);
+    setButtonColor(m_ui->buttonSubBackground, m_bgColor);
+    setButtonColor(m_ui->buttonSubStroke, m_strokeColor);
 
     /* Style Sheets */
     m_ui->checkStyleSheets->setChecked(SETTINGS_INTERFACE_STYLESHEETS_DEFAULT);
@@ -87,11 +121,58 @@ void InterfaceSettings::restoreSaved()
     );
 
     /* Subtitle */
+    m_ui->fontComboSub->setCurrentFont(QFont(settings.value(
+            SETTINGS_INTERFACE_SUB_FONT,
+            SETTINGS_INTERFACE_SUB_FONT_DEFAULT
+        ).toString())
+    );
+    m_ui->checkSubBold->setChecked(
+        settings.value(
+            SETTINGS_INTERFACE_SUB_FONT_BOLD,
+            SETTINGS_INTERFACE_SUB_FONT_BOLD_DEFAULT
+        ).toBool()
+    );
+    m_ui->checkSubItalic->setChecked(
+        settings.value(
+            SETTINGS_INTERFACE_SUB_FONT_ITALICS,
+            SETTINGS_INTERFACE_SUB_FONT_ITALICS_DEFAULT
+        ).toBool()
+    );
+
+    m_ui->spinSubScale->setValue(settings.value(
+            SETTINGS_INTERFACE_SUB_SCALE,
+            SETTINGS_INTERFACE_SUB_SCALE_DEFAULT
+        ).toDouble()
+    );
     m_ui->spinSubOffset->setValue(settings.value(
             SETTINGS_INTERFACE_SUB_OFFSET,
             SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT
         ).toDouble()
     );
+    m_ui->spinSubStroke->setValue(settings.value(
+            SETTINGS_INTERFACE_SUB_STROKE,
+            SETTINGS_INTERFACE_SUB_STROKE_DEFAULT
+        ).toDouble()
+    );
+
+    m_subColor.setNamedColor(settings.value(
+            SETTINGS_INTERFACE_SUB_TEXT_COLOR,
+            SETTINGS_INTERFACE_SUB_TEXT_COLOR_DEFAULT
+        ).toString()
+    );
+    setButtonColor(m_ui->buttonSubColor, m_subColor);
+    m_bgColor.setNamedColor(settings.value(
+            SETTINGS_INTERFACE_SUB_BG_COLOR,
+            SETTINGS_INTERFACE_SUB_BG_COLOR_DEFAULT
+        ).toString()
+    );
+    setButtonColor(m_ui->buttonSubBackground, m_bgColor);
+    m_strokeColor.setNamedColor(settings.value(
+            SETTINGS_INTERFACE_SUB_STROKE_COLOR,
+            SETTINGS_INTERFACE_SUB_STROKE_COLOR_DEFAULT
+        ).toString()
+    );
+    setButtonColor(m_ui->buttonSubStroke, m_strokeColor);
 
     /* Style Sheets */
     m_ui->checkStyleSheets->setChecked(
@@ -129,7 +210,17 @@ void InterfaceSettings::applyChanges()
     settings.setValue(SETTINGS_INTERFACE_THEME, m_ui->comboTheme->currentIndex());
 
     /* Subtitle */
+    settings.setValue(SETTINGS_INTERFACE_SUB_FONT,         m_ui->fontComboSub->currentFont().family());
+    settings.setValue(SETTINGS_INTERFACE_SUB_FONT_BOLD,    m_ui->checkSubBold->isChecked());
+    settings.setValue(SETTINGS_INTERFACE_SUB_FONT_ITALICS, m_ui->checkSubItalic->isChecked());
+
+    settings.setValue(SETTINGS_INTERFACE_SUB_SCALE,  m_ui->spinSubScale->value());
     settings.setValue(SETTINGS_INTERFACE_SUB_OFFSET, m_ui->spinSubOffset->value());
+    settings.setValue(SETTINGS_INTERFACE_SUB_STROKE, m_ui->spinSubStroke->value());
+
+    settings.setValue(SETTINGS_INTERFACE_SUB_TEXT_COLOR,   m_subColor.name(QColor::HexArgb));
+    settings.setValue(SETTINGS_INTERFACE_SUB_BG_COLOR,     m_bgColor.name(QColor::HexArgb));
+    settings.setValue(SETTINGS_INTERFACE_SUB_STROKE_COLOR, m_strokeColor.name(QColor::HexArgb));
 
     /* Style Sheets */
     settings.setValue(SETTINGS_INTERFACE_STYLESHEETS,           m_ui->checkStyleSheets->isChecked());
@@ -140,4 +231,12 @@ void InterfaceSettings::applyChanges()
     settings.endGroup();
 
     Q_EMIT GlobalMediator::getGlobalMediator()->interfaceSettingsChanged();
+}
+
+void InterfaceSettings::setButtonColor(QToolButton *button, const QColor &color)
+{
+    int height = QFontMetrics(button->font()).height();
+    QPixmap pixmap(height, height);
+    pixmap.fill(color);
+    button->setIcon(pixmap);
 }

@@ -23,6 +23,8 @@
 
 #include <QWidget>
 
+class QToolButton;
+
 namespace Ui
 {
     class InterfaceSettings;
@@ -46,6 +48,12 @@ private Q_SLOTS:
 
 private:
     Ui::InterfaceSettings *m_ui;
+
+    QColor m_subColor;
+    QColor m_bgColor;
+    QColor m_strokeColor;
+
+    void setButtonColor(QToolButton *button, const QColor &color);
 };
 
 #endif // INTERFACESETTINGS_H
