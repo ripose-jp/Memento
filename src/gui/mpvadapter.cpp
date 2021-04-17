@@ -508,54 +508,62 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
     {
         key += "KP";
     }
-    switch (event->key())
-    {
-    case Qt::Key::Key_Shift:
-    case Qt::Key::Key_Control:
-    case Qt::Key::Key_Alt:
-    case Qt::Key::Key_Meta:
-        return;
-    case Qt::Key::Key_Left:
-        key += "LEFT";
-        break;
-    case Qt::Key::Key_Right:
-        key += "RIGHT";
-        break;
-    case Qt::Key::Key_Up:
-        key += "UP";
-        break;
-    case Qt::Key::Key_Down:
-        key += "DOWN";
-        break;
-    case Qt::Key::Key_Enter:
-        key += "ENTER";
-        break;
-    case Qt::Key::Key_Escape:
-        key += "ESC";
-        break;
-    case Qt::Key::Key_PageUp:
-        key += "PGUP";
-        break;
-    case Qt::Key::Key_PageDown:
-        key += "PGDWN";
-        break;
-    case Qt::Key::Key_Backspace:
-        key += "BS";
-        break;
-    default:
-    {
-        if (event->modifiers() & Qt::ControlModifier)
-        {
-            if (event->modifiers() & Qt::ShiftModifier)
-                key += QKeySequence(event->key()).toString();
-            else
-                key += QKeySequence(event->key()).toString().toLower();
-        }
-        else
-            key = event->text();
-    }
-    }
 
+    if (event->key() >= Qt::Key::Key_F1 && event->key() <= Qt::Key::Key_F30)
+    {
+        key += "F" + QString::number(event->key() - Qt::Key::Key_F1 + 1);
+    }
+    else
+    {
+        switch (event->key())
+        {
+        case Qt::Key::Key_Shift:
+        case Qt::Key::Key_Control:
+        case Qt::Key::Key_Alt:
+        case Qt::Key::Key_Meta:
+            return;
+        case Qt::Key::Key_Left:
+            key += "LEFT";
+            break;
+        case Qt::Key::Key_Right:
+            key += "RIGHT";
+            break;
+        case Qt::Key::Key_Up:
+            key += "UP";
+            break;
+        case Qt::Key::Key_Down:
+            key += "DOWN";
+            break;
+        case Qt::Key::Key_Enter:
+            key += "ENTER";
+            break;
+        case Qt::Key::Key_Escape:
+            key += "ESC";
+            break;
+        case Qt::Key::Key_PageUp:
+            key += "PGUP";
+            break;
+        case Qt::Key::Key_PageDown:
+            key += "PGDWN";
+            break;
+        case Qt::Key::Key_Backspace:
+            key += "BS";
+            break;
+        default:
+        {
+            if (event->modifiers() & Qt::ControlModifier)
+            {
+                if (event->modifiers() & Qt::ShiftModifier)
+                    key += QKeySequence(event->key()).toString();
+                else
+                    key += QKeySequence(event->key()).toString().toLower();
+            }
+            else
+                key = event->text();
+        }
+        }
+    }
+    
     QByteArray keypress = key.toUtf8();
     const char *args[3] = {
         "keypress",
