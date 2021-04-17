@@ -65,6 +65,8 @@ public Q_SLOTS:
 private Q_SLOTS:
     void open();
     void repositionSubtitles();
+    void updateSubScale(const double inc);
+    void moveSubtitles(const double inc);
     void setTracks(QList<const Track *> tracks);
     void setTerms(const QList<Term *> *terms);
     void updateAnkiProfileMenu();

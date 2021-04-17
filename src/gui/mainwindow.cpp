@@ -204,6 +204,15 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_mediator, &GlobalMediator::controlsHidden, this, &MainWindow::repositionSubtitles);
     connect(m_mediator, &GlobalMediator::controlsShown,  this, &MainWindow::repositionSubtitles);
 
+    connect(m_ui->actionIncreaseSize, &QAction::triggered, this,
+        [=] { updateSubScale(0.01); } );
+    connect(m_ui->actionDecreaseSize, &QAction::triggered, this,
+        [=] { updateSubScale(-0.01); } );
+    connect(m_ui->actionMoveUp,       &QAction::triggered, this,
+        [=] { moveSubtitles(0.01); } );
+    connect(m_ui->actionMoveDown,     &QAction::triggered, this,
+        [=] { moveSubtitles(-0.01); } );
+
     /* Show message boxes */
     connect(m_mediator, &GlobalMediator::showCritical,    this, &MainWindow::showErrorMessage);
     connect(m_mediator, &GlobalMediator::showInformation, this, &MainWindow::showInfoMessage);
@@ -300,7 +309,7 @@ void MainWindow::setFullscreen(bool value)
     {
         m_maximized = isMaximized();
         showFullScreen();
-        m_ui->menubar->hide();
+        m_ui->menubar->setFixedHeight(0);
 
         /* Move the controls */
         m_ui->controls->hide();
@@ -324,7 +333,9 @@ void MainWindow::setFullscreen(bool value)
             showMaximized();
         }
     #endif
-        m_ui->menubar->show();
+        //m_ui->menubar->show();
+        m_ui->menubar->setMinimumHeight(0);
+        m_ui->menubar->setMaximumHeight(QWIDGETSIZE_MAX);
 
         m_subtitle.layoutPlayerOverlay->removeWidget(m_ui->controls);
         m_ui->centralwidget->layout()->addWidget(m_ui->controls);
@@ -425,6 +436,38 @@ void MainWindow::repositionSubtitles()
         }
     }
     m_subtitle.spacerWidget->setFixedHeight(height);
+}
+
+void MainWindow::updateSubScale(const double inc)
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_INTERFACE);
+    double scale = settings.value(
+        SETTINGS_INTERFACE_SUB_SCALE, 
+        SETTINGS_INTERFACE_SUB_SCALE_DEFAULT
+    ).toDouble();
+    scale += inc;
+    if (scale >= 0.0 && scale <= 1.0)
+    {
+        settings.setValue(SETTINGS_INTERFACE_SUB_SCALE, scale);
+        Q_EMIT m_mediator->interfaceSettingsChanged();
+    }
+}
+
+void MainWindow::moveSubtitles(const double inc)
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_INTERFACE);
+    double offset = settings.value(
+        SETTINGS_INTERFACE_SUB_OFFSET, 
+        SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT
+    ).toDouble();
+    offset += inc;
+    if (offset >= 0.0 && offset <= 1.0)
+    {
+        settings.setValue(SETTINGS_INTERFACE_SUB_OFFSET, offset);
+        Q_EMIT m_mediator->interfaceSettingsChanged();
+    }
 }
 
 void MainWindow::updateAnkiProfileMenu()
