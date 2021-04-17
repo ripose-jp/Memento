@@ -139,6 +139,7 @@ $PREFIX/bin/libicuuc68.dll \
 $PREFIX/bin/libicudt68.dll \
 $PREFIX/bin/libpcre2-16-0.dll \
 $PREFIX/bin/libssl-1_1-x64.dll \
+$PREFIX/bin/libssp-0.dll \
 $PREFIX/bin/Qt5Gui.dll \
 $PREFIX/bin/Qt5Widgets.dll \
 $PREFIX/bin/Qt5Network.dll Memento_$arch

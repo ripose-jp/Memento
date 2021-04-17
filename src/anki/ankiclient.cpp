@@ -372,6 +372,8 @@ void AnkiClient::setDefaultConfig()
     config->port            = DEFAULT_PORT;
     config->duplicatePolicy = DEFAULT_DUPLICATE_POLICY;
     config->screenshotType  = DEFAULT_SCREENSHOT;
+    config->audioURL        = DEFAULT_AUDIO_URL;
+    config->audioHash       = DEFAULT_AUDIO_HASH;
     config->tags.append(DEFAULT_TAGS);
 
     m_configs->insert(DEFAULT_PROFILE, config);

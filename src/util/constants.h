@@ -50,7 +50,7 @@
 #define DEFAULT_DELAY                   250
 #define DEFAULT_MODIFIER                MODIFIER_SHIFT
 #define DEFAULT_HIDE_SUBS               true
-#define DEFAULT_HIDE_BAR                true
+#define DEFAULT_HIDE_BAR                false
 #define DEFAULT_REPLACE_LINES           false
 #define DEFAULT_REPLACE_WITH            ""
 
