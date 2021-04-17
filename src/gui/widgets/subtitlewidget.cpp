@@ -197,7 +197,6 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     }
         
     /* Add it to the text edit */
-    setUpdatesEnabled(false);
     clear();
     QStringList subList = subtitle.split('\n');
     for (const QString &text : subList)
@@ -210,13 +209,14 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     }
 
     /* Update Size */
-    updateGeometry();
-    int height = document()->size().toSize().height();
-    if (horizontalScrollBar()->isVisible())
+    if (m_rawText.isEmpty())
     {
-        height += horizontalScrollBar()->height();
+        setFixedSize(QSize(0, 0));
     }
-    setFixedHeight(height);
+    else
+    {
+        fitToContents();
+    }
     
     /* Keep track of when to delete the subtitle */
     m_startTime = start + delay;
@@ -224,8 +224,6 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     m_currentIndex = -1;
 
     adjustVisibility();
-
-    setUpdatesEnabled(true);
 }
 
 void SubtitleWidget::setSelectedText()
@@ -394,13 +392,8 @@ void SubtitleWidget::resizeEvent(QResizeEvent *event)
 {
     event->ignore();
     setAlignment(Qt::AlignHCenter);
-    int height = document()->size().toSize().height();
-    if (horizontalScrollBar()->isVisible())
-    {
-        height += horizontalScrollBar()->height();
-    }
-    setFixedHeight(height);
-    updateGeometry();
+    if (!m_rawText.isEmpty())
+        fitToContents();
     QTextEdit::resizeEvent(event);
     Q_EMIT GlobalMediator::getGlobalMediator()->requestDefinitionDelete();
     Q_EMIT GlobalMediator::getGlobalMediator()->requestFullscreenResize();
@@ -415,6 +408,24 @@ void SubtitleWidget::deleteTerms(QList<Term *> *terms)
     delete terms;
 }
 
+void SubtitleWidget::fitToContents()
+{
+    updateGeometry();
+    int width = document()->idealWidth() + 4;
+    if (width > GlobalMediator::getGlobalMediator()->getPlayerWidget()->width())
+    {
+        width = GlobalMediator::getGlobalMediator()->getPlayerWidget()->width();
+    }
+    setFixedWidth(width);
+    int height = document()->size().toSize().height();
+    if (horizontalScrollBar()->isVisible())
+    {
+        height += horizontalScrollBar()->height();
+    }
+    setFixedHeight(height);
+    updateGeometry();
+}
+
 void SubtitleWidget::paintEvent(QPaintEvent *event)
 {
     QTextCharFormat format;
@@ -423,17 +434,11 @@ void SubtitleWidget::paintEvent(QPaintEvent *event)
     cursor.select(QTextCursor::Document);
     cursor.mergeCharFormat(format);
     QTextEdit::paintEvent(event);
+    
+    format = QTextCharFormat();
     format.setTextOutline(QPen(Qt::transparent));
     cursor.mergeCharFormat(format);
     QTextEdit::paintEvent(event);
-}
-
-QSize SubtitleWidget::sizeHint() const
-{
-    QSize size = document()->size().toSize();
-    size.rwidth()  = size.width();
-    size.rheight() = size.height();
-    return size;
 }
 
 void SubtitleWidget::showEvent(QShowEvent *event)

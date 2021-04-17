@@ -44,7 +44,6 @@ protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
     void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
-    QSize sizeHint() const Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
     void setTheme();
@@ -89,6 +88,7 @@ private:
     double          m_strokeSize;
 
     void deleteTerms(QList<Term *> *terms);
+    void fitToContents();
 };
 
 #endif // SUBTITLEWIDGET_H
