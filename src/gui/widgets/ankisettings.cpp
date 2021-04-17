@@ -311,6 +311,8 @@ void AnkiSettings::restoreDefaults()
     defaultConfig.port            = DEFAULT_PORT;
     defaultConfig.duplicatePolicy = DEFAULT_DUPLICATE_POLICY;
     defaultConfig.screenshotType  = DEFAULT_SCREENSHOT;
+    defaultConfig.audioURL        = DEFAULT_AUDIO_URL;
+    defaultConfig.audioHash       = DEFAULT_AUDIO_HASH;
     defaultConfig.tags.append(DEFAULT_TAGS);
 
     defaultConfig.termDeck        = m_ui->termCardBuilder->getDeckText();
@@ -368,10 +370,15 @@ void AnkiSettings::populateFields(const QString &profile, const AnkiConfig *conf
     client->setServer(config->address, config->port);
 
     m_ui->comboBoxDuplicates->setCurrentText(
-        duplicatePolicyToString(config->duplicatePolicy));
+        duplicatePolicyToString(config->duplicatePolicy)
+    );
     
     m_ui->comboBoxScreenshot->setCurrentText(
-        fileTypeToString(config->screenshotType));
+        fileTypeToString(config->screenshotType)
+    );
+
+    m_ui->lineEditAudioSource->setText(config->audioURL);
+    m_ui->lineEditSkipHash->setText(config->audioHash);
 
     QString tags;
     for (auto it = config->tags.begin(); it != config->tags.end(); ++it)

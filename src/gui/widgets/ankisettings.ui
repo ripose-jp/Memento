@@ -34,7 +34,7 @@
         <x>0</x>
         <y>0</y>
         <width>344</width>
-        <height>944</height>
+        <height>1010</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -55,7 +55,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <property name="spacing">
-           <number>0</number>
+           <number>6</number>
           </property>
           <property name="leftMargin">
            <number>0</number>
@@ -172,6 +172,9 @@ Becomes the name of a new profile when add is clicked.</string>
           </item>
           <item>
            <layout class="QGridLayout" name="layoutConnect">
+            <property name="horizontalSpacing">
+             <number>6</number>
+            </property>
             <item row="2" column="1">
              <widget class="QLineEdit" name="lineEditPort">
               <property name="toolTip">
@@ -333,7 +336,7 @@ Supports inserting {expression} and {reading} into URLs.</string>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label">
+           <widget class="QLabel" name="labelSkipHash">
             <property name="font">
              <font>
               <weight>75</weight>
@@ -341,16 +344,16 @@ Supports inserting {expression} and {reading} into URLs.</string>
              </font>
             </property>
             <property name="text">
-             <string>Skip Hashes</string>
+             <string>Audio Skip Hash</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEditSkipHashes">
+           <widget class="QLineEdit" name="lineEditSkipHash">
             <property name="toolTip">
-             <string>A comma seperated list of MD5 hashes.
-Some websites include placeholder files for when an audio clip does not exist.
-If a file matches a hash in the list, it will not be added to the card.</string>
+             <string>The MD5 hash of an audio file to ignore.
+Some websites include a placeholder file for when an audio clip does not exist.
+If an audio clip matches this hash, it will not be added to the card.</string>
             </property>
            </widget>
           </item>

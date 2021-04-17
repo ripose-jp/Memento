@@ -224,18 +224,18 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    /* Wrappers and Clients */
     clearTracks();
-    delete m_player;
-    delete m_manager;
-    delete m_ankiClient;
 
     /* Widgets */
+    delete m_ui;
     delete m_definition;
     delete m_optionsWindow;
     delete m_aboutWindow;
 
-    delete m_ui;
+    /* Wrappers and Clients */
+    delete m_player;
+    delete m_manager;
+    delete m_ankiClient;
 }
 
 void MainWindow::showEvent(QShowEvent *event)

@@ -85,8 +85,6 @@ extern "C"
 #define TIMEOUT                         5000
 #define CONFIG_FILE                     "anki_connect.json"
 #define FURIGANA_FORMAT_STRING          (QString("<ruby>%1<rt>%2</rt></ruby>"))
-#define AUDIO_URL_FORMAT_STRING         (QString("http://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kanji=%1&kana=%2"))
-#define JAPANESE_POD_STUB_MD5           "7e2c2f954ef6051373ba916f000168dc"
 #define AUDIO_FILENAME_FORMAT_STRING    (QString("memento_%1_%2.mp3"))
 
 // Config file fields
@@ -98,6 +96,8 @@ extern "C"
 #define CONFIG_PORT         "port"
 #define CONFIG_DUPLICATE    "duplicate"
 #define CONFIG_SCREENSHOT   "screenshot"
+#define CONFIG_AUDIO_URL    "audio-url"
+#define CONFIG_AUDIO_HASH   "audio-skiphash"
 #define CONFIG_TERM         "term"
 #define CONFIG_KANJI        "kanji"
 #define CONFIG_TAGS         "tags"
@@ -211,6 +211,17 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
             profile[CONFIG_TERM]  = obj;
             profile[CONFIG_KANJI] = QJsonObject();
         }
+        if (profile[CONFIG_AUDIO_URL].isNull())
+        {
+            modified = true;
+            profile[CONFIG_AUDIO_URL] = DEFAULT_AUDIO_URL;
+        }
+        if (profile[CONFIG_AUDIO_HASH].isNull())
+        {
+            modified = true;
+            profile[CONFIG_AUDIO_HASH] = DEFAULT_AUDIO_HASH;
+        }
+
         if (modified)
             profiles[i] = profile;
 
@@ -240,6 +251,16 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
             qDebug() << CONFIG_SCREENSHOT << "is not a double";
             return false;
         }
+        else if (!profile[CONFIG_AUDIO_URL].isString())
+        {
+            qDebug() << CONFIG_AUDIO_URL << "is not a string";
+            return false;
+        }
+        else if (!profile[CONFIG_AUDIO_HASH].isString())
+        {
+            qDebug() << CONFIG_AUDIO_HASH << "is not a string";
+            return false;
+        }
         else if (!profile[CONFIG_TAGS].isArray())
         {
             qDebug() << CONFIG_TAGS << "is not an array";
@@ -267,6 +288,8 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         config->port            = profile[CONFIG_PORT].toString();
         config->duplicatePolicy = (AnkiConfig::DuplicatePolicy)profile[CONFIG_DUPLICATE].toInt(AnkiConfig::DuplicatePolicy::DifferentDeck);
         config->screenshotType  = (AnkiConfig::FileType)profile[CONFIG_SCREENSHOT].toInt(AnkiConfig::FileType::jpg);
+        config->audioURL        = profile[CONFIG_AUDIO_URL].toString();
+        config->audioHash       = profile[CONFIG_AUDIO_HASH].toString();
         config->tags            = profile[CONFIG_TAGS].toArray();
 
         QJsonObject obj         = profile[CONFIG_TERM].toObject();
@@ -736,10 +759,12 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
         {
             QJsonObject audObj;
 
-            audObj[ANKI_NOTE_URL]      = AUDIO_URL_FORMAT_STRING.arg(term.expression).arg(reading);
+            audObj[ANKI_NOTE_URL]      = QString(m_currentConfig->audioURL)
+                .replace(REPLACE_EXPRESSION, term.expression)
+                .replace(REPLACE_READING,    reading);
             audObj[ANKI_NOTE_FILENAME] = audioFile;
             audObj[ANKI_NOTE_FIELDS]   = fieldsWithAudio;
-            audObj[ANKI_NOTE_SKIPHASH] = JAPANESE_POD_STUB_MD5;
+            audObj[ANKI_NOTE_SKIPHASH] = m_currentConfig->audioHash;
             audio.append(audObj);
         }
 

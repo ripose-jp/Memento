@@ -46,6 +46,8 @@ struct AnkiConfig
     QString         port;
     DuplicatePolicy duplicatePolicy;
     FileType        screenshotType;
+    QString         audioURL;
+    QString         audioHash;
     QJsonArray      tags;
 
     QString         termDeck;
@@ -64,6 +66,8 @@ struct AnkiConfig
         port            = rhs.port;
         duplicatePolicy = rhs.duplicatePolicy;
         screenshotType  = rhs.screenshotType;
+        audioURL        = rhs.audioURL;
+        audioHash       = rhs.audioHash;
         tags            = rhs.tags;
         termDeck        = rhs.termDeck;
         termModel       = rhs.termModel;
