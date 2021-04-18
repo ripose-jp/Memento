@@ -247,7 +247,9 @@ void SubtitleWidget::postitionChanged(const double value)
 {
     if (value < m_startTime - DOUBLE_DELTA || value > m_endTime + DOUBLE_DELTA)
     {
-        setSubtitle("", 0, std::numeric_limits<double>::infinity(), 0);
+        m_rawText = "";
+        clear();
+        hide();
         Q_EMIT GlobalMediator::getGlobalMediator()->subtitleExpired();
     }
 }
@@ -445,6 +447,7 @@ void SubtitleWidget::showEvent(QShowEvent *event)
     {
         Q_EMIT GlobalMediator::getGlobalMediator()->requestSetSubtitleVisibility(false);
     }
+    QTextEdit::showEvent(event);
 }
 
 void SubtitleWidget::hideEvent(QHideEvent *event)
@@ -453,4 +456,5 @@ void SubtitleWidget::hideEvent(QHideEvent *event)
     {
         Q_EMIT GlobalMediator::getGlobalMediator()->requestSetSubtitleVisibility(true);
     }
+    QTextEdit::hideEvent(event);
 }
