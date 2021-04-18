@@ -35,10 +35,6 @@
 #include <QSettings>
 #include <QStyleFactory>
 
-#define SETTINGS_WINDOW_GROUP               "window"
-#define SETTINGS_WINDOW_GEOMETRY            "geometry"
-#define SETTINGS_WINDOW_STATE               "state"
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       m_mediator(GlobalMediator::createGlobalMedaitor()),
@@ -243,25 +239,8 @@ MainWindow::~MainWindow()
     delete m_ankiClient;
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
-{
-    QSettings settings;
-    settings.beginGroup(SETTINGS_WINDOW_GROUP);
-    settings.setValue(SETTINGS_WINDOW_GEOMETRY,  saveGeometry());
-    settings.setValue(SETTINGS_WINDOW_STATE,     saveState());
-    QMainWindow::closeEvent(event);
-}
-
 void MainWindow::showEvent(QShowEvent *event)
 {
-    /* Restore Window Settings */
-    QSettings settings;
-    settings.beginGroup(SETTINGS_WINDOW_GROUP);
-    restoreGeometry(settings.value(SETTINGS_WINDOW_GEOMETRY).toByteArray());
-    restoreState(settings.value(SETTINGS_WINDOW_STATE).toByteArray());
-    settings.endGroup();
-    m_maximized = isMaximized();
-
     /* Load files opened with Memento */
     QStringList args = QApplication::arguments();
     if (args.size() > 1)
@@ -284,6 +263,8 @@ void MainWindow::showEvent(QShowEvent *event)
             "To install a dictionary, go to Settings -> Options -> Dictionaries."
         );
     }
+
+    QMainWindow::showEvent(event);
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
