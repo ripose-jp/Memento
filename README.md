@@ -54,7 +54,7 @@ and the [Kanji Stroke Order](https://drive.google.com/uc?export=download&id=1oyQ
 
 ## Building
 
-**I do not guarentee that any branch will successfully build or be bug-free.** 
+**I do not guarantee that any branch will successfully build or be bug-free.** 
 **If you want to build a stable version of Memento, compile a [release](https://github.com/ripose-jp/Memento/releases) from source.**
 
 ### Linux
