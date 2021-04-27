@@ -96,7 +96,7 @@ sudo make install
 ### Mac OS X
 
 **Important Note:** The OS X version of Memento has a myriad of problems that make it
-unusuable for casual use. This build guide is intended for OS X developers interested
+unusable for casual use. This build guide is intended for OS X developers interested
 in fixing the OS X port of Memento.
 
 1. Install [Homebrew](https://brew.sh/) with this command:
