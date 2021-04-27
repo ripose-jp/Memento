@@ -25,7 +25,7 @@
 GlossaryWidget::GlossaryWidget(size_t number, const TermDefinition &def, QWidget *parent) : QWidget(parent), m_def(def)
 {
     m_parentLayout  = new QVBoxLayout(this);
-    m_layoutHeader  = new FlowLayout;
+    m_layoutHeader  = new FlowLayout(-1, 6);
     m_checkBoxAdd   = new QCheckBox;
     m_labelNumber   = new QLabel;
     m_labelGlossary = new QLabel;

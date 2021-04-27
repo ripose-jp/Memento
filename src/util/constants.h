@@ -100,6 +100,15 @@ enum class Theme
 
 /* Stylesheets */
 #define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE              "sublist-style"
+#if __APPLE__
+#define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT      \
+    "QListWidget {\n"\
+    "    background: black;\n"\
+    "    color: white;\n"\
+    "    font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
+    "    font-size: 20pt;\n"\
+    "}"
+#else
 #define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT      \
     "QListWidget {\n"\
     "    background: black;\n"\
@@ -107,6 +116,7 @@ enum class Theme
     "    font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
     "    font-size: 14pt;\n"\
     "}"
+#endif
 
 #define SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE            "player-splitter-style"
 #define SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT    \
@@ -115,10 +125,18 @@ enum class Theme
     "}"
 
 #define SETTINGS_INTERFACE_DEFINITION_STYLE                 "definition-style"
+#if __APPLE__
+#define SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT         \
+    "QLabel {\n"\
+    "    font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
+    "    font-size: 15pt;\n"\
+    "}"
+#else
 #define SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT         \
     "QLabel {\n"\
     "    font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
     "    font-size: 11pt;\n"\
     "}"
+#endif
 
 #endif // CONSTANTS_H

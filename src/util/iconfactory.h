@@ -53,6 +53,8 @@ public:
         hamburger
     };
 
+    virtual ~IconFactory() {}
+
     virtual const QIcon &getIcon(IconFactory::Icon icon) const = 0;
     virtual void buildIcons() = 0;
 

@@ -38,7 +38,7 @@ public:
     MpvWidget(QWidget *parent = 0);
     ~MpvWidget();
 
-    QSize sizeHint() const { return QSize(480, 270); }
+    QSize sizeHint() const Q_DECL_OVERRIDE { return QSize(480, 270); }
     mpv_handle *get_handle() { return mpv; }
 
 Q_SIGNALS:

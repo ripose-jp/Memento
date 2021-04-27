@@ -266,7 +266,7 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
     }
     if (isStepError(step))
     {
-        ret = "Error when executing sqlite query. Code " + step;
+        ret = QString("Error when executing sqlite query. Code ") + step;
         goto error;
     }
 

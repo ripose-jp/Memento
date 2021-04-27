@@ -29,12 +29,8 @@
     #define BASE_DIR getenv("HOME")
     #define CONFIG_PATH "/.config/memento/"
 #elif __APPLE__
-    #if TARGET_OS_MAC
-        #define BASE_DIR getenv("HOME")
-        #define CONFIG_PATH "/.config/memento/"
-    #else
-        #error "Apple OS type no supported"
-    #endif
+    #define BASE_DIR getenv("HOME")
+    #define CONFIG_PATH "/.config/memento/"
 #else
     #error "OS not supported"
 #endif
@@ -48,7 +44,7 @@ QString DirectoryUtils::getProgramDirectory()
     GetModuleFileNameW(NULL, buf, MAX_PATH);
     QString path = QString::fromWCharArray(buf);
     return path.left(path.lastIndexOf(SLASH) + 1);
-#elif __linux__
+#elif __linux__ || __APPLE__
     return BASE_DIR;
 #endif
 }

@@ -28,11 +28,7 @@
 #elif __linux__
     #define FACTORY_CLASS(p) new ThemeFactory(p)
 #elif __APPLE__
-    #if TARGET_OS_MAC
-        #define FACTORY_CLASS(p) new StyleFactory(p)
-    #else
-        #error "Apple OS type no supported"
-    #endif
+    #define FACTORY_CLASS(p) new StyleFactory(p)
 #else
     #error "OS not supported"
 #endif

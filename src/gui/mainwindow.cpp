@@ -699,7 +699,7 @@ void MainWindow::setTheme()
     {
     case Theme::Light:
     {
-    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) || __APPLE__
         QStyle *style = QStyleFactory::create("fusion");
         if (style)
             QApplication::setStyle(style);
@@ -729,7 +729,7 @@ void MainWindow::setTheme()
     }
     case Theme::Dark:
     {
-    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) || __APPLE__
         QStyle *style = QStyleFactory::create("fusion");
         if (style)
             QApplication::setStyle(style);
@@ -761,6 +761,10 @@ void MainWindow::setTheme()
     default:
     #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
         QStyle *style = QStyleFactory::create("windowsvista");
+        if (style)
+            QApplication::setStyle(style);
+    #elif __APPLE__
+        QStyle *style = QStyleFactory::create("macintosh");
         if (style)
             QApplication::setStyle(style);
     #endif

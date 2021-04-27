@@ -28,11 +28,6 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="font">
-      <font>
-       <pointsize>12</pointsize>
-      </font>
-     </property>
      <property name="sortingEnabled">
       <bool>true</bool>
      </property>
@@ -50,7 +45,6 @@
        </property>
        <property name="font">
         <font>
-         <pointsize>14</pointsize>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -76,7 +70,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>762</width>
+          <width>748</width>
           <height>641</height>
          </rect>
         </property>

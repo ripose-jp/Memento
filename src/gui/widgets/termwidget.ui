@@ -35,11 +35,6 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QLabel {
-    font-size: 12pt;
-}</string>
-         </property>
          <property name="alignment">
           <set>Qt::AlignBottom|Qt::AlignHCenter</set>
          </property>
@@ -55,11 +50,6 @@
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QLabel {
-    font-size: 20pt;
-}</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignHCenter|Qt::AlignTop</set>

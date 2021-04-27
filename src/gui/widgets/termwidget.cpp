@@ -35,13 +35,24 @@
 #define KANJI_STYLE_STRING      (QString("<style>a { color: %1; border: 0; text-decoration: none; }</style>"))
 #define KANJI_FORMAT_STRING     (QString("<a href=\"%1\">%1</a>"))
 
+#if __APPLE__
+    #define EXPRESSION_STYLE    (QString("QLabel { font-size: 30pt; }"))
+    #define READING_STYLE       (QString("QLabel { font-size: 18pt; }"))
+#else
+    #define EXPRESSION_STYLE    (QString("QLabel { font-size: 20pt; }"))
+    #define READING_STYLE       (QString("QLabel { font-size: 12pt; }"))
+#endif
+
 TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent) 
     : QWidget(parent), m_ui(new Ui::TermWidget), m_term(term), m_client(client)
 {
     m_ui->setupUi(this);
 
-    m_layoutTermTags = new FlowLayout;
-    m_layoutFreqTags = new FlowLayout;
+    m_ui->labelKanji->setStyleSheet(EXPRESSION_STYLE);
+    m_ui->labelKana->setStyleSheet(READING_STYLE);
+
+    m_layoutTermTags = new FlowLayout(-1, 6);
+    m_layoutFreqTags = new FlowLayout(-1, 6);
     m_layoutGlossary = new QVBoxLayout;
 
     m_ui->verticalLayout->addLayout(m_layoutTermTags);

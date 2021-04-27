@@ -36,6 +36,14 @@ OptionsWindow::OptionsWindow(QWidget *parent)
 {
     m_ui->setupUi(this);
 
+    QFont labelFont = m_ui->labelOption->font();
+#if __APPLE__
+    labelFont.setPointSize(20);
+#else
+    labelFont.setPointSize(14);
+#endif
+    m_ui->labelOption->setFont(labelFont);
+
     addOption(NAME_ANKI,         new AnkiSettings);
     addOption(NAME_DICTIONARIES, new DictionarySettings);
     addOption(NAME_SEARCH,       new SearchSettings);

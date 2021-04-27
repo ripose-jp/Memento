@@ -32,8 +32,6 @@
 #include "../../util/globalmediator.h"
 #include "../../anki/ankiclient.h"
 
-#define KEY_VALUE_FORMAT (QString("<span class="desc">%1</span><span class="value">%2</span>"))
-
 KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent), m_kanji(kanji)
 {
     QVBoxLayout *layoutParent = new QVBoxLayout(this);
@@ -53,12 +51,21 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent),
 
     QLabel *labelKanjiStroke = new QLabel;
     labelKanjiStroke->setText(kanji->character);
+#if __APPLE__
+    labelKanjiStroke->setStyleSheet(
+        "QLabel {"\
+            "font-family: \"KanjiStrokeOrders\", \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"\
+            "font-size: 140pt;"\
+        "}"
+    );
+#else
     labelKanjiStroke->setStyleSheet(
         "QLabel {"\
             "font-family: \"KanjiStrokeOrders\", \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"\
             "font-size: 100pt;"\
         "}"
     );
+#endif
     labelKanjiStroke->setAlignment(Qt::AlignHCenter);
     labelKanjiStroke->setTextInteractionFlags(Qt::TextSelectableByMouse);
     labelKanjiStroke->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -102,7 +109,7 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent),
     }
     
 
-    FlowLayout *frequencies = new FlowLayout;
+    FlowLayout *frequencies = new FlowLayout(-1, 6);
     for (const Frequency &freq : kanji->frequencies)
         frequencies->addWidget(new TagWidget(freq));
     layoutParent->addLayout(frequencies);
@@ -131,7 +138,7 @@ KanjiWidget::~KanjiWidget()
 void KanjiWidget::buildDefinitionLabel(const KanjiDefinition &def, QVBoxLayout *layout)
 {
     /* Add Tags */
-    FlowLayout *tagLayout = new FlowLayout;
+    FlowLayout *tagLayout = new FlowLayout(-1, 6);
     layout->addLayout(tagLayout);
     for (const Tag &tag : def.tags)
     {

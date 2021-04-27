@@ -38,7 +38,7 @@
                        "ipadic" + SLASH + "dicrc " \
                        "-d " + DirectoryUtils::getDictionaryDir() + \
                        "ipadic").toUtf8()
-#elif __linux__
+#elif __linux__ || __APPLE__
     #define MECAB_ARG ("")
 #endif
 
@@ -190,8 +190,8 @@ Kanji *Dictionary::searchKanji(const QString &ch)
 
 QString Dictionary::addDictionary(const QString &path)
 {
-    int err;
-    if (err = m_db->addDictionary(path))
+    int err = m_db->addDictionary(path);
+    if (err)
     {
         return m_db->errorCodeToString(err);
     }
@@ -201,8 +201,8 @@ QString Dictionary::addDictionary(const QString &path)
 
 QString Dictionary::deleteDictionary(const QString &name)
 {
-    int err;
-    if (err = m_db->deleteDictionary(name))
+    int err = m_db->deleteDictionary(name);
+    if (err)
     {
         return m_db->errorCodeToString(err);
     }

@@ -4,7 +4,7 @@ add_library(
 )
 target_link_libraries(
     flowlayout
-    Qt::Widgets
+    Qt5::Widgets
 )
 
 add_library(
@@ -26,7 +26,7 @@ set(
     directoryutils
     Qt5::Widgets
 )
-if(UNIX)
+if(UNIX AND NOT APPLE)
     set(
         MPV_WIDGET_LIBS 
 	    ${MPV_WIDGET_LIBS} 

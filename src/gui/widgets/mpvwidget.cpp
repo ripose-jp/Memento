@@ -33,8 +33,8 @@
     #include <winbase.h>
 #elif __linux__
     #include <QtDBus>
-#else
-    #error "OS not supported"
+#elif __APPLE__
+    #include <IOKit/pwr_mgt/IOPMLib.h>
 #endif
 
 #define ASYNC_COMMAND_REPLY 20
@@ -274,8 +274,8 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                                         "org.freedesktop.ScreenSaver";
                         }     
                     }
-            #else
-                #error "OS not supported"
+            #elif __APPLE__
+                // TODO: Prevent sleep
             #endif
                 
                 Q_EMIT stateChanged(paused);
@@ -463,8 +463,9 @@ QString MpvWidget::convertToMouseString(const QMouseEvent *event) const
         return "MBTN_BACK";
     case Qt::ForwardButton:
         return "MBTN_FORWARD";
+    default:
+        return "";
     }
-    return "";
 }
 
 void MpvWidget::resizeEvent(QResizeEvent *event) 

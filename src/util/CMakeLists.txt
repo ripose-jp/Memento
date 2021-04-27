@@ -4,7 +4,7 @@ add_library(
 )
 target_link_libraries(
     directoryutils
-    Qt::Core
+    Qt5::Core
 )
 
 add_library(
@@ -13,7 +13,7 @@ add_library(
 )
 target_link_libraries(
     globalmediator
-    Qt::Core
+    Qt5::Core
 )
 
 add_library(
