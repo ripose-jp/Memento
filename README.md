@@ -93,6 +93,37 @@ sudo make install
     build/Memento_x86_64
     ```
 
+### Mac OS X
+
+**Important Note:** The OS X version of Memento has a myriad of problems that make it
+unusuable for casual use. This build guide is intended for OS X developers interested
+in fixing the OS X port of Memento.
+
+1. Install [Homebrew](https://brew.sh/) with this command:
+   ```
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+1. Install the necessary tools and dependencies:
+   ```
+   brew install git cmake gcc ffmpeg sqlite3 qt5 mpv mecab mecab-ipadic json-c libzip
+   ```
+1. Clone the repository:
+   ```
+   git clone https://github.com/ripose-jp/Memento.git
+   ```
+1. Build Memento:
+   ```
+   cd memento
+   mkdir build
+   cd build
+   cmake ..
+   cmake --build .
+   ```
+1. The resulting executable will be:
+   ```
+   memento/build/src/memento
+   ```
+
 ## Configuration
 
 Most mpv shaders, plugins, and configuration files will work out of the box.
@@ -108,12 +139,13 @@ The Memento config directory is located at:
 [installation directory]\config
 ```
 
+### Mac OS X
+```
+~/.config/memento
+```
+
 If any mpv binds or plugins do not work, please create an issue in the issue
 tracker.
-
-## To-do
-
-* Compile an OS X version.
 
 ## Acknowledgements
 
