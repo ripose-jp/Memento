@@ -38,6 +38,10 @@ PlayerControls::PlayerControls(QWidget *parent)
       m_paused(true)
 {
     m_ui->setupUi(this);
+    
+#if __APPLE__
+    m_ui->layoutButtons->setSpacing(2);
+#endif
 
     refreshTheme();
     setCursor(Qt::ArrowCursor);
