@@ -60,6 +60,8 @@ private:
     int addFrequencies(Kanji &kanji);
     int addFrequencies(QList<Frequency> &freq, const QString &expression, const char *query);
 
+    int addPitches(Term &term);
+
     int buildCache();
 
     bool incrementReaders();

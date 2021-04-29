@@ -30,6 +30,7 @@ GlossaryWidget::GlossaryWidget(size_t number, const TermDefinition &def, QWidget
     m_labelNumber   = new QLabel;
     m_labelGlossary = new QLabel;
 
+    m_parentLayout->setMargin(0);
     m_parentLayout->addLayout(m_layoutHeader);
     m_parentLayout->addWidget(m_labelGlossary);
 

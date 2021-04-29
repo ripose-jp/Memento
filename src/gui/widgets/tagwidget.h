@@ -30,9 +30,10 @@ class TagWidget : public QLabel
     Q_OBJECT
 
 public:
-    TagWidget(const Tag &tag, QWidget *parent = 0);
-    TagWidget(const Frequency &freq, QWidget *parent = 0);
-    TagWidget(const QString &dicName, QWidget *parent = 0);
+    TagWidget(const Tag       &tag,     QWidget *parent = 0);
+    TagWidget(const Frequency &freq,    QWidget *parent = 0);
+    TagWidget(const Pitch     &pitch,   QWidget *parent = 0);
+    TagWidget(const QString   &dicName, QWidget *parent = 0);
 
 private:
     TagWidget(QWidget *parent = 0);
@@ -49,10 +50,10 @@ private:
         frequency,
         pos,
         search,
-        pitch
+        pitch_accent
     };
 
-    const char *colors[pitch + 1] = {
+    const char *colors[pitch_accent + 1] = {
         "#8a8a91",
         "#b6327a",
         "#f0ad4e",

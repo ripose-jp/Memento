@@ -57,6 +57,7 @@ add_library(
     kanjiwidget.cpp
     tagwidget.cpp
     glossarywidget.cpp
+    pitchwidget.cpp
 )
 target_link_libraries(
     definitionwidget

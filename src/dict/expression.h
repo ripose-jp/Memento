@@ -49,6 +49,13 @@ struct Frequency
     uint64_t        freq;
 } typedef Frequency;
 
+struct Pitch
+{
+    QString         dictionary;
+    QString         reading;
+    QList<uint8_t>  position;
+} typedef Pitch;
+
 struct TermDefinition
 {
     QString     dictionary;
@@ -65,6 +72,7 @@ struct Term
     QString                 expression;
     QString                 reading;
     QList<Tag>              tags;
+    QList<Pitch>            pitches;
     QList<TermDefinition>   definitions;
     QList<Frequency>        frequencies;
     int                     score;

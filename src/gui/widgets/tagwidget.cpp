@@ -24,12 +24,13 @@
 
 #define STYLE_FORMAT    (QString(\
                             "font-weight: bold;"\
+                            "padding-top: 1px;"\
+                            "padding-bottom: 1px;"\
                             "padding-left: 5px;"\
                             "padding-right: 5px;"\
                             "color: white;"\
-                            "border-radius: 5px;"\
+                            "border-radius: 3px;"\
                             "background: %1;"\
-                            "border: 1px solid %1;"\
                         ))
 
 #define FREQ_FORMAT     (QString("%1 <span style=\"color: black;\">%2</span>"))
@@ -75,7 +76,7 @@ TagWidget::TagWidget(const Tag &tag, QWidget *parent) : TagWidget(parent)
     }
     else if (tag.category == "pitch-accent-dictionary")
     {
-        color = pitch;
+        color = pitch_accent;
     }
     
     setStyleSheet(STYLE_FORMAT.arg(colors[color]));
@@ -88,6 +89,13 @@ TagWidget::TagWidget(const Frequency &freq, QWidget *parent) : TagWidget(parent)
     setStyleSheet(STYLE_FORMAT.arg(colors[frequency]));
     setText(FREQ_FORMAT.arg(freq.dictionary).arg(freq.freq));
     setToolTip(freq.dictionary);
+}
+
+TagWidget::TagWidget(const Pitch &pitch, QWidget *parent) : TagWidget(parent)
+{
+    setStyleSheet(STYLE_FORMAT.arg(colors[pitch_accent]));
+    setText(pitch.dictionary);
+    setToolTip(pitch.dictionary);
 }
 
 TagWidget::TagWidget(const QString &dicName, QWidget *parent) : TagWidget(parent)

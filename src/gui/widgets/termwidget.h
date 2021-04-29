@@ -57,6 +57,7 @@ private:
 
     FlowLayout  *m_layoutTermTags;
     FlowLayout  *m_layoutFreqTags;
+    QVBoxLayout *m_layoutPitches;
     QVBoxLayout *m_layoutGlossary;
 
     void setTerm(const Term &term);

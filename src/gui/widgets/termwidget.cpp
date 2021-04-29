@@ -22,6 +22,7 @@
 #include "ui_termwidget.h"
 
 #include "tagwidget.h"
+#include "pitchwidget.h"
 #include "glossarywidget.h"
 #include "../../util/iconfactory.h"
 #include "../../util/globalmediator.h"
@@ -53,10 +54,12 @@ TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent)
 
     m_layoutTermTags = new FlowLayout(-1, 6);
     m_layoutFreqTags = new FlowLayout(-1, 6);
+    m_layoutPitches  = new QVBoxLayout;
     m_layoutGlossary = new QVBoxLayout;
 
     m_ui->verticalLayout->addLayout(m_layoutTermTags);
     m_ui->verticalLayout->addLayout(m_layoutFreqTags);
+    m_ui->verticalLayout->addLayout(m_layoutPitches);
     m_ui->verticalLayout->addLayout(m_layoutGlossary);
     
     m_ui->verticalLayout->addStretch();
@@ -102,13 +105,18 @@ void TermWidget::setTerm(const Term &term)
 
     for (const Frequency &freq : term.frequencies)
     {
-        TagWidget *tag = new TagWidget(freq, this);
+        TagWidget *tag = new TagWidget(freq);
         m_layoutFreqTags->addWidget(tag);
+    }
+
+    for (const Pitch &pitch : term.pitches)
+    {
+        m_layoutPitches->addWidget(new PitchWidget(pitch));
     }
 
     for (const Tag &termTag : term.tags)
     {
-        TagWidget *tag = new TagWidget(termTag, this);
+        TagWidget *tag = new TagWidget(termTag);
         m_layoutTermTags->addWidget(tag);
     }
 

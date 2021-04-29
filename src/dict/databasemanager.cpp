@@ -26,6 +26,7 @@ extern "C"
 }
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QJsonObject>
 
 DatabaseManager::DatabaseManager(const QString &path) : m_dbpath(path.toUtf8()), m_readerCount(0)
 {
@@ -262,6 +263,8 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
         term->reading    = (const char *)sqlite3_column_text(stmt, COLUMN_READING);
         if (addFrequencies(*term))
             qDebug() << "Could not add frequencies for" << term->expression;
+        if (addPitches(*term))
+            qDebug() << "Could not add pithces for" << term->expression;
         termList.append(term);
     }
     if (isStepError(step))
@@ -474,6 +477,72 @@ cleanup:
 
     return ret;
 }
+
+#define QUERY   "SELECT dic_id, data "\
+                    "FROM term_meta_bank "\
+                    "WHERE (expression = ? AND mode = 'pitch');"
+
+#define OBJ_READING_KEY     "reading"
+#define OBJ_PITCHES_KEY     "pitches"
+#define OBJ_POSITION_KEY    "position"
+
+int DatabaseManager::addPitches(Term &term)
+{
+    int           ret  = 0;
+    sqlite3_stmt *stmt = NULL;
+    int           step = 0;
+    QByteArray    exp  = term.expression.toUtf8();
+
+    if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+    {
+        qDebug() << "Could not prepare pitch query";
+        ret = -1;
+        goto cleanup;
+    }
+    if (sqlite3_bind_text(stmt, 1, exp, -1, NULL) != SQLITE_OK)
+    {
+        qDebug() << "Error binding expression to pitch query";
+        ret = -1;
+        goto cleanup;
+    }
+    while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
+    {
+        QJsonObject obj = QJsonDocument::fromJson((const char *)sqlite3_column_blob(stmt, 1)).object();
+        if (obj[OBJ_READING_KEY].toString() != term.reading &&
+            obj[OBJ_READING_KEY].toString() != term.expression)
+        {
+            continue;
+        }
+
+        Pitch pitch;
+        pitch.dictionary = getDictionary(sqlite3_column_int64(stmt, 0));
+        pitch.reading    = obj[OBJ_READING_KEY].toString();
+        QJsonArray arr   = obj[OBJ_PITCHES_KEY].toArray();
+        for (const QJsonValue &val : arr)
+        {
+            pitch.position.append(val.toObject()[OBJ_POSITION_KEY].toInt());
+        }
+
+        term.pitches.append(pitch);
+    }
+    if (isStepError(step))
+    {
+        qDebug() << "Error executing sqlite pitch query";
+        ret = -1;
+        goto cleanup;
+    }
+
+cleanup:
+    sqlite3_finalize(stmt);
+
+    return ret;
+}
+
+#undef QUERY
+
+#undef OBJ_READING_KEY
+#undef OBJ_PITCHES_KEY
+#undef OBJ_POSITION_KEY
 
 #define QUERY   "SELECT dic_id, score, def_tags, glossary, rules, term_tags "\
                     "FROM term_bank "\
