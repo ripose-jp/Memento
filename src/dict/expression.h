@@ -52,7 +52,7 @@ struct Frequency
 struct Pitch
 {
     QString         dictionary;
-    QString         reading;
+    QStringList     mora;
     QList<uint8_t>  position;
 } typedef Pitch;
 

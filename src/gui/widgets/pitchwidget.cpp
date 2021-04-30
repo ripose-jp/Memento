@@ -22,7 +22,6 @@
 
 #include "tagwidget.h"
 
-#include <QSet>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QDebug>
@@ -70,7 +69,7 @@
 
 PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
 {
-    if (pitch.reading.isEmpty())
+    if (pitch.mora.isEmpty())
     {
         qDebug() << "Reading of empty size from dictionary" << pitch.dictionary;
         return;
@@ -89,8 +88,7 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
 
     layoutParent->addWidget(new TagWidget(pitch), 0, Qt::AlignLeft);
 
-    QStringList mora  = breakIntoMora(pitch.reading);
-    QString     color = palette().color(foregroundRole()).name();
+    QString color = palette().color(foregroundRole()).name();
     for (const uint8_t pos : pitch.position)
     {
         QHBoxLayout *layoutLine = new QHBoxLayout;
@@ -102,13 +100,14 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
         {
         case 0:
         {
-            QString text  = mora.first();
+            QString text  = pitch.mora.first();
             QString style = LH_STYLE.arg(color);
             layoutLine->addWidget(createLabel(text, style));
 
-            if (mora.size() > 1)
+            if (pitch.mora.size() > 1)
             {
-                text  = QString(pitch.reading).remove(0, mora.first().size());
+                text = pitch.mora.join("");
+                text.remove(0, pitch.mora.first().size());
                 style = H_STYLE.arg(color);
                 layoutLine->addWidget(createLabel(text, style));
             }
@@ -116,13 +115,14 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
         }
         case 1:
         {
-            QString text  = mora.first();
+            QString text  = pitch.mora.first();
             QString style = HL_STYLE.arg(color);
             layoutLine->addWidget(createLabel(text, style));
 
-            if (mora.size() > 1)
+            if (pitch.mora.size() > 1)
             {
-                text  = QString(pitch.reading).remove(0, mora.first().size());
+                text = pitch.mora.join("");
+                text.remove(0, pitch.mora.first().size());
                 style = L_STYLE.arg(color);
                 layoutLine->addWidget(createLabel(text, style));
             }
@@ -130,14 +130,14 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
         }
         default:
         {
-            QString text  = mora.first();
+            QString text  = pitch.mora.first();
             QString style = LH_STYLE.arg(color);
             layoutLine->addWidget(createLabel(text, style));
 
             text.clear();
             for (size_t i = 1; i < pos; ++i)
             {
-                text += mora[i];
+                text += pitch.mora[i];
             }
             if (!text.isEmpty())
             {
@@ -146,9 +146,9 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
             }
                 
             text.clear();
-            for (size_t i = pos; i < mora.size(); ++i)
+            for (size_t i = pos; i < pitch.mora.size(); ++i)
             {
-                text += mora[i];
+                text += pitch.mora[i];
             }
             if (!text.isEmpty())
             {
@@ -164,46 +164,6 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
         layoutLine->addWidget(labelNumber);
         layoutLine->addStretch();
     }
-}
-
-QStringList PitchWidget::breakIntoMora(const QString &reading)
-{
-    QSet<QString> skipChar;
-    skipChar << "ぁ"
-             << "ぃ"
-             << "ぅ"
-             << "ぇ"
-             << "ぉ"
-             << "ゃ"
-             << "ゅ"
-             << "ょ"
-             << "ァ"
-             << "ィ"
-             << "ゥ"
-             << "ェ"
-             << "ォ"
-             << "ャ"
-             << "ュ"
-             << "ョ";
-
-    QStringList mora;
-    QString currentMora;
-
-    for (const QString &ch : reading)
-    {
-        if (!currentMora.isEmpty() && !skipChar.contains(ch))
-        {
-            mora.append(currentMora);
-            currentMora.clear();
-        }
-        currentMora += ch;
-    }
-    if (!currentMora.isEmpty())
-    {
-        mora.append(currentMora);
-    }
-
-    return mora;
 }
 
 QLabel *PitchWidget::createLabel(const QString &text, const QString &style)

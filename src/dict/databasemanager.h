@@ -24,6 +24,7 @@
 #include <sqlite3.h>
 #include <QString>
 #include <QHash>
+#include <QSet>
 #include <QMutex>
 #include "expression.h"
 
@@ -44,6 +45,7 @@ private:
     sqlite3                *m_db;
     const QByteArray        m_dbpath;
     QHash<QString, QString> m_kataToHira;
+    QSet<QString>           m_moraSkipChar;
 
     QMutex   m_databaseLock;
     QMutex   m_readerLock;

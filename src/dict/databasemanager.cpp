@@ -124,6 +124,23 @@ DatabaseManager::DatabaseManager(const QString &path) : m_dbpath(path.toUtf8()),
     m_kataToHira["ペ"] = "ぺ";
     m_kataToHira["ポ"] = "ぽ";
 
+    m_moraSkipChar << "ぁ"
+                   << "ぃ"
+                   << "ぅ"
+                   << "ぇ"
+                   << "ぉ"
+                   << "ゃ"
+                   << "ゅ"
+                   << "ょ"
+                   << "ァ"
+                   << "ィ"
+                   << "ゥ"
+                   << "ェ"
+                   << "ォ"
+                   << "ャ"
+                   << "ュ"
+                   << "ョ";
+
     buildCache();
 }
 
@@ -508,16 +525,33 @@ int DatabaseManager::addPitches(Term &term)
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
         QJsonObject obj = QJsonDocument::fromJson((const char *)sqlite3_column_blob(stmt, 1)).object();
-        if (obj[OBJ_READING_KEY].toString() != term.reading &&
-            obj[OBJ_READING_KEY].toString() != term.expression)
+        const QString reading = obj[OBJ_READING_KEY].toString();
+        if (reading != term.reading && reading != term.expression)
         {
             continue;
         }
 
         Pitch pitch;
         pitch.dictionary = getDictionary(sqlite3_column_int64(stmt, 0));
-        pitch.reading    = obj[OBJ_READING_KEY].toString();
-        QJsonArray arr   = obj[OBJ_PITCHES_KEY].toArray();
+
+        /* Add mora */
+        QString currentMora;
+        for (const QString &ch : reading)
+        {
+            if (!currentMora.isEmpty() && !m_moraSkipChar.contains(ch))
+            {
+                pitch.mora.append(currentMora);
+                currentMora.clear();
+            }
+            currentMora += ch;
+        }
+        if (!currentMora.isEmpty())
+        {
+            pitch.mora.append(currentMora);
+        }
+
+        /* Add pitch positions */
+        QJsonArray arr = obj[OBJ_PITCHES_KEY].toArray();
         for (const QJsonValue &val : arr)
         {
             pitch.position.append(val.toObject()[OBJ_POSITION_KEY].toInt());
