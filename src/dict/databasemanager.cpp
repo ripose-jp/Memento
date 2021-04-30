@@ -758,10 +758,10 @@ void DatabaseManager::decrementReaders()
 QString DatabaseManager::kataToHira(const QString &query)
 {
     QString res;
-    for (auto it = query.begin(); it != query.end(); ++it)
+    for (const QString &rawCh : query)
     {
-        QString ch = m_kataToHira[*it];
-        res += ch.isEmpty() ? *it : ch;
+        QString ch = m_kataToHira[rawCh];
+        res += ch.isEmpty() ? rawCh : ch;
     }
     return res;
 }

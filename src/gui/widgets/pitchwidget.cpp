@@ -103,7 +103,7 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
         case 0:
         {
             QString text  = mora.first();
-            QString style = mora.size() <= 1 ? L_STYLE.arg(color) : LH_STYLE.arg(color);
+            QString style = LH_STYLE.arg(color);
             layoutLine->addWidget(createLabel(text, style));
 
             if (mora.size() > 1)
@@ -117,7 +117,7 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
         case 1:
         {
             QString text  = mora.first();
-            QString style = mora.size() <= 1 ? H_STYLE.arg(color) : HL_STYLE.arg(color);
+            QString style = HL_STYLE.arg(color);
             layoutLine->addWidget(createLabel(text, style));
 
             if (mora.size() > 1)
@@ -131,24 +131,20 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
         default:
         {
             QString text  = mora.first();
-            QString style = mora.size() <= 1 ? L_STYLE.arg(color) : LH_STYLE.arg(color);
+            QString style = LH_STYLE.arg(color);
             layoutLine->addWidget(createLabel(text, style));
 
             text.clear();
-            for (size_t i = 1; i < pos - 1; ++i)
+            for (size_t i = 1; i < pos; ++i)
             {
                 text += mora[i];
             }
             if (!text.isEmpty())
             {
-                style = H_STYLE.arg(color);
+                style = HL_STYLE.arg(color);
                 layoutLine->addWidget(createLabel(text, style));
             }
-            
-            style = HL_STYLE.arg(color);
-            text  = mora[pos - 1];
-            layoutLine->addWidget(createLabel(text, style));
-
+                
             text.clear();
             for (size_t i = pos; i < mora.size(); ++i)
             {
