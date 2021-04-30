@@ -109,5 +109,5 @@ TagWidget::TagWidget(QWidget *parent) : QLabel(parent)
 {
     setTextInteractionFlags(Qt::TextSelectableByMouse);
     setAlignment(Qt::AlignCenter);
-    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }

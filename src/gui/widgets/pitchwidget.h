@@ -25,12 +25,18 @@
 
 #include "../../dict/expression.h"
 
+#include <QLabel>
+
 class PitchWidget : public QWidget
 {
     Q_OBJECT
 
 public:
     PitchWidget(const Pitch &pitch, QWidget *parent = nullptr);
+
+private:
+    QStringList breakIntoMora(const QString &reading);
+    QLabel *createLabel(const QString &text, const QString &style);
 };
 
 #endif // PITCHWIDGET_H
