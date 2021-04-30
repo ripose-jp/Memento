@@ -64,8 +64,8 @@ Dictionary::~Dictionary()
     delete m_tagger;
 }
 
-QList<Term *> *Dictionary::searchTerms(const QString &query, 
-                                       const QString &subtitle,
+QList<Term *> *Dictionary::searchTerms(const QString query, 
+                                       const QString subtitle,
                                        const int index,
                                        const int *currentIndex)
 {
@@ -158,7 +158,7 @@ early_exit:
     return nullptr;
 }
 
-Kanji *Dictionary::searchKanji(const QString &ch)
+Kanji *Dictionary::searchKanji(const QString ch)
 {
     Kanji *kanji = new Kanji;
     m_db->queryKanji(ch, *kanji);

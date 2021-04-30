@@ -38,11 +38,11 @@ class Dictionary
 public:
     Dictionary();
     ~Dictionary();
-    QList<Term *> *searchTerms(const QString &query,
-                               const QString &subtitle,
+    QList<Term *> *searchTerms(const QString query,
+                               const QString subtitle,
                                const int index,
                                const int *currentIndex);
-    Kanji *searchKanji(const QString &character);
+    Kanji *searchKanji(const QString character);
 
     QString addDictionary(const QString &path);
     QString deleteDictionary(const QString &name);
