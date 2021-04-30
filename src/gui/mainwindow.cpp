@@ -324,7 +324,7 @@ void MainWindow::setFullscreen(bool value)
     }
     else
     {
-    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) || __APPLE__
         if (m_maximized)
             showMaximized();
         else
