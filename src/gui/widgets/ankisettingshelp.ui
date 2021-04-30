@@ -373,7 +373,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="12" column="0">
+         <item row="15" column="0">
           <widget class="QLabel" name="labelTermReading">
            <property name="font">
             <font>
@@ -390,7 +390,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="12" column="1">
+         <item row="15" column="1">
           <widget class="QLabel" name="labelTermReadingEx">
            <property name="text">
             <string>The reading of the word in kana.</string>
@@ -400,7 +400,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="13" column="0">
+         <item row="16" column="0">
           <widget class="QLabel" name="labelTermScreenshot">
            <property name="font">
             <font>
@@ -417,14 +417,14 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="13" column="1">
+         <item row="16" column="1">
           <widget class="QLabel" name="labelTermScreenshotEx">
            <property name="text">
             <string>Screenshot of the current frame.</string>
            </property>
           </widget>
          </item>
-         <item row="14" column="0">
+         <item row="17" column="0">
           <widget class="QLabel" name="labelTermScreenshotMedia">
            <property name="font">
             <font>
@@ -441,14 +441,14 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="14" column="1">
+         <item row="17" column="1">
           <widget class="QLabel" name="labelTermScreenshotVideo">
            <property name="text">
             <string>Screenshot of the current frame without subtitles if visible.</string>
            </property>
           </widget>
          </item>
-         <item row="15" column="0">
+         <item row="18" column="0">
           <widget class="QLabel" name="labelTermSentence">
            <property name="font">
             <font>
@@ -465,7 +465,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="15" column="1">
+         <item row="18" column="1">
           <widget class="QLabel" name="labelTermSentenceEx">
            <property name="text">
             <string>The current subtitle.</string>
@@ -475,7 +475,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="16" column="0">
+         <item row="19" column="0">
           <widget class="QLabel" name="labelTermTags">
            <property name="font">
             <font>
@@ -492,14 +492,14 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="16" column="1">
+         <item row="19" column="1">
           <widget class="QLabel" name="labelTermTagsEx">
            <property name="text">
             <string>Bulleted list of the term tags.</string>
            </property>
           </widget>
          </item>
-         <item row="17" column="0">
+         <item row="20" column="0">
           <widget class="QLabel" name="labelTermTitle">
            <property name="font">
             <font>
@@ -516,10 +516,82 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="17" column="1">
+         <item row="20" column="1">
           <widget class="QLabel" name="labelTermTitleEx">
            <property name="text">
             <string>Title of the video. Filename if no title.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="12" column="0">
+          <widget class="QLabel" name="labelPitch">
+           <property name="font">
+            <font>
+             <family>DejaVu Sans Mono</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{pitch}</string>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="12" column="1">
+          <widget class="QLabel" name="labelPitchEx">
+           <property name="text">
+            <string>Pitch accents for the reading of the term.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="0">
+          <widget class="QLabel" name="labelPitchGraph">
+           <property name="font">
+            <font>
+             <family>DejaVu Sans Mono</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{pitch-graph}</string>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="1">
+          <widget class="QLabel" name="labelPitchGraphEx">
+           <property name="text">
+            <string>Pitch graphs for the reading of the term.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="0">
+          <widget class="QLabel" name="labelPitchPosition">
+           <property name="font">
+            <font>
+             <family>DejaVu Sans Mono</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{pitch-position}</string>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="1">
+          <widget class="QLabel" name="labelPitchPositionEx">
+           <property name="text">
+            <string>Pitch positions for the reading of the term.</string>
            </property>
           </widget>
          </item>
