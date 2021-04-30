@@ -53,8 +53,8 @@
 #define REPLACE_FURIGANA_PLAIN      "{furigana-plain}"
 #define REPLACE_GLOSSARY_BRIEF      "{glossary-brief}"
 #define REPLACE_PITCH               "{pitch}"
-#define REPLACE_PITCH_GRAPHS        "{pitch-graphs}"
-#define REPLACE_PITCH_POSITIONS     "{pitch-positions}"
+#define REPLACE_PITCH_GRAPHS        "{pitch-graph}"
+#define REPLACE_PITCH_POSITIONS     "{pitch-position}"
 #define REPLACE_READING             "{reading}"
 
 /* Kanji Markers */
