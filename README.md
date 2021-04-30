@@ -10,7 +10,7 @@ Memento is a FOSS, mpv-based video player intended for studying Japanese.
 
 * Grammar aware subtitle search
 * Yomichan-style Kanji cards
-* Support for Yomichan dictionaries (except pitch accent dictionaries like Kanjium)
+* Support for Yomichan dictionaries
 * Anki card creation through [AnkiConnect](https://ankiweb.net/shared/info/2055492159)
 * Support for mpv upscalers, plugins, and configuration files
 
@@ -37,6 +37,8 @@ Memento is a FOSS, mpv-based video player intended for studying Japanese.
     *   [kanjidic\_spanish.zip](https://foosoft.net/projects/yomichan/dl/dict/kanjidic_spanish.zip)
 *   **[Innocent Corpus](https://web.archive.org/web/20190309073023/https://forum.koohii.com/thread-9459.html#pid168613)** (Term and kanji frequencies across 5000+ novels)
     *   [innocent\_corpus.zip](https://foosoft.net/projects/yomichan/dl/dict/innocent_corpus.zip)
+*   **[Kanjium](https://github.com/mifunetoshiro/kanjium)** (Pitch dictionary, see [related project page](https://github.com/toasted-nutbread/yomichan-pitch-accent-dictionary) for details)
+    *   [kanjium_pitch_accents.zip](https://foosoft.net/projects/yomichan/dl/dict/kanjium_pitch_accents.zip)
 
 ## Dependencies
 
@@ -142,7 +144,7 @@ The Memento config directory is located at:
 
 ### Mac OS X
 ```
-~/.config/Memento
+~/.config/memento
 ```
 
 If any mpv binds or plugins do not work, please create an issue in the issue
