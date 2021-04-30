@@ -324,12 +324,7 @@ void MainWindow::setFullscreen(bool value)
     }
     else
     {
-    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) || __APPLE__
-        if (m_maximized)
-            showMaximized();
-        else
-            showNormal();
-    #elif __linux__
+    #if __linux__
         showNormal();
         if (m_maximized)
         {
@@ -337,6 +332,12 @@ void MainWindow::setFullscreen(bool value)
             // on Linux due to a bug with Qt
             showMaximized();
         }
+    #else
+        if (m_maximized)
+            showMaximized();
+        else
+            showNormal();
+    
     #endif
         //m_ui->menubar->show();
         m_ui->menubar->setMinimumHeight(0);
