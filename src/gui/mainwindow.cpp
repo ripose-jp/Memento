@@ -260,7 +260,11 @@ void MainWindow::showEvent(QShowEvent *event)
             "No Dictionaries Installed",
             "No dictionaries are installed. For subtitle searching to work, please install a dictionary.<br>"
             "Dictionaries can be found <a href='https://foosoft.net/projects/yomichan/'>here</a>.<br>"
+        #if __APPLE__
+            "To install a dictionary, go to Memento -> Preferences -> Dictionaries."
+        #else
             "To install a dictionary, go to Settings -> Options -> Dictionaries."
+        #endif
         );
     }
 

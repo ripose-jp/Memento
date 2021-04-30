@@ -142,7 +142,7 @@ The Memento config directory is located at:
 
 ### Mac OS X
 ```
-~/.config/memento
+~/.config/Memento
 ```
 
 If any mpv binds or plugins do not work, please create an issue in the issue
