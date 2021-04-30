@@ -52,6 +52,9 @@
 #define REPLACE_FURIGANA            "{furigana}"
 #define REPLACE_FURIGANA_PLAIN      "{furigana-plain}"
 #define REPLACE_GLOSSARY_BRIEF      "{glossary-brief}"
+#define REPLACE_PITCH               "{pitch}"
+#define REPLACE_PITCH_GRAPHS        "{pitch-graphs}"
+#define REPLACE_PITCH_POSITIONS     "{pitch-positions}"
 #define REPLACE_READING             "{reading}"
 
 /* Kanji Markers */
@@ -160,6 +163,8 @@ private:
                               const QJsonObject            &configFields,
                               const bool                    media);
     QString  buildFrequencies(const QList<Frequency>       &freq);
+    void     buildPitchInfo  (const QList<Pitch>           &pitches,
+                              QString &pitch, QString &pitchGraph, QString &pitchPosition);
     QString  buildGlossary   (const QList<TermDefinition>  &definitions);
     QString  buildGlossary   (const QList<KanjiDefinition> &definitions);
     QString &accumulateTags  (const QList<Tag>             &tags,         

@@ -704,6 +704,12 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
         
     QString glossary        = buildGlossary(term.definitions);
     QString glossaryCompact = "<ol>";
+
+    QString pitch;
+    QString pitchGraph;
+    QString pitchPosition;
+    buildPitchInfo(term.pitches, pitch, pitchGraph, pitchPosition);
+
     for (const TermDefinition &def : term.definitions)
     {
         for (QString glos : def.glossary)
@@ -736,18 +742,21 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
         }
         value.replace(REPLACE_AUDIO, "");
 
-        value.replace(REPLACE_CLOZE_BODY,     clozeBody);
-        value.replace(REPLACE_CLOZE_PREFIX,   clozePrefix);
-        value.replace(REPLACE_CLOZE_SUFFIX,   clozeSuffix);
-        value.replace(REPLACE_EXPRESSION,     term.expression);
-        value.replace(REPLACE_FREQUENCIES,    frequencies);
-        value.replace(REPLACE_FURIGANA,       furigana);
-        value.replace(REPLACE_FURIGANA_PLAIN, furiganaPlain);
-        value.replace(REPLACE_GLOSSARY,       glossary);
-        value.replace(REPLACE_GLOSSARY_BRIEF, glossaryCompact);
-        value.replace(REPLACE_READING,        reading);
-        value.replace(REPLACE_SENTENCE,       sentence);
-        value.replace(REPLACE_TAGS,           tags);
+        value.replace(REPLACE_CLOZE_BODY,      clozeBody);
+        value.replace(REPLACE_CLOZE_PREFIX,    clozePrefix);
+        value.replace(REPLACE_CLOZE_SUFFIX,    clozeSuffix);
+        value.replace(REPLACE_EXPRESSION,      term.expression);
+        value.replace(REPLACE_FREQUENCIES,     frequencies);
+        value.replace(REPLACE_FURIGANA,        furigana);
+        value.replace(REPLACE_FURIGANA_PLAIN,  furiganaPlain);
+        value.replace(REPLACE_GLOSSARY,        glossary);
+        value.replace(REPLACE_GLOSSARY_BRIEF,  glossaryCompact);
+        value.replace(REPLACE_PITCH,           pitch);
+        value.replace(REPLACE_PITCH_GRAPHS,    pitchGraph);
+        value.replace(REPLACE_PITCH_POSITIONS, pitchPosition);
+        value.replace(REPLACE_READING,         reading);
+        value.replace(REPLACE_SENTENCE,        sentence);
+        value.replace(REPLACE_TAGS,            tags);
 
         fieldsObj[field] = value;
     }
@@ -779,7 +788,150 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
     return note;
 }
 
+#define HL_STYLE        (QString("border-top: solid; border-right: solid;"))
+#define H_STYLE         (QString("border-top: solid;"))
 
+#define PITCH_FORMAT    (QString("<span style=\"%1\">%2</span>"))
+
+void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches, 
+                                QString            &pitch,
+                                QString            &pitchGraph,
+                                QString            &pitchPosition)
+{
+    pitch         += "<span class=\"memento-pitch\">";
+    pitchGraph    += "<span>";
+    pitchPosition += "<span>";
+    
+    const bool multipleDicts = pitches.size() > 1;
+
+    if (multipleDicts)
+    {
+        pitch         += "<ul>";
+        pitchGraph    += "<ul>";
+        pitchPosition += "<ul>";
+    }
+    
+    for (const Pitch &p : pitches)
+    {
+        const bool multiplePitches = p.position.size() > 1;
+
+        /* Header */
+        if (multipleDicts)
+        {
+            pitch         += "<li><i>" + p.dictionary + "</i>";
+            pitchGraph    += "<li><i>" + p.dictionary + "</i>";
+            pitchPosition += "<li><i>" + p.dictionary + "</i>";
+        }
+        if(multiplePitches)
+        {
+            pitch         += "<ol>";
+            pitchGraph    += "<ol>";
+            pitchPosition += "<ol>";
+        }
+
+        /* Body */
+        for (const uint8_t pos : p.position)
+        {
+            if (p.mora.isEmpty())
+            {
+                continue;
+            }
+
+            if (multiplePitches)
+            {
+                pitch         += "<li>";
+                pitchGraph    += "<li>";
+                pitchPosition += "<li>";
+            }
+
+            /* Build {pitch} marker */
+            switch (pos)
+            {
+            case 0:
+                pitch += p.mora.first();
+                if (p.mora.size() > 1)
+                {
+                    pitch += PITCH_FORMAT.arg(H_STYLE)
+                                         .arg(p.mora.join("").remove(0, p.mora.first().size()));
+                }
+                break;
+            case 1:
+                pitch += PITCH_FORMAT.arg(HL_STYLE).arg(p.mora.first());
+                if (p.mora.size() > 1)
+                {
+                    pitch += p.mora.join("").remove(0, p.mora.first().size());
+                }
+                break;
+            default:
+            {
+                QString text = p.mora.first();
+                pitch += text;
+
+                text.clear();
+                for (size_t i = 1; i < pos; ++i)
+                {
+                    text += p.mora[i];
+                }
+                if (!text.isEmpty())
+                {
+                    pitch += PITCH_FORMAT.arg(HL_STYLE).arg(text);
+                }
+
+                text.clear();
+                for (size_t i = pos; i < p.mora.size(); ++i)
+                {
+                    text += p.mora[i];
+                }
+                if (!text.isEmpty())
+                {
+                    pitch += text;
+                }
+            }
+            }
+
+            pitchGraph    += ""; /* TODO */
+
+            pitchPosition += "[" + QString::number(pos) + "]";
+
+            if (multiplePitches)
+            {
+                pitch         += "</li>";
+                pitchGraph    += "</li>";
+                pitchPosition += "</li>";
+            }
+        }
+
+        /* Trailer */
+        if(multiplePitches)
+        {
+            pitch         += "</ol>";
+            pitchGraph    += "</ol>";
+            pitchPosition += "</ol>";
+        }
+        if (multipleDicts)
+        {
+            pitch         += "</li>";
+            pitchGraph    += "</li>";
+            pitchPosition += "</li>";
+        }
+    }
+
+    if (multipleDicts)
+    {
+        pitch         += "</ul>";
+        pitchGraph    += "</ul>";
+        pitchPosition += "</ul>";
+    }
+
+    pitch         += "</span>";
+    pitchGraph    += "</span>";
+    pitchPosition += "</span>";
+}
+
+#undef HL_STYLE
+#undef H_STYLE
+
+#undef PITCH_FORMAT
 
 QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji, const bool media)
 {
