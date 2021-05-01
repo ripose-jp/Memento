@@ -30,6 +30,10 @@
 
 #include "../../util/directoryutils.h"
 
+#if __APPLE__
+    class MacOSPowerEventHandler;
+#endif
+
 class MpvWidget Q_DECL_FINAL : public QOpenGLWidget
 {
     Q_OBJECT
@@ -88,6 +92,8 @@ private:
     QTimer *m_cursorTimer;
 #if __linux__
     uint32_t dbus_cookie;
+#elif __APPLE__
+    MacOSPowerEventHandler *m_powerHandler;
 #endif
 };
 

@@ -32,6 +32,12 @@ if(UNIX AND NOT APPLE)
 	    ${MPV_WIDGET_LIBS} 
 	    Qt5::DBus
     )
+elseif(UNIX AND APPLE)
+    set(
+        MPV_WIDGET_LIBS 
+        ${MPV_WIDGET_LIBS} 
+        macos_power_handler
+    )
 endif()
 target_link_libraries(
     mpvwidget

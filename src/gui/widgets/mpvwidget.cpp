@@ -34,7 +34,7 @@
 #elif __linux__
     #include <QtDBus>
 #elif __APPLE__
-    #include <IOKit/pwr_mgt/IOPMLib.h>
+    #include "../../util/macospowereventhandler.h"
 #endif
 
 #define ASYNC_COMMAND_REPLY 20
@@ -107,6 +107,10 @@ MpvWidget::MpvWidget(QWidget *parent)
 
     mpv_set_wakeup_callback(mpv, wakeup, this);
 
+#if __APPLE__
+    m_powerHandler = new MacOSPowerEventHandler;
+#endif
+
     GlobalMediator::getGlobalMediator()->setPlayerWidget(this);
 
     connect(m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
@@ -130,6 +134,9 @@ MpvWidget::~MpvWidget()
         mpv_render_context_free(mpv_gl);
     mpv_terminate_destroy(mpv);
     delete m_cursorTimer;
+#if __APPLE__
+    delete m_powerHandler;
+#endif
 }
 
 void MpvWidget::initializeGL()
@@ -275,7 +282,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                         }     
                     }
             #elif __APPLE__
-                // TODO: Prevent sleep
+                m_powerHandler->setPreventSleep(!paused);
             #endif
                 
                 Q_EMIT stateChanged(paused);

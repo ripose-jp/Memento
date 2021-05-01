@@ -99,6 +99,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_subtitle.spacerWidget = new QWidget;
     m_subtitle.spacerWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_subtitle.spacerWidget->setFixedWidth(0);
+    m_subtitle.spacerWidget->setMouseTracking(true);
     m_subtitle.layoutPlayerOverlay->addWidget(m_subtitle.spacerWidget);
 
     repositionSubtitles();

@@ -26,3 +26,8 @@ target_link_libraries(
     Qt5::Gui
     Qt5::Widgets
 )
+
+if (APPLE)
+    add_library(macos_power_handler macospowereventhandler.h)
+    target_link_libraries(macos_power_handler "-framework IOKit -framework CoreFoundation")
+endif()
