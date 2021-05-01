@@ -270,9 +270,9 @@ void MainWindow::loadWindowSettings()
     QSettings settings;
     settings.beginGroup(SETTINGS_GROUP_WINDOW);
 
-    restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
-    restoreState   (settings.value(SETTINGS_STATE)   .toByteArray());
-    m_maximized = settings.value(SETTINGS_MAXIMIZED).toBool();
+    restoreGeometry(settings.value(SETTINGS_GEOMETRY)        .toByteArray());
+    restoreState   (settings.value(SETTINGS_STATE)           .toByteArray());
+    m_maximized =   settings.value(SETTINGS_MAXIMIZED, false).toBool();
     if (m_maximized)
     {
         showMaximized();
