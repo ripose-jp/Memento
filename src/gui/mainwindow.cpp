@@ -126,7 +126,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_mediator, &GlobalMediator::playerCursorHidden,      this, &MainWindow::hideControls);
     connect(m_mediator, &GlobalMediator::ankiSettingsChanged,     this, &MainWindow::updateAnkiProfileMenu);
     connect(m_mediator, &GlobalMediator::playerFullscreenChanged, this, &MainWindow::setFullscreen);
-    connect(m_mediator, &GlobalMediator::playerClosed,            this, &QApplication::quit);
+    connect(m_mediator, &GlobalMediator::playerClosed,            this, &MainWindow::close);
     connect(m_mediator, &GlobalMediator::playerTitleChanged,      this, 
         [=] (const QString name) { setWindowTitle(name + " - Memento"); }
     );
@@ -220,6 +220,8 @@ MainWindow::MainWindow(QWidget *parent)
     /* Theme Changes */
     connect(m_mediator, &GlobalMediator::interfaceSettingsChanged, this, &MainWindow::setTheme);
     connect(m_mediator, &GlobalMediator::requestThemeRefresh,      this, &MainWindow::deleteDefinitionWidget);
+
+    loadWindowSettings();
 }
 
 MainWindow::~MainWindow()
@@ -238,6 +240,54 @@ MainWindow::~MainWindow()
     delete m_manager;
     delete m_ankiClient;
 }
+
+#define SETTINGS_GROUP_WINDOW       "main-window"
+#define SETTINGS_GEOMETRY           "geometry"
+#define SETTINGS_STATE              "state"
+#define SETTINGS_MAXIMIZED          "maximized"
+#define SETTINGS_SUB_LIST_VISIBLE   "sub-list-visibility"
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_GROUP_WINDOW);
+
+    settings.setValue(SETTINGS_GEOMETRY,         saveGeometry());
+    settings.setValue(SETTINGS_STATE,            saveState());
+    settings.setValue(SETTINGS_MAXIMIZED,        m_maximized);
+    settings.setValue(SETTINGS_SUB_LIST_VISIBLE, m_ui->listSubtitles->isVisible());
+    if (m_ui->listSubtitles->isVisible())
+    {
+        QList<int> sizes = m_ui->splitterPlayerSubtitles->sizes();
+    }
+
+    QMainWindow::closeEvent(event);
+    QApplication::quit();
+}
+
+void MainWindow::loadWindowSettings()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_GROUP_WINDOW);
+
+    restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
+    restoreState   (settings.value(SETTINGS_STATE)   .toByteArray());
+    m_maximized = settings.value(SETTINGS_MAXIMIZED).toBool();
+    if (m_maximized)
+    {
+        showMaximized();
+    }
+    if (settings.value(SETTINGS_SUB_LIST_VISIBLE, false).toBool())
+    {
+        m_ui->listSubtitles->show();
+    }
+}
+
+#undef SETTINGS_GROUP_WINDOW
+#undef SETTINGS_GEOMETRY
+#undef SETTINGS_STATE
+#undef SETTINGS_MAXIMIZED
+#undef SETTINGS_SUB_LIST_VISIBLE
 
 void MainWindow::showEvent(QShowEvent *event)
 {
@@ -273,13 +323,9 @@ void MainWindow::showEvent(QShowEvent *event)
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    switch (event->key())
-    {
-    default:
-    {
-        Q_EMIT m_mediator->keyPressed(event);
-    }
-    }
+    Q_EMIT m_mediator->keyPressed(event);
+
+    QMainWindow::keyPressEvent(event);
 }
 
 void MainWindow::wheelEvent(QWheelEvent *event)
@@ -288,12 +334,16 @@ void MainWindow::wheelEvent(QWheelEvent *event)
     {
         Q_EMIT m_mediator->wheelMoved(event);
     }
+
+    QMainWindow::wheelEvent(event);
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 {
     if (event->mimeData()->hasFormat("text/uri-list"))
         event->acceptProposedAction();
+    
+    QMainWindow::dragEnterEvent(event);
 }
 
 void MainWindow::dropEvent(QDropEvent *event)
@@ -302,7 +352,8 @@ void MainWindow::dropEvent(QDropEvent *event)
     {
         m_player->open(event->mimeData()->urls());
         m_player->play();
-    }   
+    }
+    QMainWindow::dropEvent(event);
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)
@@ -310,53 +361,27 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     event->ignore();
     repositionSubtitles();
     deleteDefinitionWidget();
-}
-
-void MainWindow::setFullscreen(bool value)
-{
-    if (value)
-    {
-        m_maximized = isMaximized();
-        showFullScreen();
-        m_ui->menubar->setFixedHeight(0);
-
-        /* Move the controls */
-        m_ui->controls->hide();
-        m_ui->centralwidget->layout()->removeWidget(m_ui->controls);
-        m_ui->controls->raise();
-        m_subtitle.layoutPlayerOverlay->addWidget(m_ui->controls);
-    }
-    else
-    {
-    #if __linux__
-        showNormal();
-        if (m_maximized)
-        {
-            // Have call showNormal before showMaximized when leaving fullscreen
-            // on Linux due to a bug with Qt
-            showMaximized();
-        }
-    #else
-        if (m_maximized)
-            showMaximized();
-        else
-            showNormal();
-    
-    #endif
-        //m_ui->menubar->show();
-        m_ui->menubar->setMinimumHeight(0);
-        m_ui->menubar->setMaximumHeight(QWIDGETSIZE_MAX);
-
-        m_subtitle.layoutPlayerOverlay->removeWidget(m_ui->controls);
-        m_ui->centralwidget->layout()->addWidget(m_ui->controls);
-        m_ui->controls->show();
-    }
+    QMainWindow::resizeEvent(event);
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     event->ignore();
     deleteDefinitionWidget();
+    QMainWindow::mousePressEvent(event);
+}
+
+void MainWindow::changeEvent(QEvent *event)
+{
+    QMainWindow::changeEvent(event);
+    if (event->type() == QEvent::WindowStateChange)
+    {
+        QApplication::processEvents();
+        if (!isFullScreen())
+        {
+            m_maximized = isMaximized();
+        }
+    }
 }
 
 void MainWindow::setTracks(QList<const Track *> tracks)
@@ -422,6 +447,47 @@ void MainWindow::setTracks(QList<const Track *> tracks)
         }
         action->setChecked(track->selected);
         trackList->push_back(QPair<QAction *, const Track *>(action, track));
+    }
+}
+
+void MainWindow::setFullscreen(bool value)
+{
+    if (value)
+    {
+        m_maximized = isMaximized();
+        showFullScreen();
+        m_ui->menubar->setFixedHeight(0);
+
+        /* Move the controls */
+        m_ui->controls->hide();
+        m_ui->centralwidget->layout()->removeWidget(m_ui->controls);
+        m_ui->controls->raise();
+        m_subtitle.layoutPlayerOverlay->addWidget(m_ui->controls);
+    }
+    else
+    {
+    #if __linux__
+        showNormal();
+        if (m_maximized)
+        {
+            // Have call showNormal before showMaximized when leaving fullscreen
+            // on Linux due to a bug with Qt
+            showMaximized();
+        }
+    #else
+        if (m_maximized)
+            showMaximized();
+        else
+            showNormal();
+    
+    #endif
+        //m_ui->menubar->show();
+        m_ui->menubar->setMinimumHeight(0);
+        m_ui->menubar->setMaximumHeight(QWIDGETSIZE_MAX);
+
+        m_subtitle.layoutPlayerOverlay->removeWidget(m_ui->controls);
+        m_ui->centralwidget->layout()->addWidget(m_ui->controls);
+        m_ui->controls->show();
     }
 }
 

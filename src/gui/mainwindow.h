@@ -78,6 +78,7 @@ private Q_SLOTS:
     void setTheme();
 
 protected:
+    void closeEvent(QCloseEvent *event) override;
     void showEvent(QShowEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
@@ -85,6 +86,7 @@ protected:
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+    void changeEvent(QEvent *event) override;
 
 private:
     Ui::MainWindow   *m_ui;
@@ -120,6 +122,8 @@ private:
     QNetworkAccessManager *m_manager;
 
     bool m_maximized;
+
+    void loadWindowSettings();
 
     void clearTracks();
     void clearTrack(
