@@ -28,11 +28,7 @@
 #elif __linux__
     #define SLASH "/"
 #elif __APPLE__
-    #if TARGET_OS_MAC
-        #define SLASH "/"
-    #else
-        #error "Apple OS type no supported"
-    #endif
+    #define SLASH "/"
 #else
     #error "OS not supported"
 #endif
