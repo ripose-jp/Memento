@@ -29,7 +29,7 @@ public:
     using QProxyStyle::QProxyStyle;
     int styleHint(QStyle::StyleHint hint, const QStyleOption *option = nullptr, 
                   const QWidget *widget = nullptr,
-                  QStyleHintReturn *returnData = nullptr) const Q_DECL_OVERRIDE;
+                  QStyleHintReturn *returnData = nullptr) const override;
 };
 
 #endif // SLIDERJUMPSTYLE_H

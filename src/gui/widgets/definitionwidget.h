@@ -51,18 +51,18 @@ private Q_SLOTS:
     void hideKanji();
 
 protected:
-    void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
-    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+    void hideEvent(QHideEvent *event) override;
+    void showEvent(QShowEvent *event) override;
     /* Prevents these events from being sent to mpv when widget has focus */
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE 
+    void mouseMoveEvent(QMouseEvent *event) override 
         { event->accept(); }
-    void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE 
+    void mouseReleaseEvent(QMouseEvent *event) override 
         { event->accept(); }
-    void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE 
+    void mouseDoubleClickEvent(QMouseEvent *event) override 
         { event->accept(); }
-    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE 
+    void mousePressEvent(QMouseEvent *event) override 
         { event->accept(); }
-    void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE
+    void wheelEvent(QWheelEvent *event) override
         { event->accept(); }
 
 private:

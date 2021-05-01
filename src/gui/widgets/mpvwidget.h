@@ -38,7 +38,7 @@ public:
     MpvWidget(QWidget *parent = 0);
     ~MpvWidget();
 
-    QSize sizeHint() const Q_DECL_OVERRIDE { return QSize(480, 270); }
+    QSize sizeHint() const override { return QSize(480, 270); }
     mpv_handle *get_handle() { return mpv; }
 
 Q_SIGNALS:
@@ -67,12 +67,12 @@ Q_SIGNALS:
     void shutdown();
 
 protected:
-    void initializeGL() Q_DECL_OVERRIDE;
-    void paintGL() Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
+    void initializeGL() override;
+    void paintGL() override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 private Q_SLOTS:
     void on_mpv_events();

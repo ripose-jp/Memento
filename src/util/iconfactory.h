@@ -71,8 +71,8 @@ class StyleFactory : public IconFactory
 public:
     StyleFactory();
 
-    const QIcon &getIcon(IconFactory::Icon icon) const Q_DECL_OVERRIDE;
-    void buildIcons() Q_DECL_OVERRIDE;
+    const QIcon &getIcon(IconFactory::Icon icon) const override;
+    void buildIcons() override;
 
 private:
     QIcon icons[ICON_ENUM_SIZE];
@@ -85,8 +85,8 @@ class ThemeFactory : public IconFactory
 public:
     ThemeFactory();
 
-    const QIcon &getIcon(IconFactory::Icon icon) const Q_DECL_OVERRIDE;
-    void buildIcons() Q_DECL_OVERRIDE;
+    const QIcon &getIcon(IconFactory::Icon icon) const override;
+    void buildIcons() override;
 
 private:
     QIcon icons[ICON_ENUM_SIZE];

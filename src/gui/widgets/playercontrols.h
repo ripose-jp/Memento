@@ -49,8 +49,8 @@ public Q_SLOTS:
     void setPosition(const double value);
 
 protected:
-    void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
-    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+    void hideEvent(QHideEvent *event) override;
+    void showEvent(QShowEvent *event) override;
     
 private Q_SLOTS:
     void refreshTheme();

@@ -30,62 +30,62 @@ public:
     MpvAdapter(MpvWidget *mpv, QObject *parent = 0);
     virtual ~MpvAdapter() { disconnect(); }
 
-    int64_t getMaxVolume() const Q_DECL_OVERRIDE;
+    int64_t getMaxVolume() const override;
 
-    double getSubStart() const Q_DECL_OVERRIDE;
-    double getSubEnd() const Q_DECL_OVERRIDE;
-    double getSubDelay() const Q_DECL_OVERRIDE;
+    double getSubStart() const override;
+    double getSubEnd() const override;
+    double getSubDelay() const override;
 
-    bool getSubVisibility() const Q_DECL_OVERRIDE;
+    bool getSubVisibility() const override;
     
-    double getAudioDelay() const Q_DECL_OVERRIDE;
+    double getAudioDelay() const override;
 
-    QList<const Track *> getTracks() Q_DECL_OVERRIDE;
-    int64_t getAudioTrack() const Q_DECL_OVERRIDE;
-    int64_t getSubtitleTrack() const Q_DECL_OVERRIDE;
+    QList<const Track *> getTracks() override;
+    int64_t getAudioTrack() const override;
+    int64_t getSubtitleTrack() const override;
 
-    QString getPath() const Q_DECL_OVERRIDE;
-    QString getTitle() const Q_DECL_OVERRIDE;
+    QString getPath() const override;
+    QString getTitle() const override;
 
-    bool isFullScreen() const Q_DECL_OVERRIDE;
+    bool isFullScreen() const override;
 
 public Q_SLOTS:
-    void open(const QString &file, const bool append = false) Q_DECL_OVERRIDE;
-    void open(const QList<QUrl> &files) Q_DECL_OVERRIDE;
-    void addSubtitle(const QString &file) Q_DECL_OVERRIDE;
+    void open(const QString &file, const bool append = false) override;
+    void open(const QList<QUrl> &files) override;
+    void addSubtitle(const QString &file) override;
 
-    void seek(const int64_t time) Q_DECL_OVERRIDE;
+    void seek(const int64_t time) override;
 
-    void play() Q_DECL_OVERRIDE;
-    void pause() Q_DECL_OVERRIDE;
-    void stop() Q_DECL_OVERRIDE;
+    void play() override;
+    void pause() override;
+    void stop() override;
 
-    void seekForward() Q_DECL_OVERRIDE;
-    void seekBackward() Q_DECL_OVERRIDE;
+    void seekForward() override;
+    void seekBackward() override;
 
-    void skipForward() Q_DECL_OVERRIDE;
-    void skipBackward() Q_DECL_OVERRIDE;
+    void skipForward() override;
+    void skipBackward() override;
 
-    void disableAudio() Q_DECL_OVERRIDE;
-    void disableVideo() Q_DECL_OVERRIDE;
-    void disableSubtitles() Q_DECL_OVERRIDE;
-    void disableSubtitleTwo() Q_DECL_OVERRIDE;
+    void disableAudio() override;
+    void disableVideo() override;
+    void disableSubtitles() override;
+    void disableSubtitleTwo() override;
 
-    void setSubVisiblity(const bool visible) Q_DECL_OVERRIDE;
+    void setSubVisiblity(const bool visible) override;
 
-    void setAudioTrack(int64_t id) Q_DECL_OVERRIDE;
-    void setVideoTrack(int64_t id) Q_DECL_OVERRIDE;
-    void setSubtitleTrack(int64_t id) Q_DECL_OVERRIDE;
-    void setSubtitleTwoTrack(int64_t id) Q_DECL_OVERRIDE;
+    void setAudioTrack(int64_t id) override;
+    void setVideoTrack(int64_t id) override;
+    void setSubtitleTrack(int64_t id) override;
+    void setSubtitleTwoTrack(int64_t id) override;
 
-    void setFullscreen(const bool value) Q_DECL_OVERRIDE;
-    void setVolume(const int64_t value) Q_DECL_OVERRIDE;
+    void setFullscreen(const bool value) override;
+    void setVolume(const int64_t value) override;
 
     QString tempScreenshot(const bool subtitles,
-                           const QString &ext = ".jpg") Q_DECL_OVERRIDE;
+                           const QString &ext = ".jpg") override;
 
-    void keyPressed(const QKeyEvent *event) Q_DECL_OVERRIDE;
-    void mouseWheelMoved(const QWheelEvent *event) Q_DECL_OVERRIDE;
+    void keyPressed(const QKeyEvent *event) override;
+    void mouseWheelMoved(const QWheelEvent *event) override;
 
 private Q_SLOTS:
     QList<const Track *> processTracks(const mpv_node *node);

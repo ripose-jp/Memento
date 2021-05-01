@@ -37,7 +37,7 @@ public:
     ~SearchSettings();
 
 protected:
-    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+    void showEvent(QShowEvent *event) override;
 
 private Q_SLOTS:
     void resetSaved();

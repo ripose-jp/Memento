@@ -34,8 +34,8 @@ public:
     QString getContext(const QString &seperator);
 
 protected:
-    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
-    void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
+    void showEvent(QShowEvent *event) override;
+    void hideEvent(QHideEvent *event) override;
 
 private Q_SLOTS:
     void setTheme();
