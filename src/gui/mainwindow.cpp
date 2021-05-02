@@ -374,15 +374,15 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 
 void MainWindow::changeEvent(QEvent *event)
 {
-    QMainWindow::changeEvent(event);
     if (event->type() == QEvent::WindowStateChange)
     {
-        QApplication::processEvents();
-        if (!isFullScreen())
+        if (windowState() & Qt::WindowFullScreen)
         {
-            m_maximized = isMaximized();
+            QWindowStateChangeEvent *e = (QWindowStateChangeEvent *)event;
+            m_maximized = e->oldState() & Qt::WindowMaximized;
         }
     }
+    QMainWindow::changeEvent(event);
 }
 
 void MainWindow::setTracks(QList<const Track *> tracks)
