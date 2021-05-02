@@ -86,7 +86,6 @@ protected:
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
-    void changeEvent(QEvent *event) override;
 
 private:
     Ui::MainWindow   *m_ui;

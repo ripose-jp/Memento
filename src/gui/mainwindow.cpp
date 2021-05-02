@@ -244,8 +244,6 @@ MainWindow::~MainWindow()
 
 #define SETTINGS_GROUP_WINDOW       "main-window"
 #define SETTINGS_GEOMETRY           "geometry"
-#define SETTINGS_STATE              "state"
-#define SETTINGS_MAXIMIZED          "maximized"
 #define SETTINGS_SUB_LIST_VISIBLE   "sub-list-visibility"
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -254,8 +252,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
     settings.beginGroup(SETTINGS_GROUP_WINDOW);
 
     settings.setValue(SETTINGS_GEOMETRY,         saveGeometry());
-    settings.setValue(SETTINGS_STATE,            saveState());
-    settings.setValue(SETTINGS_MAXIMIZED,        m_maximized);
     settings.setValue(SETTINGS_SUB_LIST_VISIBLE, m_ui->listSubtitles->isVisible());
     if (m_ui->listSubtitles->isVisible())
     {
@@ -272,8 +268,6 @@ void MainWindow::loadWindowSettings()
     settings.beginGroup(SETTINGS_GROUP_WINDOW);
 
     restoreGeometry(settings.value(SETTINGS_GEOMETRY)        .toByteArray());
-    restoreState   (settings.value(SETTINGS_STATE)           .toByteArray());
-    m_maximized =   settings.value(SETTINGS_MAXIMIZED, false).toBool();
     if (m_maximized)
     {
         showMaximized();
@@ -286,8 +280,6 @@ void MainWindow::loadWindowSettings()
 
 #undef SETTINGS_GROUP_WINDOW
 #undef SETTINGS_GEOMETRY
-#undef SETTINGS_STATE
-#undef SETTINGS_MAXIMIZED
 #undef SETTINGS_SUB_LIST_VISIBLE
 
 void MainWindow::showEvent(QShowEvent *event)
@@ -370,19 +362,6 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     event->ignore();
     deleteDefinitionWidget();
     QMainWindow::mousePressEvent(event);
-}
-
-void MainWindow::changeEvent(QEvent *event)
-{
-    if (event->type() == QEvent::WindowStateChange)
-    {
-        if (windowState() & Qt::WindowFullScreen)
-        {
-            QWindowStateChangeEvent *e = (QWindowStateChangeEvent *)event;
-            m_maximized = e->oldState() & Qt::WindowMaximized;
-        }
-    }
-    QMainWindow::changeEvent(event);
 }
 
 void MainWindow::setTracks(QList<const Track *> tracks)
