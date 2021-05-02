@@ -51,6 +51,16 @@ Dictionary::Dictionary()
     if (m_tagger == nullptr)
     {
         qDebug() << MeCab::getTaggerError();
+        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+            "MeCab Error",
+            "Could not initialize MeCab.\n"
+            "Memento will still work, but search results will suffer.\n"
+        #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+            "Make sure that ipadic is present in " + DirectoryUtils::getDictionaryDir()
+        #else
+            "Make sure you have a system dictionary installed by running 'mecab -D' from the command line."
+        #endif
+        );
     }
     
     buildPriorities();
