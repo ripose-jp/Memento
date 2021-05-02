@@ -44,15 +44,9 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     /* Originization Info */
-#if __APPLE__
-    QCoreApplication::setOrganizationName("memento");
-    QCoreApplication::setOrganizationDomain("ripose.projects");
-    QCoreApplication::setApplicationName("Memento");
-#else
     QCoreApplication::setOrganizationName("memento");
     QCoreApplication::setOrganizationDomain("ripose.projects");
     QCoreApplication::setApplicationName("memento");
-#endif
 
     /* Construct the application */
     QApplication memento(argc, argv);

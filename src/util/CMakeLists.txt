@@ -28,6 +28,6 @@ target_link_libraries(
 )
 
 if (APPLE)
-    add_library(macos_power_handler macospowereventhandler.h)
+    add_library(macos_power_handler macospowereventhandler.cpp)
     target_link_libraries(macos_power_handler "-framework IOKit -framework CoreFoundation")
 endif()
