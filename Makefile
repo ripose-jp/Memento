@@ -12,7 +12,7 @@ install:
 	cmake --build ./build --target install
 
 setup:
-	mkdir build
+	mkdir -p build
 
 clean:
 	rm -rf build/
