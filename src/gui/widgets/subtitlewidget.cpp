@@ -65,15 +65,17 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     /* Slots */
-    connect(m_findDelay, &QTimer::timeout,                          this, &SubtitleWidget::findTerms);
-    connect(mediator,    &GlobalMediator::searchSettingsChanged,    this, &SubtitleWidget::loadSettings);
-    connect(mediator,    &GlobalMediator::playerResized,            this, &SubtitleWidget::setTheme);
-    connect(mediator,    &GlobalMediator::interfaceSettingsChanged, this, &SubtitleWidget::setTheme);
-    connect(mediator,    &GlobalMediator::definitionsHidden,        this, &SubtitleWidget::deselectText);
-    connect(mediator,    &GlobalMediator::definitionsShown,         this, &SubtitleWidget::setSelectedText);
-    connect(mediator,    &GlobalMediator::playerSubtitleChanged,    this, &SubtitleWidget::setSubtitle);
-    connect(mediator,    &GlobalMediator::playerPositionChanged,    this, &SubtitleWidget::postitionChanged);
-    connect(mediator,    &GlobalMediator::playerPauseStateChanged,  this, 
+    connect(m_findDelay, &QTimer::timeout,                            this, &SubtitleWidget::findTerms);
+    connect(mediator,    &GlobalMediator::searchSettingsChanged,      this, &SubtitleWidget::loadSettings);
+    connect(mediator,    &GlobalMediator::playerResized,              this, &SubtitleWidget::setTheme);
+    connect(mediator,    &GlobalMediator::interfaceSettingsChanged,   this, &SubtitleWidget::setTheme);
+    connect(mediator,    &GlobalMediator::definitionsHidden,          this, &SubtitleWidget::deselectText);
+    connect(mediator,    &GlobalMediator::definitionsShown,           this, &SubtitleWidget::setSelectedText);
+    connect(mediator,    &GlobalMediator::playerSubtitleChanged,      this, &SubtitleWidget::setSubtitle);
+    connect(mediator,    &GlobalMediator::playerPositionChanged,      this, &SubtitleWidget::positionChanged);
+    connect(mediator,    &GlobalMediator::playerSubtitlesDisabled,    this, [=] { positionChanged(-1); } );
+    connect(mediator,    &GlobalMediator::playerSubtitleTrackChanged, this, [=] { positionChanged(-1); } );
+    connect(mediator,    &GlobalMediator::playerPauseStateChanged,    this, 
         [=] (const bool paused) {
             m_paused = paused;
             adjustVisibility();
@@ -243,7 +245,7 @@ void SubtitleWidget::deselectText()
     setTextCursor(q);
 }
 
-void SubtitleWidget::postitionChanged(const double value)
+void SubtitleWidget::positionChanged(const double value)
 {
     if (value < m_startTime - DOUBLE_DELTA || value > m_endTime + DOUBLE_DELTA)
     {

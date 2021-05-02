@@ -49,7 +49,7 @@ private Q_SLOTS:
     void setTheme();
     void adjustVisibility();
     void findTerms();
-    void postitionChanged(const double value);
+    void positionChanged(const double value);
     void setSubtitle(QString subtitle,
                      const double start,
                      const double end,
