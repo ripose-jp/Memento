@@ -43,13 +43,23 @@ Memento is a FOSS, mpv-based video player intended for studying Japanese.
 ## Dependencies
 
 * Qt5
+
+    * QtCore
+    * QtGui
+    * QtWidgets
+    * QtNetwork
+    * QtSvg
+    * QtDBus (Linux)
+
 * ffmpeg
 * mpv
 * sqlite3
 * MeCab
+  
+    * With a system dictionary like ipadic Linux and OS X
+
 * Json-C
 * libzip
-* Qt DBus (Linux)
 
 For the best experience, install [Noto Sans CJK JP](https://www.google.com/get/noto/#sans-jpan)
 and the [Kanji Stroke Order](https://drive.google.com/uc?export=download&id=1oyQoTB531tbhlYaOW7ugvutXZ7HSlJfW) fonts.
