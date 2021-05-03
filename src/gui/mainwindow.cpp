@@ -252,7 +252,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     QSettings settings;
     settings.beginGroup(SETTINGS_GROUP_WINDOW);
 
-    settings.setValue(SETTINGS_GEOMETRY,         saveGeometry());
+    settings.setValue(SETTINGS_GEOMETRY, saveGeometry());
     settings.setValue(SETTINGS_MAXIMIZE, isFullScreen() ? m_maximized : isMaximized());
     settings.setValue(SETTINGS_SUB_LIST_VISIBLE, m_ui->listSubtitles->isVisible());
 
