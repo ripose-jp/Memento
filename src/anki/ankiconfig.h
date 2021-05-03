@@ -70,6 +70,8 @@ struct AnkiConfig
         screenshotType  = rhs.screenshotType;
         audioURL        = rhs.audioURL;
         audioHash       = rhs.audioHash;
+        audioPadStart   = rhs.audioPadStart;
+        audioPadEnd     = rhs.audioPadEnd;
         tags            = rhs.tags;
         termDeck        = rhs.termDeck;
         termModel       = rhs.termModel;
