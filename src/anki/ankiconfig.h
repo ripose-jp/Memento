@@ -73,9 +73,11 @@ struct AnkiConfig
         audioPadStart   = rhs.audioPadStart;
         audioPadEnd     = rhs.audioPadEnd;
         tags            = rhs.tags;
+
         termDeck        = rhs.termDeck;
         termModel       = rhs.termModel;
         termFields      = rhs.termFields;
+        
         kanjiDeck       = rhs.kanjiDeck;
         kanjiModel      = rhs.kanjiModel;
         kanjiFields     = rhs.kanjiFields;
