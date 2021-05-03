@@ -48,6 +48,8 @@ struct AnkiConfig
     FileType        screenshotType;
     QString         audioURL;
     QString         audioHash;
+    double          audioPadStart;
+    double          audioPadEnd;
     QJsonArray      tags;
 
     QString         termDeck;

@@ -277,7 +277,8 @@ void AnkiSettings::updateModelFields(CardBuilder *cb, const QString &model)
                 Q_EMIT GlobalMediator::getGlobalMediator()->showCritical("Error", error);
             }
             m_mutexUpdateModelFields.unlock();
-        });
+        }
+    );
 }
 
 void AnkiSettings::applyChanges()
@@ -317,6 +318,8 @@ void AnkiSettings::restoreDefaults()
     defaultConfig.screenshotType  = DEFAULT_SCREENSHOT;
     defaultConfig.audioURL        = DEFAULT_AUDIO_URL;
     defaultConfig.audioHash       = DEFAULT_AUDIO_HASH;
+    defaultConfig.audioPadStart   = DEFAULT_AUDIO_PAD_START;
+    defaultConfig.audioPadStart   = DEFAULT_AUDIO_PAD_END;
     defaultConfig.tags.append(DEFAULT_TAGS);
 
     defaultConfig.termDeck        = m_ui->termCardBuilder->getDeckText();
@@ -383,6 +386,9 @@ void AnkiSettings::populateFields(const QString &profile, const AnkiConfig *conf
 
     m_ui->lineEditAudioSource->setText(config->audioURL);
     m_ui->lineEditSkipHash->setText(config->audioHash);
+
+    m_ui->spinAudioPadStart->setValue(config->audioPadStart);
+    m_ui->spinAudioPadEnd->setValue(config->audioPadEnd);
 
     QString tags;
     for (auto it = config->tags.begin(); it != config->tags.end(); ++it)
@@ -486,6 +492,12 @@ void AnkiSettings::applyToConfig(const QString &profile)
         stringToDuplicatePolicy(m_ui->comboBoxDuplicates->currentText());
     config->screenshotType =
         stringToFileType(m_ui->comboBoxScreenshot->currentText());
+    
+    config->audioURL  = m_ui->lineEditAudioSource->text();
+    config->audioHash = m_ui->lineEditSkipHash->text();
+
+    config->audioPadStart = m_ui->spinAudioPadStart->value();
+    config->audioPadEnd   = m_ui->spinAudioPadEnd->value();
 
     config->tags = QJsonArray();
     QStringList splitTags =

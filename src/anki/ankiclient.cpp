@@ -88,22 +88,24 @@ extern "C"
 #define AUDIO_FILENAME_FORMAT_STRING    (QString("memento_%1_%2.mp3"))
 
 // Config file fields
-#define CONFIG_ENABLED      "enabled"
-#define CONFIG_PROFILES     "profiles"
-#define CONFIG_SET_PROFILE  "setProfile"
-#define CONFIG_NAME         "name"
-#define CONFIG_HOST         "host"
-#define CONFIG_PORT         "port"
-#define CONFIG_DUPLICATE    "duplicate"
-#define CONFIG_SCREENSHOT   "screenshot"
-#define CONFIG_AUDIO_URL    "audio-url"
-#define CONFIG_AUDIO_HASH   "audio-skiphash"
-#define CONFIG_TERM         "term"
-#define CONFIG_KANJI        "kanji"
-#define CONFIG_TAGS         "tags"
-#define CONFIG_DECK         "deck"
-#define CONFIG_MODEL        "model"
-#define CONFIG_FIELDS       "fields"
+#define CONFIG_ENABLED          "enabled"
+#define CONFIG_PROFILES         "profiles"
+#define CONFIG_SET_PROFILE      "setProfile"
+#define CONFIG_NAME             "name"
+#define CONFIG_HOST             "host"
+#define CONFIG_PORT             "port"
+#define CONFIG_DUPLICATE        "duplicate"
+#define CONFIG_SCREENSHOT       "screenshot"
+#define CONFIG_AUDIO_URL        "audio-url"
+#define CONFIG_AUDIO_HASH       "audio-skiphash"
+#define CONFIG_AUDIO_PAD_START  "audio-pad-start"
+#define CONFIG_AUDIO_PAD_END    "audio-pad-end"
+#define CONFIG_TERM             "term"
+#define CONFIG_KANJI            "kanji"
+#define CONFIG_TAGS             "tags"
+#define CONFIG_DECK             "deck"
+#define CONFIG_MODEL            "model"
+#define CONFIG_FIELDS           "fields"
 
 AnkiClient::AnkiClient(QObject *parent)
     : QObject(parent),
@@ -221,6 +223,16 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
             modified = true;
             profile[CONFIG_AUDIO_HASH] = DEFAULT_AUDIO_HASH;
         }
+        if (profile[CONFIG_AUDIO_PAD_START].isNull())
+        {
+            modified = true;
+            profile[CONFIG_AUDIO_PAD_START] = DEFAULT_AUDIO_PAD_START;
+        }
+        if (profile[CONFIG_AUDIO_PAD_END].isNull())
+        {
+            modified = true;
+            profile[CONFIG_AUDIO_PAD_END] = DEFAULT_AUDIO_PAD_END;
+        }
 
         if (modified)
             profiles[i] = profile;
@@ -261,6 +273,16 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
             qDebug() << CONFIG_AUDIO_HASH << "is not a string";
             return false;
         }
+        else if (!profile[CONFIG_AUDIO_PAD_START].isDouble())
+        {
+            qDebug() << CONFIG_AUDIO_PAD_START << "is not a double";
+            return false;
+        }
+        else if (!profile[CONFIG_AUDIO_PAD_END].isDouble())
+        {
+            qDebug() << CONFIG_AUDIO_PAD_END << "is not a double";
+            return false;
+        }
         else if (!profile[CONFIG_TAGS].isArray())
         {
             qDebug() << CONFIG_TAGS << "is not an array";
@@ -290,6 +312,8 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         config->screenshotType  = (AnkiConfig::FileType)profile[CONFIG_SCREENSHOT].toInt(AnkiConfig::FileType::jpg);
         config->audioURL        = profile[CONFIG_AUDIO_URL].toString();
         config->audioHash       = profile[CONFIG_AUDIO_HASH].toString();
+        config->audioPadStart   = profile[CONFIG_AUDIO_PAD_START].toDouble();
+        config->audioPadEnd     = profile[CONFIG_AUDIO_PAD_END].toDouble();
         config->tags            = profile[CONFIG_TAGS].toArray();
 
         QJsonObject obj         = profile[CONFIG_TERM].toObject();
@@ -319,8 +343,7 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
 bool AnkiClient::writeConfigToFile(const QString &filename)
 {
     QFile configFile(DirectoryUtils::getConfigDir() + filename);
-    if (!configFile.open(QIODevice::ReadWrite | QIODevice::Truncate |
-                         QIODevice::Text))
+    if (!configFile.open(QIODevice::ReadWrite | QIODevice::Truncate | QIODevice::Text))
     {
         qDebug() << "Could not open file" << filename;
         return false;
@@ -334,13 +357,17 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
     for (const QString &profile : profiles)
     {
         QJsonObject configObj;
-        const AnkiConfig *config     = m_configs->value(profile);
-        configObj[CONFIG_NAME]       = profile;
-        configObj[CONFIG_HOST]       = config->address;
-        configObj[CONFIG_PORT]       = config->port;
-        configObj[CONFIG_DUPLICATE]  = config->duplicatePolicy;
-        configObj[CONFIG_SCREENSHOT] = config->screenshotType;
-        configObj[CONFIG_TAGS]       = config->tags;
+        const AnkiConfig *config          = m_configs->value(profile);
+        configObj[CONFIG_NAME]            = profile;
+        configObj[CONFIG_HOST]            = config->address;
+        configObj[CONFIG_PORT]            = config->port;
+        configObj[CONFIG_DUPLICATE]       = config->duplicatePolicy;
+        configObj[CONFIG_SCREENSHOT]      = config->screenshotType;
+        configObj[CONFIG_AUDIO_URL]       = config->audioURL;
+        configObj[CONFIG_AUDIO_HASH]      = config->audioHash;
+        configObj[CONFIG_AUDIO_PAD_START] = config->audioPadStart;
+        configObj[CONFIG_AUDIO_PAD_END]   = config->audioPadEnd;
+        configObj[CONFIG_TAGS]            = config->tags;
 
         QJsonObject obj;
         obj[CONFIG_DECK]       = config->termDeck;
@@ -374,6 +401,8 @@ void AnkiClient::setDefaultConfig()
     config->screenshotType  = DEFAULT_SCREENSHOT;
     config->audioURL        = DEFAULT_AUDIO_URL;
     config->audioHash       = DEFAULT_AUDIO_HASH;
+    config->audioPadStart   = DEFAULT_AUDIO_PAD_START;
+    config->audioPadEnd     = DEFAULT_AUDIO_PAD_END;
     config->tags.append(DEFAULT_TAGS);
 
     m_configs->insert(DEFAULT_PROFILE, config);
@@ -1282,23 +1311,31 @@ void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
 
                 PlayerAdapter *player = GlobalMediator::getGlobalMediator()->getPlayerAdapter();
 
-                QByteArray inputFile  = player->getPath().toUtf8();
-                QByteArray outputFile = path.toUtf8();
-                int ret = transcode_aac(
-                    inputFile, outputFile, 
-                    player->getAudioTrack() - 1,
-                    player->getSubStart() + player->getSubDelay() - player->getAudioDelay(),
-                    player->getSubEnd()   + player->getSubDelay() - player->getAudioDelay()
-                );
-
-                QString filename = generateMD5(path) + ".aac";
-                audObj[ANKI_NOTE_FILENAME] = filename;
-                audObj[ANKI_NOTE_FIELDS] = fieldsWithAudioMedia;
-
-                if (ret == 0 && filename != ".aac")
+                double startTime = player->getSubStart() + player->getSubDelay() - player->getAudioDelay() - m_currentConfig->audioPadStart;
+                double endTime   = player->getSubEnd()   + player->getSubDelay() - player->getAudioDelay() + m_currentConfig->audioPadEnd;
+                if (startTime < 0)
                 {
-                    audio.append(audObj);
+                    startTime = 0;
                 }
+                if (startTime < endTime)
+                {
+                    QByteArray inputFile  = player->getPath().toUtf8();
+                    QByteArray outputFile = path.toUtf8();
+                    int ret = transcode_aac(
+                        inputFile, outputFile, 
+                        player->getAudioTrack() - 1,
+                        startTime, endTime
+                    );
+
+                    QString filename = generateMD5(path) + ".aac";
+                    audObj[ANKI_NOTE_FILENAME] = filename;
+                    audObj[ANKI_NOTE_FIELDS] = fieldsWithAudioMedia;
+
+                    if (ret == 0 && filename != ".aac")
+                    {
+                        audio.append(audObj);
+                    }
+                } 
             }
         }
 
