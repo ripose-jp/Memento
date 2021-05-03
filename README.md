@@ -56,7 +56,7 @@ Memento is a FOSS, mpv-based video player intended for studying Japanese.
 * sqlite3
 * MeCab
   
-    * With a system dictionary like ipadic Linux and OS X
+    * With a system dictionary like ipadic on Linux and OS X
 
 * Json-C
 * libzip
