@@ -265,7 +265,7 @@ void MainWindow::loadWindowSettings()
     QSettings settings;
     settings.beginGroup(SETTINGS_GROUP_WINDOW);
 
-    restoreGeometry(settings.value(SETTINGS_GEOMETRY)        .toByteArray());
+    restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
     if (settings.value(SETTINGS_MAXIMIZE, false).toBool())
     {
         QApplication::processEvents();
