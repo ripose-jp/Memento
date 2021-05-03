@@ -244,6 +244,7 @@ MainWindow::~MainWindow()
 
 #define SETTINGS_GROUP_WINDOW       "main-window"
 #define SETTINGS_GEOMETRY           "geometry"
+#define SETTINGS_MAXIMIZE           "maximize"
 #define SETTINGS_SUB_LIST_VISIBLE   "sub-list-visibility"
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -252,11 +253,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
     settings.beginGroup(SETTINGS_GROUP_WINDOW);
 
     settings.setValue(SETTINGS_GEOMETRY,         saveGeometry());
+    settings.setValue(SETTINGS_MAXIMIZE, isFullScreen() ? m_maximized : isMaximized());
     settings.setValue(SETTINGS_SUB_LIST_VISIBLE, m_ui->listSubtitles->isVisible());
-    if (m_ui->listSubtitles->isVisible())
-    {
-        QList<int> sizes = m_ui->splitterPlayerSubtitles->sizes();
-    }
 
     QMainWindow::closeEvent(event);
     QApplication::quit();
@@ -268,8 +266,9 @@ void MainWindow::loadWindowSettings()
     settings.beginGroup(SETTINGS_GROUP_WINDOW);
 
     restoreGeometry(settings.value(SETTINGS_GEOMETRY)        .toByteArray());
-    if (m_maximized)
+    if (settings.value(SETTINGS_MAXIMIZE, false).toBool())
     {
+        QApplication::processEvents();
         showMaximized();
     }
     if (settings.value(SETTINGS_SUB_LIST_VISIBLE, false).toBool())
@@ -280,6 +279,7 @@ void MainWindow::loadWindowSettings()
 
 #undef SETTINGS_GROUP_WINDOW
 #undef SETTINGS_GEOMETRY
+#undef SETTINGS_MAXIMIZE
 #undef SETTINGS_SUB_LIST_VISIBLE
 
 void MainWindow::showEvent(QShowEvent *event)
