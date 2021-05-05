@@ -449,7 +449,7 @@ static int add_index(zip_t *dict_archive, sqlite3 *db, sqlite3_int64 *id)
     int           step      = 0;
 
     /* Get the index object from the index file */
-    if (ret = get_json_obj(dict_archive, INDEX_FILE, &index_obj))
+    if ((ret = get_json_obj(dict_archive, INDEX_FILE, &index_obj)))
     {
         goto cleanup;
     }
@@ -461,16 +461,16 @@ static int add_index(zip_t *dict_archive, sqlite3 *db, sqlite3_int64 *id)
     }
 
     /* Get the fields from the json object */
-    if (ret = get_obj_from_obj(index_obj, TITLE_KEY, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_obj(index_obj, TITLE_KEY, json_type_string, &ret_obj)))
         goto cleanup;
     title     = json_object_get_string(ret_obj);
     title_len = json_object_get_string_len(ret_obj);
 
-    if (ret = get_obj_from_obj(index_obj, FORMAT_KEY, json_type_int, &ret_obj))
+    if ((ret = get_obj_from_obj(index_obj, FORMAT_KEY, json_type_int, &ret_obj)))
         goto cleanup;
     format = json_object_get_int(ret_obj);
 
-    if (ret = get_obj_from_obj(index_obj, REV_KEY, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_obj(index_obj, REV_KEY, json_type_string, &ret_obj)))
         goto cleanup;
     revision = json_object_get_string(ret_obj);
 
@@ -480,7 +480,7 @@ static int add_index(zip_t *dict_archive, sqlite3 *db, sqlite3_int64 *id)
     }
     else
     {
-        if (ret = get_obj_from_obj(index_obj, SEQ_KEY, json_type_boolean, &ret_obj))
+        if ((ret = get_obj_from_obj(index_obj, SEQ_KEY, json_type_boolean, &ret_obj)))
             goto cleanup;
         sequenced = json_object_get_boolean(ret_obj);
     }
@@ -498,7 +498,7 @@ static int add_index(zip_t *dict_archive, sqlite3 *db, sqlite3_int64 *id)
     if (sqlite3_prepare_v2(db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
     {
         fprintf(stderr, "Could not prepare sqlite statement\n");
-        fprintf(stderr, "Query: \n", QUERY);
+        fprintf(stderr, "Query: %s\n", QUERY);
         ret = STATEMENT_PREPARE_ERR;
         goto cleanup;
     }
@@ -613,23 +613,23 @@ static int add_tag(sqlite3 *db, json_object *tag, const sqlite3_int64 id)
     }
 
     /* Get the objects to add to the database */
-    if (ret = get_obj_from_array(tag, NAME_INDEX, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_array(tag, NAME_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
     name = json_object_get_string(ret_obj);
 
-    if (ret = get_obj_from_array(tag, CATEGORY_INDEX, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_array(tag, CATEGORY_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
     category = json_object_get_string(ret_obj);
 
-    if (ret = get_obj_from_array(tag, ORDER_INDEX, json_type_int, &ret_obj))
+    if ((ret = get_obj_from_array(tag, ORDER_INDEX, json_type_int, &ret_obj)))
         goto cleanup;
     order = json_object_get_int(ret_obj);
 
-    if (ret = get_obj_from_array(tag, NOTES_INDEX, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_array(tag, NOTES_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
     notes = json_object_get_string(ret_obj);
 
-    if (ret = get_obj_from_array(tag, SCORE_INDEX, json_type_int, &ret_obj))
+    if ((ret = get_obj_from_array(tag, SCORE_INDEX, json_type_int, &ret_obj)))
         goto cleanup;
     score = json_object_get_int(ret_obj);
 
@@ -637,7 +637,7 @@ static int add_tag(sqlite3 *db, json_object *tag, const sqlite3_int64 id)
     if (sqlite3_prepare_v2(db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
     {
         fprintf(stderr, "Could not prepare sqlite statement\n");
-        fprintf(stderr, "Query: \n", QUERY);
+        fprintf(stderr, "Query: %s\n", QUERY);
         ret = STATEMENT_PREPARE_ERR;
         goto cleanup;
     }
@@ -744,35 +744,35 @@ static int add_term(sqlite3 *db, json_object *term, const sqlite3_int64 id)
     }
 
     /* Get the objects to add to the database */
-    if (ret = get_obj_from_array(term, EXPRESSION_INDEX, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_array(term, EXPRESSION_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
     exp = json_object_get_string(ret_obj);
 
-    if (ret = get_obj_from_array(term, READING_INDEX, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_array(term, READING_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
     reading = json_object_get_string(ret_obj);
 
-    if (ret = get_obj_from_array(term, DEF_TAGS_INDEX, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_array(term, DEF_TAGS_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
     def_tags = json_object_get_string(ret_obj);
 
-    if (ret = get_obj_from_array(term, RULES_INDEX, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_array(term, RULES_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
     rules = json_object_get_string(ret_obj);
 
-    if (ret = get_obj_from_array(term, SCORE_INDEX, json_type_int, &ret_obj))
+    if ((ret = get_obj_from_array(term, SCORE_INDEX, json_type_int, &ret_obj)))
         goto cleanup;
     score = json_object_get_int(ret_obj);
 
-    if (ret = get_obj_from_array(term, GLOSSARY_INDEX, json_type_array, &ret_obj))
+    if ((ret = get_obj_from_array(term, GLOSSARY_INDEX, json_type_array, &ret_obj)))
         goto cleanup;
     glossary = json_object_to_json_string(ret_obj);
 
-    if (ret = get_obj_from_array(term, SEQUENCE_INDEX, json_type_int, &ret_obj))
+    if ((ret = get_obj_from_array(term, SEQUENCE_INDEX, json_type_int, &ret_obj)))
         goto cleanup;
     sequence = json_object_get_int(ret_obj);
 
-    if (ret = get_obj_from_array(term, TERM_TAGS_INDEX, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_array(term, TERM_TAGS_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
     term_tags = json_object_get_string(ret_obj);
 
@@ -780,7 +780,7 @@ static int add_term(sqlite3 *db, json_object *term, const sqlite3_int64 id)
     if (sqlite3_prepare_v2(db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
     {
         fprintf(stderr, "Could not prepare sqlite statement\n");
-        fprintf(stderr, "Query: \n", QUERY);
+        fprintf(stderr, "Query: %s\n", QUERY);
         ret = STATEMENT_PREPARE_ERR;
         goto cleanup;
     }
@@ -890,27 +890,27 @@ static int add_kanji(sqlite3 *db, json_object *kanji, const sqlite3_int64 id)
     }
 
     /* Get the objects to add to the database */
-    if (ret = get_obj_from_array(kanji, CHAR_INDEX, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_array(kanji, CHAR_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
     character = json_object_get_string(ret_obj);
 
-    if (ret = get_obj_from_array(kanji, ONYOMI_INDEX, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_array(kanji, ONYOMI_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
     onyomi = json_object_get_string(ret_obj);
 
-    if (ret = get_obj_from_array(kanji, KUNYOMI_INDEX, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_array(kanji, KUNYOMI_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
     kunyomi = json_object_get_string(ret_obj);
 
-    if (ret = get_obj_from_array(kanji, TAGS_INDEX, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_array(kanji, TAGS_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
     tags = json_object_get_string(ret_obj);
 
-    if (ret = get_obj_from_array(kanji, MEANINGS_INDEX, json_type_array, &ret_obj))
+    if ((ret = get_obj_from_array(kanji, MEANINGS_INDEX, json_type_array, &ret_obj)))
         goto cleanup;
     meanings = json_object_to_json_string(ret_obj);
 
-    if (ret = get_obj_from_array(kanji, STATS_INDEX, json_type_object, &ret_obj))
+    if ((ret = get_obj_from_array(kanji, STATS_INDEX, json_type_object, &ret_obj)))
         goto cleanup;
     stats = json_object_to_json_string(ret_obj);
 
@@ -918,7 +918,7 @@ static int add_kanji(sqlite3 *db, json_object *kanji, const sqlite3_int64 id)
     if (sqlite3_prepare_v2(db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
     {
         fprintf(stderr, "Could not prepare sqlite statement\n");
-        fprintf(stderr, "Query: \n", QUERY);
+        fprintf(stderr, "Query: %s\n", QUERY);
         ret = STATEMENT_PREPARE_ERR;
         goto cleanup;
     }
@@ -1015,11 +1015,11 @@ static int add_meta(sqlite3 *db, json_object *meta, const sqlite3_int64 id, cons
     }
 
     /* Get the objects to add to the database */
-    if (ret = get_obj_from_array(meta, EXPRESSION_INDEX, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_array(meta, EXPRESSION_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
     exp = json_object_get_string(ret_obj);
 
-    if (ret = get_obj_from_array(meta, MODE_INDEX, json_type_string, &ret_obj))
+    if ((ret = get_obj_from_array(meta, MODE_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
     mode = json_object_get_string(ret_obj);
 
@@ -1064,7 +1064,7 @@ static int add_meta(sqlite3 *db, json_object *meta, const sqlite3_int64 id, cons
     if (sqlite3_prepare_v2(db, query, -1, &stmt, NULL) != SQLITE_OK)
     {
         fprintf(stderr, "Could not prepare sqlite statement\n");
-        fprintf(stderr, "Query: \n", query);
+        fprintf(stderr, "Query: %s\n", query);
         ret = STATEMENT_PREPARE_ERR;
         goto cleanup;
     }
@@ -1210,7 +1210,7 @@ static int add_dic_files(zip_t *dict_archive, sqlite3 *db, const sqlite3_int64 i
     while (zip_name_locate(dict_archive, filename, 0) != -1)
     {
         /* Parse the current tag bank into Json */
-        if (ret = get_json_obj(dict_archive, filename, &outer_arr))
+        if ((ret = get_json_obj(dict_archive, filename, &outer_arr)))
         {
             goto cleanup;
         }
@@ -1234,7 +1234,7 @@ static int add_dic_files(zip_t *dict_archive, sqlite3 *db, const sqlite3_int64 i
             }
 
             /* Add the tag to the database */
-            if (ret = (*add_item)(db, inner_arr, id))
+            if ((ret = (*add_item)(db, inner_arr, id)))
             {
                 fprintf(stderr, "Could not add %s\n", filename);
                 goto cleanup;
@@ -1276,7 +1276,7 @@ int yomi_prepare_db(const char *db_file, sqlite3 **db)
     }
 
     /* Make sure the database is setup */
-    if (prepare_code = prepare_db(db_loc))
+    if ((prepare_code = prepare_db(db_loc)))
     {
         ret = prepare_code == DB_NEW_VERSION_ERR ? YOMI_ERR_NEWER_VERSION : YOMI_ERR_DB;
         goto cleanup;
@@ -1320,13 +1320,13 @@ int yomi_process_dictionary(const char *dict_file, const char *db_file)
     }
 
     /* Open or create the database */
-    if (ret = yomi_prepare_db(db_file, &db))
+    if ((ret = yomi_prepare_db(db_file, &db)))
     {
         goto cleanup;
     }
 
     /* Process the index file */
-    if (ret = begin_transaction(db))
+    if ((ret = begin_transaction(db)))
         goto cleanup;
     if (add_index(dict_archive, db, &id))
     {
@@ -1391,7 +1391,7 @@ int yomi_delete_dictionary(const char *dict_name, const char *db_file)
     int            step         = 0;
 
     /* Open or create the database */
-    if (ret = yomi_prepare_db(db_file, &db))
+    if ((ret = yomi_prepare_db(db_file, &db)))
     {
         goto cleanup;
     }
