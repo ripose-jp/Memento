@@ -149,6 +149,7 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
 
     // Read the file into memory
     QTextStream stream(&configFile);
+    stream.setCodec("UTF-8");
     QJsonDocument jsonDoc = QJsonDocument::fromJson(stream.readAll().toUtf8());
     configFile.close();
 
