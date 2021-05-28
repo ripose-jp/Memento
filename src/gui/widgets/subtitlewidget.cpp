@@ -330,7 +330,7 @@ void SubtitleWidget::findTerms()
     QString queryStr = m_rawText;
     queryStr.remove(0, index);
     queryStr.truncate(MAX_QUERY_LENGTH);
-    if (queryStr.isEmpty())
+    if (queryStr.isEmpty() || queryStr[0].isSpace())
     {
         return;
     }
