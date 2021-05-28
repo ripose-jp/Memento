@@ -88,6 +88,7 @@ target_link_libraries(
 add_library(
     subtitlelist
     subtitlelistwidget.cpp
+    subtitlelistwidget.ui
 )
 target_link_libraries(
     subtitlelist

@@ -66,6 +66,7 @@ Q_SIGNALS:
                          const double start, 
                          const double end,
                          const double delay);
+    void subDelayChanged(const double delay);
     void hideCursor();
     void mouseMoved(QMouseEvent *event);
     void shutdown();

@@ -85,6 +85,7 @@ Q_SIGNALS:
                                  const double   start, 
                                  const double   end, 
                                  const double   delay)  const;
+    void playerSubDelayChanged  (const double   delay)  const;
     void playerDurationChanged  (const double   value)  const;
     void playerPositionChanged  (const double   value)  const;
     void playerPauseStateChanged(const bool     paused) const;

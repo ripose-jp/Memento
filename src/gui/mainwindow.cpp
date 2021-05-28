@@ -62,8 +62,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->controls->setVolumeLimit(m_player->getMaxVolume());
 
     /* Subtitle List */
-    m_mediator->setSubtitleList(m_ui->listSubtitles);
-    m_ui->listSubtitles->hide();
+    m_mediator->setSubtitleList(m_ui->subtitleList);
+    m_ui->subtitleList->hide();
 
     /* Anki */
     m_ankiClient = new AnkiClient(this);
@@ -245,7 +245,6 @@ MainWindow::~MainWindow()
 #define SETTINGS_GROUP_WINDOW       "main-window"
 #define SETTINGS_GEOMETRY           "geometry"
 #define SETTINGS_MAXIMIZE           "maximize"
-#define SETTINGS_SUB_LIST_VISIBLE   "sub-list-visibility"
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
@@ -254,7 +253,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
     settings.setValue(SETTINGS_GEOMETRY, saveGeometry());
     settings.setValue(SETTINGS_MAXIMIZE, isFullScreen() ? m_maximized : isMaximized());
-    settings.setValue(SETTINGS_SUB_LIST_VISIBLE, m_ui->listSubtitles->isVisible());
 
     QMainWindow::closeEvent(event);
     QApplication::quit();
@@ -271,16 +269,11 @@ void MainWindow::loadWindowSettings()
         QApplication::processEvents();
         showMaximized();
     }
-    if (settings.value(SETTINGS_SUB_LIST_VISIBLE, false).toBool())
-    {
-        m_ui->listSubtitles->show();
-    }
 }
 
 #undef SETTINGS_GROUP_WINDOW
 #undef SETTINGS_GEOMETRY
 #undef SETTINGS_MAXIMIZE
-#undef SETTINGS_SUB_LIST_VISIBLE
 
 void MainWindow::showEvent(QShowEvent *event)
 {
@@ -323,7 +316,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 void MainWindow::wheelEvent(QWheelEvent *event)
 {
-    if (!m_ui->listSubtitles->underMouse())
+    if (!m_ui->subtitleList->underMouse())
     {
         Q_EMIT m_mediator->wheelMoved(event);
     }

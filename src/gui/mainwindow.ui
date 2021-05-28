@@ -48,6 +48,12 @@
        <bool>false</bool>
       </property>
       <widget class="MpvWidget" name="player">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
          <width>500</width>
@@ -61,27 +67,12 @@
         <bool>true</bool>
        </property>
       </widget>
-      <widget class="SubtitleListWidget" name="listSubtitles">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="focusPolicy">
-        <enum>Qt::NoFocus</enum>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
-       </property>
-       <property name="editTriggers">
-        <set>QAbstractItemView::NoEditTriggers</set>
-       </property>
-       <property name="selectionMode">
-        <enum>QAbstractItemView::ExtendedSelection</enum>
-       </property>
-       <property name="wordWrap">
-        <bool>true</bool>
+      <widget class="SubtitleListWidget" name="subtitleList" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>300</width>
+         <height>0</height>
+        </size>
        </property>
       </widget>
      </widget>
@@ -336,8 +327,9 @@
   </customwidget>
   <customwidget>
    <class>SubtitleListWidget</class>
-   <extends>QListWidget</extends>
+   <extends>QWidget</extends>
    <header>src/gui/widgets/subtitlelistwidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

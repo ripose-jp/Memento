@@ -178,7 +178,7 @@ void PlayerControls::setVolume(const int64_t value)
 
 QString PlayerControls::formatTime(const int time)
 {
-    int hours = time / SECONDS_IN_HOUR;
+    int hours   = time / SECONDS_IN_HOUR;
     int minutes = (time % SECONDS_IN_HOUR) / SECONDS_IN_MINUTE;
     int seconds = time % SECONDS_IN_MINUTE;
 

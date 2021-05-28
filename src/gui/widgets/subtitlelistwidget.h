@@ -21,9 +21,16 @@
 #ifndef SUBTITLELISTWIDGET_H
 #define SUBTITLELISTWIDGET_H
 
-#include <QListWidget>
+#include <QWidget>
 
-class SubtitleListWidget : public QListWidget
+class QTableWidgetItem;
+
+namespace Ui
+{
+    class SubtitleListWidget;
+}
+
+class SubtitleListWidget : public QWidget
 {
     Q_OBJECT
 
@@ -36,6 +43,7 @@ public:
 protected:
     void showEvent(QShowEvent *event) override;
     void hideEvent(QHideEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 private Q_SLOTS:
     void setTheme();
@@ -43,12 +51,17 @@ private Q_SLOTS:
                      const double start,
                      const double end,
                      const double delay);
+    void updateTimestamps(const double delay);
     void clearSubtitles();
-    void seekToSubtitle(const QListWidgetItem *item);
+    void seekToSubtitle(QTableWidgetItem *item);
 
 private:
-    QMultiMap<double, QString> *m_seenSubtitles;
+    Ui::SubtitleListWidget *m_ui;
+
+    QMultiMap<double, QString>  *m_seenSubtitles;
     QMultiHash<QString, double> *m_subStartTimes;
+
+    QString formatTimecode(const int time);
 };
 
 #endif // SUBTITLELISTWIDGET_H

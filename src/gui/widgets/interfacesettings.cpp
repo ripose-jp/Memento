@@ -103,6 +103,9 @@ void InterfaceSettings::restoreDefaults()
     setButtonColor(m_ui->buttonSubBackground, m_bgColor);
     setButtonColor(m_ui->buttonSubStroke, m_strokeColor);
 
+    /* Sub List */
+    m_ui->checkSubListTimestamps->setChecked(SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS_DEFAULT);
+
     /* Style Sheets */
     m_ui->checkStyleSheets->setChecked(SETTINGS_INTERFACE_STYLESHEETS_DEFAULT);
     m_ui->editSubList->setPlainText(SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT);
@@ -175,6 +178,14 @@ void InterfaceSettings::restoreSaved()
     );
     setButtonColor(m_ui->buttonSubStroke, m_strokeColor);
 
+    /* Subtitle List */
+    m_ui->checkSubListTimestamps->setChecked(
+        settings.value(
+            SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS,
+            SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS_DEFAULT
+        ).toBool()
+    );
+
     /* Style Sheets */
     m_ui->checkStyleSheets->setChecked(
         settings.value(
@@ -222,6 +233,9 @@ void InterfaceSettings::applyChanges()
     settings.setValue(SETTINGS_INTERFACE_SUB_TEXT_COLOR,   m_subColor.name(QColor::HexArgb));
     settings.setValue(SETTINGS_INTERFACE_SUB_BG_COLOR,     m_bgColor.name(QColor::HexArgb));
     settings.setValue(SETTINGS_INTERFACE_SUB_STROKE_COLOR, m_strokeColor.name(QColor::HexArgb));
+
+    /* Subtitle List */
+    settings.setValue(SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS, m_ui->checkSubListTimestamps->isChecked());
 
     /* Style Sheets */
     settings.setValue(SETTINGS_INTERFACE_STYLESHEETS,           m_ui->checkStyleSheets->isChecked());

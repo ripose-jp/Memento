@@ -47,6 +47,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     connect(m_mpv, &MpvWidget::subtitleTwoDisabled,     mediator, &GlobalMediator::playerSecondSubtitlesDisabled);
 
     connect(m_mpv, &MpvWidget::subtitleChanged,         mediator, &GlobalMediator::playerSubtitleChanged);
+    connect(m_mpv, &MpvWidget::subDelayChanged,         mediator, &GlobalMediator::playerSubDelayChanged);
     connect(m_mpv, &MpvWidget::durationChanged,         mediator, &GlobalMediator::playerDurationChanged);
     connect(m_mpv, &MpvWidget::positionChanged,         mediator, &GlobalMediator::playerPositionChanged);
     connect(m_mpv, &MpvWidget::stateChanged,            mediator, &GlobalMediator::playerPauseStateChanged);

@@ -104,6 +104,7 @@ MpvWidget::MpvWidget(QWidget *parent)
     mpv_observe_property(mpv, 0, "secondary-sid", MPV_FORMAT_FLAG);
 
     mpv_observe_property(mpv, 0, "sub-text", MPV_FORMAT_STRING);
+    mpv_observe_property(mpv, 0, "sub-delay", MPV_FORMAT_DOUBLE);
 
     mpv_set_wakeup_callback(mpv, wakeup, this);
 
@@ -355,6 +356,13 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
             {
                 int volume = *(int64_t *) prop->data;
                 Q_EMIT volumeChanged(volume);
+            }
+        }
+        else if (strcmp(prop->name, "sub-delay") == 0)
+        {
+            if (prop->format == MPV_FORMAT_DOUBLE)
+            {
+                Q_EMIT subDelayChanged(*(double *) prop->data);
             }
         }
         else if (strcmp(prop->name, "media-title") == 0)
