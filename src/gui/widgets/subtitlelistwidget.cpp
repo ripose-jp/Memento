@@ -60,6 +60,7 @@ SubtitleListWidget::~SubtitleListWidget()
     disconnect();
     delete m_seenSubtitles;
     delete m_subStartTimes;
+    delete m_ui;
 }
 
 void SubtitleListWidget::setTheme()
