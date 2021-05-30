@@ -127,6 +127,17 @@ target_link_libraries(
 )
 
 add_library(
+    audiosourcesettings
+    audiosourcesettings.cpp
+    audiosourcesettings.ui
+)
+target_link_libraries(
+    audiosourcesettings
+    globalmediator
+    Qt5::Widgets
+)
+
+add_library(
     dictionarysettings
     dictionarysettings.cpp
     dictionarysettings.ui
@@ -154,7 +165,6 @@ add_library(
     interfacesettings.cpp
     interfacesettings.ui
 )
-
 target_link_libraries(
     interfacesettings
     Qt5::Widgets
@@ -172,4 +182,5 @@ target_link_libraries(
     ankisettings
     searchsettings
     interfacesettings
+    audiosourcesettings
 )
