@@ -22,6 +22,7 @@
 
 #include "../util/directoryutils.h"
 #include "../util/globalmediator.h"
+#include "../util/constants.h"
 extern "C"
 {
 #include "../ffmpeg/transcode_aac.h"
@@ -96,6 +97,7 @@ extern "C"
 #define CONFIG_PORT             "port"
 #define CONFIG_DUPLICATE        "duplicate"
 #define CONFIG_SCREENSHOT       "screenshot"
+#define CONFIG_AUDIO_NAME       "audio-name"
 #define CONFIG_AUDIO_URL        "audio-url"
 #define CONFIG_AUDIO_HASH       "audio-skiphash"
 #define CONFIG_AUDIO_PAD_START  "audio-pad-start"
@@ -214,15 +216,22 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
             profile[CONFIG_TERM]  = obj;
             profile[CONFIG_KANJI] = QJsonObject();
         }
+        if (profile[CONFIG_AUDIO_NAME].isNull())
+        {
+            modified = true;
+            profile[CONFIG_AUDIO_NAME] = SETTINGS_AUDIO_SRC_NAME_DEFAULT;
+            profile.remove(CONFIG_AUDIO_URL);
+            profile.remove(CONFIG_AUDIO_HASH);
+        }
         if (profile[CONFIG_AUDIO_URL].isNull())
         {
             modified = true;
-            profile[CONFIG_AUDIO_URL] = DEFAULT_AUDIO_URL;
+            profile[CONFIG_AUDIO_URL] = SETTINGS_AUDIO_SRC_URL_DEFAULT;
         }
         if (profile[CONFIG_AUDIO_HASH].isNull())
         {
             modified = true;
-            profile[CONFIG_AUDIO_HASH] = DEFAULT_AUDIO_HASH;
+            profile[CONFIG_AUDIO_HASH] = SETTINGS_AUDIO_SRC_MD5_DEFAULT;
         }
         if (profile[CONFIG_AUDIO_PAD_START].isNull())
         {
@@ -311,8 +320,9 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         config->port            = profile[CONFIG_PORT].toString();
         config->duplicatePolicy = (AnkiConfig::DuplicatePolicy)profile[CONFIG_DUPLICATE].toInt(AnkiConfig::DuplicatePolicy::DifferentDeck);
         config->screenshotType  = (AnkiConfig::FileType)profile[CONFIG_SCREENSHOT].toInt(AnkiConfig::FileType::jpg);
-        config->audioURL        = profile[CONFIG_AUDIO_URL].toString();
-        config->audioHash       = profile[CONFIG_AUDIO_HASH].toString();
+        config->audio.name      = profile[CONFIG_AUDIO_NAME].toString();
+        config->audio.url       = profile[CONFIG_AUDIO_URL].toString();
+        config->audio.name      = profile[CONFIG_AUDIO_HASH].toString();
         config->audioPadStart   = profile[CONFIG_AUDIO_PAD_START].toDouble();
         config->audioPadEnd     = profile[CONFIG_AUDIO_PAD_END].toDouble();
         config->tags            = profile[CONFIG_TAGS].toArray();
@@ -364,8 +374,9 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
         configObj[CONFIG_PORT]            = config->port;
         configObj[CONFIG_DUPLICATE]       = config->duplicatePolicy;
         configObj[CONFIG_SCREENSHOT]      = config->screenshotType;
-        configObj[CONFIG_AUDIO_URL]       = config->audioURL;
-        configObj[CONFIG_AUDIO_HASH]      = config->audioHash;
+        configObj[CONFIG_AUDIO_NAME]      = config->audio.name;
+        configObj[CONFIG_AUDIO_URL]       = config->audio.url;
+        configObj[CONFIG_AUDIO_HASH]      = config->audio.md5;
         configObj[CONFIG_AUDIO_PAD_START] = config->audioPadStart;
         configObj[CONFIG_AUDIO_PAD_END]   = config->audioPadEnd;
         configObj[CONFIG_TAGS]            = config->tags;
@@ -400,8 +411,9 @@ void AnkiClient::setDefaultConfig()
     config->port            = DEFAULT_PORT;
     config->duplicatePolicy = DEFAULT_DUPLICATE_POLICY;
     config->screenshotType  = DEFAULT_SCREENSHOT;
-    config->audioURL        = DEFAULT_AUDIO_URL;
-    config->audioHash       = DEFAULT_AUDIO_HASH;
+    config->audio.name      = SETTINGS_AUDIO_SRC_NAME_DEFAULT;
+    config->audio.url       = SETTINGS_AUDIO_SRC_URL_DEFAULT;
+    config->audio.md5       = SETTINGS_AUDIO_SRC_MD5_DEFAULT;
     config->audioPadStart   = DEFAULT_AUDIO_PAD_START;
     config->audioPadEnd     = DEFAULT_AUDIO_PAD_END;
     config->tags.append(DEFAULT_TAGS);
@@ -800,12 +812,12 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
         {
             QJsonObject audObj;
 
-            audObj[ANKI_NOTE_URL]      = QString(m_currentConfig->audioURL)
+            audObj[ANKI_NOTE_URL]      = QString(m_currentConfig->audio.url)
                 .replace(REPLACE_EXPRESSION, term.expression)
                 .replace(REPLACE_READING,    reading);
             audObj[ANKI_NOTE_FILENAME] = audioFile;
             audObj[ANKI_NOTE_FIELDS]   = fieldsWithAudio;
-            audObj[ANKI_NOTE_SKIPHASH] = m_currentConfig->audioHash;
+            audObj[ANKI_NOTE_SKIPHASH] = m_currentConfig->audio.md5;
             audio.append(audObj);
         }
 

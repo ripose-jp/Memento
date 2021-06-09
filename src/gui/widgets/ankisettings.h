@@ -64,10 +64,13 @@ private:
     Ui::AnkiSettings             *m_ui;
     AnkiSettingsHelp             *m_ankiSettingsHelp;
     QHash<QString, AnkiConfig *> *m_configs;
+    QMap<QString, AudioSource>    m_audioSources;
     QString                       m_currentProfile;
     QMutex                        m_mutexUpdateModelFields;
 
     void clearConfigs();
+
+    void populateAudioSources();
 
     void populateFields(const QString &profile, const AnkiConfig *config);
 

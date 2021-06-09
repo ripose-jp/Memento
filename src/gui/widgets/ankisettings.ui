@@ -34,7 +34,7 @@
         <x>0</x>
         <y>0</y>
         <width>474</width>
-        <height>1082</height>
+        <height>1012</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -340,34 +340,7 @@ Only change this if you know what you're doing.</string>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEditAudioSource">
-            <property name="toolTip">
-             <string>The audio source for the {audio} marker.
-Supports inserting {expression} and {reading} into URLs.</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="labelSkipHash">
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Audio Skip Hash</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="lineEditSkipHash">
-            <property name="toolTip">
-             <string>The MD5 hash of an audio file to ignore.
-Some websites include a placeholder file for when an audio clip does not exist.
-If an audio clip matches this hash, it will not be added to the card.</string>
-            </property>
-           </widget>
+           <widget class="ScrollComboBox" name="comboBoxAudioSrc"/>
           </item>
           <item>
            <layout class="QGridLayout" name="layoutAudioPadding">

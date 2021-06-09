@@ -26,6 +26,22 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
+struct AudioSource
+{
+    QString name;
+    QString url;
+    QString md5;
+
+    AudioSource &operator=(const AudioSource &rhs)
+    {
+        name = rhs.name;
+        url  = rhs.url;
+        md5  = rhs.md5;
+
+        return *this;
+    }
+};
+
 struct AnkiConfig
 {
     enum DuplicatePolicy
@@ -46,8 +62,7 @@ struct AnkiConfig
     QString         port;
     DuplicatePolicy duplicatePolicy;
     FileType        screenshotType;
-    QString         audioURL;
-    QString         audioHash;
+    AudioSource     audio;
     double          audioPadStart;
     double          audioPadEnd;
     QJsonArray      tags;
@@ -68,8 +83,7 @@ struct AnkiConfig
         port            = rhs.port;
         duplicatePolicy = rhs.duplicatePolicy;
         screenshotType  = rhs.screenshotType;
-        audioURL        = rhs.audioURL;
-        audioHash       = rhs.audioHash;
+        audio           = rhs.audio;
         audioPadStart   = rhs.audioPadStart;
         audioPadEnd     = rhs.audioPadEnd;
         tags            = rhs.tags;

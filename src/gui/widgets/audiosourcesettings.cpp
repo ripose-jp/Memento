@@ -58,6 +58,10 @@ AudioSourceSettings::AudioSourceSettings(QWidget *parent)
         m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Help), 
         &QPushButton::clicked, this, &AudioSourceSettings::showHelp
     );
+
+    /* Make sure at least the default are saved to settings */
+    restoreSaved();
+    applyChanges();
 }
 
 AudioSourceSettings::~AudioSourceSettings()
@@ -73,6 +77,15 @@ void AudioSourceSettings::showEvent(QShowEvent *event)
 
 void AudioSourceSettings::applyChanges()
 {
+    QString error = verifyNames();
+    if (!error.isEmpty())
+    {
+        QMessageBox::critical(this, "Audio Source Error", 
+            "Could not apply changes:\n" + error
+        );
+        return;
+    }
+
     QSettings settings;
     settings.remove(SETTINGS_AUDIO_SRC);
     settings.beginWriteArray(SETTINGS_AUDIO_SRC);
@@ -152,6 +165,28 @@ void AudioSourceSettings::showHelp()
     );
 }
 
+QString AudioSourceSettings::verifyNames() const
+{
+    QSet<QString> names;
+    QTableWidget *table = m_ui->table;
+    for (size_t i = 0; i < table->rowCount() - 1; ++i)
+    {
+        if (itemEmpty(i, COL_NAME))
+        {
+            return QString("Missing name at row %1.").arg(i + 1);
+        }
+
+        QString name = table->item(i, COL_NAME)->text();
+        if (names.contains(name))
+        {
+            return QString("Duplicate name at row %1.").arg(i + 1);
+        }
+        names.insert(name);
+    }
+
+    return "";
+}
+
 void AudioSourceSettings::updateRows()
 {
     /* Remove empty rows */
@@ -172,13 +207,13 @@ void AudioSourceSettings::updateRows()
     }
 }
 
-bool inline AudioSourceSettings::itemEmpty(const int row, const int col)
+bool inline AudioSourceSettings::itemEmpty(const int row, const int col) const
 {
     QTableWidgetItem *item = m_ui->table->item(row, col);
     return item == nullptr || item->text().isEmpty();
 }
 
-bool inline AudioSourceSettings::rowEmpty(const int row)
+bool inline AudioSourceSettings::rowEmpty(const int row) const
 {
     for (size_t i = 0; i < m_ui->table->columnCount(); ++i)
     {

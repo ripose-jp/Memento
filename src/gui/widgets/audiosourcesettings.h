@@ -48,10 +48,11 @@ private Q_SLOTS:
 private:
     Ui::AudioSourceSettings *m_ui;
 
+    QString verifyNames() const;
     void updateRows();
 
-    bool inline itemEmpty(const int row, const int col);
-    bool inline rowEmpty (const int row);
+    bool inline itemEmpty(const int row, const int col) const;
+    bool inline rowEmpty (const int row)                const;
 };
 
 #endif // AUDIOSOURCESETTINGS_H

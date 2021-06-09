@@ -70,8 +70,6 @@
 #define DEFAULT_SCREENSHOT              AnkiConfig::FileType::jpg
 #define DEFAULT_DUPLICATE_POLICY        AnkiConfig::DuplicatePolicy::DifferentDeck
 #define DEFAULT_TAGS                    "memento"
-#define DEFAULT_AUDIO_URL               (QString("http://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kanji={expression}&kana={reading}"))
-#define DEFAULT_AUDIO_HASH              "7e2c2f954ef6051373ba916f000168dc"
 #define DEFAULT_AUDIO_PAD_START         0.0
 #define DEFAULT_AUDIO_PAD_END           0.0
 

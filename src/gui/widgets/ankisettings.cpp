@@ -23,8 +23,10 @@
 
 #include "../../util/iconfactory.h"
 #include "../../util/globalmediator.h"
+#include "../../util/constants.h"
 
 #include <QTableWidgetItem>
+#include <QSettings>
 
 #define DUPLICATE_POLICY_NONE       "None"
 #define DUPLICATE_POLICY_DIFFERENT  "Allowed in Different Decks"
@@ -115,8 +117,34 @@ void AnkiSettings::clearConfigs()
     }
 }
 
+void AnkiSettings::populateAudioSources()
+{
+    m_audioSources.clear();
+
+    QSettings settings;
+
+    size_t size = settings.beginReadArray(SETTINGS_AUDIO_SRC);
+    for (size_t i = 0; i < size; ++i)
+    {
+        settings.setArrayIndex(i);
+
+        AudioSource src {
+            settings.value(SETTINGS_AUDIO_SRC_NAME).toString(),
+            settings.value(SETTINGS_AUDIO_SRC_URL).toString(),
+            settings.value(SETTINGS_AUDIO_SRC_MD5).toString()
+        };
+
+        m_audioSources.insert(src.name, src);
+    }
+
+    settings.endArray();
+}
+
 void AnkiSettings::showEvent(QShowEvent *event)
 {
+    QWidget::showEvent(event);
+
+    populateAudioSources();
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     m_ui->checkBoxEnabled->setChecked(client->isEnabled());
     m_configs        = client->getConfigs();
@@ -127,6 +155,8 @@ void AnkiSettings::showEvent(QShowEvent *event)
 
 void AnkiSettings::hideEvent(QHideEvent *event)
 {
+    QWidget::hideEvent(event);
+
     AnkiClient       *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     const AnkiConfig *config = client->getConfig(client->getProfile());
     client->setServer(config->address, config->port);
@@ -316,8 +346,9 @@ void AnkiSettings::restoreDefaults()
     defaultConfig.port            = DEFAULT_PORT;
     defaultConfig.duplicatePolicy = DEFAULT_DUPLICATE_POLICY;
     defaultConfig.screenshotType  = DEFAULT_SCREENSHOT;
-    defaultConfig.audioURL        = DEFAULT_AUDIO_URL;
-    defaultConfig.audioHash       = DEFAULT_AUDIO_HASH;
+    defaultConfig.audio.name      = SETTINGS_AUDIO_SRC_NAME_DEFAULT;
+    defaultConfig.audio.url       = SETTINGS_AUDIO_SRC_URL_DEFAULT;
+    defaultConfig.audio.md5       = SETTINGS_AUDIO_SRC_MD5_DEFAULT;
     defaultConfig.audioPadStart   = DEFAULT_AUDIO_PAD_START;
     defaultConfig.audioPadStart   = DEFAULT_AUDIO_PAD_END;
     defaultConfig.tags.append(DEFAULT_TAGS);
@@ -384,8 +415,9 @@ void AnkiSettings::populateFields(const QString &profile, const AnkiConfig *conf
         fileTypeToString(config->screenshotType)
     );
 
-    m_ui->lineEditAudioSource->setText(config->audioURL);
-    m_ui->lineEditSkipHash->setText(config->audioHash);
+    m_ui->comboBoxAudioSrc->clear();
+    m_ui->comboBoxAudioSrc->addItems(m_audioSources.keys());
+    m_ui->comboBoxAudioSrc->setCurrentText(config->audio.name);
 
     m_ui->spinAudioPadStart->setValue(config->audioPadStart);
     m_ui->spinAudioPadEnd->setValue(config->audioPadEnd);
@@ -489,12 +521,13 @@ void AnkiSettings::applyToConfig(const QString &profile)
     config->port = m_ui->lineEditPort->text();
 
     config->duplicatePolicy =
-        stringToDuplicatePolicy(m_ui->comboBoxDuplicates->currentText());
+        stringToDuplicatePolicy(m_ui->comboBoxDuplicates->currentText()
+    );
     config->screenshotType =
-        stringToFileType(m_ui->comboBoxScreenshot->currentText());
+        stringToFileType(m_ui->comboBoxScreenshot->currentText()
+    );
     
-    config->audioURL  = m_ui->lineEditAudioSource->text();
-    config->audioHash = m_ui->lineEditSkipHash->text();
+    config->audio = *m_audioSources.find(m_ui->comboBoxAudioSrc->currentText());
 
     config->audioPadStart = m_ui->spinAudioPadStart->value();
     config->audioPadEnd   = m_ui->spinAudioPadEnd->value();
