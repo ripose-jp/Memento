@@ -65,6 +65,12 @@ AudioSourceSettings::~AudioSourceSettings()
     delete m_ui;
 }
 
+void AudioSourceSettings::showEvent(QShowEvent *event)
+{
+    QWidget::showEvent(event);
+    restoreSaved();
+}
+
 void AudioSourceSettings::applyChanges()
 {
     QSettings settings;

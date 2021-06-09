@@ -36,6 +36,9 @@ public:
     AudioSourceSettings(QWidget *parent = 0);
     ~AudioSourceSettings();
 
+protected:
+    void showEvent(QShowEvent *event) override;
+
 private Q_SLOTS:
     void applyChanges();
     void restoreDefaults();
