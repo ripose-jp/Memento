@@ -25,8 +25,21 @@
 #define GITHUB_API_LINK                 (QString("https://api.github.com/repos/ripose-jp/memento/releases"))
 #define GITHUB_RELEASES                 (QString("https://github.com/ripose-jp/memento/releases"))
 
+/* Audio Source Settings */
+#define SETTINGS_AUDIO_SRC              "audio-srcs"
+
+#define SETTINGS_AUDIO_SRC_NAME         "name"
+#define SETTINGS_AUDIO_SRC_URL          "url"
+#define SETTINGS_AUDIO_SRC_MD5          "md5"
+
+#define SETTINGS_AUDIO_SRC_NAME_DEFAULT (QString("JapanesePod101"))
+#define SETTINGS_AUDIO_SRC_URL_DEFAULT  (QString("http://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kanji={expression}&kana={reading}"))
+#define SETTINGS_AUDIO_SRC_MD5_DEFAULT  (QString("7e2c2f954ef6051373ba916f000168dc"))
+
+/* Dictionary Settings */
 #define SETTINGS_DICTIONARIES           "dictionaries"
 
+/* Search Settings */
 #define SETTINGS_SEARCH                 "search"
 #define SETTINGS_SEARCH_LIMIT           "limit"
 #define SETTINGS_SEARCH_METHOD          "method"
@@ -54,6 +67,7 @@
 #define DEFAULT_REPLACE_LINES           false
 #define DEFAULT_REPLACE_WITH            ""
 
+/* Interface Settings */
 enum class Theme
 {
     System       = 0,
@@ -61,7 +75,6 @@ enum class Theme
     Dark         = 2
 };
 
-/* Interface Settings */
 #define SETTINGS_INTERFACE                                  "interface"
 
 #define SETTINGS_INTERFACE_THEME                            "theme"

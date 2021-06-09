@@ -44,6 +44,11 @@ private Q_SLOTS:
 
 private:
     Ui::AudioSourceSettings *m_ui;
+
+    void updateRows();
+
+    bool inline itemEmpty(const int row, const int col);
+    bool inline rowEmpty (const int row);
 };
 
 #endif // AUDIOSOURCESETTINGS_H
