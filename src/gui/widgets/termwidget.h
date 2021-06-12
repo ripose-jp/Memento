@@ -37,7 +37,10 @@ class TermWidget : public QWidget
     Q_OBJECT
 
 public:
-    TermWidget(const Term *term, AnkiClient *client, const bool showAudio, QWidget *parent = 0);
+    TermWidget(const Term               *term, 
+               AnkiClient               *client, 
+               const QList<AudioSource> *sources,
+               QWidget                  *parent = 0);
     ~TermWidget();
 
     void setAddable(bool value);
@@ -48,13 +51,15 @@ Q_SIGNALS:
 private Q_SLOTS:
     void addNote();
     void openAnki();
-    void playAudio();
+    void playAudio(QString url, const QString &hash);
+    void showAudioSources(const QPoint &pos);
     void searchKanji(const QString &ch);
 
 private:
-    Ui::TermWidget *m_ui;
-    const Term     *m_term;
-    AnkiClient     *m_client;
+    Ui::TermWidget           *m_ui;
+    const Term               *m_term;
+    AnkiClient               *m_client;
+    const QList<AudioSource> *m_sources;
 
     FlowLayout  *m_layoutTermTags;
     FlowLayout  *m_layoutFreqTags;

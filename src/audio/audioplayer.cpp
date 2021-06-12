@@ -106,9 +106,10 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
     /* Check if the file exists */
     m_fileLock.lock();
     QTemporaryFile *file = m_files[url];
-    if (file && FileUtils::calculateMd5(file) != hash)
+    if (file)
     {
-        playFile(file);
+        if (FileUtils::calculateMd5(file) != hash)
+            playFile(file);
         m_fileLock.unlock();
         return nullptr;
     }
@@ -153,17 +154,16 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
             /* Check the hash */
             if (FileUtils::calculateMd5(file) == hash)
             {
-                qDebug() << "Skip hash matched";
-                goto cleanup;
                 m_fileLock.unlock();
+                goto cleanup;
             }
 
             /* Play the file */
             if (!playFile(file))
             {
                 qDebug() << "Could not play audio file";
-                goto cleanup;
                 m_fileLock.unlock();
+                goto cleanup;
             }
             
             m_fileLock.unlock();

@@ -68,11 +68,11 @@ protected:
 private:
     Ui::DefinitionWidget *m_ui;
     AnkiClient           *m_client;
+    QList<AudioSource>    m_sources;
     const QList<Term *>  *m_terms;
     QList<bool>           m_addable;
     QList<TermWidget *>   m_termWidgets;
     int                   m_savedScroll;
-    bool                  m_showAudio;
 };
 
 #endif // DEFINITIONWIDGET_H

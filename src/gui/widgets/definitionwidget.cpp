@@ -23,6 +23,7 @@
 
 #include "../../util/globalmediator.h"
 #include "../../util/constants.h"
+#include "../../audio/audioplayer.h"
 
 #include <QFrame>
 #include <QScrollBar>
@@ -50,8 +51,17 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, QWidget *parent)
     size_t limit = settings.value(SETTINGS_SEARCH_LIMIT, DEFAULT_LIMIT).toUInt();
     settings.endGroup();
 
-    /* Check if audio should be shown */
-    m_showAudio = settings.beginReadArray(SETTINGS_AUDIO_SRC) != 0;
+    /* Get audio sources */
+    size_t size = settings.beginReadArray(SETTINGS_AUDIO_SRC);
+    for (size_t i = 0; i < size; ++i)
+    {
+        settings.setArrayIndex(i);
+        m_sources.append(AudioSource{
+            settings.value(SETTINGS_AUDIO_SRC_NAME, SETTINGS_AUDIO_SRC_NAME_DEFAULT).toString(),
+            settings.value(SETTINGS_AUDIO_SRC_URL,  SETTINGS_AUDIO_SRC_URL_DEFAULT ).toString(),
+            settings.value(SETTINGS_AUDIO_SRC_MD5,  SETTINGS_AUDIO_SRC_MD5_DEFAULT ).toString(),
+        });
+    }
     settings.endArray();
 
     /* Add the terms */
@@ -136,6 +146,7 @@ DefinitionWidget::~DefinitionWidget()
     }
     delete m_terms;
     delete m_ui;
+    GlobalMediator::getGlobalMediator()->getAudioPlayer()->clearFiles();
 }
 
 void DefinitionWidget::setTheme()
@@ -169,7 +180,7 @@ void DefinitionWidget::showTerms(const size_t start, const size_t end)
     setUpdatesEnabled(false);
     for (size_t i = start; i < m_terms->size() && i < end; ++i)
     {
-        TermWidget *termWidget = new TermWidget(m_terms->at(i), m_client, m_showAudio, this);
+        TermWidget *termWidget = new TermWidget(m_terms->at(i), m_client, &m_sources, this);
         connect(termWidget, &TermWidget::kanjiSearched, this, &DefinitionWidget::showKanji);
         m_termWidgets.append(termWidget);
         m_ui->scrollAreaContents->layout()->addWidget(termWidget);
