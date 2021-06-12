@@ -50,6 +50,10 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, QWidget *parent)
     size_t limit = settings.value(SETTINGS_SEARCH_LIMIT, DEFAULT_LIMIT).toUInt();
     settings.endGroup();
 
+    /* Check if audio should be shown */
+    m_showAudio = settings.beginReadArray(SETTINGS_AUDIO_SRC) != 0;
+    settings.endArray();
+
     /* Add the terms */
     showTerms(0, limit);
     m_ui->scrollArea->verticalScrollBar()->setValue(0);
@@ -165,7 +169,7 @@ void DefinitionWidget::showTerms(const size_t start, const size_t end)
     setUpdatesEnabled(false);
     for (size_t i = start; i < m_terms->size() && i < end; ++i)
     {
-        TermWidget *termWidget = new TermWidget(m_terms->at(i), m_client, this);
+        TermWidget *termWidget = new TermWidget(m_terms->at(i), m_client, m_showAudio, this);
         connect(termWidget, &TermWidget::kanjiSearched, this, &DefinitionWidget::showKanji);
         m_termWidgets.append(termWidget);
         m_ui->scrollAreaContents->layout()->addWidget(termWidget);

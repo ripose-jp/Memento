@@ -169,8 +169,6 @@ private:
     QString  buildGlossary   (const QList<KanjiDefinition> &definitions);
     QString &accumulateTags  (const QList<Tag>             &tags,         
                               QString                      &tagStr);
-
-    QString generateMD5(const QString &filename);
 };
 
 #endif // ANKICLIENT_H

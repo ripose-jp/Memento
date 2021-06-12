@@ -16,5 +16,6 @@
     <file>images/skipright.svg</file>
     <file>images/seekleft.svg</file>
     <file>images/seekright.svg</file>
+    <file>images/audio.svg</file>
 </qresource>
 </RCC>

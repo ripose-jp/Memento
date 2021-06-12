@@ -22,12 +22,10 @@
 
 #include "../../util/globalmediator.h"
 
-#include <stdexcept>
 #include <QtGui/QOpenGLContext>
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QDebug>
-#include <QMessageBox>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #include <winbase.h>
@@ -64,8 +62,11 @@ MpvWidget::MpvWidget(QWidget *parent)
     mpv = mpv_create();
     if (!mpv)
     {
-        qDebug() << "Could not create mpv context";
-        exit(EXIT_FAILURE);
+        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+            "Could not start mpv",
+            "MpvWidget: Could not create mpv context"
+        );
+        QCoreApplication::exit(EXIT_FAILURE);
     }
 
     mpv_set_option_string(mpv, "terminal", "yes");
@@ -80,8 +81,10 @@ MpvWidget::MpvWidget(QWidget *parent)
 
     if (mpv_initialize(mpv) < 0)
     {
-        QMessageBox message;
-        message.critical(0, "Could not start mpv", "Failed to initialize mpv context");
+        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+            "Could not start mpv",
+            "MpvWidget: Failed to initialize mpv context"
+        );
         QCoreApplication::exit(EXIT_FAILURE);
     }
 
@@ -151,7 +154,13 @@ void MpvWidget::initializeGL()
     };
 
     if (mpv_render_context_create(&mpv_gl, mpv, params) < 0)
-        throw std::runtime_error("failed to initialize mpv GL context");
+    {
+        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+            "Could not start mpv",
+            "MpvWidget: Failed to initialize mpv GL context"
+        );
+        QCoreApplication::exit(EXIT_FAILURE);
+    }
     mpv_render_context_set_update_callback(mpv_gl, MpvWidget::on_update,
                                            reinterpret_cast<void *>(this));
 }

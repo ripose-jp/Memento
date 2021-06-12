@@ -8,6 +8,15 @@ target_link_libraries(
 )
 
 add_library(
+    fileutils
+    fileutils.cpp
+)
+target_link_libraries(
+    fileutils
+    Qt5::Core
+)
+
+add_library(
     globalmediator
     globalmediator.cpp
 )

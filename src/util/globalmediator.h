@@ -27,6 +27,7 @@ class Dictionary;
 class PlayerAdapter;
 class AnkiClient;
 class SubtitleListWidget;
+class AudioPlayer;
 class QWidget;
 
 class QKeyEvent;
@@ -51,6 +52,7 @@ public:
     QWidget            *getPlayerWidget()       const;
     AnkiClient         *getAnkiClient()         const;
     SubtitleListWidget *getSubtitleListWidget() const;
+    AudioPlayer        *getAudioPlayer()        const;
 
     /* Mediator does not take ownership */
     GlobalMediator *setDictionary   (Dictionary         *dictionary);
@@ -58,6 +60,7 @@ public:
     GlobalMediator *setPlayerWidget (QWidget            *widget);
     GlobalMediator *setAnkiClient   (AnkiClient         *client);
     GlobalMediator *setSubtitleList (SubtitleListWidget *subList);
+    GlobalMediator *setAudioPlayer  (AudioPlayer        *audioPlayer);
 
 Q_SIGNALS:
     /* Message Box Signals */
@@ -153,6 +156,7 @@ private:
     PlayerAdapter      *m_player;
     QWidget            *m_playerWidget;
     SubtitleListWidget *m_subList;
+    AudioPlayer        *m_audioPlayer;
 
     GlobalMediator(QObject *parent = nullptr);
 };

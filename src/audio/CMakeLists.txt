@@ -1,0 +1,11 @@
+add_library(
+    audioplayer
+    audioplayer.cpp
+)
+target_link_libraries(
+    audioplayer
+    ${MPV_LIB}
+    fileutils
+    Qt5::Core
+    Qt5::Network
+)

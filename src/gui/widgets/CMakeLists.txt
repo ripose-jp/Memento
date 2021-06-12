@@ -71,6 +71,7 @@ target_link_libraries(
     Qt5::Network
     dictionary_db
     flowlayout
+    audioplayer
 )
 
 add_library(

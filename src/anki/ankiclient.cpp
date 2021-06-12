@@ -23,6 +23,7 @@
 #include "../util/directoryutils.h"
 #include "../util/globalmediator.h"
 #include "../util/constants.h"
+#include "../util/fileutils.h"
 extern "C"
 {
 #include "../ffmpeg/transcode_aac.h"
@@ -1340,7 +1341,7 @@ void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
                         startTime, endTime
                     );
 
-                    QString filename = generateMD5(path) + ".aac";
+                    QString filename = FileUtils::calculateMd5(path) + ".aac";
                     audObj[ANKI_NOTE_FILENAME] = filename;
                     audObj[ANKI_NOTE_FIELDS] = fieldsWithAudioMedia;
 
@@ -1385,7 +1386,7 @@ void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
             image[ANKI_NOTE_PATH] = path;
             player->setSubVisiblity(visibility);
 
-            QString filename = generateMD5(path) + imageExt;
+            QString filename = FileUtils::calculateMd5(path) + imageExt;
             image[ANKI_NOTE_FILENAME] = filename;
 
             image[ANKI_NOTE_FIELDS] = fieldsWithScreenshot;
@@ -1402,7 +1403,7 @@ void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
             QString path = GlobalMediator::getGlobalMediator()->getPlayerAdapter()->tempScreenshot(false, imageExt);
             image[ANKI_NOTE_PATH] = path;
 
-            QString filename = generateMD5(path) + imageExt;
+            QString filename = FileUtils::calculateMd5(path) + imageExt;
             image[ANKI_NOTE_FILENAME] = filename;
             
             image[ANKI_NOTE_FIELDS] = fieldWithScreenshotVideo;
@@ -1418,20 +1419,6 @@ void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
             note[ANKI_NOTE_PICTURE] = images;
         }    
     }
-}
-
-QString AnkiClient::generateMD5(const QString &filename)
-{
-    QFile file(filename);
-    if (file.open(QFile::ReadOnly))
-    {
-        QCryptographicHash hasher(QCryptographicHash::Md5);
-        if (hasher.addData(&file))
-        {
-            return QString(hasher.result().toHex());
-        }
-    }
-    return "";
 }
 
 QString AnkiClient::buildGlossary(const QList<TermDefinition> &definitions)

@@ -29,6 +29,7 @@ GlobalMediator::GlobalMediator(QObject *parent) : QObject(parent)
     m_player       = nullptr;
     m_playerWidget = nullptr;
     m_subList      = nullptr;
+    m_audioPlayer  = nullptr;
 }
 
 GlobalMediator *GlobalMediator::createGlobalMedaitor()
@@ -67,6 +68,11 @@ SubtitleListWidget *GlobalMediator::getSubtitleListWidget() const
     return m_subList;
 }
 
+AudioPlayer *GlobalMediator::getAudioPlayer() const
+{
+    return m_audioPlayer;
+}
+
 GlobalMediator *GlobalMediator::setDictionary(Dictionary *dictionary)
 {
     m_dictionary = dictionary;
@@ -94,5 +100,11 @@ GlobalMediator *GlobalMediator::setAnkiClient(AnkiClient *client)
 GlobalMediator *GlobalMediator::setSubtitleList(SubtitleListWidget *subList)
 {
     m_subList = subList;
+    return m_mediator;
+}
+
+GlobalMediator *GlobalMediator::setAudioPlayer(AudioPlayer *audioPlayer)
+{
+    m_audioPlayer = audioPlayer;
     return m_mediator;
 }

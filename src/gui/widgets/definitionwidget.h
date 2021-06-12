@@ -72,6 +72,7 @@ private:
     QList<bool>           m_addable;
     QList<TermWidget *>   m_termWidgets;
     int                   m_savedScroll;
+    bool                  m_showAudio;
 };
 
 #endif // DEFINITIONWIDGET_H

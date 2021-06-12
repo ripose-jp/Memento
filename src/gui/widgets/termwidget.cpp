@@ -27,6 +27,7 @@
 #include "../../util/iconfactory.h"
 #include "../../util/globalmediator.h"
 #include "../../dict/dictionary.h"
+#include "../../audio/audioplayer.h"
 
 #define KANJI_UNICODE_LOWER_COMMON  "\u4e00"
 #define KANJI_UNICODE_UPPER_COMMON  "\u9faf"
@@ -44,8 +45,14 @@
     #define READING_STYLE       (QString("QLabel { font-size: 12pt; }"))
 #endif
 
-TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent) 
-    : QWidget(parent), m_ui(new Ui::TermWidget), m_term(term), m_client(client)
+TermWidget::TermWidget(const Term *term,
+                       AnkiClient *client,
+                       const bool  showAudio, 
+                       QWidget    *parent) 
+    : QWidget(parent), 
+      m_ui(new Ui::TermWidget), 
+      m_term(term), 
+      m_client(client)
 {
     m_ui->setupUi(this);
 
@@ -72,10 +79,14 @@ TermWidget::TermWidget(const Term *term, AnkiClient *client, QWidget *parent)
     m_ui->buttonAnkiOpen->setIcon(factory->getIcon(IconFactory::Icon::hamburger));
     m_ui->buttonAnkiOpen->setVisible(false);
 
+    m_ui->buttonAudio->setIcon(factory->getIcon(IconFactory::Icon::audio));
+    m_ui->buttonAudio->setVisible(showAudio);
+
     setTerm(*term);
 
     connect(m_ui->buttonAddCard,  &QToolButton::clicked,  this, &TermWidget::addNote);
     connect(m_ui->buttonAnkiOpen, &QToolButton::clicked,  this, &TermWidget::openAnki);
+    connect(m_ui->buttonAudio,    &QToolButton::clicked,  this, &TermWidget::playAudio);
     connect(m_ui->labelKanji,     &QLabel::linkActivated, this, &TermWidget::searchKanji);
 }
 
@@ -190,6 +201,14 @@ void TermWidget::openAnki()
                 );
             }
         }
+    );
+}
+
+#include "../../util/constants.h"
+void TermWidget::playAudio()
+{
+    GlobalMediator::getGlobalMediator()->getAudioPlayer()->playAudio(
+        "http://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kanji=%E3%81%8A%E8%85%B9&kana=あああああああ"
     );
 }
 

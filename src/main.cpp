@@ -28,6 +28,7 @@
 #include "util/directoryutils.h"
 #include "util/globalmediator.h"
 #include "util/iconfactory.h"
+#include "audio/audioplayer.h"
 
 #if __APPLE__
     #include <locale.h>
@@ -74,14 +75,20 @@ int main(int argc, char *argv[])
             return EXIT_FAILURE;
         }
     }
+
     
     setlocale(LC_NUMERIC, "C");
+    
+    GlobalMediator::createGlobalMedaitor();
+    GlobalMediator::getGlobalMediator()->setAudioPlayer(new AudioPlayer);
+
     MainWindow *main_window = new MainWindow;
     main_window->show();
     int ret = memento.exec();
 
     /* Deallocate shared resources */
     delete main_window;
+    delete GlobalMediator::getGlobalMediator()->getAudioPlayer();
     delete GlobalMediator::getGlobalMediator();
     delete IconFactory::create();
 

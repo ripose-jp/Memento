@@ -37,7 +37,7 @@ class TermWidget : public QWidget
     Q_OBJECT
 
 public:
-    TermWidget(const Term *term, AnkiClient *client, QWidget *parent = 0);
+    TermWidget(const Term *term, AnkiClient *client, const bool showAudio, QWidget *parent = 0);
     ~TermWidget();
 
     void setAddable(bool value);
@@ -48,6 +48,7 @@ Q_SIGNALS:
 private Q_SLOTS:
     void addNote();
     void openAnki();
+    void playAudio();
     void searchKanji(const QString &ch);
 
 private:

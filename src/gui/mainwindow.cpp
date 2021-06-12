@@ -37,7 +37,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
-      m_mediator(GlobalMediator::createGlobalMedaitor()),
+      m_mediator(GlobalMediator::getGlobalMediator()),
       m_ui(new Ui::MainWindow),
       m_maximized(false),
       m_manager(new QNetworkAccessManager),
