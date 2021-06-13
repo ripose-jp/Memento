@@ -73,6 +73,7 @@ void StyleFactory::buildIcons()
     icons[down]          = buildIcon(":/images/downarrow.svg");
     icons[hamburger]     = buildIcon(":/images/hamburger.svg");
     icons[audio]         = buildIcon(":/images/audio.svg");
+    icons[noaudio]       = buildIcon(":/images/noaudio.svg");
 }
 
 const QIcon &StyleFactory::getIcon(IconFactory::Icon icon) const

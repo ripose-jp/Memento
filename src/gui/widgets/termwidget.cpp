@@ -227,7 +227,16 @@ void TermWidget::playAudio(QString url, const QString &hash)
 
     if (reply)
     {
-        connect(reply, &AudioPlayerReply::result, this, [=] { m_ui->buttonAudio->setEnabled(true); });
+        connect(reply, &AudioPlayerReply::result, this, 
+            [=] (const bool success) {
+                if (!success)
+                {
+                    IconFactory *factory = IconFactory::create();
+                    m_ui->buttonAudio->setIcon(factory->getIcon(IconFactory::noaudio));
+                }
+                m_ui->buttonAudio->setEnabled(true); 
+            }
+        );
     }
 }
 
