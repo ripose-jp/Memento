@@ -117,8 +117,9 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
 
     /* File does not exist so fetch it */
     AudioPlayerReply *audioReply = new AudioPlayerReply;
-    QNetworkReply    *reply = m_manager->get(QNetworkRequest(QUrl(url)));
-    connect(reply, &QNetworkReply::finished, this,
+    QNetworkReply    *reply      = m_manager->get(QNetworkRequest(QUrl(url)));
+    connect(reply, &QNetworkReply::sslErrors, reply, qOverload<>(&QNetworkReply::ignoreSslErrors)); // God help me
+    connect(reply, &QNetworkReply::finished,  this,
         [=] {
             QTemporaryFile *file = nullptr;
             bool            res  = false;

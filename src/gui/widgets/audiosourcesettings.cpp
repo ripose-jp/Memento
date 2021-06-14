@@ -97,7 +97,7 @@ void AudioSourceSettings::applyChanges()
 
         QString name = itemEmpty(i, COL_NAME) ? "" : table->item(i, COL_NAME)->text();
         QString url  = itemEmpty(i, COL_URL)  ? "" : table->item(i, COL_URL)->text();
-        QString md5  = itemEmpty(i, COL_URL)  ? "" : table->item(i, COL_MD5)->text();
+        QString md5  = itemEmpty(i, COL_MD5)  ? "" : table->item(i, COL_MD5)->text();
 
         settings.setValue(SETTINGS_AUDIO_SRC_NAME, name);
         settings.setValue(SETTINGS_AUDIO_SRC_URL,  url);

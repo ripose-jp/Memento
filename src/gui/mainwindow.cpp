@@ -675,13 +675,13 @@ void MainWindow::checkForUpdates()
             }
             else
             {
-                QJsonDocument replyDoc =
-                    QJsonDocument::fromJson(reply->readAll());
+                QJsonDocument replyDoc = QJsonDocument::fromJson(reply->readAll());
                 if (replyDoc.isNull() ||
                     !replyDoc.isArray() || 
                     replyDoc.array().isEmpty() ||
                     !replyDoc.array().first().isObject() ||
-                    !replyDoc.array().first().toObject()["tag_name"].isString())
+                    !replyDoc.array().first().toObject()["tag_name"].isString() ||
+                    !replyDoc.array().first().toObject()["html_url"].isString())
                 {
                     Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
                         "Error", 
@@ -696,11 +696,15 @@ void MainWindow::checkForUpdates()
                                           .first()
                                           .toObject()["tag_name"]
                                           .toString();
+                    QString url = replyDoc.array()
+                                          .first()
+                                          .toObject()["html_url"]
+                                          .toString();
                     if (tag != VERSION)
                     {
                         Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
                             "Update Available",
-                            "New version <a href='" + GITHUB_RELEASES + "'>" + 
+                            "New version <a href='" + url + "'>" + 
                             tag + "</a> available"
                         );
                     }
