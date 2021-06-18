@@ -33,7 +33,7 @@ public:
     int64_t getMaxVolume() const override;
 
     double getSubStart() const override;
-    double getSubEnd() const override;
+    double getSubEnd()   const override;
     double getSubDelay() const override;
 
     bool getSubVisibility() const override;
@@ -41,50 +41,53 @@ public:
     double getAudioDelay() const override;
 
     QList<const Track *> getTracks() override;
-    int64_t getAudioTrack() const override;
+    int64_t getAudioTrack()    const override;
     int64_t getSubtitleTrack() const override;
 
-    QString getPath() const override;
+    QString getPath()  const override;
     QString getTitle() const override;
 
     bool isFullScreen() const override;
 
+    bool canGetSecondarySubText() const override;
+
 public Q_SLOTS:
-    void open(const QString &file, const bool append = false) override;
-    void open(const QList<QUrl> &files) override;
+    void open(const QString &file, 
+              const bool append = false)  override;
+    void open(const QList<QUrl> &files)   override;
     void addSubtitle(const QString &file) override;
 
     void seek(const int64_t time) override;
 
-    void play() override;
+    void play()  override;
     void pause() override;
-    void stop() override;
+    void stop()  override;
 
-    void seekForward() override;
+    void seekForward()  override;
     void seekBackward() override;
 
-    void skipForward() override;
+    void skipForward()  override;
     void skipBackward() override;
 
-    void disableAudio() override;
-    void disableVideo() override;
-    void disableSubtitles() override;
+    void disableAudio()       override;
+    void disableVideo()       override;
+    void disableSubtitles()   override;
     void disableSubtitleTwo() override;
 
     void setSubVisiblity(const bool visible) override;
 
-    void setAudioTrack(int64_t id) override;
-    void setVideoTrack(int64_t id) override;
-    void setSubtitleTrack(int64_t id) override;
+    void setAudioTrack(int64_t id)       override;
+    void setVideoTrack(int64_t id)       override;
+    void setSubtitleTrack(int64_t id)    override;
     void setSubtitleTwoTrack(int64_t id) override;
 
     void setFullscreen(const bool value) override;
-    void setVolume(const int64_t value) override;
+    void setVolume(const int64_t value)  override;
 
     QString tempScreenshot(const bool subtitles,
                            const QString &ext = ".jpg") override;
 
-    void keyPressed(const QKeyEvent *event) override;
+    void keyPressed(const QKeyEvent *event)        override;
     void mouseWheelMoved(const QWheelEvent *event) override;
 
 private Q_SLOTS:

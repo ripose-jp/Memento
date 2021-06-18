@@ -21,12 +21,32 @@
 #include "ankisettingshelp.h"
 #include "ui_ankisettingshelp.h"
 
+#include "../../util/globalmediator.h"
+#include "../playeradapter.h"
+
 AnkiSettingsHelp::AnkiSettingsHelp(QWidget *parent) 
     : QDialog(parent), m_ui(new Ui::AnkiSettingsHelp)
 {
     m_ui->setupUi(this);
     resize(minimumSizeHint());
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+
+    /* Decide whether or not to show secondary subtitle properties */
+    PlayerAdapter *player = GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+    if (!player->canGetSecondarySubText())
+    {
+        m_ui->labelSentence2->hide();
+        m_ui->labelSentence2Ex->hide();
+
+        m_ui->labelContext2->hide();
+        m_ui->labelContext2Ex->hide();
+
+        m_ui->labelKanjiSentence2->hide();
+        m_ui->labelKanjiSentence2Ex->hide();
+
+        m_ui->labelKanjiContext2->hide();
+        m_ui->labelKanjiContext2Ex->hide();
+    }
 }
 
 AnkiSettingsHelp::~AnkiSettingsHelp()

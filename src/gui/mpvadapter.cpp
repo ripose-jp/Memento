@@ -217,6 +217,13 @@ bool MpvAdapter::isFullScreen() const
     return flag;
 }
 
+bool MpvAdapter::canGetSecondarySubText() const
+{
+    char *str = mpv_get_property_string(m_handle, "secondary-sub-text");
+    mpv_free(str);
+    return str != NULL;
+}
+
 void MpvAdapter::open(const QString &file, const bool append)
 {
     if (file.isEmpty())

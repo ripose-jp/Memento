@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>790</width>
-    <height>610</height>
+    <width>858</width>
+    <height>750</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -42,16 +42,7 @@ These will expand to larger expressions in the final card.</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <layout class="QFormLayout" name="formLayoutTerm">
-         <property name="fieldGrowthPolicy">
-          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-         </property>
-         <property name="rowWrapPolicy">
-          <enum>QFormLayout::DontWrapRows</enum>
-         </property>
-         <property name="labelAlignment">
-          <set>Qt::AlignCenter</set>
-         </property>
+        <layout class="QGridLayout" name="layoutTerm">
          <item row="0" column="0">
           <widget class="QLabel" name="labelTermAudio">
            <property name="font">
@@ -63,6 +54,9 @@ These will expand to larger expressions in the final card.</string>
            </property>
            <property name="text">
             <string>{audio}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -91,6 +85,9 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{audio-media}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
@@ -114,6 +111,9 @@ These will expand to larger expressions in the final card.</string>
            </property>
            <property name="text">
             <string>{cloze-body}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -141,6 +141,9 @@ These will expand to larger expressions in the final card.</string>
            </property>
            <property name="text">
             <string>{cloze-prefix}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -175,6 +178,9 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{cloze-suffix}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
@@ -202,6 +208,9 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{context}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
@@ -215,6 +224,33 @@ These will expand to larger expressions in the final card.</string>
           </widget>
          </item>
          <item row="6" column="0">
+          <widget class="QLabel" name="labelContext2">
+           <property name="font">
+            <font>
+             <family>DejaVu Sans Mono</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{context-2}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QLabel" name="labelContext2Ex">
+           <property name="text">
+            <string>The selected subtitles in the secondary subtitle list. The current subtitle is selected by default.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
           <widget class="QLabel" name="labelTermExpression">
            <property name="font">
             <font>
@@ -226,12 +262,15 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{expression}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="6" column="1">
+         <item row="7" column="1">
           <widget class="QLabel" name="labelTermExpressionEx">
            <property name="text">
             <string>The term in kanji. Kana if not available.</string>
@@ -241,7 +280,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="7" column="0">
+         <item row="8" column="0">
           <widget class="QLabel" name="labelTermFurigana">
            <property name="font">
             <font>
@@ -253,12 +292,15 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{furigana}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="7" column="1">
+         <item row="8" column="1">
           <widget class="QLabel" name="labelTermFuriganaEx">
            <property name="text">
             <string>The term in kanji with furigana above. Kana if kanji is not available.</string>
@@ -268,7 +310,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="8" column="0">
+         <item row="9" column="0">
           <widget class="QLabel" name="labelTermFuriganaPlain">
            <property name="font">
             <font>
@@ -280,6 +322,9 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{furigana-plain}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="wordWrap">
             <bool>false</bool>
            </property>
@@ -288,7 +333,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="8" column="1">
+         <item row="9" column="1">
           <widget class="QLabel" name="labelTermFuriganaPlainEx">
            <property name="text">
             <string>The term in kanji with furigana proceeding in brackets. Kana if kanji is not available.</string>
@@ -298,7 +343,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="9" column="0">
+         <item row="10" column="0">
           <widget class="QLabel" name="labelTermFrequencies">
            <property name="font">
             <font>
@@ -310,19 +355,22 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{frequencies}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="9" column="1">
+         <item row="10" column="1">
           <widget class="QLabel" name="labelTermFrequenciesEx">
            <property name="text">
             <string>Bulleted list of the frequency tags.</string>
            </property>
           </widget>
          </item>
-         <item row="10" column="0">
+         <item row="11" column="0">
           <widget class="QLabel" name="labelTermGlossary">
            <property name="font">
             <font>
@@ -334,12 +382,15 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{glossary}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="10" column="1">
+         <item row="11" column="1">
           <widget class="QLabel" name="labelTermGlossaryEx">
            <property name="text">
             <string>The dictionary definitions of the expression.</string>
@@ -349,7 +400,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="11" column="0">
+         <item row="12" column="0">
           <widget class="QLabel" name="labelTermGlossaryBrief">
            <property name="font">
             <font>
@@ -361,169 +412,22 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{glossary-brief}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="11" column="1">
+         <item row="12" column="1">
           <widget class="QLabel" name="labelTermGlossaryBriefEx">
            <property name="text">
             <string>The dictionary definitions of the expression in a compact form.</string>
            </property>
           </widget>
          </item>
-         <item row="15" column="0">
-          <widget class="QLabel" name="labelTermReading">
-           <property name="font">
-            <font>
-             <family>DejaVu Sans Mono</family>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>{reading}</string>
-           </property>
-           <property name="textInteractionFlags">
-            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="15" column="1">
-          <widget class="QLabel" name="labelTermReadingEx">
-           <property name="text">
-            <string>The reading of the word in kana.</string>
-           </property>
-           <property name="wordWrap">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="16" column="0">
-          <widget class="QLabel" name="labelTermScreenshot">
-           <property name="font">
-            <font>
-             <family>DejaVu Sans Mono</family>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>{screenshot}</string>
-           </property>
-           <property name="textInteractionFlags">
-            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="16" column="1">
-          <widget class="QLabel" name="labelTermScreenshotEx">
-           <property name="text">
-            <string>Screenshot of the current frame.</string>
-           </property>
-          </widget>
-         </item>
-         <item row="17" column="0">
-          <widget class="QLabel" name="labelTermScreenshotMedia">
-           <property name="font">
-            <font>
-             <family>DejaVu Sans Mono</family>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>{screenshot-video}</string>
-           </property>
-           <property name="textInteractionFlags">
-            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="17" column="1">
-          <widget class="QLabel" name="labelTermScreenshotVideo">
-           <property name="text">
-            <string>Screenshot of the current frame without subtitles if visible.</string>
-           </property>
-          </widget>
-         </item>
-         <item row="18" column="0">
-          <widget class="QLabel" name="labelTermSentence">
-           <property name="font">
-            <font>
-             <family>DejaVu Sans Mono</family>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>{sentence}</string>
-           </property>
-           <property name="textInteractionFlags">
-            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="18" column="1">
-          <widget class="QLabel" name="labelTermSentenceEx">
-           <property name="text">
-            <string>The current subtitle.</string>
-           </property>
-           <property name="wordWrap">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="19" column="0">
-          <widget class="QLabel" name="labelTermTags">
-           <property name="font">
-            <font>
-             <family>DejaVu Sans Mono</family>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>{tags}</string>
-           </property>
-           <property name="textInteractionFlags">
-            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="19" column="1">
-          <widget class="QLabel" name="labelTermTagsEx">
-           <property name="text">
-            <string>Bulleted list of the term tags.</string>
-           </property>
-          </widget>
-         </item>
-         <item row="20" column="0">
-          <widget class="QLabel" name="labelTermTitle">
-           <property name="font">
-            <font>
-             <family>DejaVu Sans Mono</family>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>{title}</string>
-           </property>
-           <property name="textInteractionFlags">
-            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="20" column="1">
-          <widget class="QLabel" name="labelTermTitleEx">
-           <property name="text">
-            <string>Title of the video. Filename if no title.</string>
-           </property>
-          </widget>
-         </item>
-         <item row="12" column="0">
+         <item row="13" column="0">
           <widget class="QLabel" name="labelPitch">
            <property name="font">
             <font>
@@ -535,19 +439,22 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{pitch}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="12" column="1">
+         <item row="13" column="1">
           <widget class="QLabel" name="labelPitchEx">
            <property name="text">
             <string>Pitch accents for the reading of the term.</string>
            </property>
           </widget>
          </item>
-         <item row="13" column="0">
+         <item row="14" column="0">
           <widget class="QLabel" name="labelPitchGraph">
            <property name="font">
             <font>
@@ -559,19 +466,22 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{pitch-graph}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="13" column="1">
+         <item row="14" column="1">
           <widget class="QLabel" name="labelPitchGraphEx">
            <property name="text">
             <string>Pitch graphs for the reading of the term.</string>
            </property>
           </widget>
          </item>
-         <item row="14" column="0">
+         <item row="15" column="0">
           <widget class="QLabel" name="labelPitchPosition">
            <property name="font">
             <font>
@@ -583,15 +493,210 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{pitch-position}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="14" column="1">
+         <item row="15" column="1">
           <widget class="QLabel" name="labelPitchPositionEx">
            <property name="text">
             <string>Pitch positions for the reading of the term.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="16" column="0">
+          <widget class="QLabel" name="labelTermReading">
+           <property name="font">
+            <font>
+             <family>DejaVu Sans Mono</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{reading}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="16" column="1">
+          <widget class="QLabel" name="labelTermReadingEx">
+           <property name="text">
+            <string>The reading of the word in kana.</string>
+           </property>
+           <property name="wordWrap">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="17" column="0">
+          <widget class="QLabel" name="labelTermScreenshot">
+           <property name="font">
+            <font>
+             <family>DejaVu Sans Mono</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{screenshot}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="17" column="1">
+          <widget class="QLabel" name="labelTermScreenshotEx">
+           <property name="text">
+            <string>Screenshot of the current frame.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="18" column="0">
+          <widget class="QLabel" name="labelTermScreenshotMedia">
+           <property name="font">
+            <font>
+             <family>DejaVu Sans Mono</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{screenshot-video}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="18" column="1">
+          <widget class="QLabel" name="labelTermScreenshotVideo">
+           <property name="text">
+            <string>Screenshot of the current frame without subtitles if visible.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="19" column="0">
+          <widget class="QLabel" name="labelTermSentence">
+           <property name="font">
+            <font>
+             <family>DejaVu Sans Mono</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{sentence}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="19" column="1">
+          <widget class="QLabel" name="labelTermSentenceEx">
+           <property name="text">
+            <string>The current subtitle.</string>
+           </property>
+           <property name="wordWrap">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="20" column="0">
+          <widget class="QLabel" name="labelSentence2">
+           <property name="font">
+            <font>
+             <family>DejaVu Sans Mono</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{sentence-2}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="20" column="1">
+          <widget class="QLabel" name="labelSentence2Ex">
+           <property name="text">
+            <string>The current secondary subtitle.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="21" column="0">
+          <widget class="QLabel" name="labelTermTags">
+           <property name="font">
+            <font>
+             <family>DejaVu Sans Mono</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{tags}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="21" column="1">
+          <widget class="QLabel" name="labelTermTagsEx">
+           <property name="text">
+            <string>Bulleted list of the term tags.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="22" column="0">
+          <widget class="QLabel" name="labelTermTitle">
+           <property name="font">
+            <font>
+             <family>DejaVu Sans Mono</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{title}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="22" column="1">
+          <widget class="QLabel" name="labelTermTitleEx">
+           <property name="text">
+            <string>Title of the video. Filename if no title.</string>
            </property>
           </widget>
          </item>
@@ -605,16 +710,7 @@ These will expand to larger expressions in the final card.</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <layout class="QFormLayout" name="formLayoutKanji">
-         <property name="fieldGrowthPolicy">
-          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-         </property>
-         <property name="rowWrapPolicy">
-          <enum>QFormLayout::DontWrapRows</enum>
-         </property>
-         <property name="labelAlignment">
-          <set>Qt::AlignCenter</set>
-         </property>
+        <layout class="QGridLayout" name="layoutKanji">
          <item row="0" column="0">
           <widget class="QLabel" name="labelKanjiAudioMedia">
            <property name="font">
@@ -626,6 +722,9 @@ These will expand to larger expressions in the final card.</string>
            </property>
            <property name="text">
             <string>{audio-media}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -651,6 +750,9 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{character}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
@@ -674,6 +776,9 @@ These will expand to larger expressions in the final card.</string>
            </property>
            <property name="text">
             <string>{cloze-body}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -701,6 +806,9 @@ These will expand to larger expressions in the final card.</string>
            </property>
            <property name="text">
             <string>{cloze-prefix}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -735,6 +843,9 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{cloze-suffix}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
@@ -762,6 +873,9 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{context}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
@@ -775,6 +889,33 @@ These will expand to larger expressions in the final card.</string>
           </widget>
          </item>
          <item row="6" column="0">
+          <widget class="QLabel" name="labelKanjiContext2">
+           <property name="font">
+            <font>
+             <family>DejaVu Sans Mono</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{context-2}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QLabel" name="labelKanjiContext2Ex">
+           <property name="text">
+            <string>The selected subtitles in the secondary subtitle list. The current subtitle is selected by default.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
           <widget class="QLabel" name="labelKanjiFrequencies">
            <property name="font">
             <font>
@@ -786,19 +927,22 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{frequencies}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="6" column="1">
+         <item row="7" column="1">
           <widget class="QLabel" name="labelKanjiFrequenciesEx">
            <property name="text">
             <string>Bulleted list of the frequency tags.</string>
            </property>
           </widget>
          </item>
-         <item row="7" column="0">
+         <item row="8" column="0">
           <widget class="QLabel" name="labelKanjiGlossary">
            <property name="font">
             <font>
@@ -810,12 +954,15 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{glossary}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="7" column="1">
+         <item row="8" column="1">
           <widget class="QLabel" name="labelKanjiGlossaryEx">
            <property name="text">
             <string>The dictionary definitions of the kanji.</string>
@@ -825,7 +972,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="8" column="0">
+         <item row="9" column="0">
           <widget class="QLabel" name="labelKanjiKunyomi">
            <property name="font">
             <font>
@@ -837,19 +984,22 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{kunyomi}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="8" column="1">
+         <item row="9" column="1">
           <widget class="QLabel" name="labelKanjiKunyomiEx">
            <property name="text">
             <string>A comma seperated list of kunyomi (Japanese) readings written in katakana.</string>
            </property>
           </widget>
          </item>
-         <item row="9" column="0">
+         <item row="10" column="0">
           <widget class="QLabel" name="labelKanjiOnyomi">
            <property name="font">
             <font>
@@ -861,19 +1011,22 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{onyomi}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="9" column="1">
+         <item row="10" column="1">
           <widget class="QLabel" name="labelKanjiOnyomiEx">
            <property name="text">
             <string>A comma seperated list of kunyomi (Chinese) readings written in hiragana.</string>
            </property>
           </widget>
          </item>
-         <item row="10" column="0">
+         <item row="11" column="0">
           <widget class="QLabel" name="labelKanjiScreenshot">
            <property name="font">
             <font>
@@ -885,19 +1038,22 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{screenshot}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="10" column="1">
+         <item row="11" column="1">
           <widget class="QLabel" name="labelKanjiScreenshotEx">
            <property name="text">
             <string>Screenshot of the current frame.</string>
            </property>
           </widget>
          </item>
-         <item row="11" column="0">
+         <item row="12" column="0">
           <widget class="QLabel" name="labelKanjiScreenshotMedia">
            <property name="font">
             <font>
@@ -909,19 +1065,22 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{screenshot-video}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="11" column="1">
+         <item row="12" column="1">
           <widget class="QLabel" name="labelKanjiScreenshotVideo">
            <property name="text">
             <string>Screenshot of the current frame without subtitles if visible.</string>
            </property>
           </widget>
          </item>
-         <item row="12" column="0">
+         <item row="13" column="0">
           <widget class="QLabel" name="labelKanjiSentence">
            <property name="font">
             <font>
@@ -933,12 +1092,15 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{sentence}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="12" column="1">
+         <item row="13" column="1">
           <widget class="QLabel" name="labelKanjiSentenceEx">
            <property name="text">
             <string>The current subtitle.</string>
@@ -948,7 +1110,34 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="13" column="0">
+         <item row="14" column="0">
+          <widget class="QLabel" name="labelKanjiSentence2">
+           <property name="font">
+            <font>
+             <family>DejaVu Sans Mono</family>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{sentence-2}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="1">
+          <widget class="QLabel" name="labelKanjiSentence2Ex">
+           <property name="text">
+            <string>The current secondary subtitle.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="15" column="0">
           <widget class="QLabel" name="labelStrokeCount">
            <property name="font">
             <font>
@@ -960,19 +1149,22 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{stroke-count}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="13" column="1">
+         <item row="15" column="1">
           <widget class="QLabel" name="labelKanjiStrokesEx">
            <property name="text">
             <string>The number of strokes in the character.</string>
            </property>
           </widget>
          </item>
-         <item row="14" column="0">
+         <item row="16" column="0">
           <widget class="QLabel" name="labelKanjiTags">
            <property name="font">
             <font>
@@ -984,19 +1176,22 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{tags}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
-         <item row="14" column="1">
+         <item row="16" column="1">
           <widget class="QLabel" name="labelKanjiTagsEx">
            <property name="text">
             <string>Bulleted list of the term tags.</string>
            </property>
           </widget>
          </item>
-         <item row="15" column="0">
+         <item row="17" column="0">
           <widget class="QLabel" name="labelKanjiTitle">
            <property name="font">
             <font>
@@ -1008,12 +1203,15 @@ These will expand to larger expressions in the final card.</string>
            <property name="text">
             <string>{title}</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard</set>
            </property>
           </widget>
          </item>
-         <item row="15" column="1">
+         <item row="17" column="1">
           <widget class="QLabel" name="labelKanjiTitleEx">
            <property name="text">
             <string>Title of the video. Filename if no title.</string>
@@ -1021,6 +1219,19 @@ These will expand to larger expressions in the final card.</string>
           </widget>
          </item>
         </layout>
+       </item>
+       <item>
+        <spacer name="spacerKanji">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>

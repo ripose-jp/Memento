@@ -23,6 +23,9 @@
 
 #include <QWidget>
 
+#include <QMultiHash>
+#include <QMultiMap>
+
 class QTableWidgetItem;
 
 namespace Ui
@@ -58,8 +61,11 @@ private Q_SLOTS:
 private:
     Ui::SubtitleListWidget *m_ui;
 
-    QMultiMap<double, QString>  *m_seenSubtitles;
-    QMultiHash<QString, double> *m_subStartTimes;
+    QMultiMap<double, QString>  m_seenSubtitles;
+    QMultiHash<QString, double> m_subStartTimes;
+
+    QMultiMap<double, QString>  m_seenSubtitlesSec;
+    QMultiHash<QString, double> m_subStartTimesSec;
 
     QString formatTimecode(const int time);
 };

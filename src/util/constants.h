@@ -118,6 +118,26 @@ enum class Theme
 #define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE              "sublist-style"
 #if __APPLE__
 #define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT      \
+    "QTabWidget::pane {\n"\
+    "    border-top: 0px;\n"\
+    "}\n"\
+    "\n"\
+    "QTabWidget::tab-bar {\n"\
+    "    border: 0px;\n"\
+    "    alignment: center;\n"\
+    "}\n"\
+    "\n"\
+    "QTabBar::tab {\n"\
+    "    background: black;\n"\
+    "}\n"\
+    "QTabBar::tab:selected {\n"\
+    "    color: white;\n"\
+    "}\n"\
+    "\n"\
+    "QTabBar::tab:!selected {\n"\
+    "    color: gray;\n"\
+    "}\n"\
+    "\n"\
     "QTableWidget {\n"\
     "    background: black;\n"\
     "    color: white;\n"\
@@ -126,6 +146,26 @@ enum class Theme
     "}"
 #else
 #define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT      \
+    "QTabWidget::pane {\n"\
+    "    border-top: 0px;\n"\
+    "}\n"\
+    "\n"\
+    "QTabWidget::tab-bar {\n"\
+    "    border: 0px;\n"\
+    "    alignment: center;\n"\
+    "}\n"\
+    "\n"\
+    "QTabBar::tab {\n"\
+    "    background: black;\n"\
+    "}\n"\
+    "QTabBar::tab:selected {\n"\
+    "    color: white;\n"\
+    "}\n"\
+    "\n"\
+    "QTabBar::tab:!selected {\n"\
+    "    color: gray;\n"\
+    "}\n"\
+    "\n"\
     "QTableWidget {\n"\
     "    background: black;\n"\
     "    color: white;\n"\
@@ -136,6 +176,10 @@ enum class Theme
 
 #define SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE            "player-splitter-style"
 #define SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT    \
+    "QSplitter {\n"\
+    "    background: black;\n"\
+    "}\n"\
+    "\n"\
     "QSplitter::handle {\n"\
     "    background: black;\n"\
     "}"
