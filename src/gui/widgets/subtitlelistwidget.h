@@ -23,9 +23,11 @@
 
 #include <QWidget>
 
+#include <QHash>
 #include <QMultiHash>
-#include <QMultiMap>
+#include <QMap>
 
+class QTableWidget;
 class QTableWidgetItem;
 
 namespace Ui
@@ -41,33 +43,67 @@ public:
     SubtitleListWidget(QWidget *parent = nullptr);
     ~SubtitleListWidget();
 
-    QString getContext(const QString &seperator);
+    QString getPrimaryContext  (const QString &seperator) const;
+    QString getSecondaryContext(const QString &seperator) const;
 
 protected:
-    void showEvent(QShowEvent *event) override;
-    void hideEvent(QHideEvent *event) override;
+    void showEvent  (QShowEvent *event)   override;
+    void hideEvent  (QHideEvent *event)   override;
     void resizeEvent(QResizeEvent *event) override;
 
 private Q_SLOTS:
     void setTheme();
-    void addSubtitle(const QString &subtitle,
-                     const double start,
-                     const double end,
-                     const double delay);
+    void addPrimarySubtitle  (const QString &subtitle,
+                              const double   start,
+                              const double   end,
+                              const double   delay);
+    void addSecondarySubtitle(const QString &subtitle,
+                                    double   start,
+                              const double   delay);
+
     void updateTimestamps(const double delay);
-    void clearSubtitles();
-    void seekToSubtitle(QTableWidgetItem *item);
+
+    void clearPrimarySubtitles();
+    void clearSecondarySubtitles();
+
+    void seekToPrimarySubtitle  (QTableWidgetItem *item) const;
+    void seekToSecondarySubtitle(QTableWidgetItem *item) const;
 
 private:
     Ui::SubtitleListWidget *m_ui;
 
-    QMultiMap<double, QString>  m_seenSubtitles;
-    QMultiHash<QString, double> m_subStartTimes;
+    QMap<double, QTableWidgetItem *>  m_seenPrimarySubs;
+    QHash<QTableWidgetItem *, double> m_timesPrimarySubs;
 
-    QMultiMap<double, QString>  m_seenSubtitlesSec;
-    QMultiHash<QString, double> m_subStartTimesSec;
+    QMap<double, QTableWidgetItem *>  m_seenSecondarySubs;
+    QHash<QTableWidgetItem *, double> m_timesSecondarySubs;
+    QMultiHash<QString, double>       m_subSecondaryToTime;
+
+    void hideSecondarySubs();
+    void showSecondarySubs();
 
     QString formatTimecode(const int time);
+
+    QString getContext(const QTableWidget *table, 
+                       const QString      &seperator) const;
+    
+    void addSubtitle(QTableWidget                      *table,
+                     QMap<double, QTableWidgetItem *>  &seenSubs,
+                     QHash<QTableWidgetItem *, double> &startTimes,
+                     const QString                     &subtitle,
+                     const double                       start,
+                     const double                       delay);
+
+    void updateTimestampsHelper(QTableWidget                           *table,
+                                const QMap<double, QTableWidgetItem *> &seenSubs,
+                                const double                            delay);
+
+    void clearSubtitles(QTableWidget                      *table,
+                        QMap<double, QTableWidgetItem *>  &seenSubs,
+                        QHash<QTableWidgetItem *, double> &startTimes);
+
+    void seekToSubtitle(QTableWidgetItem                        *item,
+                        const QHash<QTableWidgetItem *, double> &startTimes) const;
 };
 
 #endif // SUBTITLELISTWIDGET_H

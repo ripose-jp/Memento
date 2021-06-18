@@ -62,10 +62,13 @@ Q_SIGNALS:
     void videoDisabled();
     void subtitleDisabled();
     void subtitleTwoDisabled();
-    void subtitleChanged(QString subtitle, 
+    void subtitleChanged(QString      subtitle, 
                          const double start, 
                          const double end,
                          const double delay);
+    void subtitleChangedSecondary(QString      subtitle, 
+                                  const double start, 
+                                  const double delay);
     void subDelayChanged(const double delay);
     void hideCursor();
     void mouseMoved(QMouseEvent *event);

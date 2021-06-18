@@ -41,24 +41,25 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     connect(m_mpv, &MpvWidget::subtitleTrackChanged,    mediator, &GlobalMediator::playerSubtitleTrackChanged);
     connect(m_mpv, &MpvWidget::subtitleTwoTrackChanged, mediator, &GlobalMediator::playerSecondSubtitleTrackChanged);
 
-    connect(m_mpv, &MpvWidget::audioDisabled,           mediator, &GlobalMediator::playerAudioDisabled);
-    connect(m_mpv, &MpvWidget::videoDisabled,           mediator, &GlobalMediator::playerVideoDisabled);
-    connect(m_mpv, &MpvWidget::subtitleDisabled,        mediator, &GlobalMediator::playerSubtitlesDisabled);
-    connect(m_mpv, &MpvWidget::subtitleTwoDisabled,     mediator, &GlobalMediator::playerSecondSubtitlesDisabled);
+    connect(m_mpv, &MpvWidget::audioDisabled,       mediator, &GlobalMediator::playerAudioDisabled);
+    connect(m_mpv, &MpvWidget::videoDisabled,       mediator, &GlobalMediator::playerVideoDisabled);
+    connect(m_mpv, &MpvWidget::subtitleDisabled,    mediator, &GlobalMediator::playerSubtitlesDisabled);
+    connect(m_mpv, &MpvWidget::subtitleTwoDisabled, mediator, &GlobalMediator::playerSecondSubtitlesDisabled);
 
-    connect(m_mpv, &MpvWidget::subtitleChanged,         mediator, &GlobalMediator::playerSubtitleChanged);
-    connect(m_mpv, &MpvWidget::subDelayChanged,         mediator, &GlobalMediator::playerSubDelayChanged);
-    connect(m_mpv, &MpvWidget::durationChanged,         mediator, &GlobalMediator::playerDurationChanged);
-    connect(m_mpv, &MpvWidget::positionChanged,         mediator, &GlobalMediator::playerPositionChanged);
-    connect(m_mpv, &MpvWidget::stateChanged,            mediator, &GlobalMediator::playerPauseStateChanged);
-    connect(m_mpv, &MpvWidget::fullscreenChanged,       mediator, &GlobalMediator::playerFullscreenChanged);
-    connect(m_mpv, &MpvWidget::volumeChanged,           mediator, &GlobalMediator::playerVolumeChanged);
-    connect(m_mpv, &MpvWidget::titleChanged,            mediator, &GlobalMediator::playerTitleChanged);
-    connect(m_mpv, &MpvWidget::fileChanged,             mediator, &GlobalMediator::playerFileChanged);
+    connect(m_mpv, &MpvWidget::subtitleChanged,          mediator, &GlobalMediator::playerSubtitleChanged);
+    connect(m_mpv, &MpvWidget::subtitleChangedSecondary, mediator, &GlobalMediator::playerSecSubtitleChanged);
+    connect(m_mpv, &MpvWidget::subDelayChanged,          mediator, &GlobalMediator::playerSubDelayChanged);
+    connect(m_mpv, &MpvWidget::durationChanged,          mediator, &GlobalMediator::playerDurationChanged);
+    connect(m_mpv, &MpvWidget::positionChanged,          mediator, &GlobalMediator::playerPositionChanged);
+    connect(m_mpv, &MpvWidget::stateChanged,             mediator, &GlobalMediator::playerPauseStateChanged);
+    connect(m_mpv, &MpvWidget::fullscreenChanged,        mediator, &GlobalMediator::playerFullscreenChanged);
+    connect(m_mpv, &MpvWidget::volumeChanged,            mediator, &GlobalMediator::playerVolumeChanged);
+    connect(m_mpv, &MpvWidget::titleChanged,             mediator, &GlobalMediator::playerTitleChanged);
+    connect(m_mpv, &MpvWidget::fileChanged,              mediator, &GlobalMediator::playerFileChanged);
 
-    connect(m_mpv, &MpvWidget::hideCursor,              mediator, &GlobalMediator::playerCursorHidden);
-    connect(m_mpv, &MpvWidget::mouseMoved,              mediator, &GlobalMediator::playerMouseMoved);
-    connect(m_mpv, &MpvWidget::shutdown,                mediator, &GlobalMediator::playerClosed);
+    connect(m_mpv, &MpvWidget::hideCursor, mediator, &GlobalMediator::playerCursorHidden);
+    connect(m_mpv, &MpvWidget::mouseMoved, mediator, &GlobalMediator::playerMouseMoved);
+    connect(m_mpv, &MpvWidget::shutdown,   mediator, &GlobalMediator::playerClosed);
 
     /* Slots */
     connect(mediator, &GlobalMediator::controlsPlay,              this, &PlayerAdapter::play);
@@ -121,6 +122,18 @@ double MpvAdapter::getSubDelay() const
         return 0;
     }
     return delay;
+}
+
+QString MpvAdapter::getSecondarySubtitle() const
+{
+    QString subtitle;
+    char *sub = mpv_get_property_string(m_handle, "secondary-sub-text");
+    if (sub)
+    {
+        subtitle = QString::fromUtf8(sub);
+    }
+    mpv_free(sub);
+    return subtitle;
 }
 
 bool MpvAdapter::getSubVisibility() const
@@ -219,9 +232,10 @@ bool MpvAdapter::isFullScreen() const
 
 bool MpvAdapter::canGetSecondarySubText() const
 {
-    char *str = mpv_get_property_string(m_handle, "secondary-sub-text");
+    char *str = NULL;
+    int res = mpv_get_property(m_handle, "secondary-sub-text", MPV_FORMAT_STRING, &str);
     mpv_free(str);
-    return str != NULL;
+    return res != MPV_ERROR_PROPERTY_NOT_FOUND;
 }
 
 void MpvAdapter::open(const QString &file, const bool append)

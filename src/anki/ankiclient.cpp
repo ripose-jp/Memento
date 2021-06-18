@@ -1274,8 +1274,11 @@ void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
     note[ANKI_NOTE_TAGS] = m_currentConfig->tags;
 
     /* Find and replace markers with processed data */
-    QString title   = GlobalMediator::getGlobalMediator()->getPlayerAdapter()->getTitle();
-    QString context = GlobalMediator::getGlobalMediator()->getSubtitleListWidget()->getContext("<br>");
+    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+    QString title     = mediator->getPlayerAdapter()->getTitle();
+    QString context   = mediator->getSubtitleListWidget()->getPrimaryContext("<br>");
+    QString context2  = mediator->getSubtitleListWidget()->getSecondaryContext("<br>");
+    QString sentence2 = mediator->getPlayerAdapter()->getSecondarySubtitle().replace('\n', "<br>");
     QJsonArray fieldsWithAudioMedia; 
     QJsonArray fieldsWithScreenshot;
     QJsonArray fieldWithScreenshotVideo;
@@ -1302,8 +1305,10 @@ void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
         }
         value.replace(REPLACE_SCREENSHOT_VIDEO, "");
 
-        value.replace(REPLACE_TITLE,   title);
-        value.replace(REPLACE_CONTEXT, context);
+        value.replace(REPLACE_TITLE,        title);
+        value.replace(REPLACE_CONTEXT,      context);
+        value.replace(REPLACE_CONTEXT_SEC,  context2);
+        value.replace(REPLACE_SENTENCE_SEC, sentence2);
 
         fieldObj[field] = value;
     }

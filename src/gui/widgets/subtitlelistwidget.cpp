@@ -37,15 +37,31 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
 {
     m_ui->setupUi(this);
     setTheme();
-
-    connect(m_ui->tablePrim, &QTableWidget::itemDoubleClicked, this, &SubtitleListWidget::seekToSubtitle);
+    hideSecondarySubs();
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-    connect(mediator, &GlobalMediator::interfaceSettingsChanged,    this, &SubtitleListWidget::setTheme);
-    connect(mediator, &GlobalMediator::playerSubtitleChanged,       this, &SubtitleListWidget::addSubtitle);
-    connect(mediator, &GlobalMediator::playerSubDelayChanged,       this, &SubtitleListWidget::updateTimestamps);
-    connect(mediator, &GlobalMediator::playerSubtitleTrackChanged,  this, &SubtitleListWidget::clearSubtitles);
-    connect(mediator, &GlobalMediator::playerSubtitlesDisabled,     this, &SubtitleListWidget::clearSubtitles);
+
+    /* Signals */
+    connect(m_ui->tablePrim, &QTableWidget::itemDoubleClicked, this, &SubtitleListWidget::seekToPrimarySubtitle);
+    connect(m_ui->tableSec,  &QTableWidget::itemDoubleClicked, this, &SubtitleListWidget::seekToSecondarySubtitle);
+
+    connect(mediator, &GlobalMediator::interfaceSettingsChanged, this, &SubtitleListWidget::setTheme);
+
+    connect(mediator, &GlobalMediator::playerSubDelayChanged, this, &SubtitleListWidget::updateTimestamps);
+
+    connect(mediator, &GlobalMediator::playerSubtitleChanged,      this, &SubtitleListWidget::addPrimarySubtitle);
+    connect(mediator, &GlobalMediator::playerSubtitleTrackChanged, this, &SubtitleListWidget::clearPrimarySubtitles);
+    connect(mediator, &GlobalMediator::playerSubtitlesDisabled,    this, &SubtitleListWidget::clearPrimarySubtitles);
+    connect(mediator, &GlobalMediator::playerTracksChanged,        this, &SubtitleListWidget::clearPrimarySubtitles);
+
+    connect(mediator, &GlobalMediator::playerSecSubtitleChanged,         this, &SubtitleListWidget::addSecondarySubtitle);
+    connect(mediator, &GlobalMediator::playerSecondSubtitleTrackChanged, this, &SubtitleListWidget::clearSecondarySubtitles);
+    connect(mediator, &GlobalMediator::playerSecondSubtitlesDisabled,    this, &SubtitleListWidget::clearSecondarySubtitles);
+    connect(mediator, &GlobalMediator::playerTracksChanged,              this, &SubtitleListWidget::clearSecondarySubtitles);
+
+    connect(mediator, &GlobalMediator::playerSecondSubtitleTrackChanged, this, &SubtitleListWidget::showSecondarySubs);
+    connect(mediator, &GlobalMediator::playerSecondSubtitlesDisabled,    this, &SubtitleListWidget::hideSecondarySubs);
+
     connect(mediator, &GlobalMediator::controlsSubtitleListToggled, this, 
         [=] {
             setVisible(!isVisible());
@@ -76,24 +92,50 @@ void SubtitleListWidget::setTheme()
         setStyleSheet(SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT);
     }
 
-    m_ui->tablePrim->setColumnHidden(0, 
-        !settings.value(
-            SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS, 
-            SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS_DEFAULT
-        ).toBool()
-    );
+    const bool showTimestamps = !settings.value(
+        SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS, 
+        SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS_DEFAULT
+    ).toBool();
+    m_ui->tablePrim->setColumnHidden(0, showTimestamps);
+    m_ui->tableSec->setColumnHidden (0, showTimestamps);
     settings.endGroup();
 }
 
-QString SubtitleListWidget::getContext(const QString &seperator)
+void SubtitleListWidget::hideSecondarySubs()
 {
-    QList<QTableWidgetItem *> items = m_ui->tablePrim->selectedItems();
+    m_ui->tabWidget->setTabVisible(1, false);
+    m_ui->tabWidget->tabBar()->hide();
+}
+
+void SubtitleListWidget::showSecondarySubs()
+{
+    if (GlobalMediator::getGlobalMediator()->getPlayerAdapter()->canGetSecondarySubText())
+    {
+        m_ui->tabWidget->setTabVisible(1, true);
+        m_ui->tabWidget->tabBar()->show();
+    }
+}
+
+QString SubtitleListWidget::getContext(const QTableWidget *table, 
+                                       const QString      &seperator) const
+{
+    QList<QTableWidgetItem *> items = table->selectedItems();
     QString context;
     for (const QTableWidgetItem *item : items)
     {
         context += item->text().replace('\n', seperator) + seperator;
     }
     return context;
+}
+
+QString SubtitleListWidget::getPrimaryContext(const QString &seperator) const
+{
+    return getContext(m_ui->tablePrim, seperator);
+}
+
+QString SubtitleListWidget::getSecondaryContext(const QString &seperator) const
+{
+    return getContext(m_ui->tableSec, seperator);
 }
 
 QString SubtitleListWidget::formatTimecode(const int time)
@@ -111,81 +153,145 @@ QString SubtitleListWidget::formatTimecode(const int time)
                   .arg(seconds, 2, 10, QLatin1Char('0'));
 }
 
-void SubtitleListWidget::addSubtitle(const QString &subtitle,
-                                     const double start,
-                                     const double end, 
-                                     const double delay)
+void SubtitleListWidget::addSubtitle(QTableWidget                      *table,
+                                     QMap<double, QTableWidgetItem *>  &seenSubs,
+                                     QHash<QTableWidgetItem *, double> &startTimes,
+                                     const QString                     &subtitle,
+                                     const double                       start,
+                                     const double                       delay)
 {
     size_t i;
-    auto it = m_seenSubtitles.constFind(start);
-    if (it == m_seenSubtitles.constEnd() || *it != subtitle)
+    auto it = seenSubs.constFind(start);
+    if (it == seenSubs.constEnd() || (*it)->text() != subtitle)
     {
-        auto end = m_seenSubtitles.insert(start, subtitle);
-        m_subStartTimes.insert(subtitle, start);
-
-        i = std::distance(m_seenSubtitles.begin(), end);
-
-        m_ui->tablePrim->insertRow(i);
+        QTableWidgetItem *subtitleItem = new QTableWidgetItem(subtitle);
+        table->setWordWrap(true);
+        startTimes.insert(subtitleItem, start);
+        auto end = seenSubs.insert(start, subtitleItem);
+        i = std::distance(seenSubs.begin(), end);
 
         QTableWidgetItem *timecodeItem = new QTableWidgetItem(formatTimecode(start + delay));
         timecodeItem->setFlags(Qt::NoItemFlags);
-        m_ui->tablePrim->setItem(i, 0, timecodeItem);
 
-        QTableWidgetItem *subtitleItem = new QTableWidgetItem(subtitle);
-        m_ui->tablePrim->setWordWrap(true);
-        m_ui->tablePrim->setItem(i, 1, subtitleItem);
-
-        m_ui->tablePrim->resizeRowToContents(i);
+        table->insertRow(i);
+        table->setItem(i, 1, subtitleItem);
+        table->setItem(i, 0, timecodeItem);
+        table->resizeRowToContents(i);
     }
     else
     {
-        i = std::distance(m_seenSubtitles.constBegin(), it);
+        i = std::distance(seenSubs.constBegin(), it);
     }
 
-    m_ui->tablePrim->clearSelection();
-    m_ui->tablePrim->setCurrentCell(i, 1);
+    table->clearSelection();
+    table->setCurrentCell(i, 1);
+}
+
+void SubtitleListWidget::addPrimarySubtitle(const QString &subtitle,
+                                            const double   start,
+                                            const double   end, 
+                                            const double   delay)
+{
+    addSubtitle(m_ui->tablePrim, m_seenPrimarySubs, m_timesPrimarySubs, subtitle, start, delay);
+}
+
+#define TIME_DELTA 5
+
+void SubtitleListWidget::addSecondarySubtitle(const QString &subtitle,
+                                                    double   start,
+                                              const double   delay)
+{
+    /* There is no secondary-sub-start property, so start times are approximate.
+     * Checking that this subtitle is not duplicated is neccessary
+     */
+    QList<double> times = m_subSecondaryToTime.values(subtitle);
+    for (const double time : times)
+    {
+        const double low  = time - TIME_DELTA;
+        const double high = time + TIME_DELTA;
+        if (low < start && start < high)
+        {
+            /* Assume this subtitle has been seen */
+            start = time;
+            break; 
+        }
+    }
+
+    /* Add the subtitle to the seen list */
+    if (times.isEmpty())
+    {
+        m_subSecondaryToTime.insert(subtitle, start);
+    }
+
+    addSubtitle(m_ui->tableSec, m_seenSecondarySubs, m_timesSecondarySubs, subtitle, start, delay);
+}
+
+#undef TIME_DELTA
+
+void SubtitleListWidget::updateTimestampsHelper(QTableWidget                           *table,
+                                                const QMap<double, QTableWidgetItem *> &seenSubs,
+                                                const double                            delay)
+{
+    size_t i = 0;
+    for (auto it = seenSubs.keyBegin(); it != seenSubs.keyEnd(); ++it)
+    {
+        const double time = *it + delay < 0 ? 0 : *it + delay;
+        QTableWidgetItem *timecodeItem = new QTableWidgetItem(formatTimecode(time));
+        timecodeItem->setFlags(Qt::NoItemFlags);
+        table->setItem(i, 0, timecodeItem);
+
+        i++;
+    }
+    table->resizeRowsToContents();
 }
 
 void SubtitleListWidget::updateTimestamps(const double delay)
 {
-    m_ui->tablePrim->clearContents();
-
-    size_t i = 0;
-    for (auto it = m_seenSubtitles.constKeyValueBegin(); it != m_seenSubtitles.constKeyValueEnd(); ++it)
-    {
-        const double time = it->first + delay < 0 ? 0 : it->first + delay;
-        QTableWidgetItem *timecodeItem = new QTableWidgetItem(formatTimecode(time));
-        timecodeItem->setFlags(Qt::NoItemFlags);
-        m_ui->tablePrim->setItem(i, 0, timecodeItem);
-
-        QTableWidgetItem *subtitleItem = new QTableWidgetItem(it->second);
-        m_ui->tablePrim->setWordWrap(true);
-        m_ui->tablePrim->setItem(i, 1, subtitleItem);
-
-        i++;
-    }
-
-    m_ui->tablePrim->resizeRowsToContents();
+    updateTimestampsHelper(m_ui->tablePrim, m_seenPrimarySubs,   delay);
+    updateTimestampsHelper(m_ui->tableSec,  m_seenSecondarySubs, delay);
 }
 
-void SubtitleListWidget::clearSubtitles()
+void SubtitleListWidget::clearSubtitles(QTableWidget                      *table,
+                                        QMap<double, QTableWidgetItem *>  &seenSubs,
+                                        QHash<QTableWidgetItem *, double> &startTimes)
 {
-    m_ui->tablePrim->clearContents();
-    m_ui->tablePrim->setRowCount(0);
-    m_seenSubtitles.clear();
-    m_subStartTimes.clear();
+    table->clearContents();
+    table->setRowCount(0);
+    seenSubs.clear();
+    startTimes.clear();
 }
 
-void SubtitleListWidget::seekToSubtitle(QTableWidgetItem *item)
+void SubtitleListWidget::clearPrimarySubtitles()
 {
-    PlayerAdapter *player   = GlobalMediator::getGlobalMediator()->getPlayerAdapter();
-    QString        subtitle = item->text();
-    double         pos      = m_subStartTimes.value(subtitle) + player->getSubDelay();
+    clearSubtitles(m_ui->tablePrim, m_seenPrimarySubs, m_timesPrimarySubs);
+}
+
+void SubtitleListWidget::clearSecondarySubtitles()
+{
+    m_subSecondaryToTime.clear();
+    clearSubtitles(m_ui->tableSec, m_seenSecondarySubs, m_timesSecondarySubs);
+}
+
+void SubtitleListWidget::seekToSubtitle(QTableWidgetItem                        *item,
+                                        const QHash<QTableWidgetItem *, double> &startTimes) const
+{
+    PlayerAdapter *player = GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+    double         pos    = startTimes[item] + player->getSubDelay();
     if (pos < 0)
     {
         pos = 0;
     }
     player->seek(pos);
+}
+
+void SubtitleListWidget::seekToPrimarySubtitle(QTableWidgetItem *item) const
+{
+    seekToSubtitle(item, m_timesPrimarySubs);
+}
+
+void SubtitleListWidget::seekToSecondarySubtitle(QTableWidgetItem *item) const
+{
+    seekToSubtitle(item, m_timesSecondarySubs);
 }
 
 void SubtitleListWidget::showEvent(QShowEvent *event)
@@ -194,6 +300,7 @@ void SubtitleListWidget::showEvent(QShowEvent *event)
 
     QApplication::processEvents();
     m_ui->tablePrim->scrollToItem(m_ui->tablePrim->currentItem());
+    m_ui->tableSec->scrollToItem(m_ui->tableSec->currentItem());
 
     Q_EMIT GlobalMediator::getGlobalMediator()->subtitleListShown();
 }
@@ -202,12 +309,20 @@ void SubtitleListWidget::hideEvent(QHideEvent *event)
 {
     QWidget::hideEvent(event);
 
-    const QList<QTableWidgetItem *> &items = m_ui->tablePrim->selectedItems();
+    QList<QTableWidgetItem *> items = m_ui->tablePrim->selectedItems();
     if (!items.isEmpty())
     {
         QApplication::processEvents();
         m_ui->tablePrim->scrollToItem(items.last());
     }
+
+    items = m_ui->tableSec->selectedItems();
+    if (!items.isEmpty())
+    {
+        QApplication::processEvents();
+        m_ui->tableSec->scrollToItem(items.last());
+    }
+
     Q_EMIT GlobalMediator::getGlobalMediator()->subtitleListHidden();
 }
 
@@ -215,4 +330,5 @@ void SubtitleListWidget::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
     m_ui->tablePrim->resizeRowsToContents();
+    m_ui->tableSec->resizeRowsToContents();
 }

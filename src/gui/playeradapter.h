@@ -60,6 +60,8 @@ public:
     virtual double getSubEnd()   const = 0;
     virtual double getSubDelay() const = 0;
 
+    virtual QString getSecondarySubtitle() const = 0;
+
     virtual bool getSubVisibility() const = 0;
 
     virtual double getAudioDelay() const = 0;

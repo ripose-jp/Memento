@@ -84,18 +84,21 @@ Q_SIGNALS:
     void playerSubtitlesDisabled()       const;
     void playerSecondSubtitlesDisabled() const;
 
-    void playerSubtitleChanged  (QString        subtitle, 
-                                 const double   start, 
-                                 const double   end, 
-                                 const double   delay)  const;
-    void playerSubDelayChanged  (const double   delay)  const;
-    void playerDurationChanged  (const double   value)  const;
-    void playerPositionChanged  (const double   value)  const;
-    void playerPauseStateChanged(const bool     paused) const;
-    void playerFullscreenChanged(const bool     full)   const;
-    void playerVolumeChanged    (const int64_t  value)  const;
-    void playerTitleChanged     (QString        title)  const;
-    void playerFileChanged      (QString        path)   const;
+    void playerSubtitleChanged   (QString        subtitle, 
+                                  const double   start, 
+                                  const double   end, 
+                                  const double   delay)  const;
+    void playerSecSubtitleChanged(QString        subtitle, 
+                                  const double   start, 
+                                  const double   delay)  const;
+    void playerSubDelayChanged   (const double   delay)  const;
+    void playerDurationChanged   (const double   value)  const;
+    void playerPositionChanged   (const double   value)  const;
+    void playerPauseStateChanged (const bool     paused) const;
+    void playerFullscreenChanged (const bool     full)   const;
+    void playerVolumeChanged     (const int64_t  value)  const;
+    void playerTitleChanged      (QString        title)  const;
+    void playerFileChanged       (QString        path)   const;
 
     void playerCursorHidden()                 const;
     void playerMouseMoved(QMouseEvent *event) const;

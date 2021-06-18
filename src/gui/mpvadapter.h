@@ -36,6 +36,8 @@ public:
     double getSubEnd()   const override;
     double getSubDelay() const override;
 
+    QString getSecondarySubtitle() const override;
+
     bool getSubVisibility() const override;
     
     double getAudioDelay() const override;

@@ -88,26 +88,27 @@ MpvWidget::MpvWidget(QWidget *parent)
         QCoreApplication::exit(EXIT_FAILURE);
     }
 
-    mpv_observe_property(mpv, 0, "duration", MPV_FORMAT_DOUBLE);
-    mpv_observe_property(mpv, 0, "time-pos", MPV_FORMAT_DOUBLE);
-    mpv_observe_property(mpv, 0, "pause", MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "fullscreen", MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "volume", MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "duration",    MPV_FORMAT_DOUBLE);
+    mpv_observe_property(mpv, 0, "time-pos",    MPV_FORMAT_DOUBLE);
+    mpv_observe_property(mpv, 0, "pause",       MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "fullscreen",  MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "volume",      MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "media-title", MPV_FORMAT_STRING);
-    mpv_observe_property(mpv, 0, "path", MPV_FORMAT_STRING);
+    mpv_observe_property(mpv, 0, "path",        MPV_FORMAT_STRING);
 
-    mpv_observe_property(mpv, 0, "aid", MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "vid", MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "sid", MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "aid",           MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "vid",           MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "sid",           MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "secondary-sid", MPV_FORMAT_INT64);
 
-    mpv_observe_property(mpv, 0, "aid", MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "vid", MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "sid", MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "aid",           MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "vid",           MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "sid",           MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "secondary-sid", MPV_FORMAT_FLAG);
 
-    mpv_observe_property(mpv, 0, "sub-text", MPV_FORMAT_STRING);
-    mpv_observe_property(mpv, 0, "sub-delay", MPV_FORMAT_DOUBLE);
+    mpv_observe_property(mpv, 0, "sub-text",           MPV_FORMAT_STRING);
+    mpv_observe_property(mpv, 0, "secondary-sub-text", MPV_FORMAT_STRING);
+    mpv_observe_property(mpv, 0, "sub-delay",          MPV_FORMAT_DOUBLE);
 
     mpv_set_wakeup_callback(mpv, wakeup, this);
 
@@ -237,6 +238,23 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                     mpv_get_property(mpv, "sub-end", MPV_FORMAT_DOUBLE, &end);
 
                     Q_EMIT subtitleChanged(*subtitle, start, end, delay);
+                }
+            }
+        }
+        else if (strcmp(prop->name, "secondary-sub-text") == 0)
+        {
+            if (prop->format == MPV_FORMAT_STRING)
+            {
+                const char **subtitle = (const char **) prop->data;
+                if (strcmp(*subtitle, ""))
+                {
+                    double delay;
+                    mpv_get_property(mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay);
+                    double start;
+                    mpv_get_property(mpv, "time-pos", MPV_FORMAT_DOUBLE, &start);
+                    start -= delay;
+
+                    Q_EMIT subtitleChangedSecondary(*subtitle, start, delay);
                 }
             }
         }

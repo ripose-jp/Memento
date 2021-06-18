@@ -37,11 +37,13 @@
 #define REPLACE_CLOZE_PREFIX        "{cloze-prefix}"
 #define REPLACE_CLOZE_SUFFIX        "{cloze-suffix}"
 #define REPLACE_CONTEXT             "{context}"
+#define REPLACE_CONTEXT_SEC         "{context-2}"
 #define REPLACE_FREQUENCIES         "{frequencies}"
 #define REPLACE_GLOSSARY            "{glossary}"
 #define REPLACE_SCREENSHOT          "{screenshot}"
 #define REPLACE_SCREENSHOT_VIDEO    "{screenshot-video}"
 #define REPLACE_SENTENCE            "{sentence}"
+#define REPLACE_SENTENCE_SEC        "{sentence-2}"
 #define REPLACE_TAGS                "{tags}"
 #define REPLACE_TITLE               "{title}"
 
