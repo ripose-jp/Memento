@@ -84,6 +84,8 @@ void AudioSourceSettings::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
     restoreSaved();
+    m_ui->buttonDown->setEnabled(false);
+    m_ui->buttonUp->setEnabled(false);
 }
 
 void AudioSourceSettings::applyChanges()
