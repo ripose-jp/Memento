@@ -358,7 +358,7 @@ Only change this if you know what you're doing.</string>
              </widget>
             </item>
             <item row="1" column="0">
-             <widget class="QDoubleSpinBox" name="spinAudioPadStart">
+             <widget class="ScrollDoubleSpinBox" name="spinAudioPadStart">
               <property name="toolTip">
                <string>Seconds of audio to clip before the start of the subtitle</string>
               </property>
@@ -387,7 +387,7 @@ Only change this if you know what you're doing.</string>
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="QDoubleSpinBox" name="spinAudioPadEnd">
+             <widget class="ScrollDoubleSpinBox" name="spinAudioPadEnd">
               <property name="toolTip">
                <string>Seconds of audio to clip after the end of the subtitle</string>
               </property>
@@ -530,6 +530,11 @@ Comma or space seperated list.</string>
    <class>ScrollComboBox</class>
    <extends>QComboBox</extends>
    <header>src/gui/widgets/common/scrollcombobox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ScrollDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>src/gui/widgets/common/scrolldoublespinbox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

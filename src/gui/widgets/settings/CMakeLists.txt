@@ -13,6 +13,7 @@ target_link_libraries(
     Qt5::Widgets
     anki
     scrollcombobox
+    scrolldoublespinbox
 )
 
 add_library(

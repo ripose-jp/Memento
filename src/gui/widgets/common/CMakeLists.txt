@@ -24,3 +24,12 @@ target_link_libraries(
     scrollcombobox
     Qt5::Widgets
 )
+
+add_library(
+    scrolldoublespinbox
+    scrolldoublespinbox.h
+)
+target_link_libraries(
+    scrolldoublespinbox
+    Qt5::Widgets
+)
