@@ -44,11 +44,15 @@ private Q_SLOTS:
     void restoreDefaults();
     void restoreSaved();
     void showHelp();
+    void updateButtons();
+    void moveUp();
+    void moveDown();
 
 private:
     Ui::AudioSourceSettings *m_ui;
 
     QString verifyNames() const;
+    void moveRow(const int row, const int step);
     void updateRows();
 
     bool inline itemEmpty(const int row, const int col) const;

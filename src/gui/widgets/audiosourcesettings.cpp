@@ -22,6 +22,7 @@
 #include "ui_audiosourcesettings.h"
 
 #include "../../util/constants.h"
+#include "../../util/iconfactory.h"
 
 #include <QPushButton>
 #include <QMessageBox>
@@ -38,8 +39,18 @@ AudioSourceSettings::AudioSourceSettings(QWidget *parent)
 
     m_ui->table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
+    IconFactory *factory = IconFactory::create();
+    m_ui->buttonUp->setIcon(factory->getIcon(IconFactory::Icon::up));
+    m_ui->buttonDown->setIcon(factory->getIcon(IconFactory::Icon::down));
+
     /* Table Actions */
-    connect(m_ui->table, &QTableWidget::cellChanged, this, &AudioSourceSettings::updateRows);
+    connect(m_ui->table, &QTableWidget::cellChanged,        this, &AudioSourceSettings::updateRows);
+    connect(m_ui->table, &QTableWidget::currentCellChanged, this, &AudioSourceSettings::updateButtons);
+    connect(m_ui->table, &QTableWidget::cellChanged,        this, &AudioSourceSettings::updateButtons);
+
+    /* Up/Down Buttons */
+    connect(m_ui->buttonUp,   &QToolButton::clicked, this, &AudioSourceSettings::moveUp);
+    connect(m_ui->buttonDown, &QToolButton::clicked, this, &AudioSourceSettings::moveDown);
 
     /* Dialog Buttons */
     connect(
@@ -163,6 +174,54 @@ void AudioSourceSettings::showHelp()
         "<br><br>"
         "<b>MD5 Skip Hash</b>: Audio that matches this MD5 hash will be ignored."
     );
+}
+
+void AudioSourceSettings::updateButtons()
+{
+    const int currentRow = m_ui->table->currentRow();
+    const int rowCount   = m_ui->table->rowCount();
+
+    m_ui->buttonUp->setEnabled(0 < currentRow && currentRow < rowCount - 1);
+    m_ui->buttonDown->setEnabled(currentRow < rowCount - 2);
+}
+
+void AudioSourceSettings::moveRow(const int row, const int step)
+{
+    QTableWidget *table = m_ui->table;
+
+    const bool signalsBlocked = table->signalsBlocked();
+    table->blockSignals(true);
+
+    QTableWidgetItem *name_1 = table->takeItem(row, COL_NAME);
+    QTableWidgetItem *url_1  = table->takeItem(row, COL_URL);
+    QTableWidgetItem *md5_1  = table->takeItem(row, COL_MD5);
+
+    const int newRow = row + step;
+    QTableWidgetItem *name_2 = table->takeItem(newRow, COL_NAME);
+    QTableWidgetItem *url_2  = table->takeItem(newRow, COL_URL);
+    QTableWidgetItem *md5_2  = table->takeItem(newRow, COL_MD5);
+
+    table->setItem(newRow, COL_NAME, name_1);
+    table->setItem(newRow, COL_URL,  url_1);
+    table->setItem(newRow, COL_MD5,  md5_1);
+
+    table->setItem(row, COL_NAME, name_2);
+    table->setItem(row, COL_URL,  url_2);
+    table->setItem(row, COL_MD5,  md5_2);
+
+    table->blockSignals(signalsBlocked);
+}
+
+void AudioSourceSettings::moveUp()
+{
+    moveRow(m_ui->table->currentRow(), -1);
+    m_ui->table->selectRow(m_ui->table->currentRow() - 1);
+}
+
+void AudioSourceSettings::moveDown()
+{
+    moveRow(m_ui->table->currentRow(), 1);
+    m_ui->table->selectRow(m_ui->table->currentRow() + 1);
 }
 
 QString AudioSourceSettings::verifyNames() const
