@@ -425,6 +425,8 @@ void MainWindow::setTracks(QList<const Track *> tracks)
 
 void MainWindow::setFullscreen(bool value)
 {
+    QApplication::processEvents();
+
     if (value)
     {
         m_maximized = isMaximized();
