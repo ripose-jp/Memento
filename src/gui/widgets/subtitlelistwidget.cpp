@@ -53,6 +53,7 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     connect(mediator, &GlobalMediator::playerSubtitleTrackChanged, this, &SubtitleListWidget::clearPrimarySubtitles);
     connect(mediator, &GlobalMediator::playerSubtitlesDisabled,    this, &SubtitleListWidget::clearPrimarySubtitles);
     connect(mediator, &GlobalMediator::playerTracksChanged,        this, &SubtitleListWidget::clearPrimarySubtitles);
+    connect(mediator, &GlobalMediator::searchSettingsChanged,      this, &SubtitleListWidget::clearPrimarySubtitles);
 
     connect(mediator, &GlobalMediator::playerSecSubtitleChanged,         this, &SubtitleListWidget::addSecondarySubtitle);
     connect(mediator, &GlobalMediator::playerSecondSubtitleTrackChanged, this, &SubtitleListWidget::clearSecondarySubtitles);

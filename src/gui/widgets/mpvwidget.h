@@ -24,6 +24,7 @@
 #include <QOpenGLWidget>
 #include <QMouseEvent>
 #include <QTimer>
+#include <QRegularExpression>
 
 #include <mpv/client.h>
 #include <mpv/render_gl.h>
@@ -85,20 +86,23 @@ protected:
 private Q_SLOTS:
     void on_mpv_events();
     void maybeUpdate();
+    void initializeSubtitleRegex();
 
 private:
-    void handle_mpv_event(mpv_event *event);
-    static void on_update(void *ctx);
-    QString convertToMouseString(const QMouseEvent *event) const;
-
-    mpv_handle *mpv;
+    mpv_handle         *mpv;
     mpv_render_context *mpv_gl;
-    QTimer *m_cursorTimer;
+
+    QTimer             *m_cursorTimer;
+    QRegularExpression  m_regex;
 #if __linux__
     uint32_t dbus_cookie;
 #elif __APPLE__
     MacOSPowerEventHandler *m_powerHandler;
 #endif
+
+    void handle_mpv_event(mpv_event *event);
+    static void on_update(void *ctx);
+    QString convertToMouseString(const QMouseEvent *event) const;
 };
 
 #endif // MPVWIDGET_H

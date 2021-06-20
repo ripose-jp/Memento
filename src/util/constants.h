@@ -49,6 +49,7 @@
 #define SETTINGS_SEARCH_HIDE_BAR        "hide-bar"
 #define SETTINGS_SEARCH_REPLACE_LINES   "replace-lines"
 #define SETTINGS_SERACH_REPLACE_WITH    "replace-with"
+#define SETTINGS_SEARCH_REMOVE_REGEX    "remove-regex"
 
 #define MODIFIER_ALT                    "Alt"
 #define MODIFIER_CTRL                   "Control"
@@ -66,6 +67,7 @@
 #define DEFAULT_HIDE_BAR                false
 #define DEFAULT_REPLACE_LINES           false
 #define DEFAULT_REPLACE_WITH            ""
+#define DEFAULT_REMOVE_REGEX            ""
 
 /* Interface Settings */
 enum class Theme

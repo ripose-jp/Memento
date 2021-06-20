@@ -21,6 +21,7 @@
 #include "mpvwidget.h"
 
 #include "../../util/globalmediator.h"
+#include "../../util/constants.h"
 
 #include <QtGui/QOpenGLContext>
 #include <QApplication>
@@ -116,7 +117,11 @@ MpvWidget::MpvWidget(QWidget *parent)
     m_powerHandler = new MacOSPowerEventHandler;
 #endif
 
-    GlobalMediator::getGlobalMediator()->setPlayerWidget(this);
+    initializeSubtitleRegex();
+
+    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+
+    mediator->setPlayerWidget(this);
 
     connect(m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
     connect(m_cursorTimer, &QTimer::timeout, this, 
@@ -124,11 +129,12 @@ MpvWidget::MpvWidget(QWidget *parent)
             setCursor(Qt::BlankCursor);
         }
     );
-    connect(GlobalMediator::getGlobalMediator(), &GlobalMediator::definitionsHidden, this, 
+    connect(mediator, &GlobalMediator::definitionsHidden, this, 
         [=] {
             m_cursorTimer->start(TIMEOUT);
         }
     );
+    connect(mediator, &GlobalMediator::searchSettingsChanged, this, &MpvWidget::initializeSubtitleRegex);
 }
 
 MpvWidget::~MpvWidget()
@@ -142,6 +148,19 @@ MpvWidget::~MpvWidget()
 #if __APPLE__
     delete m_powerHandler;
 #endif
+}
+
+void MpvWidget::initializeSubtitleRegex()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_SEARCH);
+    m_regex.setPattern(
+        settings.value(
+            SETTINGS_SEARCH_REMOVE_REGEX, 
+            DEFAULT_REMOVE_REGEX
+        ).toString()
+    );
+    settings.endGroup();
 }
 
 void MpvWidget::initializeGL()
@@ -227,8 +246,9 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
         {
             if (prop->format == MPV_FORMAT_STRING)
             {
-                const char **subtitle = (const char **) prop->data;
-                if (strcmp(*subtitle, ""))
+                QString subtitle = *(const char **) prop->data;
+                subtitle.replace(m_regex, "").replace(QRegularExpression("^\\R"), "");
+                if (!subtitle.isEmpty())
                 {
                     double delay;
                     mpv_get_property(mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay);
@@ -237,7 +257,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                     double end;
                     mpv_get_property(mpv, "sub-end", MPV_FORMAT_DOUBLE, &end);
 
-                    Q_EMIT subtitleChanged(*subtitle, start, end, delay);
+                    Q_EMIT subtitleChanged(subtitle, start, end, delay);
                 }
             }
         }

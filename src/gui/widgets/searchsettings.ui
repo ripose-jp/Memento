@@ -27,8 +27,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>600</width>
-        <height>461</height>
+        <width>579</width>
+        <height>462</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layoutScrollArea">
@@ -204,6 +204,28 @@ Changing this value from the default is not recommended.</string>
           <widget class="QLineEdit" name="lineEditReplace"/>
          </item>
         </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelRemoveRegex">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Remove Regex in Subtitles</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineRemoveRegex">
+         <property name="toolTip">
+          <string>Removes all pieces of text in the primary subtitle that match the given regular expression.
+Unlike &quot;Replace new line with&quot;, this modifies subtitles globally.
+Changes to the primary subtitle will appear in the subtitle list, Anki cards, and subtitle search.</string>
+         </property>
+        </widget>
        </item>
        <item>
         <spacer name="verticalSpacer">

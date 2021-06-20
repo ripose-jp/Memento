@@ -70,6 +70,7 @@ void SearchSettings::resetSaved()
     m_ui->checkHideSearch     ->setChecked    (settings.value(SETTINGS_SEARCH_HIDE_BAR,      DEFAULT_HIDE_BAR).toBool());
     m_ui->checkReplaceNewLines->setChecked    (settings.value(SETTINGS_SEARCH_REPLACE_LINES, DEFAULT_REPLACE_LINES).toBool());
     m_ui->lineEditReplace     ->setText       (settings.value(SETTINGS_SERACH_REPLACE_WITH,  DEFAULT_REPLACE_WITH).toString());
+    m_ui->lineRemoveRegex     ->setText       (settings.value(SETTINGS_SEARCH_REMOVE_REGEX,  DEFAULT_REMOVE_REGEX).toString());
     settings.endGroup();
 }
 
@@ -83,6 +84,7 @@ void SearchSettings::resetDefault()
     m_ui->checkHideSearch     ->setChecked    (DEFAULT_HIDE_BAR);
     m_ui->checkReplaceNewLines->setChecked    (DEFAULT_REPLACE_LINES);
     m_ui->lineEditReplace     ->setText       (DEFAULT_REPLACE_WITH);
+    m_ui->lineRemoveRegex     ->setText       (DEFAULT_REMOVE_REGEX);
 }
 
 void SearchSettings::applySettings()
@@ -97,6 +99,7 @@ void SearchSettings::applySettings()
     settings.setValue(SETTINGS_SEARCH_HIDE_BAR,      m_ui->checkHideSearch->isChecked());
     settings.setValue(SETTINGS_SEARCH_REPLACE_LINES, m_ui->checkReplaceNewLines->isChecked());
     settings.setValue(SETTINGS_SERACH_REPLACE_WITH,  m_ui->lineEditReplace->text());
+    settings.setValue(SETTINGS_SEARCH_REMOVE_REGEX,  m_ui->lineRemoveRegex->text());
     settings.endGroup();
 
     Q_EMIT GlobalMediator::getGlobalMediator()->searchSettingsChanged();
