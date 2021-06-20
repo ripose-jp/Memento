@@ -1442,6 +1442,10 @@ QString AnkiClient::buildGlossary(const QList<TermDefinition> &definitions)
         }
         for (const Tag &rule : def.rules)
         {
+            if (def.tags.contains(rule))
+            {
+                continue;
+            }
             glossary += rule.name + ", ";
         }
         glossary += def.dictionary;

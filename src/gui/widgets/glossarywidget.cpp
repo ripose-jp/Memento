@@ -40,9 +40,13 @@ GlossaryWidget::GlossaryWidget(size_t number, const TermDefinition &def, QWidget
     {
         m_layoutHeader->addWidget(new TagWidget(tag));
     }
-    for (const Tag &tag : m_def.rules)
+    for (const Tag &rule : m_def.rules)
     {
-        m_layoutHeader->addWidget(new TagWidget(tag));
+        if (m_def.tags.contains(rule))
+        {
+            continue;
+        }
+        m_layoutHeader->addWidget(new TagWidget(rule));
     }
     m_layoutHeader->addWidget(new TagWidget(m_def.dictionary));
 
