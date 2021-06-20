@@ -247,7 +247,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
             if (prop->format == MPV_FORMAT_STRING)
             {
                 QString subtitle = *(const char **) prop->data;
-                subtitle.replace(m_regex, "").replace(QRegularExpression("^\\R"), "");
+                subtitle.replace(m_regex, "");
                 if (!subtitle.isEmpty())
                 {
                     double delay;
@@ -314,8 +314,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                             }
                             else
                             {
-                                qDebug() << "org.freedesktop.ScreenSaver reply "
-                                            "is invalid";
+                                qDebug() << "org.freedesktop.ScreenSaver reply is invalid";
                             }
                         }
                         else if (QDBusMessage::ErrorMessage)
@@ -325,8 +324,7 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                         }
                         else
                         {
-                            qDebug() << "Unknown reply from "
-                                        "org.freedesktop.ScreenSaver";
+                            qDebug() << "Unknown reply from org.freedesktop.ScreenSaver";
                         }     
                     }
             #elif __APPLE__
