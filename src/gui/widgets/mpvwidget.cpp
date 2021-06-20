@@ -70,13 +70,14 @@ MpvWidget::MpvWidget(QWidget *parent)
         QCoreApplication::exit(EXIT_FAILURE);
     }
 
-    mpv_set_option_string(mpv, "terminal", "yes");
-    mpv_set_option_string(mpv, "msg-level", "all=v");
-    mpv_set_option_string(mpv, "keep-open", "yes");
-    mpv_set_option_string(mpv, "config", "yes");
+    mpv_set_option_string(mpv, "terminal",               "yes");
+    mpv_set_option_string(mpv, "msg-level",              "all=v");
+    mpv_set_option_string(mpv, "keep-open",              "yes");
+    mpv_set_option_string(mpv, "config",                 "yes");
+    mpv_set_option_string(mpv, "input-default-bindings", "yes");
+    mpv_set_option_string(mpv, "ytdl",                   "yes");
     QByteArray configDir = DirectoryUtils::getConfigDir().toUtf8();
     mpv_set_option_string(mpv, "config-dir", configDir);
-    mpv_set_option_string(mpv, "input-default-bindings", "yes");
     QByteArray inputFile = DirectoryUtils::getMpvInputConfig().toUtf8();
     mpv_set_option_string(mpv, "input-conf", inputFile);
 

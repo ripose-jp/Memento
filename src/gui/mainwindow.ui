@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>794</width>
+    <width>801</width>
     <height>560</height>
    </rect>
   </property>
@@ -94,7 +94,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>794</width>
+     <width>801</width>
      <height>34</height>
     </rect>
    </property>
@@ -109,6 +109,7 @@
      <string>Media</string>
     </property>
     <addaction name="actionOpen"/>
+    <addaction name="actionOpenUrl"/>
    </widget>
    <widget class="QMenu" name="menuAudio">
     <property name="minimumSize">
@@ -210,7 +211,7 @@
   </widget>
   <action name="actionOpen">
    <property name="text">
-    <string>Open</string>
+    <string>Open File</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -310,6 +311,14 @@
    </property>
    <property name="shortcut">
     <string>Alt+1</string>
+   </property>
+  </action>
+  <action name="actionOpenUrl">
+   <property name="text">
+    <string>Open URL</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+U</string>
    </property>
   </action>
  </widget>

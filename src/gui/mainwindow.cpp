@@ -28,6 +28,7 @@
 #include "../dict/dictionary.h"
 
 #include <QCursor>
+#include <QClipboard>
 #include <QFileDialog>
 #include <QMimeData>
 #include <QDebug>
@@ -35,6 +36,7 @@
 #include <QThreadPool>
 #include <QSettings>
 #include <QStyleFactory>
+#include <QInputDialog>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -112,6 +114,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->actionOptions,     &QAction::triggered, m_optionsWindow, &OptionsWindow::show);
     connect(m_ui->actionAbout,       &QAction::triggered, m_aboutWindow,   &AboutWindow::show);
     connect(m_ui->actionOpen,        &QAction::triggered, this,            &MainWindow::open);
+    connect(m_ui->actionOpenUrl,     &QAction::triggered, this,            &MainWindow::openUrl);
     connect(m_ui->actionUpdate,      &QAction::triggered, this,            &MainWindow::checkForUpdates);
     connect(m_ui->actionAddSubtitle, &QAction::triggered, this,
         [=] {
@@ -659,6 +662,24 @@ void MainWindow::open()
     {
         m_player->stop();
         m_player->open(files);
+        m_player->play();
+    }
+}
+
+void MainWindow::openUrl()
+{
+    QInputDialog dialog(this, Qt::Dialog);
+    dialog.setWindowTitle("Open Stream");
+    dialog.setLabelText("Enter URL");
+    dialog.setTextValue(QGuiApplication::clipboard()->text());
+    dialog.setStyleSheet("QLabel { min-width: 500px; }");
+    int     res = dialog.exec();
+    QString url = dialog.textValue(); 
+
+    if (res == QDialog::Accepted && !url.isEmpty())
+    {
+        m_player->stop();
+        m_player->open(url);
         m_player->play();
     }
 }

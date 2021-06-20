@@ -64,6 +64,7 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void open();
+    void openUrl();
     void repositionSubtitles();
     void updateSubScale(const double inc);
     void moveSubtitles(const double inc);

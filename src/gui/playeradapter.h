@@ -78,9 +78,10 @@ public:
     virtual bool canGetSecondarySubText() const = 0;
 
 public Q_SLOTS:
-    virtual void open(const QString &file,
-                      const bool append = false)  = 0;
-    virtual void open(const QList<QUrl> &files)   = 0;
+    virtual void open(const QString     &file,
+                      const bool         append = false)  = 0;
+    virtual void open(const QList<QUrl> &files)          = 0;
+
     virtual void addSubtitle(const QString &file) = 0;
 
     virtual void seek(const int64_t time) = 0;

@@ -54,9 +54,10 @@ public:
     bool canGetSecondarySubText() const override;
 
 public Q_SLOTS:
-    void open(const QString &file, 
-              const bool append = false)  override;
-    void open(const QList<QUrl> &files)   override;
+    void open(const QString     &file, 
+              const bool         append = false) override;
+    void open(const QList<QUrl> &files)          override;
+
     void addSubtitle(const QString &file) override;
 
     void seek(const int64_t time) override;
