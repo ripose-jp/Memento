@@ -1,0 +1,19 @@
+add_library(
+    definitionwidget
+    definitionwidget.cpp
+    definitionwidget.ui
+    termwidget.cpp
+    termwidget.ui
+    kanjiwidget.cpp
+    tagwidget.cpp
+    glossarywidget.cpp
+    pitchwidget.cpp
+)
+target_link_libraries(
+    definitionwidget
+    Qt5::Widgets
+    Qt5::Network
+    dictionary_db
+    flowlayout
+    audioplayer
+)

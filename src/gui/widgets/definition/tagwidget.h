@@ -23,7 +23,7 @@
 
 #include <QLabel>
 
-#include "../../dict/expression.h"
+#include "../../../dict/expression.h"
 
 class TagWidget : public QLabel
 {

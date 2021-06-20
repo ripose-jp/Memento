@@ -1,0 +1,75 @@
+add_library(
+    ankisettings
+    ankisettings.cpp
+    ankisettings.ui
+    cardbuilder.cpp
+    cardbuilder.ui
+    ankisettingshelp.cpp
+    ankisettingshelp.ui
+)
+target_link_libraries(
+    ankisettings
+    globalmediator
+    Qt5::Widgets
+    anki
+    scrollcombobox
+)
+
+add_library(
+    audiosourcesettings
+    audiosourcesettings.cpp
+    audiosourcesettings.ui
+)
+target_link_libraries(
+    audiosourcesettings
+    globalmediator
+    Qt5::Widgets
+)
+
+add_library(
+    dictionarysettings
+    dictionarysettings.cpp
+    dictionarysettings.ui
+)
+target_link_libraries(
+    dictionarysettings
+    globalmediator
+    Qt5::Widgets
+    dictionary_db
+)
+
+add_library(
+    searchsettings
+    searchsettings.cpp
+    searchsettings.ui
+)
+target_link_libraries(
+    searchsettings
+    Qt5::Widgets
+    Qt5::Core
+)
+
+add_library(
+    interfacesettings
+    interfacesettings.cpp
+    interfacesettings.ui
+)
+target_link_libraries(
+    interfacesettings
+    Qt5::Widgets
+    Qt5::Core
+)
+
+add_library(
+    optionswindow
+    optionswindow.cpp
+    optionswindow.ui
+)
+target_link_libraries(
+    optionswindow
+    dictionarysettings
+    ankisettings
+    searchsettings
+    interfacesettings
+    audiosourcesettings
+)

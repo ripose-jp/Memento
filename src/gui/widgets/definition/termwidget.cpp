@@ -24,10 +24,10 @@
 #include "tagwidget.h"
 #include "pitchwidget.h"
 #include "glossarywidget.h"
-#include "../../util/iconfactory.h"
-#include "../../util/globalmediator.h"
-#include "../../dict/dictionary.h"
-#include "../../audio/audioplayer.h"
+#include "../../../util/iconfactory.h"
+#include "../../../util/globalmediator.h"
+#include "../../../dict/dictionary.h"
+#include "../../../audio/audioplayer.h"
 
 #include <QMenu>
 

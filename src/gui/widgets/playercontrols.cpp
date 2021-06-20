@@ -21,7 +21,7 @@
 #include "playercontrols.h"
 #include "ui_playercontrols.h"
 
-#include "sliderjumpstyle.h"
+#include "common/sliderjumpstyle.h"
 #include "../../util/globalmediator.h"
 #include "../playeradapter.h"
 

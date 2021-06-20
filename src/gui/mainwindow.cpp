@@ -22,8 +22,6 @@
 #include "ui_mainwindow.h"
 
 #include "mpvadapter.h"
-#include "widgets/definitionwidget.h"
-#include "widgets/ankisettings.h"
 #include "../util/constants.h"
 #include "../dict/dictionary.h"
 

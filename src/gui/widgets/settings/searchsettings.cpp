@@ -21,8 +21,8 @@
 #include "searchsettings.h"
 #include "ui_searchsettings.h"
 
-#include "../../util/globalmediator.h"
-#include "../../util/constants.h"
+#include "../../../util/globalmediator.h"
+#include "../../../util/constants.h"
 
 #include <QSettings>
 #include <QPushButton>

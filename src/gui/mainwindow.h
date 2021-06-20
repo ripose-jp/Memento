@@ -23,8 +23,8 @@
 
 #include <QMainWindow>
 
-#include "widgets/definitionwidget.h"
-#include "widgets/optionswindow.h"
+#include "widgets/definition/definitionwidget.h"
+#include "widgets/settings/optionswindow.h"
 #include "widgets/aboutwindow.h"
 #include "widgets/subtitlewidget.h"
 

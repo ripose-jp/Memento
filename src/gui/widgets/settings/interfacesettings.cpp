@@ -21,8 +21,8 @@
 #include "interfacesettings.h"
 #include "ui_interfacesettings.h"
 
-#include "../../util/constants.h"
-#include "../../util/globalmediator.h"
+#include "../../../util/constants.h"
+#include "../../../util/globalmediator.h"
 
 #include <QPushButton>
 #include <QSettings>

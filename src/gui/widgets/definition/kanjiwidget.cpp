@@ -26,11 +26,11 @@
 #include <QLabel>
 #include <QDebug>
 
-#include "flowlayout.h"
+#include "../common/flowlayout.h"
 #include "tagwidget.h"
-#include "../../util/iconfactory.h"
-#include "../../util/globalmediator.h"
-#include "../../anki/ankiclient.h"
+#include "../../../util/iconfactory.h"
+#include "../../../util/globalmediator.h"
+#include "../../../anki/ankiclient.h"
 
 KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent), m_kanji(kanji)
 {

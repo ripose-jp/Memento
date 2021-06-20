@@ -1,20 +1,4 @@
-add_library(
-    flowlayout
-    flowlayout.cpp
-)
-target_link_libraries(
-    flowlayout
-    Qt5::Widgets
-)
-
-add_library(
-    sliderjumpstyle
-    sliderjumpstyle.cpp
-)
-target_link_libraries(
-    sliderjumpstyle
-    Qt5::Widgets
-)
+add_subdirectory(common)
 
 add_library(
     mpvwidget
@@ -54,25 +38,6 @@ target_link_libraries(
     Qt5::Core
 )
 
-add_library(
-    definitionwidget
-    definitionwidget.cpp
-    definitionwidget.ui
-    termwidget.cpp
-    termwidget.ui
-    kanjiwidget.cpp
-    tagwidget.cpp
-    glossarywidget.cpp
-    pitchwidget.cpp
-)
-target_link_libraries(
-    definitionwidget
-    Qt5::Widgets
-    Qt5::Network
-    dictionary_db
-    flowlayout
-    audioplayer
-)
 
 add_library(
     subtitlewidget
@@ -110,78 +75,5 @@ target_link_libraries(
     subtitlewidget
 )
 
-add_library(
-    ankisettings
-    scrollcombobox.h
-    ankisettings.cpp
-    ankisettings.ui
-    cardbuilder.cpp
-    cardbuilder.ui
-    ankisettingshelp.cpp
-    ankisettingshelp.ui
-)
-target_link_libraries(
-    ankisettings
-    globalmediator
-    Qt5::Widgets
-    anki
-)
-
-add_library(
-    audiosourcesettings
-    audiosourcesettings.cpp
-    audiosourcesettings.ui
-)
-target_link_libraries(
-    audiosourcesettings
-    globalmediator
-    Qt5::Widgets
-)
-
-add_library(
-    dictionarysettings
-    dictionarysettings.cpp
-    dictionarysettings.ui
-)
-target_link_libraries(
-    dictionarysettings
-    globalmediator
-    Qt5::Widgets
-    dictionary_db
-)
-
-add_library(
-    searchsettings
-    searchsettings.cpp
-    searchsettings.ui
-)
-target_link_libraries(
-    searchsettings
-    Qt5::Widgets
-    Qt5::Core
-)
-
-add_library(
-    interfacesettings
-    interfacesettings.cpp
-    interfacesettings.ui
-)
-target_link_libraries(
-    interfacesettings
-    Qt5::Widgets
-    Qt5::Core
-)
-
-add_library(
-    optionswindow
-    optionswindow.cpp
-    optionswindow.ui
-)
-target_link_libraries(
-    optionswindow
-    dictionarysettings
-    ankisettings
-    searchsettings
-    interfacesettings
-    audiosourcesettings
-)
+add_subdirectory(settings)
+add_subdirectory(definition)

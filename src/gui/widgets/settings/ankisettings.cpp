@@ -21,9 +21,9 @@
 #include "ankisettings.h"
 #include "ui_ankisettings.h"
 
-#include "../../util/iconfactory.h"
-#include "../../util/globalmediator.h"
-#include "../../util/constants.h"
+#include "../../../util/iconfactory.h"
+#include "../../../util/globalmediator.h"
+#include "../../../util/constants.h"
 
 #include <QTableWidgetItem>
 #include <QSettings>

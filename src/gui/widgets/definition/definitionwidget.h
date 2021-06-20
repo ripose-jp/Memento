@@ -23,8 +23,8 @@
 
 #include <QWidget>
 
-#include "../../dict/expression.h"
-#include "../../anki/ankiclient.h"
+#include "../../../dict/expression.h"
+#include "../../../anki/ankiclient.h"
 #include "termwidget.h"
 #include "kanjiwidget.h"
 

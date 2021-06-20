@@ -23,11 +23,11 @@
 
 #include <QWidget>
 
-#include "flowlayout.h"
+#include "../common/flowlayout.h"
 #include <QLabel>
 #include <QCheckBox>
 
-#include "../../dict/expression.h"
+#include "../../../dict/expression.h"
 
 class GlossaryWidget : public QWidget
 {

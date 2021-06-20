@@ -21,10 +21,10 @@
 #include "dictionarysettings.h"
 #include "ui_dictionarysettings.h"
 
-#include "../../util/globalmediator.h"
-#include "../../util/iconfactory.h"
-#include "../../util/constants.h"
-#include "../../dict/dictionary.h"
+#include "../../../util/globalmediator.h"
+#include "../../../util/iconfactory.h"
+#include "../../../util/constants.h"
+#include "../../../dict/dictionary.h"
 
 #include <QPushButton>
 #include <QSettings>

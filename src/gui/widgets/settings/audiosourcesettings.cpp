@@ -21,8 +21,8 @@
 #include "audiosourcesettings.h"
 #include "ui_audiosourcesettings.h"
 
-#include "../../util/constants.h"
-#include "../../util/iconfactory.h"
+#include "../../../util/constants.h"
+#include "../../../util/iconfactory.h"
 
 #include <QPushButton>
 #include <QMessageBox>

@@ -449,7 +449,7 @@ Comma or space seperated list.</string>
              </size>
             </property>
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="layoutTerms">
              <attribute name="title">
@@ -523,13 +523,13 @@ Comma or space seperated list.</string>
   <customwidget>
    <class>CardBuilder</class>
    <extends>QWidget</extends>
-   <header>src/gui/widgets/cardbuilder.h</header>
+   <header>src/gui/widgets/settings/cardbuilder.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>ScrollComboBox</class>
    <extends>QComboBox</extends>
-   <header>src/gui/widgets/scrollcombobox.h</header>
+   <header>src/gui/widgets/common/scrollcombobox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

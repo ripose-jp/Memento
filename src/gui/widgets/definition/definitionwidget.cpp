@@ -21,9 +21,9 @@
 #include "definitionwidget.h"
 #include "ui_definitionwidget.h"
 
-#include "../../util/globalmediator.h"
-#include "../../util/constants.h"
-#include "../../audio/audioplayer.h"
+#include "../../../util/globalmediator.h"
+#include "../../../util/constants.h"
+#include "../../../audio/audioplayer.h"
 
 #include <QFrame>
 #include <QScrollBar>

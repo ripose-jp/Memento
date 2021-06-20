@@ -23,9 +23,9 @@
 
 #include <QWidget>
 
-#include "flowlayout.h"
-#include "../../dict/expression.h"
-#include "../../anki/ankiclient.h"
+#include "../common/flowlayout.h"
+#include "../../../dict/expression.h"
+#include "../../../anki/ankiclient.h"
 
 namespace Ui
 {
