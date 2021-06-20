@@ -20,6 +20,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+
 #include "mpvadapter.h"
 #include "widgets/definitionwidget.h"
 #include "widgets/ankisettings.h"
@@ -456,7 +457,6 @@ void MainWindow::setFullscreen(bool value)
             showNormal();
     
     #endif
-        //m_ui->menubar->show();
         m_ui->menubar->setMinimumHeight(0);
         m_ui->menubar->setMaximumHeight(QWIDGETSIZE_MAX);
 
@@ -635,9 +635,10 @@ void MainWindow::clearTracks()
     
 }
 
-void MainWindow::clearTrack(
-    QList<QPair<QAction *, const Track *>> &tracks,
-    QMenu *menu, QActionGroup *actionGroup, QAction *actionDisable)
+void MainWindow::clearTrack(QList<QPair<QAction *, const Track *>> &tracks,
+                            QMenu                                  *menu,
+                            QActionGroup                           *actionGroup,
+                            QAction                                *actionDisable)
 {
     for (auto it = tracks.begin(); it != tracks.end(); ++it)
     {
