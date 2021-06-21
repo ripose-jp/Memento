@@ -38,7 +38,6 @@ extern "C"
 #include <QJsonArray>
 #include <QFile>
 #include <QTemporaryFile>
-#include <QTextStream>
 #include <QThreadPool>
 #include <QDebug>
 
@@ -152,9 +151,7 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
     }
 
     // Read the file into memory
-    QTextStream stream(&configFile);
-    stream.setCodec("UTF-8");
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(stream.readAll().toUtf8());
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(configFile.readAll());
     configFile.close();
 
     // Error check the JSON
@@ -399,8 +396,7 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
     jsonObj[CONFIG_PROFILES] = configArr;
     QJsonDocument jsonDoc(jsonObj);
 
-    QTextStream stream(&configFile);
-    stream << jsonDoc.toJson();
+    configFile.write(jsonDoc.toJson());
     configFile.close();
 
     return true;
