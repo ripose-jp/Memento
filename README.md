@@ -56,6 +56,7 @@ Memento is a FOSS, mpv-based video player intended for studying Japanese.
     * With a system dictionary like ipadic on Linux and OS X
 * Json-C
 * libzip
+* youtube-dl (optional)
 
 For the best experience, install [Noto Sans CJK JP](https://www.google.com/get/noto/#sans-jpan)
 and the [Kanji Stroke Order](https://drive.google.com/uc?export=download&id=1oyQoTB531tbhlYaOW7ugvutXZ7HSlJfW) fonts.
@@ -85,7 +86,7 @@ sudo make install
     ```
 1. Install the necessary tools and dependencies:
     ```
-    pacman -S git make mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ffmpeg mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-mecab mingw-w64-x86_64-json-c mingw-w64-x86_64-libzip
+    pacman -S git make mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ffmpeg mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-mecab mingw-w64-x86_64-json-c mingw-w64-x86_64-libzip mingw-w64-x86_64-youtube-dl
     ```
 1. Clone the repository:
     ```

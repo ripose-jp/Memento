@@ -144,6 +144,9 @@ $PREFIX/bin/Qt5Gui.dll \
 $PREFIX/bin/Qt5Widgets.dll \
 $PREFIX/bin/Qt5Network.dll Memento_$arch
 
+cp $PREFIX/bin/youtube-dl.exe \
+$PREFIX/bin/youtube-dl-script.py Memento_$arch/config
+
 cd Memento_$arch/
 windeployqt memento.exe
 rm -rf translations

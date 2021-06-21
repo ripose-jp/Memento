@@ -23,6 +23,7 @@
 #include "../../util/globalmediator.h"
 #include "../../util/constants.h"
 
+#include <QSettings>
 #include <QtGui/QOpenGLContext>
 #include <QApplication>
 #include <QDesktopWidget>
