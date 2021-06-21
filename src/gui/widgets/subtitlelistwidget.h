@@ -63,6 +63,8 @@ private Q_SLOTS:
 
     void updateTimestamps(const double delay);
 
+    void fixTableDimensions(const int index);
+
     void clearPrimarySubtitles();
     void clearSecondarySubtitles();
 

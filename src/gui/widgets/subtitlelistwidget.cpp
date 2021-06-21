@@ -45,6 +45,8 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     connect(m_ui->tablePrim, &QTableWidget::itemDoubleClicked, this, &SubtitleListWidget::seekToPrimarySubtitle);
     connect(m_ui->tableSec,  &QTableWidget::itemDoubleClicked, this, &SubtitleListWidget::seekToSecondarySubtitle);
 
+    connect(m_ui->tabWidget, &QTabWidget::currentChanged, this, &SubtitleListWidget::fixTableDimensions);
+
     connect(mediator, &GlobalMediator::interfaceSettingsChanged, this, &SubtitleListWidget::setTheme);
 
     connect(mediator, &GlobalMediator::playerSubDelayChanged, this, &SubtitleListWidget::updateTimestamps);
@@ -250,6 +252,19 @@ void SubtitleListWidget::updateTimestamps(const double delay)
 {
     updateTimestampsHelper(m_ui->tablePrim, m_seenPrimarySubs,   delay);
     updateTimestampsHelper(m_ui->tableSec,  m_seenSecondarySubs, delay);
+}
+
+void SubtitleListWidget::fixTableDimensions(const int index)
+{
+    switch(index)
+    {
+    case 0:
+        m_ui->tablePrim->resizeRowsToContents();
+        break;
+    case 1:
+        m_ui->tableSec->resizeRowsToContents();
+        break;
+    }
 }
 
 void SubtitleListWidget::clearSubtitles(QTableWidget                      *table,
