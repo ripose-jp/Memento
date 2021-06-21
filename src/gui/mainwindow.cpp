@@ -244,10 +244,6 @@ MainWindow::~MainWindow()
     delete m_ankiClient;
 }
 
-#define SETTINGS_GROUP_WINDOW       "main-window"
-#define SETTINGS_GEOMETRY           "geometry"
-#define SETTINGS_MAXIMIZE           "maximize"
-
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     QSettings settings;
@@ -272,10 +268,6 @@ void MainWindow::loadWindowSettings()
         showMaximized();
     }
 }
-
-#undef SETTINGS_GROUP_WINDOW
-#undef SETTINGS_GEOMETRY
-#undef SETTINGS_MAXIMIZE
 
 void MainWindow::showEvent(QShowEvent *event)
 {

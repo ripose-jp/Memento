@@ -25,6 +25,15 @@
 #define GITHUB_API_LINK                 (QString("https://api.github.com/repos/ripose-jp/memento/releases"))
 #define GITHUB_RELEASES                 (QString("https://github.com/ripose-jp/memento/releases"))
 
+/* Versioning */
+#define SETTINGS_VERSION                "version"
+#define SETTINGS_VERSION_CURRENT        1
+
+/* Window Sizes */
+#define SETTINGS_GROUP_WINDOW           "main-window"
+#define SETTINGS_GEOMETRY               "geometry"
+#define SETTINGS_MAXIMIZE               "maximize"
+
 /* Audio Source Settings */
 #define SETTINGS_AUDIO_SRC              "audio-srcs"
 

@@ -23,8 +23,10 @@
 #include <QFile>
 #include <QMessageBox>
 #include <QFontDatabase>
+#include <QSettings>
 
 #include "gui/mainwindow.h"
+#include "util/constants.h"
 #include "util/directoryutils.h"
 #include "util/globalmediator.h"
 #include "util/iconfactory.h"
@@ -33,6 +35,44 @@
 #if __APPLE__
     #include <locale.h>
 #endif
+
+void updateSettings()
+{
+    QSettings settings;
+    uint version = settings.value(SETTINGS_VERSION, 0).toUInt();
+    if (version == SETTINGS_VERSION_CURRENT)
+    {
+        return;
+    }
+    else if (version > SETTINGS_VERSION_CURRENT)
+    {
+        QMessageBox message;
+        message.critical(
+            0, "Newer Settings Version Found",
+            "The Memento settings found belong to a newer version.\n"
+            "No guarantees can be made that nothing will break of get lost."
+        );
+    }
+
+    /* Migrate the settings */
+    switch(version)
+    {
+    case 0:
+    {
+        settings.beginGroup(SETTINGS_INTERFACE);
+        settings.remove(SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE);
+        settings.endGroup();
+    }
+    }
+
+    /* Remove saved window configurations just to be safe */
+    settings.beginGroup(SETTINGS_GROUP_WINDOW);
+    settings.remove("");
+    settings.endGroup();
+
+    /* Set the version */
+    settings.setValue(SETTINGS_VERSION, SETTINGS_VERSION_CURRENT);
+}
 
 int main(int argc, char *argv[])
 {
@@ -51,6 +91,9 @@ int main(int argc, char *argv[])
 
     /* Construct the application */
     QApplication memento(argc, argv);
+
+    /* Update settings */
+    updateSettings();
 
     /* Create the configuration directory if it doesn't exist */
     if (!QDir(DirectoryUtils::getConfigDir()).exists())
