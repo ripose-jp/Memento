@@ -166,7 +166,7 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
     }
 }
 
-QLabel *PitchWidget::createLabel(const QString &text, const QString &style)
+QLabel *PitchWidget::createLabel(const QString &text, const QString &style) const
 {
     QLabel *label = new QLabel;
     label->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);

@@ -24,6 +24,7 @@
 #include "../util/globalmediator.h"
 #include "../util/constants.h"
 #include "../util/fileutils.h"
+#include "../util/graphicutils.h"
 extern "C"
 {
 #include "../ffmpeg/transcode_aac.h"
@@ -836,33 +837,6 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
 
 #define PITCH_FORMAT    (QString("<span style=\"%1\">%2</span>"))
 
-#define PITCH_GRAPH_HEADER  (QString(\
-    "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"2em\" viewBox=\"0 0 %1 100\" style=\"display: inline-block;\">"\
-    "<defs>"\
-        "<g id=\"black-dot\">"\
-            "<circle cx=\"0\" cy=\"0\" r=\"15\" style=\"fill: black; stroke: black; stroke-width: 5px;\"/>"\
-        "</g>"\
-        "<g id=\"white-dot\">"\
-            "<circle cx=\"0\" cy=\"0\" r=\"15\" style=\"fill: white; stroke: black; stroke-width: 5px;\"/>"\
-        "</g>"\
-        "<g id=\"change-dot\">"\
-            "<circle cx=\"0\" cy=\"0\" r=\"15\" style=\"fill: white; stroke: black; stroke-width: 5px;\"/>"\
-            "<circle cx=\"0\" cy=\"0\" r=\"5\" style=\"fill: white; stroke: black; stroke-width: 5px;\"/>"\
-        "</g>"\
-    "</defs>"\
-))
-#define PITCH_GRAPH_TRAILER (QString("</svg>"))
-
-#define BLACK_DOT_FORMAT    (QString("<use href=\"#black-dot\" x=\"%1\" y=\"%2\" />"))
-#define WHITE_DOT_FORMAT    (QString("<use href=\"#white-dot\" x=\"%1\" y=\"%2\" />"))
-#define CHANGE_DOT_FORMAT   (QString("<use href=\"#change-dot\" x=\"%1\" y=\"%2\" />"))
-#define LINE_FORMAT         (QString("<path d=\"M%1 %2 L%3 %4\" style=\"stroke: black; stroke-width: 5px;\" />"))
-
-#define GRAPH_TOP_Y     25
-#define GRAPH_BOTTOM_Y  75
-#define GRAPH_STEP      50
-#define GRAPH_OFFSET    25
-
 void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches, 
                                 QString            &pitch,
                                 QString            &pitchGraph,
@@ -960,114 +934,7 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
             }
 
             /* Build {pitch-graph}s */
-            pitchGraph += PITCH_GRAPH_HEADER.arg(GRAPH_STEP * (p.mora.size() + 1));
-
-            QStringList lines;
-            QStringList dots;
-
-            switch (pos)
-            {
-            case 0:
-            {
-                int x1 = GRAPH_OFFSET;
-                int y1 = GRAPH_BOTTOM_Y;
-                int x2 = GRAPH_OFFSET + GRAPH_STEP;
-                int y2 = GRAPH_TOP_Y;
-
-                lines.append(LINE_FORMAT.arg(x1).arg(y1).arg(x2).arg(y2));
-                dots.append(BLACK_DOT_FORMAT.arg(x1).arg(y1));
-
-                size_t i;
-                for (i = 1; i < p.mora.size(); ++i)
-                {
-                    x1 = x2;
-                    y1 = y2;
-                    x2 = GRAPH_OFFSET + GRAPH_STEP * (i + 1);
-                    y2 = GRAPH_TOP_Y;
-
-                    lines.append(LINE_FORMAT.arg(x1).arg(y1).arg(x2).arg(y2));
-                    dots.append(BLACK_DOT_FORMAT.arg(x1).arg(y1));
-                }
-
-                dots.append(WHITE_DOT_FORMAT.arg(x2).arg(y2));
-                break;
-            }
-            case 1:
-            {
-                int x1 = GRAPH_OFFSET;
-                int y1 = GRAPH_TOP_Y;
-                int x2 = GRAPH_OFFSET + GRAPH_STEP;
-                int y2 = GRAPH_BOTTOM_Y;
-
-                lines.append(LINE_FORMAT.arg(x1).arg(y1).arg(x2).arg(y2));
-                dots.append(CHANGE_DOT_FORMAT.arg(x1).arg(y1));
-
-                size_t i;
-                for (i = 1; i < p.mora.size(); ++i)
-                {
-                    x1 = x2;
-                    y1 = y2;
-                    x2 = GRAPH_OFFSET + GRAPH_STEP * (i + 1);
-                    y2 = GRAPH_BOTTOM_Y;
-
-                    lines.append(LINE_FORMAT.arg(x1).arg(y1).arg(x2).arg(y2));
-                    dots.append(BLACK_DOT_FORMAT.arg(x1).arg(y1));
-                }
-
-                dots.append(WHITE_DOT_FORMAT.arg(x2).arg(y2));
-                break;
-            }
-            default:
-            {
-                int x1 = GRAPH_OFFSET;
-                int y1 = GRAPH_BOTTOM_Y;
-                int x2 = GRAPH_OFFSET + GRAPH_STEP;
-                int y2 = GRAPH_TOP_Y;
-
-                lines.append(LINE_FORMAT.arg(x1).arg(y1).arg(x2).arg(y2));
-                dots.append(BLACK_DOT_FORMAT.arg(x1).arg(y1));
-
-                size_t i;
-                for (i = 1; i < pos - 1; ++i)
-                {
-                    x1 = x2;
-                    y1 = y2;
-                    x2 = GRAPH_OFFSET + GRAPH_STEP * (i + 1);
-                    y2 = GRAPH_TOP_Y;
-
-                    lines.append(LINE_FORMAT.arg(x1).arg(y1).arg(x2).arg(y2));
-                    dots.append(BLACK_DOT_FORMAT.arg(x1).arg(y1));
-                }
-
-                /* Change dot */
-                x1 = x2;
-                y1 = y2;
-                x2 = GRAPH_OFFSET + GRAPH_STEP * (i + 1);
-                y2 = GRAPH_BOTTOM_Y;
-
-                lines.append(LINE_FORMAT.arg(x1).arg(y1).arg(x2).arg(y2));
-                dots.append(CHANGE_DOT_FORMAT.arg(x1).arg(y1));
-
-                /* End dots */
-                for (i = pos; i < p.mora.size(); ++i)
-                {
-                    x1 = x2;
-                    y1 = y2;
-                    x2 = GRAPH_OFFSET + GRAPH_STEP * (i + 1);
-                    y2 = GRAPH_BOTTOM_Y;
-
-                    lines.append(LINE_FORMAT.arg(x1).arg(y1).arg(x2).arg(y2));
-                    dots.append(BLACK_DOT_FORMAT.arg(x1).arg(y1));
-                }
-
-                dots.append(WHITE_DOT_FORMAT.arg(x2).arg(GRAPH_BOTTOM_Y));
-            }
-            }
-
-            pitchGraph += lines.join("\n");
-            pitchGraph += dots.join("\n");
-
-            pitchGraph += PITCH_GRAPH_TRAILER;
+            pitchGraph = GraphicUtils::generatePitchGraph(p.mora.size(), pos, "white", "black");
             
             /* Build {pitch-posititon}s */
             pitchPosition += "[" + QString::number(pos) + "]";
@@ -1111,19 +978,6 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
 #undef H_STYLE
 
 #undef PITCH_FORMAT
-
-#undef PITCH_GRAPH_HEADER
-#undef PITCH_GRAPH_TRAILER
-
-#undef BLACK_DOT_FORMAT
-#undef WHITE_DOT_FORMAT
-#undef CHANGE_DOT_FORMAT
-#undef LINE_FORMAT
-
-#undef GRAPH_TOP_Y
-#undef GRAPH_BOTTOM_Y
-#undef GRAPH_STEP
-#undef GRAPH_OFFSET
 
 QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji, const bool media)
 {

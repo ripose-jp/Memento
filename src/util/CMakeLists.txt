@@ -17,6 +17,15 @@ target_link_libraries(
 )
 
 add_library(
+    graphicutils
+    graphicutils.cpp
+)
+target_link_libraries(
+    graphicutils
+    Qt5::Core
+)
+
+add_library(
     globalmediator
     globalmediator.cpp
 )

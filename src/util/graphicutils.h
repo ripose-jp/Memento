@@ -18,25 +18,21 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef PITCHWIDGET_H
-#define PITCHWIDGET_H
+#ifndef GRAPHICUTILS_H
+#define GRAPHICUTILS_H
 
-#include <QWidget>
+#include <QString>
 
-#include "../../../dict/expression.h"
-
-class QLabel;
-class QSvgWidget;
-
-class PitchWidget : public QWidget
+class GraphicUtils
 {
-    Q_OBJECT
-
 public:
-    PitchWidget(const Pitch &pitch, QWidget *parent = nullptr);
+    static QString generatePitchGraph(const int      moraSize,
+                                      const uint8_t  pos, 
+                                      const QString &fill, 
+                                      const QString &stroke);
 
 private:
-    QLabel *createLabel(const QString &text, const QString &style) const;
+    GraphicUtils() {}
 };
 
-#endif // PITCHWIDGET_H
+#endif // GRAPHICUTILS_H

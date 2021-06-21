@@ -13,4 +13,5 @@ target_link_libraries(
     fileutils
     Qt5::Core
     Qt5::Network
+    graphicutils
 )
