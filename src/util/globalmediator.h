@@ -102,6 +102,7 @@ Q_SIGNALS:
 
     void playerCursorHidden()                 const;
     void playerMouseMoved(QMouseEvent *event) const;
+    void playerFileLoaded()                   const;
     void playerClosed()                       const;
 
     void playerResized() const;

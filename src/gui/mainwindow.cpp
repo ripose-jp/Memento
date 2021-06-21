@@ -120,7 +120,6 @@ MainWindow::MainWindow(QWidget *parent)
             if (!file.isEmpty())
             {
                 m_player->addSubtitle(file);
-                setTracks(m_player->getTracks());
             }
         }
     );

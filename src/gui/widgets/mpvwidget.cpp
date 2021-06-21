@@ -90,23 +90,24 @@ MpvWidget::MpvWidget(QWidget *parent)
         QCoreApplication::exit(EXIT_FAILURE);
     }
 
-    mpv_observe_property(mpv, 0, "duration",    MPV_FORMAT_DOUBLE);
-    mpv_observe_property(mpv, 0, "time-pos",    MPV_FORMAT_DOUBLE);
-    mpv_observe_property(mpv, 0, "pause",       MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "fullscreen",  MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "volume",      MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "media-title", MPV_FORMAT_STRING);
-    mpv_observe_property(mpv, 0, "path",        MPV_FORMAT_STRING);
+    mpv_observe_property(mpv, 0, "duration",           MPV_FORMAT_DOUBLE);
+    mpv_observe_property(mpv, 0, "time-pos",           MPV_FORMAT_DOUBLE);
+    mpv_observe_property(mpv, 0, "pause",              MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "fullscreen",         MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "volume",             MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "media-title",        MPV_FORMAT_STRING);
+    mpv_observe_property(mpv, 0, "path",               MPV_FORMAT_STRING);
+    mpv_observe_property(mpv, 0, "track-list/count",   MPV_FORMAT_INT64);
 
-    mpv_observe_property(mpv, 0, "aid",           MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "vid",           MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "sid",           MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "secondary-sid", MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "aid",                MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "vid",                MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "sid",                MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "secondary-sid",      MPV_FORMAT_INT64);
 
-    mpv_observe_property(mpv, 0, "aid",           MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "vid",           MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "sid",           MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "secondary-sid", MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "aid",                MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "vid",                MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "sid",                MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "secondary-sid",      MPV_FORMAT_FLAG);
 
     mpv_observe_property(mpv, 0, "sub-text",           MPV_FORMAT_STRING);
     mpv_observe_property(mpv, 0, "secondary-sub-text", MPV_FORMAT_STRING);
@@ -427,14 +428,18 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                 Q_EMIT fileChanged(*path);
             }
         }
+        else if (strcmp(prop->name, "track-list/count") == 0)
+        {
+            mpv_node node;
+            mpv_get_property(mpv, "track-list", MPV_FORMAT_NODE, &node);
+            Q_EMIT tracklistChanged(&node);
+            mpv_free_node_contents(&node);
+        }
         break;
     }
     case MPV_EVENT_FILE_LOADED:
     {
-        mpv_node node;
-        mpv_get_property(mpv, "track-list", MPV_FORMAT_NODE, &node);
-        Q_EMIT tracklistChanged(&node);
-        mpv_free_node_contents(&node);
+        Q_EMIT newFileLoaded();
         break;
     }
     case MPV_EVENT_SHUTDOWN:

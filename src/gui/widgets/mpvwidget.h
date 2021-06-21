@@ -73,6 +73,7 @@ Q_SIGNALS:
     void subDelayChanged(const double delay);
     void hideCursor();
     void mouseMoved(QMouseEvent *event);
+    void newFileLoaded();
     void shutdown();
 
 protected:
