@@ -23,7 +23,7 @@ fi
 mkdir build
 cd build
 $PREFIX/bin/cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
-$PREFIX/bin/cmake --build .
+$PREFIX/bin/cmake --build . -- -j4
 
 #release dlls and exe to a new directory
 mkdir Memento_$arch
@@ -33,9 +33,10 @@ cp -r ../config Memento_$arch
 
 python3 ../mingw-bundledlls.py --copy ./Memento_$arch/memento.exe
 
-cp $PREFIX/bin/youtube-dl.exe \
-$PREFIX/bin/youtube-dl-script.py Memento_$arch/config
-
-cd Memento_$arch/
+cd Memento_$arch
 windeployqt memento.exe
 rm -rf translations
+
+#Get the latest youtube-dl
+cd config
+wget https://yt-dl.org/downloads/latest/youtube-dl.exe
