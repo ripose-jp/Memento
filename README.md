@@ -182,3 +182,7 @@ https://www.iconfinder.com/iconsets/ionicons
 Pause, play, skip, and seek icons sourced from here and used under the [CC 3.0 License](https://creativecommons.org/licenses/by/3.0/)
 
 https://www.iconfinder.com/iconsets/play-rounded
+
+window_build.sh depends on this script with a slightly expanded blacklist
+
+https://github.com/mpreisler/mingw-bundledlls
