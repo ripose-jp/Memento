@@ -32,7 +32,6 @@ class QWidget;
 
 class QKeyEvent;
 class QWheelEvent;
-class QMouseEvent;
 
 struct Track;
 struct Term;
@@ -100,10 +99,10 @@ Q_SIGNALS:
     void playerTitleChanged      (QString        title)  const;
     void playerFileChanged       (QString        path)   const;
 
-    void playerCursorHidden()                 const;
-    void playerMouseMoved(QMouseEvent *event) const;
-    void playerFileLoaded()                   const;
-    void playerClosed()                       const;
+    void playerCursorHidden() const;
+    void playerMouseMoved()   const;
+    void playerFileLoaded()   const;
+    void playerClosed()       const;
 
     void playerResized() const;
 

@@ -26,7 +26,7 @@
 #include <QTemporaryFile>
 
 MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
-    : m_mpv(mpv), m_handle(mpv->get_handle()), PlayerAdapter(parent)
+    : m_mpv(mpv), m_handle(mpv->getHandle()), PlayerAdapter(parent)
 {
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     connect(m_mpv, &MpvWidget::tracklistChanged, this, 
@@ -51,7 +51,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     connect(m_mpv, &MpvWidget::subDelayChanged,          mediator, &GlobalMediator::playerSubDelayChanged);
     connect(m_mpv, &MpvWidget::durationChanged,          mediator, &GlobalMediator::playerDurationChanged);
     connect(m_mpv, &MpvWidget::positionChanged,          mediator, &GlobalMediator::playerPositionChanged);
-    connect(m_mpv, &MpvWidget::stateChanged,             mediator, &GlobalMediator::playerPauseStateChanged);
+    connect(m_mpv, &MpvWidget::pauseChanged,             mediator, &GlobalMediator::playerPauseStateChanged);
     connect(m_mpv, &MpvWidget::fullscreenChanged,        mediator, &GlobalMediator::playerFullscreenChanged);
     connect(m_mpv, &MpvWidget::volumeChanged,            mediator, &GlobalMediator::playerVolumeChanged);
     connect(m_mpv, &MpvWidget::titleChanged,             mediator, &GlobalMediator::playerTitleChanged);
