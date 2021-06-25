@@ -158,7 +158,7 @@ void PlayerControls::setFullscreen(const bool value)
 
 void PlayerControls::toggleFullscreen()
 {
-    bool fullscreen = GlobalMediator::getGlobalMediator()->getPlayerAdapter()->isFullScreen();
+    bool fullscreen = GlobalMediator::getGlobalMediator()->getPlayerAdapter()->isFullscreen();
     Q_EMIT GlobalMediator::getGlobalMediator()->controlsFullscreenChanged(!fullscreen);
 }
 

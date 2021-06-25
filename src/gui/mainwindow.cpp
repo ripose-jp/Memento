@@ -369,7 +369,7 @@ void MainWindow::setTracks(QList<const Track *> tracks)
         QList<QPair<QAction *, const Track *>> *trackList;
         switch (track->type)
         {
-        case Track::track_type::audio:
+        case Track::Type::audio:
             m_ui->menuAudio->addAction(action);
             action->setActionGroup(m_actionGroupAudio);
             connect(action, &QAction::triggered, 
@@ -378,7 +378,7 @@ void MainWindow::setTracks(QList<const Track *> tracks)
                 } );
             trackList = &m_audioTracks;
             break;
-        case Track::track_type::video:
+        case Track::Type::video:
             m_ui->menuVideo->addAction(action);
             action->setActionGroup(m_actionGroupVideo);
             connect(action, &QAction::triggered, 
@@ -387,7 +387,7 @@ void MainWindow::setTracks(QList<const Track *> tracks)
                 } );
             trackList = &m_videoTracks;
             break;
-        case Track::track_type::subtitle:
+        case Track::Type::subtitle:
         {
             m_ui->menuSubtitle->addAction(action);
             action->setActionGroup(m_actionGroupSubtitle);
