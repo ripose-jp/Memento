@@ -32,16 +32,22 @@
 #include "../../util/utils.h"
 #include "../playeradapter.h"
 
-#define MAX_QUERY_LENGTH        37
-#define DOUBLE_DELTA            0.05
+/* The maximum length of text that can be searched. */
+#define MAX_QUERY_LENGTH 37
 
-SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
-                                                  m_dictionary(new Dictionary),
-                                                  m_currentIndex(-1),
-                                                  m_findDelay(new QTimer(this)),
-                                                  m_paused(true)
+/* Prevents valid subtitles from being hidden due to double precision errors. */
+#define DOUBLE_DELTA 0.05
+
+/* Begin Constructor/Destructor */
+
+SubtitleWidget::SubtitleWidget(QWidget *parent)
+    : QTextEdit(parent),
+      m_dictionary(new Dictionary),
+      m_currentIndex(-1),
+      m_findDelay(new QTimer(this)),
+      m_paused(true)
 {
-    setTheme();
+    initTheme();
 
     setFixedHeight(0);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
@@ -59,22 +65,49 @@ SubtitleWidget::SubtitleWidget(QWidget *parent) : QTextEdit(parent),
 
     m_findDelay->setSingleShot(true);
 
-    loadSettings();
+    initSettings();
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     /* Slots */
-    connect(m_findDelay, &QTimer::timeout,                            this, &SubtitleWidget::findTerms);
-    connect(mediator,    &GlobalMediator::searchSettingsChanged,      this, &SubtitleWidget::loadSettings);
-    connect(mediator,    &GlobalMediator::playerResized,              this, &SubtitleWidget::setTheme);
-    connect(mediator,    &GlobalMediator::interfaceSettingsChanged,   this, &SubtitleWidget::setTheme);
-    connect(mediator,    &GlobalMediator::definitionsHidden,          this, &SubtitleWidget::deselectText);
-    connect(mediator,    &GlobalMediator::definitionsShown,           this, &SubtitleWidget::setSelectedText);
-    connect(mediator,    &GlobalMediator::playerSubtitleChanged,      this, &SubtitleWidget::setSubtitle);
-    connect(mediator,    &GlobalMediator::playerPositionChanged,      this, &SubtitleWidget::positionChanged);
-    connect(mediator,    &GlobalMediator::playerSubtitlesDisabled,    this, [=] { positionChanged(-1); } );
-    connect(mediator,    &GlobalMediator::playerSubtitleTrackChanged, this, [=] { positionChanged(-1); } );
-    connect(mediator,    &GlobalMediator::playerPauseStateChanged,    this, 
+    connect(m_findDelay, &QTimer::timeout, this, &SubtitleWidget::findTerms);
+    connect(
+        mediator, &GlobalMediator::searchSettingsChanged,
+        this,     &SubtitleWidget::initSettings
+    );
+    connect(
+        mediator, &GlobalMediator::playerResized,
+        this,     &SubtitleWidget::initTheme
+    );
+    connect(
+        mediator, &GlobalMediator::interfaceSettingsChanged,
+        this,     &SubtitleWidget::initTheme
+    );
+    connect(
+        mediator, &GlobalMediator::definitionsHidden,
+        this,     &SubtitleWidget::deselectText
+    );
+    connect(
+        mediator, &GlobalMediator::definitionsShown,
+        this, &SubtitleWidget::selectText
+    );
+    connect(
+        mediator, &GlobalMediator::playerSubtitleChanged,
+        this,     &SubtitleWidget::setSubtitle
+    );
+    connect(
+        mediator, &GlobalMediator::playerPositionChanged,
+        this,     &SubtitleWidget::positionChanged
+    );
+    connect(
+        mediator, &GlobalMediator::playerSubtitlesDisabled,
+        this,     [=] { positionChanged(-1); }
+    );
+    connect(
+        mediator, &GlobalMediator::playerSubtitleTrackChanged,
+        this,     [=] { positionChanged(-1); }
+    );
+    connect(mediator, &GlobalMediator::playerPauseStateChanged, this,
         [=] (const bool paused) {
             m_paused = paused;
             adjustVisibility();
@@ -88,7 +121,19 @@ SubtitleWidget::~SubtitleWidget()
     delete m_findDelay;
 }
 
-void SubtitleWidget::setTheme()
+void SubtitleWidget::deleteTerms(QList<Term *> *terms)
+{
+    for (Term *term : *terms)
+    {
+        delete term;
+    }
+    delete terms;
+}
+
+/* End Constructor/Destructor */
+/* Begin Intializers */
+
+void SubtitleWidget::initTheme()
 {
     QSettings settings;
     settings.beginGroup(SETTINGS_INTERFACE);
@@ -123,7 +168,10 @@ void SubtitleWidget::setTheme()
 
     int fontSize = (int)
         GlobalMediator::getGlobalMediator()->getPlayerWidget()->height() * 
-        settings.value(SETTINGS_INTERFACE_SUB_SCALE, SETTINGS_INTERFACE_SUB_SCALE_DEFAULT).toDouble();
+        settings.value(
+            SETTINGS_INTERFACE_SUB_SCALE,
+            SETTINGS_INTERFACE_SUB_SCALE_DEFAULT
+        ).toDouble();
     QColor fontColor(
         settings.value(
             SETTINGS_INTERFACE_SUB_TEXT_COLOR, 
@@ -150,20 +198,252 @@ void SubtitleWidget::setTheme()
 
     );
 
-    m_strokeColor.setNamedColor(
+    m_settings.strokeColor.setNamedColor(
         settings.value(
             SETTINGS_INTERFACE_SUB_STROKE_COLOR,
             SETTINGS_INTERFACE_SUB_STROKE_COLOR_DEFAULT
         ).toString()
     );
-    m_strokeSize = settings.value(
+    m_settings.strokeSize = settings.value(
         SETTINGS_INTERFACE_SUB_STROKE,
         SETTINGS_INTERFACE_SUB_STROKE_DEFAULT
     ).toDouble();
 
     settings.endGroup();
 
-    setSubtitle(m_rawText, m_startTime, m_endTime, 0);
+    setSubtitle(
+        m_subtitle.rawText, m_subtitle.startTime, m_subtitle.endTime, 0
+    );
+}
+
+void SubtitleWidget::initSettings()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_SEARCH);
+    m_settings.delay = settings.value(
+            SETTINGS_SEARCH_DELAY,
+            DEFAULT_DELAY
+        ).toInt();
+    if (m_settings.delay < 0)
+    {
+        m_settings.delay = DEFAULT_DELAY;
+    }
+
+    QString modifier = settings.value(
+            SETTINGS_SEARCH_MODIFIER,
+            DEFAULT_MODIFIER
+        ).toString();
+    if (modifier == MODIFIER_ALT)
+    {
+        m_settings.modifier = Qt::Modifier::ALT;
+    }
+    else if (modifier == MODIFIER_CTRL)
+    {
+        m_settings.modifier = Qt::Modifier::CTRL;
+    }
+    else if (modifier == MODIFIER_SHIFT)
+    {
+        m_settings.modifier = Qt::Modifier::SHIFT;
+    }
+    else if (modifier == MODIFIER_SUPER)
+    {
+        m_settings.modifier = Qt::Modifier::META;
+    }
+    else
+    {
+        m_settings.modifier = Qt::Modifier::SHIFT;
+    }
+
+    QString method = settings.value(
+            SETTINGS_SEARCH_METHOD,
+            DEFAULT_METHOD
+        ).toString();
+    if (method == SEARCH_METHOD_HOVER)
+    {
+        m_settings.method = Settings::SearchMethod::Hover;
+    }
+    else if (method == SEARCH_METHOD_MODIFIER)
+    {
+        m_settings.method = Settings::SearchMethod::Modifier;
+    }
+    else
+    {
+        m_settings.method = Settings::SearchMethod::Hover;
+    }
+
+    m_settings.hideSubsWhenVisible = settings.value(
+            SETTINGS_SEARCH_HIDE_SUBS,
+            DEFAULT_HIDE_SUBS
+        ).toBool();
+    if (m_settings.hideSubsWhenVisible)
+    {
+        GlobalMediator::getGlobalMediator()
+            ->getPlayerAdapter()->setSubVisiblity(!isVisible());
+    }
+    else
+    {
+        GlobalMediator::getGlobalMediator()
+            ->getPlayerAdapter()->setSubVisiblity(true);
+    }
+
+    m_settings.hideOnPlay = settings.value(
+            SETTINGS_SEARCH_HIDE_BAR,
+            DEFAULT_HIDE_BAR
+        ).toBool();
+    adjustVisibility();
+    
+    m_settings.replaceNewLines = settings.value(
+            SETTINGS_SEARCH_REPLACE_LINES,
+            DEFAULT_REPLACE_LINES
+        ).toBool();
+    m_settings.replaceStr = settings.value(
+            SETTINGS_SERACH_REPLACE_WITH,
+            DEFAULT_REPLACE_WITH
+        ).toString();
+    setSubtitle(
+        m_subtitle.rawText, m_subtitle.startTime, m_subtitle.endTime, 0
+    );
+    settings.endGroup();
+}
+
+/* End Intializers */
+/* Begin Event Handlers */
+
+void SubtitleWidget::showEvent(QShowEvent *event)
+{
+    if (m_settings.hideSubsWhenVisible)
+    {
+        Q_EMIT GlobalMediator::getGlobalMediator()
+            ->requestSetSubtitleVisibility(false);
+    }
+    QTextEdit::showEvent(event);
+}
+
+void SubtitleWidget::hideEvent(QHideEvent *event)
+{
+    if (m_settings.hideSubsWhenVisible && m_settings.hideOnPlay)
+    {
+        Q_EMIT GlobalMediator::getGlobalMediator()
+            ->requestSetSubtitleVisibility(true);
+    }
+    QTextEdit::hideEvent(event);
+}
+
+void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    int position = cursorForPosition(event->pos()).position();
+    if (m_paused && position != m_currentIndex)
+    {
+        switch (m_settings.method)
+        {
+        case Settings::SearchMethod::Hover:
+            m_currentIndex = position;
+            m_findDelay->start(m_settings.delay);
+            break;
+        
+        case Settings::SearchMethod::Modifier:
+            if (QGuiApplication::keyboardModifiers() & m_settings.modifier)
+            {
+                m_currentIndex = position;
+                findTerms();
+            }
+            break;
+        }
+    }
+
+    event->ignore();
+}
+
+void SubtitleWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    QApplication::clipboard()->setText(m_subtitle.rawText);
+}
+
+void SubtitleWidget::leaveEvent(QEvent *event)
+{
+    m_findDelay->stop();
+    m_currentIndex = -1;
+}
+
+void SubtitleWidget::resizeEvent(QResizeEvent *event)
+{    
+    setAlignment(Qt::AlignHCenter);
+    if (!m_subtitle.rawText.isEmpty())
+        fitToContents();
+
+    event->ignore();
+    QTextEdit::resizeEvent(event);
+
+    Q_EMIT GlobalMediator::getGlobalMediator()->requestDefinitionDelete();
+    Q_EMIT GlobalMediator::getGlobalMediator()->requestFullscreenResize();
+}
+
+void SubtitleWidget::paintEvent(QPaintEvent *event)
+{
+    QTextCharFormat format;
+    format.setTextOutline(
+        QPen(
+            m_settings.strokeColor,
+            m_settings.strokeSize,
+            Qt::SolidLine,
+            Qt::RoundCap,
+            Qt::RoundJoin
+        )
+    );
+    QTextCursor cursor(document());
+    cursor.select(QTextCursor::Document);
+    cursor.mergeCharFormat(format);
+    QTextEdit::paintEvent(event);
+    
+    format = QTextCharFormat();
+    format.setTextOutline(QPen(Qt::transparent)); // Potential SIGSEGV
+    cursor.mergeCharFormat(format);
+    QTextEdit::paintEvent(event);
+}
+
+/* End Event Handlers */
+/* Begin General Slots */
+
+void SubtitleWidget::findTerms()
+{
+    if (!m_paused)
+        return;
+
+    int index = m_currentIndex;
+    QString queryStr = m_subtitle.rawText;
+    queryStr.remove(0, index);
+    queryStr.truncate(MAX_QUERY_LENGTH);
+    if (queryStr.isEmpty() || queryStr[0].isSpace())
+    {
+        return;
+    }
+
+    QThreadPool::globalInstance()->start(
+        [=] {
+            QList<Term *> *terms = m_dictionary->searchTerms(
+                    queryStr, m_subtitle.rawText, index, &m_currentIndex
+                );
+
+            if (terms == nullptr)
+            {
+                return;
+            }
+            else if (!m_paused || index != m_currentIndex)
+            {
+                deleteTerms(terms);
+            }
+            else if (terms->isEmpty())
+            {
+                delete terms;
+            }
+            else
+            {
+                Q_EMIT GlobalMediator::getGlobalMediator()->termsChanged(terms);
+                m_lastEmittedIndex = index;
+                m_lastEmittedSize  = terms->first()->clozeBody.size();
+            }
+        }
+    );
 }
 
 void SubtitleWidget::adjustVisibility()
@@ -176,7 +456,7 @@ void SubtitleWidget::adjustVisibility()
     {
         show();
     }
-    else if (m_hideOnPlay)
+    else if (m_settings.hideOnPlay)
     {
         hide();
     }
@@ -186,17 +466,29 @@ void SubtitleWidget::adjustVisibility()
     }
 }
 
+void SubtitleWidget::positionChanged(const double value)
+{
+    if (value < m_subtitle.startTime - DOUBLE_DELTA || 
+        value > m_subtitle.endTime + DOUBLE_DELTA)
+    {
+        m_subtitle.rawText.clear();
+        clear();
+        hide();
+        Q_EMIT GlobalMediator::getGlobalMediator()->subtitleExpired();
+    }
+}
+
 void SubtitleWidget::setSubtitle(QString subtitle,
                                  const double start, 
                                  const double end,
                                  const double delay)
 {
-    m_rawText = subtitle;
+    m_subtitle.rawText = subtitle;
 
     /* Process the subtitle */
-    if (m_replaceNewLines)
+    if (m_settings.replaceNewLines)
     {
-        subtitle.replace('\n', m_replaceStr);
+        subtitle.replace('\n', m_settings.replaceStr);
     }
         
     /* Add it to the text edit */
@@ -212,7 +504,7 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     }
 
     /* Update Size */
-    if (m_rawText.isEmpty())
+    if (m_subtitle.rawText.isEmpty())
     {
         setFixedSize(QSize(0, 0));
     }
@@ -222,18 +514,21 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     }
     
     /* Keep track of when to delete the subtitle */
-    m_startTime = start + delay;
-    m_endTime = end + delay;
+    m_subtitle.startTime = start + delay;
+    m_subtitle.endTime = end + delay;
     m_currentIndex = -1;
 
     adjustVisibility();
 }
 
-void SubtitleWidget::setSelectedText()
+void SubtitleWidget::selectText()
 {
     QTextCursor q = textCursor();
     q.setPosition(m_lastEmittedIndex);
-    q.setPosition(m_lastEmittedIndex + m_lastEmittedSize, QTextCursor::KeepAnchor);
+    q.setPosition(
+        m_lastEmittedIndex + m_lastEmittedSize, 
+        QTextCursor::KeepAnchor
+    );
     setTextCursor(q);
 }
 
@@ -244,174 +539,8 @@ void SubtitleWidget::deselectText()
     setTextCursor(q);
 }
 
-void SubtitleWidget::positionChanged(const double value)
-{
-    if (value < m_startTime - DOUBLE_DELTA || value > m_endTime + DOUBLE_DELTA)
-    {
-        m_rawText = "";
-        clear();
-        hide();
-        Q_EMIT GlobalMediator::getGlobalMediator()->subtitleExpired();
-    }
-}
-
-void SubtitleWidget::loadSettings()
-{
-    QSettings settings;
-    settings.beginGroup(SETTINGS_SEARCH);
-    m_delay = settings.value(SETTINGS_SEARCH_DELAY, DEFAULT_DELAY).toInt();
-    if (m_delay < 0)
-    {
-        m_delay = DEFAULT_DELAY;
-    }
-
-    QString modifier = settings.value(SETTINGS_SEARCH_MODIFIER, DEFAULT_MODIFIER).toString();
-    if (modifier == MODIFIER_ALT)
-    {
-        m_modifier = Qt::Modifier::ALT;
-    }
-    else if (modifier == MODIFIER_CTRL)
-    {
-        m_modifier = Qt::Modifier::CTRL;
-    }
-    else if (modifier == MODIFIER_SHIFT)
-    {
-        m_modifier = Qt::Modifier::SHIFT;
-    }
-    else if (modifier == MODIFIER_SUPER)
-    {
-        m_modifier = Qt::Modifier::META;
-    }
-    else
-    {
-        m_modifier = Qt::Modifier::SHIFT;
-    }
-
-    QString method = settings.value(SETTINGS_SEARCH_METHOD, DEFAULT_METHOD).toString();
-    if (method == SEARCH_METHOD_HOVER)
-    {
-        m_method = SearchMethod::Hover;
-    }
-    else if (method == SEARCH_METHOD_MODIFIER)
-    {
-        m_method = SearchMethod::Modifier;
-    }
-    else
-    {
-        m_method = SearchMethod::Hover;
-    }
-
-    m_hideSubsWhenVisible = settings.value(SETTINGS_SEARCH_HIDE_SUBS, DEFAULT_HIDE_SUBS).toBool();
-    if (m_hideSubsWhenVisible)
-    {
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter()->setSubVisiblity(!isVisible());
-    }
-    else
-    {
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter()->setSubVisiblity(true);
-    }
-
-    m_hideOnPlay = settings.value(SETTINGS_SEARCH_HIDE_BAR, DEFAULT_HIDE_BAR).toBool();
-    adjustVisibility();
-    
-    m_replaceNewLines = settings.value(SETTINGS_SEARCH_REPLACE_LINES, DEFAULT_REPLACE_LINES).toBool();
-    m_replaceStr      = settings.value(SETTINGS_SERACH_REPLACE_WITH,  DEFAULT_REPLACE_WITH).toString();
-    setSubtitle(m_rawText, m_startTime, m_endTime, 0);
-    settings.endGroup();
-}
-
-void SubtitleWidget::findTerms()
-{
-    if (!m_paused)
-        return;
-
-    int index = m_currentIndex;
-    QString queryStr = m_rawText;
-    queryStr.remove(0, index);
-    queryStr.truncate(MAX_QUERY_LENGTH);
-    if (queryStr.isEmpty() || queryStr[0].isSpace())
-    {
-        return;
-    }
-
-    QThreadPool::globalInstance()->start([=] {
-        QList<Term *> *terms = m_dictionary->searchTerms(queryStr, m_rawText, index, &m_currentIndex);
-
-        if (terms == nullptr)
-        {
-            return;
-        }
-        else if (!m_paused || index != m_currentIndex)
-        {
-            deleteTerms(terms);
-        }
-        else if (terms->isEmpty())
-        {
-            delete terms;
-        }
-        else
-        {
-            Q_EMIT GlobalMediator::getGlobalMediator()->termsChanged(terms);
-            m_lastEmittedIndex = index;
-            m_lastEmittedSize  = terms->first()->clozeBody.size();
-        }
-    });
-}
-
-void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    event->ignore();
-    int position = cursorForPosition(event->pos()).position();
-
-    if (m_paused && position != m_currentIndex)
-    {
-        switch (m_method)
-        {
-        case SearchMethod::Hover:
-            m_currentIndex = position;
-            m_findDelay->start(m_delay);
-            break;
-        case SearchMethod::Modifier:
-            if (QGuiApplication::keyboardModifiers() & m_modifier)
-            {
-                m_currentIndex = position;
-                findTerms();
-            }
-            break;
-        }
-    }
-}
-
-void SubtitleWidget::mouseDoubleClickEvent(QMouseEvent *event)
-{
-    QApplication::clipboard()->setText(m_rawText);
-}
-
-void SubtitleWidget::leaveEvent(QEvent *event)
-{
-    m_findDelay->stop();
-    m_currentIndex = -1;
-}
-
-void SubtitleWidget::resizeEvent(QResizeEvent *event)
-{
-    event->ignore();
-    setAlignment(Qt::AlignHCenter);
-    if (!m_rawText.isEmpty())
-        fitToContents();
-    QTextEdit::resizeEvent(event);
-    Q_EMIT GlobalMediator::getGlobalMediator()->requestDefinitionDelete();
-    Q_EMIT GlobalMediator::getGlobalMediator()->requestFullscreenResize();
-}
-
-void SubtitleWidget::deleteTerms(QList<Term *> *terms)
-{
-    for (Term *term : *terms)
-    {
-        delete term;
-    }
-    delete terms;
-}
+/* End General Slots */
+/* Begin Helpers */
 
 void SubtitleWidget::fitToContents()
 {
@@ -427,35 +556,4 @@ void SubtitleWidget::fitToContents()
     updateGeometry();
 }
 
-void SubtitleWidget::paintEvent(QPaintEvent *event)
-{
-    QTextCharFormat format;
-    format.setTextOutline(QPen(m_strokeColor, m_strokeSize, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    QTextCursor cursor(document());
-    cursor.select(QTextCursor::Document);
-    cursor.mergeCharFormat(format);
-    QTextEdit::paintEvent(event);
-    
-    format = QTextCharFormat();
-    format.setTextOutline(QPen(Qt::transparent)); // Potential SIGSEGV
-    cursor.mergeCharFormat(format);
-    QTextEdit::paintEvent(event);
-}
-
-void SubtitleWidget::showEvent(QShowEvent *event)
-{
-    if (m_hideSubsWhenVisible)
-    {
-        Q_EMIT GlobalMediator::getGlobalMediator()->requestSetSubtitleVisibility(false);
-    }
-    QTextEdit::showEvent(event);
-}
-
-void SubtitleWidget::hideEvent(QHideEvent *event)
-{
-    if (m_hideSubsWhenVisible && m_hideOnPlay)
-    {
-        Q_EMIT GlobalMediator::getGlobalMediator()->requestSetSubtitleVisibility(true);
-    }
-    QTextEdit::hideEvent(event);
-}
+/* End Helpers */
