@@ -20,26 +20,25 @@
 
 #include "ankiclient.h"
 
-#include "../util/directoryutils.h"
-#include "../util/globalmediator.h"
+#include <QDebug>
+#include <QFile>
+#include <QJsonArray>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QTemporaryFile>
+#include <QThreadPool>
+
+#include "../gui/playeradapter.h"
+#include "../gui/widgets/subtitlelistwidget.h"
 #include "../util/constants.h"
-#include "../util/fileutils.h"
-#include "../util/graphicutils.h"
+#include "../util/globalmediator.h"
+#include "../util/utils.h"
+
 extern "C"
 {
 #include "../ffmpeg/transcode_aac.h"
 }
-#include "../gui/playeradapter.h"
-#include "../gui/widgets/subtitlelistwidget.h"
-
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QJsonArray>
-#include <QFile>
-#include <QTemporaryFile>
-#include <QThreadPool>
-#include <QDebug>
 
 // Anki request fields
 #define ANKI_ACTION                     "action"

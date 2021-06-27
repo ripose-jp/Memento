@@ -30,7 +30,7 @@
 #include <mpv/client.h>
 #include <mpv/render_gl.h>
 
-#include "../../util/directoryutils.h"
+#include "../../util/utils.h"
 
 #if __APPLE__
 class MacOSPowerEventHandler;

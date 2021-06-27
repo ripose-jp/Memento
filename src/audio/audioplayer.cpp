@@ -20,18 +20,17 @@
 
 #include "audioplayer.h"
 
-#include "../util/globalmediator.h"
-#include "../util/fileutils.h"
-
 #include <mpv/client.h>
+#include <QCoreApplication>
+#include <QFileInfo>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QThreadPool>
 #include <stdlib.h>
 
-#include <QCoreApplication>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QThreadPool>
-#include <QFileInfo>
+#include "../util/globalmediator.h"
+#include "../util/utils.h"
 
 AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent)
 {

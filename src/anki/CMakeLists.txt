@@ -7,11 +7,10 @@ set(
 add_library(anki ${ANKI_SRCS})
 target_link_libraries(
     anki
+    utils
     globalmediator
     mpvadapter
     transcoder
-    fileutils
     Qt5::Core
     Qt5::Network
-    graphicutils
 )

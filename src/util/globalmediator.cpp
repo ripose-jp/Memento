@@ -20,8 +20,6 @@
 
 #include "globalmediator.h"
 
-#include "directoryutils.h"
-
 GlobalMediator::GlobalMediator(QObject *parent) : QObject(parent)
 {
     m_dictionary   = nullptr;

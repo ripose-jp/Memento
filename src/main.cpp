@@ -21,16 +21,16 @@
 #include <QApplication>
 #include <QDir>
 #include <QFile>
-#include <QMessageBox>
 #include <QFontDatabase>
+#include <QMessageBox>
 #include <QSettings>
 
+#include "audio/audioplayer.h"
 #include "gui/mainwindow.h"
 #include "util/constants.h"
-#include "util/directoryutils.h"
 #include "util/globalmediator.h"
 #include "util/iconfactory.h"
-#include "audio/audioplayer.h"
+#include "util/utils.h"
 
 #if __APPLE__
     #include <locale.h>

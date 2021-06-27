@@ -7,7 +7,7 @@ add_library(
 set(
     MPV_WIDGET_LIBS
     ${MPV_LIB}
-    directoryutils
+    utils
     Qt5::Widgets
 )
 if(UNIX AND NOT APPLE)
@@ -37,7 +37,6 @@ target_link_libraries(
     Qt5::Widgets
     Qt5::Core
 )
-
 
 add_library(
     subtitlewidget

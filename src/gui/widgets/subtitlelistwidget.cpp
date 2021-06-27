@@ -21,15 +21,15 @@
 #include "subtitlelistwidget.h"
 #include "ui_subtitlelistwidget.h"
 
-#include "../../util/directoryutils.h"
-#include "../../util/globalmediator.h"
-#include "../../util/constants.h"
-#include "../playeradapter.h"
-
 #include <iterator>
-#include <QMultiMap>
 #include <QApplication>
+#include <QMultiMap>
 #include <QSettings>
+
+#include "../../util/constants.h"
+#include "../../util/globalmediator.h"
+#include "../../util/utils.h"
+#include "../playeradapter.h"
 
 SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     : QWidget(parent),

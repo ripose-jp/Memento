@@ -20,18 +20,17 @@
 
 #include "subtitlewidget.h"
 
-#include "../../util/directoryutils.h"
-#include "../../util/globalmediator.h"
-#include "../../util/constants.h"
-
-#include "../playeradapter.h"
-
 #include <QApplication>
 #include <QClipboard>
-#include <QThreadPool>
 #include <QDebug>
 #include <QScrollBar>
 #include <QSettings>
+#include <QThreadPool>
+
+#include "../../util/constants.h"
+#include "../../util/globalmediator.h"
+#include "../../util/utils.h"
+#include "../playeradapter.h"
 
 #define MAX_QUERY_LENGTH        37
 #define DOUBLE_DELTA            0.05

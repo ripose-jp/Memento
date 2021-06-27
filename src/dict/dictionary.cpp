@@ -20,15 +20,15 @@
 
 #include "dictionary.h"
 
+#include <algorithm>
+#include <mecab.h>
 #include <QApplication>
 #include <QDebug>
 #include <QSettings>
-#include <mecab.h>
-#include <algorithm>
 
-#include "../util/directoryutils.h"
-#include "../util/globalmediator.h"
 #include "../util/constants.h"
+#include "../util/globalmediator.h"
+#include "../util/utils.h"
 
 #define WORD_INDEX          6
 #define QUERIES_PER_THREAD  4
