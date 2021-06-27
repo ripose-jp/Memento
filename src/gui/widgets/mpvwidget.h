@@ -51,7 +51,15 @@ public:
      * Get the mpv client context 
      * @return mpv_handle for the MpvWidget
      */
-    mpv_handle *getHandle() const { return mpv; } 
+    mpv_handle *getHandle() const { return mpv; }
+
+    /**
+     * Returns the recommend size of the widget.
+     * Used as a hack to prevent the SubtitleList from eating up space when
+     * shown.
+     * @return The recommend size of the widget.
+     */
+    QSize sizeHint() const { return QSize(480, 270);}
 
 Q_SIGNALS:
     /**
