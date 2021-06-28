@@ -25,9 +25,9 @@
 
 #include <QMutex>
 
-#include "ankisettingshelp.h"
 #include "../../../anki/ankiclient.h"
 #include "../../../anki/ankiconfig.h"
+#include "ankisettingshelp.h"
 
 namespace Ui
 {
@@ -36,55 +36,163 @@ namespace Ui
 
 class CardBuilder;
 
+/**
+ * Front end for modifying Anki Integration settings.
+ */
 class AnkiSettings : public QWidget
 {
     Q_OBJECT
 
 public:
-    AnkiSettings(QWidget *parent = 0);
+    AnkiSettings(QWidget *parent = nullptr);
     ~AnkiSettings();
 
 protected:
+    /**
+     * Restores the current saved config to the UI.
+     */
     void showEvent(QShowEvent *event) override;
+
+    /**
+     * Resets the server to the saved server when closed.
+     */
     void hideEvent(QHideEvent *event) override;
 
 private Q_SLOTS:
-    void refreshIcons();
-    void enabledStateChanged(int state);
-    void connectToClient(const bool showErrors = true);
-    void updateModelFields(CardBuilder *cb, const QString &model);
+    /**
+     * Updates icons on a theme change.
+     */
+    void initIcons();
+
+    /**
+     * Applies the changes to the AnkiClient.
+     */
     void applyChanges();
+
+    /**
+     * Restores the default settings to the UI. Does not apply changes.
+     */
     void restoreDefaults();
+
+    /**
+     * Restores the saved settings.
+     */
     void restoreSaved();
-    void addProfile();
-    void deleteProfile();
+
+    /**
+     * Called when the Anki Integration Enabled checkbox is changed.
+     * Enables/Disables widgets on the front end.
+     * @param state The checkbox state (Qt::CheckState).
+     */
+    void enabledStateChanged(int state);
+
+    /**
+     * Connects to AnkiConnect and updates the decks, models, and fields.
+     * @param showErrors If true, shows a dialog box containing errors.
+     */
+    void connectToClient(const bool showErrors = true);
+
+    /**
+     * Shows the fields for the currently selected model in the table.
+     * @param cb    The CardBuilder that should be updated.
+     * @param model The name of the model to get fields from.
+     */
+    void updateModelFields(CardBuilder *cb, const QString &model);
+
+    /**
+     * Populates the UI with the asked profile.
+     * @param text The name of the profile to populate the UI with.
+     */
     void changeProfile(const QString &text);
 
-private:
-    Ui::AnkiSettings             *m_ui;
-    AnkiSettingsHelp             *m_ankiSettingsHelp;
-    QHash<QString, AnkiConfig *> *m_configs;
-    QMap<QString, AudioSource>    m_audioSources;
-    QString                       m_currentProfile;
-    QMutex                        m_mutexUpdateModelFields;
+    /**
+     * Adds a new profile with all the same settings so long as the name doesn't
+     * already exist. Does not apply settings.
+     */
+    void addProfile();
 
+    /**
+     * Removes the current profile so long as it is not the Default profile.
+     * Does not apply settings.
+     */
+    void deleteProfile();
+
+private:
+    /**
+     * Populates the Audio Sources spin box with the saved audio sources.
+     */
+
+    void initAudioSources();
+    /**
+     * Destructor for the cached configs.
+     */
     void clearConfigs();
 
-    void populateAudioSources();
-
+    /**
+     * Loads the information from the config into the UI.
+     * @param profile The name of the profile.
+     * @param config  The struct containing the config information.
+     */
     void populateFields(const QString &profile, const AnkiConfig *config);
 
-    QString duplicatePolicyToString(AnkiConfig::DuplicatePolicy policy);
-
-    AnkiConfig::DuplicatePolicy stringToDuplicatePolicy(const QString &str);
-
-    QString fileTypeToString(AnkiConfig::FileType type);
-
-    AnkiConfig::FileType stringToFileType(const QString &str);
-
+    /**
+     * Saves changes to cached config without applying them to the client.
+     * @param profile The profile to save the changes to.
+     */
     void applyToConfig(const QString &profile);
 
+    /**
+     * Renames a profile in the cache without applying it to the client.
+     * @param oldName The current name of the profile.
+     * @param newName The new name of the profile.
+     */
     void renameProfile(const QString &oldName, const QString &newName);
+
+    /**
+     * Converts a duplicate policy in its string representation.
+     * @param policy The duplicate policy.
+     * @return The string representation of the duplicate policy.
+     */
+    QString duplicatePolicyToString(AnkiConfig::DuplicatePolicy policy);
+
+    /**
+     * Converts a string into its corresponding duplicate policy.
+     * @param str The string to convert into a duplicate policy.
+     * @returns The enum representation of the duplicate policy string.
+     */
+    AnkiConfig::DuplicatePolicy stringToDuplicatePolicy(const QString &str);
+
+    /**
+     * Converts a file type to its string representation.
+     * @param type The enum file type.
+     * @return The string representation of type.
+     */
+    QString fileTypeToString(AnkiConfig::FileType type);
+
+    /**
+     * Converts a file type string into its corresponding enum representation.
+     * @param str The file type string.
+     * @return The corresponding FileType enum representation.
+     */
+    AnkiConfig::FileType stringToFileType(const QString &str);
+
+    /* The UI object that holds all the widgets. */
+    Ui::AnkiSettings             *m_ui;
+
+    /* The help window that explains what the card markers are. */
+    AnkiSettingsHelp             *m_ankiSettingsHelp;
+
+    /* A cached set of configs index by profile name. */
+    QHash<QString, AnkiConfig *> *m_configs;
+
+    /* A cached set of audio sources, indexed by name. */
+    QMap<QString, AudioSource>    m_audioSources;
+
+    /* The name of the current profile visible in the UI. */
+    QString                       m_currentProfile;
+
+    /* A mutex to prevent race conditions when updating CardBuilders. */
+    QMutex                        m_mutexUpdateModelFields;
 };
 
 #endif // ANKISETTINGS_H

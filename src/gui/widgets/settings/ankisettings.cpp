@@ -21,22 +21,14 @@
 #include "ankisettings.h"
 #include "ui_ankisettings.h"
 
-#include "../../../util/iconfactory.h"
-#include "../../../util/globalmediator.h"
-#include "../../../util/constants.h"
-
-#include <QTableWidgetItem>
 #include <QSettings>
+#include <QTableWidgetItem>
 
-#define DUPLICATE_POLICY_NONE       "None"
-#define DUPLICATE_POLICY_DIFFERENT  "Allowed in Different Decks"
-#define DUPLICATE_POLICY_SAME       "Allowed in Same Deck"
+#include "../../../util/constants.h"
+#include "../../../util/globalmediator.h"
+#include "../../../util/iconfactory.h"
 
-#define SCREENSHOT_PNG              "PNG"
-#define SCREENSHOT_JPG              "JPG"
-#define SCREENSHOT_WEBP             "WebP"
-
-#define REGEX_REMOVE_SPACES_COMMAS "[, ]+"
+/* Begin Constructor/Destructors */
 
 AnkiSettings::AnkiSettings(QWidget *parent)
     : QWidget(parent),
@@ -46,11 +38,20 @@ AnkiSettings::AnkiSettings(QWidget *parent)
 {
     m_ui->setupUi(this);
 
-    refreshIcons();
+    initIcons();
 
-    connect(m_ui->checkBoxEnabled,  &QCheckBox::stateChanged,       this, &AnkiSettings::enabledStateChanged);
-    connect(m_ui->comboBoxProfile,  &QComboBox::currentTextChanged, this, &AnkiSettings::changeProfile);
-    connect(m_ui->buttonConnect,    &QPushButton::clicked,          this, [=] { connectToClient(true); } );
+    connect(
+        m_ui->checkBoxEnabled, &QCheckBox::stateChanged,
+        this,                  &AnkiSettings::enabledStateChanged
+    );
+    connect(
+        m_ui->comboBoxProfile, &QComboBox::currentTextChanged,
+        this,                  &AnkiSettings::changeProfile
+    );
+    connect(
+        m_ui->buttonConnect, &QPushButton::clicked,
+        this,                [=] { connectToClient(true); }
+    );
     connect(m_ui->termCardBuilder,  &CardBuilder::modelTextChanged, this, 
         [=] (const QString &model) {
             updateModelFields(m_ui->termCardBuilder, model);
@@ -65,28 +66,51 @@ AnkiSettings::AnkiSettings(QWidget *parent)
     /* Dialog Buttons */
     connect(
         m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Reset),
-        &QPushButton::clicked, this, &AnkiSettings::restoreSaved
+            &QPushButton::clicked,
+        this, &AnkiSettings::restoreSaved
     );
     connect(
-        m_ui->buttonBox->button(QDialogButtonBox::StandardButton::RestoreDefaults),
-        &QPushButton::clicked, this, &AnkiSettings::restoreDefaults
+        m_ui->buttonBox->button(
+                QDialogButtonBox::StandardButton::RestoreDefaults
+            ),
+        &QPushButton::clicked,
+        this,
+        &AnkiSettings::restoreDefaults
     );
     connect(
         m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Apply),
-        &QPushButton::clicked, this, &AnkiSettings::applyChanges
+        &QPushButton::clicked,
+        this,
+        &AnkiSettings::applyChanges
     );
     connect(
         m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Help), 
-        &QPushButton::clicked, m_ankiSettingsHelp, &AnkiSettingsHelp::show
+        &QPushButton::clicked, 
+        m_ankiSettingsHelp,
+        &AnkiSettingsHelp::show
     );
 
     /* Profile actions */
-    connect(m_ui->buttonAdd,       &QToolButton::clicked,          this, &AnkiSettings::addProfile);
-    connect(m_ui->buttonDelete,    &QToolButton::clicked,          this, &AnkiSettings::deleteProfile);
-    connect(m_ui->comboBoxProfile, &QComboBox::currentTextChanged, this, &AnkiSettings::changeProfile);
+    connect(
+        m_ui->buttonAdd, &QToolButton::clicked,
+        this,            &AnkiSettings::addProfile
+    );
+    connect(
+        m_ui->buttonDelete, &QToolButton::clicked,
+        this,               &AnkiSettings::deleteProfile
+    );
+    connect(
+        m_ui->comboBoxProfile, &QComboBox::currentTextChanged,
+        this,                  &AnkiSettings::changeProfile
+    );
 
     /* Theme Changes */
-    connect(GlobalMediator::getGlobalMediator(), &GlobalMediator::requestThemeRefresh, this, &AnkiSettings::refreshIcons);
+    connect(
+        GlobalMediator::getGlobalMediator(),
+        &GlobalMediator::requestThemeRefresh,
+        this, 
+        &AnkiSettings::initIcons
+    );
 }
 
 AnkiSettings::~AnkiSettings()
@@ -95,13 +119,6 @@ AnkiSettings::~AnkiSettings()
     delete m_ui;
     delete m_ankiSettingsHelp;
     clearConfigs();
-}
-
-void AnkiSettings::refreshIcons()
-{
-    IconFactory *factory = IconFactory::create();
-    m_ui->buttonAdd->setIcon(factory->getIcon(IconFactory::Icon::plus));
-    m_ui->buttonDelete->setIcon(factory->getIcon(IconFactory::Icon::minus));
 }
 
 void AnkiSettings::clearConfigs()
@@ -113,11 +130,21 @@ void AnkiSettings::clearConfigs()
             delete config;
         }
         delete m_configs;
-        m_configs = 0;
+        m_configs = nullptr;
     }
 }
 
-void AnkiSettings::populateAudioSources()
+/* End Constructor/Destructors */
+/* Begin Initializers */
+
+void AnkiSettings::initIcons()
+{
+    IconFactory *factory = IconFactory::create();
+    m_ui->buttonAdd->setIcon(factory->getIcon(IconFactory::Icon::plus));
+    m_ui->buttonDelete->setIcon(factory->getIcon(IconFactory::Icon::minus));
+}
+
+void AnkiSettings::initAudioSources()
 {
     m_audioSources.clear();
 
@@ -140,16 +167,21 @@ void AnkiSettings::populateAudioSources()
     settings.endArray();
 }
 
+/* End Initializers */
+/* Begin Event Handlers */
+
 void AnkiSettings::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
 
-    populateAudioSources();
+    initAudioSources();
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     m_ui->checkBoxEnabled->setChecked(client->isEnabled());
     m_configs        = client->getConfigs();
     m_currentProfile = client->getProfile();
-    populateFields(client->getProfile(), m_configs->value(client->getProfile()));
+    populateFields(
+        client->getProfile(), m_configs->value(client->getProfile())
+    );
     connectToClient(false);
 }
 
@@ -157,164 +189,20 @@ void AnkiSettings::hideEvent(QHideEvent *event)
 {
     QWidget::hideEvent(event);
 
-    AnkiClient       *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
+    AnkiClient *client = 
+        GlobalMediator::getGlobalMediator()->getAnkiClient();
     const AnkiConfig *config = client->getConfig(client->getProfile());
     client->setServer(config->address, config->port);
     clearConfigs();
 }
 
-void AnkiSettings::enabledStateChanged(int state)
-{
-    bool enabled = state == Qt::CheckState::Checked;
-    m_ui->frameContent->setEnabled(enabled);
-    m_ui->buttonAdd->setEnabled(enabled);
-    m_ui->buttonDelete->setEnabled(enabled);
-    m_ui->buttonConnect->setEnabled(enabled);
-}
-
-void AnkiSettings::addProfile()
-{
-    QString profileName = m_ui->lineEditProfileName->text();
-    if (m_configs->contains(profileName))
-    {
-        Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
-            "Failed",
-            "Profile with name " + profileName + " already exists."
-        );
-    }
-    else
-    {
-        m_configs->insert(
-            profileName,
-            new AnkiConfig(
-                *m_configs->value(m_ui->comboBoxProfile->currentText())));
-
-        m_ui->comboBoxProfile->blockSignals(true);
-        m_ui->comboBoxProfile->addItem(profileName);
-        m_ui->comboBoxProfile->setCurrentText(profileName);
-        m_ui->comboBoxProfile->model()->sort(0);
-        m_ui->comboBoxProfile->blockSignals(false);
-
-        m_currentProfile = profileName;
-    }
-}
-
-void AnkiSettings::deleteProfile()
-{
-    QString profile = m_ui->comboBoxProfile->currentText();
-    if (profile == DEFAULT_PROFILE)
-    {
-        Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
-            "Failed",
-            "The Default profile cannot be deleted"
-        );
-    }
-    else
-    {
-        delete m_configs->value(profile);
-        m_configs->remove(profile);
-
-        m_ui->comboBoxProfile->blockSignals(true);
-        m_ui->comboBoxProfile->removeItem(
-            m_ui->comboBoxProfile->currentIndex());
-        populateFields(
-            m_ui->comboBoxProfile->currentText(),
-            m_configs->value(m_ui->comboBoxProfile->currentText()));
-        m_ui->comboBoxProfile->blockSignals(false);
-
-        m_currentProfile = m_ui->comboBoxProfile->currentText();
-    }
-}
-
-void AnkiSettings::changeProfile(const QString &text)
-{
-    applyToConfig(m_currentProfile);
-    if (m_currentProfile != m_ui->lineEditProfileName->text())
-        renameProfile(m_currentProfile, m_ui->lineEditProfileName->text());
-    populateFields(text, m_configs->value(text));
-    m_currentProfile = text;
-}
-
-void AnkiSettings::connectToClient(const bool showErrors)
-{
-    m_ui->buttonConnect->setEnabled(false);
-
-    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
-    client->setServer(m_ui->lineEditHost->text(), m_ui->lineEditPort->text());
-
-    AnkiReply *reply = client->testConnection();
-    connect(reply, &AnkiReply::finishedBool,
-        [=] (const bool val, const QString &error) {
-            if (val)
-            {
-            AnkiReply *reply = client->getDeckNames();
-            connect(reply, &AnkiReply::finishedStringList,
-                [=] (const QStringList &decks, const QString &error) {
-                    if (error.isEmpty())
-                    {
-                        m_ui->termCardBuilder->setDecks(decks, client->getConfig(client->getProfile())->termDeck);
-                        m_ui->kanjiCardBuilder->setDecks(decks, client->getConfig(client->getProfile())->kanjiDeck);
-                    }
-                    else if (showErrors)
-                    {
-                        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical("Error", error);
-                    }
-                }
-            );
-            
-            reply = client->getModelNames();
-            connect(reply, &AnkiReply::finishedStringList,
-                [=] (const QStringList &models, const QString &error) {
-                    if (error.isEmpty())
-                    {
-                        m_ui->termCardBuilder->blockSignals(true);
-                        m_ui->termCardBuilder->setModels(models, client->getConfig(client->getProfile())->termModel);
-                        m_ui->termCardBuilder->blockSignals(false);
-
-                        m_ui->kanjiCardBuilder->blockSignals(true);
-                        m_ui->kanjiCardBuilder->setModels(models, client->getConfig(client->getProfile())->kanjiModel);
-                        m_ui->kanjiCardBuilder->blockSignals(false);
-                    }
-                    else if (showErrors)
-                    {
-                        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical("Error", error);
-                    }
-                }
-            );
-        }
-        else if (showErrors)
-        {
-            Q_EMIT GlobalMediator::getGlobalMediator()->showCritical("Error", error);
-        }
-
-        m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
-    });
-}
-
-void AnkiSettings::updateModelFields(CardBuilder *cb, const QString &model)
-{
-    m_mutexUpdateModelFields.lock();
-    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
-    AnkiReply *reply = client->getFieldNames(model);
-    connect(reply, &AnkiReply::finishedStringList,
-        [=] (const QStringList &fields, const QString error) {
-            if (error.isEmpty())
-            {
-                cb->setFields(fields);
-            }
-            else
-            {
-                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical("Error", error);
-            }
-            m_mutexUpdateModelFields.unlock();
-        }
-    );
-}
+/* End Event Handlers */
+/* Begin Dialog Button Actions */
 
 void AnkiSettings::applyChanges()
 {
-    // Renaming profile if changed
-    if (m_ui->comboBoxProfile->currentText() !=
+    /* Renaming profile if changed */
+    if (m_ui->comboBoxProfile->currentText() != 
         m_ui->lineEditProfileName->text())
     {
         renameProfile(
@@ -325,17 +213,19 @@ void AnkiSettings::applyChanges()
 
     applyToConfig(m_ui->comboBoxProfile->currentText());
 
-    // Apply changes to the client
+    /* Apply changes to the client */
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     client->setEnabled(m_ui->checkBoxEnabled->isChecked());
     client->clearProfiles();
-    for (auto it = m_configs->constKeyValueBegin(); it != m_configs->constKeyValueEnd(); ++it)
+    for (auto it = m_configs->constKeyValueBegin();
+         it != m_configs->constKeyValueEnd();
+         ++it)
     {
         client->addProfile(it->first, *it->second);
     }
     client->setProfile(m_ui->comboBoxProfile->currentText());
 
-    // Write the changes to the config file
+    /* Write the changes to the config file */
     client->writeChanges();
 }
 
@@ -355,13 +245,17 @@ void AnkiSettings::restoreDefaults()
 
     defaultConfig.termDeck        = m_ui->termCardBuilder->getDeckText();
     defaultConfig.termModel       = m_ui->termCardBuilder->getModelText();
-    QStringList fields            = m_configs->value(m_ui->comboBoxProfile->currentText())->termFields.keys();
+    QStringList fields            = m_configs->value(
+            m_ui->comboBoxProfile->currentText()
+        )->termFields.keys();
     for (const QString &field : fields)
         defaultConfig.termFields[field] = "";
 
     defaultConfig.kanjiDeck       = m_ui->kanjiCardBuilder->getDeckText();
     defaultConfig.kanjiModel      = m_ui->kanjiCardBuilder->getModelText();
-    fields                        = m_configs->value(m_ui->comboBoxProfile->currentText())->kanjiFields.keys();
+    fields                        = m_configs->value(
+            m_ui->comboBoxProfile->currentText()
+        )->kanjiFields.keys();
     for (const QString &field : fields)
         defaultConfig.kanjiFields[field] = "";
     
@@ -383,12 +277,122 @@ void AnkiSettings::restoreSaved()
     m_ui->comboBoxProfile->model()->sort(0);
     m_ui->comboBoxProfile->blockSignals(false);
 
-    populateFields(client->getProfile(), client->getConfig(client->getProfile()));
+    populateFields(
+        client->getProfile(), client->getConfig(client->getProfile())
+    );
 
     m_currentProfile = client->getProfile();
 }
 
-void AnkiSettings::populateFields(const QString &profile, const AnkiConfig *config)
+/* End Dialog Button Actions */
+/* Begin AnkiConnect Actions */
+
+void AnkiSettings::connectToClient(const bool showErrors)
+{
+    m_ui->buttonConnect->setEnabled(false);
+
+    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
+    client->setServer(m_ui->lineEditHost->text(), m_ui->lineEditPort->text());
+
+    AnkiReply *reply = client->testConnection();
+    connect(reply, &AnkiReply::finishedBool,
+        [=] (const bool val, const QString &error) {
+            if (val)
+            {
+            AnkiReply *reply = client->getDeckNames();
+            connect(reply, &AnkiReply::finishedStringList,
+                [=] (const QStringList &decks, const QString &error) {
+                    if (error.isEmpty())
+                    {
+                        m_ui->termCardBuilder->setDecks(
+                            decks, 
+                            client->getConfig(client->getProfile())->termDeck
+                        );
+                        m_ui->kanjiCardBuilder->setDecks(
+                            decks, 
+                            client->getConfig(client->getProfile())->kanjiDeck
+                        );
+                    }
+                    else if (showErrors)
+                    {
+                        Q_EMIT GlobalMediator::getGlobalMediator()
+                            ->showCritical("Error", error);
+                    }
+                }
+            );
+            
+            reply = client->getModelNames();
+            connect(reply, &AnkiReply::finishedStringList,
+                [=] (const QStringList &models, const QString &error) {
+                    if (error.isEmpty())
+                    {
+                        m_ui->termCardBuilder->blockSignals(true);
+                        m_ui->termCardBuilder->setModels(
+                            models,
+                            client->getConfig(client->getProfile())->termModel
+                        );
+                        m_ui->termCardBuilder->blockSignals(false);
+
+                        m_ui->kanjiCardBuilder->blockSignals(true);
+                        m_ui->kanjiCardBuilder->setModels(
+                            models,
+                            client->getConfig(client->getProfile())->kanjiModel
+                        );
+                        m_ui->kanjiCardBuilder->blockSignals(false);
+                    }
+                    else if (showErrors)
+                    {
+                        Q_EMIT GlobalMediator::getGlobalMediator()
+                            ->showCritical("Error", error);
+                    }
+                }
+            );
+        }
+        else if (showErrors)
+        {
+            Q_EMIT GlobalMediator::getGlobalMediator()
+                ->showCritical("Error", error);
+        }
+
+        m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
+    });
+}
+
+void AnkiSettings::updateModelFields(CardBuilder *cb, const QString &model)
+{
+    m_mutexUpdateModelFields.lock();
+    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
+    AnkiReply *reply = client->getFieldNames(model);
+    connect(reply, &AnkiReply::finishedStringList,
+        [=] (const QStringList &fields, const QString error) {
+            if (error.isEmpty())
+            {
+                cb->setFields(fields);
+            }
+            else
+            {
+                Q_EMIT GlobalMediator::getGlobalMediator()
+                    ->showCritical("Error", error);
+            }
+            m_mutexUpdateModelFields.unlock();
+        }
+    );
+}
+
+/* End AnkiConnect Actions */
+/* Begin UI Management */
+
+void AnkiSettings::enabledStateChanged(int state)
+{
+    bool enabled = state == Qt::CheckState::Checked;
+    m_ui->frameContent->setEnabled(enabled);
+    m_ui->buttonAdd->setEnabled(enabled);
+    m_ui->buttonDelete->setEnabled(enabled);
+    m_ui->buttonConnect->setEnabled(enabled);
+}
+
+void AnkiSettings::populateFields(const QString    &profile,
+                                  const AnkiConfig *config)
 {
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
 
@@ -423,8 +427,8 @@ void AnkiSettings::populateFields(const QString &profile, const AnkiConfig *conf
     m_ui->spinAudioPadEnd->setValue(config->audioPadEnd);
 
     QString tags;
-    for (auto it = config->tags.begin(); it != config->tags.end(); ++it)
-        tags += it->toString() + ",";
+    for (const QJsonValue &tag : config->tags)
+        tags += tag.toString() + ",";
     tags.chop(1);
     m_ui->lineEditTags->setText(tags);
 
@@ -443,75 +447,114 @@ void AnkiSettings::populateFields(const QString &profile, const AnkiConfig *conf
     m_ui->kanjiCardBuilder->setFields(config->kanjiFields);
 }
 
-QString AnkiSettings::duplicatePolicyToString(
-    AnkiConfig::DuplicatePolicy policy)
+void AnkiSettings::changeProfile(const QString &text)
 {
-    switch(policy)
+    applyToConfig(m_currentProfile);
+    if (m_currentProfile != m_ui->lineEditProfileName->text())
     {
-    case AnkiConfig::DuplicatePolicy::None:
-        return DUPLICATE_POLICY_NONE;
-    case AnkiConfig::DuplicatePolicy::DifferentDeck:
-        return DUPLICATE_POLICY_DIFFERENT;
-    case AnkiConfig::DuplicatePolicy::SameDeck:
-        return DUPLICATE_POLICY_SAME;
-    default:
-        return DUPLICATE_POLICY_DIFFERENT;
+       renameProfile(m_currentProfile, m_ui->lineEditProfileName->text());
+    }
+    populateFields(text, m_configs->value(text));
+    m_currentProfile = text;
+}
+
+/* End UI Management */
+/* Begin Cache Management */
+
+void AnkiSettings::addProfile()
+{
+    QString profileName = m_ui->lineEditProfileName->text();
+    if (m_configs->contains(profileName))
+    {
+        Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
+            "Failed",
+            "Profile with name " + profileName + " already exists."
+        );
+    }
+    else
+    {
+        m_configs->insert(
+            profileName,
+            new AnkiConfig(
+                *m_configs->value(m_ui->comboBoxProfile->currentText())
+            )
+        );
+
+        m_ui->comboBoxProfile->blockSignals(true);
+        m_ui->comboBoxProfile->addItem(profileName);
+        m_ui->comboBoxProfile->setCurrentText(profileName);
+        m_ui->comboBoxProfile->model()->sort(0);
+        m_ui->comboBoxProfile->blockSignals(false);
+
+        m_currentProfile = profileName;
     }
 }
 
-AnkiConfig::DuplicatePolicy AnkiSettings::stringToDuplicatePolicy(
-    const QString &str)
+void AnkiSettings::deleteProfile()
 {
-    if (str == DUPLICATE_POLICY_NONE)
+    QString profile = m_ui->comboBoxProfile->currentText();
+    if (profile == DEFAULT_PROFILE)
     {
-        return AnkiConfig::DuplicatePolicy::None;
+        Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
+            "Failed",
+            "The Default profile cannot be deleted"
+        );
     }
-    else if (str == DUPLICATE_POLICY_DIFFERENT)
+    else
     {
-        return AnkiConfig::DuplicatePolicy::DifferentDeck;
-    }
-    else if (str == DUPLICATE_POLICY_SAME)
-    {
-        return AnkiConfig::DuplicatePolicy::SameDeck;
-    }
+        delete m_configs->value(profile);
+        m_configs->remove(profile);
 
-    qDebug() << "Invalid duplicate policy string:" << str;
-    return DEFAULT_DUPLICATE_POLICY;
-}
+        m_ui->comboBoxProfile->blockSignals(true);
+        m_ui->comboBoxProfile->removeItem(
+            m_ui->comboBoxProfile->currentIndex());
+        populateFields(
+            m_ui->comboBoxProfile->currentText(),
+            m_configs->value(m_ui->comboBoxProfile->currentText())
+        );
+        m_ui->comboBoxProfile->blockSignals(false);
 
-QString AnkiSettings::fileTypeToString(AnkiConfig::FileType type)
-{
-    switch(type)
-    {
-    case AnkiConfig::FileType::png:
-        return SCREENSHOT_PNG;
-    case AnkiConfig::FileType::jpg:
-        return SCREENSHOT_JPG;
-    case AnkiConfig::FileType::webp:
-        return SCREENSHOT_WEBP;
-    default:
-        return SCREENSHOT_JPG;
+        m_currentProfile = m_ui->comboBoxProfile->currentText();
     }
 }
 
-AnkiConfig::FileType AnkiSettings::stringToFileType(const QString &str)
+void AnkiSettings::renameProfile(const QString &oldName, const QString &newName)
 {
-    if (str == SCREENSHOT_JPG)
-    {
-        return AnkiConfig::FileType::jpg;
-    }
-    else if (str == SCREENSHOT_PNG)
-    {
-        return AnkiConfig::FileType::png;
-    }
-    else if (str == SCREENSHOT_WEBP)
-    {
-        return AnkiConfig::FileType::webp;
-    }
 
-    qDebug() << "Invalid file type string:" << str;
-    return DEFAULT_SCREENSHOT;
+    if (oldName == DEFAULT_PROFILE)
+    {
+        Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
+            "Info",
+            "Default profile cannnot be renamed"
+        );
+        m_ui->lineEditProfileName->setText(DEFAULT_PROFILE);
+    }
+    else if (newName.isEmpty())
+    {
+        Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
+            "Info",
+            "Profile must have a name"
+        );
+        m_ui->lineEditProfileName->setText(oldName);
+    }
+    else
+    {
+        m_configs->insert(newName, m_configs->value(oldName));
+        m_configs->remove(oldName);
+
+        m_ui->comboBoxProfile->blockSignals(true);
+        m_ui->comboBoxProfile->clear();
+        for (auto it = m_configs->keyBegin(); it != m_configs->keyEnd(); ++it)
+        {
+            m_ui->comboBoxProfile->addItem(*it);
+        }
+        m_ui->comboBoxProfile->setCurrentText(newName);
+        m_ui->comboBoxProfile->model()->sort(0);
+        m_ui->comboBoxProfile->blockSignals(false);
+    }
 }
+
+#define REGEX_REMOVE_SPACES_COMMAS "[, ]+"
 
 void AnkiSettings::applyToConfig(const QString &profile)
 {
@@ -559,38 +602,95 @@ void AnkiSettings::applyToConfig(const QString &profile)
     config->kanjiFields = m_ui->kanjiCardBuilder->getFields();
 }
 
-void AnkiSettings::renameProfile(const QString &oldName, const QString &newName)
+#undef REGEX_REMOVE_SPACES_COMMAS
+
+/* End Cache Management */
+/* Begin Helpers */
+
+#define DUPLICATE_POLICY_NONE       "None"
+#define DUPLICATE_POLICY_DIFFERENT  "Allowed in Different Decks"
+#define DUPLICATE_POLICY_SAME       "Allowed in Same Deck"
+
+QString AnkiSettings::duplicatePolicyToString(
+    AnkiConfig::DuplicatePolicy policy)
 {
-
-    if (oldName == DEFAULT_PROFILE)
+    switch(policy)
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
-            "Info",
-            "Default profile cannnot be renamed"
-        );
-        m_ui->lineEditProfileName->setText(DEFAULT_PROFILE);
-    }
-    else if (newName.isEmpty())
-    {
-        Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
-            "Info",
-            "Profile must have a name"
-        );
-        m_ui->lineEditProfileName->setText(oldName);
-    }
-    else
-    {
-        m_configs->insert(newName, m_configs->value(oldName));
-        m_configs->remove(oldName);
-
-        m_ui->comboBoxProfile->blockSignals(true);
-        m_ui->comboBoxProfile->clear();
-        for (auto it = m_configs->keyBegin(); it != m_configs->keyEnd(); ++it)
-        {
-            m_ui->comboBoxProfile->addItem(*it);
-        }
-        m_ui->comboBoxProfile->setCurrentText(newName);
-        m_ui->comboBoxProfile->model()->sort(0);
-        m_ui->comboBoxProfile->blockSignals(false);
+    case AnkiConfig::DuplicatePolicy::None:
+        return DUPLICATE_POLICY_NONE;
+    case AnkiConfig::DuplicatePolicy::DifferentDeck:
+        return DUPLICATE_POLICY_DIFFERENT;
+    case AnkiConfig::DuplicatePolicy::SameDeck:
+        return DUPLICATE_POLICY_SAME;
+    default:
+        return DUPLICATE_POLICY_DIFFERENT;
     }
 }
+
+AnkiConfig::DuplicatePolicy AnkiSettings::stringToDuplicatePolicy(
+    const QString &str)
+{
+    if (str == DUPLICATE_POLICY_NONE)
+    {
+        return AnkiConfig::DuplicatePolicy::None;
+    }
+    else if (str == DUPLICATE_POLICY_DIFFERENT)
+    {
+        return AnkiConfig::DuplicatePolicy::DifferentDeck;
+    }
+    else if (str == DUPLICATE_POLICY_SAME)
+    {
+        return AnkiConfig::DuplicatePolicy::SameDeck;
+    }
+
+    qDebug() << "Invalid duplicate policy string:" << str;
+    return DEFAULT_DUPLICATE_POLICY;
+}
+
+#undef DUPLICATE_POLICY_NONE
+#undef DUPLICATE_POLICY_DIFFERENT
+#undef DUPLICATE_POLICY_SAME
+
+#define SCREENSHOT_PNG  "PNG"
+#define SCREENSHOT_JPG  "JPG"
+#define SCREENSHOT_WEBP "WebP"
+
+QString AnkiSettings::fileTypeToString(AnkiConfig::FileType type)
+{
+    switch(type)
+    {
+    case AnkiConfig::FileType::png:
+        return SCREENSHOT_PNG;
+    case AnkiConfig::FileType::jpg:
+        return SCREENSHOT_JPG;
+    case AnkiConfig::FileType::webp:
+        return SCREENSHOT_WEBP;
+    default:
+        return SCREENSHOT_JPG;
+    }
+}
+
+AnkiConfig::FileType AnkiSettings::stringToFileType(const QString &str)
+{
+    if (str == SCREENSHOT_JPG)
+    {
+        return AnkiConfig::FileType::jpg;
+    }
+    else if (str == SCREENSHOT_PNG)
+    {
+        return AnkiConfig::FileType::png;
+    }
+    else if (str == SCREENSHOT_WEBP)
+    {
+        return AnkiConfig::FileType::webp;
+    }
+
+    qDebug() << "Invalid file type string:" << str;
+    return DEFAULT_SCREENSHOT;
+}
+
+#undef SCREENSHOT_PNG
+#undef SCREENSHOT_JPG
+#undef SCREENSHOT_WEBP
+
+/* End Helpers */
