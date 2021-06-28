@@ -44,8 +44,18 @@ AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
     labelInfo->setTextInteractionFlags(Qt::LinksAccessibleByKeyboard | Qt::LinksAccessibleByMouse);
     labelInfo->setText(
         "<b>Version</b>: " + VERSION + "<br>"
-        "<b>License</b>: GPLv2<br>"
-        "<b>Project Page</b>: <a href='https://github.com/ripose-jp/memento'>https://github.com/ripose-jp/memento</a><br>"
+        "<b>License</b>: GPLv2"
+        "<br>"
+        "<b>Website</b>: "
+            "<a href='https://ripose-jp.github.io/Memento'>"
+                "https://ripose-jp.github.io/Memento"
+            "</a>"
+        "<br>"
+        "<b>Project Page</b>: "
+            "<a href='https://github.com/ripose-jp/memento'>"
+                "https://github.com/ripose-jp/memento"
+            "</a>"
+        "<br>"
         "Copyright Ripose 2020-2021"
     );
     parentLayout->addWidget(labelInfo);
