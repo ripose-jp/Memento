@@ -24,17 +24,21 @@
 #include "ankisettings.h"
 #include "audiosourcesettings.h"
 #include "dictionarysettings.h"
-#include "searchsettings.h"
 #include "interfacesettings.h"
+#include "searchsettings.h"
+
+/* Begin Constructor/Destructor */
 
 #define NAME_ANKI           "Anki Integration"
 #define NAME_AUDIO_SOURCE   "Audio Sources"
 #define NAME_DICTIONARIES   "Dictionaries"
-#define NAME_SEARCH         "Search"
 #define NAME_INTERFACE      "Interface"
+#define NAME_SEARCH         "Search"
 
 OptionsWindow::OptionsWindow(QWidget *parent)
-    : QWidget(parent), m_ui(new Ui::OptionsWindow), m_currentWidget(nullptr)
+    : QWidget(parent),
+      m_ui(new Ui::OptionsWindow),
+      m_currentWidget(nullptr)
 {
     m_ui->setupUi(this);
 
@@ -52,8 +56,17 @@ OptionsWindow::OptionsWindow(QWidget *parent)
     addOption(NAME_SEARCH,       new SearchSettings);
     addOption(NAME_INTERFACE,    new InterfaceSettings);
 
-    connect(m_ui->listOptions, &QListWidget::itemSelectionChanged, this, &OptionsWindow::showSelectedOption);
+    connect(
+        m_ui->listOptions, &QListWidget::itemSelectionChanged,
+        this,              &OptionsWindow::showSelectedOption
+    );
 }
+
+#undef NAME_ANKI
+#undef NAME_AUDIO_SOURCE
+#undef NAME_DICTIONARIES
+#undef NAME_INTERFACE
+#undef NAME_SEARCH
 
 OptionsWindow::~OptionsWindow()
 {
@@ -61,18 +74,25 @@ OptionsWindow::~OptionsWindow()
     delete m_ui;
 }
 
+/* End Constructor/Destructor */
+/* Begin Event Handlers */
+
 void OptionsWindow::showEvent(QShowEvent *event)
 {
+    QWidget::showEvent(event);
     m_ui->listOptions->setCurrentRow(0);
     showSelectedOption();
 }
+
+/* End Event Handlers */
+/* Begin Helpers */
 
 void OptionsWindow::addOption(const QString &name, QWidget *widget)
 {
     m_ui->listOptions->addItem(name);
     widget->hide();
     m_ui->layoutWidgets->addWidget(widget);
-    widgets.insert(name, widget);
+    m_widgets.insert(name, widget);
 }
 
 void OptionsWindow::showSelectedOption()
@@ -81,7 +101,7 @@ void OptionsWindow::showSelectedOption()
     if (m_currentWidget)
         m_currentWidget->hide();
 
-    QWidget *widget = widgets[selected];
+    QWidget *widget = m_widgets[selected];
     if (widget)
     {
         widget->show();
@@ -93,3 +113,5 @@ void OptionsWindow::showSelectedOption()
         m_currentWidget->show();
     }
 }
+
+/* End Helpers */
