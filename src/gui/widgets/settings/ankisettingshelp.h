@@ -28,6 +28,10 @@ namespace Ui
     class AnkiSettingsHelp;
 }
 
+/**
+ * Help screen for Anki Integration Settings. Lists card markers and their
+ * function.
+ */
 class AnkiSettingsHelp : public QDialog
 {
     Q_OBJECT
