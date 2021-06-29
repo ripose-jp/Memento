@@ -25,19 +25,53 @@
 
 #include "../../../dict/expression.h"
 
+/**
+ * Creates a tag with a hoverable tool tip.
+ */
 class TagWidget : public QLabel
 {
     Q_OBJECT
 
 public:
-    TagWidget(const Tag       &tag,     QWidget *parent = 0);
-    TagWidget(const Frequency &freq,    QWidget *parent = 0);
-    TagWidget(const Pitch     &pitch,   QWidget *parent = 0);
-    TagWidget(const QString   &dicName, QWidget *parent = 0);
+    /**
+     * Creates a normal tag for the Tag.
+     * @param tag    The tag to create a tag for.
+     * @param parent The parent of this widget.
+     */
+    TagWidget(const Tag &tag, QWidget *parent = nullptr);
+
+    /**
+     * Creates a frequency tag for the Frequency.
+     * @param freq   The frequency to create a tag for.
+     * @param parent The parent of this widget.
+     */
+    TagWidget(const Frequency &freq, QWidget *parent = nullptr);
+
+    /**
+     * Creates a pitch tag from the Pitch.
+     * @param pitch  The pitch to create a tag for.
+     * @param parent The parent of this widget.
+     */
+    TagWidget(const Pitch &pitch, QWidget *parent = nullptr);
+
+    /**
+     * Creates a dictionary tag from the dictionary name.
+     * @param dicName The name of the dictionary.
+     * @param parent  The parent of this widget.
+     */
+    TagWidget(const QString &dicName, QWidget *parent = nullptr);
 
 private:
-    TagWidget(QWidget *parent = 0);
+    /**
+     * General constructor that sets options common between all the
+     * constructors.
+     * @param parent The parent of this widget.
+     */
+    TagWidget(QWidget *parent = nullptr);
 
+    /* An enum representing each different tag type. Indexes into the colors
+     * array.
+     */
     enum TagColor
     {
         def,
@@ -53,6 +87,7 @@ private:
         pitch_accent
     };
 
+    /* Different colors for each type of tag. Indexed into by a TagColor. */
     const char *colors[pitch_accent + 1] = {
         "#8a8a91",
         "#b6327a",
