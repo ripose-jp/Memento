@@ -21,22 +21,35 @@
 #include "termwidget.h"
 #include "ui_termwidget.h"
 
-#include "tagwidget.h"
-#include "pitchwidget.h"
-#include "glossarywidget.h"
-#include "../../../util/iconfactory.h"
-#include "../../../util/globalmediator.h"
-#include "../../../dict/dictionary.h"
-#include "../../../audio/audioplayer.h"
-
 #include <QMenu>
 
-#define KANJI_UNICODE_LOWER_COMMON  "\u4e00"
-#define KANJI_UNICODE_UPPER_COMMON  "\u9faf"
-#define KANJI_UNICODE_LOWER_RARE    "\u3400"
-#define KANJI_UNICODE_UPPER_RARE    "\u4dbf"
+#include "../../../audio/audioplayer.h"
+#include "../../../dict/dictionary.h"
+#include "../../../util/globalmediator.h"
+#include "../../../util/iconfactory.h"
+#include "glossarywidget.h"
+#include "pitchwidget.h"
+#include "tagwidget.h"
 
-#define KANJI_STYLE_STRING      (QString("<style>a { color: %1; border: 0; text-decoration: none; }</style>"))
+/**
+ * Kanji stylesheet format string.
+ * @param 1 The color of links. Should be the same as text color.
+ */
+#define KANJI_STYLE_STRING      (QString(\
+        "<style>"\
+            "a {"\
+                "color: %1;"\
+                "border: 0;"\
+                "text-decoration: none;"\
+            "}"\
+        "</style>"\
+    ))
+
+/**
+ * Kanji link format string. Used for making kanji clickable.
+ * @param 1 A single kanji such that when clicked, the kanji will be emitted in
+ *          in the linkActivated signal.
+ */
 #define KANJI_FORMAT_STRING     (QString("<a href=\"%1\">%1</a>"))
 
 #if __APPLE__
@@ -47,14 +60,15 @@
     #define READING_STYLE       (QString("QLabel { font-size: 12pt; }"))
 #endif
 
+/* Begin Constructor/Destructor */
+
 TermWidget::TermWidget(const Term               *term,
-                       AnkiClient               *client,
                        const QList<AudioSource> *sources,
                        QWidget                  *parent) 
     : QWidget(parent), 
       m_ui(new Ui::TermWidget), 
       m_term(term), 
-      m_client(client),
+      m_client(GlobalMediator::getGlobalMediator()->getAnkiClient()),
       m_sources(sources)
 {
     m_ui->setupUi(this);
@@ -79,18 +93,33 @@ TermWidget::TermWidget(const Term               *term,
     m_ui->buttonAddCard->setIcon(factory->getIcon(IconFactory::Icon::plus));
     m_ui->buttonAddCard->setVisible(false);
 
-    m_ui->buttonAnkiOpen->setIcon(factory->getIcon(IconFactory::Icon::hamburger));
+    m_ui->buttonAnkiOpen->setIcon(
+        factory->getIcon(IconFactory::Icon::hamburger)
+    );
     m_ui->buttonAnkiOpen->setVisible(false);
 
     m_ui->buttonAudio->setIcon(factory->getIcon(IconFactory::Icon::audio));
     m_ui->buttonAudio->setVisible(!m_sources->isEmpty());
 
-    setTerm(*term);
+    initUi(*term);
 
-    connect(m_ui->labelKanji,     &QLabel::linkActivated, this, &TermWidget::searchKanji);
-    connect(m_ui->buttonAddCard,  &QToolButton::clicked,  this, &TermWidget::addNote);
-    connect(m_ui->buttonAnkiOpen, &QToolButton::clicked,  this, &TermWidget::openAnki);
-    connect(m_ui->buttonAudio,    &QToolButton::clicked,  this, 
+    connect(
+        m_ui->labelKanji, &QLabel::linkActivated,
+        this,             &TermWidget::searchKanji
+    );
+    connect(
+        m_ui->buttonAddCard, &QToolButton::clicked,
+        this,                &TermWidget::addNote
+    );
+    connect(
+        m_ui->buttonAnkiOpen, &QToolButton::clicked,
+        this,                 &TermWidget::searchAnki
+    );
+    connect(
+        m_ui->buttonAudio, &QToolButton::customContextMenuRequested,
+        this,              &TermWidget::showAudioSources
+    );
+    connect(m_ui->buttonAudio, &QToolButton::clicked, this,
         [=] {
             if (!m_sources->isEmpty())
             {
@@ -99,7 +128,6 @@ TermWidget::TermWidget(const Term               *term,
             }
         } 
     );
-    connect(m_ui->buttonAudio, &QToolButton::customContextMenuRequested, this, &TermWidget::showAudioSources);
 }
 
 TermWidget::~TermWidget()
@@ -107,7 +135,10 @@ TermWidget::~TermWidget()
     delete m_ui;
 }
 
-void TermWidget::setTerm(const Term &term)
+/* End Constructor/Destructor */
+/* Begin Initializers */
+
+void TermWidget::initUi(const Term &term)
 {
     if (term.reading.isEmpty())
     {
@@ -118,7 +149,11 @@ void TermWidget::setTerm(const Term &term)
         m_ui->labelKana->show();
     }
     m_ui->labelKana->setText(term.reading);
-    QString kanjiLabelText = KANJI_STYLE_STRING.arg(m_ui->labelKanji->palette().color(m_ui->labelKanji->foregroundRole()).name());
+    QString kanjiLabelText = KANJI_STYLE_STRING.arg(
+            m_ui->labelKanji->palette().color(
+                m_ui->labelKanji->foregroundRole()
+            ).name()
+        );
     for (const QString &ch : term.expression)
     {
         kanjiLabelText += isKanji(ch) ? KANJI_FORMAT_STRING.arg(ch) : ch;
@@ -145,28 +180,14 @@ void TermWidget::setTerm(const Term &term)
 
     for (size_t i = 0; i < term.definitions.size(); ++i)
     {
-        m_layoutGlossary->addWidget(new GlossaryWidget(i + 1, term.definitions[i]));
+        m_layoutGlossary->addWidget(
+            new GlossaryWidget(i + 1, term.definitions[i])
+        );
     }
 }
 
-inline QString TermWidget::generateJishoLink(const QString &word)
-{
-    return QString("<a href=\"https://jisho.org/search/%1\">Jisho</a>").arg(word);
-}
-
-inline bool TermWidget::isKanji(const QString &ch)
-{
-    return ch >= KANJI_UNICODE_LOWER_COMMON && ch <= KANJI_UNICODE_UPPER_COMMON ||
-           ch >= KANJI_UNICODE_LOWER_RARE   && ch <= KANJI_UNICODE_UPPER_RARE;
-}
-
-void TermWidget::setAddable(bool value)
-{
-    m_ui->buttonAddCard->setVisible(value);
-    m_ui->buttonAnkiOpen->setVisible(!value);
-    for (size_t i = 0; i < m_layoutGlossary->count(); ++i)
-        ((GlossaryWidget *)m_layoutGlossary->itemAt(i)->widget())->setCheckable(value);
-}
+/* End Initializers */
+/* Begin User Input Handlers */
 
 void TermWidget::addNote()
 {
@@ -176,7 +197,8 @@ void TermWidget::addNote()
     term->definitions.clear();
     for (size_t i = 0; i < m_layoutGlossary->count(); ++i)
     {
-        GlossaryWidget *widget = (GlossaryWidget *)m_layoutGlossary->itemAt(i)->widget();
+        GlossaryWidget *widget = 
+            (GlossaryWidget *)m_layoutGlossary->itemAt(i)->widget();
         if (widget->isChecked())
         {
             term->definitions.append(TermDefinition(m_term->definitions[i]));
@@ -189,7 +211,8 @@ void TermWidget::addNote()
         [=] (const int id, const QString &error) {
             if (!error.isEmpty())
             {
-                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical("Error Adding Note", error);
+                Q_EMIT GlobalMediator::getGlobalMediator()
+                    ->showCritical("Error Adding Note", error);
             }
             else
             {
@@ -200,7 +223,7 @@ void TermWidget::addNote()
     );
 }
 
-void TermWidget::openAnki()
+void TermWidget::searchAnki()
 {
     QString deck = m_client->getConfig()->termDeck;
     AnkiReply *reply = m_client->openBrowse(deck, m_term->expression);
@@ -219,10 +242,12 @@ void TermWidget::openAnki()
 void TermWidget::playAudio(QString url, const QString &hash)
 {
     m_ui->buttonAudio->setEnabled(false);
-    AudioPlayerReply *reply = GlobalMediator::getGlobalMediator()->getAudioPlayer()->playAudio(
-        url.replace(REPLACE_EXPRESSION, m_term->expression).replace(REPLACE_READING, m_term->reading),
-        hash
-    );
+    AudioPlayerReply *reply = 
+        GlobalMediator::getGlobalMediator()->getAudioPlayer()->playAudio(
+            url.replace(REPLACE_EXPRESSION, m_term->expression)
+               .replace(REPLACE_READING, m_term->reading),
+            hash
+        );
     m_ui->buttonAudio->setEnabled(reply == nullptr);
 
     if (reply)
@@ -232,7 +257,9 @@ void TermWidget::playAudio(QString url, const QString &hash)
                 if (!success)
                 {
                     IconFactory *factory = IconFactory::create();
-                    m_ui->buttonAudio->setIcon(factory->getIcon(IconFactory::noaudio));
+                    m_ui->buttonAudio->setIcon(
+                        factory->getIcon(IconFactory::noaudio)
+                    );
                 }
                 m_ui->buttonAudio->setEnabled(true); 
             }
@@ -245,14 +272,19 @@ void TermWidget::showAudioSources(const QPoint &pos)
     QMenu contextMenu("Audio Sources", m_ui->buttonAudio);
     for (const AudioSource &src : *m_sources)
     {
-        contextMenu.addAction(src.name, this, [=] { playAudio(src.url, src.md5); });
+        contextMenu.addAction(src.name, this,
+            [=] {
+                playAudio(src.url, src.md5);
+            }
+        );
     }
     contextMenu.exec(m_ui->buttonAudio->mapToGlobal(pos));
 }
 
 void TermWidget::searchKanji(const QString &ch)
 {
-    Kanji *kanji = GlobalMediator::getGlobalMediator()->getDictionary()->searchKanji(ch);
+    Kanji *kanji = 
+        GlobalMediator::getGlobalMediator()->getDictionary()->searchKanji(ch);
     if (kanji)
     {
         kanji->sentence    = m_term->sentence;
@@ -262,3 +294,46 @@ void TermWidget::searchKanji(const QString &ch)
         Q_EMIT kanjiSearched(kanji);
     }
 }
+
+/* End User Input Handlers */
+/* Begin Setters */
+
+void TermWidget::setAddable(bool value)
+{
+    m_ui->buttonAddCard->setVisible(value);
+    m_ui->buttonAnkiOpen->setVisible(!value);
+    for (size_t i = 0; i < m_layoutGlossary->count(); ++i)
+    {
+        GlossaryWidget *widget = 
+            (GlossaryWidget *)m_layoutGlossary->itemAt(i)->widget();
+        widget->setCheckable(value);
+    }
+}
+
+/* End Setters */
+/* Begin Helpers */
+
+inline QString TermWidget::generateJishoLink(const QString &exp)
+{
+    return 
+        QString("<a href=\"https://jisho.org/search/%1\">Jisho</a>").arg(exp);
+}
+
+#define KANJI_UNICODE_LOWER_COMMON  "\u4e00"
+#define KANJI_UNICODE_UPPER_COMMON  "\u9faf"
+#define KANJI_UNICODE_LOWER_RARE    "\u3400"
+#define KANJI_UNICODE_UPPER_RARE    "\u4dbf"
+
+inline bool TermWidget::isKanji(const QString &ch)
+{
+    return 
+        ch >= KANJI_UNICODE_LOWER_COMMON && ch <= KANJI_UNICODE_UPPER_COMMON ||
+        ch >= KANJI_UNICODE_LOWER_RARE   && ch <= KANJI_UNICODE_UPPER_RARE;
+}
+
+#undef KANJI_UNICODE_LOWER_COMMON
+#undef KANJI_UNICODE_UPPER_COMMON
+#undef KANJI_UNICODE_LOWER_RARE
+#undef KANJI_UNICODE_UPPER_RARE
+
+/* End Helpers */

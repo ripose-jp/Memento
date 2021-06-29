@@ -213,7 +213,7 @@ void DefinitionWidget::showTerms(const size_t start, const size_t end)
     for (size_t i = start; i < m_terms->size() && i < end; ++i)
     {
         TermWidget *termWidget = 
-            new TermWidget(m_terms->at(i), m_client, &m_sources, this);
+            new TermWidget(m_terms->at(i), &m_sources, this);
         connect(
             termWidget, &TermWidget::kanjiSearched,
             this,       &DefinitionWidget::showKanji
