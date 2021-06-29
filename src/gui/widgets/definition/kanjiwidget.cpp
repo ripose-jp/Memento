@@ -20,19 +20,23 @@
 
 #include "kanjiwidget.h"
 
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QToolButton>
-#include <QLabel>
 #include <QDebug>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QToolButton>
+#include <QVBoxLayout>
 
+#include "../../../anki/ankiclient.h"
+#include "../../../util/globalmediator.h"
+#include "../../../util/iconfactory.h"
 #include "../common/flowlayout.h"
 #include "tagwidget.h"
-#include "../../../util/iconfactory.h"
-#include "../../../util/globalmediator.h"
-#include "../../../anki/ankiclient.h"
 
-KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent), m_kanji(kanji)
+/* Begin Constructor/Destructor */
+
+KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent)
+    : QWidget(parent),
+      m_kanji(kanji)
 {
     QVBoxLayout *layoutParent = new QVBoxLayout(this);
 
@@ -51,24 +55,21 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent),
 
     QLabel *labelKanjiStroke = new QLabel;
     labelKanjiStroke->setText(kanji->character);
-#if __APPLE__
     labelKanjiStroke->setStyleSheet(
-        "QLabel {"\
-            "font-family: \"KanjiStrokeOrders\", \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"\
-            "font-size: 140pt;"\
+        "QLabel {"
+            "font-family: \"KanjiStrokeOrders\", \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"
+        #if __APPLE__
+            "font-size: 140pt;"
+        #else
+            "font-size: 100pt;"
+        #endif
         "}"
     );
-#else
-    labelKanjiStroke->setStyleSheet(
-        "QLabel {"\
-            "font-family: \"KanjiStrokeOrders\", \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"\
-            "font-size: 100pt;"\
-        "}"
-    );
-#endif
     labelKanjiStroke->setAlignment(Qt::AlignHCenter);
     labelKanjiStroke->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    labelKanjiStroke->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    labelKanjiStroke->setSizePolicy(
+        QSizePolicy::Preferred, QSizePolicy::Preferred
+    );
     layoutTop->addWidget(labelKanjiStroke);
     layoutTop->setAlignment(labelKanjiStroke, Qt::AlignTop | Qt::AlignCenter);
     layoutTop->addStretch();
@@ -90,7 +91,10 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent) : QWidget(parent),
     buttonAnkiOpen->setVisible(false);
     layoutTop->addWidget(buttonAnkiOpen);
     layoutTop->setAlignment(buttonAnkiOpen, Qt::AlignTop | Qt::AlignRight);
-    connect(buttonAnkiOpen, &QToolButton::clicked, this, &KanjiWidget::openAnki);
+    connect(
+        buttonAnkiOpen, &QToolButton::clicked,
+        this,           &KanjiWidget::openAnki
+    );
     m_buttonAnkiOpen = buttonAnkiOpen;
 
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
@@ -135,7 +139,11 @@ KanjiWidget::~KanjiWidget()
     delete m_kanji;
 }
 
-void KanjiWidget::buildDefinitionLabel(const KanjiDefinition &def, QVBoxLayout *layout)
+/* Begin Constructor/Destructor */
+/* Begin Builders */
+
+void KanjiWidget::buildDefinitionLabel(const KanjiDefinition &def,
+                                             QVBoxLayout     *layout)
 {
     /* Add Tags */
     FlowLayout *tagLayout = new FlowLayout(-1, 6);
@@ -184,7 +192,9 @@ void KanjiWidget::buildDefinitionLabel(const KanjiDefinition &def, QVBoxLayout *
 
     /* Add Statistics */
     QVBoxLayout *layoutStats = new QVBoxLayout;
-    layoutGLS->addLayout(layoutStats, layoutGLS->rowCount() - 1, layoutGLS->columnCount() - 1);
+    layoutGLS->addLayout(
+        layoutStats, layoutGLS->rowCount() - 1, layoutGLS->columnCount() - 1
+    );
     for (const QPair<Tag, QString> &kv : def.stats)
     {
         layoutStats->addLayout(createKVLabel(kv.first.notes, kv.second));
@@ -197,46 +207,9 @@ void KanjiWidget::buildDefinitionLabel(const KanjiDefinition &def, QVBoxLayout *
     addKVSection("Dictionary Indices", def.index, layout);
 }
 
-QFrame *KanjiWidget::createLine()
-{
-    QFrame *line = new QFrame;
-    line->setFrameShape(QFrame::HLine);
-    line->setFrameShadow(QFrame::Sunken);
-    line->setLineWidth(1);
-    return line;
-}
-
-QLabel *KanjiWidget::createLabel(const QString &text, const bool bold, const Qt::AlignmentFlag alignment)
-{
-    QLabel *label = new QLabel;
-    label->setText(text);
-    label->setAlignment(alignment);
-    label->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    label->setWordWrap(true);
-
-    if (bold)
-    {
-        label->setStyleSheet(
-            "QLabel {"\
-                "font-weight: bold;"\
-            "}"
-        );
-    }
-
-    return label;
-}
-
-QLayout *KanjiWidget::createKVLabel(const QString &key, const QString &value)
-{
-    QHBoxLayout *layout = new QHBoxLayout;
-    layout->addWidget(createLabel(key, true));
-    QLabel *vLabel = createLabel(value, false, Qt::AlignRight);
-    vLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
-    layout->addWidget(vLabel);
-    return layout;
-}
-
-void KanjiWidget::addKVSection(const QString &title, const QList<QPair<Tag, QString>> &pairs, QVBoxLayout *layout)
+void KanjiWidget::addKVSection(const QString &title,
+                               const QList<QPair<Tag, QString>> &pairs, 
+                               QVBoxLayout *layout)
 {
     if (pairs.isEmpty())
         return;
@@ -250,16 +223,21 @@ void KanjiWidget::addKVSection(const QString &title, const QList<QPair<Tag, QStr
     }
 }
 
+/* End Builders */
+/* Begin Button Handlers */
+
 void KanjiWidget::addKanji()
 {
     m_buttonAnkiAdd->setVisible(false);
     Kanji *kanji = new Kanji(*m_kanji);
-    AnkiReply *reply = GlobalMediator::getGlobalMediator()->getAnkiClient()->addNote(kanji);
+    AnkiReply *reply = GlobalMediator::getGlobalMediator()
+        ->getAnkiClient()->addNote(kanji);
     connect(reply, &AnkiReply::finishedInt, this,
         [=] (const int id, const QString &error) {
             if (!error.isEmpty())
             {
-                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical("Error Adding Note", error);
+                Q_EMIT GlobalMediator::getGlobalMediator()
+                    ->showCritical("Error Adding Note", error);
             }
             else
             {
@@ -286,3 +264,50 @@ void KanjiWidget::openAnki()
         }
     );
 }
+
+/* End Button Handler */
+/* Begin Helpers */
+
+QFrame *KanjiWidget::createLine() const
+{
+    QFrame *line = new QFrame;
+    line->setFrameShape(QFrame::HLine);
+    line->setFrameShadow(QFrame::Sunken);
+    line->setLineWidth(1);
+    return line;
+}
+
+QLabel *KanjiWidget::createLabel(const QString &text,
+                                 const bool bold,
+                                 const Qt::AlignmentFlag alignment) const
+{
+    QLabel *label = new QLabel;
+    label->setText(text);
+    label->setAlignment(alignment);
+    label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    label->setWordWrap(true);
+
+    if (bold)
+    {
+        label->setStyleSheet(
+            "QLabel {"\
+                "font-weight: bold;"\
+            "}"
+        );
+    }
+
+    return label;
+}
+
+QLayout *KanjiWidget::createKVLabel(const QString &key,
+                                    const QString &value) const
+{
+    QHBoxLayout *layout = new QHBoxLayout;
+    layout->addWidget(createLabel(key, true));
+    QLabel *vLabel = createLabel(value, false, Qt::AlignRight);
+    vLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+    layout->addWidget(vLabel);
+    return layout;
+}
+
+/* End Helpers */
