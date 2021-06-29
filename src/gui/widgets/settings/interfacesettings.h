@@ -30,6 +30,9 @@ namespace Ui
     class InterfaceSettings;
 }
 
+/**
+ * Widget for changing the look and feel of the user interface.
+ */
 class InterfaceSettings : public QWidget
 {
     Q_OBJECT
@@ -39,21 +42,60 @@ public:
     ~InterfaceSettings();
 
 protected:
+    /**
+     * Restores saved settings on show.
+     * @param event The show event, not used.
+     */
     void showEvent(QShowEvent *event) override;
 
 private Q_SLOTS:
+    /**
+     * Restores default settings to the UI. Does not apply settings.
+     */
     void restoreDefaults();
+
+    /**
+     * Restores saved settings to the UI. Does not apply settings.
+     */
     void restoreSaved();
+
+    /**
+     * Applies the settings in the UI to the settings.
+     */
     void applyChanges();
 
+    /**
+     * Shows stylesheet help. Opens the Qt stylesheet reference website.
+     */
+    void showHelp() const;
+
 private:
+    /**
+     * Opens a QColorDialog and changes the button to the color chosen.
+     * Nothing happens upon the dialog being cancelled by the user.
+     * @param button The button to change the color of.
+     * @param color  The color to change the value of.
+     */
+    void askButtonColor(QToolButton *button, QColor &color);
+
+    /**
+     * Sets the button to the color provided.
+     * @param button The button to change the color of.
+     * @param color  The color to set the button to.
+     */
+    void setButtonColor(QToolButton *button, const QColor &color);
+
+    /* The UI object containing all the widgets. */
     Ui::InterfaceSettings *m_ui;
 
+    /* Color of the subtitle. */
     QColor m_subColor;
-    QColor m_bgColor;
-    QColor m_strokeColor;
 
-    void setButtonColor(QToolButton *button, const QColor &color);
+    /* Color of the subtitle background. */
+    QColor m_bgColor;
+
+    /* Color of the subtitle stroke color */
+    QColor m_strokeColor;
 };
 
 #endif // INTERFACESETTINGS_H
