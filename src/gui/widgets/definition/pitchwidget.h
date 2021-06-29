@@ -26,16 +26,28 @@
 #include "../../../dict/expression.h"
 
 class QLabel;
-class QSvgWidget;
 
+/**
+ * Widget for graphically displaying pitch accents.
+ */
 class PitchWidget : public QWidget
 {
     Q_OBJECT
 
 public:
+    /**
+     * Constructor for PitchWidget.
+     * @param pitch  The pitch to display.
+     * @param parent The parent of this widget.
+     */
     PitchWidget(const Pitch &pitch, QWidget *parent = nullptr);
 
 private:
+    /**
+     * Helper method for creating a properly configured label.
+     * @param text  The text of the label.
+     * @param style The stylesheet of the label.
+     */
     QLabel *createLabel(const QString &text, const QString &style) const;
 };
 
