@@ -21,13 +21,17 @@
 #include "searchsettings.h"
 #include "ui_searchsettings.h"
 
-#include "../../../util/globalmediator.h"
-#include "../../../util/constants.h"
-
-#include <QSettings>
 #include <QPushButton>
+#include <QSettings>
 
-SearchSettings::SearchSettings(QWidget *parent) : QWidget(parent), m_ui(new Ui::SearchSettings)
+#include "../../../util/constants.h"
+#include "../../../util/globalmediator.h"
+
+/* Begin Constructor/Destructor */
+
+SearchSettings::SearchSettings(QWidget *parent)
+    : QWidget(parent),
+      m_ui(new Ui::SearchSettings)
 {
     m_ui->setupUi(this);
 
@@ -37,19 +41,34 @@ SearchSettings::SearchSettings(QWidget *parent) : QWidget(parent), m_ui(new Ui::
     m_ui->comboBoxMethod->addItem(SEARCH_METHOD_HOVER);
     m_ui->comboBoxMethod->addItem(SEARCH_METHOD_MODIFIER);
 
-    connect(m_ui->comboBoxMethod, &QComboBox::currentTextChanged, this, &SearchSettings::methodTextChanged);
+    connect(
+        m_ui->comboBoxMethod, &QComboBox::currentTextChanged,
+        this,                 &SearchSettings::methodTextChanged
+    );
 
     m_ui->comboBoxModifier->addItem(MODIFIER_ALT);
     m_ui->comboBoxModifier->addItem(MODIFIER_CTRL);
     m_ui->comboBoxModifier->addItem(MODIFIER_SHIFT);
     m_ui->comboBoxModifier->addItem(MODIFIER_SUPER);
 
-    connect(m_ui->buttonBox->button(QDialogButtonBox::Reset), &QPushButton::clicked,
-        this, &SearchSettings::resetSaved);
-    connect(m_ui->buttonBox->button(QDialogButtonBox::RestoreDefaults), &QPushButton::clicked,
-        this, &SearchSettings::resetDefault);
-    connect(m_ui->buttonBox->button(QDialogButtonBox::Apply), &QPushButton::clicked,
-        this, &SearchSettings::applySettings);
+    connect(
+        m_ui->buttonBox->button(QDialogButtonBox::Reset),
+        &QPushButton::clicked,
+        this,
+        &SearchSettings::restoreSaved
+    );
+    connect(
+        m_ui->buttonBox->button(QDialogButtonBox::RestoreDefaults),
+        &QPushButton::clicked,
+        this,
+        &SearchSettings::restoreDefaults
+    );
+    connect(
+        m_ui->buttonBox->button(QDialogButtonBox::Apply),
+        &QPushButton::clicked,
+        this,
+        &SearchSettings::applySettings
+    );
 }
 
 SearchSettings::~SearchSettings()
@@ -58,23 +77,59 @@ SearchSettings::~SearchSettings()
     delete m_ui;
 }
 
-void SearchSettings::resetSaved()
+/* End Constructor/Destructor */
+/* Begin Event Handlers */
+
+void SearchSettings::showEvent(QShowEvent *event)
+{
+    restoreSaved();
+    methodTextChanged(m_ui->comboBoxMethod->currentText());
+}
+
+/* End Event Handlers */
+/* Begin Button Box Handlers */
+
+void SearchSettings::restoreSaved()
 {
     QSettings settings;
     settings.beginGroup(SETTINGS_SEARCH);
-    m_ui->spinLimitResults    ->setValue      (settings.value(SETTINGS_SEARCH_LIMIT,         DEFAULT_LIMIT   ).toInt());
-    m_ui->comboBoxMethod      ->setCurrentText(settings.value(SETTINGS_SEARCH_METHOD,        DEFAULT_METHOD  ).toString());
-    m_ui->spinBoxDelay        ->setValue      (settings.value(SETTINGS_SEARCH_DELAY,         DEFAULT_DELAY   ).toInt());
-    m_ui->comboBoxModifier    ->setCurrentText(settings.value(SETTINGS_SEARCH_MODIFIER,      DEFAULT_MODIFIER).toString());
-    m_ui->checkHideSubs       ->setChecked    (settings.value(SETTINGS_SEARCH_HIDE_SUBS,     DEFAULT_HIDE_SUBS).toBool());
-    m_ui->checkHideSearch     ->setChecked    (settings.value(SETTINGS_SEARCH_HIDE_BAR,      DEFAULT_HIDE_BAR).toBool());
-    m_ui->checkReplaceNewLines->setChecked    (settings.value(SETTINGS_SEARCH_REPLACE_LINES, DEFAULT_REPLACE_LINES).toBool());
-    m_ui->lineEditReplace     ->setText       (settings.value(SETTINGS_SERACH_REPLACE_WITH,  DEFAULT_REPLACE_WITH).toString());
-    m_ui->lineRemoveRegex     ->setText       (settings.value(SETTINGS_SEARCH_REMOVE_REGEX,  DEFAULT_REMOVE_REGEX).toString());
+    m_ui->spinLimitResults->setValue(
+        settings.value(SETTINGS_SEARCH_LIMIT, DEFAULT_LIMIT).toInt()
+    );
+    m_ui->comboBoxMethod->setCurrentText(
+        settings.value(SETTINGS_SEARCH_METHOD, DEFAULT_METHOD).toString()
+    );
+    m_ui->spinBoxDelay->setValue(
+        settings.value(SETTINGS_SEARCH_DELAY, DEFAULT_DELAY).toInt()
+    );
+    m_ui->comboBoxModifier->setCurrentText(
+        settings.value(SETTINGS_SEARCH_MODIFIER, DEFAULT_MODIFIER).toString()
+    );
+    m_ui->checkHideSubs->setChecked(
+        settings.value(SETTINGS_SEARCH_HIDE_SUBS, DEFAULT_HIDE_SUBS).toBool()
+    );
+    m_ui->checkHideSearch->setChecked(
+        settings.value(SETTINGS_SEARCH_HIDE_BAR, DEFAULT_HIDE_BAR).toBool()
+    );
+    m_ui->checkReplaceNewLines->setChecked(
+        settings.value(
+            SETTINGS_SEARCH_REPLACE_LINES, DEFAULT_REPLACE_LINES
+        ).toBool()
+    );
+    m_ui->lineEditReplace->setText(
+        settings.value(
+            SETTINGS_SERACH_REPLACE_WITH, DEFAULT_REPLACE_WITH
+        ).toString()
+    );
+    m_ui->lineRemoveRegex->setText(
+        settings.value(
+            SETTINGS_SEARCH_REMOVE_REGEX, DEFAULT_REMOVE_REGEX
+        ).toString()
+    );
     settings.endGroup();
 }
 
-void SearchSettings::resetDefault()
+void SearchSettings::restoreDefaults()
 {
     m_ui->spinLimitResults    ->setValue      (DEFAULT_LIMIT);
     m_ui->comboBoxMethod      ->setCurrentText(DEFAULT_METHOD);
@@ -91,19 +146,40 @@ void SearchSettings::applySettings()
 {
     QSettings settings;
     settings.beginGroup(SETTINGS_SEARCH);
-    settings.setValue(SETTINGS_SEARCH_LIMIT,         m_ui->spinLimitResults->value());
-    settings.setValue(SETTINGS_SEARCH_METHOD,        m_ui->comboBoxMethod->currentText());
-    settings.setValue(SETTINGS_SEARCH_DELAY,         m_ui->spinBoxDelay->value());
-    settings.setValue(SETTINGS_SEARCH_MODIFIER,      m_ui->comboBoxModifier->currentText());
-    settings.setValue(SETTINGS_SEARCH_HIDE_SUBS,     m_ui->checkHideSubs->isChecked());
-    settings.setValue(SETTINGS_SEARCH_HIDE_BAR,      m_ui->checkHideSearch->isChecked());
-    settings.setValue(SETTINGS_SEARCH_REPLACE_LINES, m_ui->checkReplaceNewLines->isChecked());
-    settings.setValue(SETTINGS_SERACH_REPLACE_WITH,  m_ui->lineEditReplace->text());
-    settings.setValue(SETTINGS_SEARCH_REMOVE_REGEX,  m_ui->lineRemoveRegex->text());
+    settings.setValue(
+        SETTINGS_SEARCH_LIMIT, m_ui->spinLimitResults->value()
+    );
+    settings.setValue(
+        SETTINGS_SEARCH_METHOD, m_ui->comboBoxMethod->currentText()
+    );
+    settings.setValue(
+        SETTINGS_SEARCH_DELAY, m_ui->spinBoxDelay->value()
+    );
+    settings.setValue(
+        SETTINGS_SEARCH_MODIFIER, m_ui->comboBoxModifier->currentText()
+    );
+    settings.setValue(
+        SETTINGS_SEARCH_HIDE_SUBS, m_ui->checkHideSubs->isChecked()
+    );
+    settings.setValue(
+        SETTINGS_SEARCH_HIDE_BAR, m_ui->checkHideSearch->isChecked()
+    );
+    settings.setValue(
+        SETTINGS_SEARCH_REPLACE_LINES, m_ui->checkReplaceNewLines->isChecked()
+    );
+    settings.setValue(
+        SETTINGS_SERACH_REPLACE_WITH, m_ui->lineEditReplace->text()
+    );
+    settings.setValue(
+        SETTINGS_SEARCH_REMOVE_REGEX, m_ui->lineRemoveRegex->text()
+    );
     settings.endGroup();
 
     Q_EMIT GlobalMediator::getGlobalMediator()->searchSettingsChanged();
 }
+
+/* Begin Button Box Handlers */
+/* Begin Combo Box Handlers */
 
 void SearchSettings::methodTextChanged(const QString &text)
 {
@@ -119,8 +195,4 @@ void SearchSettings::methodTextChanged(const QString &text)
     }
 }
 
-void SearchSettings::showEvent(QShowEvent *event)
-{
-    resetSaved();
-    methodTextChanged(m_ui->comboBoxMethod->currentText());
-}
+/* End Combo Box Handlers */

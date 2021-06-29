@@ -28,6 +28,9 @@ namespace Ui
     class SearchSettings;
 }
 
+/**
+ * Settings widget for configuring SubtitleWidget.
+ */
 class SearchSettings : public QWidget
 {
     Q_OBJECT
@@ -37,16 +40,36 @@ public:
     ~SearchSettings();
 
 protected:
+    /**
+     * Restores saved settings on show.
+     * @param event The show event, not used.
+     */
     void showEvent(QShowEvent *event) override;
 
 private Q_SLOTS:
-    void resetSaved();
-    void resetDefault();
+    /**
+     * Restores saved settings. Does not apply them.
+     */
+    void restoreSaved();
+
+    /**
+     * Restores the default settings. Does not apply them.
+     */
+    void restoreDefaults();
+
+    /**
+     * Applies current choices in the UI to the saved settings.
+     */
     void applySettings();
 
+    /**
+     * Handles changes to the UI when the search method combobox is changed.
+     * @param text The text of the combo box.
+     */
     void methodTextChanged(const QString &text);
 
 private:
+    /* The UI object containing all the widgets. */
     Ui::SearchSettings *m_ui;
 };
 
