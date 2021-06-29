@@ -22,7 +22,11 @@
 
 #include "tagwidget.h"
 
-GlossaryWidget::GlossaryWidget(size_t number, const TermDefinition &def, QWidget *parent) : QWidget(parent), m_def(def)
+GlossaryWidget::GlossaryWidget(const size_t          number, 
+                               const TermDefinition &def, 
+                               QWidget              *parent)
+    : QWidget(parent),
+      m_def(def)
 {
     m_parentLayout  = new QVBoxLayout(this);
     m_layoutHeader  = new FlowLayout(-1, 6);
@@ -58,7 +62,9 @@ GlossaryWidget::GlossaryWidget(size_t number, const TermDefinition &def, QWidget
     m_labelNumber->setText(QString::number(number) + ".");
 
     m_labelGlossary->setWordWrap(true);
-    m_labelGlossary->setTextInteractionFlags(Qt::TextInteractionFlag::TextSelectableByMouse);
+    m_labelGlossary->setTextInteractionFlags(
+        Qt::TextInteractionFlag::TextSelectableByMouse
+    );
     QString glos;
     glos += "<ul>";
     for (QString def : m_def.glossary)
