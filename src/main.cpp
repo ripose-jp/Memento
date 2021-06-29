@@ -25,6 +25,10 @@
 #include <QMessageBox>
 #include <QSettings>
 
+#if __APPLE__
+    #include <locale.h>
+#endif
+
 #include "audio/audioplayer.h"
 #include "gui/mainwindow.h"
 #include "util/constants.h"
@@ -32,10 +36,11 @@
 #include "util/iconfactory.h"
 #include "util/utils.h"
 
-#if __APPLE__
-    #include <locale.h>
-#endif
-
+/**
+ * Updates the QSettings before the MainWindow is created.
+ * This is used during updates to make sure that configurations for old versions
+ * don't cause problems.
+ */
 void updateSettings()
 {
     QSettings settings;
