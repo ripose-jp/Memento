@@ -20,6 +20,8 @@
 
 #include "globalmediator.h"
 
+/* Begin Constructor/Destructor */
+
 GlobalMediator::GlobalMediator(QObject *parent) : QObject(parent)
 {
     m_dictionary   = nullptr;
@@ -36,9 +38,22 @@ GlobalMediator *GlobalMediator::createGlobalMedaitor()
     return m_mediator;
 }
 
+/* End Constructor/Destructor */
+/* Begin Getters */
+
 GlobalMediator *GlobalMediator::getGlobalMediator()
 {
     return m_mediator;
+}
+
+AnkiClient *GlobalMediator::getAnkiClient() const
+{
+    return m_ankiClient;
+}
+
+AudioPlayer *GlobalMediator::getAudioPlayer() const
+{
+    return m_audioPlayer;
 }
 
 Dictionary *GlobalMediator::getDictionary() const
@@ -56,19 +71,24 @@ QWidget *GlobalMediator::getPlayerWidget() const
     return m_playerWidget;
 }
 
-AnkiClient *GlobalMediator::getAnkiClient() const
-{
-    return m_ankiClient;
-}
-
 SubtitleListWidget *GlobalMediator::getSubtitleListWidget() const
 {
     return m_subList;
 }
 
-AudioPlayer *GlobalMediator::getAudioPlayer() const
+/* End Getters */
+/* Begin Setters */
+
+GlobalMediator *GlobalMediator::setAnkiClient(AnkiClient *client)
 {
-    return m_audioPlayer;
+    m_ankiClient = client;
+    return m_mediator;
+}
+
+GlobalMediator *GlobalMediator::setAudioPlayer(AudioPlayer *audioPlayer)
+{
+    m_audioPlayer = audioPlayer;
+    return m_mediator;
 }
 
 GlobalMediator *GlobalMediator::setDictionary(Dictionary *dictionary)
@@ -89,20 +109,10 @@ GlobalMediator *GlobalMediator::setPlayerWidget(QWidget *widget)
     return m_mediator;
 }
 
-GlobalMediator *GlobalMediator::setAnkiClient(AnkiClient *client)
-{
-    m_ankiClient = client;
-    return m_mediator;
-}
-
 GlobalMediator *GlobalMediator::setSubtitleList(SubtitleListWidget *subList)
 {
     m_subList = subList;
     return m_mediator;
 }
 
-GlobalMediator *GlobalMediator::setAudioPlayer(AudioPlayer *audioPlayer)
-{
-    m_audioPlayer = audioPlayer;
-    return m_mediator;
-}
+/* End Setters */
