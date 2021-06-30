@@ -375,7 +375,6 @@ void SubtitleWidget::resizeEvent(QResizeEvent *event)
     QTextEdit::resizeEvent(event);
 
     Q_EMIT GlobalMediator::getGlobalMediator()->requestDefinitionDelete();
-    Q_EMIT GlobalMediator::getGlobalMediator()->requestFullscreenResize();
 }
 
 void SubtitleWidget::paintEvent(QPaintEvent *event)
