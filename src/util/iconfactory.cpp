@@ -33,16 +33,15 @@
     #error "OS not supported"
 #endif
 
-#define PLAY_THEME "media-playback-start"
-#define PAUSE_THEME "media-playback-pause"
-#define STOP_THEME "media-playback-stop"
+#define PLAY_THEME          "media-playback-start"
+#define PAUSE_THEME         "media-playback-pause"
+#define STOP_THEME          "media-playback-stop"
 #define SEEK_BACKWARD_THEME "media-seek-backward"
-#define SEEK_FORWARD_THEME "media-seek-forward"
+#define SEEK_FORWARD_THEME  "media-seek-forward"
 #define SKIP_BACKWARD_THEME "media-skip-backward"
-#define SKIP_FORWARD_THEME "media-skip-forward"
-#define FULLSCREEN_THEME "view-fullscreen"
-#define RESTORE_THEME "view-restore"
-
+#define SKIP_FORWARD_THEME  "media-skip-forward"
+#define FULLSCREEN_THEME    "view-fullscreen"
+#define RESTORE_THEME       "view-restore"
 
 IconFactory *IconFactory::create()
 {
@@ -84,7 +83,9 @@ const QIcon &StyleFactory::getIcon(IconFactory::Icon icon) const
 QIcon StyleFactory::buildIcon(const QString &path)
 {
     QPixmap pixmap(path);
-    QColor color = QApplication::palette().color(QPalette::ColorRole::WindowText);
+    QColor color = QApplication::palette().color(
+        QPalette::ColorRole::WindowText
+    );
 
     QPainter painter(&pixmap);
     painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
@@ -117,7 +118,9 @@ void ThemeFactory::buildIcons()
     StyleFactory styleFactory;
     for (size_t i = 0; i < XDG_ICONS; ++i)
     {
-        icons[i] = QIcon::hasThemeIcon(names[i]) ? QIcon::fromTheme(names[i]) : styleFactory.getIcon((IconFactory::Icon) i);
+        icons[i] = QIcon::hasThemeIcon(names[i]) 
+                 ? QIcon::fromTheme(names[i])
+                 : styleFactory.getIcon((IconFactory::Icon) i);
     }
     for (size_t i = XDG_ICONS; i < ICON_ENUM_SIZE; ++i)
     {
