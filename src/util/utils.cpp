@@ -191,6 +191,12 @@ void NetworkUtils::checkForUpdates()
 /* End NetworkUtils */
 /* Begin GraphicUtils */
 
+/**
+ * Header for pitch graphs.
+ * @param 1 Width of the viewBox.
+ * @param 2 Fill color. Hex string format.
+ * @param 3 Stroke color. Hex string format.
+ */
 #define PITCH_GRAPH_HEADER (QString(                                                                                    \
     "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"2em\" viewBox=\"0 0 %1 100\" style=\"display: inline-block;\">" \
     "<defs>"                                                                                                            \
@@ -207,9 +213,35 @@ void NetworkUtils::checkForUpdates()
     "</defs>"))
 #define PITCH_GRAPH_TRAILER (QString("</svg>"))
 
+/**
+ * Creates a dot filled with the stroke color and stroked with the stroke color.
+ * @param 1 The x coordinate.
+ * @param 2 The y coordinate.
+ */
 #define BLACK_DOT_FORMAT    (QString("<use href=\"#black-dot\" x=\"%1\" y=\"%2\"/>"))
+
+/**
+ * Creates a dot filled with the fill color and stroked with the stroke color.
+ * @param 1 The x coordinate.
+ * @param 2 The y coordinate.
+ */
 #define WHITE_DOT_FORMAT    (QString("<use href=\"#white-dot\" x=\"%1\" y=\"%2\"/>"))
+
+/**
+ * Creates a dot filled with the fill color and stroked with the stroke color.
+ * @param 1 The x coordinate.
+ * @param 2 The y coordinate.
+ */
 #define CHANGE_DOT_FORMAT   (QString("<use href=\"#change-dot\" x=\"%1\" y=\"%2\"/>"))
+
+/**
+ * Draws a line.
+ * @param 1 The color of the line.
+ * @param 2 The starting x coordinate.
+ * @param 3 The starting y coordinate.
+ * @param 4 The ending x coordinate.
+ * @param 5 The ending y coordinate.
+ */
 #define LINE_FORMAT         (QString("<path d=\"M%2 %3 L%4 %5\" style=\"stroke: %1; stroke-width: 5px;\"/>"))
 
 #define GRAPH_TOP_Y     25

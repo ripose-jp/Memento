@@ -21,8 +21,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <QString>
 #include <QFile>
+#include <QString>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #define SLASH "\\"
@@ -34,7 +34,10 @@
     #error "OS not supported"
 #endif
 
+/* Dictionary database file name. */
 #define DICT_DB_FILE        "dictionaries.sqlite"
+
+/* mpv input configuration file name. */
 #define MPV_INPUT_CONF_FILE "input.conf"
 
 /**
