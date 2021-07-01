@@ -108,7 +108,8 @@ int main(int argc, char *argv[])
             QMessageBox message;
             message.critical(
                 0, "Error Creating Config Directory",
-                "Could not make configuration directory at " + DirectoryUtils::getConfigDir()
+                "Could not make configuration directory at " +
+                DirectoryUtils::getConfigDir()
             );
             return EXIT_FAILURE;
         }
@@ -122,13 +123,15 @@ int main(int argc, char *argv[])
             QMessageBox message;
             message.critical(
                 0, "Error Creating Dict Directory",
-                "Could not make dictionary directory at " + DirectoryUtils::getDictionaryDir()
+                "Could not make dictionary directory at " + 
+                DirectoryUtils::getDictionaryDir()
             );
             return EXIT_FAILURE;
         }
     }
     
-    setlocale(LC_NUMERIC, "C");
+    /* General Setup */
+    setlocale(LC_NUMERIC, "C"); // mpv requires this
     
     GlobalMediator::createGlobalMedaitor();
     GlobalMediator::getGlobalMediator()->setAudioPlayer(new AudioPlayer);
