@@ -23,7 +23,7 @@
    <item>
     <widget class="QLabel" name="labelExplination">
      <property name="text">
-      <string>Below is the list of special expressions that can be enetered in the value field.
+      <string>Below is the list of special expressions that can be entered in the value field.
 These will expand to larger expressions in the final card.</string>
      </property>
      <property name="wordWrap">
