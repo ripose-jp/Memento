@@ -21,13 +21,16 @@
 #ifndef MACOSPOWEREVENTHANDLER_H
 #define MACOSPOWEREVENTHANDLER_H
 
+#include <atomic>
+#include <IOKit/IOMessage.h>
+#include <IOKit/pwr_mgt/IOPMLib.h>
 #include <iostream>
 #include <thread>
-#include <atomic>
-#include <IOKit/pwr_mgt/IOPMLib.h>
-#include <IOKit/IOMessage.h>
 
 /**
+ * Prevents sleep on Mac OS X. This class is untested and it should be assumed
+ * that it works as intended.
+ * 
  * Code heavily based off of
  * https://ladydebug.com/blog/2020/05/21/programmatically-capture-energy-saver-event-on-mac/
  */
@@ -37,10 +40,29 @@ public:
     MacOSPowerEventHandler();
     ~MacOSPowerEventHandler();
 
+    /**
+     * Sets the root power domain.
+     * Allows the root power domain to be set from the event loop.
+     * @param r The root power domain to set.
+     */
     void setRootPowerDomain(const io_connect_t &r);
+
+    /**
+     * Gets the current root power domain.
+     * @return The current root power domain.
+     */
     io_connect_t getRootPowerDomain() const;
     
+    /**
+     * Determines whether or not sleep should be prevented.
+     * @param value true if sleep should be prevented, false otherwise.
+     */
     void setPreventSleep(const bool value);
+
+    /**
+     * Gets the sleep prevention value.
+     * @return true if sleep is being prevent, false otherwise.
+     */
     bool getPreventSleep() const;
 
 private:

@@ -20,33 +20,59 @@
 
 #include "macospowereventhandler.h"
 
-static void sleepWakeupCallBack(void *h, io_service_t, natural_t messageType, void *messageArgument)
+/**
+ * Call back for handling a power event. Only cares about 'can sleep' messages.
+ * @param h                The MacOsPowerEventHandler.
+ * @param unused
+ * @param messageType      The type of message to handle.
+ * @param messageArguement Message argument, not to be directly modified.
+ */
+static void sleepWakeupCallBack(void *h,
+                                io_service_t,
+                                natural_t messageType,
+                                void *messageArgument)
 {
     if (messageType == kIOMessageCanSystemSleep)
     {
         MacOSPowerEventHandler *handler = (MacOSPowerEventHandler *)h;
         if (handler->getPreventSleep())
         {
-            IOCancelPowerChange(handler->getRootPowerDomain(), (long)messageArgument);
+            IOCancelPowerChange(
+                handler->getRootPowerDomain(), (long)messageArgument
+            );
         }
         else
         {
-            IOAllowPowerChange(handler->getRootPowerDomain(), (long)messageArgument);
+            IOAllowPowerChange(
+                handler->getRootPowerDomain(), (long)messageArgument
+            );
         }
     }
 }
 
+/**
+ * Bootstraps into CFRunLoopRun().
+ * @param handler The MacOSPowerEventHandler.
+ */
 static void eventLoop(MacOSPowerEventHandler *handler)
 {
     IONotificationPortRef notifyPortRef;
     io_object_t           notifierObj;
-    handler->setRootPowerDomain(IORegisterForSystemPower(handler, &notifyPortRef, sleepWakeupCallBack, &notifierObj));
+    handler->setRootPowerDomain(
+        IORegisterForSystemPower(
+            handler, &notifyPortRef, sleepWakeupCallBack, &notifierObj
+        )
+    );
     if (handler->getRootPowerDomain() == 0)
     {
         std::cerr << "IORegisterForSystemPower failed" << std::endl;
         return;
     }
-    CFRunLoopAddSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(notifyPortRef), kCFRunLoopCommonModes);
+    CFRunLoopAddSource(
+        CFRunLoopGetCurrent(), 
+        IONotificationPortGetRunLoopSource(notifyPortRef),
+        kCFRunLoopCommonModes
+    );
     CFRunLoopRun();
 }
 
