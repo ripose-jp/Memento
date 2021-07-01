@@ -32,6 +32,8 @@
 #include "../util/globalmediator.h"
 #include "../util/utils.h"
 
+/* Begin Constructor/Destructor */
+
 AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent)
 {
     m_mpv = mpv_create();
@@ -80,6 +82,9 @@ void AudioPlayer::clearFiles()
     m_fileLock.unlock();
 }
 
+/* End Constructor/Destructor */
+/* Begin Implementations */
+
 bool AudioPlayer::playFile(const QTemporaryFile *file)
 {
     if (file == nullptr)
@@ -117,7 +122,10 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
     /* File does not exist so fetch it */
     AudioPlayerReply *audioReply = new AudioPlayerReply;
     QNetworkReply    *reply      = m_manager->get(QNetworkRequest(QUrl(url)));
-    connect(reply, &QNetworkReply::sslErrors, reply, qOverload<>(&QNetworkReply::ignoreSslErrors)); // God help me
+    connect(
+        reply, &QNetworkReply::sslErrors,
+        reply, qOverload<>(&QNetworkReply::ignoreSslErrors)
+    ); // God help me
     connect(reply, &QNetworkReply::finished,  this,
         [=] {
             QTemporaryFile *file = nullptr;
@@ -178,3 +186,5 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
 
     return audioReply;
 }
+
+/* End Implementations */
