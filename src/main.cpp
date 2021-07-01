@@ -107,18 +107,21 @@ int main(int argc, char *argv[])
             );
             return EXIT_FAILURE;
         }
+    }
 
+    /* Create the dictionary directory if it doesn't exist */
+    if (!QDir(DirectoryUtils::getDictionaryDir()).exists())
+    {
         if (!QDir().mkdir(DirectoryUtils::getDictionaryDir()))
         {
             QMessageBox message;
             message.critical(
                 0, "Error Creating Dict Directory",
-                "Could not make dictionary directory at " + DirectoryUtils::getConfigDir()
+                "Could not make dictionary directory at " + DirectoryUtils::getDictionaryDir()
             );
             return EXIT_FAILURE;
         }
     }
-
     
     setlocale(LC_NUMERIC, "C");
     
