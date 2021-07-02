@@ -813,6 +813,8 @@ void MainWindow::clearTracks()
         m_ui->actionSubtitleTwoNone
     );
     m_actionGroups.actionMap.clear();
+    m_actionGroups.currentSubId = 0;
+    m_actionGroups.currentSecSubId = 0;
 }
 
 void MainWindow::setTracks(QList<const Track *> tracks)
