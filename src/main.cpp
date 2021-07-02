@@ -101,33 +101,29 @@ int main(int argc, char *argv[])
     updateSettings();
 
     /* Create the configuration directory if it doesn't exist */
-    if (!QDir(DirectoryUtils::getConfigDir()).exists())
+    if (!QDir(DirectoryUtils::getConfigDir()).exists() &&
+        !QDir().mkdir(DirectoryUtils::getConfigDir()))
     {
-        if (!QDir().mkdir(DirectoryUtils::getConfigDir()))
-        {
-            QMessageBox message;
-            message.critical(
-                0, "Error Creating Config Directory",
-                "Could not make configuration directory at " +
-                DirectoryUtils::getConfigDir()
-            );
-            return EXIT_FAILURE;
-        }
+        QMessageBox message;
+        message.critical(
+            0, "Error Creating Config Directory",
+            "Could not make configuration directory at " +
+            DirectoryUtils::getConfigDir()
+        );
+        return EXIT_FAILURE;
     }
 
     /* Create the dictionary directory if it doesn't exist */
-    if (!QDir(DirectoryUtils::getDictionaryDir()).exists())
+    if (!QDir(DirectoryUtils::getDictionaryDir()).exists() &&
+        !QDir().mkdir(DirectoryUtils::getDictionaryDir()))
     {
-        if (!QDir().mkdir(DirectoryUtils::getDictionaryDir()))
-        {
-            QMessageBox message;
-            message.critical(
-                0, "Error Creating Dict Directory",
-                "Could not make dictionary directory at " + 
-                DirectoryUtils::getDictionaryDir()
-            );
-            return EXIT_FAILURE;
-        }
+        QMessageBox message;
+        message.critical(
+            0, "Error Creating Dict Directory",
+            "Could not make dictionary directory at " + 
+            DirectoryUtils::getDictionaryDir()
+        );
+        return EXIT_FAILURE;
     }
     
     /* General Setup */
