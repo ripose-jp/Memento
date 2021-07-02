@@ -40,16 +40,16 @@ extern "C"
 #include "../ffmpeg/transcode_aac.h"
 }
 
-// Anki request fields
+/* Anki request fields */
 #define ANKI_ACTION                     "action"
 #define ANKI_RESULT                     "result"
 #define ANKI_PARAMS                     "params"
 
-// Anki reply fields
+/* Anki reply fields */
 #define ANKI_ERROR                      "error"
 #define ANKI_VERSION                    "version"
 
-// Anki actions
+/* Anki actions */
 #define ANKI_DECK_NAMES                 "deckNames"
 #define ANKI_MODEL_NAMES                "modelNames"
 #define ANKI_FIELD_NAMES                "modelFieldNames"
@@ -59,11 +59,11 @@ extern "C"
 #define ANKI_ADD_NOTE_PARAM             "note"
 #define ANKI_GUI_BROWSE                 "guiBrowse"
 
-// Anki param fields
+/* Anki param fields */
 #define ANKI_PARAM_MODEL_NAME           "modelName"
 #define ANKI_PARAM_QUERY                "query"
 
-// Anki note fields
+/* Anki note fields */
 #define ANKI_CAN_ADD_NOTES_PARAM        "notes"
 #define ANKI_NOTE_DECK                  "deckName"
 #define ANKI_NOTE_MODEL                 "modelName"
@@ -77,7 +77,7 @@ extern "C"
 #define ANKI_NOTE_FILENAME              "filename"
 #define ANKI_NOTE_SKIPHASH              "skipHash"
 
-// Anki note option fields
+/* Anki note option fields */
 #define ANKI_NOTE_OPTIONS_ALLOW_DUP         "allowDuplicate"
 #define ANKI_NOTE_OPTIONS_SCOPE             "duplicateScope"
 #define ANKI_NOTE_OPTIONS_SCOPE_CHECK_DECK  "deck"
@@ -88,7 +88,7 @@ extern "C"
 #define FURIGANA_FORMAT_STRING          (QString("<ruby>%1<rt>%2</rt></ruby>"))
 #define AUDIO_FILENAME_FORMAT_STRING    (QString("memento_%1_%2.mp3"))
 
-// Config file fields
+/* Config file fields */
 #define CONFIG_ENABLED          "enabled"
 #define CONFIG_PROFILES         "profiles"
 #define CONFIG_SET_PROFILE      "setProfile"
@@ -109,6 +109,8 @@ extern "C"
 #define CONFIG_MODEL            "model"
 #define CONFIG_FIELDS           "fields"
 
+/* Begin Constructor/Destructors */
+
 AnkiClient::AnkiClient(QObject *parent)
     : QObject(parent),
       m_configs(new QHash<QString, const AnkiConfig *>),
@@ -123,7 +125,10 @@ AnkiClient::AnkiClient(QObject *parent)
         setDefaultConfig();
     }
 
-    connect(this, &AnkiClient::sendIntRequest, this, &AnkiClient::recieveIntRequest);
+    connect(
+        this, &AnkiClient::sendIntRequest,
+        this, &AnkiClient::recieveIntRequest
+    );
 
     GlobalMediator::getGlobalMediator()->setAnkiClient(this);
 }
@@ -135,8 +140,20 @@ AnkiClient::~AnkiClient()
     delete m_manager;
 }
 
+void AnkiClient::clearProfiles()
+{
+    for (const AnkiConfig *config : *m_configs)
+        delete config;
+    m_configs->clear();
+}
+
+/* End Constructor/Destructors */
+/* Begin Config File Methods */
+
 bool AnkiClient::readConfigFromFile(const QString &filename)
 {
+    clearProfiles();
+
     QFile configFile(DirectoryUtils::getConfigDir() + filename);
     if (!configFile.exists())
     {
@@ -149,11 +166,11 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         return false;
     }
 
-    // Read the file into memory
+    /* Read the file into memory */
     QJsonDocument jsonDoc = QJsonDocument::fromJson(configFile.readAll());
     configFile.close();
 
-    // Error check the JSON
+    /* Error check the JSON */
     if (jsonDoc.isNull())
     {
         qDebug() << filename << "is not JSON";
@@ -166,7 +183,7 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
     }
 
     QJsonObject jsonObj = jsonDoc.object();
-    // Error check the config
+    /* Error check the config */
     if (!jsonObj[CONFIG_ENABLED].isBool())
     {
         qDebug() << CONFIG_ENABLED << "is not a boolean";
@@ -197,7 +214,8 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         if (profile[CONFIG_DUPLICATE].isNull())
         {
             modified = true;
-            profile[CONFIG_DUPLICATE] = AnkiConfig::DuplicatePolicy::DifferentDeck;
+            profile[CONFIG_DUPLICATE] = 
+                AnkiConfig::DuplicatePolicy::DifferentDeck;
         }
         if (profile[CONFIG_SCREENSHOT].isNull())
         {
@@ -316,8 +334,12 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         AnkiConfig *config      = new AnkiConfig;
         config->address         = profile[CONFIG_HOST].toString();
         config->port            = profile[CONFIG_PORT].toString();
-        config->duplicatePolicy = (AnkiConfig::DuplicatePolicy)profile[CONFIG_DUPLICATE].toInt(AnkiConfig::DuplicatePolicy::DifferentDeck);
-        config->screenshotType  = (AnkiConfig::FileType)profile[CONFIG_SCREENSHOT].toInt(AnkiConfig::FileType::jpg);
+        config->duplicatePolicy = (AnkiConfig::DuplicatePolicy)
+            profile[CONFIG_DUPLICATE].toInt(
+                AnkiConfig::DuplicatePolicy::DifferentDeck
+            );
+        config->screenshotType  = (AnkiConfig::FileType)
+            profile[CONFIG_SCREENSHOT].toInt(AnkiConfig::FileType::jpg);
         config->audio.name      = profile[CONFIG_AUDIO_NAME].toString();
         config->audio.url       = profile[CONFIG_AUDIO_URL].toString();
         config->audio.name      = profile[CONFIG_AUDIO_HASH].toString();
@@ -352,7 +374,9 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
 bool AnkiClient::writeConfigToFile(const QString &filename)
 {
     QFile configFile(DirectoryUtils::getConfigDir() + filename);
-    if (!configFile.open(QIODevice::ReadWrite | QIODevice::Truncate | QIODevice::Text))
+    if (!configFile.open(QIODevice::ReadWrite |
+                         QIODevice::Truncate | 
+                         QIODevice::Text))
     {
         qDebug() << "Could not open file" << filename;
         return false;
@@ -401,32 +425,14 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
     return true;
 }
 
-void AnkiClient::setDefaultConfig()
+void AnkiClient::writeChanges()
 {
-    AnkiConfig *config = new AnkiConfig;
-    config->address         = DEFAULT_HOST;
-    config->port            = DEFAULT_PORT;
-    config->duplicatePolicy = DEFAULT_DUPLICATE_POLICY;
-    config->screenshotType  = DEFAULT_SCREENSHOT;
-    config->audio.name      = SETTINGS_AUDIO_SRC_NAME_DEFAULT;
-    config->audio.url       = SETTINGS_AUDIO_SRC_URL_DEFAULT;
-    config->audio.md5       = SETTINGS_AUDIO_SRC_MD5_DEFAULT;
-    config->audioPadStart   = DEFAULT_AUDIO_PAD_START;
-    config->audioPadEnd     = DEFAULT_AUDIO_PAD_END;
-    config->tags.append(DEFAULT_TAGS);
-
-    m_configs->insert(DEFAULT_PROFILE, config);
-    m_currentConfig  = config;
-    m_currentProfile = DEFAULT_PROFILE;
-
-    setServer(config->address, config->port);
+    writeConfigToFile(CONFIG_FILE);
+    Q_EMIT GlobalMediator::getGlobalMediator()->ankiSettingsChanged();
 }
 
-void AnkiClient::setServer(const QString &address, const QString &port)
-{
-    m_address = address;
-    m_port = port;
-}
+/* End Config File Methods */
+/* Begin Config/Profile Methods */
 
 QString AnkiClient::getProfile() const
 {
@@ -440,6 +446,26 @@ QStringList AnkiClient::getProfiles() const
     for (auto it = keys.begin(); it != keys.end(); ++it)
         result.append(*it);
     return result;
+}
+
+bool AnkiClient::setProfile(const QString &profile)
+{
+    const AnkiConfig *config = m_configs->value(profile);
+    if (config)
+    {
+        m_currentConfig = config;
+        m_currentProfile = profile;
+        setServer(m_currentConfig->address, m_currentConfig->port);
+        return true;
+    }
+    return false;
+}
+
+void AnkiClient::addProfile(const QString &profile, const AnkiConfig &config)
+{
+    const AnkiConfig *oldConfig = m_configs->value(profile);
+    m_configs->insert(profile, new AnkiConfig(config));
+    delete oldConfig;
 }
 
 const AnkiConfig *AnkiClient::getConfig(const QString &profile) const
@@ -463,32 +489,30 @@ QHash<QString, AnkiConfig *> *AnkiClient::getConfigs() const
     return configs;
 }
 
-bool AnkiClient::setProfile(const QString &profile)
+void AnkiClient::setDefaultConfig()
 {
-    const AnkiConfig *config = m_configs->value(profile);
-    if (config)
-    {
-        m_currentConfig = config;
-        m_currentProfile = profile;
-        setServer(m_currentConfig->address, m_currentConfig->port);
-        return true;
-    }
-    return false;
+    AnkiConfig *config = new AnkiConfig;
+    config->address         = DEFAULT_HOST;
+    config->port            = DEFAULT_PORT;
+    config->duplicatePolicy = DEFAULT_DUPLICATE_POLICY;
+    config->screenshotType  = DEFAULT_SCREENSHOT;
+    config->audio.name      = SETTINGS_AUDIO_SRC_NAME_DEFAULT;
+    config->audio.url       = SETTINGS_AUDIO_SRC_URL_DEFAULT;
+    config->audio.md5       = SETTINGS_AUDIO_SRC_MD5_DEFAULT;
+    config->audioPadStart   = DEFAULT_AUDIO_PAD_START;
+    config->audioPadEnd     = DEFAULT_AUDIO_PAD_END;
+    config->tags.append(DEFAULT_TAGS);
+
+    delete m_configs->value(DEFAULT_PROFILE);
+    m_configs->insert(DEFAULT_PROFILE, config);
+    m_currentConfig  = config;
+    m_currentProfile = DEFAULT_PROFILE;
+
+    setServer(config->address, config->port);
 }
 
-void AnkiClient::addProfile(const QString &profile, const AnkiConfig &config)
-{
-    const AnkiConfig *oldConfig = m_configs->value(profile);
-    m_configs->insert(profile, new AnkiConfig(config));
-    delete oldConfig;
-}
-
-void AnkiClient::clearProfiles()
-{
-    for (auto it = m_configs->begin(); it != m_configs->end(); ++it)
-        delete *it;
-    m_configs->clear();
-}
+/* End Config/Profile Methods */
+/* Begin Getter/Setters */
 
 bool AnkiClient::isEnabled() const
 {
@@ -500,41 +524,50 @@ void AnkiClient::setEnabled(const bool value)
     m_enabled = value;
 }
 
-void AnkiClient::writeChanges()
+void AnkiClient::setServer(const QString &address, const QString &port)
 {
-    writeConfigToFile(CONFIG_FILE);
-    Q_EMIT GlobalMediator::getGlobalMediator()->ankiSettingsChanged();
+    m_address = address;
+    m_port = port;
 }
+
+/* End Getter/Setters */
+/* Begin Commands */
 
 AnkiReply *AnkiClient::testConnection()
 {
     QNetworkReply *reply = makeRequest(ANKI_ACTION_VERSION);
     AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, this, [=] {
-        QString error;
-        QJsonObject replyObj = processReply(reply, error);
-        if (replyObj.isEmpty())
-        {
-            Q_EMIT ankiReply->finishedBool(false, error);
+    connect(reply, &QNetworkReply::finished, this,
+        [=] {
+            QString error;
+            QJsonObject replyObj = processReply(reply, error);
+            if (replyObj.isEmpty())
+            {
+                Q_EMIT ankiReply->finishedBool(false, error);
+            }
+            else if (!replyObj[ANKI_RESULT].isDouble())
+            {
+                Q_EMIT ankiReply->finishedBool(
+                    false, "AnkiConnect result is not a number"
+                );
+            }
+            else if (replyObj[ANKI_RESULT].toInt() < MIN_ANKICONNECT_VERSION)
+            {
+                error = "AnkiConnect version %1 < %2";
+                error = error.arg(
+                        QString::number(replyObj[ANKI_RESULT].toInt()),
+                        QString::number(MIN_ANKICONNECT_VERSION)
+                    );
+                Q_EMIT ankiReply->finishedBool(false, error);
+            }
+            else
+            {
+                Q_EMIT ankiReply->finishedBool(true, error);
+            }
+            ankiReply->deleteLater();
+            reply->deleteLater();
         }
-        else if (!replyObj[ANKI_RESULT].isDouble())
-        {
-            Q_EMIT ankiReply->finishedBool(false, "AnkiConnect result is not a number");
-        }
-        else if (replyObj[ANKI_RESULT].toInt() < MIN_ANKICONNECT_VERSION)
-        {
-            error = "AnkiConnect version %1 < %2";
-            error = error.arg(QString::number(replyObj[ANKI_RESULT].toInt()),
-                              QString::number(MIN_ANKICONNECT_VERSION));
-            Q_EMIT ankiReply->finishedBool(false, error);
-        }
-        else
-        {
-            Q_EMIT ankiReply->finishedBool(true, error);
-        }
-        ankiReply->deleteLater();
-        reply->deleteLater();
-    });
+    );
     return ankiReply;
 }
 
@@ -555,75 +588,54 @@ AnkiReply *AnkiClient::getFieldNames(const QString &model)
     return requestStringList(ANKI_FIELD_NAMES, params);
 }
 
-AnkiReply *AnkiClient::requestStringList(const QString &action, const QJsonObject &params)
-{
-    QNetworkReply *reply = makeRequest(action, params);
-    AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, this, [=] {
-        QString error;
-        QJsonObject replyObj = processReply(reply, error);
-        if (replyObj.isEmpty())
-        {
-            Q_EMIT ankiReply->finishedStringList(QStringList(), error);
-        }
-        else if (!replyObj[ANKI_RESULT].isArray())
-        {
-            Q_EMIT ankiReply->finishedStringList(QStringList(), "Result is not an array");
-        }
-        else
-        {
-            QStringList decks;
-            QJsonArray deckNames = replyObj[ANKI_RESULT].toArray();
-            for (const QJsonValueRef &name : deckNames)
-                decks.append(name.toString());
-            Q_EMIT ankiReply->finishedStringList(decks, error);
-        }
-        ankiReply->deleteLater();
-        reply->deleteLater();
-    });
-    return ankiReply;
-}
-
 AnkiReply *AnkiClient::notesAddable(const QList<Term *> &terms)
 {
     QJsonArray notes;
     for (const Term *term : terms)
+    {
         notes.append(createAnkiNoteObject(*term));
+    }
     QJsonObject params;
     params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
     QNetworkReply *reply = makeRequest(ANKI_CAN_ADD_NOTES, params);
     AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, this, [=] {
-        QString error;
-        QJsonObject replyObj = processReply(reply, error);
-        if (replyObj.isEmpty())
-        {
-            Q_EMIT ankiReply->finishedBoolList(QList<bool>(), error);
-        }
-        else if (!replyObj[ANKI_RESULT].isArray())
-        {
-            Q_EMIT ankiReply->finishedBoolList(QList<bool>(), "Result is not an array");
-        }
-        else
-        {
-            QList<bool> response;
-            QJsonArray resultArray = replyObj[ANKI_RESULT].toArray();
-            for (const QJsonValueRef &addable : resultArray)
+    connect(reply, &QNetworkReply::finished, this,
+        [=] {
+            QString error;
+            QJsonObject replyObj = processReply(reply, error);
+            if (replyObj.isEmpty())
             {
-                if (addable.isBool())
-                {
-                    response.append(addable.toBool());
-                }
-                else
-                {
-                    Q_EMIT ankiReply->finishedBoolList(QList<bool>(), "Response was not an array of bool");
-                }
+                Q_EMIT ankiReply->finishedBoolList(QList<bool>(), error);
             }
-            Q_EMIT ankiReply->finishedBoolList(response, error);
+            else if (!replyObj[ANKI_RESULT].isArray())
+            {
+                Q_EMIT ankiReply->finishedBoolList(
+                    QList<bool>(), "Result is not an array"
+                );
+            }
+            else
+            {
+                QList<bool> response;
+                QJsonArray resultArray = replyObj[ANKI_RESULT].toArray();
+                for (const QJsonValueRef &addable : resultArray)
+                {
+                    if (addable.isBool())
+                    {
+                        response.append(addable.toBool());
+                    }
+                    else
+                    {
+                        Q_EMIT ankiReply->finishedBoolList(
+                            QList<bool>(), "Response was not an array of bool"
+                        );
+                    }
+                }
+                Q_EMIT ankiReply->finishedBoolList(response, error);
+            }
+            ankiReply->deleteLater();
+            reply->deleteLater();
         }
-        ankiReply->deleteLater();
-        reply->deleteLater();
-    });
+    );
     return ankiReply;
 }
 
@@ -636,37 +648,43 @@ AnkiReply *AnkiClient::notesAddable(const QList<const Kanji *> &kanjiList)
     params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
     QNetworkReply *reply = makeRequest(ANKI_CAN_ADD_NOTES, params);
     AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, this, [=] {
-        QString error;
-        QJsonObject replyObj = processReply(reply, error);
-        if (replyObj.isEmpty())
-        {
-            Q_EMIT ankiReply->finishedBoolList(QList<bool>(), error);
-        }
-        else if (!replyObj[ANKI_RESULT].isArray())
-        {
-            Q_EMIT ankiReply->finishedBoolList(QList<bool>(), "Result is not an array");
-        }
-        else
-        {
-            QList<bool> response;
-            QJsonArray resultArray = replyObj[ANKI_RESULT].toArray();
-            for (const QJsonValueRef &addable : resultArray)
+    connect(reply, &QNetworkReply::finished, this,
+        [=] {
+            QString error;
+            QJsonObject replyObj = processReply(reply, error);
+            if (replyObj.isEmpty())
             {
-                if (addable.isBool())
-                {
-                    response.append(addable.toBool());
-                }
-                else
-                {
-                    Q_EMIT ankiReply->finishedBoolList(QList<bool>(), "Response was not an array of bool");
-                }
+                Q_EMIT ankiReply->finishedBoolList(QList<bool>(), error);
             }
-            Q_EMIT ankiReply->finishedBoolList(response, error);
+            else if (!replyObj[ANKI_RESULT].isArray())
+            {
+                Q_EMIT ankiReply->finishedBoolList(
+                    QList<bool>(), "Result is not an array"
+                );
+            }
+            else
+            {
+                QList<bool> response;
+                QJsonArray resultArray = replyObj[ANKI_RESULT].toArray();
+                for (const QJsonValueRef &addable : resultArray)
+                {
+                    if (addable.isBool())
+                    {
+                        response.append(addable.toBool());
+                    }
+                    else
+                    {
+                        Q_EMIT ankiReply->finishedBoolList(
+                            QList<bool>(), "Response was not an array of bool"
+                        );
+                    }
+                }
+                Q_EMIT ankiReply->finishedBoolList(response, error);
+            }
+            ankiReply->deleteLater();
+            reply->deleteLater();
         }
-        ankiReply->deleteLater();
-        reply->deleteLater();
-    });
+    );
     return ankiReply;
 }
 
@@ -704,19 +722,215 @@ AnkiReply *AnkiClient::addNote(const Kanji *kanji)
     return ankiReply;
 }
 
+AnkiReply *AnkiClient::openBrowse(const QString &deck, const QString &query)
+{
+    QJsonObject params;
+    QString queryStr;
+    switch (m_currentConfig->duplicatePolicy)
+    {
+    case AnkiConfig::DifferentDeck:
+    case AnkiConfig::SameDeck:
+        queryStr += "\"deck:" + deck + "\" ";
+    case AnkiConfig::None:
+    default:
+        queryStr += query;
+    }
+    params[ANKI_PARAM_QUERY] = queryStr;
+    QNetworkReply *reply = makeRequest(ANKI_GUI_BROWSE, params);
+    AnkiReply *ankiReply = new AnkiReply;
+    connect(reply, &QNetworkReply::finished, this, 
+        [=] {
+            QString error;
+            QJsonObject replyObj = processReply(reply, error);
+            if (replyObj.isEmpty())
+            {
+                Q_EMIT ankiReply->finishedIntList(QList<int>(), error);
+            }
+            else if (!replyObj[ANKI_RESULT].isArray())
+            {
+                Q_EMIT ankiReply->finishedIntList(
+                    QList<int>(), "Result is not an array"
+                );
+            }
+            else
+            {
+                QList<int> response;
+                QJsonArray resultArray = replyObj[ANKI_RESULT].toArray();
+                for (const QJsonValueRef &addable : resultArray)
+                {
+                    if (addable.isDouble())
+                    {
+                        response.append(addable.toInt());
+                    }
+                    else
+                    {
+                        Q_EMIT ankiReply->finishedIntList(
+                            QList<int>(), "Response was not an array of bool"
+                        );
+                    }
+                }
+            Q_EMIT ankiReply->finishedIntList(response, error);
+        }
+        ankiReply->deleteLater();
+        reply->deleteLater();
+        }
+    );
+    return ankiReply;
+}
+
+/* End Commands */
+/* Begin Network Helpers */
+
+QNetworkReply *AnkiClient::makeRequest(const QString     &action,
+                                       const QJsonObject &params)
+{
+    QNetworkRequest request;
+    request.setUrl(QUrl("http://" + m_address + ":" + m_port));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    QJsonObject jsonMsg;
+    jsonMsg[ANKI_ACTION] = action;
+    jsonMsg[ANKI_VERSION] = MIN_ANKICONNECT_VERSION;
+    if (!params.isEmpty())
+    {
+        jsonMsg[ANKI_PARAMS] = params;
+    }
+    QJsonDocument jsonDoc(jsonMsg);
+
+    return m_manager->post(request, jsonDoc.toJson());
+}
+
+QJsonObject AnkiClient::processReply(QNetworkReply *reply, QString &error)
+{
+    switch (reply->error())
+    {
+    case QNetworkReply::NoError:
+    {
+        QJsonDocument replyDoc = QJsonDocument::fromJson(reply->readAll());
+        if (replyDoc.isNull())
+        {
+            error = "Reply was not JSON";
+            qDebug() << reply->readAll();
+            return QJsonObject();
+        }
+        else if (!replyDoc.isObject())
+        {
+            error = "Reply was not an object";
+            return QJsonObject();
+        }
+
+        QJsonObject replyObj = replyDoc.object();
+        if (replyObj.length() != 2)
+        {
+            error = "Anki response has unexpected number of fields";
+        }
+        else if (!replyObj.contains(ANKI_ERROR))
+        {
+            error = "Anki response is missing error field";
+        }
+        else if (!replyObj.contains(ANKI_RESULT))
+        {
+            error = "Anki response is missing result field";
+        }
+        else if (!replyObj[ANKI_ERROR].isNull())
+        {
+            error = replyObj[ANKI_ERROR].toString();
+        }
+        else
+        {
+            return replyObj;
+        }
+        break;
+    }
+    default:
+        error = reply->errorString();
+    }
+
+    return QJsonObject();
+}
+
+void AnkiClient::recieveIntRequest(const QString     &action,
+                                   const QJsonObject &params,
+                                   AnkiReply         *ankiReply)
+{
+    QNetworkReply *reply = makeRequest(action, params);
+    connect(reply, &QNetworkReply::finished, this,
+        [=] {
+            QString error;
+            QJsonObject replyObj = processReply(reply, error);
+            if (replyObj.isEmpty())
+            {
+                Q_EMIT ankiReply->finishedInt(0, error);
+            }
+            else if (!replyObj[ANKI_RESULT].isDouble())
+            {
+                Q_EMIT ankiReply->finishedInt(
+                    0, "AnkiConnect result is not a double"
+                );
+            }
+            else
+            {
+                Q_EMIT ankiReply->finishedInt(
+                    replyObj[ANKI_RESULT].toInt(), error
+                );
+            }
+            ankiReply->deleteLater();
+            reply->deleteLater();
+        }
+    );
+}
+
+AnkiReply *AnkiClient::requestStringList(const QString     &action,
+                                         const QJsonObject &params)
+{
+    QNetworkReply *reply = makeRequest(action, params);
+    AnkiReply *ankiReply = new AnkiReply;
+    connect(reply, &QNetworkReply::finished, this,
+        [=] {
+            QString error;
+            QJsonObject replyObj = processReply(reply, error);
+            if (replyObj.isEmpty())
+            {
+                Q_EMIT ankiReply->finishedStringList(QStringList(), error);
+            }
+            else if (!replyObj[ANKI_RESULT].isArray())
+            {
+                Q_EMIT ankiReply->finishedStringList(
+                    QStringList(), "Result is not an array"
+                );
+            }
+            else
+            {
+                QStringList decks;
+                QJsonArray deckNames = replyObj[ANKI_RESULT].toArray();
+                for (const QJsonValueRef &name : deckNames)
+                    decks.append(name.toString());
+                Q_EMIT ankiReply->finishedStringList(decks, error);
+            }
+            ankiReply->deleteLater();
+            reply->deleteLater();
+        }
+    );
+    return ankiReply;
+}
+
+/* End Network Helpers */
+/* Begin Note Helpers */
+
 QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
 {
     /* Build common parts of a note */
     QJsonObject note;
     QJsonObject fieldsObj;
-    buildCommonNote(note, fieldsObj, m_currentConfig->termFields, media);
+    buildCommonNote(m_currentConfig->termFields, media, note, fieldsObj);
 
     /* Set Term and Model */
     note[ANKI_NOTE_DECK] = m_currentConfig->termDeck;
     note[ANKI_NOTE_MODEL] = m_currentConfig->termModel;
 
     /* Process Fields */
-    QString audioFile = AUDIO_FILENAME_FORMAT_STRING.arg(term.reading).arg(term.expression);
+    QString audioFile = AUDIO_FILENAME_FORMAT_STRING.arg(term.reading)
+                                                    .arg(term.expression);
 
     QString clozeBody   = QString(term.clozeBody).replace('\n', "<br>");
     QString clozePrefix = QString(term.clozePrefix).replace('\n', "<br>");
@@ -736,7 +950,8 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
     } 
     else
     {
-        furigana      = FURIGANA_FORMAT_STRING.arg(term.expression).arg(term.reading);
+        furigana      = FURIGANA_FORMAT_STRING.arg(term.expression)
+                                              .arg(term.reading);
         furiganaPlain = term.expression + "[" + term.reading + "]";
         reading       = term.reading;
     }
@@ -827,159 +1042,13 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
     return note;
 }
 
-#define HL_STYLE        (QString("border-top: solid; border-right: solid;"))
-#define H_STYLE         (QString("border-top: solid;"))
-
-#define PITCH_FORMAT    (QString("<span style=\"%1\">%2</span>"))
-
-void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches, 
-                                QString            &pitch,
-                                QString            &pitchGraph,
-                                QString            &pitchPosition)
-{
-    pitch         += "<span class=\"memento-pitch\">";
-    pitchGraph    += "<span>";
-    pitchPosition += "<span>";
-    
-    const bool multipleDicts = pitches.size() > 1;
-
-    if (multipleDicts)
-    {
-        pitch         += "<ul>";
-        pitchGraph    += "<ul>";
-        pitchPosition += "<ul>";
-    }
-    
-    for (const Pitch &p : pitches)
-    {
-        const bool multiplePitches = p.position.size() > 1;
-
-        /* Header */
-        if (multipleDicts)
-        {
-            pitch         += "<li><i>" + p.dictionary + "</i>";
-            pitchGraph    += "<li><i>" + p.dictionary + "</i>";
-            pitchPosition += "<li><i>" + p.dictionary + "</i>";
-        }
-        if(multiplePitches)
-        {
-            pitch         += "<ol>";
-            pitchGraph    += "<ol>";
-            pitchPosition += "<ol>";
-        }
-
-        /* Body */
-        for (const uint8_t pos : p.position)
-        {
-            if (p.mora.isEmpty())
-            {
-                continue;
-            }
-
-            if (multiplePitches)
-            {
-                pitch         += "<li style=\"padding: 2px 0px 2px 0px;\">";
-                pitchGraph    += "<li>";
-                pitchPosition += "<li>";
-            }
-
-            /* Build {pitch} marker */
-            switch (pos)
-            {
-            case 0:
-                pitch += p.mora.first();
-                if (p.mora.size() > 1)
-                {
-                    pitch += PITCH_FORMAT.arg(H_STYLE)
-                                         .arg(p.mora.join("").remove(0, p.mora.first().size()));
-                }
-                break;
-            case 1:
-                pitch += PITCH_FORMAT.arg(HL_STYLE).arg(p.mora.first());
-                if (p.mora.size() > 1)
-                {
-                    pitch += p.mora.join("").remove(0, p.mora.first().size());
-                }
-                break;
-            default:
-            {
-                QString text = p.mora.first();
-                pitch += text;
-
-                text.clear();
-                for (size_t i = 1; i < pos; ++i)
-                {
-                    text += p.mora[i];
-                }
-                if (!text.isEmpty())
-                {
-                    pitch += PITCH_FORMAT.arg(HL_STYLE).arg(text);
-                }
-
-                text.clear();
-                for (size_t i = pos; i < p.mora.size(); ++i)
-                {
-                    text += p.mora[i];
-                }
-                if (!text.isEmpty())
-                {
-                    pitch += text;
-                }
-            }
-            }
-
-            /* Build {pitch-graph}s */
-            pitchGraph = GraphicUtils::generatePitchGraph(p.mora.size(), pos, "white", "black");
-            
-            /* Build {pitch-posititon}s */
-            pitchPosition += "[" + QString::number(pos) + "]";
-
-            if (multiplePitches)
-            {
-                pitch         += "</li>";
-                pitchGraph    += "</li>";
-                pitchPosition += "</li>";
-            }
-        }
-
-        /* Trailer */
-        if(multiplePitches)
-        {
-            pitch         += "</ol>";
-            pitchGraph    += "</ol>";
-            pitchPosition += "</ol>";
-        }
-        if (multipleDicts)
-        {
-            pitch         += "</li>";
-            pitchGraph    += "</li>";
-            pitchPosition += "</li>";
-        }
-    }
-
-    if (multipleDicts)
-    {
-        pitch         += "</ul>";
-        pitchGraph    += "</ul>";
-        pitchPosition += "</ul>";
-    }
-
-    pitch         += "</span>";
-    pitchGraph    += "</span>";
-    pitchPosition += "</span>";
-}
-
-#undef HL_STYLE
-#undef H_STYLE
-
-#undef PITCH_FORMAT
-
-QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji, const bool media)
+QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji,
+                                             const bool   media)
 {
     /* Build common parts of a note */
     QJsonObject note;
     QJsonObject fieldsObj;
-    buildCommonNote(note, fieldsObj, m_currentConfig->kanjiFields, media);
+    buildCommonNote(m_currentConfig->kanjiFields, media, note, fieldsObj);
 
     /* Set Term and Model */
     note[ANKI_NOTE_DECK] = m_currentConfig->kanjiDeck;
@@ -1096,8 +1165,10 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji, const bool medi
     return note;
 }
 
-void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
-                                 const QJsonObject &configFields, const bool media)
+void AnkiClient::buildCommonNote(const QJsonObject &configFields,
+                                 const bool         media,
+                                 QJsonObject       &note,
+                                 QJsonObject       &fieldObj)
 {
     /* Set Duplicate Policy */
     switch (m_currentConfig->duplicatePolicy)
@@ -1125,9 +1196,12 @@ void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
     /* Find and replace markers with processed data */
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     QString title     = mediator->getPlayerAdapter()->getTitle();
-    QString context   = mediator->getSubtitleListWidget()->getPrimaryContext("<br>");
-    QString context2  = mediator->getSubtitleListWidget()->getSecondaryContext("<br>");
-    QString sentence2 = mediator->getPlayerAdapter()->getSecondarySubtitle().replace('\n', "<br>");
+    QString context   = mediator->getSubtitleListWidget()
+        ->getPrimaryContext("<br>");
+    QString context2  = mediator->getSubtitleListWidget()
+        ->getSecondaryContext("<br>");
+    QString sentence2 = mediator->getPlayerAdapter()
+        ->getSecondarySubtitle().replace('\n', "<br>");
     QJsonArray fieldsWithAudioMedia; 
     QJsonArray fieldsWithScreenshot;
     QJsonArray fieldWithScreenshotVideo;
@@ -1177,10 +1251,17 @@ void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
 
                 audObj[ANKI_NOTE_PATH] = path;
 
-                PlayerAdapter *player = GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+                PlayerAdapter *player =
+                    GlobalMediator::getGlobalMediator()->getPlayerAdapter();
 
-                double startTime = player->getSubStart() + player->getSubDelay() - player->getAudioDelay() - m_currentConfig->audioPadStart;
-                double endTime   = player->getSubEnd()   + player->getSubDelay() - player->getAudioDelay() + m_currentConfig->audioPadEnd;
+                double startTime = player->getSubStart() + 
+                                   player->getSubDelay() - 
+                                   player->getAudioDelay() - 
+                                   m_currentConfig->audioPadStart;
+                double endTime = player->getSubEnd() + 
+                                 player->getSubDelay() -
+                                 player->getAudioDelay() +
+                                 m_currentConfig->audioPadEnd;
                 if (startTime < 0)
                 {
                     startTime = 0;
@@ -1233,7 +1314,8 @@ void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
         {
             QJsonObject image;
             
-            PlayerAdapter *player = GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+            PlayerAdapter *player = 
+                GlobalMediator::getGlobalMediator()->getPlayerAdapter();
             const bool visibility = player->getSubVisibility();
             player->setSubVisiblity(true);
             QString path = player->tempScreenshot(true, imageExt);
@@ -1254,7 +1336,8 @@ void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
         if (!fieldWithScreenshotVideo.isEmpty())
         {
             QJsonObject image;
-            QString path = GlobalMediator::getGlobalMediator()->getPlayerAdapter()->tempScreenshot(false, imageExt);
+            QString path = GlobalMediator::getGlobalMediator()
+                ->getPlayerAdapter()->tempScreenshot(false, imageExt);
             image[ANKI_NOTE_PATH] = path;
 
             QString filename = FileUtils::calculateMd5(path) + imageExt;
@@ -1274,6 +1357,156 @@ void AnkiClient::buildCommonNote(QJsonObject &note, QJsonObject &fieldObj,
         }    
     }
 }
+
+#define HL_STYLE        (QString("border-top: solid; border-right: solid;"))
+#define H_STYLE         (QString("border-top: solid;"))
+
+#define PITCH_FORMAT    (QString("<span style=\"%1\">%2</span>"))
+
+void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches, 
+                                QString            &pitch,
+                                QString            &pitchGraph,
+                                QString            &pitchPosition)
+{
+    pitch         += "<span class=\"memento-pitch\">";
+    pitchGraph    += "<span>";
+    pitchPosition += "<span>";
+    
+    const bool multipleDicts = pitches.size() > 1;
+
+    if (multipleDicts)
+    {
+        pitch         += "<ul>";
+        pitchGraph    += "<ul>";
+        pitchPosition += "<ul>";
+    }
+    
+    for (const Pitch &p : pitches)
+    {
+        const bool multiplePitches = p.position.size() > 1;
+
+        /* Header */
+        if (multipleDicts)
+        {
+            pitch         += "<li><i>" + p.dictionary + "</i>";
+            pitchGraph    += "<li><i>" + p.dictionary + "</i>";
+            pitchPosition += "<li><i>" + p.dictionary + "</i>";
+        }
+        if(multiplePitches)
+        {
+            pitch         += "<ol>";
+            pitchGraph    += "<ol>";
+            pitchPosition += "<ol>";
+        }
+
+        /* Body */
+        for (const uint8_t pos : p.position)
+        {
+            if (p.mora.isEmpty())
+            {
+                continue;
+            }
+
+            if (multiplePitches)
+            {
+                pitch         += "<li style=\"padding: 2px 0px 2px 0px;\">";
+                pitchGraph    += "<li>";
+                pitchPosition += "<li>";
+            }
+
+            /* Build {pitch} marker */
+            switch (pos)
+            {
+            case 0:
+                pitch += p.mora.first();
+                if (p.mora.size() > 1)
+                {
+                    pitch += PITCH_FORMAT.arg(H_STYLE)
+                                         .arg(p.mora.join("")
+                                         .remove(0, p.mora.first().size()));
+                }
+                break;
+            case 1:
+                pitch += PITCH_FORMAT.arg(HL_STYLE).arg(p.mora.first());
+                if (p.mora.size() > 1)
+                {
+                    pitch += p.mora.join("").remove(0, p.mora.first().size());
+                }
+                break;
+            default:
+            {
+                QString text = p.mora.first();
+                pitch += text;
+
+                text.clear();
+                for (size_t i = 1; i < pos; ++i)
+                {
+                    text += p.mora[i];
+                }
+                if (!text.isEmpty())
+                {
+                    pitch += PITCH_FORMAT.arg(HL_STYLE).arg(text);
+                }
+
+                text.clear();
+                for (size_t i = pos; i < p.mora.size(); ++i)
+                {
+                    text += p.mora[i];
+                }
+                if (!text.isEmpty())
+                {
+                    pitch += text;
+                }
+            }
+            }
+
+            /* Build {pitch-graph}s */
+            pitchGraph = GraphicUtils::generatePitchGraph(
+                    p.mora.size(), pos, "white", "black"
+                );
+            
+            /* Build {pitch-posititon}s */
+            pitchPosition += "[" + QString::number(pos) + "]";
+
+            if (multiplePitches)
+            {
+                pitch         += "</li>";
+                pitchGraph    += "</li>";
+                pitchPosition += "</li>";
+            }
+        }
+
+        /* Trailer */
+        if(multiplePitches)
+        {
+            pitch         += "</ol>";
+            pitchGraph    += "</ol>";
+            pitchPosition += "</ol>";
+        }
+        if (multipleDicts)
+        {
+            pitch         += "</li>";
+            pitchGraph    += "</li>";
+            pitchPosition += "</li>";
+        }
+    }
+
+    if (multipleDicts)
+    {
+        pitch         += "</ul>";
+        pitchGraph    += "</ul>";
+        pitchPosition += "</ul>";
+    }
+
+    pitch         += "</span>";
+    pitchGraph    += "</span>";
+    pitchPosition += "</span>";
+}
+
+#undef HL_STYLE
+#undef H_STYLE
+
+#undef PITCH_FORMAT
 
 QString AnkiClient::buildGlossary(const QList<TermDefinition> &definitions)
 {
@@ -1362,146 +1595,4 @@ QString &AnkiClient::accumulateTags(const QList<Tag> &tags, QString &tagStr)
     return tagStr;
 }
 
-AnkiReply *AnkiClient::openBrowse(const QString &deck, const QString &query)
-{
-    QJsonObject params;
-    QString queryStr;
-    switch (m_currentConfig->duplicatePolicy)
-    {
-    case AnkiConfig::DifferentDeck:
-    case AnkiConfig::SameDeck:
-        queryStr += "\"deck:" + deck + "\" ";
-    case AnkiConfig::None:
-    default:
-        queryStr += query;
-    }
-    params[ANKI_PARAM_QUERY] = queryStr;
-    QNetworkReply *reply = makeRequest(ANKI_GUI_BROWSE, params);
-    AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, this, 
-        [=] {
-            QString error;
-            QJsonObject replyObj = processReply(reply, error);
-            if (replyObj.isEmpty())
-            {
-                Q_EMIT ankiReply->finishedIntList(QList<int>(), error);
-            }
-            else if (!replyObj[ANKI_RESULT].isArray())
-            {
-                Q_EMIT ankiReply->finishedIntList(QList<int>(), "Result is not an array");
-            }
-            else
-            {
-                QList<int> response;
-                QJsonArray resultArray = replyObj[ANKI_RESULT].toArray();
-                for (const QJsonValueRef &addable : resultArray)
-                {
-                    if (addable.isDouble())
-                    {
-                        response.append(addable.toInt());
-                    }
-                    else
-                    {
-                        Q_EMIT ankiReply->finishedIntList(QList<int>(), "Response was not an array of bool");
-                    }
-                }
-            Q_EMIT ankiReply->finishedIntList(response, error);
-        }
-        ankiReply->deleteLater();
-        reply->deleteLater();
-        }
-    );
-    return ankiReply;
-}
-
-QNetworkReply *AnkiClient::makeRequest(const QString &action, const QJsonObject &params)
-{
-    QNetworkRequest request;
-    request.setUrl(QUrl("http://" + m_address + ":" + m_port));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-
-    QJsonObject jsonMsg;
-    jsonMsg[ANKI_ACTION] = action;
-    jsonMsg[ANKI_VERSION] = MIN_ANKICONNECT_VERSION;
-    if (!params.isEmpty())
-    {
-        jsonMsg[ANKI_PARAMS] = params;
-    }
-    QJsonDocument jsonDoc(jsonMsg);
-
-    return m_manager->post(request, jsonDoc.toJson());
-}
-
-void AnkiClient::recieveIntRequest(const QString &action, const QJsonObject &params, AnkiReply *ankiReply)
-{
-    QNetworkReply *reply = makeRequest(action, params);
-    connect(reply, &QNetworkReply::finished, this,
-        [=] {
-            QString error;
-            QJsonObject replyObj = processReply(reply, error);
-            if (replyObj.isEmpty())
-            {
-                Q_EMIT ankiReply->finishedInt(0, error);
-            }
-            else if (!replyObj[ANKI_RESULT].isDouble())
-            {
-                Q_EMIT ankiReply->finishedInt(0, "AnkiConnect result is not a double");
-            }
-            else
-            {
-                Q_EMIT ankiReply->finishedInt(replyObj[ANKI_RESULT].toInt(), error);
-            }
-            ankiReply->deleteLater();
-            reply->deleteLater();
-        }
-    );
-}
-
-QJsonObject AnkiClient::processReply(QNetworkReply *reply, QString &error)
-{
-    switch (reply->error())
-    {
-    case QNetworkReply::NoError:
-    {
-        QJsonDocument replyDoc = QJsonDocument::fromJson(reply->readAll());
-        if (replyDoc.isNull())
-        {
-            error = "Reply was not JSON";
-            qDebug() << reply->readAll();
-            return QJsonObject();
-        }
-        else if (!replyDoc.isObject())
-        {
-            error = "Reply was not an object";
-            return QJsonObject();
-        }
-
-        QJsonObject replyObj = replyDoc.object();
-        if (replyObj.length() != 2)
-        {
-            error = "Anki response has unexpected number of fields";
-        }
-        else if (!replyObj.contains(ANKI_ERROR))
-        {
-            error = "Anki response is missing error field";
-        }
-        else if (!replyObj.contains(ANKI_RESULT))
-        {
-            error = "Anki response is missing result field";
-        }
-        else if (!replyObj[ANKI_ERROR].isNull())
-        {
-            error = replyObj[ANKI_ERROR].toString();
-        }
-        else
-        {
-            return replyObj;
-        }
-        break;
-    }
-    default:
-        error = reply->errorString();
-    }
-
-    return QJsonObject();
-}
+/* End Note Helpers */
