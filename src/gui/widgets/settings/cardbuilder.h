@@ -30,6 +30,9 @@ namespace Ui
     class CardBuilder;
 }
 
+/**
+ * Widget for accepting user input describing Anki cards.
+ */
 class CardBuilder : public QWidget
 {
     Q_OBJECT
@@ -38,23 +41,77 @@ public:
     CardBuilder(QWidget *parent = nullptr);
     ~CardBuilder();
 
-    void setDecks (const QStringList &decks,  const QString &set = QString());
+    /**
+     * Populates the Decks spinbox.
+     * @param decks List of deck names.
+     * @param set   The deck the spinbox should be set to.
+     */
+    void setDecks(const QStringList &decks, const QString &set = QString());
+
+    /**
+     * Populates the Models spinbox.
+     * @param models List of model names.
+     * @param set    The model to set the spinbox to.
+     */
     void setModels(const QStringList &models, const QString &set = QString());
-    void setFields(const QStringList &fields);
-    void setFields(const QJsonObject &fields);
 
-    QString     getDeckText()  const;
-    QString     getModelText() const;
-    QJsonObject getFields()    const;
+    /**
+     * Sets the text of the deck spinbox. The item must exist.
+     * @param text The item to set the spinbox to.
+     */
+    void setDeckCurrentText(const QString &text);
 
-    void setDeckCurrentText (const QString &text);
+    /**
+     * Sets the text of the model spinbox. The item must exist.
+     * @param text The item to set the spinbox to.
+     */
     void setModelCurrentText(const QString &text);
 
+    /**
+     * Populates the fields column of the table with the fields in the list.
+     * Everything is the value column is empty.
+     * @param fields The list of fields.
+     */
+    void setFields(const QStringList &fields);
+
+    /**
+     * Populates the fields columns with the keys and the value column with the
+     * values.
+     * @param fields Json object containing fields and values.
+     */
+    void setFields(const QJsonObject &fields);
+
+    /**
+     * Gets the current text in the deck spinbox.
+     * @return The current text in the deck spinbox.
+     */
+    QString getDeckText() const;
+
+    /**
+     * Gets the current text in the model spinbox.
+     * @return The current text in the model spinbox.
+     */
+    QString getModelText() const;
+
+    /**
+     * Gets the current field-value map in the table.
+     * @return A json object with the field column as keys.
+     */
+    QJsonObject getFields() const;
+
 Q_SIGNALS:
-    void deckTextChanged (const QString &text);
+    /**
+     * Emitted when the text in the deck spinbox is changed.
+     */
+    void deckTextChanged(const QString &text);
+
+    /**
+     * Emitted when the text in the model spinbox is changed.
+     */
     void modelTextChanged(const QString &text);
 
 private:
+    /* The UI object containing all the widgets. */
     Ui::CardBuilder *m_ui;
 };
 

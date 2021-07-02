@@ -22,6 +22,10 @@
 
 #include <QWheelEvent>
 
+/**
+ * A QDoubleSpinBox that ignores the mouse wheel.
+ * Used to prevent a the widget from stealing focus when scrolling.
+ */
 class ScrollDoubleSpinBox : public QDoubleSpinBox
 {
     Q_OBJECT

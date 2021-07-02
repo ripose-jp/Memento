@@ -21,15 +21,23 @@
 #ifndef ANKICONFIG_H
 #define ANKICONFIG_H
 
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QString>
 #include <QStringList>
-#include <QJsonObject>
-#include <QJsonArray>
 
+/**
+ * Internal representation of a user defined audio source.
+ */
 struct AudioSource
 {
+    /* The name of the audio source. */
     QString name;
+
+    /* The raw URL (may contain {expression}/{reading}) of the audio source. */
     QString url;
+
+    /* The MD5 hash to skip if the audio from the source matches. */
     QString md5;
 
     AudioSource &operator=(const AudioSource &rhs)
@@ -42,15 +50,30 @@ struct AudioSource
     }
 };
 
+/**
+ * Representation of a single Anki Integration configuration profile.
+ */
 struct AnkiConfig
 {
+    /**
+     * The duplicate different duplicate policies available.
+     */
     enum DuplicatePolicy
     {
+        /* Duplicates cannot be across all decks. */
         None = 0,
+
+        /* Duplicates cannot be in the same deck, but can be in different decks.
+         */
         DifferentDeck = 1,
+
+        /* Duplicates can be in the same deck. */
         SameDeck = 2
     };
 
+    /**
+     * The file type to save images as.
+     */
     enum FileType
     {
         jpg = 0,
@@ -58,22 +81,55 @@ struct AnkiConfig
         webp = 2
     };
 
-    QString         address;
-    QString         port;
+    /* The address of the AnkiConnect server. */
+    QString address;
+
+    /* The port of the AnkiConnect server. */
+    QString port;
+
+    /* The duplicate policy of this profile. */
     DuplicatePolicy duplicatePolicy;
-    FileType        screenshotType;
-    AudioSource     audio;
-    double          audioPadStart;
-    double          audioPadEnd;
-    QJsonArray      tags;
 
-    QString         termDeck;
-    QString         termModel;
-    QJsonObject     termFields;
+    /* The file type to save screenshots as. */
+    FileType screenshotType;
 
-    QString         kanjiDeck;
-    QString         kanjiModel;
-    QJsonObject     kanjiFields;
+    /* The audio source for {audio} markers. */
+    AudioSource audio;
+
+    /* The amount of padding to add (in seconds) to the start of an audio clip.
+     * Used for the {audio-media} marker.
+     */
+    double audioPadStart;
+
+    /* The amount of padding to add (in seconds) to the end of an audio clip.
+     * Used for the {audio-media} marker.
+     */
+    double audioPadEnd;
+
+    /* A list of tags to add to Anki notes. */
+    QJsonArray tags;
+
+    /* The name of the deck to add term cards to. */
+    QString termDeck;
+
+    /* The name of the model to create term cards with. */
+    QString termModel;
+
+    /* A JSON object mapping the field names to their raw, user-defined values
+     * for term cards.
+     */
+    QJsonObject termFields;
+
+    /* The name of the deck to add kanji cards to. */
+    QString kanjiDeck;
+
+    /* The name of the model to create kanji cards with. */
+    QString kanjiModel;
+
+    /* A JSON object mapping the field names to their raw, user-defined values
+     * for kanji cards.
+     */
+    QJsonObject kanjiFields;
 
     AnkiConfig() {}
 

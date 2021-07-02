@@ -20,31 +20,33 @@
 
 #include "mpvwidget.h"
 
-#include "../../util/globalmediator.h"
-#include "../../util/constants.h"
-
+#include <QApplication>
+#include <QDebug>
+#include <QDesktopWidget>
 #include <QSettings>
 #include <QtGui/QOpenGLContext>
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QDebug>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    #include <winbase.h>
+#include <winbase.h>
 #elif __linux__
-    #include <QtDBus>
+#include <QtDBus>
 #elif __APPLE__
-    #include "../../util/macospowereventhandler.h"
+#include "../../util/macospowereventhandler.h"
 #endif
 
-#define ASYNC_COMMAND_REPLY 20
-#define ERROR_STR "MPV threw error code: "
-#define TIMEOUT 1000
+#include "../../util/constants.h"
+#include "../../util/globalmediator.h"
+
+/* Timeout before the cursor disappears */
+#define CURSOR_TIMEOUT  700
+
+/* Begin C functions */
 
 static void wakeup(void *ctx)
 {
     QMetaObject::invokeMethod(
-        (MpvWidget *)ctx, "on_mpv_events", Qt::QueuedConnection);
+        (MpvWidget *)ctx, "onMpvEvents", Qt::QueuedConnection
+    );
 }
 
 static void *get_proc_address(void *ctx, const char *name)
@@ -56,11 +58,29 @@ static void *get_proc_address(void *ctx, const char *name)
     return reinterpret_cast<void *>(glctx->getProcAddress(QByteArray(name)));
 }
 
-MpvWidget::MpvWidget(QWidget *parent)
-    : QOpenGLWidget(parent), m_cursorTimer(new QTimer(this))
+static void onUpdate(void *ctx)
 {
-    m_cursorTimer->setSingleShot(true);
+    QMetaObject::invokeMethod((MpvWidget *)ctx, "maybeUpdate");
+}
 
+/* End C functions */
+/* Begin Constructor/Destructor */
+
+MpvWidget::MpvWidget(QWidget *parent)
+    : QOpenGLWidget(parent), 
+      m_cursorTimer(new QTimer(this))
+{
+    /* Run initialization tasks */
+    m_cursorTimer->setSingleShot(true);
+#if __APPLE__
+    m_powerHandler = new MacOSPowerEventHandler;
+#endif
+    initPropertyMap();
+    initSubtitleRegex();
+    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+    mediator->setPlayerWidget(this);
+
+    /* Setup mpv */
     mpv = mpv_create();
     if (!mpv)
     {
@@ -77,8 +97,10 @@ MpvWidget::MpvWidget(QWidget *parent)
     mpv_set_option_string(mpv, "config",                 "yes");
     mpv_set_option_string(mpv, "input-default-bindings", "yes");
     mpv_set_option_string(mpv, "ytdl",                   "yes");
+
     QByteArray configDir = DirectoryUtils::getConfigDir().toUtf8();
     mpv_set_option_string(mpv, "config-dir", configDir);
+
     QByteArray inputFile = DirectoryUtils::getMpvInputConfig().toUtf8();
     mpv_set_option_string(mpv, "input-conf", inputFile);
 
@@ -92,52 +114,43 @@ MpvWidget::MpvWidget(QWidget *parent)
     }
 
     mpv_observe_property(mpv, 0, "duration",           MPV_FORMAT_DOUBLE);
-    mpv_observe_property(mpv, 0, "time-pos",           MPV_FORMAT_DOUBLE);
-    mpv_observe_property(mpv, 0, "pause",              MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "fullscreen",         MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "volume",             MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "media-title",        MPV_FORMAT_STRING);
     mpv_observe_property(mpv, 0, "path",               MPV_FORMAT_STRING);
+    mpv_observe_property(mpv, 0, "pause",              MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "time-pos",           MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv, 0, "track-list/count",   MPV_FORMAT_INT64);
-
-    mpv_observe_property(mpv, 0, "aid",                MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "vid",                MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "sid",                MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "secondary-sid",      MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "volume",             MPV_FORMAT_INT64);
 
     mpv_observe_property(mpv, 0, "aid",                MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "vid",                MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "sid",                MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "aid",                MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "secondary-sid",      MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "secondary-sid",      MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "sid",                MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "sid",                MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "vid",                MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, 0, "vid",                MPV_FORMAT_INT64);
 
-    mpv_observe_property(mpv, 0, "sub-text",           MPV_FORMAT_STRING);
     mpv_observe_property(mpv, 0, "secondary-sub-text", MPV_FORMAT_STRING);
     mpv_observe_property(mpv, 0, "sub-delay",          MPV_FORMAT_DOUBLE);
+    mpv_observe_property(mpv, 0, "sub-text",           MPV_FORMAT_STRING);
 
     mpv_set_wakeup_callback(mpv, wakeup, this);
 
-#if __APPLE__
-    m_powerHandler = new MacOSPowerEventHandler;
-#endif
-
-    initializeSubtitleRegex();
-
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-
-    mediator->setPlayerWidget(this);
-
+    /* Signals */
     connect(m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
-    connect(m_cursorTimer, &QTimer::timeout, this, 
-        [=] {
-            setCursor(Qt::BlankCursor);
-        }
+    connect(
+        m_cursorTimer, &QTimer::timeout, 
+        this,          [=] { setCursor(Qt::BlankCursor); }
     );
-    connect(mediator, &GlobalMediator::definitionsHidden, this, 
-        [=] {
-            m_cursorTimer->start(TIMEOUT);
-        }
+    connect(
+        mediator, &GlobalMediator::definitionsHidden, 
+        this,     [=] { m_cursorTimer->start(CURSOR_TIMEOUT); }
     );
-    connect(mediator, &GlobalMediator::searchSettingsChanged, this, &MpvWidget::initializeSubtitleRegex);
+    connect(
+        mediator, &GlobalMediator::searchSettingsChanged, 
+        this,     &MpvWidget::initSubtitleRegex
+    );
 }
 
 MpvWidget::~MpvWidget()
@@ -153,7 +166,204 @@ MpvWidget::~MpvWidget()
 #endif
 }
 
-void MpvWidget::initializeSubtitleRegex()
+/* End Constructor/Destructor */
+/* Begin Initialization Functions */ 
+
+void MpvWidget::initPropertyMap()
+{
+    m_propertyMap["duration"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_DOUBLE)
+            {
+                double time = *(double *)prop->data;
+                Q_EMIT durationChanged(time);
+            }
+        };
+
+    m_propertyMap["fullscreen"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_FLAG)
+            {
+                setCursor(Qt::BlankCursor);
+                bool full = *(int *)prop->data;
+                Q_EMIT fullscreenChanged(full);
+            }
+        };
+
+    m_propertyMap["media-title"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_STRING)
+            {
+                const char **name = (const char **)prop->data;
+                Q_EMIT titleChanged(*name);
+            }
+        };
+
+    m_propertyMap["path"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_STRING)
+            {
+                const char **path = (const char **)prop->data;
+                Q_EMIT fileChanged(*path);
+            }
+        };
+
+    m_propertyMap["pause"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_FLAG)
+            {
+                bool paused = *(int *)prop->data;
+                if (paused)
+                {
+                    allowScreenDimming();
+                }
+                else
+                {
+                    preventScreenDimming();
+                }
+                Q_EMIT pauseChanged(paused);
+            }
+        };
+
+    m_propertyMap["time-pos"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_DOUBLE)
+            {
+                double time = *(double *)prop->data;
+                Q_EMIT positionChanged(time);
+            }
+        };
+
+    m_propertyMap["track-list/count"] =
+        [=] (mpv_event_property *prop) {
+            mpv_node node;
+            mpv_get_property(mpv, "track-list", MPV_FORMAT_NODE, &node);
+            Q_EMIT tracklistChanged(&node);
+            mpv_free_node_contents(&node);
+        };
+
+    m_propertyMap["volume"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_INT64)
+            {
+                int volume = *(int64_t *)prop->data;
+                Q_EMIT volumeChanged(volume);
+            }
+        };
+
+    m_propertyMap["aid"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_INT64)
+            {
+                int64_t id = *(int64_t *)prop->data;
+                Q_EMIT audioTrackChanged(id);
+            }
+            else if (prop->format == MPV_FORMAT_FLAG)
+            {
+                if (!*(int64_t *)prop->data) 
+                    Q_EMIT audioDisabled();
+            }
+        };
+
+    m_propertyMap["secondary-sid"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_INT64)
+            {
+                int64_t id = *(int64_t *)prop->data;
+                Q_EMIT subtitleTwoTrackChanged(id);
+            }
+            else if (prop->format == MPV_FORMAT_FLAG)
+            {
+                if (!*(int64_t *)prop->data) 
+                    Q_EMIT subtitleTwoDisabled();
+            }
+        };
+
+    m_propertyMap["sid"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_INT64)
+            {
+                int64_t id = *(int64_t *)prop->data;
+                Q_EMIT subtitleTrackChanged(id);
+            }
+            else if (prop->format == MPV_FORMAT_FLAG)
+            {
+                if (!*(int64_t *)prop->data) 
+                    Q_EMIT subtitleDisabled();
+            }
+        };
+
+    m_propertyMap["vid"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_INT64)
+            {
+                int64_t id = *(int64_t *)prop->data;
+                Q_EMIT videoTrackChanged(id);
+            }
+            else if (prop->format == MPV_FORMAT_FLAG)
+            {
+                if (!*(int64_t *)prop->data) 
+                    Q_EMIT videoDisabled();
+            }
+        };
+
+    m_propertyMap["sub-delay"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_DOUBLE)
+            {
+                Q_EMIT subDelayChanged(*(double *)prop->data);
+            }
+        };
+    
+    m_propertyMap["sub-text"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_STRING)
+            {
+                QString subtitle = *(const char **)prop->data;
+                subtitle.replace(m_regex, "");
+                if (!subtitle.isEmpty())
+                {
+                    double delay, start, end;
+
+                    mpv_get_property(
+                        mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
+                    );
+                    mpv_get_property(
+                        mpv, "sub-start", MPV_FORMAT_DOUBLE, &start
+                    );
+                    mpv_get_property(
+                        mpv, "sub-end",   MPV_FORMAT_DOUBLE, &end
+                    );
+
+                    Q_EMIT subtitleChanged(subtitle, start, end, delay);
+                }
+            }
+        };
+    
+    m_propertyMap["secondary-sub-text"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_STRING)
+            {
+                const char **subtitle = (const char **)prop->data;
+                if (strcmp(*subtitle, ""))
+                {
+                    double delay, start;
+
+                    mpv_get_property(
+                        mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
+                    );
+                    mpv_get_property(
+                        mpv, "time-pos",  MPV_FORMAT_DOUBLE, &start
+                    );
+                    start -= delay;
+
+                    Q_EMIT subtitleChangedSecondary(*subtitle, start, delay);
+                }
+            }
+        };
+}
+
+void MpvWidget::initSubtitleRegex()
 {
     QSettings settings;
     settings.beginGroup(SETTINGS_SEARCH);
@@ -166,14 +376,19 @@ void MpvWidget::initializeSubtitleRegex()
     settings.endGroup();
 }
 
+/* End Initialization Functions */ 
+/* Begin OpenGL Functions */
+
 void MpvWidget::initializeGL()
 {
     mpv_opengl_init_params gl_init_params{get_proc_address, nullptr, nullptr};
     mpv_render_param params[]{
-        {MPV_RENDER_PARAM_API_TYPE, 
-            const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)},
+        {
+            MPV_RENDER_PARAM_API_TYPE, 
+            const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)
+        },
         {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init_params},
-        {MPV_RENDER_PARAM_INVALID, nullptr}
+        {MPV_RENDER_PARAM_INVALID,            nullptr}
     };
 
     if (mpv_render_context_create(&mpv_gl, mpv, params) < 0)
@@ -184,8 +399,9 @@ void MpvWidget::initializeGL()
         );
         QCoreApplication::exit(EXIT_FAILURE);
     }
-    mpv_render_context_set_update_callback(mpv_gl, MpvWidget::on_update,
-                                           reinterpret_cast<void *>(this));
+    mpv_render_context_set_update_callback(
+        mpv_gl, onUpdate, reinterpret_cast<void *>(this)
+    );
 }
 
 void MpvWidget::paintGL()
@@ -193,7 +409,7 @@ void MpvWidget::paintGL()
     qreal ratio = QApplication::desktop()->devicePixelRatioF();
     mpv_opengl_fbo mpfbo{
         static_cast<int>(defaultFramebufferObject()),
-        (int) (width() * ratio),
+        (int) (width()  * ratio),
         (int) (height() * ratio),
         0
     };
@@ -201,240 +417,52 @@ void MpvWidget::paintGL()
 
     mpv_render_param params[] = {
         {MPV_RENDER_PARAM_OPENGL_FBO, &mpfbo},
-        {MPV_RENDER_PARAM_FLIP_Y, &flip_y},
-        {MPV_RENDER_PARAM_INVALID, nullptr}};
+        {MPV_RENDER_PARAM_FLIP_Y,     &flip_y},
+        {MPV_RENDER_PARAM_INVALID,    nullptr}
+    };
     // See render_gl.h on what OpenGL environment mpv expects, and
     // other API details.
     mpv_render_context_render(mpv_gl, params);
 }
 
-void MpvWidget::on_mpv_events()
+// Make Qt invoke mpv_render_context_render() to draw a new/updated video frame.
+void MpvWidget::maybeUpdate()
 {
-    // Process all events, until the event queue is empty.
-    while (mpv)
+    /* If the Qt window is not visible, Qt's update() will just skip rendering.
+     * This confuses mpv's render API, and may lead to small occasional
+     * freezes due to video rendering timing out.
+     * Handle this by manually redrawing.
+     * Note: Qt doesn't seem to provide a way to query whether update() will
+     *       be skipped, and the following code still fails when e.g. switching
+     *       to a different workspace with a reparenting window manager.
+     */
+    if (window()->isMinimized())
     {
-        mpv_event *event = mpv_wait_event(mpv, 0);
-        if (event->event_id == MPV_EVENT_NONE)
-        {
-            break;
-        }
-        handle_mpv_event(event);
+        makeCurrent();
+        paintGL();
+        context()->swapBuffers(context()->surface());
+        doneCurrent();
+    }
+    else
+    {
+        update();
     }
 }
 
-void MpvWidget::handle_mpv_event(mpv_event *event)
+/* End OpenGL Functions */
+/* Begin Event Handlers */
+
+void MpvWidget::handleMpvEvent(mpv_event *event)
 {
     switch (event->event_id)
     {
     case MPV_EVENT_PROPERTY_CHANGE:
     {
         mpv_event_property *prop = (mpv_event_property *)event->data;
-        if (strcmp(prop->name, "time-pos") == 0)
+        auto func = m_propertyMap.find(prop->name);
+        if (func != m_propertyMap.end())
         {
-            if (prop->format == MPV_FORMAT_DOUBLE)
-            {
-                double time = *(double *) prop->data;
-                Q_EMIT positionChanged(time);
-            }
-        }
-        else if (strcmp(prop->name, "duration") == 0)
-        {
-            if (prop->format == MPV_FORMAT_DOUBLE)
-            {
-                double time = *(double *) prop->data;
-                Q_EMIT durationChanged(time);
-            }
-        }
-        else if (strcmp(prop->name, "sub-text") == 0)
-        {
-            if (prop->format == MPV_FORMAT_STRING)
-            {
-                QString subtitle = *(const char **) prop->data;
-                subtitle.replace(m_regex, "");
-                if (!subtitle.isEmpty())
-                {
-                    double delay;
-                    mpv_get_property(mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay);
-                    double start;
-                    mpv_get_property(mpv, "sub-start", MPV_FORMAT_DOUBLE, &start);
-                    double end;
-                    mpv_get_property(mpv, "sub-end", MPV_FORMAT_DOUBLE, &end);
-
-                    Q_EMIT subtitleChanged(subtitle, start, end, delay);
-                }
-            }
-        }
-        else if (strcmp(prop->name, "secondary-sub-text") == 0)
-        {
-            if (prop->format == MPV_FORMAT_STRING)
-            {
-                const char **subtitle = (const char **) prop->data;
-                if (strcmp(*subtitle, ""))
-                {
-                    double delay;
-                    mpv_get_property(mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay);
-                    double start;
-                    mpv_get_property(mpv, "time-pos", MPV_FORMAT_DOUBLE, &start);
-                    start -= delay;
-
-                    Q_EMIT subtitleChangedSecondary(*subtitle, start, delay);
-                }
-            }
-        }
-        else if (strcmp(prop->name, "pause") == 0)
-        {
-            if (prop->format == MPV_FORMAT_FLAG)
-            {
-                bool paused = *(int *) prop->data;
-
-                // Keep the computer from going to sleep
-            #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-                    SetThreadExecutionState(paused ? ES_CONTINUOUS : 
-                                                     ES_CONTINUOUS | 
-                                                     ES_SYSTEM_REQUIRED | 
-                                                     ES_AWAYMODE_REQUIRED);
-            #elif __linux__
-                    QDBusInterface screenSaver("org.freedesktop.ScreenSaver",
-                                               "/org/freedesktop/ScreenSaver");
-                    if (paused)
-                    {
-                        screenSaver.call("UnInhibit", dbus_cookie);
-                    }
-                    else
-                    {
-                        QDBusMessage reply =
-                            screenSaver.call("Inhibit",
-                                             "ripose.memento",
-                                             "Playing a video");
-                        
-                        if (QDBusMessage::ReplyMessage)
-                        {
-                            if (reply.arguments().size() == 1 &&
-                                reply.arguments().first().isValid())
-                            {
-                                dbus_cookie = 
-                                    reply.arguments().first().toUInt();
-                            }
-                            else
-                            {
-                                qDebug() << "org.freedesktop.ScreenSaver reply is invalid";
-                            }
-                        }
-                        else if (QDBusMessage::ErrorMessage)
-                        {
-                            qDebug() << "Error from org.freedesktop.ScreenSaver" 
-                                     << reply.errorMessage();
-                        }
-                        else
-                        {
-                            qDebug() << "Unknown reply from org.freedesktop.ScreenSaver";
-                        }     
-                    }
-            #elif __APPLE__
-                m_powerHandler->setPreventSleep(!paused);
-            #endif
-                
-                Q_EMIT stateChanged(paused);
-            }
-        }
-        else if (strcmp(prop->name, "aid") == 0)
-        {
-            if (prop->format == MPV_FORMAT_INT64)
-            {
-                int64_t id = *(int64_t *)prop->data;
-                Q_EMIT audioTrackChanged(id);
-            }
-            else if (prop->format == MPV_FORMAT_FLAG)
-            {
-                if (!*(int64_t *)prop->data) 
-                    Q_EMIT audioDisabled();
-            }
-        }
-        else if (strcmp(prop->name, "vid") == 0)
-        {
-            if (prop->format == MPV_FORMAT_INT64)
-            {
-                int64_t id = *(int64_t *) prop->data;
-                Q_EMIT videoTrackChanged(id);
-            }
-            else if (prop->format == MPV_FORMAT_FLAG)
-            {
-                if (!*(int64_t *)prop->data) 
-                    Q_EMIT videoDisabled();
-            }
-        }
-        else if (strcmp(prop->name, "sid") == 0)
-        {
-            if (prop->format == MPV_FORMAT_INT64)
-            {
-                int64_t id = *(int64_t *) prop->data;
-                Q_EMIT subtitleTrackChanged(id);
-            }
-            else if (prop->format == MPV_FORMAT_FLAG)
-            {
-                if (!*(int64_t *)prop->data) 
-                    Q_EMIT subtitleDisabled();
-            }
-        }
-        else if (strcmp(prop->name, "secondary-sid") == 0)
-        {
-            if (prop->format == MPV_FORMAT_INT64)
-            {
-                int64_t id = *(int64_t *) prop->data;
-                Q_EMIT subtitleTwoTrackChanged(id);
-            }
-            else if (prop->format == MPV_FORMAT_FLAG)
-            {
-                if (!*(int64_t *)prop->data) 
-                    Q_EMIT subtitleTwoDisabled();
-            }
-        }
-        else if (strcmp(prop->name, "fullscreen") == 0)
-        {
-            if (prop->format == MPV_FORMAT_FLAG)
-            {
-                setCursor(Qt::BlankCursor);
-                bool full = *(int *) prop->data;
-                Q_EMIT fullscreenChanged(full);
-            }
-        }
-        else if (strcmp(prop->name, "volume") == 0)
-        {
-            if (prop->format == MPV_FORMAT_INT64)
-            {
-                int volume = *(int64_t *) prop->data;
-                Q_EMIT volumeChanged(volume);
-            }
-        }
-        else if (strcmp(prop->name, "sub-delay") == 0)
-        {
-            if (prop->format == MPV_FORMAT_DOUBLE)
-            {
-                Q_EMIT subDelayChanged(*(double *) prop->data);
-            }
-        }
-        else if (strcmp(prop->name, "media-title") == 0)
-        {
-            if (prop->format == MPV_FORMAT_STRING)
-            {
-                const char **name = (const char **) prop->data;
-                Q_EMIT titleChanged(*name);
-            }
-        }
-        else if (strcmp(prop->name, "path") == 0)
-        {
-            if (prop->format == MPV_FORMAT_STRING)
-            {
-                const char **path = (const char **) prop->data;
-                Q_EMIT fileChanged(*path);
-            }
-        }
-        else if (strcmp(prop->name, "track-list/count") == 0)
-        {
-            mpv_node node;
-            mpv_get_property(mpv, "track-list", MPV_FORMAT_NODE, &node);
-            Q_EMIT tracklistChanged(&node);
-            mpv_free_node_contents(&node);
+            (*func)(prop);
         }
         break;
     }
@@ -451,48 +479,46 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
     }
 }
 
-// Make Qt invoke mpv_render_context_render() to draw a new/updated video frame.
-void MpvWidget::maybeUpdate()
+void MpvWidget::onMpvEvents()
 {
-    // If the Qt window is not visible, Qt's update() will just skip rendering.
-    // This confuses mpv's render API, and may lead to small occasional
-    // freezes due to video rendering timing out.
-    // Handle this by manually redrawing.
-    // Note: Qt doesn't seem to provide a way to query whether update() will
-    //       be skipped, and the following code still fails when e.g. switching
-    //       to a different workspace with a reparenting window manager.
-    if (window()->isMinimized())
+    // Process all events, until the event queue is empty.
+    while (mpv)
     {
-        makeCurrent();
-        paintGL();
-        context()->swapBuffers(context()->surface());
-        doneCurrent();
-    }
-    else
-    {
-        update();
+        mpv_event *event = mpv_wait_event(mpv, 0);
+        if (event->event_id == MPV_EVENT_NONE)
+        {
+            break;
+        }
+        handleMpvEvent(event);
     }
 }
 
-void MpvWidget::on_update(void *ctx)
+void MpvWidget::resizeEvent(QResizeEvent *event) 
 {
-    QMetaObject::invokeMethod((MpvWidget *)ctx, "maybeUpdate");
+    QOpenGLWidget::resizeEvent(event);
+    event->ignore();
+    Q_EMIT GlobalMediator::getGlobalMediator()->playerResized();
 }
 
 void MpvWidget::mouseMoveEvent(QMouseEvent *event)
 {
+    QOpenGLWidget::mouseMoveEvent(event);
     event->ignore();
+
     if (cursor().shape() == Qt::BlankCursor)
     {
         setCursor(Qt::ArrowCursor);
     }
-    m_cursorTimer->start(TIMEOUT);
+    m_cursorTimer->start(CURSOR_TIMEOUT);
     Q_EMIT mouseMoved(event);
 }
 
 void MpvWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    QByteArray release = convertToMouseString(event).toUtf8();
+    QOpenGLWidget::mouseReleaseEvent(event);
+    event->ignore();
+
+    QByteArray release = mouseButtonStringToString(event->button()).toUtf8();
     const char *args[3] = {
         "keypress",
         release,
@@ -506,7 +532,11 @@ void MpvWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void MpvWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    QByteArray press = (convertToMouseString(event) + "_DBL").toUtf8();
+    QOpenGLWidget::mouseDoubleClickEvent(event);
+    event->ignore();
+
+    QByteArray press = 
+        (mouseButtonStringToString(event->button(), true)).toUtf8();
     const char *args[3] = {
         "keypress",
         press,
@@ -518,26 +548,91 @@ void MpvWidget::mouseDoubleClickEvent(QMouseEvent *event)
     }
 }
 
-QString MpvWidget::convertToMouseString(const QMouseEvent *event) const
+/* End Event Handlers */
+/* Begin Helper Functions */
+
+void MpvWidget::allowScreenDimming()
 {
-    switch (event->button())
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    SetThreadExecutionState(ES_CONTINUOUS);
+#elif __linux__
+    QDBusInterface screenSaver(
+        "org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver"
+    );
+    screenSaver.call("UnInhibit", dbus_cookie);
+#elif __APPLE__
+    m_powerHandler->setPreventSleep(false);
+#endif
+}
+
+void MpvWidget::preventScreenDimming()
+{
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    SetThreadExecutionState(
+        ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED
+    );
+#elif __linux__
+    QDBusInterface screenSaver(
+        "org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver"
+    );
+    QDBusMessage reply = screenSaver.call(
+        "Inhibit", "ripose.memento", "Playing a video"
+        );
+    switch(reply.type())
+    {
+    case QDBusMessage::ReplyMessage:
+        if (reply.arguments().size() == 1 &&
+            reply.arguments().first().isValid())
+        {
+            dbus_cookie = reply.arguments().first().toUInt();
+        }
+        else
+        {
+            qDebug() << "org.freedesktop.ScreenSaver reply is invalid";
+        }
+        break;
+    case QDBusMessage::ErrorMessage:
+        qDebug() << "Error from org.freedesktop.ScreenSaver" 
+                 << reply.errorMessage();
+        break;
+    default:
+        qDebug() << "Unknown reply from org.freedesktop.ScreenSaver";
+        break;
+    }
+#elif __APPLE__
+    m_powerHandler->setPreventSleep(true);
+#endif
+}
+
+QString MpvWidget::mouseButtonStringToString(const Qt::MouseButton button,
+                                             const bool doubleClick) const
+{
+    QString str;
+
+    switch (button)
     {
     case Qt::LeftButton:
-        return "MBTN_LEFT";
+        str += "MBTN_LEFT";
+        break;
     case Qt::RightButton:
-        return "MBTN_RIGHT";
+        str += "MBTN_RIGHT";
+        break;
     case Qt::BackButton:
-        return "MBTN_BACK";
+        str += "MBTN_BACK";
+        break;
     case Qt::ForwardButton:
-        return "MBTN_FORWARD";
+        str += "MBTN_FORWARD";
+        break;
     default:
         return "";
     }
+
+    if (doubleClick)
+    {
+        str += "_DBL";
+    }
+
+    return str;
 }
 
-void MpvWidget::resizeEvent(QResizeEvent *event) 
-{
-    event->ignore();
-    QOpenGLWidget::resizeEvent(event);
-    Q_EMIT GlobalMediator::getGlobalMediator()->playerResized();
-}
+/* End Helper Functions */

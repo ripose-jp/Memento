@@ -23,6 +23,9 @@
 
 #include <QProxyStyle>
 
+/**
+ * Slider style for immediately skipping to a clicked location.
+ */
 class SliderJumpStyle : public QProxyStyle
 {
 public:

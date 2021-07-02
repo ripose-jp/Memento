@@ -21,41 +21,32 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QClipboard>
+#include <QCursor>
+#include <QDebug>
+#include <QFileDialog>
+#include <QInputDialog>
+#include <QMessageBox>
+#include <QMimeData>
+#include <QSettings>
+#include <QStyleFactory>
+#include <QThreadPool>
+
 #include "mpvadapter.h"
 #include "../util/constants.h"
 #include "../dict/dictionary.h"
 
-#include <QCursor>
-#include <QClipboard>
-#include <QFileDialog>
-#include <QMimeData>
-#include <QDebug>
-#include <QMessageBox>
-#include <QThreadPool>
-#include <QSettings>
-#include <QStyleFactory>
-#include <QInputDialog>
+/* Begin Constructor/Destructor */
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       m_mediator(GlobalMediator::getGlobalMediator()),
       m_ui(new Ui::MainWindow),
+      m_ankiClient(new AnkiClient(this)),
       m_maximized(false),
-      m_manager(new QNetworkAccessManager),
       m_definition(nullptr)
 {
     m_ui->setupUi(this);
-
-    /* Video Action Groups */
-    m_actionGroupAudio       = new QActionGroup(this);
-    m_actionGroupVideo       = new QActionGroup(this);
-    m_actionGroupSubtitle    = new QActionGroup(this);
-    m_actionGroupSubtitleTwo = new QActionGroup(this);
-
-    m_ui->actionAudioNone->setActionGroup(m_actionGroupAudio);
-    m_ui->actionVideoNone->setActionGroup(m_actionGroupVideo);
-    m_ui->actionSubtitleNone->setActionGroup(m_actionGroupSubtitle);
-    m_ui->actionSubtitleTwoNone->setActionGroup(m_actionGroupSubtitleTwo);
 
     /* Player Adapter */
     m_player = new MpvAdapter(m_ui->player, this);
@@ -67,7 +58,6 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->subtitleList->hide();
 
     /* Anki */
-    m_ankiClient = new AnkiClient(this);
     m_actionGroupAnkiProfile = new QActionGroup(this);
     updateAnkiProfileMenu();
 
@@ -79,7 +69,190 @@ MainWindow::MainWindow(QWidget *parent)
     m_aboutWindow = new AboutWindow;
     m_aboutWindow->hide();
 
-    /* Subtitle Search */
+    /* Initializers */
+    initDefinitionWidget();
+    initSubtitles();
+    initMenuBar();
+    initTheme();
+    initWindow();
+}
+
+MainWindow::~MainWindow()
+{
+    disconnect();
+    clearTracks();
+
+    /* Widgets */
+    delete m_ui;
+    delete m_definition;
+    delete m_optionsWindow;
+    delete m_aboutWindow;
+
+    /* Wrappers and Clients */
+    delete m_player;
+    delete m_ankiClient;
+}
+
+/* End Constructor/Destructor */
+/* Begin initializers */
+
+void MainWindow::initWindow()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_GROUP_WINDOW);
+
+    restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
+    if (settings.value(SETTINGS_MAXIMIZE, false).toBool())
+    {
+        QApplication::processEvents();
+        showMaximized();
+    }
+
+    settings.endGroup();
+
+    /* Signals */
+    connect(
+        m_mediator, &GlobalMediator::playerCursorHidden,
+        this,       &MainWindow::hideControls
+    );
+    connect(
+        m_mediator, &GlobalMediator::ankiSettingsChanged,
+        this,       &MainWindow::updateAnkiProfileMenu
+    );
+    connect(
+        m_mediator, &GlobalMediator::playerFullscreenChanged,
+        this,       &MainWindow::setFullscreen
+    );
+    connect(
+        m_mediator, &GlobalMediator::playerClosed,
+        this,       &MainWindow::close
+    );
+    connect(
+        m_mediator, &GlobalMediator::interfaceSettingsChanged,
+        this,       &MainWindow::initTheme
+    );
+    connect(
+        m_mediator, &GlobalMediator::requestThemeRefresh, 
+        this,       &MainWindow::deleteDefinitionWidget
+    );
+    connect(m_mediator, &GlobalMediator::playerTitleChanged, this, 
+        [=] (const QString name) { setWindowTitle(name + " - Memento"); }
+    );
+    connect(m_mediator, &GlobalMediator::playerMouseMoved, this,
+        [=] { if (isFullScreen()) m_ui->controls->show(); }
+    );
+
+    /* Message boxes */
+    connect(
+        m_mediator, &GlobalMediator::showCritical,
+        this,       &MainWindow::showErrorMessage
+    );
+    connect(
+        m_mediator, &GlobalMediator::showInformation,
+        this,       &MainWindow::showInfoMessage
+    );
+}
+
+void MainWindow::initMenuBar()
+{
+    m_actionGroups.audio       = new QActionGroup(this);
+    m_actionGroups.video       = new QActionGroup(this);
+    m_actionGroups.subtitle    = new QActionGroup(this);
+    m_actionGroups.subtitleTwo = new QActionGroup(this);
+
+    m_ui->actionAudioNone->setActionGroup(m_actionGroups.audio);
+    m_ui->actionVideoNone->setActionGroup(m_actionGroups.video);
+    m_ui->actionSubtitleNone->setActionGroup(m_actionGroups.subtitle);
+    m_ui->actionSubtitleTwoNone->setActionGroup(m_actionGroups.subtitleTwo);
+
+    m_actionGroups.currentSubId = 0;
+    m_actionGroups.currentSecSubId = 0;
+
+    /* Signals */
+        connect(
+        m_mediator, &GlobalMediator::playerTracksChanged,
+        this,       &MainWindow::setTracks
+    );
+
+    connect(
+        m_actionGroups.audio, &QActionGroup::triggered, 
+        this,                 &MainWindow::setAudioTrack
+    );
+    connect(
+        m_actionGroups.video, &QActionGroup::triggered, 
+        this,                 &MainWindow::setVideoTrack
+    );
+    connect(
+        m_actionGroups.subtitle, &QActionGroup::triggered, 
+        this,                    &MainWindow::setSubtitleTrack
+    );
+    connect(
+        m_actionGroups.subtitleTwo, &QActionGroup::triggered, 
+        this,                       &MainWindow::setSecondarySubtitleTrack
+    );
+
+    connect(
+        m_mediator, &GlobalMediator::playerAudioTrackChanged,
+        this,       &MainWindow::updateAudioAction
+    );
+    connect(
+        m_mediator, &GlobalMediator::playerVideoTrackChanged,
+        this,       &MainWindow::updateVideoAction
+    );
+    connect(
+        m_mediator, &GlobalMediator::playerSubtitleTrackChanged,
+        this,       &MainWindow::updateSubtitleAction
+    );
+    connect(
+        m_mediator, &GlobalMediator::playerSecondSubtitleTrackChanged,
+        this,       &MainWindow::updateSecondarySubtitleAction
+    );
+
+    connect(
+        m_mediator, &GlobalMediator::playerAudioDisabled,
+        this,       [=] { updateAudioAction(); }
+    );
+    connect(
+        m_mediator, &GlobalMediator::playerVideoDisabled,
+        this,       [=] { updateVideoAction(); }
+    );
+    connect(
+        m_mediator, &GlobalMediator::playerSubtitlesDisabled,
+        this,       [=] { updateSubtitleAction(); }
+    );
+    connect(
+        m_mediator, &GlobalMediator::playerSecondSubtitlesDisabled,
+        this,       [=] { updateSecondarySubtitleAction(); }
+    );
+
+    connect(
+        m_ui->actionOptions, &QAction::triggered,
+        m_optionsWindow,     &OptionsWindow::show
+    );
+    connect(
+        m_ui->actionAbout, &QAction::triggered,
+        m_aboutWindow,     &AboutWindow::show
+    );
+    connect(
+        m_ui->actionOpen, &QAction::triggered,
+        this,             &MainWindow::open
+    );
+    connect(
+        m_ui->actionOpenUrl, &QAction::triggered,
+        this,                &MainWindow::openUrl
+    );
+    connect(
+        m_ui->actionUpdate, &QAction::triggered,
+        this,               &NetworkUtils::checkForUpdates
+    );
+    connect(
+        m_ui->actionAddSubtitle, &QAction::triggered,
+        this,                    &MainWindow::openSubtitle
+    );
+}
+
+void MainWindow::initSubtitles()
+{
     m_subtitle.layoutPlayerOverlay = new QVBoxLayout(m_ui->player);
     m_subtitle.layoutPlayerOverlay->setSpacing(0);
     m_subtitle.layoutPlayerOverlay->setContentsMargins(QMargins(0, 0, 0, 0));
@@ -98,175 +271,216 @@ MainWindow::MainWindow(QWidget *parent)
     m_subtitle.layoutSubtitle->addStretch();
 
     m_subtitle.spacerWidget = new QWidget;
-    m_subtitle.spacerWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_subtitle.spacerWidget->setSizePolicy(
+        QSizePolicy::Fixed, QSizePolicy::Fixed
+    );
     m_subtitle.spacerWidget->setFixedWidth(0);
     m_subtitle.spacerWidget->setMouseTracking(true);
     m_subtitle.layoutPlayerOverlay->addWidget(m_subtitle.spacerWidget);
 
     repositionSubtitles();
 
-    /* Set the theme */
-    setTheme();
-
-    /* Toolbar Actions */
-    connect(m_ui->actionOptions,     &QAction::triggered, m_optionsWindow, &OptionsWindow::show);
-    connect(m_ui->actionAbout,       &QAction::triggered, m_aboutWindow,   &AboutWindow::show);
-    connect(m_ui->actionOpen,        &QAction::triggered, this,            &MainWindow::open);
-    connect(m_ui->actionOpenUrl,     &QAction::triggered, this,            &MainWindow::openUrl);
-    connect(m_ui->actionUpdate,      &QAction::triggered, this,            &MainWindow::checkForUpdates);
-    connect(m_ui->actionAddSubtitle, &QAction::triggered, this,
-        [=] {
-            QString file = QFileDialog::getOpenFileName(0, "Open Subtitle");
-            if (!file.isEmpty())
-            {
-                m_player->addSubtitle(file);
-            }
-        }
+    /* Signals */
+    connect(
+        m_mediator, &GlobalMediator::controlsHidden, 
+        this,       &MainWindow::repositionSubtitles
+    );
+    connect(
+        m_mediator, &GlobalMediator::controlsShown,
+        this,       &MainWindow::repositionSubtitles
     );
 
-    /* State Changes */
-    connect(m_mediator, &GlobalMediator::playerCursorHidden,      this, &MainWindow::hideControls);
-    connect(m_mediator, &GlobalMediator::ankiSettingsChanged,     this, &MainWindow::updateAnkiProfileMenu);
-    connect(m_mediator, &GlobalMediator::playerFullscreenChanged, this, &MainWindow::setFullscreen);
-    connect(m_mediator, &GlobalMediator::playerClosed,            this, &MainWindow::close);
-    connect(m_mediator, &GlobalMediator::playerTitleChanged,      this, 
-        [=] (const QString name) { setWindowTitle(name + " - Memento"); }
+    connect(
+        m_ui->actionIncreaseSize, &QAction::triggered, this, 
+        [=] { updateSubScale(0.01); }
     );
-    connect(m_mediator, &GlobalMediator::playerMouseMoved, this,
-        [=] {
-            if (isFullScreen())
-            {
-                m_ui->controls->show();
-            }
-        }
+    connect(
+        m_ui->actionDecreaseSize, &QAction::triggered, this,
+        [=] { updateSubScale(-0.01); }
     );
+    connect(
+        m_ui->actionMoveUp, &QAction::triggered, this,
+        [=] { moveSubtitles(0.01); }
+    );
+    connect(
+        m_ui->actionMoveDown, &QAction::triggered, this,
+        [=] { moveSubtitles(-0.01); }
+    );
+}
 
-    /* Track Changes */
-    connect(m_mediator, &GlobalMediator::playerTracksChanged, this, &MainWindow::setTracks);
-
-    connect(m_mediator, &GlobalMediator::playerAudioTrackChanged, this,
-        [=] (const int id) {
-            if(!m_audioTracks.isEmpty())
-                m_audioTracks[id - 1].first->setChecked(true); 
-        }
+void MainWindow::initDefinitionWidget()
+{
+    connect(
+        m_ui->splitterPlayerSubtitles, &QSplitter::splitterMoved,
+        this,                          &MainWindow::deleteDefinitionWidget
     );
-    connect(m_mediator, &GlobalMediator::playerVideoTrackChanged, this,
-        [=] (const int id) {
-        if(!m_videoTracks.isEmpty())
-            m_videoTracks[id - 1].first->setChecked(true);
-        }
+    connect(
+        m_mediator, &GlobalMediator::termsChanged,
+        this,       &MainWindow::setTerms
     );
-    connect(m_mediator, &GlobalMediator::playerSubtitleTrackChanged, this,
-        [=] (const int id) {
-            if(!m_subtitleTracks.isEmpty())
-                m_subtitleTracks[id - 1].first->setChecked(true);
-        }
+    connect(
+        m_mediator, &GlobalMediator::requestDefinitionDelete,
+        this,       &MainWindow::deleteDefinitionWidget
     );
-    connect(m_mediator, &GlobalMediator::playerSecondSubtitleTrackChanged, this,
-        [=] (const int id) {
-            if(!m_subtitleTwoTracks.isEmpty())
-                m_subtitleTwoTracks[id - 1].first->setChecked(true);
-        }
+    connect(
+        m_mediator, &GlobalMediator::playerSubtitleChanged,
+        this,       &MainWindow::deleteDefinitionWidget
     );
-
-    connect(m_mediator, &GlobalMediator::playerAudioDisabled, this,
-        [=] { m_ui->actionAudioNone->setChecked(true); } 
+    connect(
+        m_mediator, &GlobalMediator::subtitleExpired,
+        this,       &MainWindow::deleteDefinitionWidget
     );
-    connect(m_mediator, &GlobalMediator::playerVideoDisabled, this,
-        [=] { m_ui->actionVideoNone->setChecked(true); }
+    connect(
+        m_mediator, &GlobalMediator::subtitleListShown,
+        this,       &MainWindow::deleteDefinitionWidget
     );
-    connect(m_mediator, &GlobalMediator::playerSubtitlesDisabled, this,
-        [=] { m_ui->actionSubtitleNone->setChecked(true); }
+    connect(
+        m_mediator, &GlobalMediator::subtitleListHidden,
+        this,       &MainWindow::deleteDefinitionWidget
     );
-    connect(m_mediator, &GlobalMediator::playerSecondSubtitlesDisabled, this,
-        [=] { m_ui->actionSubtitleTwoNone->setChecked(true); }
-    );
-
-    connect(m_ui->actionAudioNone,       &QAction::triggered, m_player, &PlayerAdapter::disableAudio);
-    connect(m_ui->actionVideoNone,       &QAction::triggered, m_player, &PlayerAdapter::disableVideo);
-    connect(m_ui->actionSubtitleNone,    &QAction::triggered, m_player, &PlayerAdapter::disableSubtitles);
-    connect(m_ui->actionSubtitleTwoNone, &QAction::triggered, m_player, &PlayerAdapter::disableSubtitleTwo);
-
-    /* Definition Changes */
-    connect(m_ui->splitterPlayerSubtitles, &QSplitter::splitterMoved, this, &MainWindow::deleteDefinitionWidget);
-    connect(m_mediator, &GlobalMediator::termsChanged,            this, &MainWindow::setTerms);
-    connect(m_mediator, &GlobalMediator::requestDefinitionDelete, this, &MainWindow::deleteDefinitionWidget);
-    connect(m_mediator, &GlobalMediator::playerSubtitleChanged,   this, &MainWindow::deleteDefinitionWidget);
-    connect(m_mediator, &GlobalMediator::subtitleExpired,         this, &MainWindow::deleteDefinitionWidget);
-    connect(m_mediator, &GlobalMediator::subtitleListShown,       this, &MainWindow::deleteDefinitionWidget);
-    connect(m_mediator, &GlobalMediator::subtitleListHidden,      this, &MainWindow::deleteDefinitionWidget);
     connect(m_mediator, &GlobalMediator::playerPauseStateChanged, this, 
         [=] (const bool paused) { 
             if (!paused)
                 deleteDefinitionWidget();
         }
     );
-
-    /* Subtitle */
-    connect(m_mediator, &GlobalMediator::controlsHidden, this, &MainWindow::repositionSubtitles);
-    connect(m_mediator, &GlobalMediator::controlsShown,  this, &MainWindow::repositionSubtitles);
-
-    connect(m_ui->actionIncreaseSize, &QAction::triggered, this,
-        [=] { updateSubScale(0.01); } );
-    connect(m_ui->actionDecreaseSize, &QAction::triggered, this,
-        [=] { updateSubScale(-0.01); } );
-    connect(m_ui->actionMoveUp,       &QAction::triggered, this,
-        [=] { moveSubtitles(0.01); } );
-    connect(m_ui->actionMoveDown,     &QAction::triggered, this,
-        [=] { moveSubtitles(-0.01); } );
-
-    /* Show message boxes */
-    connect(m_mediator, &GlobalMediator::showCritical,    this, &MainWindow::showErrorMessage);
-    connect(m_mediator, &GlobalMediator::showInformation, this, &MainWindow::showInfoMessage);
-
-    /* Theme Changes */
-    connect(m_mediator, &GlobalMediator::interfaceSettingsChanged, this, &MainWindow::setTheme);
-    connect(m_mediator, &GlobalMediator::requestThemeRefresh,      this, &MainWindow::deleteDefinitionWidget);
-
-    loadWindowSettings();
 }
 
-MainWindow::~MainWindow()
-{
-    disconnect();
-    clearTracks();
-
-    /* Widgets */
-    delete m_ui;
-    delete m_definition;
-    delete m_optionsWindow;
-    delete m_aboutWindow;
-
-    /* Wrappers and Clients */
-    delete m_player;
-    delete m_manager;
-    delete m_ankiClient;
-}
-
-void MainWindow::closeEvent(QCloseEvent *event)
+void MainWindow::initTheme()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_GROUP_WINDOW);
+    settings.beginGroup(SETTINGS_INTERFACE);
 
-    settings.setValue(SETTINGS_GEOMETRY, saveGeometry());
-    settings.setValue(SETTINGS_MAXIMIZE, isFullScreen() ? m_maximized : isMaximized());
-
-    QMainWindow::closeEvent(event);
-    QApplication::quit();
-}
-
-void MainWindow::loadWindowSettings()
-{
-    QSettings settings;
-    settings.beginGroup(SETTINGS_GROUP_WINDOW);
-
-    restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
-    if (settings.value(SETTINGS_MAXIMIZE, false).toBool())
+    /* Set Palette */
+    QPalette pal;
+    Theme theme = (Theme)settings.value(
+            SETTINGS_INTERFACE_THEME, 
+            (int)SETTINGS_INTERFACE_THEME_DEFAULT
+        ).toInt();
+    switch (theme)
     {
-        QApplication::processEvents();
-        showMaximized();
+    case Theme::Light:
+    {
+    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||\
+        defined(__NT__) || __APPLE__
+        QStyle *style = QStyleFactory::create("fusion");
+        if (style)
+            QApplication::setStyle(style);
+    #endif
+        m_ui->menubar->setAutoFillBackground(true);
+        QColor lightColor(240, 240, 240);
+        QColor disabledColor(178, 179, 180);
+        QColor white(255, 255, 255);
+        QColor black(0, 0, 0);
+        pal.setColor(QPalette::Window, lightColor);
+        pal.setColor(QPalette::WindowText, black);
+        pal.setColor(QPalette::Base, white);
+        pal.setColor(QPalette::AlternateBase, lightColor);
+        pal.setColor(QPalette::ToolTipBase, white);
+        pal.setColor(QPalette::ToolTipText, black);
+        pal.setColor(QPalette::Text, black);
+        pal.setColor(QPalette::Disabled, QPalette::Text, disabledColor);
+        pal.setColor(QPalette::Button, lightColor);
+        pal.setColor(QPalette::ButtonText, black);
+        pal.setColor(QPalette::Disabled, QPalette::ButtonText, disabledColor);
+        pal.setColor(QPalette::BrightText, Qt::red);
+        pal.setColor(QPalette::Link, QColor(16, 50, 72));
+        pal.setColor(QPalette::Highlight, QColor(61, 174, 233));
+        pal.setColor(QPalette::HighlightedText, white);
+        pal.setColor(
+            QPalette::Disabled, QPalette::HighlightedText, disabledColor
+        );
+        break;
     }
+    case Theme::Dark:
+    {
+    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||\
+        defined(__NT__) || __APPLE__
+        QStyle *style = QStyleFactory::create("fusion");
+        if (style)
+            QApplication::setStyle(style);
+    #endif
+        m_ui->menubar->setAutoFillBackground(true);
+        /* Modified from 
+         * https://forum.qt.io/topic/101391/windows-10-dark-theme/5
+         */
+        QColor darkColor(45, 45, 45);
+        QColor disabledColor(127, 127, 127);
+        QColor white(255, 255, 255);
+        pal.setColor(QPalette::Window, darkColor);
+        pal.setColor(QPalette::WindowText, white);
+        pal.setColor(QPalette::Base, QColor(18, 18, 18));
+        pal.setColor(QPalette::AlternateBase, darkColor);
+        pal.setColor(QPalette::ToolTipBase, white);
+        pal.setColor(QPalette::ToolTipText, darkColor);
+        pal.setColor(QPalette::Text, white);
+        pal.setColor(QPalette::Disabled, QPalette::Text, disabledColor);
+        pal.setColor(QPalette::Button, darkColor);
+        pal.setColor(QPalette::ButtonText, white);
+        pal.setColor(QPalette::Disabled, QPalette::ButtonText, disabledColor);
+        pal.setColor(QPalette::BrightText, Qt::red);
+        pal.setColor(QPalette::Link, QColor(42, 130, 218));
+        pal.setColor(QPalette::Highlight, QColor(31, 72, 94));
+        pal.setColor(QPalette::HighlightedText, white);
+        pal.setColor(
+            QPalette::Disabled, QPalette::HighlightedText, disabledColor
+        );
+        break;
+    }
+    case Theme::System:
+    default:
+    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||\
+        defined(__NT__)
+        QStyle *style = QStyleFactory::create("windowsvista");
+        if (style)
+            QApplication::setStyle(style);
+    #elif __APPLE__
+        QStyle *style = QStyleFactory::create("macintosh");
+        if (style)
+            QApplication::setStyle(style);
+    #endif
+        m_ui->menubar->setAutoFillBackground(false);
+        pal = QApplication::style()->standardPalette();
+    }
+    QApplication::setPalette(pal);
+
+    IconFactory::create()->buildIcons();
+
+    Q_EMIT m_mediator->requestThemeRefresh();
+
+    /* Set QSplitter Stylesheet */
+    bool customStylesEnabled = settings.value(
+            SETTINGS_INTERFACE_STYLESHEETS, 
+            SETTINGS_INTERFACE_STYLESHEETS_DEFAULT
+        ).toBool();
+    if (customStylesEnabled)
+    {
+        m_ui->splitterPlayerSubtitles->setStyleSheet(
+            settings.value(
+                SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE,
+                SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT
+            ).toString()
+        );
+    }
+    else
+    {
+        m_ui->splitterPlayerSubtitles->setStyleSheet(
+            SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT
+        );
+    }
+
+    /* Refresh the subtitle offset */
+    m_subtitle.offsetPercent = settings.value(
+            SETTINGS_INTERFACE_SUB_OFFSET,
+            SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT
+        ).toDouble();
+    repositionSubtitles();
+
+    settings.endGroup();
 }
+
+/* End initializers */
+/* Begin Event Handlers */
 
 void MainWindow::showEvent(QShowEvent *event)
 {
@@ -287,17 +501,40 @@ void MainWindow::showEvent(QShowEvent *event)
     {
         Q_EMIT m_mediator->showInformation(
             "No Dictionaries Installed",
-            "No dictionaries are installed. For subtitle searching to work, please install a dictionary.<br>"
-            "Dictionaries can be found <a href='https://foosoft.net/projects/yomichan/'>here</a>.<br>"
+            "No dictionaries are installed. For subtitle searching to work, "
+            "please install a dictionary."
+            "<br>"
+            "Dictionaries can be found "
+            "<a href='https://foosoft.net/projects/yomichan/#dictionaries'>"
+                "here"
+            "</a>."
+            "<br>"
         #if __APPLE__
-            "To install a dictionary, go to Memento -> Preferences -> Dictionaries."
+            "To install a dictionary, go to Memento -> Preferences -> "
+            "Dictionaries."
         #else
-            "To install a dictionary, go to Settings -> Options -> Dictionaries."
+            "To install a dictionary, go to Settings -> Options -> "
+            "Dictionaries."
         #endif
         );
     }
 
     QMainWindow::showEvent(event);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_GROUP_WINDOW);
+
+    settings.setValue(SETTINGS_GEOMETRY, saveGeometry());
+    settings.setValue(
+        SETTINGS_MAXIMIZE, 
+        isFullScreen() ? m_maximized : isMaximized()
+    );
+
+    QMainWindow::closeEvent(event);
+    QApplication::quit();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -350,125 +587,8 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     QMainWindow::mousePressEvent(event);
 }
 
-void MainWindow::setTracks(QList<const Track *> tracks)
-{
-    clearTracks();
-
-    for (auto it = tracks.begin(); it != tracks.end(); ++it)
-    {
-        const Track *track = *it;
-        QString actionText = "Track " + QString::number(track->id);
-        if (!track->lang.isEmpty())
-            actionText += " [" + track->lang + "]";
-        if (!track->title.isEmpty())
-            actionText += " - " + track->title;
-
-        QAction *action = new QAction(this);
-        action->setText(actionText);
-        action->setCheckable(true);
-        QList<QPair<QAction *, const Track *>> *trackList;
-        switch (track->type)
-        {
-        case Track::track_type::audio:
-            m_ui->menuAudio->addAction(action);
-            action->setActionGroup(m_actionGroupAudio);
-            connect(action, &QAction::triggered, 
-                [=] (const bool checked) { 
-                    if (checked) m_player->setAudioTrack(track->id); 
-                } );
-            trackList = &m_audioTracks;
-            break;
-        case Track::track_type::video:
-            m_ui->menuVideo->addAction(action);
-            action->setActionGroup(m_actionGroupVideo);
-            connect(action, &QAction::triggered, 
-                [=] (const bool checked) { 
-                    if (checked) m_player->setVideoTrack(track->id);
-                } );
-            trackList = &m_videoTracks;
-            break;
-        case Track::track_type::subtitle:
-        {
-            m_ui->menuSubtitle->addAction(action);
-            action->setActionGroup(m_actionGroupSubtitle);
-            connect(action, &QAction::triggered, 
-                [=] (const bool checked) { 
-                    if (checked) m_player->setSubtitleTrack(track->id); 
-                } );
-            trackList = &m_subtitleTracks;
-
-            QAction *actionSubTwo = new QAction(this);
-            actionSubTwo->setText(actionText);
-            actionSubTwo->setCheckable(true);
-            m_ui->menuSubtitleTwo->addAction(actionSubTwo);
-            actionSubTwo->setActionGroup(m_actionGroupSubtitleTwo);
-            connect(actionSubTwo, &QAction::triggered, 
-                [=] (const bool checked) { 
-                    if (checked) m_player->setSubtitleTwoTrack(track->id); 
-                } );
-            m_subtitleTwoTracks.push_back(
-                QPair<QAction *, const Track *>(actionSubTwo, nullptr));
-            break;
-        }
-        }
-        action->setChecked(track->selected);
-        trackList->push_back(QPair<QAction *, const Track *>(action, track));
-    }
-}
-
-void MainWindow::setFullscreen(bool value)
-{
-    QApplication::processEvents();
-
-    if (value)
-    {
-        m_maximized = isMaximized();
-        showFullScreen();
-        m_ui->menubar->setFixedHeight(0);
-
-        /* Move the controls */
-        m_ui->controls->hide();
-        m_ui->centralwidget->layout()->removeWidget(m_ui->controls);
-        m_ui->controls->raise();
-        m_subtitle.layoutPlayerOverlay->addWidget(m_ui->controls);
-    }
-    else
-    {
-    #if __linux__
-        showNormal();
-        if (m_maximized)
-        {
-            // Have call showNormal before showMaximized when leaving fullscreen
-            // on Linux due to a bug with Qt
-            showMaximized();
-        }
-    #else
-        if (m_maximized)
-            showMaximized();
-        else
-            showNormal();
-    
-    #endif
-        m_ui->menubar->setMinimumHeight(0);
-        m_ui->menubar->setMaximumHeight(QWIDGETSIZE_MAX);
-
-        m_subtitle.layoutPlayerOverlay->removeWidget(m_ui->controls);
-        m_ui->centralwidget->layout()->addWidget(m_ui->controls);
-        m_ui->controls->show();
-    }
-}
-
-void MainWindow::setTerms(const QList<Term *> *terms)
-{
-    deleteDefinitionWidget();
-    
-    m_definition = new DefinitionWidget(terms, m_ui->player);
-    setDefinitionWidgetLocation();
-    if (m_definition)
-    {
-        m_definition->show();
-    }
-}
+/* End Event Handlers */
+/* Begin Subtitle Widget Helpers */
 
 void MainWindow::repositionSubtitles()
 {
@@ -493,11 +613,16 @@ void MainWindow::updateSubScale(const double inc)
         SETTINGS_INTERFACE_SUB_SCALE_DEFAULT
     ).toDouble();
     scale += inc;
-    if (scale >= 0.0 && scale <= 1.0)
+    if (scale <= 0.0)
     {
-        settings.setValue(SETTINGS_INTERFACE_SUB_SCALE, scale);
-        Q_EMIT m_mediator->interfaceSettingsChanged();
+        scale = 0.0;
     }
+    else if (scale >= 1.0)
+    {
+        scale = 1.0;
+    }
+    settings.setValue(SETTINGS_INTERFACE_SUB_SCALE, scale);
+    Q_EMIT m_mediator->interfaceSettingsChanged();
 }
 
 void MainWindow::moveSubtitles(const double inc)
@@ -509,54 +634,31 @@ void MainWindow::moveSubtitles(const double inc)
         SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT
     ).toDouble();
     offset += inc;
-    if (offset >= 0.0 && offset <= 1.0)
+    if (offset <= 0.0)
     {
-        settings.setValue(SETTINGS_INTERFACE_SUB_OFFSET, offset);
-        Q_EMIT m_mediator->interfaceSettingsChanged();
+        offset = 0.0;
     }
+    else if (offset >= 1.0)
+    {
+        offset = 1.0;
+    }
+    settings.setValue(SETTINGS_INTERFACE_SUB_OFFSET, offset);
+    Q_EMIT m_mediator->interfaceSettingsChanged();
 }
 
-void MainWindow::updateAnkiProfileMenu()
+/* End Definition Widget Helpers */
+/* Begin Definition Widget Helpers */
+
+void MainWindow::setTerms(const QList<Term *> *terms)
 {
-    // Remove all profiles
-    for (auto it = m_ankiProfiles.begin(); it != m_ankiProfiles.end(); ++it)
+    deleteDefinitionWidget();
+    
+    m_definition = new DefinitionWidget(terms, m_ui->player);
+    setDefinitionWidgetLocation();
+    if (m_definition)
     {
-        m_actionGroupAnkiProfile->removeAction(*it);
-        m_ui->menuAnkiProfile->removeAction(*it);
-        delete *it;
+        m_definition->show();
     }
-    m_ankiProfiles.clear();
-
-    // Get profiles in alphabetical order
-    QStringList profiles = m_ankiClient->getProfiles();
-    std::sort(profiles.begin(), profiles.end());
-
-    // Add new profiles
-    for (auto it = profiles.begin(); it != profiles.end(); ++it)
-    {
-        QAction *profileAction = new QAction(this);
-        profileAction->setText(*it);
-        profileAction->setCheckable(true);
-        profileAction->setChecked(m_ankiClient->getProfile() == *it);
-        m_ui->menuAnkiProfile->addAction(profileAction);
-        profileAction->setActionGroup(m_actionGroupAnkiProfile);
-        m_ankiProfiles.append(profileAction);
-
-        connect(profileAction, &QAction::triggered,
-            [=] (const bool checked) {
-                if (checked) 
-                {
-                    profileAction->blockSignals(true);
-                    m_ankiClient->setProfile(profileAction->text());
-                    m_ankiClient->writeChanges();
-                    profileAction->blockSignals(false);
-                }
-            }
-        );
-    }
-
-    // Handle disabled Anki Integration
-    m_ui->menuAnkiProfile->menuAction()->setVisible(m_ankiClient->isEnabled());
 }
 
 void MainWindow::setDefinitionWidgetLocation()
@@ -576,7 +678,8 @@ void MainWindow::setDefinitionWidgetLocation()
     int y = m_subtitle.subtitleWidget->pos().y() - m_definition->height();
     if (y < 0)
     {
-        y = m_subtitle.subtitleWidget->pos().y() + m_subtitle.subtitleWidget->height();
+        y = m_subtitle.subtitleWidget->pos().y() + 
+            m_subtitle.subtitleWidget->height();
     }
 
     if (y + m_definition->height() > m_ui->player->height())
@@ -599,10 +702,60 @@ void MainWindow::deleteDefinitionWidget()
     m_definition = nullptr;
 }
 
+/* End Definition Widget Helpers */
+/* Begin Fullscreen Helpers */
+
+void MainWindow::setFullscreen(bool value)
+{
+    QApplication::processEvents();
+
+    if (value)
+    {
+        m_maximized = isMaximized();
+        showFullScreen();
+        m_ui->menubar->setFixedHeight(0);
+
+        /* Move the controls */
+        m_ui->controls->hide();
+        m_ui->centralwidget->layout()->removeWidget(m_ui->controls);
+        m_ui->controls->raise();
+        m_subtitle.layoutPlayerOverlay->addWidget(m_ui->controls);
+    }
+    else
+    {
+    #if __linux__
+        showNormal();
+        if (m_maximized)
+        {
+            /* Have call showNormal before showMaximized when leaving fullscreen
+             * on Linux due to a bug with Qt.
+             */
+            showMaximized();
+        }
+    #else
+        if (m_maximized)
+            showMaximized();
+        else
+            showNormal();
+    #endif
+        m_ui->menubar->setMinimumHeight(0);
+        m_ui->menubar->setMaximumHeight(QWIDGETSIZE_MAX);
+
+        m_subtitle.layoutPlayerOverlay->removeWidget(m_ui->controls);
+        m_ui->centralwidget->layout()->addWidget(m_ui->controls);
+        m_ui->controls->show();
+    }
+}
+
 inline bool MainWindow::isMouseOverPlayer()
 {
-    return !m_ui->controls->underMouse() && !m_subtitle.subtitleWidget->underMouse() &&
-           (m_definition == nullptr || m_definition && !m_definition->underMouse());
+    return !m_ui->controls->underMouse() && 
+           !m_subtitle.subtitleWidget->underMouse() &&
+           (
+               m_definition == nullptr || 
+               m_definition && 
+               !m_definition->underMouse()
+           );
 }
 
 void MainWindow::hideControls()
@@ -614,35 +767,278 @@ void MainWindow::hideControls()
     }
 }
 
-void MainWindow::clearTracks()
-{
-    clearTrack(m_audioTracks, m_ui->menuAudio, m_actionGroupAudio,
-               m_ui->actionAudioNone);
-    clearTrack(m_videoTracks, m_ui->menuVideo, m_actionGroupVideo,
-               m_ui->actionVideoNone);
-    clearTrack(m_subtitleTracks, m_ui->menuSubtitle, m_actionGroupSubtitle,
-               m_ui->actionSubtitleNone);
-    clearTrack(m_subtitleTwoTracks, m_ui->menuSubtitleTwo,
-               m_actionGroupSubtitleTwo, m_ui->actionSubtitleTwoNone);
-    
-}
+/* End Fullscreen Helpers */
+/* Begin Track Helpers */
 
-void MainWindow::clearTrack(QList<QPair<QAction *, const Track *>> &tracks,
-                            QMenu                                  *menu,
-                            QActionGroup                           *actionGroup,
-                            QAction                                *actionDisable)
+void MainWindow::clearTrack(QList<QAction *> &actions,
+                            QMenu            *menu,
+                            QActionGroup     *actionGroup,
+                            QAction          *actionDisable)
 {
-    for (auto it = tracks.begin(); it != tracks.end(); ++it)
+    for (QAction *action : actions)
     {
-        menu->removeAction((*it).first);
-        actionGroup->removeAction((*it).first);
-        delete (*it).first;
-        delete (*it).second;
+        menu->removeAction(action);
+        actionGroup->removeAction(action);
+        delete action;
     }
-    tracks.clear();
+    actions.clear();
 
     actionDisable->setChecked(true);
 }
+
+void MainWindow::clearTracks()
+{
+    clearTrack(
+        m_actionGroups.audioActions, 
+        m_ui->menuAudio, 
+        m_actionGroups.audio,
+        m_ui->actionAudioNone
+    );
+    clearTrack(
+        m_actionGroups.videoActions,
+        m_ui->menuVideo,
+        m_actionGroups.video,
+        m_ui->actionVideoNone
+    );
+    clearTrack(
+        m_actionGroups.subtitleActions,
+        m_ui->menuSubtitle,
+        m_actionGroups.subtitle,
+        m_ui->actionSubtitleNone
+    );
+    clearTrack(
+        m_actionGroups.subtitleTwoActions,
+        m_ui->menuSubtitleTwo,
+        m_actionGroups.subtitleTwo,
+        m_ui->actionSubtitleTwoNone
+    );
+    m_actionGroups.actionMap.clear();
+}
+
+void MainWindow::setTracks(QList<const Track *> tracks)
+{
+    clearTracks();
+
+    for (const Track *track : tracks)
+    {
+        QAction *action = new QAction(this);
+        action->setCheckable(true);
+
+        QString actionText = "Track " + QString::number(track->id);
+        if (!track->lang.isEmpty())
+            actionText += " [" + track->lang + "]";
+        if (!track->title.isEmpty())
+            actionText += " - " + track->title;
+        action->setText(actionText);
+
+        switch (track->type)
+        {
+        case Track::Type::audio:
+            m_ui->menuAudio->addAction(action);
+            action->setActionGroup(m_actionGroups.audio);
+            m_actionGroups.audioActions.append(action);
+            break;
+
+        case Track::Type::video:
+            m_ui->menuVideo->addAction(action);
+            action->setActionGroup(m_actionGroups.video);
+            m_actionGroups.videoActions.append(action);
+            break;
+
+        case Track::Type::subtitle:
+        {
+            m_ui->menuSubtitle->addAction(action);
+            action->setActionGroup(m_actionGroups.subtitle);
+            m_actionGroups.subtitleActions.append(action);
+
+            /* Secondary Subtitles */
+            QAction *actionSubTwo = new QAction(actionText, this);
+            actionSubTwo->setCheckable(true);
+            actionSubTwo->setEnabled(!track->selected);
+            m_ui->menuSubtitleTwo->addAction(actionSubTwo);
+            actionSubTwo->setActionGroup(m_actionGroups.subtitleTwo);
+            m_actionGroups.subtitleTwoActions.append(actionSubTwo);
+            m_actionGroups.actionMap[actionSubTwo] = track->id;
+            break;
+        }
+        }
+        m_actionGroups.actionMap[action] = track->id;
+        action->setChecked(track->selected);
+
+        delete track;
+    }
+}
+
+void MainWindow::setAudioTrack(QAction *action)
+{
+    if (!action->isChecked())
+    {
+        return;
+    }
+
+    if (action == m_ui->actionAudioNone)
+    {
+        m_player->disableAudio();
+        return;
+    }
+
+    m_player->setAudioTrack(m_actionGroups.actionMap[action]);
+}
+
+void MainWindow::setVideoTrack(QAction *action)
+{
+    if (!action->isChecked())
+    {
+        return;
+    }
+
+    if (action == m_ui->actionVideoNone)
+    {
+        m_player->disableVideo();
+        return;
+    }
+
+    m_player->setVideoTrack(m_actionGroups.actionMap[action]);
+}
+
+void MainWindow::setSubtitleTrack(QAction *action)
+{
+    if (!action->isChecked())
+    {
+        return;
+    }
+
+    if (action == m_ui->actionSubtitleNone)
+    {
+        m_actionGroups
+            .subtitleTwoActions[m_actionGroups.currentSubId - 1]
+                ->setEnabled(true);
+        m_actionGroups.currentSubId = 0;
+        m_player->disableSubtitles();
+        return;
+    }
+
+    if (m_actionGroups.currentSubId)
+    {
+        m_actionGroups
+            .subtitleTwoActions[m_actionGroups.currentSubId - 1]
+                ->setEnabled(true);
+    }
+    m_actionGroups.currentSubId = m_actionGroups.actionMap[action];
+    m_player->setSubtitleTrack(m_actionGroups.currentSubId);
+    m_actionGroups
+        .subtitleTwoActions[m_actionGroups.currentSubId - 1]
+            ->setEnabled(false);
+}
+
+void MainWindow::setSecondarySubtitleTrack(QAction *action)
+{
+    if (!action->isChecked())
+    {
+        return;
+    }
+
+    if (action == m_ui->actionSubtitleTwoNone)
+    {
+        m_actionGroups
+            .subtitleActions[m_actionGroups.currentSecSubId - 1]
+                ->setEnabled(true);
+        m_actionGroups.currentSecSubId = 0;
+        m_player->disableSubtitleTwo();
+        return;
+    }
+
+    if (m_actionGroups.currentSecSubId)
+    {
+        m_actionGroups
+            .subtitleActions[m_actionGroups.currentSecSubId - 1]
+                ->setEnabled(true);
+    }
+    m_actionGroups.currentSecSubId = m_actionGroups.actionMap[action];
+    m_player->setSubtitleTwoTrack(m_actionGroups.currentSecSubId);
+    m_actionGroups
+        .subtitleActions[m_actionGroups.currentSecSubId - 1]->setEnabled(false);
+}
+
+void MainWindow::updateAudioAction(const int64_t id)
+{
+    if (!id)
+    {
+        m_ui->actionAudioNone->setChecked(true);
+    }
+    else if(!m_actionGroups.audioActions.isEmpty())
+    {
+        m_actionGroups.audioActions[id - 1]->setChecked(true); 
+    }     
+}
+
+void MainWindow::updateVideoAction(const int64_t id)
+{
+    if (!id)
+    {
+        m_ui->actionVideoNone->setChecked(true);
+    }
+    else if(!m_actionGroups.videoActions.isEmpty())
+    {
+        m_actionGroups.videoActions[id - 1]->setChecked(true); 
+    }   
+}
+
+void MainWindow::updateSubtitleAction(const int64_t id)
+{
+    if (!id)
+    {
+        m_ui->actionSubtitleNone->setChecked(true);
+    }
+    else if(!m_actionGroups.subtitleActions.isEmpty())
+    {
+        m_actionGroups.subtitleActions[id - 1]->setChecked(true);
+    }
+
+    if (m_actionGroups.currentSubId)
+    {
+        m_actionGroups
+            .subtitleTwoActions[m_actionGroups.currentSubId - 1]
+                ->setEnabled(true);
+    }
+    m_actionGroups.currentSubId = id;
+    if (m_actionGroups.currentSubId)
+    {
+        m_actionGroups
+            .subtitleTwoActions[m_actionGroups.currentSubId - 1]
+                ->setEnabled(false); 
+    }
+}
+
+
+void MainWindow::updateSecondarySubtitleAction(const int64_t id)
+{
+    if (!id)
+    {
+        m_ui->actionSubtitleTwoNone->setChecked(true);
+    }
+    else if(!m_actionGroups.subtitleTwoActions.isEmpty())
+    {
+        m_actionGroups.subtitleTwoActions[id - 1]->setChecked(true);
+    }
+
+    if (m_actionGroups.currentSecSubId)
+    {
+        m_actionGroups.
+            subtitleActions[m_actionGroups.currentSecSubId - 1]
+                ->setEnabled(true);
+    }
+    m_actionGroups.currentSecSubId = id;
+    if (m_actionGroups.currentSecSubId)
+    {
+        m_actionGroups
+            .subtitleActions[m_actionGroups.currentSecSubId - 1]
+                ->setEnabled(false);
+    }
+}
+
+/* End Track Helpers */
+/* Begin Menu Bar Helpers */
 
 void MainWindow::open()
 {
@@ -673,66 +1069,59 @@ void MainWindow::openUrl()
     }
 }
 
-void MainWindow::checkForUpdates()
+void MainWindow::openSubtitle()
 {
-    m_manager->setTransferTimeout();
-    QNetworkRequest request(GITHUB_API_LINK);
-    QNetworkReply *reply = m_manager->get(request);
-    connect(reply, &QNetworkReply::finished, [=] {
-            if (reply->error())
-            {
-                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
-                    "Error", 
-                    "Could not check for updates:\n" + reply->errorString()
-                );
-            }
-            else
-            {
-                QJsonDocument replyDoc = QJsonDocument::fromJson(reply->readAll());
-                if (replyDoc.isNull() ||
-                    !replyDoc.isArray() || 
-                    replyDoc.array().isEmpty() ||
-                    !replyDoc.array().first().isObject() ||
-                    !replyDoc.array().first().toObject()["tag_name"].isString() ||
-                    !replyDoc.array().first().toObject()["html_url"].isString())
-                {
-                    Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
-                        "Error", 
-                        "Server did not send a valid reply.\n"
-                        "Check manually <a href='" + GITHUB_RELEASES +
-                        "'>here</a>"
-                    );
-                }
-                else 
-                {
-                    QString tag = replyDoc.array()
-                                          .first()
-                                          .toObject()["tag_name"]
-                                          .toString();
-                    QString url = replyDoc.array()
-                                          .first()
-                                          .toObject()["html_url"]
-                                          .toString();
-                    if (tag != VERSION)
-                    {
-                        Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
-                            "Update Available",
-                            "New version <a href='" + url + "'>" + 
-                            tag + "</a> available"
-                        );
-                    }
-                    else
-                    {
-                        Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
-                            "Up to Date",
-                            "Memento is up to date"
-                        );
-                    }
-                }
-            }
-            reply->deleteLater();
-    });
+    QString file = QFileDialog::getOpenFileName(0, "Open Subtitle");
+    if (!file.isEmpty())
+    {
+        m_player->addSubtitle(file);
+    }
 }
+
+void MainWindow::updateAnkiProfileMenu()
+{
+    /* Remove all profiles */
+    QList<QAction *> actions = m_actionGroupAnkiProfile->actions();
+    for (QAction *action : actions)
+    {
+        m_actionGroupAnkiProfile->removeAction(action);
+        m_ui->menuAnkiProfile->removeAction(action);
+        delete action;
+    }
+
+    /* Get profiles in alphabetical order */
+    QStringList profiles = m_ankiClient->getProfiles();
+    std::sort(profiles.begin(), profiles.end());
+
+    /* Add new profiles */
+    for (const QString &profile : profiles)
+    {
+        QAction *profileAction = new QAction(this);
+        profileAction->setText(profile);
+        profileAction->setCheckable(true);
+        profileAction->setChecked(m_ankiClient->getProfile() == profile);
+        m_ui->menuAnkiProfile->addAction(profileAction);
+        profileAction->setActionGroup(m_actionGroupAnkiProfile);
+
+        connect(profileAction, &QAction::triggered,
+            [=] (const bool checked) {
+                if (checked) 
+                {
+                    profileAction->blockSignals(true);
+                    m_ankiClient->setProfile(profileAction->text());
+                    m_ankiClient->writeChanges();
+                    profileAction->blockSignals(false);
+                }
+            }
+        );
+    }
+
+    /* Handle disabled Anki Integration */
+    m_ui->menuAnkiProfile->menuAction()->setVisible(m_ankiClient->isEnabled());
+}
+
+/* End Menu Bar Helpers */
+/* Begin Dialog Methods */
 
 void MainWindow::showErrorMessage(const QString title, 
                                   const QString error) const
@@ -748,114 +1137,4 @@ void MainWindow::showInfoMessage(const QString title,
     message.information(0, title, error);
 }
 
-void MainWindow::setTheme()
-{
-    QSettings settings;
-    settings.beginGroup(SETTINGS_INTERFACE);
-
-    /* Set Palette */
-    QPalette pal;
-    Theme theme = (Theme)settings.value(SETTINGS_INTERFACE_THEME, (int)SETTINGS_INTERFACE_THEME_DEFAULT).toInt();
-    switch (theme)
-    {
-    case Theme::Light:
-    {
-    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) || __APPLE__
-        QStyle *style = QStyleFactory::create("fusion");
-        if (style)
-            QApplication::setStyle(style);
-    #endif
-        m_ui->menubar->setAutoFillBackground(true);
-        QColor lightColor(240, 240, 240);
-        QColor disabledColor(178, 179, 180);
-        QColor white(255, 255, 255);
-        QColor black(0, 0, 0);
-        pal.setColor(QPalette::Window, lightColor);
-        pal.setColor(QPalette::WindowText, black);
-        pal.setColor(QPalette::Base, white);
-        pal.setColor(QPalette::AlternateBase, lightColor);
-        pal.setColor(QPalette::ToolTipBase, white);
-        pal.setColor(QPalette::ToolTipText, black);
-        pal.setColor(QPalette::Text, black);
-        pal.setColor(QPalette::Disabled, QPalette::Text, disabledColor);
-        pal.setColor(QPalette::Button, lightColor);
-        pal.setColor(QPalette::ButtonText, black);
-        pal.setColor(QPalette::Disabled, QPalette::ButtonText, disabledColor);
-        pal.setColor(QPalette::BrightText, Qt::red);
-        pal.setColor(QPalette::Link, QColor(16, 50, 72));
-        pal.setColor(QPalette::Highlight, QColor(61, 174, 233));
-        pal.setColor(QPalette::HighlightedText, white);
-        pal.setColor(QPalette::Disabled, QPalette::HighlightedText, disabledColor);
-        break;
-    }
-    case Theme::Dark:
-    {
-    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) || __APPLE__
-        QStyle *style = QStyleFactory::create("fusion");
-        if (style)
-            QApplication::setStyle(style);
-    #endif
-        m_ui->menubar->setAutoFillBackground(true);
-        // Modified from https://forum.qt.io/topic/101391/windows-10-dark-theme/5
-        QColor darkColor(45, 45, 45);
-        QColor disabledColor(127, 127, 127);
-        QColor white(255, 255, 255);
-        pal.setColor(QPalette::Window, darkColor);
-        pal.setColor(QPalette::WindowText, white);
-        pal.setColor(QPalette::Base, QColor(18, 18, 18));
-        pal.setColor(QPalette::AlternateBase, darkColor);
-        pal.setColor(QPalette::ToolTipBase, white);
-        pal.setColor(QPalette::ToolTipText, darkColor);
-        pal.setColor(QPalette::Text, white);
-        pal.setColor(QPalette::Disabled, QPalette::Text, disabledColor);
-        pal.setColor(QPalette::Button, darkColor);
-        pal.setColor(QPalette::ButtonText, white);
-        pal.setColor(QPalette::Disabled, QPalette::ButtonText, disabledColor);
-        pal.setColor(QPalette::BrightText, Qt::red);
-        pal.setColor(QPalette::Link, QColor(42, 130, 218));
-        pal.setColor(QPalette::Highlight, QColor(31, 72, 94));
-        pal.setColor(QPalette::HighlightedText, white);
-        pal.setColor(QPalette::Disabled, QPalette::HighlightedText, disabledColor);
-        break;
-    }
-    case Theme::System:
-    default:
-    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-        QStyle *style = QStyleFactory::create("windowsvista");
-        if (style)
-            QApplication::setStyle(style);
-    #elif __APPLE__
-        QStyle *style = QStyleFactory::create("macintosh");
-        if (style)
-            QApplication::setStyle(style);
-    #endif
-        m_ui->menubar->setAutoFillBackground(false);
-        pal = QApplication::style()->standardPalette();
-    }
-    QApplication::setPalette(pal);
-
-    IconFactory::create()->buildIcons();
-
-    Q_EMIT m_mediator->requestThemeRefresh();
-
-    /* Set QSplitter Stylesheet */
-    if (settings.value(SETTINGS_INTERFACE_STYLESHEETS, SETTINGS_INTERFACE_STYLESHEETS_DEFAULT).toBool())
-    {
-        m_ui->splitterPlayerSubtitles->setStyleSheet(
-            settings.value(
-                SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE,
-                SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT
-            ).toString()
-        );
-    }
-    else
-    {
-        m_ui->splitterPlayerSubtitles->setStyleSheet(SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT);
-    }
-
-    /* Refresh the subtitle offset */
-    m_subtitle.offsetPercent = settings.value(SETTINGS_INTERFACE_SUB_OFFSET, SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT).toDouble();
-    repositionSubtitles();
-
-    settings.endGroup();
-}
+/* End Dialog Methods */

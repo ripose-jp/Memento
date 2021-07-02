@@ -5,7 +5,8 @@ add_library(
 target_link_libraries(
     audioplayer
     ${MPV_LIB}
-    fileutils
+    utils
+    globalmediator
     Qt5::Core
     Qt5::Network
 )

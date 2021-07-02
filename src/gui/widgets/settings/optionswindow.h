@@ -30,9 +30,9 @@ namespace Ui
     class OptionsWindow;
 }
 
-class AnkiSettings;
-class DictionarySettings;
-
+/**
+ * Parent window of all the other settings widgets.
+ */
 class OptionsWindow : public QWidget
 {
     Q_OBJECT
@@ -42,16 +42,34 @@ public:
     ~OptionsWindow();
 
 protected:
+    /**
+     * Shows the first setting in alphabetical order on show.
+     * @param event The show event, not used.
+     */
     void showEvent(QShowEvent *event) override;
 
 private:
+    /**
+     * Adds a settings widget to the window.
+     * @param name   The name of the settings widget to add as it will appear in
+     *               the list.
+     * @param widget The settings widget to add.
+     */
+    void addOption(const QString &name, QWidget *widget);
+
+    /**
+     * Shows the widget that corresponds to the selected settings in the list.
+     */
+    void showSelectedOption();
+
+    /* The UI object containing all the widgets. */
     Ui::OptionsWindow *m_ui;
 
-    QWidget                  *m_currentWidget;
-    QMap<QString, QWidget *>  widgets;
+    /* The widget currently being shown. */
+    QWidget *m_currentWidget;
 
-    void addOption(const QString &name, QWidget *widget);
-    void showSelectedOption();
+    /* Maps settings names to settings widgets. */
+    QMap<QString, QWidget *> m_widgets;
 };
 
 #endif // OPTIONSWINDOW_H

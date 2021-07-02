@@ -23,6 +23,9 @@
 
 #include <QDialog>
 
+/**
+ * Window containing information about Memento.
+ */
 class AboutWindow : public QDialog
 {
     Q_OBJECT

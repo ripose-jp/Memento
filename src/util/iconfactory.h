@@ -22,16 +22,23 @@
 #define ICONFACTORY_H
 
 #include <QIcon>
-#include <QWidget>
-#include <QStyle>
 #include <QString>
+#include <QStyle>
+#include <QWidget>
 
-#define ICON_ENUM_SIZE 17
-#define XDG_ICONS 9
+/* Size of the icon enum. Be sure to update when adding icons. */
+#define ICON_ENUM_SIZE  17
 
+/* Number of XDG icons decided by linux standards. Likely won't change. */
+#define XDG_ICONS       9
+
+/**
+ * Parent class of icon factories, needed for polymorphism.
+ */
 class IconFactory
 {
 public:
+    /* Valid Icons. */
     enum Icon
     {
         play,
@@ -41,10 +48,14 @@ public:
         seek_backward,
         skip_forward,
         skip_backward,
-        // All bundled icons should be put past this point
+
+        /* All bundled icons should be put past this point. */
+
         fullscreen,
         restore,
-        // All icons without an xdg spec should be put past this point
+
+        /* All icons without an xdg spec should be put past this point. */
+
         plus,
         minus,
         back,
@@ -55,19 +66,38 @@ public:
         noaudio
     };
 
-    virtual ~IconFactory() {}
+    virtual ~IconFactory() { m_factory = nullptr; }
 
+    /**
+     * Gets the icon corresponding the Icon enum.
+     * @param icon The requested icon.
+     * @return The icon corresponding to the enum.
+     */
     virtual const QIcon &getIcon(IconFactory::Icon icon) const = 0;
+
+    /**
+     * (Re)builds icons. Should be called manually every time there is a palette
+     * change.
+     */
     virtual void buildIcons() = 0;
 
+    /**
+     * Returns an IconFactory. Caller does not have ownership, factory is
+     * shared.
+     */
     static IconFactory *create();
 
 protected:
+    /* Shared IconFactory object. */
     static inline IconFactory *m_factory = nullptr;
 
     IconFactory() {}
 };
 
+/**
+ * An IconFactory that sources as many XDG icons as possible before using baked
+ * in ones.
+ */
 class StyleFactory : public IconFactory
 {
 public:
@@ -79,9 +109,19 @@ public:
 private:
     QIcon icons[ICON_ENUM_SIZE];
 
+    /**
+     * Generates an icon from an image.
+     * @param path Path to the icon.
+     * @return The icon at path will a fill corresponding to the current
+     *         palette.
+     */
     QIcon buildIcon(const QString &path);
 };
 
+
+/**
+ * An IconFactory that only uses icons included in Memento.
+ */
 class ThemeFactory : public IconFactory
 {
 public:

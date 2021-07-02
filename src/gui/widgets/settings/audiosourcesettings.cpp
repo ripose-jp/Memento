@@ -21,19 +21,23 @@
 #include "audiosourcesettings.h"
 #include "ui_audiosourcesettings.h"
 
+#include <QMessageBox>
+#include <QPushButton>
+#include <QSettings>
+
 #include "../../../util/constants.h"
 #include "../../../util/iconfactory.h"
 
-#include <QPushButton>
-#include <QMessageBox>
-#include <QSettings>
-
+/* Column indicies */
 #define COL_NAME    0
 #define COL_URL     1
 #define COL_MD5     2
 
+/* Begin Constructor/Destructors */
+
 AudioSourceSettings::AudioSourceSettings(QWidget *parent) 
-    : QWidget(parent), m_ui(new Ui::AudioSourceSettings)
+    : QWidget(parent),
+      m_ui(new Ui::AudioSourceSettings)
 {
     m_ui->setupUi(this);
 
@@ -44,30 +48,55 @@ AudioSourceSettings::AudioSourceSettings(QWidget *parent)
     m_ui->buttonDown->setIcon(factory->getIcon(IconFactory::Icon::down));
 
     /* Table Actions */
-    connect(m_ui->table, &QTableWidget::cellChanged,        this, &AudioSourceSettings::updateRows);
-    connect(m_ui->table, &QTableWidget::currentCellChanged, this, &AudioSourceSettings::updateButtons);
-    connect(m_ui->table, &QTableWidget::cellChanged,        this, &AudioSourceSettings::updateButtons);
+    connect(
+        m_ui->table, &QTableWidget::cellChanged,
+        this,        &AudioSourceSettings::updateRows
+    );
+    connect(
+        m_ui->table, &QTableWidget::currentCellChanged,
+        this,        &AudioSourceSettings::updateButtons
+    );
+    connect(
+        m_ui->table, &QTableWidget::cellChanged,
+        this,        &AudioSourceSettings::updateButtons
+    );
 
     /* Up/Down Buttons */
-    connect(m_ui->buttonUp,   &QToolButton::clicked, this, &AudioSourceSettings::moveUp);
-    connect(m_ui->buttonDown, &QToolButton::clicked, this, &AudioSourceSettings::moveDown);
+    connect(
+        m_ui->buttonUp, &QToolButton::clicked,
+        this,           &AudioSourceSettings::moveUp
+    );
+    connect(
+        m_ui->buttonDown, &QToolButton::clicked,
+        this,             &AudioSourceSettings::moveDown
+    );
 
     /* Dialog Buttons */
     connect(
         m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Apply),
-        &QPushButton::clicked, this, &AudioSourceSettings::applyChanges
+        &QPushButton::clicked,
+        this,
+        &AudioSourceSettings::applyChanges
     );
     connect(
-        m_ui->buttonBox->button(QDialogButtonBox::StandardButton::RestoreDefaults),
-        &QPushButton::clicked, this, &AudioSourceSettings::restoreDefaults
+        m_ui->buttonBox->button(
+            QDialogButtonBox::StandardButton::RestoreDefaults
+        ),
+        &QPushButton::clicked,
+        this,
+        &AudioSourceSettings::restoreDefaults
     );
     connect(
         m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Reset),
-        &QPushButton::clicked, this, &AudioSourceSettings::restoreSaved
+        &QPushButton::clicked,
+        this,
+        &AudioSourceSettings::restoreSaved
     );
     connect(
         m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Help), 
-        &QPushButton::clicked, this, &AudioSourceSettings::showHelp
+        &QPushButton::clicked,
+        this,
+        &AudioSourceSettings::showHelp
     );
 
     /* Make sure at least the default are saved to settings */
@@ -80,6 +109,9 @@ AudioSourceSettings::~AudioSourceSettings()
     delete m_ui;
 }
 
+/* End Constructor/Destructors */
+/* Begin Event Handlers */
+
 void AudioSourceSettings::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
@@ -87,6 +119,9 @@ void AudioSourceSettings::showEvent(QShowEvent *event)
     m_ui->buttonDown->setEnabled(false);
     m_ui->buttonUp->setEnabled(false);
 }
+
+/* End Event Handlers */
+/* Begin Button Box Handlers */
 
 void AudioSourceSettings::applyChanges()
 {
@@ -108,9 +143,12 @@ void AudioSourceSettings::applyChanges()
     {
         settings.setArrayIndex(i);
 
-        QString name = itemEmpty(i, COL_NAME) ? "" : table->item(i, COL_NAME)->text();
-        QString url  = itemEmpty(i, COL_URL)  ? "" : table->item(i, COL_URL)->text();
-        QString md5  = itemEmpty(i, COL_MD5)  ? "" : table->item(i, COL_MD5)->text();
+        QString name =
+            itemEmpty(i, COL_NAME) ? "" : table->item(i, COL_NAME)->text();
+        QString url  =
+            itemEmpty(i, COL_URL)  ? "" : table->item(i, COL_URL)->text();
+        QString md5  =
+            itemEmpty(i, COL_MD5)  ? "" : table->item(i, COL_MD5)->text();
 
         settings.setValue(SETTINGS_AUDIO_SRC_NAME, name);
         settings.setValue(SETTINGS_AUDIO_SRC_URL,  url);
@@ -130,9 +168,15 @@ void AudioSourceSettings::restoreDefaults()
     table->clearContents();
     table->setRowCount(2);
 
-    table->setItem(0, COL_NAME, new QTableWidgetItem(SETTINGS_AUDIO_SRC_NAME_DEFAULT));
-    table->setItem(0, COL_URL,  new QTableWidgetItem(SETTINGS_AUDIO_SRC_URL_DEFAULT));
-    table->setItem(0, COL_MD5,  new QTableWidgetItem(SETTINGS_AUDIO_SRC_MD5_DEFAULT));
+    table->setItem(
+        0, COL_NAME, new QTableWidgetItem(SETTINGS_AUDIO_SRC_NAME_DEFAULT)
+    );
+    table->setItem(
+        0, COL_URL, new QTableWidgetItem(SETTINGS_AUDIO_SRC_URL_DEFAULT)
+    );
+    table->setItem(
+        0, COL_MD5, new QTableWidgetItem(SETTINGS_AUDIO_SRC_MD5_DEFAULT)
+    );
 }
 
 void AudioSourceSettings::restoreSaved()
@@ -153,13 +197,19 @@ void AudioSourceSettings::restoreSaved()
         settings.setArrayIndex(i);
 
         table->setItem(i, COL_NAME, 
-            new QTableWidgetItem(settings.value(SETTINGS_AUDIO_SRC_NAME).toString())
+            new QTableWidgetItem(
+                settings.value(SETTINGS_AUDIO_SRC_NAME).toString()
+            )
         );
         table->setItem(i, COL_URL, 
-            new QTableWidgetItem(settings.value(SETTINGS_AUDIO_SRC_URL).toString())
+            new QTableWidgetItem(
+                settings.value(SETTINGS_AUDIO_SRC_URL).toString()
+            )
         );
         table->setItem(i, COL_MD5, 
-            new QTableWidgetItem(settings.value(SETTINGS_AUDIO_SRC_MD5).toString())
+            new QTableWidgetItem(
+                settings.value(SETTINGS_AUDIO_SRC_MD5).toString()
+            )
         );
     }
     settings.endArray();
@@ -178,14 +228,8 @@ void AudioSourceSettings::showHelp()
     );
 }
 
-void AudioSourceSettings::updateButtons()
-{
-    const int currentRow = m_ui->table->currentRow();
-    const int rowCount   = m_ui->table->rowCount();
-
-    m_ui->buttonUp->setEnabled(0 < currentRow && currentRow < rowCount - 1);
-    m_ui->buttonDown->setEnabled(currentRow < rowCount - 2);
-}
+/* End Button Box Handlers */
+/* Begin Move Methods */
 
 void AudioSourceSettings::moveRow(const int row, const int step)
 {
@@ -226,26 +270,16 @@ void AudioSourceSettings::moveDown()
     m_ui->table->selectRow(m_ui->table->currentRow() + 1);
 }
 
-QString AudioSourceSettings::verifyNames() const
+/* End Move Methods */
+/* Begin Updaters */
+
+void AudioSourceSettings::updateButtons()
 {
-    QSet<QString> names;
-    QTableWidget *table = m_ui->table;
-    for (size_t i = 0; i < table->rowCount() - 1; ++i)
-    {
-        if (itemEmpty(i, COL_NAME))
-        {
-            return QString("Missing name at row %1.").arg(i + 1);
-        }
+    const int currentRow = m_ui->table->currentRow();
+    const int rowCount   = m_ui->table->rowCount();
 
-        QString name = table->item(i, COL_NAME)->text();
-        if (names.contains(name))
-        {
-            return QString("Duplicate name at row %1.").arg(i + 1);
-        }
-        names.insert(name);
-    }
-
-    return "";
+    m_ui->buttonUp->setEnabled(0 < currentRow && currentRow < rowCount - 1);
+    m_ui->buttonDown->setEnabled(currentRow < rowCount - 2);
 }
 
 void AudioSourceSettings::updateRows()
@@ -268,6 +302,31 @@ void AudioSourceSettings::updateRows()
     }
 }
 
+/* End Updaters */
+/* Begin Helper Methods */
+
+QString AudioSourceSettings::verifyNames() const
+{
+    QSet<QString> names;
+    QTableWidget *table = m_ui->table;
+    for (size_t i = 0; i < table->rowCount() - 1; ++i)
+    {
+        if (itemEmpty(i, COL_NAME))
+        {
+            return QString("Missing name at row %1.").arg(i + 1);
+        }
+
+        QString name = table->item(i, COL_NAME)->text();
+        if (names.contains(name))
+        {
+            return QString("Duplicate name at row %1.").arg(i + 1);
+        }
+        names.insert(name);
+    }
+
+    return "";
+}
+
 bool inline AudioSourceSettings::itemEmpty(const int row, const int col) const
 {
     QTableWidgetItem *item = m_ui->table->item(row, col);
@@ -285,3 +344,5 @@ bool inline AudioSourceSettings::rowEmpty(const int row) const
     }
     return true;
 }
+
+/* End Helper Methods */

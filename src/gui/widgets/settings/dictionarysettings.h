@@ -28,6 +28,9 @@ namespace Ui
     class DictionarySettings;
 }
 
+/**
+ * Widget used for adding dictionaries and changing their priorities.
+ */
 class DictionarySettings : public QWidget
 {
     Q_OBJECT
@@ -37,20 +40,65 @@ public:
     ~DictionarySettings();
 
 protected:
+    /**
+     * Restores the saved settings.
+     * @param event The show event, not used.
+     */
     void showEvent(QShowEvent *event) override;
+
+    /**
+     * Makes sure the buttons are disabled.
+     * @param event The hide event, not used.
+     */
     void hideEvent(QHideEvent *event) override;
 
 private Q_SLOTS:
-    void refreshIcons();
-    void refresh();
+    /**
+     * Initializes button icons.
+     */
+    void initIcons();
+
+    /**
+     * Restores saved settings and applies them again.
+     */
+    void restoreSaved();
+
+    /**
+     * Saves the dictionary priorities.
+     */
     void applySettings();
-    void setButtonsEnabled(const bool value);
+
+    /**
+     * Moves the selected dictionary up in the list.
+     */
     void moveUp();
+
+    /**
+     * Moves the selected dictionary down in the list.
+     */
     void moveDown();
+
+    /**
+     * Opens a file dialog for adding a dictionary and adds the selected file.
+     * Applies current configuration.
+     * Shows a dialog on error.
+     */
     void addDictionary();
+
+    /**
+     * Deletes the currently selected dictionary from the database.
+     * Applies current configuration.
+     */
     void deleteDictionary();
 
+    /**
+     * Enables/Disables all buttons.
+     * @param value true to set buttons enabled, false otherwise.
+     */
+    void setButtonsEnabled(const bool value);
+
 private:
+    /* The UI object containing all the widgets. */
     Ui::DictionarySettings *m_ui;
 };
 

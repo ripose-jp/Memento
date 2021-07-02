@@ -22,8 +22,12 @@
 #define MPVADAPTER_H
 
 #include "playeradapter.h"
+
 #include "widgets/mpvwidget.h"
 
+/**
+ * Implements the features described in PlayerAdapter for mpv and MpvWidget.
+ */
 class MpvAdapter : public PlayerAdapter
 {
 public:
@@ -33,7 +37,9 @@ public:
     int64_t getMaxVolume() const override;
 
     double getSubStart() const override;
-    double getSubEnd()   const override;
+
+    double getSubEnd() const override;
+
     double getSubDelay() const override;
 
     QString getSecondarySubtitle() const override;
@@ -43,20 +49,22 @@ public:
     double getAudioDelay() const override;
 
     QList<const Track *> getTracks() override;
-    int64_t getAudioTrack()    const override;
+
+    int64_t getAudioTrack() const override;
+
     int64_t getSubtitleTrack() const override;
 
-    QString getPath()  const override;
+    QString getPath() const override;
+
     QString getTitle() const override;
 
-    bool isFullScreen() const override;
+    bool isFullscreen() const override;
 
     bool canGetSecondarySubText() const override;
 
 public Q_SLOTS:
-    void open(const QString     &file, 
-              const bool         append = false) override;
-    void open(const QList<QUrl> &files)          override;
+    void open(const QString &file, const bool append = false) override;
+    void open(const QList<QUrl> &files) override;
 
     void addSubtitle(const QString &file) override;
 
@@ -90,14 +98,22 @@ public Q_SLOTS:
     QString tempScreenshot(const bool subtitles,
                            const QString &ext = ".jpg") override;
 
-    void keyPressed(const QKeyEvent *event)        override;
+    void keyPressed(const QKeyEvent *event) override;
     void mouseWheelMoved(const QWheelEvent *event) override;
 
 private Q_SLOTS:
+    /**
+     * Processes the mpv_node into a list of tracks.
+     * @param node The mpv_node containing the raw track-list.
+     * @return A list containing the tracks.
+     */
     QList<const Track *> processTracks(const mpv_node *node);
 
 private:
+    /* The MpvWidget */
     MpvWidget *m_mpv;
+
+    /* The mpv context. Used for interacting with the mpv api. */
     mpv_handle *m_handle;
 };
 

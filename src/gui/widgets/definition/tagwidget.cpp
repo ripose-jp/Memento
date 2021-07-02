@@ -22,6 +22,10 @@
 
 #include <QDebug>
 
+/**
+ * Stylesheet format string.
+ * @param 1 The background color of the tag.
+ */
 #define STYLE_FORMAT    (QString(\
                             "font-weight: bold;"\
                             "padding-top: 1px;"\
@@ -33,6 +37,11 @@
                             "background: %1;"\
                         ))
 
+/**
+ * Frequency format string.
+ * @param 1 The name of the frequency dictionary.
+ * @param 2 The number of times the term appears.
+ */
 #define FREQ_FORMAT     (QString("%1 <span style=\"color: black;\">%2</span>"))
 
 TagWidget::TagWidget(const Tag &tag, QWidget *parent) : TagWidget(parent)

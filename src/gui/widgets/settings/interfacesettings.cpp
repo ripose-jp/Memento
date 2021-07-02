@@ -21,53 +21,65 @@
 #include "interfacesettings.h"
 #include "ui_interfacesettings.h"
 
+#include <QColorDialog>
+#include <QDesktopServices>
+#include <QPushButton>
+#include <QSettings>
+
 #include "../../../util/constants.h"
 #include "../../../util/globalmediator.h"
 
-#include <QPushButton>
-#include <QSettings>
-#include <QDesktopServices>
-#include <QColorDialog>
+/* Begin Constructor/Destructor */
 
-InterfaceSettings::InterfaceSettings(QWidget *parent) : QWidget(parent), m_ui(new Ui::InterfaceSettings)
+InterfaceSettings::InterfaceSettings(QWidget *parent)
+    : QWidget(parent),
+      m_ui(new Ui::InterfaceSettings)
 {
     m_ui->setupUi(this);
 
+    /* Signals */
     connect(m_ui->buttonSubColor, &QToolButton::clicked, this,
-        [=] {
-            m_subColor = QColorDialog::getColor(m_subColor, nullptr, QString(), QColorDialog::ShowAlphaChannel);
-            setButtonColor(m_ui->buttonSubColor, m_subColor);
-        }
+        [=] { askButtonColor(m_ui->buttonSubColor, m_subColor); }
     );
     connect(m_ui->buttonSubBackground, &QToolButton::clicked, this,
-        [=] {
-            m_bgColor = QColorDialog::getColor(m_bgColor, nullptr, QString(), QColorDialog::ShowAlphaChannel);
-            setButtonColor(m_ui->buttonSubBackground, m_bgColor);
-        }
+        [=] { askButtonColor(m_ui->buttonSubBackground, m_bgColor); }
     );
     connect(m_ui->buttonSubStroke, &QToolButton::clicked, this,
-        [=] {
-            m_strokeColor = QColorDialog::getColor(m_strokeColor, nullptr, QString(), QColorDialog::ShowAlphaChannel);
-            setButtonColor(m_ui->buttonSubStroke, m_strokeColor);
-        }
+        [=] { askButtonColor(m_ui->buttonSubStroke, m_strokeColor); }
     );
 
     connect(m_ui->checkStyleSheets, &QCheckBox::stateChanged, this, 
         [=] (const int state) {
-            m_ui->frameStyleSheets->setEnabled(state == Qt::CheckState::Checked);
+            m_ui->frameStyleSheets->setEnabled(
+                state == Qt::CheckState::Checked
+            );
         }
     );
 
-    connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::RestoreDefaults), &QPushButton::clicked,
-        this, &InterfaceSettings::restoreDefaults);
-    connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Reset), &QPushButton::clicked,
-        this, &InterfaceSettings::restoreSaved);
-    connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Apply), &QPushButton::clicked,
-        this, &InterfaceSettings::applyChanges);
-    connect(m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Help), &QPushButton::clicked,
-        this, [=] {
-            QDesktopServices::openUrl(QUrl("https://doc.qt.io/qt-5/stylesheet-reference.html"));
-        }
+    connect(
+        m_ui->buttonBox->button(
+            QDialogButtonBox::StandardButton::RestoreDefaults
+        ),
+        &QPushButton::clicked,
+        this,
+        &InterfaceSettings::restoreDefaults);
+    connect(
+        m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Reset),
+        &QPushButton::clicked,
+        this,
+        &InterfaceSettings::restoreSaved
+    );
+    connect(
+        m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Apply),
+        &QPushButton::clicked,
+        this,
+        &InterfaceSettings::applyChanges
+    );
+    connect(
+        m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Help),
+        &QPushButton::clicked,
+        this, 
+        &InterfaceSettings::showHelp
     );
 }
 
@@ -77,19 +89,30 @@ InterfaceSettings::~InterfaceSettings()
     delete m_ui;
 }
 
+/* End Constructor/Destructor */
+/* Begin Event Handlers */
+
 void InterfaceSettings::showEvent(QShowEvent *event)
 {
+    QWidget::showEvent(event);
     restoreSaved();
 }
+
+/* End Event Handlers */
+/* Begin Button Event Handlers */
 
 void InterfaceSettings::restoreDefaults()
 {
     m_ui->comboTheme->setCurrentIndex((int)SETTINGS_INTERFACE_THEME_DEFAULT);
 
     /* Subtitle */
-    m_ui->fontComboSub->setCurrentFont(QFont(SETTINGS_INTERFACE_SUB_FONT_DEFAULT));
+    m_ui->fontComboSub->setCurrentFont(
+        QFont(SETTINGS_INTERFACE_SUB_FONT_DEFAULT)
+    );
     m_ui->checkSubBold->setChecked(SETTINGS_INTERFACE_SUB_FONT_BOLD_DEFAULT);
-    m_ui->checkSubItalic->setChecked(SETTINGS_INTERFACE_SUB_FONT_ITALICS_DEFAULT);
+    m_ui->checkSubItalic->setChecked(
+        SETTINGS_INTERFACE_SUB_FONT_ITALICS_DEFAULT
+    );
 
     m_ui->spinSubScale->setValue(SETTINGS_INTERFACE_SUB_SCALE_DEFAULT);
     m_ui->spinSubOffset->setValue(SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT);
@@ -104,13 +127,21 @@ void InterfaceSettings::restoreDefaults()
     setButtonColor(m_ui->buttonSubStroke, m_strokeColor);
 
     /* Sub List */
-    m_ui->checkSubListTimestamps->setChecked(SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS_DEFAULT);
+    m_ui->checkSubListTimestamps->setChecked(
+        SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS_DEFAULT
+    );
 
     /* Style Sheets */
     m_ui->checkStyleSheets->setChecked(SETTINGS_INTERFACE_STYLESHEETS_DEFAULT);
-    m_ui->editSubList->setPlainText(SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT);
-    m_ui->editSplitter->setPlainText(SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT);
-    m_ui->editDefinitions->setPlainText(SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT);
+    m_ui->editSubList->setPlainText(
+        SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT
+    );
+    m_ui->editSplitter->setPlainText(
+        SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT
+    );
+    m_ui->editDefinitions->setPlainText(
+        SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT
+    );
 }
 
 void InterfaceSettings::restoreSaved()
@@ -219,33 +250,88 @@ void InterfaceSettings::applyChanges()
     QSettings settings;
     settings.beginGroup(SETTINGS_INTERFACE);
 
-    settings.setValue(SETTINGS_INTERFACE_THEME, m_ui->comboTheme->currentIndex());
+    settings.setValue(
+        SETTINGS_INTERFACE_THEME, m_ui->comboTheme->currentIndex()
+    );
 
     /* Subtitle */
-    settings.setValue(SETTINGS_INTERFACE_SUB_FONT,         m_ui->fontComboSub->currentFont().family());
-    settings.setValue(SETTINGS_INTERFACE_SUB_FONT_BOLD,    m_ui->checkSubBold->isChecked());
-    settings.setValue(SETTINGS_INTERFACE_SUB_FONT_ITALICS, m_ui->checkSubItalic->isChecked());
+    settings.setValue(
+        SETTINGS_INTERFACE_SUB_FONT, m_ui->fontComboSub->currentFont().family()
+    );
+    settings.setValue(
+        SETTINGS_INTERFACE_SUB_FONT_BOLD, m_ui->checkSubBold->isChecked()
+    );
+    settings.setValue(
+        SETTINGS_INTERFACE_SUB_FONT_ITALICS, m_ui->checkSubItalic->isChecked()
+    );
 
-    settings.setValue(SETTINGS_INTERFACE_SUB_SCALE,  m_ui->spinSubScale->value());
-    settings.setValue(SETTINGS_INTERFACE_SUB_OFFSET, m_ui->spinSubOffset->value());
-    settings.setValue(SETTINGS_INTERFACE_SUB_STROKE, m_ui->spinSubStroke->value());
+    settings.setValue(
+        SETTINGS_INTERFACE_SUB_SCALE, m_ui->spinSubScale->value()
+    );
+    settings.setValue(
+        SETTINGS_INTERFACE_SUB_OFFSET, m_ui->spinSubOffset->value()
+    );
+    settings.setValue(
+        SETTINGS_INTERFACE_SUB_STROKE, m_ui->spinSubStroke->value()
+    );
 
-    settings.setValue(SETTINGS_INTERFACE_SUB_TEXT_COLOR,   m_subColor.name(QColor::HexArgb));
-    settings.setValue(SETTINGS_INTERFACE_SUB_BG_COLOR,     m_bgColor.name(QColor::HexArgb));
-    settings.setValue(SETTINGS_INTERFACE_SUB_STROKE_COLOR, m_strokeColor.name(QColor::HexArgb));
+    settings.setValue(
+        SETTINGS_INTERFACE_SUB_TEXT_COLOR, m_subColor.name(QColor::HexArgb)
+    );
+    settings.setValue(
+        SETTINGS_INTERFACE_SUB_BG_COLOR, m_bgColor.name(QColor::HexArgb)
+    );
+    settings.setValue(
+        SETTINGS_INTERFACE_SUB_STROKE_COLOR, m_strokeColor.name(QColor::HexArgb)
+    );
 
     /* Subtitle List */
-    settings.setValue(SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS, m_ui->checkSubListTimestamps->isChecked());
+    settings.setValue(
+        SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS,
+        m_ui->checkSubListTimestamps->isChecked()
+    );
 
     /* Style Sheets */
-    settings.setValue(SETTINGS_INTERFACE_STYLESHEETS,           m_ui->checkStyleSheets->isChecked());
-    settings.setValue(SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE,   m_ui->editSubList->toPlainText());
-    settings.setValue(SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE, m_ui->editSplitter->toPlainText());
-    settings.setValue(SETTINGS_INTERFACE_DEFINITION_STYLE,      m_ui->editDefinitions->toPlainText());
+    settings.setValue(
+        SETTINGS_INTERFACE_STYLESHEETS, m_ui->checkStyleSheets->isChecked()
+    );
+    settings.setValue(
+        SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE, m_ui->editSubList->toPlainText()
+    );
+    settings.setValue(
+        SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE,
+        m_ui->editSplitter->toPlainText()
+    );
+    settings.setValue(
+        SETTINGS_INTERFACE_DEFINITION_STYLE,
+        m_ui->editDefinitions->toPlainText()
+    );
 
     settings.endGroup();
 
     Q_EMIT GlobalMediator::getGlobalMediator()->interfaceSettingsChanged();
+}
+
+void InterfaceSettings::showHelp() const
+{
+    QDesktopServices::openUrl(
+        QUrl("https://doc.qt.io/qt-5/stylesheet-reference.html")
+    );
+}
+
+/* End Button Event Handlers */
+/* Begin Helpers */
+
+void InterfaceSettings::askButtonColor(QToolButton *button, QColor &color)
+{
+    QColor tempColor = QColorDialog::getColor(
+        color, nullptr, QString(), QColorDialog::ShowAlphaChannel
+    );
+    if (tempColor.isValid())
+    {
+        color = tempColor;
+        setButtonColor(button, color);
+    }
 }
 
 void InterfaceSettings::setButtonColor(QToolButton *button, const QColor &color)
@@ -255,3 +341,5 @@ void InterfaceSettings::setButtonColor(QToolButton *button, const QColor &color)
     pixmap.fill(color);
     button->setIcon(pixmap);
 }
+
+/* End Helpers */

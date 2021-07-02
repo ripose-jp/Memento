@@ -23,30 +23,63 @@
 
 #include <QWidget>
 
-#include "../common/flowlayout.h"
-#include <QLabel>
 #include <QCheckBox>
+#include <QLabel>
 
 #include "../../../dict/expression.h"
+#include "../common/flowlayout.h"
 
+/**
+ * Widget for displaying a TermDefinition.
+ */
 class GlossaryWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    GlossaryWidget(size_t number, const TermDefinition &def, QWidget *parent = nullptr);
+    /**
+     * Constructor for the GlossaryWidget.
+     * @param number The number to label the term.
+     * @param def    The term definition to display.
+     * @param parent The parent of the GlossaryWidget.
+     */
+    GlossaryWidget(const size_t          number, 
+                   const TermDefinition &def, 
+                   QWidget              *parent = nullptr);
 
+    /**
+     * Shows the checkbox next to the term.
+     * @param value If true shows the checkbox, otherwise it hides it.
+     */
     void setCheckable(const bool value);
+
+    /**
+     * Returns if the checkbox is checked.
+     * Undefined behavior if the checkbox is not visible.
+     * @returns true if checked, false otherwise.
+     */
     bool isChecked() const;
 
 private:
+    /* The term definition this widget displays. */
     const TermDefinition &m_def;
 
+    /* The parent layout of this widget. */
     QVBoxLayout *m_parentLayout;
-    FlowLayout  *m_layoutHeader;
-    QCheckBox   *m_checkBoxAdd;
-    QLabel      *m_labelNumber;
-    QLabel      *m_labelGlossary;
+
+    /* The layout of the first line of the definition. Includes checkbox, number
+     * and tags.
+     */
+    FlowLayout *m_layoutHeader;
+
+    /* The checkbox in the header. */
+    QCheckBox *m_checkBoxAdd;
+
+    /* The label that shows this term definition's number. */
+    QLabel *m_labelNumber;
+
+    /* The label showing the glossary entry of the term definition. */
+    QLabel *m_labelGlossary;
 };
 
 #endif // GLOSSARYWIDGET_H

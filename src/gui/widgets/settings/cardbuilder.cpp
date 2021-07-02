@@ -21,19 +21,31 @@
 #include "cardbuilder.h"
 #include "ui_cardbuilder.h"
 
+/* Begin Constructor/Destructors */
+
 CardBuilder::CardBuilder(QWidget *parent)
-    : QWidget(parent), m_ui(new Ui::CardBuilder)
+    : QWidget(parent),
+      m_ui(new Ui::CardBuilder)
 {
     m_ui->setupUi(this);
 
-    connect(m_ui->comboBoxDeck,  &QComboBox::currentTextChanged, this, &CardBuilder::deckTextChanged);
-    connect(m_ui->comboBoxModel, &QComboBox::currentTextChanged, this, &CardBuilder::modelTextChanged);
+    connect(
+        m_ui->comboBoxDeck, &QComboBox::currentTextChanged,
+        this,               &CardBuilder::deckTextChanged
+    );
+    connect(
+        m_ui->comboBoxModel, &QComboBox::currentTextChanged,
+        this,                &CardBuilder::modelTextChanged
+    );
 }
 
 CardBuilder::~CardBuilder()
 {
     delete m_ui;
 }
+
+/* End Constructor/Destructors */
+/* Begin Setters */
 
 void CardBuilder::setDecks(const QStringList &decks, const QString &set)
 {
@@ -49,6 +61,16 @@ void CardBuilder::setModels(const QStringList &models, const QString &set)
     m_ui->comboBoxModel->addItems(models);
     m_ui->comboBoxModel->setCurrentText(set);
     m_ui->comboBoxModel->model()->sort(0);
+}
+
+void CardBuilder::setDeckCurrentText(const QString &text)
+{
+    m_ui->comboBoxDeck->setCurrentText(text);
+}
+
+void CardBuilder::setModelCurrentText(const QString &text)
+{
+    m_ui->comboBoxModel->setCurrentText(text);
 }
 
 void CardBuilder::setFields(const QStringList &fields)
@@ -70,24 +92,19 @@ void CardBuilder::setFields(const QStringList &fields)
 void CardBuilder::setFields(const QJsonObject &fields)
 {
     QStringList keys = fields.keys();
-    m_ui->tableFields->setRowCount(fields.size());
+    setFields(keys);
     for (size_t i = 0; i < fields.size(); ++i)
     {
-        QTableWidgetItem *item = new QTableWidgetItem(keys[i]);
-        item->setFlags(item->flags() ^ Qt::ItemIsEditable);
-        m_ui->tableFields->setItem(i, 0, item);
-    }
-    for (size_t i = 0; i < fields.size(); ++i)
-    {
-        QString itemText;
-        if (!fields[keys[i]].isUndefined() && !fields[keys[i]].isNull()) 
+        const QJsonValue &val = fields[keys[i]];
+        if (!val.isUndefined() && !val.isNull()) 
         {
-            itemText = fields[keys[i]].toString();
+            m_ui->tableFields->item(i, 1)->setText(val.toString());
         }
-        QTableWidgetItem *item = new QTableWidgetItem(itemText);
-        m_ui->tableFields->setItem(i, 1, item);
     }
 }
+
+/* End Setters */
+/* Begin Getters */
 
 QString CardBuilder::getDeckText() const
 {
@@ -111,12 +128,4 @@ QJsonObject CardBuilder::getFields() const
     return fields;
 }
 
-void CardBuilder::setDeckCurrentText(const QString &text)
-{
-    m_ui->comboBoxDeck->setCurrentText(text);
-}
-
-void CardBuilder::setModelCurrentText(const QString &text)
-{
-    m_ui->comboBoxModel->setCurrentText(text);
-}
+/* Begin Getters */

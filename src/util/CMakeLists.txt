@@ -1,37 +1,21 @@
 add_library(
-    directoryutils
-    directoryutils.cpp
-)
-target_link_libraries(
-    directoryutils
-    Qt5::Core
-)
-
-add_library(
-    fileutils
-    fileutils.cpp
-)
-target_link_libraries(
-    fileutils
-    Qt5::Core
-)
-
-add_library(
-    graphicutils
-    graphicutils.cpp
-)
-target_link_libraries(
-    graphicutils
-    Qt5::Core
-)
-
-add_library(
     globalmediator
     globalmediator.cpp
 )
 target_link_libraries(
     globalmediator
     Qt5::Core
+)
+
+add_library(
+    utils
+    utils.cpp
+)
+target_link_libraries(
+    utils
+    globalmediator
+    Qt5::Core
+    Qt5::Network
 )
 
 add_library(
@@ -46,6 +30,12 @@ target_link_libraries(
 )
 
 if (APPLE)
-    add_library(macos_power_handler macospowereventhandler.cpp)
-    target_link_libraries(macos_power_handler "-framework IOKit -framework CoreFoundation")
+    add_library(
+        macos_power_handler
+        macospowereventhandler.cpp
+    )
+    target_link_libraries(
+        macos_power_handler 
+        "-framework IOKit -framework CoreFoundation"
+    )
 endif()

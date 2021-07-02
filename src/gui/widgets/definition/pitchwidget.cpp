@@ -20,11 +20,11 @@
 
 #include "pitchwidget.h"
 
-#include "tagwidget.h"
-
-#include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QDebug>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+
+#include "tagwidget.h"
 
 #define LH_STYLE    (QString(\
                         "QLabel {"\
@@ -166,7 +166,8 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
     }
 }
 
-QLabel *PitchWidget::createLabel(const QString &text, const QString &style) const
+QLabel *PitchWidget::createLabel(const QString &text,
+                                 const QString &style) const
 {
     QLabel *label = new QLabel;
     label->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);

@@ -20,15 +20,20 @@
 
 #include "databasemanager.h"
 
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+
 extern "C"
 {
 #include "yomidbbuilder.h"
 }
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
 
-DatabaseManager::DatabaseManager(const QString &path) : m_dbpath(path.toUtf8()), m_readerCount(0)
+/* Begin Constructor/Destructor */
+
+DatabaseManager::DatabaseManager(const QString &path)
+    : m_dbpath(path.toUtf8()),
+      m_readerCount(0)
 {
     if (yomi_prepare_db(m_dbpath, NULL) ||
         sqlite3_open_v2(m_dbpath, &m_db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
@@ -54,7 +59,7 @@ DatabaseManager::DatabaseManager(const QString &path) : m_dbpath(path.toUtf8()),
                    << "ュ"
                    << "ョ";
 
-    buildCache();
+    initCache();
 }
 
 DatabaseManager::~DatabaseManager()
@@ -62,12 +67,101 @@ DatabaseManager::~DatabaseManager()
     sqlite3_close_v2(m_db);
 }
 
+/* End Constructor/Destructor */
+/* Begin Initializers */
+
+#define QUERY_DICTIONARY    "SELECT dic_id, title FROM directory;"
+#define QUERY_TAGS          "SELECT dic_id, category, name, ord, notes, score FROM tag_bank;"
+
+#define COLUMN_DIC_ID       0
+#define COLUMN_CATEGORY     1
+#define COLUMN_NAME         2
+#define COLUMN_ORDER        3
+#define COLUMN_NOTES        4
+#define COLUMN_SCORE        5
+
+int DatabaseManager::initCache()
+{
+    int           ret;
+    sqlite3_stmt *stmt = NULL;
+    int           step = 0;
+
+    /* Empty the cache */
+    m_tagCache.clear();
+    m_dictionaryCache.clear();
+
+    /* Build dictionary cache */
+    if (sqlite3_prepare_v2(m_db, QUERY_DICTIONARY, -1, &stmt, NULL) != SQLITE_OK)
+    {
+        ret = -1;
+        goto cleanup;
+    }
+    while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
+    {
+        uint64_t id   = sqlite3_column_int64(stmt, 0);
+        QString title = (const char *)sqlite3_column_text(stmt, 1);
+        m_dictionaryCache.insert(id, title);
+    }
+    if (isStepError(step))
+    {
+        ret = -1;
+        goto cleanup;
+    }
+    sqlite3_finalize(stmt);
+    stmt = NULL;
+
+    /* Build tag cache */
+    if (sqlite3_prepare_v2(m_db, QUERY_TAGS, -1, &stmt, NULL) != SQLITE_OK)
+    {
+        ret = -1;
+        goto cleanup;
+    }
+    while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
+    {
+        uint64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
+        QHash<QString, Tag> &tags = m_tagCache[id];
+
+        Tag tag;
+        tag.name     = (const char *)sqlite3_column_text(stmt, COLUMN_NAME);
+        tag.category = (const char *)sqlite3_column_text(stmt, COLUMN_CATEGORY);
+        tag.notes    = (const char *)sqlite3_column_text(stmt, COLUMN_NOTES);
+        tag.order    = sqlite3_column_int(stmt, COLUMN_ORDER);
+        tag.score    = sqlite3_column_int(stmt, COLUMN_SCORE);
+        tags.insert(tag.name, tag);
+
+        m_tagCache[id] = tags;
+    }
+    if (isStepError(step))
+    {
+        ret = -1;
+        goto cleanup;
+    }
+
+cleanup:
+    sqlite3_finalize(stmt);
+
+    return ret;
+}
+
+#undef QUERY_DICTIONARY
+#undef QUERY_TAGS
+
+#undef COLUMN_DIC_ID
+#undef COLUMN_CATEGORY
+#undef COLUMN_NAME
+#undef COLUMN_ORDER
+#undef COLUMN_NOTES
+#undef COLUMN_SCORE
+
+/* End Initializers */
+/* Begin Dictionary Database Modifiers */
+
 int DatabaseManager::addDictionary(const QString &path)
 {
     m_databaseLock.lock();
     QByteArray cpath = path.toUtf8();
     int ret = yomi_process_dictionary(cpath, m_dbpath);
-    buildCache();
+    initCache();
     m_databaseLock.unlock();
     return ret;
 }
@@ -77,50 +171,57 @@ int DatabaseManager::deleteDictionary(const QString &name)
     m_databaseLock.lock();
     QByteArray cname = name.toUtf8();
     int ret = yomi_delete_dictionary(cname, m_dbpath);
-    buildCache();
+    initCache();
     m_databaseLock.unlock();
     return ret;
 }
 
-QString DatabaseManager::errorCodeToString(const int code)
+/* End Dictionary Database Modifiers */
+/* Begin Concurrency Methods */
+
+bool DatabaseManager::incrementReaders()
 {
-    switch (code)
+    bool ret = true;
+
+    m_readerLock.lock();
+    if (m_readerCount == 0)
     {
-    case YOMI_ERR_ADDING_INDEX:
-        return "Could not add index.json";
-    case YOMI_ERR_ADDING_KANJI:
-        return "Could not add kanji terms";
-    case YOMI_ERR_ADDING_KANJI_META:
-        return "Could not add kanji metadata";
-    case YOMI_ERR_ADDING_TAGS:
-        return "Could not add tags";
-    case YOMI_ERR_ADDING_TERMS:
-        return "Could not add terms";
-    case YOMI_ERR_ADDING_TERMS_META:
-        return "Could not add term metadata";
-    case YOMI_ERR_DB:
-        return "Could not open database";
-    case YOMI_ERR_NEWER_VERSION:
-        return "Database is of a newer version";
-    case YOMI_ERR_OPENING_DIC:
-        return "Could not open dictionary file";
-    case YOMI_ERR_DELETE:
-        return "Could not execute delete query on database";
-    default:
-        return "Unknown error";
+        if (!(ret = m_databaseLock.tryLock()))
+            goto cleanup;
     }
+    ++m_readerCount;
+cleanup:
+    m_readerLock.unlock();
+
+    return ret;
 }
+
+void DatabaseManager::decrementReaders()
+{
+    m_readerLock.lock();
+    --m_readerCount;
+    if (m_readerCount == 0)
+        m_databaseLock.unlock();
+    m_readerLock.unlock();
+}
+
+/* End Concurrency Methods */
+/* Begin Database Getters */
+
+#define QUERY   "SELECT title FROM directory;"
 
 QStringList DatabaseManager::getDictionaries()
 {
     incrementReaders();
 
     QStringList   dictionaries;
-    sqlite3_stmt *stmt = NULL;
-    int           step = 0;
+    sqlite3_stmt *stmt  = NULL;
+    int           step  = 0;
 
-    if (sqlite3_prepare_v2(m_db, "SELECT title FROM directory;", -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+    {
         goto cleanup;
+    }
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
         dictionaries.append((const char *)sqlite3_column_text(stmt, 0));
@@ -132,6 +233,8 @@ cleanup:
 
     return dictionaries;
 }
+
+#undef QUERY
 
 #define QUERY               "SELECT expression, reading "\
                                 "FROM term_bank "\
@@ -163,11 +266,12 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
     QByteArray    hiragana     = kataToHira(query).toUtf8();
     bool          containsKata = hiragana != exp;
     sqlite3_stmt *stmt         = NULL;
+    const char   *sql_query    = containsKata ? QUERY_WITH_KATAKANA : QUERY;
     int           step         = 0;
     QList<Term *> termList;
 
     /* Query for all the different terms in the database */
-    if (sqlite3_prepare_v2(m_db, containsKata ? QUERY_WITH_KATAKANA : QUERY, -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_prepare_v2(m_db, sql_query, -1, &stmt, NULL) != SQLITE_OK)
     {
         ret = "Could not prepare database query";
         goto error;
@@ -283,17 +387,31 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
     while ((step = sqlite3_step(stmt)) != SQLITE_DONE)
     {
         uint64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
-        KanjiDefinition def;
-        def.dictionary = getDictionary(id);
-        def.onyomi     = QString((const char *)sqlite3_column_text(stmt, COLUMN_ONYOMI)).split(' ');
-        def.kunyomi    = QString((const char *)sqlite3_column_text(stmt, COLUMN_KUNYOMI)).split(' ');
-        def.glossary   = jsonArrayToStringList((const char *)sqlite3_column_text(stmt, COLUMN_MEANINGS));
-        addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_TAGS), def.tags);
 
-        QVariantMap map = QJsonDocument::fromJson((const char *)sqlite3_column_text(stmt, COLUMN_STATS)).toVariant().toMap();
-        for (auto it = map.constKeyValueBegin(); it != map.constKeyValueEnd(); ++it)
+        KanjiDefinition def {
+            .dictionary = getDictionary(id),
+            .onyomi = QString(
+                    (const char *)sqlite3_column_text(stmt, COLUMN_ONYOMI)
+                ).split(' '),
+            .kunyomi = QString(
+                    (const char *)sqlite3_column_text(stmt, COLUMN_KUNYOMI)
+                ).split(' '),
+            .glossary = jsonArrayToStringList(
+                    (const char *)sqlite3_column_text(stmt, COLUMN_MEANINGS)
+                ),
+        };
+        addTags(
+            id, (const char *)sqlite3_column_text(stmt, COLUMN_TAGS), def.tags
+        );
+
+        QVariantMap map = QJsonDocument::fromJson(
+                (const char *)sqlite3_column_text(stmt, COLUMN_STATS)
+            ).toVariant().toMap();
+        for (auto it = map.constKeyValueBegin(); 
+             it != map.constKeyValueEnd();
+             ++it)
         {
-            const Tag                  *tag  = &m_tagCache[id][it->first];
+            const Tag *tag  = &m_tagCache[id][it->first];
             QList<QPair<Tag, QString>> *list = nullptr;
             if (tag->category == TAG_NAME_INDEX)
             {
@@ -347,13 +465,134 @@ cleanup:
 #undef TAG_NAME_CODE
 #undef TAG_NAME_INDEX
 
+/* End Database Getters */
+/* Begin Query Helpers */
+
+#define QUERY   "SELECT dic_id, score, def_tags, glossary, rules, term_tags "\
+                    "FROM term_bank "\
+                    "WHERE (expression = ? AND reading = ?);"
+
+#define QUERY_EXP_IDX       1
+#define QUERY_READING_IDX   2
+
+#define COLUMN_DIC_ID       0
+#define COLUMN_SCORE        1
+#define COLUMN_DEF_TAGS     2
+#define COLUMN_GLOSSARY     3
+#define COLUMN_RULES        4
+#define COLUMN_TERM_TAGS    5
+
+int DatabaseManager::populateTerms(const QList<Term *> &terms) const
+{
+    int           ret     = 0;
+    sqlite3_stmt *stmt    = NULL;
+    int           step    = 0;
+    QByteArray    exp;
+    QByteArray    reading;
+
+    for (Term *term : terms)
+    {
+        exp     = term->expression.toUtf8();
+        reading = term->reading.toUtf8();
+
+        if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+        {
+            ret = -1;
+            goto cleanup;
+        }
+        if (sqlite3_bind_text(stmt, QUERY_EXP_IDX,     exp,     -1, NULL) != SQLITE_OK ||
+            sqlite3_bind_text(stmt, QUERY_READING_IDX, reading, -1, NULL) != SQLITE_OK)
+        {
+            ret = -1;
+            goto cleanup;
+        }
+
+        while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
+        {
+            const uint64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
+
+            term->score += sqlite3_column_int(stmt, COLUMN_SCORE);
+            addTags(
+                id,
+                (const char *)sqlite3_column_text(stmt, COLUMN_TERM_TAGS),
+                term->tags
+            );
+
+            TermDefinition def {
+                .dictionary = getDictionary(id),
+                .glossary = jsonArrayToStringList(
+                        (const char *)sqlite3_column_text(stmt, COLUMN_GLOSSARY)
+                    ),
+                .score = sqlite3_column_int(stmt, COLUMN_SCORE),
+            };
+            addTags(
+                id,
+                (const char *)sqlite3_column_text(stmt, COLUMN_DEF_TAGS),
+                def.tags
+            );
+            addTags(
+                id,
+                (const char *)sqlite3_column_text(stmt, COLUMN_RULES),
+                def.rules
+            );
+            term->definitions.append(def);
+        }
+        if (isStepError(step))
+        {
+            ret = -1;
+            goto cleanup;
+        }
+
+        sqlite3_finalize(stmt);
+        stmt = NULL;
+    }
+
+cleanup:
+    sqlite3_finalize(stmt);
+
+    return ret;
+}
+
+#undef QUERY
+
+#undef QUERY_EXP_IDX
+#undef QUERY_READING_IDX
+
+#undef COLUMN_DIC_ID
+#undef COLUMN_SCORE
+#undef COLUMN_DEF_TAGS
+#undef COLUMN_GLOSSARY
+#undef COLUMN_RULES
+#undef COLUMN_TERM_TAGS
+
+QString DatabaseManager::getDictionary(const uint64_t id) const
+{
+    return m_dictionaryCache[id];
+}
+
+void DatabaseManager::addTags(const uint64_t  id,
+                              const QString  &tagStr,
+                              QList<Tag>     &tags) const
+{
+    QStringList tagList = tagStr.split(" ");
+
+    for (const QString &tagName : tagList)
+    {
+        const Tag &tag = m_tagCache[id][tagName];
+        if (!tag.name.isEmpty() && !tags.contains(tag))
+        {
+            tags.append(tag);
+        }
+    }
+}
+
 #define QUERY   "SELECT dic_id, data "\
                     "FROM term_meta_bank "\
                     "WHERE (expression = ? AND mode = 'freq');"
 
-int DatabaseManager::addFrequencies(Term &term)
+int DatabaseManager::addFrequencies(Term &term) const
 {
-    return addFrequencies(term.frequencies, term.expression, QUERY);
+    return addFrequencies(QUERY, term.expression, term.frequencies);
 }
 
 #undef QUERY
@@ -362,14 +601,16 @@ int DatabaseManager::addFrequencies(Term &term)
                     "FROM kanji_meta_bank "\
                     "WHERE (expression = ? AND mode = 'freq');"
 
-int DatabaseManager::addFrequencies(Kanji &kanji)
+int DatabaseManager::addFrequencies(Kanji &kanji) const
 {
-    return addFrequencies(kanji.frequencies, kanji.character, QUERY);
+    return addFrequencies(QUERY, kanji.character, kanji.frequencies);
 }
 
 #undef QUERY
 
-int DatabaseManager::addFrequencies(QList<Frequency> &freq, const QString &expression, const char *query)
+int DatabaseManager::addFrequencies(const char       *query,
+                                    const QString    &expression,
+                                    QList<Frequency> &freq) const
 {
     int           ret  = 0;
     sqlite3_stmt *stmt = NULL;
@@ -416,7 +657,7 @@ cleanup:
 #define OBJ_PITCHES_KEY     "pitches"
 #define OBJ_POSITION_KEY    "position"
 
-int DatabaseManager::addPitches(Term &term)
+int DatabaseManager::addPitches(Term &term) const
 {
     int           ret  = 0;
     sqlite3_stmt *stmt = NULL;
@@ -437,7 +678,9 @@ int DatabaseManager::addPitches(Term &term)
     }
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
-        QJsonObject obj = QJsonDocument::fromJson((const char *)sqlite3_column_blob(stmt, 1)).object();
+        QJsonObject obj = QJsonDocument::fromJson(
+                (const char *)sqlite3_column_blob(stmt, 1)
+            ).object();
         const QString reading = obj[OBJ_READING_KEY].toString();
         if (reading != term.reading && reading != term.expression)
         {
@@ -491,215 +734,36 @@ cleanup:
 #undef OBJ_PITCHES_KEY
 #undef OBJ_POSITION_KEY
 
-#define QUERY   "SELECT dic_id, score, def_tags, glossary, rules, term_tags "\
-                    "FROM term_bank "\
-                    "WHERE (expression = ? AND reading = ?);"
+/* End Query Helpers */
+/* Begin Helpers */
 
-#define QUERY_EXP_IDX       1
-#define QUERY_READING_IDX   2
-
-#define COLUMN_DIC_ID       0
-#define COLUMN_SCORE        1
-#define COLUMN_DEF_TAGS     2
-#define COLUMN_GLOSSARY     3
-#define COLUMN_RULES        4
-#define COLUMN_TERM_TAGS    5
-
-int DatabaseManager::populateTerms(const QList<Term *> &terms)
+QString DatabaseManager::errorCodeToString(const int code) const
 {
-    int           ret     = 0;
-    sqlite3_stmt *stmt    = NULL;
-    int           step    = 0;
-    QByteArray    exp;
-    QByteArray    reading;
-
-    for (Term *term : terms)
+    switch (code)
     {
-        exp     = term->expression.toUtf8();
-        reading = term->reading.toUtf8();
-
-        if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
-        {
-            ret = -1;
-            goto cleanup;
-        }
-        if (sqlite3_bind_text(stmt, QUERY_EXP_IDX,     exp,     -1, NULL) != SQLITE_OK ||
-            sqlite3_bind_text(stmt, QUERY_READING_IDX, reading, -1, NULL) != SQLITE_OK)
-        {
-            ret = -1;
-            goto cleanup;
-        }
-
-        while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
-        {
-            const uint64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
-
-            term->score += sqlite3_column_int(stmt, COLUMN_SCORE);
-
-            addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_TERM_TAGS), term->tags);
-
-            TermDefinition def;
-            def.dictionary = getDictionary(id);
-            addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_DEF_TAGS), def.tags);
-            addTags(id, (const char *)sqlite3_column_text(stmt, COLUMN_RULES), def.rules);
-            def.glossary   = jsonArrayToStringList((const char *)sqlite3_column_text(stmt, COLUMN_GLOSSARY));
-            def.score      = sqlite3_column_int(stmt, COLUMN_SCORE);
-            term->definitions.append(def);
-        }
-        if (isStepError(step))
-        {
-            ret = -1;
-            goto cleanup;
-        }
-
-        sqlite3_finalize(stmt);
-        stmt = NULL;
+    case YOMI_ERR_ADDING_INDEX:
+        return "Could not add index.json";
+    case YOMI_ERR_ADDING_KANJI:
+        return "Could not add kanji terms";
+    case YOMI_ERR_ADDING_KANJI_META:
+        return "Could not add kanji metadata";
+    case YOMI_ERR_ADDING_TAGS:
+        return "Could not add tags";
+    case YOMI_ERR_ADDING_TERMS:
+        return "Could not add terms";
+    case YOMI_ERR_ADDING_TERMS_META:
+        return "Could not add term metadata";
+    case YOMI_ERR_DB:
+        return "Could not open database";
+    case YOMI_ERR_NEWER_VERSION:
+        return "Database is of a newer version";
+    case YOMI_ERR_OPENING_DIC:
+        return "Could not open dictionary file";
+    case YOMI_ERR_DELETE:
+        return "Could not execute delete query on database";
+    default:
+        return "Unknown error";
     }
-
-cleanup:
-    sqlite3_finalize(stmt);
-
-    return ret;
-}
-
-#undef QUERY
-
-#undef QUERY_EXP_IDX
-#undef QUERY_READING_IDX
-
-#undef COLUMN_DIC_ID
-#undef COLUMN_SCORE
-#undef COLUMN_DEF_TAGS
-#undef COLUMN_GLOSSARY
-#undef COLUMN_RULES
-#undef COLUMN_TERM_TAGS
-
-#define QUERY_DICTIONARY    "SELECT dic_id, title FROM directory;"
-#define QUERY_TAGS          "SELECT dic_id, category, name, ord, notes, score FROM tag_bank;"
-
-#define COLUMN_DIC_ID       0
-#define COLUMN_CATEGORY     1
-#define COLUMN_NAME         2
-#define COLUMN_ORDER        3
-#define COLUMN_NOTES        4
-#define COLUMN_SCORE        5
-
-int DatabaseManager::buildCache()
-{
-    int           ret;
-    sqlite3_stmt *stmt = NULL;
-    int           step = 0;
-
-    /* Empty the cache */
-    m_tagCache.clear();
-    m_dictionaryCache.clear();
-
-    /* Build dictionary cache */
-    if (sqlite3_prepare_v2(m_db, QUERY_DICTIONARY, -1, &stmt, NULL) != SQLITE_OK)
-    {
-        ret = -1;
-        goto cleanup;
-    }
-    while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
-    {
-        uint64_t id   = sqlite3_column_int64(stmt, 0);
-        QString title = (const char *)sqlite3_column_text(stmt, 1);
-        m_dictionaryCache.insert(id, title);
-    }
-    if (isStepError(step))
-    {
-        ret = -1;
-        goto cleanup;
-    }
-    sqlite3_finalize(stmt);
-    stmt = NULL;
-
-    /* Build tag cache */
-    if (sqlite3_prepare_v2(m_db, QUERY_TAGS, -1, &stmt, NULL) != SQLITE_OK)
-    {
-        ret = -1;
-        goto cleanup;
-    }
-    while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
-    {
-        uint64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
-        QHash<QString, Tag> &tags = m_tagCache[id];
-
-        Tag tag;
-        tag.name     = (const char *)sqlite3_column_text(stmt, COLUMN_NAME);
-        tag.category = (const char *)sqlite3_column_text(stmt, COLUMN_CATEGORY);
-        tag.notes    = (const char *)sqlite3_column_text(stmt, COLUMN_NOTES);
-        tag.order    = sqlite3_column_int(stmt, COLUMN_ORDER);
-        tag.score    = sqlite3_column_int(stmt, COLUMN_SCORE);
-        tags.insert(tag.name, tag);
-
-        m_tagCache[id] = tags;
-    }
-    if (isStepError(step))
-    {
-        ret = -1;
-        goto cleanup;
-    }
-
-cleanup:
-    sqlite3_finalize(stmt);
-
-    return ret;
-}
-
-#undef QUERY_DICTIONARY
-#undef QUERY_TAGS
-
-#undef COLUMN_DIC_ID
-#undef COLUMN_CATEGORY
-#undef COLUMN_NAME
-#undef COLUMN_ORDER
-#undef COLUMN_NOTES
-#undef COLUMN_SCORE
-
-QString DatabaseManager::getDictionary(const uint64_t id)
-{
-    return m_dictionaryCache[id];
-}
-
-void DatabaseManager::addTags(const uint64_t id, const QString &tagStr, QList<Tag> &tags)
-{
-    QStringList tagList = tagStr.split(" ");
-
-    for (const QString &tagName : tagList)
-    {
-        const Tag &tag = m_tagCache[id][tagName];
-        if (!tag.name.isEmpty() && !tags.contains(tag))
-        {
-            tags.append(tag);
-        }
-    }
-}
-
-bool DatabaseManager::incrementReaders()
-{
-    bool ret = true;
-
-    m_readerLock.lock();
-    if (m_readerCount == 0)
-    {
-        if (!(ret = m_databaseLock.tryLock()))
-            goto cleanup;
-    }
-    ++m_readerCount;
-cleanup:
-    m_readerLock.unlock();
-
-    return ret;
-}
-
-void DatabaseManager::decrementReaders()
-{
-    m_readerLock.lock();
-    --m_readerCount;
-    if (m_readerCount == 0)
-        m_databaseLock.unlock();
-    m_readerLock.unlock();
 }
 
 #define KATAKANA_LOW    0x30a1
@@ -707,7 +771,7 @@ void DatabaseManager::decrementReaders()
 #define HIRAGANA_LOW    0x3041
 #define HIRAGANA_HIGH   0x3096
 
-QString DatabaseManager::kataToHira(const QString &query)
+QString DatabaseManager::kataToHira(const QString &query) const
 {
     QString res;
     for (const QChar &ch : query)
@@ -730,7 +794,7 @@ QString DatabaseManager::kataToHira(const QString &query)
 #undef HIRAGANA_LOW
 #undef HIRAGANA_HIGH
 
-QStringList DatabaseManager::jsonArrayToStringList(const char *jsonstr)
+QStringList DatabaseManager::jsonArrayToStringList(const char *jsonstr) const
 {
     QJsonDocument document = QJsonDocument::fromJson(jsonstr);
     QJsonArray    array    = document.array();
@@ -744,3 +808,11 @@ QStringList DatabaseManager::jsonArrayToStringList(const char *jsonstr)
 
     return list;
 }
+
+
+bool inline DatabaseManager::isStepError(const int step)
+{
+    return step != SQLITE_ROW && step != SQLITE_DONE;
+}
+
+/* End Helpers */

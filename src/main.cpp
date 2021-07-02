@@ -21,21 +21,26 @@
 #include <QApplication>
 #include <QDir>
 #include <QFile>
-#include <QMessageBox>
 #include <QFontDatabase>
+#include <QMessageBox>
 #include <QSettings>
-
-#include "gui/mainwindow.h"
-#include "util/constants.h"
-#include "util/directoryutils.h"
-#include "util/globalmediator.h"
-#include "util/iconfactory.h"
-#include "audio/audioplayer.h"
 
 #if __APPLE__
     #include <locale.h>
 #endif
 
+#include "audio/audioplayer.h"
+#include "gui/mainwindow.h"
+#include "util/constants.h"
+#include "util/globalmediator.h"
+#include "util/iconfactory.h"
+#include "util/utils.h"
+
+/**
+ * Updates the QSettings before the MainWindow is created.
+ * This is used during updates to make sure that configurations for old versions
+ * don't cause problems.
+ */
 void updateSettings()
 {
     QSettings settings;
@@ -103,7 +108,8 @@ int main(int argc, char *argv[])
             QMessageBox message;
             message.critical(
                 0, "Error Creating Config Directory",
-                "Could not make configuration directory at " + DirectoryUtils::getConfigDir()
+                "Could not make configuration directory at " +
+                DirectoryUtils::getConfigDir()
             );
             return EXIT_FAILURE;
         }
@@ -117,13 +123,15 @@ int main(int argc, char *argv[])
             QMessageBox message;
             message.critical(
                 0, "Error Creating Dict Directory",
-                "Could not make dictionary directory at " + DirectoryUtils::getDictionaryDir()
+                "Could not make dictionary directory at " + 
+                DirectoryUtils::getDictionaryDir()
             );
             return EXIT_FAILURE;
         }
     }
     
-    setlocale(LC_NUMERIC, "C");
+    /* General Setup */
+    setlocale(LC_NUMERIC, "C"); // mpv requires this
     
     GlobalMediator::createGlobalMedaitor();
     GlobalMediator::getGlobalMediator()->setAudioPlayer(new AudioPlayer);
