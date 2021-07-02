@@ -21,10 +21,10 @@
 #ifndef DICTIONARY_H
 #define DICTIONARY_H
 
-#include <QString>
 #include <QList>
+#include <QString>
 #include <QThread>
-#include "databasemanager.h"
+
 #include "expression.h"
 
 namespace MeCab
@@ -33,47 +33,127 @@ namespace MeCab
     class Lattice;
 }
 
+class DatabaseManager;
+
+/**
+ * The intended API for interacting with the database.
+ */
 class Dictionary
 {
 public:
     Dictionary();
     ~Dictionary();
+
+    /**
+     * Searches for all terms in the query.
+     * @param query        The query to look for terms in. Only matches terms
+     *                     that start from the beginning of the query.
+     * @param subtitle     The subtitle the query appears in.
+     * @param index        The index into the subtitle where the query begins.
+     * @param currentIndex A pointer to the current index. If this value is no
+     *                     different from the index before this method is done,
+     *                     the search is aborted.
+     * @return A list of all the terms found, nullptr if the search was aborted.
+     *         Belongs to the caller.
+     */
     QList<Term *> *searchTerms(const QString query,
                                const QString subtitle,
                                const int index,
                                const int *currentIndex);
+
+    /**
+     * Searches for a single kanji.
+     * @param character The kanji to search for. Should be a single character.
+     * @return A kanji containing all the information that was found.
+     */
     Kanji *searchKanji(const QString character);
 
+    /**
+     * Adds a dictionary.
+     * @param path The path to the dictionary.
+     * @return Empty string on success, error string on error.
+     */
     QString addDictionary(const QString &path);
+
+    /**
+     * Deletes a dictionary.
+     * @param name The name of the dictionary.
+     * @return Empty string on success, error string on error.
+     */
     QString deleteDictionary(const QString &name);
 
+    /**
+     * Gets a list of dictionaries ordered by user preference.
+     * @return A list of dictionaries ordered by user preference.
+     */
     QStringList getDictionaries();
 
 private:
-    DatabaseManager         *m_db;
-    MeCab::Tagger           *m_tagger;
-
+    /**
+     * Uses MeCab to generate a list of non-exact queries.
+     * @param query The raw query.
+     * @return A list of pairs where the first element is the unconjugated form
+     *         and the second element is the conjugated form.
+     */
     QList<QPair<QString, QString>> generateQueries(const QString &query);
+
+    /**
+     * Sorts tag by descending order, breaking ties on ascending score.
+     * @param[out] tags The list of tags to sort.
+     */
     void sortTags(QList<Tag> &tags);
+
+    /**
+     * Returns a map that maps dictionary names to user specified priorities.
+     * Lower is higher priority.
+     * @return Map containing dictionary names and priorities.
+     */
     QMap<QString, uint32_t> buildPriorities();
-                                                   
+
+    /* The DatabaseManager. */
+    DatabaseManager *m_db;
+
+    /* The object used for interacting with MeCab. */
+    MeCab::Tagger *m_tagger;
+
+    /**
+     * Worker thread for querying the term database for exact substrings of the
+     * query.
+     */
     class ExactWorker : public QThread
     {
     public:
-        ExactWorker(const QString &query,
-                    const int endSize,
-                    const QString &subtitle,
-                    const int index,
-                    const int *currentIndex,
-                    QList<Term *> *terms,
-                    DatabaseManager *db)
+        /**
+         * Creates a worker thread for finding exact matches against the query.
+         * Does so by chopping off the last character of the query until
+         * endSize is reached.
+         * @param query        The query to look for terms in.
+         * @param endSize      The smallest size a query can reach (exclusive)
+         *                     before searching ceases.
+         * @param subtitle     The subtitle the query appears in.
+         * @param index        The index into the subtitle where the query
+         *                     begins.
+         * @param currentIndex A pointer to the current index. If this value is
+         *                     no different from the index before this method is
+         *                     done, the search is aborted.
+         * @param db           The database manager.
+         * @param[out] terms   The list of terms to add results to.
+         */
+        ExactWorker(const QString   &query,
+                    const int        endSize,
+                    const QString   &subtitle,
+                    const int        index,
+                    const int       *currentIndex,
+                    DatabaseManager *db,
+                    QList<Term *>   *terms)
                         : query(query),
                           endSize(endSize),
                           subtitle(subtitle),
                           index(index),
                           currentIndex(currentIndex),
-                          terms(terms),
-                          db(db) {}
+                          db(db),
+                          terms(terms) {}
+
         void run() override;
 
     private:
@@ -86,23 +166,42 @@ private:
         DatabaseManager *db;
     };
 
+    /**
+     * Worker thread for querying the term database for MeCab generated queries.
+     */
     class MeCabWorker : public QThread
     {
     public:
+        /**
+         * Creates a worker thread for finding MeCab queries.
+         * @param begin        An iterator pointing to the first query to search
+         *                     (inclusive).
+         * @param end          An iterator pointing to the largest query to
+         *                     search (exclusive).
+         *                     before searching ceases.
+         * @param subtitle     The subtitle the query appears in.
+         * @param index        The index into the subtitle where the query
+         *                     begins.
+         * @param currentIndex A pointer to the current index. If this value is
+         *                     no different from the index before this method is
+         *                     done, the search is aborted.
+         * @param db           The database manager.
+         * @param[out] terms   The list of terms to add results to.
+         */
         MeCabWorker(QList<QPair<QString, QString>>::const_iterator begin,
                     QList<QPair<QString, QString>>::const_iterator end,
-                    const QString &subtitle,
-                    const int index,
-                    const int *currentIndex,
-                    QList<Term *> *terms,
-                    DatabaseManager *db)
+                    const QString   &subtitle,
+                    const int        index,
+                    const int       *currentIndex,
+                    DatabaseManager *db,
+                    QList<Term *>   *terms)
                         : begin(begin),
                           end(end),
                           subtitle(subtitle),
                           index(index),
                           currentIndex(currentIndex),
-                          terms(terms),
-                          db(db) {}
+                          db(db),
+                          terms(terms) {}
         void run() override;
 
     private:

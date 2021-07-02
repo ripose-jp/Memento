@@ -29,9 +29,9 @@
 #include "../util/constants.h"
 #include "../util/globalmediator.h"
 #include "../util/utils.h"
+#include "databasemanager.h"
 
-#define WORD_INDEX          6
-#define QUERIES_PER_THREAD  4
+/* Begin Constructor/Destructor */
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #define MECAB_ARG ("-r " + DirectoryUtils::getDictionaryDir() + \
@@ -55,10 +55,13 @@ Dictionary::Dictionary()
             "MeCab Error",
             "Could not initialize MeCab.\n"
             "Memento will still work, but search results will suffer.\n"
-        #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-            "Make sure that ipadic is present in " + DirectoryUtils::getDictionaryDir()
+        #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||\
+            defined(__NT__)
+            "Make sure that ipadic is present in " + 
+            DirectoryUtils::getDictionaryDir()
         #else
-            "Make sure you have a system dictionary installed by running 'mecab -D' from the command line."
+            "Make sure you have a system dictionary installed by running "
+            "'mecab -D' from the command line."
         #endif
         );
     }
@@ -68,11 +71,141 @@ Dictionary::Dictionary()
     GlobalMediator::getGlobalMediator()->setDictionary(this);
 }
 
+#undef MECAB_ARG
+
 Dictionary::~Dictionary()
 {
     delete m_db;
     delete m_tagger;
 }
+
+/* End Constructor/Destructor */
+/* Begin Term Searching Methods */
+
+void Dictionary::ExactWorker::run()
+{
+    while (query.size() > endSize && index == *currentIndex)
+    {
+        QList<Term *> results;
+        db->queryTerms(query, results);
+
+        /* Generate cloze data in entries */
+        QString clozePrefix;
+        QString clozeBody;
+        QString clozeSuffix;
+        if (!results.isEmpty())
+        {
+            clozePrefix = subtitle.left(index);
+            clozeBody   = subtitle.mid(index, query.size());
+            clozeSuffix = subtitle.right(
+                    subtitle.size() - (index + query.size())
+                );
+        }
+
+        for (Term *term : results)
+        {
+            term->sentence    = subtitle;
+            term->clozePrefix = clozePrefix;
+            term->clozeBody   = clozeBody;
+            term->clozeSuffix = clozeSuffix;
+        }
+
+        terms->append(results);
+        query.chop(1);
+    }
+}
+
+void Dictionary::MeCabWorker::run()
+{
+    while(begin != end && index == *currentIndex)
+    {
+        const QPair<QString, QString> &pair = *begin;
+        QList<Term *> results;
+        db->queryTerms(pair.first, results);
+
+        /* Generate cloze data in entries */
+        QString clozePrefix;
+        QString clozeBody;
+        QString clozeSuffix;
+        if (!results.isEmpty())
+        {
+            clozePrefix = subtitle.left(index);
+            clozeBody   = subtitle.mid(index, pair.second.size());
+            clozeSuffix = subtitle.right(
+                    subtitle.size() - (index + pair.second.size())
+                );
+        }
+
+        for (Term *term : results)
+        {
+            term->sentence    = subtitle;
+            term->clozePrefix = clozePrefix;
+            term->clozeBody   = clozeBody;
+            term->clozeSuffix = clozeSuffix;
+        }
+
+        terms->append(results);
+        ++begin;
+    }
+}
+
+#define WORD_INDEX  6
+
+QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
+{
+    QList<QPair<QString, QString>> queries;
+    if (query.isEmpty() || m_tagger == nullptr)
+    {
+        return queries;
+    }
+
+    /* Lemmatize the query */
+    MeCab::Lattice *lattice = MeCab::createLattice();
+    QByteArray queryArr = query.toUtf8();
+    lattice->set_sentence(queryArr);
+    if (!m_tagger->parse(lattice))
+    {
+        qDebug() << "Cannot access MeCab";
+        delete lattice;
+        return queries;
+    }
+
+    /* Generate queries */
+    QSet<QString> duplicates;
+    for (const MeCab::Node *basenode = lattice->bos_node()->next;
+         basenode;
+         basenode = basenode->bnext)
+    {
+        QString acc = "";
+        for (const MeCab::Node *node = basenode; node; node = node->next)
+        {
+            QString conj = 
+                acc + QString::fromUtf8(node->feature).split(',')[WORD_INDEX];
+            if (duplicates.contains(conj))
+            {
+                break;
+            }
+            QString surface = QString::fromUtf8(node->surface, node->length);
+        
+            if (conj[conj.size() - 1] != '*' && !query.startsWith(conj))
+            {
+                queries.push_back(QPair<QString, QString>(conj, acc + surface));
+                duplicates.insert(conj);
+            }
+        
+            acc += surface;
+        }
+    }
+
+    delete lattice;
+    
+    return queries;
+}
+
+#undef WORD_INDEX
+
+/* The maximum number of queries one thread can be accountable for. */
+#define QUERIES_PER_THREAD  4
 
 QList<Term *> *Dictionary::searchTerms(const QString query, 
                                        const QString subtitle,
@@ -89,7 +222,10 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
         if (endSize < 0)
             endSize = 0;
 
-        QThread *worker = new ExactWorker(str, endSize, subtitle, index, currentIndex, terms, m_db);
+        QThread *worker = 
+            new ExactWorker(
+                str, endSize, subtitle, index, currentIndex, m_db, terms
+            );
         
         worker->start();
         threads.append(worker);
@@ -99,14 +235,24 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
     QList<QPair<QString, QString>> queries = generateQueries(query);
     if (!queries.isEmpty())
     {
-        for (size_t i = 0; queries.constBegin() + i < queries.constEnd(); i += QUERIES_PER_THREAD)
+        for (size_t i = 0;
+             queries.constBegin() + i < queries.constEnd();
+             i += QUERIES_PER_THREAD)
         {
             auto endIt = queries.constBegin() + i + QUERIES_PER_THREAD;
             if (endIt > queries.constEnd())
                 endIt = queries.constEnd();
 
             QThread *worker = 
-                new MeCabWorker(queries.constBegin() + i, endIt, subtitle, index, currentIndex, terms, m_db);
+                new MeCabWorker(
+                    queries.constBegin() + i,
+                    endIt,
+                    subtitle,
+                    index,
+                    currentIndex,
+                    m_db,
+                    terms
+                );
             
             worker->start();
             threads.append(worker);
@@ -126,7 +272,10 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
     std::sort(terms->begin(), terms->end(), 
         [] (const Term *lhs, const Term *rhs) -> bool {
             return lhs->clozeBody.size() > rhs->clozeBody.size() ||
-                   (lhs->clozeBody.size() == rhs->clozeBody.size() && lhs->score > rhs->score);
+                   (
+                       lhs->clozeBody.size() == rhs->clozeBody.size() &&
+                       lhs->score > rhs->score
+                   );
         }
     );
 
@@ -140,7 +289,8 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
             [=] (const TermDefinition &lhs, const TermDefinition &rhs) -> bool {
                 uint32_t lhsPriority = priorities[lhs.dictionary];
                 uint32_t rhsPriority = priorities[rhs.dictionary];
-                return lhsPriority < rhsPriority || (lhsPriority == rhsPriority && lhs.score > rhs.score);
+                return lhsPriority < rhsPriority || 
+                       (lhsPriority == rhsPriority && lhs.score > rhs.score);
             }
         );
         std::sort(term->frequencies.begin(), term->frequencies.end(),
@@ -167,6 +317,11 @@ early_exit:
 
     return nullptr;
 }
+
+#undef QUERIES_PER_THREAD
+
+/* End Term Searching Methods */
+/* Begin Kanji Searching Methods */
 
 Kanji *Dictionary::searchKanji(const QString ch)
 {
@@ -197,6 +352,9 @@ Kanji *Dictionary::searchKanji(const QString ch)
 
     return kanji;
 }
+
+/* End Kanji Searching Methods */
+/* Begin Dictionary Methods */
 
 QString Dictionary::addDictionary(const QString &path)
 {
@@ -231,6 +389,9 @@ QStringList Dictionary::getDictionaries()
     return dictionaries;
 }
 
+/* End Dictionary Methods */
+/* Begin Helpers */
+
 QMap<QString, uint32_t> Dictionary::buildPriorities()
 {
     QMap<QString, uint32_t> priorities;
@@ -245,125 +406,17 @@ QMap<QString, uint32_t> Dictionary::buildPriorities()
     return priorities;
 }
 
-QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
-{
-    QList<QPair<QString, QString>> queries;
-    if (query.isEmpty() || m_tagger == nullptr)
-    {
-        return queries;
-    }
-
-    // Lemmatize the query
-    MeCab::Lattice *lattice = MeCab::createLattice();
-    QByteArray queryArr = query.toUtf8();
-    lattice->set_sentence(queryArr);
-    if (!m_tagger->parse(lattice))
-    {
-        qDebug() << "Cannot access MeCab";
-        delete lattice;
-        return queries;
-    }
-
-    // Generate queries
-    QSet<QString> duplicates;
-    for (const MeCab::Node *basenode = lattice->bos_node()->next;
-         basenode;
-         basenode = basenode->bnext)
-    {
-        QString acc = "";
-        for (const MeCab::Node *node = basenode; node; node = node->next)
-        {
-            QString conj = acc + QString::fromUtf8(node->feature).split(',')[WORD_INDEX];
-            if (duplicates.contains(conj))
-            {
-                break;
-            }
-            QString surface = QString::fromUtf8(node->surface, node->length);
-        
-            if (conj[conj.size() - 1] != '*' && !query.startsWith(conj))
-            {
-                queries.push_back(QPair<QString, QString>(conj, acc + surface));
-                duplicates.insert(conj);
-            }
-        
-            acc += surface;
-        }
-    }
-
-    delete lattice;
-    
-    return queries;
-}
-
-void Dictionary::ExactWorker::run()
-{
-    while (query.size() > endSize && index == *currentIndex)
-    {
-        QList<Term *> results;
-        db->queryTerms(query, results);
-
-        /* Generate cloze data in entries */
-        QString clozePrefix;
-        QString clozeBody;
-        QString clozeSuffix;
-        if (!results.isEmpty())
-        {
-            clozePrefix = subtitle.left(index);
-            clozeBody   = subtitle.mid(index, query.size());
-            clozeSuffix = subtitle.right(subtitle.size() - (index + query.size()));
-        }
-
-        for (Term *term : results)
-        {
-            term->sentence    = subtitle;
-            term->clozePrefix = clozePrefix;
-            term->clozeBody   = clozeBody;
-            term->clozeSuffix = clozeSuffix;
-        }
-
-        terms->append(results);
-        query.chop(1);
-    }
-}
-
-void Dictionary::MeCabWorker::run()
-{
-    while(begin != end && index == *currentIndex)
-    {
-        const QPair<QString, QString> &pair = *begin;
-        QList<Term *> results;
-        db->queryTerms(pair.first, results);
-
-        /* Generate cloze data in entries */
-        QString clozePrefix;
-        QString clozeBody;
-        QString clozeSuffix;
-        if (!results.isEmpty())
-        {
-            clozePrefix = subtitle.left(index);
-            clozeBody   = subtitle.mid(index, pair.second.size());
-            clozeSuffix = subtitle.right(subtitle.size() - (index + pair.second.size()));
-        }
-
-        for (Term *term : results)
-        {
-            term->sentence    = subtitle;
-            term->clozePrefix = clozePrefix;
-            term->clozeBody   = clozeBody;
-            term->clozeSuffix = clozeSuffix;
-        }
-
-        terms->append(results);
-        ++begin;
-    }
-}
-
 
 void Dictionary::sortTags(QList<Tag> &tags)
 {
     std::sort(tags.begin(), tags.end(), 
         [] (const Tag &lhs, const Tag &rhs) -> bool {
-            return lhs.order < rhs.order || (lhs.order == rhs.order && lhs.score > rhs.score);
+            return lhs.order < rhs.order ||
+                   (
+                       lhs.order == rhs.order && lhs.score > rhs.score
+                   );
         }
     );
 }
+
+/* End Helpers */
