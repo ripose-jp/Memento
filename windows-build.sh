@@ -32,6 +32,7 @@ cp src/memento.exe Memento_$arch
 cp -r ../config Memento_$arch
 
 python3 ../mingw-bundledlls.py --copy ./Memento_$arch/memento.exe
+cp $PREFIX/bin/libssl-1_1-x64.dll ./Memento_$arch
 
 cd Memento_$arch
 windeployqt memento.exe
