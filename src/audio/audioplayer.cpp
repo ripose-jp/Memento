@@ -50,6 +50,7 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent)
     mpv_set_option_string(m_mpv, "terminal",       "no");
     mpv_set_option_string(m_mpv, "force-window",   "no");
     mpv_set_option_string(m_mpv, "input-terminal", "no");
+    mpv_set_option_string(m_mpv, "cover-art-auto", "no");
 
     if (mpv_initialize(m_mpv) < 0)
     {
