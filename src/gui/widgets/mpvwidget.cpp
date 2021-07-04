@@ -121,6 +121,7 @@ MpvWidget::MpvWidget(QWidget *parent)
     mpv_observe_property(mpv, 0, "time-pos",           MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv, 0, "track-list/count",   MPV_FORMAT_INT64);
     mpv_observe_property(mpv, 0, "volume",             MPV_FORMAT_INT64);
+    mpv_observe_property(mpv, 0, "volume-max",         MPV_FORMAT_INT64);
 
     mpv_observe_property(mpv, 0, "aid",                MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "aid",                MPV_FORMAT_INT64);
@@ -248,6 +249,15 @@ void MpvWidget::initPropertyMap()
             {
                 int volume = *(int64_t *)prop->data;
                 Q_EMIT volumeChanged(volume);
+            }
+        };
+    
+    m_propertyMap["volume-max"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_INT64)
+            {
+                int volume = *(int64_t *)prop->data;
+                Q_EMIT volumeMaxChanged(volume);
             }
         };
 

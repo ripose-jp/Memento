@@ -113,6 +113,10 @@ PlayerControls::PlayerControls(QWidget *parent)
         this,     &PlayerControls::setVolume
     );
     connect(
+        mediator, &GlobalMediator::playerMaxVolumeChanged,
+        this,     &PlayerControls::setVolumeLimit
+    );
+    connect(
         mediator, &GlobalMediator::playerDurationChanged,
         this,     &PlayerControls::setDuration
     );

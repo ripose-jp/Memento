@@ -75,10 +75,16 @@ Q_SIGNALS:
     void positionChanged(const double value) const;
 
     /**
+     * Emitted when the maximum volume of mpv changes.
+     * @param value The maximum possible volume.
+     */
+    void volumeMaxChanged(const int64_t value) const;
+
+    /**
      * Emitted when the internal volume of mpv changes.
      * @param value The current volume.
      */
-    void volumeChanged(const int value) const;
+    void volumeChanged(const int64_t value) const;
 
     /**
      * Emitted when the pause state is changed.

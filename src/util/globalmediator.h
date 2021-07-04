@@ -278,6 +278,12 @@ Q_SIGNALS:
     void playerFullscreenChanged(const bool full) const;
 
     /**
+     * Emitted when the maximum volume of the player changes.
+     * @param value The maximum volume of the player.
+     */
+    void playerMaxVolumeChanged(const int64_t value) const;
+
+    /**
      * Emitted when the volume of the player changes.
      * @param value The current volume of the player.
      */
