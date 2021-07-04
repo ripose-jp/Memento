@@ -20,10 +20,11 @@
 
 #include "mpvadapter.h"
 
-#include "../util/globalmediator.h"
-
+#include <QApplication>
 #include <QDebug>
 #include <QTemporaryFile>
+
+#include "../util/globalmediator.h"
 
 MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     : m_mpv(mpv),
@@ -183,6 +184,114 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
         mediator, &GlobalMediator::requestSetSubtitleVisibility,
         this,     &PlayerAdapter::setSubVisiblity
     );
+}
+
+bool MpvAdapter::commandLineArgsValid(const QStringList &args) const
+{
+    int count = 0;
+    for (size_t i = 1; i < args.size(); ++i)
+    {
+        if (args[i] == "--{")
+        {
+            count++;
+        }
+        else if (args[i] == "--}")
+        {
+            count--;
+            if (count < 0)
+            {
+                return false;
+            }
+        }
+    }
+
+    return count == 0;
+}
+
+int MpvAdapter::buildArgsTree(const QStringList &args,
+                              int i,
+                              struct LoadFileNode &parent,
+                              int depth) const
+{
+    if (depth < 1)
+    {
+        return -1;
+    }
+
+    while (i < args.size())
+    {
+        if (args[i] == "--}")
+        {
+            return i;
+        }
+        else if (args[i] == "--{")
+        {
+            parent.files << "--"; // Used as a marker to indicate a level deeper
+            parent.children << LoadFileNode();
+            struct LoadFileNode &child = parent.children.last();
+            i = buildArgsTree(args, i + 1, child, depth - 1);
+            if (i < 0)
+            {
+                return -1;
+            }
+        }
+        else if (args[i].startsWith("--"))
+        {
+            parent.options << args[i].mid(2);   
+        }
+        else
+        {
+            parent.files << args[i];
+        }
+
+        ++i;
+    }
+
+    return i;
+}
+
+void MpvAdapter::loadFilesFromTree(const struct LoadFileNode &parent,
+                                                QStringList  &options)
+{
+    int lastSize = options.size();
+    options.append(parent.options);
+
+    size_t currentChild = 0;
+    for (const QString &file : parent.files)
+    {
+        if (file == "--")
+        {
+            loadFilesFromTree(parent.children[currentChild], options);
+            currentChild++;
+        }
+        else
+        {
+            open(file, true, options);
+        }
+    }
+    
+    while (options.size() > lastSize)
+    {
+        options.removeLast();
+    }
+}
+
+void MpvAdapter::loadCommandLineArgs()
+{
+    QStringList args = QApplication::arguments();
+    if (!commandLineArgsValid(args))
+    {
+        qDebug() << "Invalid command line arguments.";
+        return;
+    }
+    struct LoadFileNode parent;
+    if (buildArgsTree(args, 1, parent) == -1)
+    {
+        qDebug() << "Maximum number of nested per-file arguments exceeded.";
+        return;
+    }
+    QStringList emptyOpts;
+    loadFilesFromTree(parent, emptyOpts);
 }
 
 int64_t MpvAdapter::getMaxVolume() const
@@ -345,17 +454,23 @@ bool MpvAdapter::canGetSecondarySubText() const
     return res != MPV_ERROR_PROPERTY_NOT_FOUND;
 }
 
-void MpvAdapter::open(const QString &file, const bool append)
+void MpvAdapter::open(const QString     &file,
+                      const bool         append,
+                      const QStringList &options)
 {
     if (file.isEmpty())
+    {
         return;
+    }
 
-    QByteArray fileName = file.toUtf8();
-    
-    const char *args[4] = {
+    QByteArray filename = file.toUtf8();
+    QByteArray opts = options.join(',').toUtf8();
+
+    const char *args[5] = {
         "loadfile",
-        fileName,
-        append ? "append" : NULL,
+        filename,
+        append ? "append-play" : "replace",
+        opts,
         NULL
     };
     

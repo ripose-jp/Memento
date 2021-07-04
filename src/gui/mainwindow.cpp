@@ -484,18 +484,6 @@ void MainWindow::initTheme()
 
 void MainWindow::showEvent(QShowEvent *event)
 {
-    /* Load files opened with Memento */
-    QStringList args = QApplication::arguments();
-    if (args.size() > 1)
-    {
-        m_player->open(args[1]);
-        for (size_t i = 2; i < args.size(); ++i)
-        {
-            m_player->open(args[i], true);
-        }
-        m_player->play();
-    }
-
     /* Check for installed dictionaries */
     if (m_mediator->getDictionary()->getDictionaries().isEmpty())
     {
@@ -518,6 +506,10 @@ void MainWindow::showEvent(QShowEvent *event)
         #endif
         );
     }
+
+    /* Load files opened with Memento */
+    m_player->loadCommandLineArgs();
+    m_player->play();
 
     QMainWindow::showEvent(event);
 }

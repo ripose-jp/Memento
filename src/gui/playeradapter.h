@@ -90,6 +90,11 @@ public:
     virtual ~PlayerAdapter() {}
 
     /**
+     * Loads files and options from the command line.
+     */
+    virtual void loadCommandLineArgs() = 0;
+
+    /**
      * Gets the maximum volume value.
      * @return The maximum volume value.
      */
@@ -178,11 +183,15 @@ public:
 public Q_SLOTS:
     /**
      * Opens the file.
-     * @param file   The path of the file to open.
-     * @param append If true, append to the current playlist, otherwise 
-     *               overwrite the current playlist.
+     * @param file    The path of the file to open.
+     * @param append  If true, append to the current playlist, otherwise 
+     *                overwrite the current playlist.
+     * @param options Native player options of the format 'option=value'. Only
+     *                applies to the file being loaded.
      */
-    virtual void open(const QString &file, const bool append = false) = 0;
+    virtual void open(const QString     &file,
+                      const bool         append = false,
+                      const QStringList &options = QStringList()) = 0;
 
     /**
      * Opens the first file and adds subsequent files to a playlist.
