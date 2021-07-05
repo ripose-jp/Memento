@@ -695,8 +695,19 @@ AnkiReply *AnkiClient::addNote(const Term *term)
     QThreadPool::globalInstance()->start(
         [=] {
             QJsonObject params;
-            params[ANKI_ADD_NOTE_PARAM] = createAnkiNoteObject(*term, true);
+            QJsonObject note = createAnkiNoteObject(*term, true);
             delete term;
+            params[ANKI_ADD_NOTE_PARAM] = note;
+
+            QStringList paths = extractLocalFilePaths(note);
+            connect(ankiReply, &AnkiReply::finishedInt, this,
+                [=] {
+                    for (const QString &path : paths)
+                    {
+                        QFile(path).remove();
+                    }
+                }
+            );
             
             Q_EMIT sendIntRequest(ANKI_ADD_NOTE, params, ankiReply);
         }
@@ -709,11 +720,23 @@ AnkiReply *AnkiClient::addNote(const Kanji *kanji)
 {
     AnkiReply *ankiReply = new AnkiReply;
     
+    
     QThreadPool::globalInstance()->start(
         [=] {
             QJsonObject params;
-            params[ANKI_ADD_NOTE_PARAM] = createAnkiNoteObject(*kanji, true);
+            QJsonObject note = createAnkiNoteObject(*kanji, true);
             delete kanji;
+            params[ANKI_ADD_NOTE_PARAM] = note;
+
+            QStringList paths = extractLocalFilePaths(note);
+            connect(ankiReply, &AnkiReply::finishedInt, this,
+                [=] {
+                    for (const QString &path : paths)
+                    {
+                        QFile(path).remove();
+                    }
+                }
+            );
             
             Q_EMIT sendIntRequest(ANKI_ADD_NOTE, params, ankiReply);
         }
@@ -1593,6 +1616,33 @@ QString &AnkiClient::accumulateTags(const QList<Tag> &tags, QString &tagStr)
     }
 
     return tagStr;
+}
+
+QStringList AnkiClient::extractLocalFilePaths(const QJsonObject &note) const
+{
+    QStringList paths;
+
+    QJsonArray arr = note[ANKI_NOTE_AUDIO].toArray();
+    for (const QJsonValue &val : arr)
+    {
+        QString path = val.toObject()[ANKI_NOTE_PATH].toString();
+        if (!path.isEmpty())
+        {
+            paths << path;
+        }
+    }
+
+    arr = note[ANKI_NOTE_PICTURE].toArray();
+    for (const QJsonValue &val : arr)
+    {
+        QString path = val.toObject()[ANKI_NOTE_PATH].toString();
+        if (!path.isEmpty())
+        {
+            paths << path;
+        }
+    }
+
+    return paths;
 }
 
 /* End Note Helpers */
