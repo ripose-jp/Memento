@@ -54,8 +54,6 @@ public:
 
     int64_t getAudioTrack() const override;
 
-    int64_t getSubtitleTrack() const override;
-
     QString getPath() const override;
 
     QString getTitle() const override;

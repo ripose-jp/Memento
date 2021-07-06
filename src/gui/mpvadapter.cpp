@@ -400,17 +400,6 @@ int64_t MpvAdapter::getAudioTrack() const
     return track;
 }
 
-int64_t MpvAdapter::getSubtitleTrack() const
-{
-    int64_t track;
-    if (mpv_get_property(m_handle, "sid", MPV_FORMAT_INT64, &track) < 0)
-    {
-        qDebug() << "Could not get mpv sid property";
-        return -1;
-    }
-    return track;
-}
-
 QString MpvAdapter::getPath() const
 {
     char *path = NULL;
@@ -912,6 +901,11 @@ QList<const Track *> MpvAdapter::processTracks(const mpv_node *node)
                     {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_FLAG)
                             track->selected = node->u.list->values[i].u.list->values[n].u.flag != 0;
+                    }
+                    else if (QString(node->u.list->values[i].u.list->keys[n]) == "main-selection")
+                    {
+                        if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_INT64)
+                            track->mainSelection = node->u.list->values[i].u.list->values[n].u.int64;
                     }
                     else if (QString(node->u.list->values[i].u.list->keys[n]) == "external")
                     {

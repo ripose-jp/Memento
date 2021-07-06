@@ -161,27 +161,27 @@ private Q_SLOTS:
 
     /**
      * Changes audio track to the one specified.
-     * @param action The action corresponding to the audio track.
+     * @param id The id of the audio track.
      */
-    void setAudioTrack(QAction *action);
+    void setAudioTrack(const int64_t id);
 
     /**
      * Changes video track to the one specified.
-     * @param action The action corresponding to the video track.
+     * @param id The id of the video track.
      */
-    void setVideoTrack(QAction *action);
+    void setVideoTrack(const int64_t id);
 
     /**
      * Changes subtitle track to the one specified.
-     * @param action The action corresponding to the subtitle track.
+     * @param action The id of the subtitle track.
      */
-    void setSubtitleTrack(QAction *action);
+    void setSubtitleTrack(const int64_t id);
 
     /**
      * Changes secondary subtitle track to the one specified.
-     * @param action The action corresponding to the secondary subtitle track.
+     * @param id The id of the secondary subtitle track.
      */
-    void setSecondarySubtitleTrack(QAction *action);
+    void setSecondarySubtitleTrack(const int64_t id);
 
     /**
      * Checks the audio QAction corresponding to the id.
@@ -304,6 +304,13 @@ private:
                     QAction          *actionDisable);
 
     /**
+     * Creates an action for a track. Helper method to setTracks().
+     * @param track The track to create an action for.
+     * @return A QAction corresponding to the track. Belongs to the caller.
+     */
+    QAction *createTrackAction(const Track *track) const;
+
+    /**
      * Returns if the cursor is over the player or not.
      * @return true if the cursor is not over the player controls or the
      *         DefinitonWidget, false otherwise.
@@ -388,21 +395,6 @@ private:
 
         /* List of secondary subtitle QActions (exclusing "None") */
         QList<QAction *> subtitleTwoActions;
-
-        /* Maps actions to their track id */
-        QHash<QAction *, int64_t> actionMap;
-
-        /* The current subtitle id.
-         * Used for enabling the equivalent secondary subtitle action when 
-         * switching tracks.
-         */
-        uint64_t currentSubId;
-
-        /* The current secondary subtitle id.
-         * Used for enabling the equivalent subtitle action when switching
-         * tracks.
-         */
-        uint64_t currentSecSubId;
     } m_actionGroups;
 
     /* Action group for Anki Integration profiles. */

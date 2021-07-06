@@ -64,6 +64,9 @@ struct Track
     /* true if the track is currently selected. */
     bool selected;
 
+    /* 0 if this primary track, 1 if the secondary track */
+    int64_t mainSelection;
+
     /* true if the track is from an external file. */
     bool external;
 
@@ -148,12 +151,6 @@ public:
      * @return The id of the current audio track.
      */
     virtual int64_t getAudioTrack() const = 0;
-
-    /**
-     * Get the id of the current subtitle track starting at 1.
-     * @return The id of the current subtitle track.
-     */
-    virtual int64_t getSubtitleTrack() const = 0;
 
     /**
      * Get the path of the current playing file.

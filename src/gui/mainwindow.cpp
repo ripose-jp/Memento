@@ -165,9 +165,6 @@ void MainWindow::initMenuBar()
     m_ui->actionSubtitleNone->setActionGroup(m_actionGroups.subtitle);
     m_ui->actionSubtitleTwoNone->setActionGroup(m_actionGroups.subtitleTwo);
 
-    m_actionGroups.currentSubId = 0;
-    m_actionGroups.currentSecSubId = 0;
-
     /* Signals */
         connect(
         m_mediator, &GlobalMediator::playerTracksChanged,
@@ -175,20 +172,20 @@ void MainWindow::initMenuBar()
     );
 
     connect(
-        m_actionGroups.audio, &QActionGroup::triggered, 
-        this,                 &MainWindow::setAudioTrack
+        m_ui->actionAudioNone, &QAction::toggled, this,
+        [=] (bool checked) { if (checked) setAudioTrack(0); }
     );
     connect(
-        m_actionGroups.video, &QActionGroup::triggered, 
-        this,                 &MainWindow::setVideoTrack
+        m_ui->actionVideoNone, &QAction::toggled, this,
+        [=] (bool checked) { if (checked) setVideoTrack(0); }
     );
     connect(
-        m_actionGroups.subtitle, &QActionGroup::triggered, 
-        this,                    &MainWindow::setSubtitleTrack
+        m_ui->actionSubtitleNone, &QAction::toggled, this,
+        [=] (bool checked) { if (checked) setSubtitleTrack(0); }
     );
     connect(
-        m_actionGroups.subtitleTwo, &QActionGroup::triggered, 
-        this,                       &MainWindow::setSecondarySubtitleTrack
+        m_ui->actionSubtitleTwoNone, &QAction::toggled, this,
+        [=] (bool checked) { if (checked) setSecondarySubtitleTrack(0); }
     );
 
     connect(
@@ -775,7 +772,12 @@ void MainWindow::clearTrack(QList<QAction *> &actions,
     }
     actions.clear();
 
+    actionGroup->removeAction(actionDisable);
+    bool signalsBlocked = actionDisable->signalsBlocked();
+    actionDisable->blockSignals(true);
     actionDisable->setChecked(true);
+    actionDisable->blockSignals(signalsBlocked);
+    actionGroup->addAction(actionDisable);
 }
 
 void MainWindow::clearTracks()
@@ -804,9 +806,25 @@ void MainWindow::clearTracks()
         m_actionGroups.subtitleTwo,
         m_ui->actionSubtitleTwoNone
     );
-    m_actionGroups.actionMap.clear();
-    m_actionGroups.currentSubId = 0;
-    m_actionGroups.currentSecSubId = 0;
+}
+
+QAction *MainWindow::createTrackAction(const Track *track) const
+{
+    QAction *action = new QAction;
+    action->setCheckable(true);
+
+    QString actionText = "Track " + QString::number(track->id);
+    if (!track->lang.isEmpty())
+    {
+        actionText += " [" + track->lang + "]";
+    }   
+    if (!track->title.isEmpty())
+    {
+        actionText += " - " + track->title;
+    }
+    action->setText(actionText);
+
+    return action;
 }
 
 void MainWindow::setTracks(QList<const Track *> tracks)
@@ -815,28 +833,38 @@ void MainWindow::setTracks(QList<const Track *> tracks)
 
     for (const Track *track : tracks)
     {
-        QAction *action = new QAction(this);
-        action->setCheckable(true);
-
-        QString actionText = "Track " + QString::number(track->id);
-        if (!track->lang.isEmpty())
-            actionText += " [" + track->lang + "]";
-        if (!track->title.isEmpty())
-            actionText += " - " + track->title;
-        action->setText(actionText);
-
+        QAction *action = createTrackAction(track);
+        const int64_t id = track->id;
         switch (track->type)
         {
         case Track::Type::audio:
             m_ui->menuAudio->addAction(action);
             action->setActionGroup(m_actionGroups.audio);
             m_actionGroups.audioActions.append(action);
+
+            connect(action, &QAction::toggled, action,
+                [=] (bool checked) {
+                    if (checked)
+                    {
+                        setAudioTrack(id);
+                    }
+                }
+            );
             break;
 
         case Track::Type::video:
             m_ui->menuVideo->addAction(action);
             action->setActionGroup(m_actionGroups.video);
             m_actionGroups.videoActions.append(action);
+
+            connect(action, &QAction::toggled, action,
+                [=] (bool checked) {
+                    if (checked)
+                    {
+                        setVideoTrack(id);
+                    }
+                }
+            );
             break;
 
         case Track::Type::subtitle:
@@ -846,112 +874,101 @@ void MainWindow::setTracks(QList<const Track *> tracks)
             m_actionGroups.subtitleActions.append(action);
 
             /* Secondary Subtitles */
-            QAction *actionSubTwo = new QAction(actionText, this);
-            actionSubTwo->setCheckable(true);
-            actionSubTwo->setEnabled(!track->selected);
+            QAction *actionSubTwo = createTrackAction(track);
             m_ui->menuSubtitleTwo->addAction(actionSubTwo);
             actionSubTwo->setActionGroup(m_actionGroups.subtitleTwo);
             m_actionGroups.subtitleTwoActions.append(actionSubTwo);
-            m_actionGroups.actionMap[actionSubTwo] = track->id;
+                        
+            connect(action, &QAction::toggled, action,
+                [=] (bool checked) {
+                    if (checked)
+                    {
+                        setSubtitleTrack(id);
+                        m_actionGroups.subtitleTwoActions[id - 1]
+                            ->setEnabled(false);
+                    }
+                    else
+                    {
+                        m_actionGroups.subtitleTwoActions[id - 1]
+                            ->setEnabled(true);
+                    }
+                }
+            );
+
+            connect(actionSubTwo, &QAction::toggled, actionSubTwo,
+                [=] (bool checked) {
+                    if (checked)
+                    {
+                        setSecondarySubtitleTrack(id);
+                        m_actionGroups.subtitleActions[id - 1]
+                            ->setEnabled(false);
+                    }
+                    else
+                    {
+                        m_actionGroups.subtitleActions[id - 1]
+                            ->setEnabled(true);
+                    }
+                }
+            );
+
+            actionSubTwo->setChecked(
+                track->selected && track->mainSelection == 1
+            );
             break;
         }
         }
-        m_actionGroups.actionMap[action] = track->id;
-        action->setChecked(track->selected);
+        action->setChecked(track->selected && track->mainSelection == 0);
 
         delete track;
     }
 }
 
-void MainWindow::setAudioTrack(QAction *action)
+void MainWindow::setAudioTrack(const int64_t id)
 {
-    if (!action->isChecked())
+    if (id)
     {
-        return;
+        m_player->setAudioTrack(id);
     }
-
-    if (action == m_ui->actionAudioNone)
+    else
     {
         m_player->disableAudio();
-        return;
     }
-
-    m_player->setAudioTrack(m_actionGroups.actionMap[action]);
 }
 
-void MainWindow::setVideoTrack(QAction *action)
+void MainWindow::setVideoTrack(const int64_t id)
 {
-    if (!action->isChecked())
+    if (id)
     {
-        return;
+        m_player->setVideoTrack(id);
     }
-
-    if (action == m_ui->actionVideoNone)
+    else
     {
         m_player->disableVideo();
-        return;
     }
-
-    m_player->setVideoTrack(m_actionGroups.actionMap[action]);
 }
 
-void MainWindow::setSubtitleTrack(QAction *action)
+void MainWindow::setSubtitleTrack(const int64_t id)
 {
-    if (!action->isChecked())
+    if (id)
     {
-        return;
+        m_player->setSubtitleTrack(id);
     }
-
-    if (action == m_ui->actionSubtitleNone)
+    else
     {
-        m_actionGroups
-            .subtitleTwoActions[m_actionGroups.currentSubId - 1]
-                ->setEnabled(true);
-        m_actionGroups.currentSubId = 0;
         m_player->disableSubtitles();
-        return;
     }
-
-    if (m_actionGroups.currentSubId)
-    {
-        m_actionGroups
-            .subtitleTwoActions[m_actionGroups.currentSubId - 1]
-                ->setEnabled(true);
-    }
-    m_actionGroups.currentSubId = m_actionGroups.actionMap[action];
-    m_player->setSubtitleTrack(m_actionGroups.currentSubId);
-    m_actionGroups
-        .subtitleTwoActions[m_actionGroups.currentSubId - 1]
-            ->setEnabled(false);
 }
 
-void MainWindow::setSecondarySubtitleTrack(QAction *action)
+void MainWindow::setSecondarySubtitleTrack(const int64_t id)
 {
-    if (!action->isChecked())
+    if (id)
     {
-        return;
+        m_player->setSubtitleTwoTrack(id);
     }
-
-    if (action == m_ui->actionSubtitleTwoNone)
+    else
     {
-        m_actionGroups
-            .subtitleActions[m_actionGroups.currentSecSubId - 1]
-                ->setEnabled(true);
-        m_actionGroups.currentSecSubId = 0;
         m_player->disableSubtitleTwo();
-        return;
     }
-
-    if (m_actionGroups.currentSecSubId)
-    {
-        m_actionGroups
-            .subtitleActions[m_actionGroups.currentSecSubId - 1]
-                ->setEnabled(true);
-    }
-    m_actionGroups.currentSecSubId = m_actionGroups.actionMap[action];
-    m_player->setSubtitleTwoTrack(m_actionGroups.currentSecSubId);
-    m_actionGroups
-        .subtitleActions[m_actionGroups.currentSecSubId - 1]->setEnabled(false);
 }
 
 void MainWindow::updateAudioAction(const int64_t id)
@@ -975,7 +992,7 @@ void MainWindow::updateVideoAction(const int64_t id)
     else if(!m_actionGroups.videoActions.isEmpty())
     {
         m_actionGroups.videoActions[id - 1]->setChecked(true); 
-    }   
+    }
 }
 
 void MainWindow::updateSubtitleAction(const int64_t id)
@@ -986,24 +1003,9 @@ void MainWindow::updateSubtitleAction(const int64_t id)
     }
     else if(!m_actionGroups.subtitleActions.isEmpty())
     {
-        m_actionGroups.subtitleActions[id - 1]->setChecked(true);
-    }
-
-    if (m_actionGroups.currentSubId)
-    {
-        m_actionGroups
-            .subtitleTwoActions[m_actionGroups.currentSubId - 1]
-                ->setEnabled(true);
-    }
-    m_actionGroups.currentSubId = id;
-    if (m_actionGroups.currentSubId)
-    {
-        m_actionGroups
-            .subtitleTwoActions[m_actionGroups.currentSubId - 1]
-                ->setEnabled(false); 
+        m_actionGroups.subtitleActions[id - 1]->setChecked(true); 
     }
 }
-
 
 void MainWindow::updateSecondarySubtitleAction(const int64_t id)
 {
@@ -1013,21 +1015,7 @@ void MainWindow::updateSecondarySubtitleAction(const int64_t id)
     }
     else if(!m_actionGroups.subtitleTwoActions.isEmpty())
     {
-        m_actionGroups.subtitleTwoActions[id - 1]->setChecked(true);
-    }
-
-    if (m_actionGroups.currentSecSubId)
-    {
-        m_actionGroups.
-            subtitleActions[m_actionGroups.currentSecSubId - 1]
-                ->setEnabled(true);
-    }
-    m_actionGroups.currentSecSubId = id;
-    if (m_actionGroups.currentSecSubId)
-    {
-        m_actionGroups
-            .subtitleActions[m_actionGroups.currentSecSubId - 1]
-                ->setEnabled(false);
+        m_actionGroups.subtitleTwoActions[id - 1]->setChecked(true); 
     }
 }
 
