@@ -16,3 +16,6 @@ setup:
 
 clean:
 	rm -rf build/
+
+uninstall:
+	rm -rf /usr/local/bin/memento /usr/local/share/applications/memento.desktop /usr/local/share/icons/hicolor/scalable/apps/memento.svg
