@@ -278,6 +278,7 @@ void SubtitleListWidget::addSecondarySubtitle(const QString &subtitle,
     /* There is no secondary-sub-start property, so start times are approximate.
      * Checking that this subtitle is not duplicated is neccessary
      */
+    bool unseen = true;
     QList<double> times = m_subSecondaryToTime.values(subtitle);
     for (const double time : times)
     {
@@ -287,12 +288,13 @@ void SubtitleListWidget::addSecondarySubtitle(const QString &subtitle,
         {
             /* Assume this subtitle has been seen */
             start = time;
+            unseen = false;
             break; 
         }
     }
 
     /* Add the subtitle to the seen list */
-    if (times.isEmpty())
+    if (unseen)
     {
         m_subSecondaryToTime.insert(subtitle, start);
     }
