@@ -20,6 +20,7 @@
 
 #include "subtitlewidget.h"
 
+#include <QAbstractTextDocumentLayout>
 #include <QApplication>
 #include <QClipboard>
 #include <QDebug>
@@ -331,24 +332,28 @@ void SubtitleWidget::hideEvent(QHideEvent *event)
 
 void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    int position = cursorForPosition(event->pos()).position();
-    if (m_paused && position != m_currentIndex)
+    int position = document()->documentLayout()->hitTest(
+        event->pos(), Qt::ExactHit
+    );
+    if (!m_paused || position == m_currentIndex || position == -1)
     {
-        switch (m_settings.method)
-        {
-        case Settings::SearchMethod::Hover:
-            m_currentIndex = position;
-            m_findDelay->start(m_settings.delay);
-            break;
+        return;
+    }
+    
+    switch (m_settings.method)
+    {
+    case Settings::SearchMethod::Hover:
+        m_currentIndex = position;
+        m_findDelay->start(m_settings.delay);
+        break;
         
-        case Settings::SearchMethod::Modifier:
-            if (QGuiApplication::keyboardModifiers() & m_settings.modifier)
-            {
-                m_currentIndex = position;
-                findTerms();
-            }
-            break;
+    case Settings::SearchMethod::Modifier:
+        if (QGuiApplication::keyboardModifiers() & m_settings.modifier)
+        {
+            m_currentIndex = position;
+            findTerms();
         }
+        break;
     }
 
     event->ignore();
