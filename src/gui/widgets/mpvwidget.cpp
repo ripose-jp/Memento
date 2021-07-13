@@ -357,17 +357,22 @@ void MpvWidget::initPropertyMap()
                 const char **subtitle = (const char **)prop->data;
                 if (strcmp(*subtitle, ""))
                 {
-                    double delay, start;
+                    double start, end, delay;
 
+                    
+                    mpv_get_property(
+                        mpv, "secondary-sub-start", MPV_FORMAT_DOUBLE, &start
+                    );
+                    mpv_get_property(
+                        mpv, "secondary-sub-end", MPV_FORMAT_DOUBLE, &end
+                    );
                     mpv_get_property(
                         mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
                     );
-                    mpv_get_property(
-                        mpv, "time-pos",  MPV_FORMAT_DOUBLE, &start
-                    );
-                    start -= delay;
 
-                    Q_EMIT subtitleChangedSecondary(*subtitle, start, delay);
+                    Q_EMIT subtitleChangedSecondary(
+                        *subtitle, start, end, delay
+                    );
                 }
             }
         };

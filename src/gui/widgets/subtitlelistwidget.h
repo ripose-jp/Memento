@@ -25,7 +25,6 @@
 
 #include <QHash>
 #include <QMap>
-#include <QMultiHash>
 
 class QTableWidget;
 class QTableWidgetItem;
@@ -109,10 +108,12 @@ private Q_SLOTS:
      * Adds a subtitle to the secondary subtitle list.
      * @param subtitle The subtitle to add.
      * @param start    The start time of the subtitle.
+     * @param end      The end time of the subtitle.
      * @param delay    The signed delay of the subtitle.
      */
     void addSecondarySubtitle(const QString &subtitle,
-                                    double   start,
+                              const double   start,
+                              const double   end,
                               const double   delay);
 
     /**
@@ -244,9 +245,6 @@ private:
 
     /* Maps table widget items to timecodes for the primary subtitles. */
     QHash<QTableWidgetItem *, double> m_timesSecondarySubs;
-
-    /* Maps subtitle text to timecodes for the secondary subtitles. */
-    QMultiHash<QString, double> m_subSecondaryToTime;
 };
 
 #endif // SUBTITLELISTWIDGET_H

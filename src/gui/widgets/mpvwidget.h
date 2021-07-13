@@ -177,12 +177,15 @@ Q_SIGNALS:
     /**
      * Emitted when the current secondary subtitle changes.
      * @param subtitle The text of the current secondary subtitle.
-     * @param start    The approximate start time of the current secondary 
-     *                 subtitle in seconds.
+     * @param start    The start time of the current secondary subtitle in
+     *                 seconds.
+     * @param end      The end time of the current secondary subtitle in
+     *                 seconds.
      * @param delay    The signed delay of the current subtitle in seconds.
      */
-    void subtitleChangedSecondary(QString      subtitle, 
-                                  const double start, 
+    void subtitleChangedSecondary(QString      subtitle,
+                                  const double start,
+                                  const double end,
                                   const double delay) const;
 
     /**
