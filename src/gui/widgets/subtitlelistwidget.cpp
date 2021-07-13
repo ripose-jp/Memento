@@ -218,23 +218,48 @@ QString SubtitleListWidget::formatTimecode(const int time)
                   .arg(seconds, 2, 10, QLatin1Char('0'));
 }
 
+#include <QDebug>
+
 void SubtitleListWidget::addSubtitle(
     QTableWidget *table,
-    QMap<double, QTableWidgetItem *>  &seenSubs,
+    QMultiMap<double, QTableWidgetItem *> &seenSubs,
     QHash<QTableWidgetItem *, double> &startTimes,
     const QString &subtitle,
     const double start,
     const double delay)
 {
-    size_t i;
-    auto it = seenSubs.constFind(start);
-    if (it == seenSubs.constEnd() || (*it)->text() != subtitle)
+    /* Check if we have already seen this subtitle. Finds it if we have. */
+    auto it = seenSubs.find(start);
+    while (it != seenSubs.end() && it.key() == start)
     {
-        QTableWidgetItem *subtitleItem = new QTableWidgetItem(subtitle);
+        if ((*it)->text() == subtitle)
+        {
+            break;
+        }
+        ++it;
+    }
+
+    QTableWidgetItem *subtitleItem = nullptr;
+    if (it == seenSubs.end() || it.key() != start)
+    {
+        subtitleItem = new QTableWidgetItem(subtitle);
         table->setWordWrap(true);
         startTimes.insert(subtitleItem, start);
         auto end = seenSubs.insert(start, subtitleItem);
-        i = std::distance(seenSubs.begin(), end);
+
+        /* This is a bit of a hack to get the subtitles to appear in order.
+         * If a subtitle starts at the same start time as another, the subtitle
+         * that appears later will be closer to seenSubs.begin() than the
+         * earlier subtitle. To get around this, we assume the subtitle being
+         * added came after all subtitles with the same start time. This isn't
+         * going to work 100% of the time, but it's right enough of the time to
+         * be worth it.
+         */
+        size_t i = std::distance(seenSubs.begin(), end);
+        for (end += 1; end != seenSubs.end() && end.key() == start; ++end)
+        {
+            ++i;
+        }
 
         QTableWidgetItem *timecodeItem =
             new QTableWidgetItem(formatTimecode(start + delay));
@@ -247,11 +272,11 @@ void SubtitleListWidget::addSubtitle(
     }
     else
     {
-        i = std::distance(seenSubs.constBegin(), it);
+        subtitleItem = *it;
     }
 
     table->clearSelection();
-    table->setCurrentCell(i, 1);
+    table->setCurrentItem(subtitleItem);
 }
 
 void SubtitleListWidget::addPrimarySubtitle(const QString &subtitle,
@@ -286,7 +311,7 @@ void SubtitleListWidget::addSecondarySubtitle(const QString &subtitle,
 
 void SubtitleListWidget::updateTimestampsHelper(
     QTableWidget *table,
-    const QMap<double, QTableWidgetItem *> &seenSubs,
+    const QMultiMap<double, QTableWidgetItem *> &seenSubs,
     const double delay)
 {
     size_t i = 0;
@@ -366,7 +391,7 @@ void SubtitleListWidget::seekToSecondarySubtitle(QTableWidgetItem *item) const
 
 void SubtitleListWidget::clearSubtitles(
     QTableWidget *table,
-    QMap<double, QTableWidgetItem *> &seenSubs,
+    QMultiMap<double, QTableWidgetItem *> &seenSubs,
     QHash<QTableWidgetItem *, double> &startTimes)
 {
     table->clearContents();

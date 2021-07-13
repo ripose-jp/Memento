@@ -24,7 +24,7 @@
 #include <QWidget>
 
 #include <QHash>
-#include <QMap>
+#include <QMultiMap>
 
 class QTableWidget;
 class QTableWidgetItem;
@@ -185,7 +185,7 @@ private:
      * @param delay      The signed delay of the subtitle.
      */
     void addSubtitle(QTableWidget                      *table,
-                     QMap<double, QTableWidgetItem *>  &seenSubs,
+                     QMultiMap<double, QTableWidgetItem *>  &seenSubs,
                      QHash<QTableWidgetItem *, double> &startTimes,
                      const QString                     &subtitle,
                      const double                       start,
@@ -207,7 +207,7 @@ private:
      */
     void updateTimestampsHelper(
         QTableWidget *table,
-        const QMap<double, QTableWidgetItem *> &seenSubs,
+        const QMultiMap<double, QTableWidgetItem *> &seenSubs,
         const double delay);
 
     /**
@@ -218,7 +218,7 @@ private:
      */
     void clearSubtitles(
         QTableWidget *table,
-        QMap<double, QTableWidgetItem *> &seenSubs,
+        QMultiMap<double, QTableWidgetItem *> &seenSubs,
         QHash<QTableWidgetItem *, double> &startTimes);
 
     /**
@@ -235,13 +235,13 @@ private:
     Ui::SubtitleListWidget *m_ui;
 
     /* Maps timecodes to table widget items for the primary subtitles. */
-    QMap<double, QTableWidgetItem *> m_seenPrimarySubs;
+    QMultiMap<double, QTableWidgetItem *> m_seenPrimarySubs;
 
     /* Maps table widget items to timecodes for the primary subtitles. */
     QHash<QTableWidgetItem *, double> m_timesPrimarySubs;
 
     /* Maps timecodes to table widget items for the primary subtitles. */
-    QMap<double, QTableWidgetItem *>  m_seenSecondarySubs;
+    QMultiMap<double, QTableWidgetItem *>  m_seenSecondarySubs;
 
     /* Maps table widget items to timecodes for the primary subtitles. */
     QHash<QTableWidgetItem *, double> m_timesSecondarySubs;
