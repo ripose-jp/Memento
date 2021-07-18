@@ -977,7 +977,7 @@ void MainWindow::updateAudioAction(const int64_t id)
     {
         m_ui->actionAudioNone->setChecked(true);
     }
-    else if(!m_actionGroups.audioActions.isEmpty())
+    else if(id <= m_actionGroups.audioActions.size())
     {
         m_actionGroups.audioActions[id - 1]->setChecked(true); 
     }     
@@ -989,7 +989,7 @@ void MainWindow::updateVideoAction(const int64_t id)
     {
         m_ui->actionVideoNone->setChecked(true);
     }
-    else if(!m_actionGroups.videoActions.isEmpty())
+    else if(id <= m_actionGroups.videoActions.size())
     {
         m_actionGroups.videoActions[id - 1]->setChecked(true); 
     }
@@ -1001,7 +1001,7 @@ void MainWindow::updateSubtitleAction(const int64_t id)
     {
         m_ui->actionSubtitleNone->setChecked(true);
     }
-    else if(!m_actionGroups.subtitleActions.isEmpty())
+    else if(id <= m_actionGroups.subtitleActions.size())
     {
         m_actionGroups.subtitleActions[id - 1]->setChecked(true); 
     }
@@ -1013,7 +1013,7 @@ void MainWindow::updateSecondarySubtitleAction(const int64_t id)
     {
         m_ui->actionSubtitleTwoNone->setChecked(true);
     }
-    else if(!m_actionGroups.subtitleTwoActions.isEmpty())
+    else if(id <= m_actionGroups.subtitleTwoActions.size())
     {
         m_actionGroups.subtitleTwoActions[id - 1]->setChecked(true); 
     }
