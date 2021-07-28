@@ -99,6 +99,9 @@ public Q_SLOTS:
 
     QString tempScreenshot(const bool subtitles,
                            const QString &ext = ".jpg") override;
+    QString tempAudioClip(double start,
+                          double end,
+                          const QString &ext = ".aac") override;
 
     void keyPressed(const QKeyEvent *event) override;
     void mouseWheelMoved(const QWheelEvent *event) override;

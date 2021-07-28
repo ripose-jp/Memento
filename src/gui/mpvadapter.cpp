@@ -702,7 +702,7 @@ QString MpvAdapter::tempScreenshot(const bool subtitles, const QString &ext)
     QByteArray filename = (file.fileName() + ext).toUtf8();
     file.close();
 
-    const char *args[4] = {
+    const char *args[] = {
         "screenshot-to-file",
         filename,
         subtitles ? NULL : "video",
@@ -713,6 +713,82 @@ QString MpvAdapter::tempScreenshot(const bool subtitles, const QString &ext)
         qDebug() << "Could not take temporary screenshot";
         return "";
     }
+
+    return filename;
+}
+
+QString MpvAdapter::tempAudioClip(double start, double end, const QString &ext)
+{
+    int64_t aid = getAudioTrack();
+    if (aid == -1)
+    {
+        return "";
+    }
+
+    // Get a temporary file name
+    QTemporaryFile file;
+    if (!file.open())
+        return "";
+    QByteArray filename = (file.fileName() + ext).toUtf8();
+    file.close();
+
+    QByteArray input = getPath().toUtf8();
+    QByteArray optionCmd;
+    optionCmd += QString("start=%1").arg(start, 0, 'f', 3).toUtf8();
+    optionCmd += QString(",end=%1").arg(end, 0, 'f', 3).toUtf8();
+    optionCmd += QString(",aid=%1").arg(aid).toUtf8();
+    const char *args[] = {
+        "loadfile",
+        input,
+        "replace",
+        optionCmd,
+        NULL
+    };
+    mpv_event *event = NULL;
+
+    mpv_handle *enc_h = mpv_create();
+    if (enc_h == NULL)
+    {
+        qDebug() << "Error creating encoder handle";
+        filename = "";
+        goto cleanup;
+    }
+
+    mpv_set_option_string(enc_h, "keep-open", "no");
+    mpv_set_option_string(enc_h, "vid", "no");
+    mpv_set_option_string(enc_h, "sid", "no");
+    mpv_set_option_string(enc_h, "secondary-sid", "no");
+    mpv_set_option_string(enc_h, "o", filename);
+
+    if (mpv_initialize(enc_h) < 0)
+    {
+        qDebug() << "Could not initialize encoder";
+        filename = "";
+        goto cleanup;
+    }
+
+    if (mpv_command(enc_h, args) < 0)
+    {
+        qDebug() << "Could not encode file";
+        filename = "";
+        goto cleanup;
+    }
+
+    do
+    {
+        event = mpv_wait_event(enc_h, 100);
+        if (event->event_id == MPV_EVENT_NONE ||
+            event->event_id == MPV_EVENT_QUEUE_OVERFLOW)
+        {
+            qDebug() << "mpv returned a bad event" << event->event_id;
+            filename = "";
+            goto cleanup;
+        }
+    }
+    while (event->event_id != MPV_EVENT_END_FILE);
+
+cleanup:
+    mpv_destroy(enc_h);
 
     return filename;
 }

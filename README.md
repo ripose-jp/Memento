@@ -49,7 +49,6 @@ Memento is a FOSS, mpv-based video player intended for studying Japanese.
     * QtNetwork
     * QtSvg
     * QtDBus (Linux)
-* ffmpeg
 * mpv
 * sqlite3
 * MeCab
@@ -86,18 +85,18 @@ sudo make install
     ```
 1. Install the necessary tools and dependencies:
     ```
-    pacman -S git make mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ffmpeg mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-mecab mingw-w64-x86_64-json-c mingw-w64-x86_64-libzip
+    pacman -S git make mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-mecab mingw-w64-x86_64-json-c mingw-w64-x86_64-libzip
     ```
-1. Clone the repository:
+2. Clone the repository:
     ```
     git clone https://github.com/ripose-jp/Memento.git
     ```
-1. Build Memento:
+3. Build Memento:
     ```
     cd Memento
     ./windows-build.sh x86_64
     ```
-1. The resulting file will be in
+4. The resulting file will be in
     ```
     build/Memento_x86_64
     ```

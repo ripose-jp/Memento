@@ -1,6 +1,5 @@
 add_subdirectory(util)
 add_subdirectory(audio)
-add_subdirectory(ffmpeg)
 add_subdirectory(dict)
 add_subdirectory(gui)
 add_subdirectory(anki)

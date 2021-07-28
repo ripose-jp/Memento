@@ -315,6 +315,19 @@ public Q_SLOTS:
      */
     virtual QString tempScreenshot(const bool subtitles,
                                    const QString &ext = ".jpg") = 0;
+    
+    /**
+     * Creates an audio clip given a start and end time in the temporary
+     * directory.
+     * @param start The start time of the audio clip in seconds.
+     * @param end The end time of the audio clip in seconds.
+     * @param ext The extension of the audio file. Determines what codec is
+     *            used. AAC is default.
+     * @return Path to the file.
+     */
+    virtual QString tempAudioClip(double start,
+                                  double end,
+                                  const QString &ext = ".aac") = 0;
 
     /**
      * Passes a keypress event to the player.

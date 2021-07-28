@@ -10,7 +10,6 @@ target_link_libraries(
     utils
     globalmediator
     mpvadapter
-    transcoder
     Qt5::Core
     Qt5::Network
 )

@@ -35,11 +35,6 @@
 #include "../util/globalmediator.h"
 #include "../util/utils.h"
 
-extern "C"
-{
-#include "../ffmpeg/transcode_aac.h"
-}
-
 /* Anki request fields */
 #define ANKI_ACTION                     "action"
 #define ANKI_RESULT                     "result"
@@ -1266,48 +1261,29 @@ void AnkiClient::buildCommonNote(const QJsonObject &configFields,
         if (!fieldsWithAudioMedia.isEmpty())
         {
             QJsonObject audObj;
-            QTemporaryFile temp;
-            if (temp.open()) {
-                QString path = temp.fileName() + ".aac";
-                temp.close();
-                temp.remove();
+            PlayerAdapter *player = 
+                GlobalMediator::getGlobalMediator()->getPlayerAdapter();
 
+            double startTime = player->getSubStart() + 
+                               player->getSubDelay() - 
+                               player->getAudioDelay() - 
+                               m_currentConfig->audioPadStart;
+            double endTime = player->getSubEnd() + 
+                             player->getSubDelay() -
+                             player->getAudioDelay() +
+                             m_currentConfig->audioPadEnd;
+
+            QString path;
+            if (startTime >= 0 && endTime >= 0 && startTime < endTime)
+            {
+                path = player->tempAudioClip(startTime, endTime);
+            }
+            if (!path.isEmpty()) {
                 audObj[ANKI_NOTE_PATH] = path;
-
-                PlayerAdapter *player =
-                    GlobalMediator::getGlobalMediator()->getPlayerAdapter();
-
-                double startTime = player->getSubStart() + 
-                                   player->getSubDelay() - 
-                                   player->getAudioDelay() - 
-                                   m_currentConfig->audioPadStart;
-                double endTime = player->getSubEnd() + 
-                                 player->getSubDelay() -
-                                 player->getAudioDelay() +
-                                 m_currentConfig->audioPadEnd;
-                if (startTime < 0)
-                {
-                    startTime = 0;
-                }
-                if (startTime < endTime)
-                {
-                    QByteArray inputFile  = player->getPath().toUtf8();
-                    QByteArray outputFile = path.toUtf8();
-                    int ret = transcode_aac(
-                        inputFile, outputFile, 
-                        player->getAudioTrack() - 1,
-                        startTime, endTime
-                    );
-
-                    QString filename = FileUtils::calculateMd5(path) + ".aac";
-                    audObj[ANKI_NOTE_FILENAME] = filename;
-                    audObj[ANKI_NOTE_FIELDS] = fieldsWithAudioMedia;
-
-                    if (ret == 0 && filename != ".aac")
-                    {
-                        audio.append(audObj);
-                    }
-                } 
+                QString filename = FileUtils::calculateMd5(path) + ".aac";
+                audObj[ANKI_NOTE_FILENAME] = filename;
+                audObj[ANKI_NOTE_FIELDS] = fieldsWithAudioMedia;
+                audio.append(audObj);
             }
         }
 
