@@ -147,24 +147,37 @@ void PlayerControls::initTheme()
             m_paused ? IconFactory::Icon::play : IconFactory::Icon::pause
         )
     );
+    m_ui->buttonPlay->setAutoRaise(true);
+
     m_ui->buttonFullscreen->setIcon(
         factory->getIcon(IconFactory::Icon::fullscreen)
     );
+    m_ui->buttonFullscreen->setAutoRaise(true);
+
     m_ui->buttonSeekBackward->setIcon(
         factory->getIcon(IconFactory::Icon::seek_backward)
     );
+    m_ui->buttonSeekBackward->setAutoRaise(true);
+
     m_ui->buttonSeekForward->setIcon(
         factory->getIcon(IconFactory::Icon::seek_forward)
     );
+    m_ui->buttonSeekForward->setAutoRaise(true);
+
     m_ui->buttonSkipBackward->setIcon(
         factory->getIcon(IconFactory::Icon::skip_backward)
     );
+    m_ui->buttonSkipBackward->setAutoRaise(true);
+
     m_ui->buttonSkipForward->setIcon(
         factory->getIcon(IconFactory::Icon::skip_forward)
     );
+    m_ui->buttonSkipForward->setAutoRaise(true);
+
     m_ui->buttonToggleSubList->setIcon(
         factory->getIcon(IconFactory::Icon::hamburger)
     );
+    m_ui->buttonToggleSubList->setAutoRaise(true);
 
     m_ui->sliderProgress->setStyle(new SliderJumpStyle(QApplication::style()));
     m_ui->sliderVolume->setStyle(new SliderJumpStyle(QApplication::style()));
