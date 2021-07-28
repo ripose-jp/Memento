@@ -445,6 +445,9 @@ void SubtitleWidget::findTerms()
                 Q_EMIT GlobalMediator::getGlobalMediator()->termsChanged(terms);
                 m_lastEmittedIndex = index;
                 m_lastEmittedSize  = terms->first()->clozeBody.size();
+                m_lastEmittedSize += toPlainText()
+                    .midRef(m_lastEmittedIndex, m_lastEmittedSize)
+                    .count('\n');
             }
         }
     );
