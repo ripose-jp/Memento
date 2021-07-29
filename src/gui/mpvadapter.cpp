@@ -759,6 +759,7 @@ QString MpvAdapter::tempAudioClip(double start, double end, const QString &ext)
         goto cleanup;
     }
 
+    mpv_set_option_string(enc_h, "cover-art-auto", "no");
     mpv_set_option_string(enc_h, "keep-open", "no");
     mpv_set_option_string(enc_h, "vid", "no");
     mpv_set_option_string(enc_h, "sid", "no");
