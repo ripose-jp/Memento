@@ -40,6 +40,13 @@ Memento is a FOSS, mpv-based video player intended for studying Japanese.
 *   **[Kanjium](https://github.com/mifunetoshiro/kanjium)** (Pitch dictionary, see [related project page](https://github.com/toasted-nutbread/yomichan-pitch-accent-dictionary) for details)
     *   [kanjium_pitch_accents.zip](https://foosoft.net/projects/yomichan/dl/dict/kanjium_pitch_accents.zip)
 
+## Troubleshooting
+
+### Windows: MSVCR100.dll is Missing When Trying to Stream
+
+This error can be fixed by installing the 
+[Microsoft Visual C++ 2010 Service Pack 1 Redistributable Package (x86)](https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x86.exe).
+
 ## Dependencies
 
 * Qt5
