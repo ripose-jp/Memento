@@ -711,6 +711,7 @@ void MainWindow::setFullscreen(bool value)
     {
         m_maximized = isMaximized();
         showFullScreen();
+        m_ui->player->setMinimumWidth(m_ui->controls->minimumWidth());
         m_ui->menubar->setFixedHeight(0);
 
         /* Move the controls */
@@ -736,6 +737,7 @@ void MainWindow::setFullscreen(bool value)
         else
             showNormal();
     #endif
+        m_ui->player->setMinimumWidth(500);
         m_ui->menubar->setMinimumHeight(0);
         m_ui->menubar->setMaximumHeight(QWIDGETSIZE_MAX);
 
