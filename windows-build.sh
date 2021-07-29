@@ -22,7 +22,7 @@ fi
 # build Memento
 mkdir build
 cd build
-$PREFIX/bin/cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+$PREFIX/bin/cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
 $PREFIX/bin/cmake --build . -- -j4
 
 #release dlls and exe to a new directory

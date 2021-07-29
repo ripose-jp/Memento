@@ -1,7 +1,7 @@
 .PHONY: setup compile debug install clean
 
 release: setup
-	cd build; cmake -DCMAKE_BUILD_TYPE=Release ..
+	cd build; cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
 	cmake --build ./build
 
 debug: setup
