@@ -45,15 +45,6 @@ find_library(MPV_LIB mpv)
 find_library(JSONC json-c)
 find_library(LIBZIP zip)
 
-# Find ffmpeg
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
-    libavformat
-    libavcodec
-    libswresample
-    libavutil
-)
-
 add_subdirectory(src)
 
 if(UNIX AND NOT APPLE)
