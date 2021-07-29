@@ -223,6 +223,11 @@ void MainWindow::initMenuBar()
     );
 
     connect(
+        m_mediator, &GlobalMediator::playerFileLoaded,
+        this,       [=] { setTracks(m_player->getTracks()); }
+    );
+
+    connect(
         m_ui->actionOptions, &QAction::triggered,
         m_optionsWindow,     &OptionsWindow::show
     );
@@ -842,6 +847,11 @@ void MainWindow::setTracks(QList<const Track *> tracks)
 {
     clearTracks();
 
+    m_actionGroups.audio->blockSignals(true);
+    m_actionGroups.video->blockSignals(true);
+    m_actionGroups.subtitle->blockSignals(true);
+    m_actionGroups.subtitleTwo->blockSignals(true);
+
     for (const Track *track : tracks)
     {
         QAction *action = createTrackAction(track);
@@ -852,6 +862,12 @@ void MainWindow::setTracks(QList<const Track *> tracks)
             m_ui->menuAudio->addAction(action);
             action->setActionGroup(m_actionGroups.audio);
             m_actionGroups.audioActions.append(action);
+
+            if (track->selected)
+            {
+                action->setChecked(true);
+                m_ui->actionAudioNone->setChecked(false);
+            }
 
             connect(action, &QAction::toggled, action,
                 [=] (bool checked) {
@@ -867,6 +883,12 @@ void MainWindow::setTracks(QList<const Track *> tracks)
             m_ui->menuVideo->addAction(action);
             action->setActionGroup(m_actionGroups.video);
             m_actionGroups.videoActions.append(action);
+
+            if (track->selected)
+            {
+                action->setChecked(true);
+                m_ui->actionVideoNone->setChecked(false);
+            }
 
             connect(action, &QAction::toggled, action,
                 [=] (bool checked) {
@@ -889,6 +911,19 @@ void MainWindow::setTracks(QList<const Track *> tracks)
             m_ui->menuSubtitleTwo->addAction(actionSubTwo);
             actionSubTwo->setActionGroup(m_actionGroups.subtitleTwo);
             m_actionGroups.subtitleTwoActions.append(actionSubTwo);
+
+            if (track->selected && track->mainSelection == 0)
+            {
+                action->setChecked(true);
+                m_ui->actionSubtitleNone->setChecked(false);
+                actionSubTwo->setEnabled(false);
+            }
+            else if (track->selected && track->mainSelection == 1)
+            {
+                actionSubTwo->setChecked(true);
+                m_ui->actionSubtitleTwoNone->setChecked(false);
+                action->setEnabled(false);
+            }
                         
             connect(action, &QAction::toggled, action,
                 [=] (bool checked) {
@@ -921,20 +956,20 @@ void MainWindow::setTracks(QList<const Track *> tracks)
                     }
                 }
             );
-
-            actionSubTwo->setChecked(
-                track->selected && track->mainSelection == 1
-            );
             break;
         }
         }
-        action->setChecked(track->selected && track->mainSelection == 0);
 
         delete track;
     }
+
+    m_actionGroups.audio->blockSignals(false);
+    m_actionGroups.video->blockSignals(false);
+    m_actionGroups.subtitle->blockSignals(false);
+    m_actionGroups.subtitleTwo->blockSignals(false);
 }
 
-void MainWindow::setAudioTrack(const int64_t id)
+void MainWindow::setAudioTrack(const uint64_t id)
 {
     if (id)
     {
@@ -946,7 +981,7 @@ void MainWindow::setAudioTrack(const int64_t id)
     }
 }
 
-void MainWindow::setVideoTrack(const int64_t id)
+void MainWindow::setVideoTrack(const uint64_t id)
 {
     if (id)
     {
@@ -958,7 +993,7 @@ void MainWindow::setVideoTrack(const int64_t id)
     }
 }
 
-void MainWindow::setSubtitleTrack(const int64_t id)
+void MainWindow::setSubtitleTrack(const uint64_t id)
 {
     if (id)
     {
@@ -970,7 +1005,7 @@ void MainWindow::setSubtitleTrack(const int64_t id)
     }
 }
 
-void MainWindow::setSecondarySubtitleTrack(const int64_t id)
+void MainWindow::setSecondarySubtitleTrack(const uint64_t id)
 {
     if (id)
     {
@@ -982,7 +1017,7 @@ void MainWindow::setSecondarySubtitleTrack(const int64_t id)
     }
 }
 
-void MainWindow::updateAudioAction(const int64_t id)
+void MainWindow::updateAudioAction(const uint64_t id)
 {
     if (!id)
     {
@@ -994,7 +1029,7 @@ void MainWindow::updateAudioAction(const int64_t id)
     }     
 }
 
-void MainWindow::updateVideoAction(const int64_t id)
+void MainWindow::updateVideoAction(const uint64_t id)
 {
     if (!id)
     {
@@ -1006,7 +1041,7 @@ void MainWindow::updateVideoAction(const int64_t id)
     }
 }
 
-void MainWindow::updateSubtitleAction(const int64_t id)
+void MainWindow::updateSubtitleAction(const uint64_t id)
 {
     if (!id)
     {
@@ -1018,7 +1053,7 @@ void MainWindow::updateSubtitleAction(const int64_t id)
     }
 }
 
-void MainWindow::updateSecondarySubtitleAction(const int64_t id)
+void MainWindow::updateSecondarySubtitleAction(const uint64_t id)
 {
     if (!id)
     {

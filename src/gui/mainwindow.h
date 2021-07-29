@@ -170,49 +170,49 @@ private Q_SLOTS:
      * Changes audio track to the one specified.
      * @param id The id of the audio track.
      */
-    void setAudioTrack(const int64_t id);
+    void setAudioTrack(const uint64_t id);
 
     /**
      * Changes video track to the one specified.
      * @param id The id of the video track.
      */
-    void setVideoTrack(const int64_t id);
+    void setVideoTrack(const uint64_t id);
 
     /**
      * Changes subtitle track to the one specified.
-     * @param action The id of the subtitle track.
+     * @param id The id of the subtitle track.
      */
-    void setSubtitleTrack(const int64_t id);
+    void setSubtitleTrack(const uint64_t id);
 
     /**
      * Changes secondary subtitle track to the one specified.
      * @param id The id of the secondary subtitle track.
      */
-    void setSecondarySubtitleTrack(const int64_t id);
+    void setSecondarySubtitleTrack(const uint64_t id);
 
     /**
      * Checks the audio QAction corresponding to the id.
      * @param id The id of the audio track. 0 is none.
      */
-    void updateAudioAction(const int64_t id = 0);
+    void updateAudioAction(const uint64_t id = 0);
 
      /**
      * Checks the video QAction corresponding to the id.
      * @param id The id of the video track. 0 is none.
      */
-    void updateVideoAction(const int64_t id = 0);
+    void updateVideoAction(const uint64_t id = 0);
 
     /**
      * Checks the subtitle QAction corresponding to the id.
      * @param id The id of the subtitle track. 0 is none.
      */
-    void updateSubtitleAction(const int64_t id = 0);
+    void updateSubtitleAction(const uint64_t id = 0);
 
     /**
      * Checks the secondary subtitle QAction corresponding to the id.
      * @param id The id of the secondary subtitle track. 0 is none.
      */
-    void updateSecondarySubtitleAction(const int64_t id = 0);
+    void updateSecondarySubtitleAction(const uint64_t id = 0);
 
     /**
      * Opens a new DefinitionWidget populated with the terms in the list.
