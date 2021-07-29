@@ -23,7 +23,7 @@
 
 #include <QSlider>
 
-class QLabel;
+class StrokeLabel;
 
 /**
  * A custom slider for displaying video progress.
@@ -90,7 +90,7 @@ private Q_SLOTS:
 
 private:
     /* The label used for displaying the timecode the mouse is hovering over. */
-    QLabel *m_labelTimecode;
+    StrokeLabel *m_labelTimecode;
 
     /* Saved chapter times in seconds. */
     QList<double> m_chapterTimes;

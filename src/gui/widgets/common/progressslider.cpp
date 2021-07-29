@@ -22,14 +22,87 @@
 
 #include <QApplication>
 #include <QFont>
-#include <QLabel>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QRect>
 #include <QStyle>
+#include <QTextEdit>
 
 #include "../../../util/globalmediator.h"
 #include "sliderjumpstyle.h"
+
+/* Begin StrokeLabel */
+
+/**
+ * A widget that displays text with a stroke.
+ */
+class StrokeLabel : public QTextEdit
+{
+public:
+    StrokeLabel(QWidget *parent = nullptr);
+
+    /**
+     * Sets the text of the widget and adjusts the size according to the
+     * content.
+     * @param text The text to set the widget to.
+     */
+    void setText(const QString &text);
+
+protected:
+    /**
+     * Adds the stroke.
+     * @param event The paint event.
+     */
+    void paintEvent(QPaintEvent *event) override;
+};
+
+StrokeLabel::StrokeLabel(QWidget *parent) : QTextEdit(parent)
+{
+    setReadOnly(true);
+    setAutoFillBackground(false);
+    setFrameStyle(QFrame::NoFrame);
+    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setStyleSheet("QTextEdit { background : rgba(0, 0, 0, 0); }");
+}
+
+void StrokeLabel::paintEvent(QPaintEvent *event)
+{
+    QTextCharFormat format;
+    format.setTextOutline(
+        QPen(
+            parentWidget()->palette().window(),
+            3.0,
+            Qt::SolidLine,
+            Qt::RoundCap,
+            Qt::RoundJoin
+        )
+    );
+    QTextCursor cursor(document());
+    cursor.select(QTextCursor::Document);
+    cursor.mergeCharFormat(format);
+    QTextEdit::paintEvent(event);
+    
+    format = QTextCharFormat();
+    format.setTextOutline(QPen(Qt::transparent));
+    cursor.mergeCharFormat(format);
+    QTextEdit::paintEvent(event);
+}
+
+void StrokeLabel::setText(const QString &text)
+{
+    setPlainText(text);
+    document()->adjustSize();
+    int width = document()->idealWidth() + 10;
+    setFixedWidth(width);
+    int height = document()->size().toSize().height();
+    setFixedHeight(height);
+    updateGeometry();
+}
+
+/* End StrokeLabel */
+/* Begin Constructor/Destructor */
 
 /**
  * Format string for the style sheet of this widget.
@@ -45,23 +118,15 @@
         "}" \
     ))
 
-/* Begin Constructor/Destructor */
-
 ProgressSlider::ProgressSlider(QWidget *parent) : QSlider(parent)
 {
     setMouseTracking(true);
     setOrientation(Qt::Horizontal);
     setMinimum(0);
     setMaximum(0);
-    initTheme();
 
-    m_labelTimecode = new QLabel(parent);
+    m_labelTimecode = new StrokeLabel(parent);
     m_labelTimecode->hide();
-    m_labelTimecode->setAutoFillBackground(true);
-    m_labelTimecode->setMinimumWidth(0);
-    m_labelTimecode->setMinimumHeight(0);
-    m_labelTimecode->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    m_labelTimecode->setFrameStyle(QFrame::Box | QFrame::Plain);
 
     connect(
         GlobalMediator::getGlobalMediator(),
@@ -73,6 +138,8 @@ ProgressSlider::ProgressSlider(QWidget *parent) : QSlider(parent)
         &GlobalMediator::windowFocusChanged,
         this, &ProgressSlider::initStylesheet
     );
+
+    initTheme();
 }
 
 ProgressSlider::~ProgressSlider()
@@ -83,6 +150,7 @@ ProgressSlider::~ProgressSlider()
 void ProgressSlider::initTheme()
 {
     setStyle(new SliderJumpStyle(QApplication::style()));
+    m_labelTimecode->setPalette(palette());
     initStylesheet();
 }
 
@@ -90,7 +158,7 @@ void ProgressSlider::initStylesheet()
 {
     setStyleSheet(
         STYLESHEET_FORMAT
-            .arg(palette().dark().color().name())
+            .arg(palette().window().color().darker().name())
             .arg(palette().highlight().color().name())
     );
 } 
@@ -129,7 +197,7 @@ void ProgressSlider::mouseMoveEvent(QMouseEvent *event)
 
     int tipX = event->x() + MOUSE_OFFSET;
     int tipY = (parentWidget()->height() / 2) - (m_labelTimecode->height() / 2);
-    if (tipX + m_labelTimecode->width() > width())
+    if (event->x() > width() / 2)
     {
         tipX = event->x() - MOUSE_OFFSET - m_labelTimecode->width();
     }
