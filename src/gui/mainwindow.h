@@ -103,7 +103,7 @@ protected:
     /**
      * Accepts drag events of type text/uri-list.
      * @param event The drag event.
-     */ 
+     */
     void dragEnterEvent(QDragEnterEvent *event) override;
 
     /**
@@ -355,7 +355,7 @@ private:
         /* Top level layout over the player. Player has ownership */
         QVBoxLayout *layoutPlayerOverlay;
 
-        /* Used for centering the subtitle widget horizontally. Player has 
+        /* Used for centering the subtitle widget horizontally. Player has
          * ownership.
          */
         QHBoxLayout *layoutSubtitle;
@@ -370,7 +370,7 @@ private:
         QWidget *spacerWidget;
 
         /* A value from 0.0 to 1.0. Describes what percentage of the bottom of
-         * the player's total height should be below the bottom of the 
+         * the player's total height should be below the bottom of the
          * SubtitleWidget.
          */
         double offsetPercent;

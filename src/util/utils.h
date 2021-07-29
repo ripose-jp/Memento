@@ -76,7 +76,7 @@ public:
      * @return Path to mpv's input.conf.
      */
     static QString getMpvInputConfig();
-    
+
 private:
     DirectoryUtils() {}
 };
@@ -133,8 +133,8 @@ public:
      * @return The string representation of the SVG.
      */
     static QString generatePitchGraph(const int      moraSize,
-                                      const uint8_t  pos, 
-                                      const QString &fill, 
+                                      const uint8_t  pos,
+                                      const QString &fill,
                                       const QString &stroke);
 
 private:

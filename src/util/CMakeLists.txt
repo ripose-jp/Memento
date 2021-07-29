@@ -19,7 +19,7 @@ target_link_libraries(
 )
 
 add_library(
-    iconfactory 
+    iconfactory
     iconfactory.h
     iconfactory.cpp
 )
@@ -35,7 +35,7 @@ if (APPLE)
         macospowereventhandler.cpp
     )
     target_link_libraries(
-        macos_power_handler 
+        macos_power_handler
         "-framework IOKit -framework CoreFoundation"
     )
 endif()

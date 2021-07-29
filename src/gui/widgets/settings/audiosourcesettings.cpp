@@ -35,7 +35,7 @@
 
 /* Begin Constructor/Destructors */
 
-AudioSourceSettings::AudioSourceSettings(QWidget *parent) 
+AudioSourceSettings::AudioSourceSettings(QWidget *parent)
     : QWidget(parent),
       m_ui(new Ui::AudioSourceSettings)
 {
@@ -93,7 +93,7 @@ AudioSourceSettings::AudioSourceSettings(QWidget *parent)
         &AudioSourceSettings::restoreSaved
     );
     connect(
-        m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Help), 
+        m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Help),
         &QPushButton::clicked,
         this,
         &AudioSourceSettings::showHelp
@@ -128,7 +128,7 @@ void AudioSourceSettings::applyChanges()
     QString error = verifyNames();
     if (!error.isEmpty())
     {
-        QMessageBox::critical(this, "Audio Source Error", 
+        QMessageBox::critical(this, "Audio Source Error",
             "Could not apply changes:\n" + error
         );
         return;
@@ -196,17 +196,17 @@ void AudioSourceSettings::restoreSaved()
     {
         settings.setArrayIndex(i);
 
-        table->setItem(i, COL_NAME, 
+        table->setItem(i, COL_NAME,
             new QTableWidgetItem(
                 settings.value(SETTINGS_AUDIO_SRC_NAME).toString()
             )
         );
-        table->setItem(i, COL_URL, 
+        table->setItem(i, COL_URL,
             new QTableWidgetItem(
                 settings.value(SETTINGS_AUDIO_SRC_URL).toString()
             )
         );
-        table->setItem(i, COL_MD5, 
+        table->setItem(i, COL_MD5,
             new QTableWidgetItem(
                 settings.value(SETTINGS_AUDIO_SRC_MD5).toString()
             )
@@ -217,7 +217,7 @@ void AudioSourceSettings::restoreSaved()
 
 void AudioSourceSettings::showHelp()
 {
-    QMessageBox::information(this, "Audio Source Help", 
+    QMessageBox::information(this, "Audio Source Help",
         "<b>Source Name</b>: The name of the audio source as it will appear in Memento."
         "<br><br>"
         "<b>URL</b>: The URL of the audio source. "

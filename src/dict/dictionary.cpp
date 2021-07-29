@@ -57,7 +57,7 @@ Dictionary::Dictionary()
             "Memento will still work, but search results will suffer.\n"
         #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||\
             defined(__NT__)
-            "Make sure that ipadic is present in " + 
+            "Make sure that ipadic is present in " +
             DirectoryUtils::getDictionaryDir()
         #else
             "Make sure you have a system dictionary installed by running "
@@ -65,7 +65,7 @@ Dictionary::Dictionary()
         #endif
         );
     }
-    
+
     buildPriorities();
 
     GlobalMediator::getGlobalMediator()->setDictionary(this);
@@ -179,26 +179,26 @@ QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
         QString acc = "";
         for (const MeCab::Node *node = basenode; node; node = node->next)
         {
-            QString conj = 
+            QString conj =
                 acc + QString::fromUtf8(node->feature).split(',')[WORD_INDEX];
             if (duplicates.contains(conj))
             {
                 break;
             }
             QString surface = QString::fromUtf8(node->surface, node->length);
-        
+
             if (conj[conj.size() - 1] != '*' && !query.startsWith(conj))
             {
                 queries.push_back(QPair<QString, QString>(conj, acc + surface));
                 duplicates.insert(conj);
             }
-        
+
             acc += surface;
         }
     }
 
     delete lattice;
-    
+
     return queries;
 }
 
@@ -207,7 +207,7 @@ QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
 /* The maximum number of queries one thread can be accountable for. */
 #define QUERIES_PER_THREAD  4
 
-QList<Term *> *Dictionary::searchTerms(const QString query, 
+QList<Term *> *Dictionary::searchTerms(const QString query,
                                        const QString subtitle,
                                        const int index,
                                        const int *currentIndex)
@@ -222,11 +222,11 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
         if (endSize < 0)
             endSize = 0;
 
-        QThread *worker = 
+        QThread *worker =
             new ExactWorker(
                 str, endSize, subtitle, index, currentIndex, m_db, terms
             );
-        
+
         worker->start();
         threads.append(worker);
     }
@@ -243,7 +243,7 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
             if (endIt > queries.constEnd())
                 endIt = queries.constEnd();
 
-            QThread *worker = 
+            QThread *worker =
                 new MeCabWorker(
                     queries.constBegin() + i,
                     endIt,
@@ -253,7 +253,7 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
                     m_db,
                     terms
                 );
-            
+
             worker->start();
             threads.append(worker);
         }
@@ -265,11 +265,11 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
         thread->wait();
         delete thread;
     }
-    
+
     /* Sort the results by cloze length and score */
     if (index != *currentIndex)
         goto early_exit;
-    std::sort(terms->begin(), terms->end(), 
+    std::sort(terms->begin(), terms->end(),
         [] (const Term *lhs, const Term *rhs) -> bool {
             return lhs->clozeBody.size() > rhs->clozeBody.size() ||
                    (
@@ -289,7 +289,7 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
             [=] (const TermDefinition &lhs, const TermDefinition &rhs) -> bool {
                 uint32_t lhsPriority = priorities[lhs.dictionary];
                 uint32_t rhsPriority = priorities[rhs.dictionary];
-                return lhsPriority < rhsPriority || 
+                return lhsPriority < rhsPriority ||
                        (lhsPriority == rhsPriority && lhs.score > rhs.score);
             }
         );
@@ -381,7 +381,7 @@ QStringList Dictionary::getDictionaries()
 {
     QStringList dictionaries = m_db->getDictionaries();
     QMap<QString, uint32_t> priorities = buildPriorities();
-    std::sort(dictionaries.begin(), dictionaries.end(), 
+    std::sort(dictionaries.begin(), dictionaries.end(),
         [=] (const QString &lhs, const QString &rhs) -> bool {
             return priorities[lhs] < priorities[rhs];
         }
@@ -409,7 +409,7 @@ QMap<QString, uint32_t> Dictionary::buildPriorities()
 
 void Dictionary::sortTags(QList<Tag> &tags)
 {
-    std::sort(tags.begin(), tags.end(), 
+    std::sort(tags.begin(), tags.end(),
         [] (const Tag &lhs, const Tag &rhs) -> bool {
             return lhs.order < rhs.order ||
                    (

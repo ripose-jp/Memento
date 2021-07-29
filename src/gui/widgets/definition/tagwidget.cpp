@@ -87,7 +87,7 @@ TagWidget::TagWidget(const Tag &tag, QWidget *parent) : TagWidget(parent)
     {
         color = pitch_accent;
     }
-    
+
     setStyleSheet(STYLE_FORMAT.arg(colors[color]));
     setToolTip(tag.notes);
     setText(tag.name);

@@ -67,7 +67,7 @@ static void onUpdate(void *ctx)
 /* Begin Constructor/Destructor */
 
 MpvWidget::MpvWidget(QWidget *parent)
-    : QOpenGLWidget(parent), 
+    : QOpenGLWidget(parent),
       m_cursorTimer(new QTimer(this))
 {
     /* Run initialization tasks */
@@ -142,15 +142,15 @@ MpvWidget::MpvWidget(QWidget *parent)
     /* Signals */
     connect(m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
     connect(
-        m_cursorTimer, &QTimer::timeout, 
+        m_cursorTimer, &QTimer::timeout,
         this,          [=] { setCursor(Qt::BlankCursor); }
     );
     connect(
-        mediator, &GlobalMediator::definitionsHidden, 
+        mediator, &GlobalMediator::definitionsHidden,
         this,     [=] { m_cursorTimer->start(CURSOR_TIMEOUT); }
     );
     connect(
-        mediator, &GlobalMediator::searchSettingsChanged, 
+        mediator, &GlobalMediator::searchSettingsChanged,
         this,     &MpvWidget::initSubtitleRegex
     );
 }
@@ -169,7 +169,7 @@ MpvWidget::~MpvWidget()
 }
 
 /* End Constructor/Destructor */
-/* Begin Initialization Functions */ 
+/* Begin Initialization Functions */
 
 void MpvWidget::initPropertyMap()
 {
@@ -198,7 +198,7 @@ void MpvWidget::initPropertyMap()
                 mpv_node_list *map = arr->values[i].u.list;
                 for (size_t j = 0; j < map->num; ++j)
                 {
-                    if (map->values[j].format == MPV_FORMAT_DOUBLE && 
+                    if (map->values[j].format == MPV_FORMAT_DOUBLE &&
                         strcmp(map->keys[j], "time") == 0)
                     {
                         chapters << map->values[j].u.double_;
@@ -288,7 +288,7 @@ void MpvWidget::initPropertyMap()
                 Q_EMIT volumeChanged(volume);
             }
         };
-    
+
     m_propertyMap["volume-max"] =
         [=] (mpv_event_property *prop) {
             if (prop->format == MPV_FORMAT_INT64)
@@ -307,7 +307,7 @@ void MpvWidget::initPropertyMap()
             }
             else if (prop->format == MPV_FORMAT_FLAG)
             {
-                if (!*(int64_t *)prop->data) 
+                if (!*(int64_t *)prop->data)
                     Q_EMIT audioDisabled();
             }
         };
@@ -321,7 +321,7 @@ void MpvWidget::initPropertyMap()
             }
             else if (prop->format == MPV_FORMAT_FLAG)
             {
-                if (!*(int64_t *)prop->data) 
+                if (!*(int64_t *)prop->data)
                     Q_EMIT subtitleTwoDisabled();
             }
         };
@@ -335,7 +335,7 @@ void MpvWidget::initPropertyMap()
             }
             else if (prop->format == MPV_FORMAT_FLAG)
             {
-                if (!*(int64_t *)prop->data) 
+                if (!*(int64_t *)prop->data)
                     Q_EMIT subtitleDisabled();
             }
         };
@@ -349,7 +349,7 @@ void MpvWidget::initPropertyMap()
             }
             else if (prop->format == MPV_FORMAT_FLAG)
             {
-                if (!*(int64_t *)prop->data) 
+                if (!*(int64_t *)prop->data)
                     Q_EMIT videoDisabled();
             }
         };
@@ -361,7 +361,7 @@ void MpvWidget::initPropertyMap()
                 Q_EMIT subDelayChanged(*(double *)prop->data);
             }
         };
-    
+
     m_propertyMap["sub-text"] =
         [=] (mpv_event_property *prop) {
             if (prop->format == MPV_FORMAT_STRING)
@@ -386,7 +386,7 @@ void MpvWidget::initPropertyMap()
                 }
             }
         };
-    
+
     m_propertyMap["secondary-sub-text"] =
         [=] (mpv_event_property *prop) {
             if (prop->format == MPV_FORMAT_STRING)
@@ -396,7 +396,7 @@ void MpvWidget::initPropertyMap()
                 {
                     double start, end, delay;
 
-                    
+
                     mpv_get_property(
                         mpv, "secondary-sub-start", MPV_FORMAT_DOUBLE, &start
                     );
@@ -421,14 +421,14 @@ void MpvWidget::initSubtitleRegex()
     settings.beginGroup(SETTINGS_SEARCH);
     m_regex.setPattern(
         settings.value(
-            SETTINGS_SEARCH_REMOVE_REGEX, 
+            SETTINGS_SEARCH_REMOVE_REGEX,
             DEFAULT_REMOVE_REGEX
         ).toString()
     );
     settings.endGroup();
 }
 
-/* End Initialization Functions */ 
+/* End Initialization Functions */
 /* Begin OpenGL Functions */
 
 void MpvWidget::initializeGL()
@@ -436,7 +436,7 @@ void MpvWidget::initializeGL()
     mpv_opengl_init_params gl_init_params{get_proc_address, nullptr, nullptr};
     mpv_render_param params[]{
         {
-            MPV_RENDER_PARAM_API_TYPE, 
+            MPV_RENDER_PARAM_API_TYPE,
             const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)
         },
         {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init_params},
@@ -545,7 +545,7 @@ void MpvWidget::onMpvEvents()
     }
 }
 
-void MpvWidget::resizeEvent(QResizeEvent *event) 
+void MpvWidget::resizeEvent(QResizeEvent *event)
 {
     QOpenGLWidget::resizeEvent(event);
     event->ignore();
@@ -587,7 +587,7 @@ void MpvWidget::mouseDoubleClickEvent(QMouseEvent *event)
     QOpenGLWidget::mouseDoubleClickEvent(event);
     event->ignore();
 
-    QByteArray press = 
+    QByteArray press =
         (mouseButtonStringToString(event->button(), true)).toUtf8();
     const char *args[3] = {
         "keypress",
@@ -644,7 +644,7 @@ void MpvWidget::preventScreenDimming()
         }
         break;
     case QDBusMessage::ErrorMessage:
-        qDebug() << "Error from org.freedesktop.ScreenSaver" 
+        qDebug() << "Error from org.freedesktop.ScreenSaver"
                  << reply.errorMessage();
         break;
     default:

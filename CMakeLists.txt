@@ -49,7 +49,7 @@ add_subdirectory(src)
 
 if(UNIX AND NOT APPLE)
 	install(
-		TARGETS memento 
+		TARGETS memento
 		DESTINATION bin
 		COMPONENT binaries
 	)

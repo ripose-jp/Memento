@@ -96,7 +96,7 @@ void CardBuilder::setFields(const QJsonObject &fields)
     for (size_t i = 0; i < fields.size(); ++i)
     {
         const QJsonValue &val = fields[keys[i]];
-        if (!val.isUndefined() && !val.isNull()) 
+        if (!val.isUndefined() && !val.isNull())
         {
             m_ui->tableFields->item(i, 1)->setText(val.toString());
         }

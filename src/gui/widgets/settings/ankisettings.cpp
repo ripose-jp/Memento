@@ -52,12 +52,12 @@ AnkiSettings::AnkiSettings(QWidget *parent)
         m_ui->buttonConnect, &QPushButton::clicked,
         this,                [=] { connectToClient(true); }
     );
-    connect(m_ui->termCardBuilder,  &CardBuilder::modelTextChanged, this, 
+    connect(m_ui->termCardBuilder,  &CardBuilder::modelTextChanged, this,
         [=] (const QString &model) {
             updateModelFields(m_ui->termCardBuilder, model);
         }
     );
-    connect(m_ui->kanjiCardBuilder, &CardBuilder::modelTextChanged, this, 
+    connect(m_ui->kanjiCardBuilder, &CardBuilder::modelTextChanged, this,
         [=] (const QString &model) {
             updateModelFields(m_ui->kanjiCardBuilder, model);
         }
@@ -84,8 +84,8 @@ AnkiSettings::AnkiSettings(QWidget *parent)
         &AnkiSettings::applyChanges
     );
     connect(
-        m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Help), 
-        &QPushButton::clicked, 
+        m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Help),
+        &QPushButton::clicked,
         m_ankiSettingsHelp,
         &AnkiSettingsHelp::show
     );
@@ -108,7 +108,7 @@ AnkiSettings::AnkiSettings(QWidget *parent)
     connect(
         GlobalMediator::getGlobalMediator(),
         &GlobalMediator::requestThemeRefresh,
-        this, 
+        this,
         &AnkiSettings::initIcons
     );
 }
@@ -189,7 +189,7 @@ void AnkiSettings::hideEvent(QHideEvent *event)
 {
     QWidget::hideEvent(event);
 
-    AnkiClient *client = 
+    AnkiClient *client =
         GlobalMediator::getGlobalMediator()->getAnkiClient();
     const AnkiConfig *config = client->getConfig(client->getProfile());
     client->setServer(config->address, config->port);
@@ -202,7 +202,7 @@ void AnkiSettings::hideEvent(QHideEvent *event)
 void AnkiSettings::applyChanges()
 {
     /* Renaming profile if changed */
-    if (m_ui->comboBoxProfile->currentText() != 
+    if (m_ui->comboBoxProfile->currentText() !=
         m_ui->lineEditProfileName->text())
     {
         renameProfile(
@@ -258,7 +258,7 @@ void AnkiSettings::restoreDefaults()
         )->kanjiFields.keys();
     for (const QString &field : fields)
         defaultConfig.kanjiFields[field] = "";
-    
+
     populateFields(m_ui->comboBoxProfile->currentText(), &defaultConfig);
 }
 
@@ -305,11 +305,11 @@ void AnkiSettings::connectToClient(const bool showErrors)
                     if (error.isEmpty())
                     {
                         m_ui->termCardBuilder->setDecks(
-                            decks, 
+                            decks,
                             client->getConfig(client->getProfile())->termDeck
                         );
                         m_ui->kanjiCardBuilder->setDecks(
-                            decks, 
+                            decks,
                             client->getConfig(client->getProfile())->kanjiDeck
                         );
                     }
@@ -320,7 +320,7 @@ void AnkiSettings::connectToClient(const bool showErrors)
                     }
                 }
             );
-            
+
             reply = client->getModelNames();
             connect(reply, &AnkiReply::finishedStringList,
                 [=] (const QStringList &models, const QString &error) {
@@ -414,7 +414,7 @@ void AnkiSettings::populateFields(const QString    &profile,
     m_ui->comboBoxDuplicates->setCurrentText(
         duplicatePolicyToString(config->duplicatePolicy)
     );
-    
+
     m_ui->comboBoxScreenshot->setCurrentText(
         fileTypeToString(config->screenshotType)
     );
@@ -569,7 +569,7 @@ void AnkiSettings::applyToConfig(const QString &profile)
     config->screenshotType =
         stringToFileType(m_ui->comboBoxScreenshot->currentText()
     );
-    
+
     config->audio = *m_audioSources.find(m_ui->comboBoxAudioSrc->currentText());
 
     config->audioPadStart = m_ui->spinAudioPadStart->value();

@@ -132,10 +132,10 @@ void MainWindow::initWindow()
         this,       &MainWindow::initTheme
     );
     connect(
-        m_mediator, &GlobalMediator::requestThemeRefresh, 
+        m_mediator, &GlobalMediator::requestThemeRefresh,
         this,       &MainWindow::deleteDefinitionWidget
     );
-    connect(m_mediator, &GlobalMediator::playerTitleChanged, this, 
+    connect(m_mediator, &GlobalMediator::playerTitleChanged, this,
         [=] (const QString name) { setWindowTitle(name + " - Memento"); }
     );
     connect(m_mediator, &GlobalMediator::playerMouseMoved, this,
@@ -284,7 +284,7 @@ void MainWindow::initSubtitles()
 
     /* Signals */
     connect(
-        m_mediator, &GlobalMediator::controlsHidden, 
+        m_mediator, &GlobalMediator::controlsHidden,
         this,       &MainWindow::repositionSubtitles
     );
     connect(
@@ -293,7 +293,7 @@ void MainWindow::initSubtitles()
     );
 
     connect(
-        m_ui->actionIncreaseSize, &QAction::triggered, this, 
+        m_ui->actionIncreaseSize, &QAction::triggered, this,
         [=] { updateSubScale(0.01); }
     );
     connect(
@@ -340,8 +340,8 @@ void MainWindow::initDefinitionWidget()
         m_mediator, &GlobalMediator::subtitleListHidden,
         this,       &MainWindow::deleteDefinitionWidget
     );
-    connect(m_mediator, &GlobalMediator::playerPauseStateChanged, this, 
-        [=] (const bool paused) { 
+    connect(m_mediator, &GlobalMediator::playerPauseStateChanged, this,
+        [=] (const bool paused) {
             if (!paused)
                 deleteDefinitionWidget();
         }
@@ -356,7 +356,7 @@ void MainWindow::initTheme()
     /* Set Palette */
     QPalette pal;
     Theme theme = (Theme)settings.value(
-            SETTINGS_INTERFACE_THEME, 
+            SETTINGS_INTERFACE_THEME,
             (int)SETTINGS_INTERFACE_THEME_DEFAULT
         ).toInt();
     switch (theme)
@@ -403,7 +403,7 @@ void MainWindow::initTheme()
             QApplication::setStyle(style);
     #endif
         m_ui->menubar->setAutoFillBackground(true);
-        /* Modified from 
+        /* Modified from
          * https://forum.qt.io/topic/101391/windows-10-dark-theme/5
          */
         QColor darkColor(45, 45, 45);
@@ -452,7 +452,7 @@ void MainWindow::initTheme()
 
     /* Set QSplitter Stylesheet */
     bool customStylesEnabled = settings.value(
-            SETTINGS_INTERFACE_STYLESHEETS, 
+            SETTINGS_INTERFACE_STYLESHEETS,
             SETTINGS_INTERFACE_STYLESHEETS_DEFAULT
         ).toBool();
     if (customStylesEnabled)
@@ -523,7 +523,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
     settings.setValue(SETTINGS_GEOMETRY, saveGeometry());
     settings.setValue(
-        SETTINGS_MAXIMIZE, 
+        SETTINGS_MAXIMIZE,
         isFullScreen() ? m_maximized : isMaximized()
     );
 
@@ -552,7 +552,7 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 {
     if (event->mimeData()->hasFormat("text/uri-list"))
         event->acceptProposedAction();
-    
+
     QMainWindow::dragEnterEvent(event);
 }
 
@@ -612,7 +612,7 @@ void MainWindow::updateSubScale(const double inc)
     QSettings settings;
     settings.beginGroup(SETTINGS_INTERFACE);
     double scale = settings.value(
-        SETTINGS_INTERFACE_SUB_SCALE, 
+        SETTINGS_INTERFACE_SUB_SCALE,
         SETTINGS_INTERFACE_SUB_SCALE_DEFAULT
     ).toDouble();
     scale += inc;
@@ -633,7 +633,7 @@ void MainWindow::moveSubtitles(const double inc)
     QSettings settings;
     settings.beginGroup(SETTINGS_INTERFACE);
     double offset = settings.value(
-        SETTINGS_INTERFACE_SUB_OFFSET, 
+        SETTINGS_INTERFACE_SUB_OFFSET,
         SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT
     ).toDouble();
     offset += inc;
@@ -655,7 +655,7 @@ void MainWindow::moveSubtitles(const double inc)
 void MainWindow::setTerms(const QList<Term *> *terms)
 {
     deleteDefinitionWidget();
-    
+
     m_definition = new DefinitionWidget(terms, m_ui->player);
     setDefinitionWidgetLocation();
     if (m_definition)
@@ -677,11 +677,11 @@ void MainWindow::setDefinitionWidgetLocation()
     {
         x = m_ui->player->width() - m_definition->width();
     }
-    
+
     int y = m_subtitle.subtitleWidget->pos().y() - m_definition->height();
     if (y < 0)
     {
-        y = m_subtitle.subtitleWidget->pos().y() + 
+        y = m_subtitle.subtitleWidget->pos().y() +
             m_subtitle.subtitleWidget->height();
     }
 
@@ -754,11 +754,11 @@ void MainWindow::setFullscreen(bool value)
 
 inline bool MainWindow::isMouseOverPlayer()
 {
-    return !m_ui->controls->underMouse() && 
+    return !m_ui->controls->underMouse() &&
            !m_subtitle.subtitleWidget->underMouse() &&
            (
-               m_definition == nullptr || 
-               m_definition && 
+               m_definition == nullptr ||
+               m_definition &&
                !m_definition->underMouse()
            );
 }
@@ -799,8 +799,8 @@ void MainWindow::clearTrack(QList<QAction *> &actions,
 void MainWindow::clearTracks()
 {
     clearTrack(
-        m_actionGroups.audioActions, 
-        m_ui->menuAudio, 
+        m_actionGroups.audioActions,
+        m_ui->menuAudio,
         m_actionGroups.audio,
         m_ui->actionAudioNone
     );
@@ -833,7 +833,7 @@ QAction *MainWindow::createTrackAction(const Track *track) const
     if (!track->lang.isEmpty())
     {
         actionText += " [" + track->lang + "]";
-    }   
+    }
     if (!track->title.isEmpty())
     {
         actionText += " - " + track->title;
@@ -924,7 +924,7 @@ void MainWindow::setTracks(QList<const Track *> tracks)
                 m_ui->actionSubtitleTwoNone->setChecked(false);
                 action->setEnabled(false);
             }
-                        
+
             connect(action, &QAction::toggled, action,
                 [=] (bool checked) {
                     if (checked)
@@ -1025,8 +1025,8 @@ void MainWindow::updateAudioAction(const uint64_t id)
     }
     else if(id <= m_actionGroups.audioActions.size())
     {
-        m_actionGroups.audioActions[id - 1]->setChecked(true); 
-    }     
+        m_actionGroups.audioActions[id - 1]->setChecked(true);
+    }
 }
 
 void MainWindow::updateVideoAction(const uint64_t id)
@@ -1037,7 +1037,7 @@ void MainWindow::updateVideoAction(const uint64_t id)
     }
     else if(id <= m_actionGroups.videoActions.size())
     {
-        m_actionGroups.videoActions[id - 1]->setChecked(true); 
+        m_actionGroups.videoActions[id - 1]->setChecked(true);
     }
 }
 
@@ -1049,7 +1049,7 @@ void MainWindow::updateSubtitleAction(const uint64_t id)
     }
     else if(id <= m_actionGroups.subtitleActions.size())
     {
-        m_actionGroups.subtitleActions[id - 1]->setChecked(true); 
+        m_actionGroups.subtitleActions[id - 1]->setChecked(true);
     }
 }
 
@@ -1061,7 +1061,7 @@ void MainWindow::updateSecondarySubtitleAction(const uint64_t id)
     }
     else if(id <= m_actionGroups.subtitleTwoActions.size())
     {
-        m_actionGroups.subtitleTwoActions[id - 1]->setChecked(true); 
+        m_actionGroups.subtitleTwoActions[id - 1]->setChecked(true);
     }
 }
 
@@ -1087,7 +1087,7 @@ void MainWindow::openUrl()
     dialog.setTextValue(QGuiApplication::clipboard()->text());
     dialog.setStyleSheet("QLabel { min-width: 500px; }");
     int     res = dialog.exec();
-    QString url = dialog.textValue(); 
+    QString url = dialog.textValue();
 
     if (res == QDialog::Accepted && !url.isEmpty())
     {
@@ -1133,7 +1133,7 @@ void MainWindow::updateAnkiProfileMenu()
 
         connect(profileAction, &QAction::triggered,
             [=] (const bool checked) {
-                if (checked) 
+                if (checked)
                 {
                     profileAction->blockSignals(true);
                     m_ankiClient->setProfile(profileAction->text());
@@ -1151,14 +1151,14 @@ void MainWindow::updateAnkiProfileMenu()
 /* End Menu Bar Helpers */
 /* Begin Dialog Methods */
 
-void MainWindow::showErrorMessage(const QString title, 
+void MainWindow::showErrorMessage(const QString title,
                                   const QString error) const
 {
     QMessageBox message;
     message.critical(0, title, error);
 }
 
-void MainWindow::showInfoMessage(const QString title, 
+void MainWindow::showInfoMessage(const QString title,
                                  const QString error) const
 {
     QMessageBox message;

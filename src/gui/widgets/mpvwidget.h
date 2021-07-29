@@ -48,7 +48,7 @@ public:
     ~MpvWidget();
 
     /**
-     * Get the mpv client context 
+     * Get the mpv client context
      * @return mpv_handle for the MpvWidget
      */
     mpv_handle *getHandle() const { return mpv; }
@@ -175,8 +175,8 @@ Q_SIGNALS:
      * @param end      The end time of the current subtitle in seconds.
      * @param delay    The signed delay of the current subtitle in seconds.
      */
-    void subtitleChanged(QString      subtitle, 
-                         const double start, 
+    void subtitleChanged(QString      subtitle,
+                         const double start,
                          const double end,
                          const double delay) const;
 

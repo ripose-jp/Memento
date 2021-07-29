@@ -24,7 +24,7 @@
 #include "../../../util/globalmediator.h"
 #include "../../playeradapter.h"
 
-AnkiSettingsHelp::AnkiSettingsHelp(QWidget *parent) 
+AnkiSettingsHelp::AnkiSettingsHelp(QWidget *parent)
     : QDialog(parent), m_ui(new Ui::AnkiSettingsHelp)
 {
     m_ui->setupUi(this);

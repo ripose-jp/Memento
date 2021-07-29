@@ -125,7 +125,7 @@ private Q_SLOTS:
 
     /**
      * Resizes rows to contents.
-     * @param index The index of the table to update. 0 for primary, 
+     * @param index The index of the table to update. 0 for primary,
      *              1 for secondary.
      */
     void fixTableDimensions(const int index);
@@ -172,7 +172,7 @@ private:
      *                  newlines with.
      * @return A string containing all the selected rows in the table.
      */
-    QString getContext(const QTableWidget *table, 
+    QString getContext(const QTableWidget *table,
                        const QString      &seperator) const;
 
     /**
@@ -223,7 +223,7 @@ private:
 
     /**
      * Seeks to the subtitle belonging to the item.
-     * @param item       The item belonging to the subtitle to seek to. Not a 
+     * @param item       The item belonging to the subtitle to seek to. Not a
      *                   timestamp item.
      * @param startTimes Maps an item to a timecode.
      */

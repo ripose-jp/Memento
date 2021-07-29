@@ -47,7 +47,7 @@ public:
     QString getSecondarySubtitle() const override;
 
     bool getSubVisibility() const override;
-    
+
     double getAudioDelay() const override;
 
     QList<const Track *> getTracks() override;

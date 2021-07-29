@@ -61,7 +61,7 @@ private Q_SLOTS:
     /**
      * Sets all terms in m_terms from start to end as addable to Anki based on
      * the values in m_addable.
-     * @param start The starting index in m_terms to set addable (inclusive). 
+     * @param start The starting index in m_terms to set addable (inclusive).
      * @param end   The ending index in m_terms to set addable (exclusive).
      */
     void setAddable(const size_t start, const size_t end);
@@ -99,13 +99,13 @@ protected:
     void showEvent(QShowEvent *event) override;
 
     /* Prevents these events from being sent to mpv when widget has focus. */
-    void mouseMoveEvent(QMouseEvent *event) override 
+    void mouseMoveEvent(QMouseEvent *event) override
         { event->accept(); }
-    void mouseReleaseEvent(QMouseEvent *event) override 
+    void mouseReleaseEvent(QMouseEvent *event) override
         { event->accept(); }
-    void mouseDoubleClickEvent(QMouseEvent *event) override 
+    void mouseDoubleClickEvent(QMouseEvent *event) override
         { event->accept(); }
-    void mousePressEvent(QMouseEvent *event) override 
+    void mousePressEvent(QMouseEvent *event) override
         { event->accept(); }
     void wheelEvent(QWheelEvent *event) override
         { event->accept(); }

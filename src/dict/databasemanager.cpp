@@ -260,7 +260,7 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
     /* Try to acquire the database lock, early return if we can't */
     if (!incrementReaders())
         return "";
-    
+
     QString       ret;
     QByteArray    exp          = query.toUtf8();
     QByteArray    hiragana     = kataToHira(query).toUtf8();
@@ -282,7 +282,7 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
         ret = "Could not bind values to statement";
         goto error;
     }
-    if (containsKata && 
+    if (containsKata &&
         sqlite3_bind_text(stmt, QUERY_READING_KATA_IDX, exp, -1, NULL) != SQLITE_OK)
     {
         ret = "Could not bind values to statement";
@@ -364,7 +364,7 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
     /* Try to acquire the database lock, early return if we can't */
     if (!incrementReaders())
         return "";
-    
+
     QString       ret;
     QByteArray    ch   = query.toUtf8();
     sqlite3_stmt *stmt = NULL;
@@ -407,7 +407,7 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
         QVariantMap map = QJsonDocument::fromJson(
                 (const char *)sqlite3_column_text(stmt, COLUMN_STATS)
             ).toVariant().toMap();
-        for (auto it = map.constKeyValueBegin(); 
+        for (auto it = map.constKeyValueBegin();
              it != map.constKeyValueEnd();
              ++it)
         {
@@ -435,7 +435,7 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
             }
             list->append(QPair<Tag, QString>(*tag, it->second.toString()));
         }
-        
+
         kanji.definitions.append(def);
     }
     if (isStepError(step))
@@ -443,11 +443,11 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
         ret = "Error while executing kanji query";
         goto cleanup;
     }
-    
+
 cleanup:
     decrementReaders();
     sqlite3_finalize(stmt);
-    
+
     return ret;
 }
 

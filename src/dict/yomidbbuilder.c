@@ -117,10 +117,10 @@ static int drop_all_tables_callback(void *db, int argc, char **argv, char **unus
         {
             continue;
         }
-        
+
         char *drop_query = sqlite3_mprintf("DROP TABLE IF EXISTS %Q;", *ptr);
         char *errmsg     = NULL;
-        
+
         if (drop_query == NULL)
         {
             return MALLOC_FAILURE_ERR;
@@ -153,7 +153,7 @@ static int create_db(sqlite3 *db, const int version)
 
     /* Drops all the tables in the db */
     /* This behavior may change in future versions */
-    sqlite3_exec(db, "SELECT name FROM sqlite_master WHERE type='table'", 
+    sqlite3_exec(db, "SELECT name FROM sqlite_master WHERE type='table'",
                  drop_all_tables_callback, db, &errmsg);
     if (errmsg)
     {
@@ -241,7 +241,7 @@ static int create_db(sqlite3 *db, const int version)
         ret = DB_CREATE_TABLE_ERR;
         goto cleanup;
     }
-    
+
     /* Update the user_version pragma */
     pragma = sqlite3_mprintf("PRAGMA user_version = %d;", YOMI_DB_VERSION);
     if (pragma == NULL)
@@ -606,7 +606,7 @@ static int add_tag(sqlite3 *db, json_object *tag, const sqlite3_int64 id)
     /* Make sure the length of the tag array is correct */
     if (json_object_array_length(tag) != TAG_ARRAY_SIZE)
     {
-        fprintf(stderr, "Expected tag array of size %u, got %lu\n", 
+        fprintf(stderr, "Expected tag array of size %u, got %lu\n",
                 TAG_ARRAY_SIZE, json_object_array_length(tag));
         ret = TAG_WRONG_SIZE_ERR;
         goto cleanup;
@@ -737,7 +737,7 @@ static int add_term(sqlite3 *db, json_object *term, const sqlite3_int64 id)
     /* Make sure the length of the term array is correct */
     if (json_object_array_length(term) != TERM_ARRAY_SIZE)
     {
-        fprintf(stderr, "Expected term array of size %u, got %lu\n", 
+        fprintf(stderr, "Expected term array of size %u, got %lu\n",
                 TERM_ARRAY_SIZE, json_object_array_length(term));
         ret = TERM_WRONG_SIZE_ERR;
         goto cleanup;
@@ -869,7 +869,7 @@ static int add_kanji(sqlite3 *db, json_object *kanji, const sqlite3_int64 id)
 {
     int           ret       = 0;
     json_object  *ret_obj   = NULL;
-    
+
     const char   *character = NULL;
     const char   *onyomi    = NULL;
     const char   *kunyomi   = NULL;
@@ -883,7 +883,7 @@ static int add_kanji(sqlite3 *db, json_object *kanji, const sqlite3_int64 id)
     /* Make sure the length of the term array is correct */
     if (json_object_array_length(kanji) != KANJI_ARRAY_SIZE)
     {
-        fprintf(stderr, "Expected kanji array of size %u, got %lu\n", 
+        fprintf(stderr, "Expected kanji array of size %u, got %lu\n",
                 KANJI_ARRAY_SIZE, json_object_array_length(kanji));
         ret = KANJI_WRONG_SIZE_ERR;
         goto cleanup;
@@ -1008,7 +1008,7 @@ static int add_meta(sqlite3 *db, json_object *meta, const sqlite3_int64 id, cons
     /* Make sure the length of the metadata array is correct */
     if (json_object_array_length(meta) != META_ARRAY_SIZE)
     {
-        fprintf(stderr, "Expected metadata array of size %u, got %lu\n", 
+        fprintf(stderr, "Expected metadata array of size %u, got %lu\n",
                 META_ARRAY_SIZE, json_object_array_length(meta));
         ret = META_WRONG_SIZE_ERR;
         goto cleanup;
@@ -1148,7 +1148,7 @@ static int add_term_meta(sqlite3 *db, json_object *term_meta, const sqlite3_int6
 static int add_kanji_meta(sqlite3 *db, json_object *kanji_meta, const sqlite3_int64 id)
 {
     return add_meta(
-        db, 
+        db,
         kanji_meta,
         id,
         "INSERT INTO kanji_meta_bank (dic_id, expression, mode, data) "
@@ -1179,7 +1179,7 @@ static int add_dic_files(zip_t *dict_archive, sqlite3 *db, const sqlite3_int64 i
     {
     case tag_bank:
         file_format = TAG_BANK_FORMAT;
-        add_item    = add_tag;     
+        add_item    = add_tag;
         break;
     case term_bank:
         file_format = TERM_BANK_FORMAT;

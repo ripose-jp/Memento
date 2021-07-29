@@ -30,7 +30,7 @@
 /**
  * Prevents sleep on Mac OS X. This class is untested and it should be assumed
  * that it works as intended.
- * 
+ *
  * Code heavily based off of
  * https://ladydebug.com/blog/2020/05/21/programmatically-capture-energy-saver-event-on-mac/
  */
@@ -52,7 +52,7 @@ public:
      * @return The current root power domain.
      */
     io_connect_t getRootPowerDomain() const;
-    
+
     /**
      * Determines whether or not sleep should be prevented.
      * @param value true if sleep should be prevented, false otherwise.

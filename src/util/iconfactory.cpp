@@ -118,7 +118,7 @@ void ThemeFactory::buildIcons()
     StyleFactory styleFactory;
     for (size_t i = 0; i < XDG_ICONS; ++i)
     {
-        icons[i] = QIcon::hasThemeIcon(names[i]) 
+        icons[i] = QIcon::hasThemeIcon(names[i])
                  ? QIcon::fromTheme(names[i])
                  : styleFactory.getIcon((IconFactory::Icon) i);
     }

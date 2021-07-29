@@ -46,7 +46,7 @@ public:
      * @param sources A list of audio sources. Does not take ownership.
      * @param parent  The parent of this widget.
      */
-    TermWidget(const Term               *term, 
+    TermWidget(const Term               *term,
                const QList<AudioSource> *sources,
                QWidget                  *parent = nullptr);
     ~TermWidget();

@@ -70,8 +70,8 @@ struct Track
     /* true if the track is from an external file. */
     bool external;
 
-    /* The filename if the track is from an external file, unavailable 
-     * otherwise. 
+    /* The filename if the track is from an external file, unavailable
+     * otherwise.
      */
     QString externalFilename;
 
@@ -123,7 +123,7 @@ public:
 
     /**
      * Get the secondary subtitle text if supported.
-     * @return The secondary subtitle text. Empty string if no subtitle or 
+     * @return The secondary subtitle text. Empty string if no subtitle or
      *         unsupported operation.
      */
     virtual QString getSecondarySubtitle() const = 0;
@@ -160,7 +160,7 @@ public:
 
     /**
      * Get the title of the currently playing file.
-     * @return Title of the currently playing file, filename if it doesn't 
+     * @return Title of the currently playing file, filename if it doesn't
      *         exist.
      */
     virtual QString getTitle() const = 0;
@@ -181,7 +181,7 @@ public Q_SLOTS:
     /**
      * Opens the file.
      * @param file    The path of the file to open.
-     * @param append  If true, append to the current playlist, otherwise 
+     * @param append  If true, append to the current playlist, otherwise
      *                overwrite the current playlist.
      * @param options Native player options of the format 'option=value'. Only
      *                applies to the file being loaded.
@@ -308,14 +308,14 @@ public Q_SLOTS:
     /**
      * Takes a screenshot of the player contents and stores the files in the
      * temp directory.
-     * @param subtitles true to include the subtitles in the images, false 
+     * @param subtitles true to include the subtitles in the images, false
      *                  otherwise.
      * @param ext       The image format to use. '.jpg' by default.
      * @return Path to the file.
      */
     virtual QString tempScreenshot(const bool subtitles,
                                    const QString &ext = ".jpg") = 0;
-    
+
     /**
      * Creates an audio clip given a start and end time in the temporary
      * directory.

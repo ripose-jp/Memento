@@ -10,9 +10,9 @@ if(WIN32)
 endif()
 
 add_executable(
-    memento 
+    memento
     ${WINDOWS_EXE_OPTION}
-    main.cpp 
+    main.cpp
     ../res/resources.qrc
     ${APP_ICON_RESOURCE_WINDOWS}
 )

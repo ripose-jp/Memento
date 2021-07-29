@@ -80,7 +80,7 @@ private:
      *               used as the key.
      * @param layout The layout to add key-values to.
      */
-    void addKVSection(const QString &title, 
+    void addKVSection(const QString &title,
                       const QList<QPair<Tag, QString>> &pairs,
                       QVBoxLayout *layout);
 

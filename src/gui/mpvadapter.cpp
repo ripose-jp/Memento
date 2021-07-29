@@ -36,7 +36,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
 
     /* Signals */
     connect(
-        m_mpv, &MpvWidget::tracklistChanged, this, 
+        m_mpv, &MpvWidget::tracklistChanged, this,
         [=] (const mpv_node *node) {
             Q_EMIT mediator->playerTracksChanged(processTracks(node));
         }
@@ -81,7 +81,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     );
 
     connect(
-        m_mpv,    &MpvWidget::subtitleChanged, 
+        m_mpv,    &MpvWidget::subtitleChanged,
         mediator, &GlobalMediator::playerSubtitleChanged
     );
     connect(
@@ -130,7 +130,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
         mediator, &GlobalMediator::playerCursorHidden
     );
     connect(
-        m_mpv,    &MpvWidget::mouseMoved, 
+        m_mpv,    &MpvWidget::mouseMoved,
         mediator, &GlobalMediator::playerMouseMoved
     );
     connect(
@@ -168,11 +168,11 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
         this,     &PlayerAdapter::seekForward
     );
     connect(
-        mediator, &GlobalMediator::controlsSeekBackward, 
+        mediator, &GlobalMediator::controlsSeekBackward,
         this,     &PlayerAdapter::seekBackward
     );
     connect(
-        mediator, &GlobalMediator::controlsFullscreenChanged, 
+        mediator, &GlobalMediator::controlsFullscreenChanged,
         this,     &PlayerAdapter::setFullscreen
     );
     connect(
@@ -246,7 +246,7 @@ int MpvAdapter::buildArgsTree(const QStringList &args,
         }
         else if (args[i].startsWith("--"))
         {
-            parent.options << args[i].mid(2);   
+            parent.options << args[i].mid(2);
         }
         else
         {
@@ -278,7 +278,7 @@ void MpvAdapter::loadFilesFromTree(const struct LoadFileNode &parent,
             open(file, true, options);
         }
     }
-    
+
     while (options.size() > lastSize)
     {
         options.removeLast();
@@ -369,7 +369,7 @@ bool MpvAdapter::getSubVisibility() const
     }
     return flag;
 }
-    
+
 double MpvAdapter::getAudioDelay() const
 {
     double delay;
@@ -471,7 +471,7 @@ void MpvAdapter::open(const QString     &file,
         opts,
         NULL
     };
-    
+
     if (mpv_command(m_handle, args) < 0)
     {
         qDebug() << "Could not open file" << file;
@@ -495,7 +495,7 @@ void MpvAdapter::addSubtitle(const QString &file)
 {
     if (file.isEmpty())
         return;
-    
+
     QByteArray fileName = file.toUtf8();
 
     const char *args[3] = {
@@ -876,7 +876,7 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
         }
         }
     }
-    
+
     QByteArray keypress = key.toUtf8();
     const char *args[3] = {
         "keypress",

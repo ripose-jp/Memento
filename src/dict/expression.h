@@ -47,10 +47,10 @@ struct Tag
 
     bool operator==(const Tag &lhs)
     {
-        return name == lhs.name && 
+        return name == lhs.name &&
                category == lhs.category &&
                notes == lhs.notes &&
-               order == lhs.order && 
+               order == lhs.order &&
                score == lhs.score;
     }
 } typedef Tag;

@@ -22,8 +22,8 @@
 
 #include "tagwidget.h"
 
-GlossaryWidget::GlossaryWidget(const size_t          number, 
-                               const TermDefinition &def, 
+GlossaryWidget::GlossaryWidget(const size_t          number,
+                               const TermDefinition &def,
                                QWidget              *parent)
     : QWidget(parent),
       m_def(def)

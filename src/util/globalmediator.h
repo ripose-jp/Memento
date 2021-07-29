@@ -49,7 +49,7 @@ public:
     ~GlobalMediator() {}
 
     /**
-     * Unconditionally creates a new GlobalMediator that can be accessed by 
+     * Unconditionally creates a new GlobalMediator that can be accessed by
      * getGlobalMediator. This should only be called once, probably in main.
      * @return The created GlobalMediator.
      */
@@ -238,9 +238,9 @@ Q_SIGNALS:
      * @param end      The end time in seconds of the subtitle.
      * @param delay    The delay in seconds of the subtitle.
      */
-    void playerSubtitleChanged(QString      subtitle, 
-                               const double start, 
-                               const double end, 
+    void playerSubtitleChanged(QString      subtitle,
+                               const double start,
+                               const double end,
                                const double delay) const;
 
     /**

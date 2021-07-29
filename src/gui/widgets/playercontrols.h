@@ -92,7 +92,7 @@ protected:
      * @param event The show event, not used.
      */
     void showEvent(QShowEvent *event) override;
-    
+
 private Q_SLOTS:
     /**
      * Initializes the stylesheets and icons of the player.
@@ -109,10 +109,10 @@ private Q_SLOTS:
      */
     void toggleFullscreen();
 
-private:    
+private:
     /* UI object containing all the widgets. */
     Ui::PlayerControls *m_ui;
-    
+
     /* Current pause state of the player. */
     bool m_paused;
 

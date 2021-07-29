@@ -43,8 +43,8 @@ public:
      * @param def    The term definition to display.
      * @param parent The parent of the GlossaryWidget.
      */
-    GlossaryWidget(const size_t          number, 
-                   const TermDefinition &def, 
+    GlossaryWidget(const size_t          number,
+                   const TermDefinition &def,
                    QWidget              *parent = nullptr);
 
     /**

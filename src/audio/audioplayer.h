@@ -81,7 +81,7 @@ private:
      * @return true if it was played, false on error.
      */
     bool playFile(const QTemporaryFile *file);
-    
+
     /* The mpv context. Used for playing audio. */
     mpv_handle *m_mpv;
 

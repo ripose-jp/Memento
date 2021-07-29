@@ -127,7 +127,7 @@ private Q_SLOTS:
                      const double start,
                      const double end,
                      const double delay);
-    
+
     /**
      * Selects the text described by m_lastEmittedIndex and m_lastEmittedSize.
      */
@@ -179,7 +179,7 @@ private:
         /* The end time of the current subtitle. */
         double endTime;
     } m_subtitle;
-    
+
     /* Saved setting relevant to the widget. */
     struct Settings
     {
@@ -202,7 +202,7 @@ private:
         /* The modifier key that needs to be held. */
         Qt::Modifier modifier;
 
-        /* True if the player subtitle should be hidden when the widget is 
+        /* True if the player subtitle should be hidden when the widget is
          * visible, false otherwise.
          */
         bool hideSubsWhenVisible;
@@ -226,7 +226,7 @@ private:
         /* The size of the stroke. */
         double strokeSize;
     } m_settings;
-    
+
 };
 
 #endif // SUBTITLEWIDGET_H

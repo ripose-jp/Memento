@@ -120,15 +120,15 @@ int main(int argc, char *argv[])
         QMessageBox message;
         message.critical(
             0, "Error Creating Dict Directory",
-            "Could not make dictionary directory at " + 
+            "Could not make dictionary directory at " +
             DirectoryUtils::getDictionaryDir()
         );
         return EXIT_FAILURE;
     }
-    
+
     /* General Setup */
     setlocale(LC_NUMERIC, "C"); // mpv requires this
-    
+
     GlobalMediator::createGlobalMedaitor();
     GlobalMediator::getGlobalMediator()->setAudioPlayer(new AudioPlayer);
 

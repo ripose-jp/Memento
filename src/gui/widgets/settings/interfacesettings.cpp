@@ -48,7 +48,7 @@ InterfaceSettings::InterfaceSettings(QWidget *parent)
         [=] { askButtonColor(m_ui->buttonSubStroke, m_strokeColor); }
     );
 
-    connect(m_ui->checkStyleSheets, &QCheckBox::stateChanged, this, 
+    connect(m_ui->checkStyleSheets, &QCheckBox::stateChanged, this,
         [=] (const int state) {
             m_ui->frameStyleSheets->setEnabled(
                 state == Qt::CheckState::Checked
@@ -78,7 +78,7 @@ InterfaceSettings::InterfaceSettings(QWidget *parent)
     connect(
         m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Help),
         &QPushButton::clicked,
-        this, 
+        this,
         &InterfaceSettings::showHelp
     );
 }
@@ -150,7 +150,7 @@ void InterfaceSettings::restoreSaved()
     settings.beginGroup(SETTINGS_INTERFACE);
     m_ui->comboTheme->setCurrentIndex(
         settings.value(
-            SETTINGS_INTERFACE_THEME, 
+            SETTINGS_INTERFACE_THEME,
             (int)SETTINGS_INTERFACE_THEME_DEFAULT
         ).toInt()
     );

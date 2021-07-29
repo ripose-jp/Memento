@@ -20,7 +20,7 @@
 
 #include "sliderjumpstyle.h"
 
-int SliderJumpStyle::styleHint(QStyle::StyleHint hint, 
+int SliderJumpStyle::styleHint(QStyle::StyleHint hint,
                                const QStyleOption *option,
                                const QWidget *widget,
                                QStyleHintReturn *returnData) const

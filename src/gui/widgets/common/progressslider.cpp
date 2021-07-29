@@ -83,7 +83,7 @@ void StrokeLabel::paintEvent(QPaintEvent *event)
     cursor.select(QTextCursor::Document);
     cursor.mergeCharFormat(format);
     QTextEdit::paintEvent(event);
-    
+
     format = QTextCharFormat();
     format.setTextOutline(QPen(Qt::transparent));
     cursor.mergeCharFormat(format);
@@ -161,7 +161,7 @@ void ProgressSlider::initStylesheet()
             .arg(palette().window().color().darker().name())
             .arg(palette().highlight().color().name())
     );
-} 
+}
 
 /* End Constructor/Destructor */
 /* Begin Event Handlers */

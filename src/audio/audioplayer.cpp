@@ -98,7 +98,7 @@ bool AudioPlayer::playFile(const QTemporaryFile *file)
         fileName,
         NULL
     };
-    
+
     if (mpv_command(m_mpv, args) < 0)
     {
         return false;
@@ -138,7 +138,7 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
                 qDebug() << reply->errorString();
                 goto cleanup;
             }
-                
+
 
             if (!reply->open(QIODevice::ReadOnly))
             {
@@ -160,7 +160,7 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
             m_fileLock.lock();
             delete m_files[url];
             m_files[url] = file;
-            
+
             /* Check the hash */
             if (FileUtils::calculateMd5(file) == hash)
             {
@@ -175,10 +175,10 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
                 m_fileLock.unlock();
                 goto cleanup;
             }
-            
+
             m_fileLock.unlock();
 
-            res = true;            
+            res = true;
         cleanup:
             Q_EMIT audioReply->result(res);
             reply->deleteLater();

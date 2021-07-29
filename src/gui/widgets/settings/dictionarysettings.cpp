@@ -58,7 +58,7 @@ DictionarySettings::DictionarySettings(QWidget *parent)
         m_ui->listDictionaries, &QListWidget::currentRowChanged,
         this,                   [=] (int row) { setButtonsEnabled(row != -1); }
     );
-    
+
     connect(
         m_ui->buttonUp, &QToolButton::clicked,
         this,           &DictionarySettings::moveUp
@@ -143,7 +143,7 @@ void DictionarySettings::applySettings()
     settings.remove("");
     for (int i = 0; i < m_ui->listDictionaries->count(); ++i)
     {
-        settings.setValue(m_ui->listDictionaries->item(i)->text(), i);   
+        settings.setValue(m_ui->listDictionaries->item(i)->text(), i);
     }
     settings.endGroup();
 }
@@ -203,7 +203,7 @@ void DictionarySettings::deleteDictionary()
 {
     if (!m_ui->listDictionaries->count())
         return;
-    
+
     QListWidgetItem *item = m_ui->listDictionaries->takeItem(
         m_ui->listDictionaries->currentRow()
     );
@@ -225,7 +225,7 @@ void DictionarySettings::deleteDictionary()
             }
             delete item;
             setEnabled(true);
-        } 
+        }
     );
 }
 

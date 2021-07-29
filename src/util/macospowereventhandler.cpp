@@ -69,7 +69,7 @@ static void eventLoop(MacOSPowerEventHandler *handler)
         return;
     }
     CFRunLoopAddSource(
-        CFRunLoopGetCurrent(), 
+        CFRunLoopGetCurrent(),
         IONotificationPortGetRunLoopSource(notifyPortRef),
         kCFRunLoopCommonModes
     );

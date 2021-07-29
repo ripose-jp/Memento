@@ -111,7 +111,7 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent)
             }
         );
     }
-    
+
 
     FlowLayout *frequencies = new FlowLayout(-1, 6);
     for (const Frequency &freq : kanji->frequencies)
@@ -208,12 +208,12 @@ void KanjiWidget::buildDefinitionLabel(const KanjiDefinition &def,
 }
 
 void KanjiWidget::addKVSection(const QString &title,
-                               const QList<QPair<Tag, QString>> &pairs, 
+                               const QList<QPair<Tag, QString>> &pairs,
                                QVBoxLayout *layout)
 {
     if (pairs.isEmpty())
         return;
-    
+
     layout->addWidget(createLine());
     layout->addWidget(createLabel(title, true));
     layout->addWidget(createLine());

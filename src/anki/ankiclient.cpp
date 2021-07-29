@@ -209,7 +209,7 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         if (profile[CONFIG_DUPLICATE].isNull())
         {
             modified = true;
-            profile[CONFIG_DUPLICATE] = 
+            profile[CONFIG_DUPLICATE] =
                 AnkiConfig::DuplicatePolicy::DifferentDeck;
         }
         if (profile[CONFIG_SCREENSHOT].isNull())
@@ -362,7 +362,7 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
 
     if (m_currentConfig)
         setServer(m_currentConfig->address, m_currentConfig->port);
-    
+
     return true;
 }
 
@@ -370,7 +370,7 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
 {
     QFile configFile(DirectoryUtils::getConfigDir() + filename);
     if (!configFile.open(QIODevice::ReadWrite |
-                         QIODevice::Truncate | 
+                         QIODevice::Truncate |
                          QIODevice::Text))
     {
         qDebug() << "Could not open file" << filename;
@@ -686,7 +686,7 @@ AnkiReply *AnkiClient::notesAddable(const QList<const Kanji *> &kanjiList)
 AnkiReply *AnkiClient::addNote(const Term *term)
 {
     AnkiReply *ankiReply = new AnkiReply;
-    
+
     QThreadPool::globalInstance()->start(
         [=] {
             QJsonObject params;
@@ -703,7 +703,7 @@ AnkiReply *AnkiClient::addNote(const Term *term)
                     }
                 }
             );
-            
+
             Q_EMIT sendIntRequest(ANKI_ADD_NOTE, params, ankiReply);
         }
     );
@@ -714,8 +714,8 @@ AnkiReply *AnkiClient::addNote(const Term *term)
 AnkiReply *AnkiClient::addNote(const Kanji *kanji)
 {
     AnkiReply *ankiReply = new AnkiReply;
-    
-    
+
+
     QThreadPool::globalInstance()->start(
         [=] {
             QJsonObject params;
@@ -732,7 +732,7 @@ AnkiReply *AnkiClient::addNote(const Kanji *kanji)
                     }
                 }
             );
-            
+
             Q_EMIT sendIntRequest(ANKI_ADD_NOTE, params, ankiReply);
         }
     );
@@ -756,7 +756,7 @@ AnkiReply *AnkiClient::openBrowse(const QString &deck, const QString &query)
     params[ANKI_PARAM_QUERY] = queryStr;
     QNetworkReply *reply = makeRequest(ANKI_GUI_BROWSE, params);
     AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, this, 
+    connect(reply, &QNetworkReply::finished, this,
         [=] {
             QString error;
             QJsonObject replyObj = processReply(reply, error);
@@ -965,7 +965,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
         furigana      = term.expression;
         furiganaPlain = term.expression;
         reading       = term.expression;
-    } 
+    }
     else
     {
         furigana      = FURIGANA_FORMAT_STRING.arg(term.expression)
@@ -973,7 +973,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
         furiganaPlain = term.expression + "[" + term.reading + "]";
         reading       = term.reading;
     }
-        
+
     QString glossary        = buildGlossary(term.definitions);
     QString glossaryCompact = "<ol>";
 
@@ -1054,7 +1054,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
         if (!audio.isEmpty())
         {
             note[ANKI_NOTE_AUDIO] = audio;
-        }  
+        }
     }
 
     return note;
@@ -1079,7 +1079,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji,
     QString sentence    = QString(kanji.sentence).replace('\n', "<br>");
 
     QString frequencies = buildFrequencies(kanji.frequencies);
-    
+
     QString glossary;
     QString tags;
     QString strokeCount;
@@ -1111,7 +1111,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji,
                 }
                 glossary += "</ol>";
             }
-            
+
             /* Build tags */
             accumulateTags(def.tags, tags);
 
@@ -1155,7 +1155,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji,
     }
 
     /* Replace Markers */
-    QJsonArray fieldsWithAudio; 
+    QJsonArray fieldsWithAudio;
     QStringList fields = fieldsObj.keys();
     for (const QString &field : fields)
     {
@@ -1220,7 +1220,7 @@ void AnkiClient::buildCommonNote(const QJsonObject &configFields,
         ->getSecondaryContext("<br>");
     QString sentence2 = mediator->getPlayerAdapter()
         ->getSecondarySubtitle().replace('\n', "<br>");
-    QJsonArray fieldsWithAudioMedia; 
+    QJsonArray fieldsWithAudioMedia;
     QJsonArray fieldsWithScreenshot;
     QJsonArray fieldWithScreenshotVideo;
     QStringList fields = configFields.keys();
@@ -1261,14 +1261,14 @@ void AnkiClient::buildCommonNote(const QJsonObject &configFields,
         if (!fieldsWithAudioMedia.isEmpty())
         {
             QJsonObject audObj;
-            PlayerAdapter *player = 
+            PlayerAdapter *player =
                 GlobalMediator::getGlobalMediator()->getPlayerAdapter();
 
-            double startTime = player->getSubStart() + 
-                               player->getSubDelay() - 
-                               player->getAudioDelay() - 
+            double startTime = player->getSubStart() +
+                               player->getSubDelay() -
+                               player->getAudioDelay() -
                                m_currentConfig->audioPadStart;
-            double endTime = player->getSubEnd() + 
+            double endTime = player->getSubEnd() +
                              player->getSubDelay() -
                              player->getAudioDelay() +
                              m_currentConfig->audioPadEnd;
@@ -1307,13 +1307,13 @@ void AnkiClient::buildCommonNote(const QJsonObject &configFields,
         default:
             imageExt = ".jpg";
         }
-        
+
         QJsonArray images;
         if (!fieldsWithScreenshot.isEmpty())
         {
             QJsonObject image;
-            
-            PlayerAdapter *player = 
+
+            PlayerAdapter *player =
                 GlobalMediator::getGlobalMediator()->getPlayerAdapter();
             const bool visibility = player->getSubVisibility();
             player->setSubVisiblity(true);
@@ -1341,7 +1341,7 @@ void AnkiClient::buildCommonNote(const QJsonObject &configFields,
 
             QString filename = FileUtils::calculateMd5(path) + imageExt;
             image[ANKI_NOTE_FILENAME] = filename;
-            
+
             image[ANKI_NOTE_FIELDS] = fieldWithScreenshotVideo;
 
             if (filename != imageExt)
@@ -1353,7 +1353,7 @@ void AnkiClient::buildCommonNote(const QJsonObject &configFields,
         if (!images.isEmpty())
         {
             note[ANKI_NOTE_PICTURE] = images;
-        }    
+        }
     }
 }
 
@@ -1362,7 +1362,7 @@ void AnkiClient::buildCommonNote(const QJsonObject &configFields,
 
 #define PITCH_FORMAT    (QString("<span style=\"%1\">%2</span>"))
 
-void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches, 
+void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
                                 QString            &pitch,
                                 QString            &pitchGraph,
                                 QString            &pitchPosition)
@@ -1370,7 +1370,7 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
     pitch         += "<span class=\"memento-pitch\">";
     pitchGraph    += "<span>";
     pitchPosition += "<span>";
-    
+
     const bool multipleDicts = pitches.size() > 1;
 
     if (multipleDicts)
@@ -1379,7 +1379,7 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
         pitchGraph    += "<ul>";
         pitchPosition += "<ul>";
     }
-    
+
     for (const Pitch &p : pitches)
     {
         const bool multiplePitches = p.position.size() > 1;
@@ -1463,7 +1463,7 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
             pitchGraph = GraphicUtils::generatePitchGraph(
                     p.mora.size(), pos, "white", "black"
                 );
-            
+
             /* Build {pitch-posititon}s */
             pitchPosition += "[" + QString::number(pos) + "]";
 
@@ -1578,7 +1578,7 @@ QString &AnkiClient::accumulateTags(const QList<Tag> &tags, QString &tagStr)
 {
     if (tags.isEmpty())
         return tagStr;
-    
+
     for (const Tag &tag : tags)
     {
         tagStr += "<li>";

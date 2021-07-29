@@ -135,7 +135,7 @@ public:
 
     /**
      * Adds a profile. Replace the old profile if it existed.
-     * @param profile The name of the profile to add. 
+     * @param profile The name of the profile to add.
      * @param config  The configuration of the profile.
      */
     void addProfile(const QString &profile, const AnkiConfig &config);
@@ -198,7 +198,7 @@ public:
 
     /**
      * Gets the names of all Anki models.
-     * @return An AnkiReply that emits the finishedStringList() signal. Model 
+     * @return An AnkiReply that emits the finishedStringList() signal. Model
      *         names are values in the list. Caller does not have ownership.
      */
     AnkiReply *getModelNames();
@@ -207,7 +207,7 @@ public:
      * Gets the field names for the model.
      * @param model The name of the model.
      * @return An AnkiReply that emits the finishedStringList() signal. Fields
-     *         are values in the list. Caller does not have ownership. 
+     *         are values in the list. Caller does not have ownership.
      */
     AnkiReply *getFieldNames(const QString &model);
 
@@ -252,7 +252,7 @@ public:
      * @param deck  The name of the deck to search in.
      * @param query The query to search.
      * @return An AnkiReply that emits the finishedIntList() signal. Integer
-     *         values are 
+     *         values are
      */
     AnkiReply *openBrowse(const QString &deck, const QString &query);
 
@@ -266,7 +266,7 @@ Q_SIGNALS:
      * @param ankiReply The AnkiReply to emit the finishedInt() signal on.
      */
     void sendIntRequest(const QString     &action,
-                        const QJsonObject &params, 
+                        const QJsonObject &params,
                         AnkiReply         *ankiReply);
 
 private Q_SLOTS:
@@ -318,7 +318,7 @@ private:
     /**
      * Error checks the AnkiConnect reply.
      * @param reply      The reply to error check.
-     * @param[out] error The reason the command failed. Empty string if no 
+     * @param[out] error The reason the command failed. Empty string if no
      *                   error.
      * @return The JSON object AnkiConnect replied with.
      */
@@ -387,7 +387,7 @@ private:
      *                           marker.
      */
     void buildPitchInfo(const QList<Pitch> &pitches,
-                        QString            &pitch, 
+                        QString            &pitch,
                         QString            &pitchGraph,
                         QString            &pitchPosition);
 

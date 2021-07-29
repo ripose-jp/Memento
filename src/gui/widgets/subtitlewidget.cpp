@@ -160,7 +160,7 @@ void SubtitleWidget::initTheme()
     font.setStyleStrategy(QFont::PreferAntialias);
     setFont(font);
 
-    QString stylesheetFormat = 
+    QString stylesheetFormat =
         "QTextEdit {"
             "font-size: %1px;"
             "color: rgba(%2, %3, %4, %5);"
@@ -168,20 +168,20 @@ void SubtitleWidget::initTheme()
         "}";
 
     int fontSize = (int)
-        GlobalMediator::getGlobalMediator()->getPlayerWidget()->height() * 
+        GlobalMediator::getGlobalMediator()->getPlayerWidget()->height() *
         settings.value(
             SETTINGS_INTERFACE_SUB_SCALE,
             SETTINGS_INTERFACE_SUB_SCALE_DEFAULT
         ).toDouble();
     QColor fontColor(
         settings.value(
-            SETTINGS_INTERFACE_SUB_TEXT_COLOR, 
+            SETTINGS_INTERFACE_SUB_TEXT_COLOR,
             SETTINGS_INTERFACE_SUB_TEXT_COLOR_DEFAULT
         ).toString()
     );
     QColor bgColor(
         settings.value(
-            SETTINGS_INTERFACE_SUB_BG_COLOR, 
+            SETTINGS_INTERFACE_SUB_BG_COLOR,
             SETTINGS_INTERFACE_SUB_BG_COLOR_DEFAULT
         ).toString()
     );
@@ -292,7 +292,7 @@ void SubtitleWidget::initSettings()
             DEFAULT_HIDE_BAR
         ).toBool();
     adjustVisibility();
-    
+
     m_settings.replaceNewLines = settings.value(
             SETTINGS_SEARCH_REPLACE_LINES,
             DEFAULT_REPLACE_LINES
@@ -339,14 +339,14 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
     {
         return;
     }
-    
+
     switch (m_settings.method)
     {
     case Settings::SearchMethod::Hover:
         m_currentIndex = position;
         m_findDelay->start(m_settings.delay);
         break;
-        
+
     case Settings::SearchMethod::Modifier:
         if (QGuiApplication::keyboardModifiers() & m_settings.modifier)
         {
@@ -371,7 +371,7 @@ void SubtitleWidget::leaveEvent(QEvent *event)
 }
 
 void SubtitleWidget::resizeEvent(QResizeEvent *event)
-{    
+{
     setAlignment(Qt::AlignHCenter);
     if (!m_subtitle.rawText.isEmpty())
         fitToContents();
@@ -398,7 +398,7 @@ void SubtitleWidget::paintEvent(QPaintEvent *event)
     cursor.select(QTextCursor::Document);
     cursor.mergeCharFormat(format);
     QTextEdit::paintEvent(event);
-    
+
     format = QTextCharFormat();
     format.setTextOutline(QPen(Qt::transparent)); // Potential SIGSEGV
     cursor.mergeCharFormat(format);
@@ -475,7 +475,7 @@ void SubtitleWidget::adjustVisibility()
 
 void SubtitleWidget::positionChanged(const double value)
 {
-    if (value < m_subtitle.startTime - DOUBLE_DELTA || 
+    if (value < m_subtitle.startTime - DOUBLE_DELTA ||
         value > m_subtitle.endTime + DOUBLE_DELTA)
     {
         m_subtitle.rawText.clear();
@@ -486,7 +486,7 @@ void SubtitleWidget::positionChanged(const double value)
 }
 
 void SubtitleWidget::setSubtitle(QString subtitle,
-                                 const double start, 
+                                 const double start,
                                  const double end,
                                  const double delay)
 {
@@ -497,7 +497,7 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     {
         subtitle.replace('\n', m_settings.replaceStr);
     }
-        
+
     /* Add it to the text edit */
     clear();
     QStringList subList = subtitle.split('\n');
@@ -505,7 +505,7 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     {
         if (text.isEmpty())
             continue;
-        
+
         append(text);
         setAlignment(Qt::AlignHCenter);
     }
@@ -519,7 +519,7 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     {
         fitToContents();
     }
-    
+
     /* Keep track of when to delete the subtitle */
     m_subtitle.startTime = start + delay;
     m_subtitle.endTime = end + delay;
@@ -533,7 +533,7 @@ void SubtitleWidget::selectText()
     QTextCursor q = textCursor();
     q.setPosition(m_lastEmittedIndex);
     q.setPosition(
-        m_lastEmittedIndex + m_lastEmittedSize, 
+        m_lastEmittedIndex + m_lastEmittedSize,
         QTextCursor::KeepAnchor
     );
     setTextCursor(q);

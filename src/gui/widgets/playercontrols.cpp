@@ -27,14 +27,14 @@
 
 /* Begin Constructor/Destructor */
 
-PlayerControls::PlayerControls(QWidget *parent) 
-    : QWidget(parent), 
+PlayerControls::PlayerControls(QWidget *parent)
+    : QWidget(parent),
       m_ui(new Ui::PlayerControls),
       m_ignorePause(false),
       m_paused(true)
 {
     m_ui->setupUi(this);
-    
+
 #if __APPLE__
     m_ui->layoutButtons->setSpacing(2);
 #endif
@@ -45,13 +45,13 @@ PlayerControls::PlayerControls(QWidget *parent)
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     /* Signals */
-    connect(m_ui->sliderProgress, &QSlider::sliderPressed, this, 
+    connect(m_ui->sliderProgress, &QSlider::sliderPressed, this,
         [=] {
             m_ignorePause = !m_paused;
             Q_EMIT mediator->controlsPause();
         }
     );
-    connect(m_ui->sliderProgress, &QSlider::sliderReleased, this, 
+    connect(m_ui->sliderProgress, &QSlider::sliderReleased, this,
         [=] {
             if (m_ignorePause)
             {
@@ -62,7 +62,7 @@ PlayerControls::PlayerControls(QWidget *parent)
     );
     connect(
         m_ui->sliderProgress, &QSlider::valueChanged,
-        mediator,             &GlobalMediator::controlsPositionChanged, 
+        mediator,             &GlobalMediator::controlsPositionChanged,
         Qt::QueuedConnection
     );
     connect(
@@ -216,7 +216,7 @@ void PlayerControls::setPosition(const double value)
 {
     if (value > m_duration)
         return;
-    
+
     m_ui->sliderProgress->blockSignals(true);
     m_ui->sliderProgress->setValue(value);
     m_ui->sliderProgress->blockSignals(false);

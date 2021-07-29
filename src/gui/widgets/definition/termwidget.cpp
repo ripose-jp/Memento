@@ -64,10 +64,10 @@
 
 TermWidget::TermWidget(const Term               *term,
                        const QList<AudioSource> *sources,
-                       QWidget                  *parent) 
-    : QWidget(parent), 
-      m_ui(new Ui::TermWidget), 
-      m_term(term), 
+                       QWidget                  *parent)
+    : QWidget(parent),
+      m_ui(new Ui::TermWidget),
+      m_term(term),
       m_client(GlobalMediator::getGlobalMediator()->getAnkiClient()),
       m_sources(sources)
 {
@@ -85,7 +85,7 @@ TermWidget::TermWidget(const Term               *term,
     m_ui->verticalLayout->addLayout(m_layoutFreqTags);
     m_ui->verticalLayout->addLayout(m_layoutPitches);
     m_ui->verticalLayout->addLayout(m_layoutGlossary);
-    
+
     m_ui->verticalLayout->addStretch();
 
     IconFactory *factory = IconFactory::create();
@@ -126,7 +126,7 @@ TermWidget::TermWidget(const Term               *term,
                 const AudioSource &src = m_sources->first();
                 playAudio(src.url, src.md5);
             }
-        } 
+        }
     );
 }
 
@@ -197,7 +197,7 @@ void TermWidget::addNote()
     term->definitions.clear();
     for (size_t i = 0; i < m_layoutGlossary->count(); ++i)
     {
-        GlossaryWidget *widget = 
+        GlossaryWidget *widget =
             (GlossaryWidget *)m_layoutGlossary->itemAt(i)->widget();
         if (widget->isChecked())
         {
@@ -242,7 +242,7 @@ void TermWidget::searchAnki()
 void TermWidget::playAudio(QString url, const QString &hash)
 {
     m_ui->buttonAudio->setEnabled(false);
-    AudioPlayerReply *reply = 
+    AudioPlayerReply *reply =
         GlobalMediator::getGlobalMediator()->getAudioPlayer()->playAudio(
             url.replace(REPLACE_EXPRESSION, m_term->expression)
                .replace(REPLACE_READING, m_term->reading),
@@ -252,7 +252,7 @@ void TermWidget::playAudio(QString url, const QString &hash)
 
     if (reply)
     {
-        connect(reply, &AudioPlayerReply::result, this, 
+        connect(reply, &AudioPlayerReply::result, this,
             [=] (const bool success) {
                 if (!success)
                 {
@@ -261,7 +261,7 @@ void TermWidget::playAudio(QString url, const QString &hash)
                         factory->getIcon(IconFactory::noaudio)
                     );
                 }
-                m_ui->buttonAudio->setEnabled(true); 
+                m_ui->buttonAudio->setEnabled(true);
             }
         );
     }
@@ -283,7 +283,7 @@ void TermWidget::showAudioSources(const QPoint &pos)
 
 void TermWidget::searchKanji(const QString &ch)
 {
-    Kanji *kanji = 
+    Kanji *kanji =
         GlobalMediator::getGlobalMediator()->getDictionary()->searchKanji(ch);
     if (kanji)
     {
@@ -304,7 +304,7 @@ void TermWidget::setAddable(bool value)
     m_ui->buttonAnkiOpen->setVisible(!value);
     for (size_t i = 0; i < m_layoutGlossary->count(); ++i)
     {
-        GlossaryWidget *widget = 
+        GlossaryWidget *widget =
             (GlossaryWidget *)m_layoutGlossary->itemAt(i)->widget();
         widget->setCheckable(value);
     }
@@ -315,7 +315,7 @@ void TermWidget::setAddable(bool value)
 
 inline QString TermWidget::generateJishoLink(const QString &exp)
 {
-    return 
+    return
         QString("<a href=\"https://jisho.org/search/%1\">Jisho</a>").arg(exp);
 }
 
@@ -326,7 +326,7 @@ inline QString TermWidget::generateJishoLink(const QString &exp)
 
 inline bool TermWidget::isKanji(const QString &ch)
 {
-    return 
+    return
         ch >= KANJI_UNICODE_LOWER_COMMON && ch <= KANJI_UNICODE_UPPER_COMMON ||
         ch >= KANJI_UNICODE_LOWER_RARE   && ch <= KANJI_UNICODE_UPPER_RARE;
 }

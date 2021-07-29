@@ -93,7 +93,7 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, QWidget *parent)
         m_ui->scrollAreaContents->layout()->addWidget(buttonShowMore);
         connect(buttonShowMore, &QPushButton::clicked, this,
             [=] {
-                QLayoutItem *showMoreItem = 
+                QLayoutItem *showMoreItem =
                     m_ui->scrollAreaContents->layout()->takeAt(
                         m_ui->scrollAreaContents->layout()->count() - 1
                     );
@@ -110,7 +110,7 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, QWidget *parent)
                 }
                 else
                 {
-                    QLayoutItem *lineItem = 
+                    QLayoutItem *lineItem =
                         m_ui->scrollAreaContents->layout()->takeAt(
                             m_ui->scrollAreaContents->layout()->count() - 1
                         );
@@ -131,12 +131,12 @@ DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, QWidget *parent)
         delete item->widget();
         delete item;
     }
-    
+
     /* Check if entries are addable to Anki */
     if (m_client->isEnabled())
     {
         AnkiReply *reply = m_client->notesAddable(*terms);
-        connect(reply, &AnkiReply::finishedBoolList, this, 
+        connect(reply, &AnkiReply::finishedBoolList, this,
             [=] (const QList<bool> &addable, const QString &error) {
                 if (error.isEmpty())
                 {
@@ -212,7 +212,7 @@ void DefinitionWidget::showTerms(const size_t start, const size_t end)
     setUpdatesEnabled(false);
     for (size_t i = start; i < m_terms->size() && i < end; ++i)
     {
-        TermWidget *termWidget = 
+        TermWidget *termWidget =
             new TermWidget(m_terms->at(i), &m_sources, this);
         connect(
             termWidget, &TermWidget::kanjiSearched,
@@ -225,7 +225,7 @@ void DefinitionWidget::showTerms(const size_t start, const size_t end)
         line->setFrameShape(QFrame::HLine);
         line->setFrameShadow(QFrame::Sunken);
         line->setLineWidth(1);
-        m_ui->scrollAreaContents->layout()->addWidget(line);        
+        m_ui->scrollAreaContents->layout()->addWidget(line);
     }
     setUpdatesEnabled(true);
 }

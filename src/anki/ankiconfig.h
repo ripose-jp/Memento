@@ -147,11 +147,11 @@ struct AnkiConfig
         termDeck        = rhs.termDeck;
         termModel       = rhs.termModel;
         termFields      = rhs.termFields;
-        
+
         kanjiDeck       = rhs.kanjiDeck;
         kanjiModel      = rhs.kanjiModel;
         kanjiFields     = rhs.kanjiFields;
-        
+
         return *this;
     }
 };

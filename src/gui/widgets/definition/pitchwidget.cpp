@@ -83,7 +83,7 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
     else
     {
         layoutParent = new QHBoxLayout(this);
-    } 
+    }
     layoutParent->setMargin(0);
 
     layoutParent->addWidget(new TagWidget(pitch), 0, Qt::AlignLeft);
@@ -95,7 +95,7 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
         layoutLine->setMargin(0);
         layoutLine->setSpacing(0);
         layoutParent->addLayout(layoutLine);
-        
+
         switch (pos)
         {
         case 0:
@@ -144,7 +144,7 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
                 style = HL_STYLE.arg(color);
                 layoutLine->addWidget(createLabel(text, style));
             }
-                
+
             text.clear();
             for (size_t i = pos; i < pitch.mora.size(); ++i)
             {

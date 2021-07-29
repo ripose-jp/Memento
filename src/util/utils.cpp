@@ -138,7 +138,7 @@ void NetworkUtils::checkForUpdates()
             if (reply->error())
             {
                 Q_EMIT mediator->showCritical(
-                    "Error", 
+                    "Error",
                     "Could not check for updates:\n" + reply->errorString()
                 );
                 goto cleanup;
@@ -147,21 +147,21 @@ void NetworkUtils::checkForUpdates()
             /* Error check the reply to make sure it was valid */
             replyDoc = QJsonDocument::fromJson(reply->readAll());
             if (replyDoc.isNull() ||
-                !replyDoc.isArray() || 
+                !replyDoc.isArray() ||
                 replyDoc.array().isEmpty() ||
                 !replyDoc.array().first().isObject() ||
                 !replyDoc.array().first().toObject()["tag_name"].isString() ||
                 !replyDoc.array().first().toObject()["html_url"].isString())
             {
                 Q_EMIT mediator->showCritical(
-                    "Error", 
+                    "Error",
                     "Server did not send a valid reply.\n"
                     "Check manually <a href='" + GITHUB_RELEASES +
                     "'>here</a>"
                 );
                 goto cleanup;
             }
-            
+
             /* Get the url and tag */
             url = replyDoc.array().first().toObject()["html_url"].toString();
             tag = replyDoc.array().first().toObject()["tag_name"].toString();
@@ -180,7 +180,7 @@ void NetworkUtils::checkForUpdates()
             Q_EMIT mediator->showInformation(
                 "Up to Date", "Memento is up to date"
             );
-        
+
         cleanup:
             reply->deleteLater();
             manager->deleteLater();
