@@ -114,8 +114,15 @@ protected:
 
     /**
      * Repositions the subtitle search and removes the DefinitionWidget.
+     * @param event The resize event.
      */
     void resizeEvent(QResizeEvent *event) override;
+
+    /**
+     * Emits a signal when the window focus is changed.
+     * @param event The change event.
+     */
+    void changeEvent(QEvent *event) override;
 
 private Q_SLOTS:
     /**

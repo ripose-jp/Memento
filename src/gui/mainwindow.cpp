@@ -576,6 +576,15 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     QMainWindow::mousePressEvent(event);
 }
 
+void MainWindow::changeEvent(QEvent *event)
+{
+    QMainWindow::changeEvent(event);
+    if (event->type() == QEvent::ActivationChange)
+    {
+        Q_EMIT m_mediator->windowFocusChanged(isActiveWindow());
+    }
+}
+
 /* End Event Handlers */
 /* Begin Subtitle Widget Helpers */
 

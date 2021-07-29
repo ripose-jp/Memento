@@ -109,14 +109,7 @@ private Q_SLOTS:
      */
     void toggleFullscreen();
 
-private:
-    /**
-     * Creates an (HH):MM:SS timecode from the supplied time.
-     * @param time The time in seconds.
-     * @return (HH):MM:SS timestamp string.
-     */
-    QString formatTime(const int64_t time);
-    
+private:    
     /* UI object containing all the widgets. */
     Ui::PlayerControls *m_ui;
     

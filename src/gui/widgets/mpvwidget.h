@@ -105,6 +105,12 @@ Q_SIGNALS:
     void tracklistChanged(const mpv_node *node) const;
 
     /**
+     * Emitted when the chapters change.
+     * @param chapters A list of the starting time in seconds of each chapter.
+     */
+    void chaptersChanged(const QList<double> &chapters) const;
+
+    /**
      * Emitted when the title of the current media file changes.
      * @param name The title of the current media file, path if there is no
      *             title.

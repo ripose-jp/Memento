@@ -35,10 +35,15 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     GlobalMediator::getGlobalMediator()->setPlayerAdapter(this);
 
     /* Signals */
-    connect(m_mpv, &MpvWidget::tracklistChanged, this, 
+    connect(
+        m_mpv, &MpvWidget::tracklistChanged, this, 
         [=] (const mpv_node *node) {
             Q_EMIT mediator->playerTracksChanged(processTracks(node));
         }
+    );
+    connect(
+        m_mpv, &MpvWidget::chaptersChanged,
+        mediator, &GlobalMediator::playerChaptersChanged
     );
 
     connect(

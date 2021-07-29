@@ -162,9 +162,18 @@
     </widget>
    </item>
    <item>
-    <widget class="QSlider" name="sliderProgress">
+    <widget class="ProgressSlider" name="sliderProgress">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="focusPolicy">
       <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="maximum">
+      <number>0</number>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -269,6 +278,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ProgressSlider</class>
+   <extends>QSlider</extends>
+   <header>src/gui/widgets/common/progressslider.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

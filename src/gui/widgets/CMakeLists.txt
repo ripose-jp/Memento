@@ -72,6 +72,7 @@ target_link_libraries(
     iconfactory
     sliderjumpstyle
     subtitlewidget
+    progressslider
 )
 
 add_subdirectory(settings)

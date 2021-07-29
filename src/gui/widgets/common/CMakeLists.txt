@@ -17,6 +17,17 @@ target_link_libraries(
 )
 
 add_library(
+    progressslider
+    progressslider.cpp
+)
+target_link_libraries(
+    progressslider
+    sliderjumpstyle
+    Qt5::Widgets
+    Qt5::Core
+)
+
+add_library(
     scrollcombobox
     scrollcombobox.h
 )

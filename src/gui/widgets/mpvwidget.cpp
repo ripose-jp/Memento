@@ -113,6 +113,7 @@ MpvWidget::MpvWidget(QWidget *parent)
         QCoreApplication::exit(EXIT_FAILURE);
     }
 
+    mpv_observe_property(mpv, 0, "chapter-list",       MPV_FORMAT_NODE);
     mpv_observe_property(mpv, 0, "duration",           MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv, 0, "fullscreen",         MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, 0, "media-title",        MPV_FORMAT_STRING);
@@ -172,6 +173,42 @@ MpvWidget::~MpvWidget()
 
 void MpvWidget::initPropertyMap()
 {
+    m_propertyMap["chapter-list"] =
+        [=] (mpv_event_property *prop)
+        {
+            if (prop->format != MPV_FORMAT_NODE)
+            {
+                return;
+            }
+            mpv_node *node = (mpv_node *)prop->data;
+
+            if (node->format != MPV_FORMAT_NODE_ARRAY)
+            {
+                return;
+            }
+            mpv_node_list *arr = node->u.list;
+
+            QList<double> chapters;
+            for (size_t i = 0; i < arr->num; ++i)
+            {
+                if (arr->values[i].format != MPV_FORMAT_NODE_MAP)
+                {
+                    continue;
+                }
+                mpv_node_list *map = arr->values[i].u.list;
+                for (size_t j = 0; j < map->num; ++j)
+                {
+                    if (map->values[j].format == MPV_FORMAT_DOUBLE && 
+                        strcmp(map->keys[j], "time") == 0)
+                    {
+                        chapters << map->values[j].u.double_;
+                    }
+                }
+            }
+
+            Q_EMIT chaptersChanged(chapters);
+        };
+
     m_propertyMap["duration"] =
         [=] (mpv_event_property *prop) {
             if (prop->format == MPV_FORMAT_DOUBLE)

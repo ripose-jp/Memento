@@ -182,6 +182,12 @@ Q_SIGNALS:
     void playerTracksChanged(QList<const Track *> tracks) const;
 
     /**
+     * Emitted when the player chapters change.
+     * @param chapters A list of the chapter start times in seconds.
+     */
+    void playerChaptersChanged(QList<double> chapters) const;
+
+    /**
      * Emitted when the current audio track is changed.
      * @param id The id of the audio track.
      */
@@ -460,6 +466,12 @@ Q_SIGNALS:
      * Emitted when the subtitle list is shown.
      */
     void subtitleListShown() const;
+
+    /**
+     * Emitted when the window focus changes.
+     * @param inFocus true if the window is in focus, false otherwise.
+     */
+    void windowFocusChanged(bool inFocus) const;
 
     /* End Subtitle List Widget */
     /* Begin Request Changes */

@@ -128,6 +128,10 @@ PlayerControls::PlayerControls(QWidget *parent)
         mediator, &GlobalMediator::requestThemeRefresh,
         this,     &PlayerControls::initTheme
     );
+    connect(
+        mediator,             &GlobalMediator::playerChaptersChanged,
+        m_ui->sliderProgress, &ProgressSlider::setChapters
+    );
 }
 
 PlayerControls::~PlayerControls()
@@ -179,7 +183,6 @@ void PlayerControls::initTheme()
     );
     m_ui->buttonToggleSubList->setAutoRaise(true);
 
-    m_ui->sliderProgress->setStyle(new SliderJumpStyle(QApplication::style()));
     m_ui->sliderVolume->setStyle(new SliderJumpStyle(QApplication::style()));
 }
 
@@ -206,7 +209,7 @@ void PlayerControls::setDuration(const double value)
     setPosition(0);
     m_duration = value;
     m_ui->sliderProgress->setRange(0, value);
-    m_ui->labelTotal->setText(formatTime(value));
+    m_ui->labelTotal->setText(ProgressSlider::formatTime(value));
 }
 
 void PlayerControls::setPosition(const double value)
@@ -217,7 +220,7 @@ void PlayerControls::setPosition(const double value)
     m_ui->sliderProgress->blockSignals(true);
     m_ui->sliderProgress->setValue(value);
     m_ui->sliderProgress->blockSignals(false);
-    m_ui->labelCurrent->setText(formatTime(value));
+    m_ui->labelCurrent->setText(ProgressSlider::formatTime(value));
 }
 
 void PlayerControls::setPaused(const bool paused)
@@ -284,35 +287,3 @@ void PlayerControls::toggleFullscreen()
 }
 
 /* End Button Implementations */
-
-
-#define SECONDS_IN_MINUTE   60
-#define SECONDS_IN_HOUR     3600
-#define FILL_SPACES         2
-#define BASE_TEN            10
-#define FILL_CHAR           '0'
-
-QString PlayerControls::formatTime(const int64_t time)
-{
-    int hours   = time / SECONDS_IN_HOUR;
-    int minutes = (time % SECONDS_IN_HOUR) / SECONDS_IN_MINUTE;
-    int seconds = time % SECONDS_IN_MINUTE;
-
-    QString formatted = QString("%1:%2")
-        .arg(minutes, FILL_SPACES, BASE_TEN, QChar(FILL_CHAR))
-        .arg(seconds, FILL_SPACES, BASE_TEN, QChar(FILL_CHAR));
-    if (hours)
-    {
-        formatted.prepend(QString("%1:").arg(hours));
-    }
-
-    return formatted;
-}
-
-#undef SECONDS_IN_MINUTE
-#undef SECONDS_IN_HOUR
-#undef FILL_SPACES
-#undef BASE_TEN
-#undef FILL_CHAR
-
-/* End Helpers */
