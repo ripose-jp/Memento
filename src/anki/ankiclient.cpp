@@ -231,8 +231,8 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         {
             modified = true;
             profile[CONFIG_AUDIO_NAME] = SETTINGS_AUDIO_SRC_NAME_DEFAULT;
-            profile.remove(CONFIG_AUDIO_URL);
-            profile.remove(CONFIG_AUDIO_HASH);
+            profile[CONFIG_AUDIO_URL]  = SETTINGS_AUDIO_SRC_URL_DEFAULT;
+            profile[CONFIG_AUDIO_HASH] = SETTINGS_AUDIO_SRC_MD5_DEFAULT;
         }
         if (profile[CONFIG_AUDIO_URL].isNull())
         {
@@ -337,7 +337,7 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
             profile[CONFIG_SCREENSHOT].toInt(AnkiConfig::FileType::jpg);
         config->audio.name      = profile[CONFIG_AUDIO_NAME].toString();
         config->audio.url       = profile[CONFIG_AUDIO_URL].toString();
-        config->audio.name      = profile[CONFIG_AUDIO_HASH].toString();
+        config->audio.md5       = profile[CONFIG_AUDIO_HASH].toString();
         config->audioPadStart   = profile[CONFIG_AUDIO_PAD_START].toDouble();
         config->audioPadEnd     = profile[CONFIG_AUDIO_PAD_END].toDouble();
         config->tags            = profile[CONFIG_TAGS].toArray();
