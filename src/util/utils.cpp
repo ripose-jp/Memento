@@ -131,6 +131,9 @@ void NetworkUtils::checkForUpdates()
         [=] {
             GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
             QJsonDocument replyDoc;
+            QJsonArray replyArr;
+            QJsonValue replyVal;
+            QJsonObject replyObj;
             QString tag;
             QString url;
 
@@ -146,25 +149,29 @@ void NetworkUtils::checkForUpdates()
 
             /* Error check the reply to make sure it was valid */
             replyDoc = QJsonDocument::fromJson(reply->readAll());
-            if (replyDoc.isNull() ||
-                !replyDoc.isArray() ||
-                replyDoc.array().isEmpty() ||
-                !replyDoc.array().first().isObject() ||
-                !replyDoc.array().first().toObject()["tag_name"].isString() ||
-                !replyDoc.array().first().toObject()["html_url"].isString())
+            if (replyDoc.isNull() || !replyDoc.isArray())
             {
-                Q_EMIT mediator->showCritical(
-                    "Error",
-                    "Server did not send a valid reply.\n"
-                    "Check manually <a href='" + GITHUB_RELEASES +
-                    "'>here</a>"
-                );
-                goto cleanup;
+                goto error;
+            }
+            replyArr = replyDoc.array();
+            if (replyArr.isEmpty())
+            {
+                goto error;
+            }
+            replyVal = replyArr.first();
+            if (!replyVal.isObject())
+            {
+                goto error;
+            }
+            replyObj = replyVal.toObject();
+            tag = replyObj.value("tag_name").toString();
+            url = replyObj.value("html_url").toString();
+            if (tag.isEmpty() || url.isEmpty())
+            {
+                goto error;
             }
 
             /* Get the url and tag */
-            url = replyDoc.array().first().toObject()["html_url"].toString();
-            tag = replyDoc.array().first().toObject()["tag_name"].toString();
             if (tag != VERSION)
             {
                 Q_EMIT mediator->showInformation(
@@ -182,6 +189,17 @@ void NetworkUtils::checkForUpdates()
             );
 
         cleanup:
+            reply->deleteLater();
+            manager->deleteLater();
+            return;
+
+        error:
+            Q_EMIT mediator->showCritical(
+                "Error",
+                "Server did not send a valid reply.\n"
+                "Check manually <a href='" + GITHUB_RELEASES +
+                "'>here</a>"
+            );
             reply->deleteLater();
             manager->deleteLater();
         }
