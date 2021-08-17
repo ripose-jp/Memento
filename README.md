@@ -1,10 +1,10 @@
 # Memento
 
-## Overview
+[![AUR](https://img.shields.io/aur/version/memento)](https://aur.archlinux.org/packages/memento/)
 
-Memento is a FOSS, mpv-based video player intended for studying Japanese.
+Memento is a FOSS, mpv-based video player for studying Japanese.
 
-![image info](example.png)
+![Example](example.png)
 
 ## Features
 
@@ -44,12 +44,12 @@ Memento is a FOSS, mpv-based video player intended for studying Japanese.
 
 ### Windows: MSVCR100.dll is Missing When Trying to Stream
 
-This error can be fixed by installing the 
+This error can be fixed by installing the
 [Microsoft Visual C++ 2010 Service Pack 1 Redistributable Package (x86)](https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x86.exe).
 
 ## Dependencies
 
-* Qt5
+* Qt5 (>= 5.15)
     * QtCore
     * QtGui
     * QtWidgets
@@ -69,7 +69,7 @@ and the [Kanji Stroke Order](https://drive.google.com/uc?export=download&id=1oyQ
 
 ## Building
 
-**I do not guarantee that any branch will successfully build or be bug-free.** 
+**I do not guarantee that any branch will successfully build or be bug-free.**
 **If you want to build a stable version of Memento, compile a [release](https://github.com/ripose-jp/Memento/releases) from source.**
 
 ### Linux
@@ -112,7 +112,7 @@ sudo make install
 
 **Important Note:** The OS X version of Memento has a myriad of problems that make it
 unusable for casual use. This build guide is intended for OS X developers interested
-in fixing the OS X port of Memento. Check this [issue](https://github.com/ripose-jp/Memento/issues/7) 
+in fixing the OS X port of Memento. Check this [issue](https://github.com/ripose-jp/Memento/issues/7)
 for a list of confirmed bugs or to contribute new bugs.
 
 1. Install [Homebrew](https://brew.sh/) with this command:
