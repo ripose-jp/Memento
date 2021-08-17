@@ -17,3 +17,19 @@ add_executable(
     ${APP_ICON_RESOURCE_WINDOWS}
 )
 target_link_libraries(memento mainwindow)
+
+if(UNIX AND NOT APPLE)
+	install(
+		TARGETS memento
+		DESTINATION bin
+		COMPONENT binaries
+	)
+	install(
+		FILES ${PROJECT_SOURCE_DIR}/res/memento.desktop
+		DESTINATION share/applications
+	)
+	install(
+		FILES ${PROJECT_SOURCE_DIR}/res/memento.svg
+		DESTINATION share/icons/hicolor/scalable/apps
+	)
+endif()

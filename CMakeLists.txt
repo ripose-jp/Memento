@@ -46,19 +46,3 @@ find_library(JSONC json-c)
 find_library(LIBZIP zip)
 
 add_subdirectory(src)
-
-if(UNIX AND NOT APPLE)
-	install(
-		TARGETS memento
-		DESTINATION bin
-		COMPONENT binaries
-	)
-	install(
-		FILES res/memento.desktop
-		DESTINATION share/applications
-	)
-	install(
-		FILES res/memento.svg
-		DESTINATION share/icons/hicolor/scalable/apps
-	)
-endif()
