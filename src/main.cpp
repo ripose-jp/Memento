@@ -85,7 +85,6 @@ int main(int argc, char *argv[])
     /* Image Formats Windows */
     QCoreApplication::addLibraryPath(DirectoryUtils::getProgramDirectory());
 #endif
-    QGuiApplication::setWindowIcon(QIcon(":memento.svg"));
     /* HiDPI support */
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
@@ -96,6 +95,9 @@ int main(int argc, char *argv[])
 
     /* Construct the application */
     QApplication memento(argc, argv);
+
+    /* Set the window icon */
+    QGuiApplication::setWindowIcon(QIcon(":memento.svg"));
 
     /* Update settings */
     updateSettings();

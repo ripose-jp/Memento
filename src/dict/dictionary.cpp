@@ -38,6 +38,13 @@
                        "ipadic" + SLASH + "dicrc " \
                        "-d " + DirectoryUtils::getDictionaryDir() + \
                        "ipadic").toUtf8()
+#elif APPIMAGE
+    #include <QCoreApplication>
+
+    #define MECAB_ARG ( \
+        "-r " + QCoreApplication::applicationDirPath() + "/../lib/mecab/dic/ipadic/dicrc " + \
+        "-d " + QCoreApplication::applicationDirPath() + "/../lib/mecab/dic/ipadic" \
+    ).toUtf8()
 #elif __linux__ || __APPLE__
     #define MECAB_ARG ("")
 #endif
