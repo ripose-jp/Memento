@@ -518,13 +518,12 @@ int DatabaseManager::populateTerms(const QList<Term *> &terms) const
                 term->tags
             );
 
-            TermDefinition def {
-                .dictionary = getDictionary(id),
-                .glossary = jsonArrayToStringList(
-                        (const char *)sqlite3_column_text(stmt, COLUMN_GLOSSARY)
-                    ),
-                .score = sqlite3_column_int(stmt, COLUMN_SCORE),
-            };
+            TermDefinition def;
+            def.dictionary = getDictionary(id);
+            def.glossary = jsonArrayToStringList(
+                    (const char *)sqlite3_column_text(stmt, COLUMN_GLOSSARY)
+                );
+            def.score = sqlite3_column_int(stmt, COLUMN_SCORE);
             addTags(
                 id,
                 (const char *)sqlite3_column_text(stmt, COLUMN_DEF_TAGS),
