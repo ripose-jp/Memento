@@ -23,7 +23,9 @@
 #include <QPainter>
 #include <QApplication>
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#ifdef APPIMAGE
+    #define FACTORY_CLASS(p) new StyleFactory(p)
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #define FACTORY_CLASS(p) new StyleFactory(p)
 #elif __linux__
     #define FACTORY_CLASS(p) new ThemeFactory(p)
