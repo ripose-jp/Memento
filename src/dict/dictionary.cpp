@@ -24,6 +24,7 @@
 #include <mecab.h>
 #include <QApplication>
 #include <QDebug>
+#include <QMessageBox>
 #include <QSettings>
 
 #include "../util/constants.h"
@@ -58,7 +59,8 @@ Dictionary::Dictionary()
     if (m_tagger == nullptr)
     {
         qDebug() << MeCab::getTaggerError();
-        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+        QMessageBox::critical(
+            nullptr,
             "MeCab Error",
             "Could not initialize MeCab.\n"
             "Memento will still work, but search results will suffer.\n"
@@ -66,6 +68,9 @@ Dictionary::Dictionary()
             defined(__NT__)
             "Make sure that ipadic is present in " +
             DirectoryUtils::getDictionaryDir()
+        #elif defined(APPIMAGE)
+            "Please report this bug "
+            "<a href=\"https://github.com/ripose-jp/Memento/issues\">here</a>."
         #else
             "Make sure you have a system dictionary installed by running "
             "'mecab -D' from the command line."
