@@ -23,8 +23,9 @@
 #include <QApplication>
 #include <QDebug>
 #include <QDesktopWidget>
+#include <QMessageBox>
+#include <QOpenGLContext>
 #include <QSettings>
-#include <QtGui/QOpenGLContext>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #include <winbase.h>
@@ -106,7 +107,8 @@ MpvWidget::MpvWidget(QWidget *parent)
 
     if (mpv_initialize(mpv) < 0)
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+        QMessageBox::critical(
+            nullptr,
             "Could not start mpv",
             "MpvWidget: Failed to initialize mpv context"
         );
