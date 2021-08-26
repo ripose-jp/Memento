@@ -34,6 +34,15 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     GlobalMediator::getGlobalMediator()->setPlayerAdapter(this);
 
+    m_subExts << "srt"
+              << "ass"
+              << "ssa"
+              << "ttml"
+              << "sbv"
+              << "dfxp"
+              << "vtt"
+              << "txt";
+
     /* Signals */
     connect(
         m_mpv, &MpvWidget::tracklistChanged, this,
@@ -483,11 +492,26 @@ void MpvAdapter::open(const QList<QUrl> &files)
     if (files.isEmpty())
         return;
 
-    open(files.first().toLocalFile()); // mpv won't start with loadfile append
-    for (auto it = files.begin() + 1; it != files.end(); ++it)
+    bool firstFile = true;
+
+    for (const auto &file : files)
     {
-        if (!it->toLocalFile().isEmpty())
-            open(it->toLocalFile(), true);
+        const QString &path = file.toLocalFile();
+        QString ext =
+            path.right(path.size() - path.lastIndexOf('.') - 1).toLower();
+        if (m_subExts.contains(ext))
+        {
+            addSubtitle(path);
+        }
+        else
+        {
+            if (firstFile)
+            {
+                stop();
+            }
+            open(path, !firstFile);
+            firstFile = false;
+        }
     }
 }
 

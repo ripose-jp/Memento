@@ -191,7 +191,9 @@ public Q_SLOTS:
                       const QStringList &options = QStringList()) = 0;
 
     /**
-     * Opens the first file and adds subsequent files to a playlist.
+     * Opens the first file and adds subsequent files to a playlist. If the file
+     * is a subtitle file, the subtitle file will be added to the currently
+     * playing file.
      * @param files The list of files to open.
      */
     virtual void open(const QList<QUrl> &files) = 0;

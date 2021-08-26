@@ -23,6 +23,8 @@
 
 #include "playeradapter.h"
 
+#include <QSet>
+
 #include "widgets/mpvwidget.h"
 
 /**
@@ -161,6 +163,9 @@ private:
 
     /* The mpv context. Used for interacting with the mpv api. */
     mpv_handle *m_handle;
+
+    /* A set containing all subtitle filetype extensions. */
+    QSet<QString> m_subExts;
 };
 
 #endif // MPVADAPTER
