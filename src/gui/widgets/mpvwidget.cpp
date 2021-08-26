@@ -93,7 +93,7 @@ MpvWidget::MpvWidget(QWidget *parent)
     }
 
     mpv_set_option_string(mpv, "terminal",               "yes");
-    mpv_set_option_string(mpv, "msg-level",              "all=v");
+    mpv_set_option_string(mpv, "msg-level",              "all=no");
     mpv_set_option_string(mpv, "keep-open",              "yes");
     mpv_set_option_string(mpv, "config",                 "yes");
     mpv_set_option_string(mpv, "input-default-bindings", "yes");
@@ -143,10 +143,6 @@ MpvWidget::MpvWidget(QWidget *parent)
 
     /* Signals */
     connect(m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
-    connect(
-        m_cursorTimer, &QTimer::timeout,
-        this,          [=] { setCursor(Qt::BlankCursor); }
-    );
     connect(
         mediator, &GlobalMediator::definitionsHidden,
         this,     [=] { m_cursorTimer->start(CURSOR_TIMEOUT); }
@@ -600,6 +596,16 @@ void MpvWidget::mouseDoubleClickEvent(QMouseEvent *event)
     {
         qDebug() << "Could not send double click event to mpv";
     }
+}
+
+void MpvWidget::hideCursor()
+{
+    setCursor(Qt::BlankCursor);
+    /* A call to update here is necessary because of how mpv handles updating
+     * this widget with maybeUpdate().
+     */
+    update();
+    Q_EMIT cursorHidden();
 }
 
 /* End Event Handlers */

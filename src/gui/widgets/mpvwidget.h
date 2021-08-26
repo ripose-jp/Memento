@@ -203,7 +203,7 @@ Q_SIGNALS:
     /**
      * Emitted when MpvWidget hides the cursor.
      */
-    void hideCursor() const;
+    void cursorHidden() const;
 
     /**
      * Emitted when the mouse is moved across the MpvWidget.
@@ -274,6 +274,11 @@ private Q_SLOTS:
      * Initializes the subtitle regex filter from the saved settings value.
      */
     void initSubtitleRegex();
+
+    /**
+     * Hides the cursor over this widget.
+     */
+    void hideCursor();
 
 private:
     /**

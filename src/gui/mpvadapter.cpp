@@ -126,7 +126,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     );
 
     connect(
-        m_mpv,    &MpvWidget::hideCursor,
+        m_mpv,    &MpvWidget::cursorHidden,
         mediator, &GlobalMediator::playerCursorHidden
     );
     connect(
