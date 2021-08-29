@@ -450,9 +450,14 @@ Q_SIGNALS:
     /* Begin Dictionary Signals */
 
     /**
-     * Emitted when a new dictionary is added.
+     * Emitted when a dictionary is added or removed.
      */
-    void dictionaryAdded() const;
+    void dictionariesChanged() const;
+
+    /**
+     * Emitted when the order of dictionaries is changed.
+     */
+    void dictionaryOrderChanged() const;
 
     /* End Dictionary Signals */
     /* Begin Subtitle List Widget */

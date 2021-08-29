@@ -35,10 +35,10 @@
 /* Begin Constructor/Destructor */
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    #define MECAB_ARG ("-r " + DirectoryUtils::getDictionaryDir() + \
-                       "ipadic" + SLASH + "dicrc " \
-                       "-d " + DirectoryUtils::getDictionaryDir() + \
-                       "ipadic").toUtf8()
+    #define MECAB_ARG ( \
+        "-r " + DirectoryUtils::getDictionaryDir() + "ipadic" + SLASH + "dicrc " \
+        "-d " + DirectoryUtils::getDictionaryDir() + "ipadic" \
+    ).toUtf8()
 #elif APPIMAGE
     #include <QCoreApplication>
 
@@ -50,7 +50,7 @@
     #define MECAB_ARG ("")
 #endif
 
-Dictionary::Dictionary()
+Dictionary::Dictionary(QObject *parent) : QObject(parent)
 {
     m_db = new DatabaseManager(DirectoryUtils::getDictionaryDB());
 
@@ -78,12 +78,34 @@ Dictionary::Dictionary()
         );
     }
 
-    buildPriorities();
+    initDictionaryOrder();
 
-    GlobalMediator::getGlobalMediator()->setDictionary(this);
+    GlobalMediator *med = GlobalMediator::getGlobalMediator();
+    med->setDictionary(this);
+    connect(
+        med,  &GlobalMediator::dictionaryOrderChanged,
+        this, &Dictionary::initDictionaryOrder
+    );
 }
 
 #undef MECAB_ARG
+
+void Dictionary::initDictionaryOrder()
+{
+    m_dicOrder.lock.lockForWrite();
+
+    QSettings settings;
+    settings.beginGroup(SETTINGS_DICTIONARIES);
+    QStringList dicts = m_db->getDictionaries();
+    m_dicOrder.map.clear();
+    for (const QString &dict : dicts)
+    {
+        m_dicOrder.map[dict] = settings.value(dict).toUInt();
+    }
+    settings.endGroup();
+
+    m_dicOrder.lock.unlock();
+}
 
 Dictionary::~Dictionary()
 {
@@ -294,20 +316,22 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
     /* Sort internal term data */
     if (index != *currentIndex)
         goto early_exit;
+
+    m_dicOrder.lock.lockForRead();
     for (Term *term : *terms)
     {
-        QMap<QString, uint32_t> priorities = buildPriorities();
         std::sort(term->definitions.begin(), term->definitions.end(),
             [=] (const TermDefinition &lhs, const TermDefinition &rhs) -> bool {
-                uint32_t lhsPriority = priorities[lhs.dictionary];
-                uint32_t rhsPriority = priorities[rhs.dictionary];
+                uint32_t lhsPriority = m_dicOrder.map[lhs.dictionary];
+                uint32_t rhsPriority = m_dicOrder.map[rhs.dictionary];
                 return lhsPriority < rhsPriority ||
                        (lhsPriority == rhsPriority && lhs.score > rhs.score);
             }
         );
         std::sort(term->frequencies.begin(), term->frequencies.end(),
             [=] (const Frequency &lhs, const Frequency &rhs) -> bool {
-                return priorities[lhs.dictionary] < priorities[rhs.dictionary];
+                return m_dicOrder.map[lhs.dictionary] <
+                       m_dicOrder.map[rhs.dictionary];
             }
         );
         sortTags(term->tags);
@@ -317,6 +341,7 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
             sortTags(def.rules);
         }
     }
+    m_dicOrder.lock.unlock();
 
     return terms;
 
@@ -346,17 +371,20 @@ Kanji *Dictionary::searchKanji(const QString ch)
     }
 
     /* Sort all the information */
-    QMap<QString, uint32_t> priorities = buildPriorities();
+    m_dicOrder.lock.lockForRead();
     std::sort(kanji->frequencies.begin(), kanji->frequencies.end(),
         [=] (const Frequency &lhs, const Frequency &rhs) -> bool {
-            return priorities[lhs.dictionary] < priorities[rhs.dictionary];
+            return m_dicOrder.map[lhs.dictionary] <
+                   m_dicOrder.map[rhs.dictionary];
         }
     );
     std::sort(kanji->definitions.begin(), kanji->definitions.end(),
         [=] (const KanjiDefinition &lhs, const KanjiDefinition &rhs) -> bool {
-            return priorities[lhs.dictionary] < priorities[rhs.dictionary];
+            return m_dicOrder.map[lhs.dictionary] <
+                   m_dicOrder.map[rhs.dictionary];
         }
     );
+    m_dicOrder.lock.unlock();
     for (KanjiDefinition &def : kanji->definitions)
     {
         sortTags(def.tags);
@@ -375,7 +403,7 @@ QString Dictionary::addDictionary(const QString &path)
     {
         return m_db->errorCodeToString(err);
     }
-    Q_EMIT GlobalMediator::getGlobalMediator()->dictionaryAdded();
+    Q_EMIT GlobalMediator::getGlobalMediator()->dictionariesChanged();
     return "";
 }
 
@@ -386,38 +414,27 @@ QString Dictionary::deleteDictionary(const QString &name)
     {
         return m_db->errorCodeToString(err);
     }
+    Q_EMIT GlobalMediator::getGlobalMediator()->dictionariesChanged();
     return "";
 }
 
 QStringList Dictionary::getDictionaries()
 {
     QStringList dictionaries = m_db->getDictionaries();
-    QMap<QString, uint32_t> priorities = buildPriorities();
+
+    m_dicOrder.lock.lockForRead();
     std::sort(dictionaries.begin(), dictionaries.end(),
         [=] (const QString &lhs, const QString &rhs) -> bool {
-            return priorities[lhs] < priorities[rhs];
+            return m_dicOrder.map[lhs] < m_dicOrder.map[rhs];
         }
     );
+    m_dicOrder.lock.unlock();
+
     return dictionaries;
 }
 
 /* End Dictionary Methods */
 /* Begin Helpers */
-
-QMap<QString, uint32_t> Dictionary::buildPriorities()
-{
-    QMap<QString, uint32_t> priorities;
-    QSettings settings;
-    settings.beginGroup(SETTINGS_DICTIONARIES);
-    QStringList dicts = m_db->getDictionaries();
-    for (const QString &dict : dicts)
-    {
-        priorities[dict] = settings.value(dict, -1).toUInt();
-    }
-    settings.endGroup();
-    return priorities;
-}
-
 
 void Dictionary::sortTags(QList<Tag> &tags)
 {

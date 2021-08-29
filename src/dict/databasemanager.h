@@ -21,7 +21,7 @@
 #ifndef DATABASEMANAGER_H
 #define DATABASEMANAGER_H
 
-#include <QMutex>
+#include <QReadWriteLock>
 #include <QSet>
 #include <QString>
 #include <sqlite3.h>
@@ -94,20 +94,6 @@ private:
      * Initializes the dictionary cache so ids can be quickly mapped to names.
      */
     int initCache();
-
-    /**
-     * Increments the number of readers and makes sure the database lock is
-     * acquired.
-     * @return true if the lock was acquired, false if someone else already has
-     *         the lock.
-     */
-    bool incrementReaders();
-
-    /**
-     * Decrements the number of readers. Releases the database lock if this is
-     * the last reader.
-     */
-    void decrementReaders();
 
     /**
      * Gets the name of the dictionary corresponding the ID.
@@ -193,20 +179,14 @@ private:
     /* A readonly connection to the dictionary database. */
     sqlite3 *m_db;
 
+    /* Locks the database for reading and writing. */
+    QReadWriteLock m_dbLock;
+
     /* Saved path to the database. */
     const QByteArray m_dbpath;
 
     /* A set containing special characters that cannot be independent mora. */
     QSet<QString> m_moraSkipChar;
-
-    /* Locked when the database is in use either by a reader or writer. */
-    QMutex   m_databaseLock;
-
-    /* Locked when reading or writing m_readerCount. */
-    QMutex   m_readerLock;
-
-    /* The current number of threads reading the database. */
-    uint32_t m_readerCount;
 
     /* Maps dictionary IDs to dictionary names. */
     QHash<const uint64_t, QString> m_dictionaryCache;

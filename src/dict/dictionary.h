@@ -22,6 +22,7 @@
 #define DICTIONARY_H
 
 #include <QList>
+#include <QReadWriteLock>
 #include <QString>
 #include <QThread>
 
@@ -38,10 +39,12 @@ class DatabaseManager;
 /**
  * The intended API for interacting with the database.
  */
-class Dictionary
+class Dictionary : public QObject
 {
+    Q_OBJECT
+
 public:
-    Dictionary();
+    Dictionary(QObject *parent = nullptr);
     ~Dictionary();
 
     /**
@@ -88,6 +91,12 @@ public:
      */
     QStringList getDictionaries();
 
+private Q_SLOTS:
+    /**
+     * Populates the dictionary order map.
+     */
+    void initDictionaryOrder();
+
 private:
     /**
      * Uses MeCab to generate a list of non-exact queries.
@@ -102,19 +111,6 @@ private:
      * @param[out] tags The list of tags to sort.
      */
     void sortTags(QList<Tag> &tags);
-
-    /**
-     * Returns a map that maps dictionary names to user specified priorities.
-     * Lower is higher priority.
-     * @return Map containing dictionary names and priorities.
-     */
-    QMap<QString, uint32_t> buildPriorities();
-
-    /* The DatabaseManager. */
-    DatabaseManager *m_db;
-
-    /* The object used for interacting with MeCab. */
-    MeCab::Tagger *m_tagger;
 
     /**
      * Worker thread for querying the term database for exact substrings of the
@@ -212,6 +208,22 @@ private:
         QList<Term *> *terms;
         DatabaseManager *db;
     };
+
+    /* The DatabaseManager. */
+    DatabaseManager *m_db;
+
+    /* The object used for interacting with MeCab. */
+    MeCab::Tagger *m_tagger;
+
+    /* Contains dictionary priority information. */
+    struct m_dicOrder
+    {
+        /* Maps dictionary names to priorities. */
+        QHash<QString, uint32_t> map;
+
+        /* Used for locking for reading and writing. */
+        QReadWriteLock lock;
+    } m_dicOrder;
 };
 
 #endif // DICTIONARY_H

@@ -78,8 +78,8 @@ DictionarySettings::DictionarySettings(QWidget *parent)
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     connect(
-        mediator, &GlobalMediator::dictionaryAdded,
-        this,     &DictionarySettings::restoreSaved
+        mediator, &GlobalMediator::dictionariesChanged,
+        this,     &DictionarySettings::restoreApply
     );
     connect(
         mediator, &GlobalMediator::requestThemeRefresh,
@@ -129,11 +129,6 @@ void DictionarySettings::restoreSaved()
     m_ui->listDictionaries->addItems(
         GlobalMediator::getGlobalMediator()->getDictionary()->getDictionaries()
     );
-
-    /* Settings are applied in case there is a mismatch between the dictionaries
-     * in QSettings and the database.
-     */
-    applySettings();
 }
 
 void DictionarySettings::applySettings()
@@ -146,6 +141,13 @@ void DictionarySettings::applySettings()
         settings.setValue(m_ui->listDictionaries->item(i)->text(), i);
     }
     settings.endGroup();
+    Q_EMIT GlobalMediator::getGlobalMediator()->dictionaryOrderChanged();
+}
+
+void DictionarySettings::restoreApply()
+{
+    restoreSaved();
+    applySettings();
 }
 
 /* End Button Box Handlers */

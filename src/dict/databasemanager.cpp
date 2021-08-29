@@ -32,8 +32,7 @@ extern "C"
 /* Begin Constructor/Destructor */
 
 DatabaseManager::DatabaseManager(const QString &path)
-    : m_dbpath(path.toUtf8()),
-      m_readerCount(0)
+    : m_dbpath(path.toUtf8())
 {
     if (yomi_prepare_db(m_dbpath, NULL) ||
         sqlite3_open_v2(m_dbpath, &m_db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
@@ -158,61 +157,32 @@ cleanup:
 
 int DatabaseManager::addDictionary(const QString &path)
 {
-    m_databaseLock.lock();
+    m_dbLock.lockForWrite();
     QByteArray cpath = path.toUtf8();
     int ret = yomi_process_dictionary(cpath, m_dbpath);
     initCache();
-    m_databaseLock.unlock();
+    m_dbLock.unlock();
     return ret;
 }
 
 int DatabaseManager::deleteDictionary(const QString &name)
 {
-    m_databaseLock.lock();
+    m_dbLock.lockForWrite();
     QByteArray cname = name.toUtf8();
     int ret = yomi_delete_dictionary(cname, m_dbpath);
     initCache();
-    m_databaseLock.unlock();
+    m_dbLock.unlock();
     return ret;
 }
 
 /* End Dictionary Database Modifiers */
-/* Begin Concurrency Methods */
-
-bool DatabaseManager::incrementReaders()
-{
-    bool ret = true;
-
-    m_readerLock.lock();
-    if (m_readerCount == 0)
-    {
-        if (!(ret = m_databaseLock.tryLock()))
-            goto cleanup;
-    }
-    ++m_readerCount;
-cleanup:
-    m_readerLock.unlock();
-
-    return ret;
-}
-
-void DatabaseManager::decrementReaders()
-{
-    m_readerLock.lock();
-    --m_readerCount;
-    if (m_readerCount == 0)
-        m_databaseLock.unlock();
-    m_readerLock.unlock();
-}
-
-/* End Concurrency Methods */
 /* Begin Database Getters */
 
 #define QUERY   "SELECT title FROM directory;"
 
 QStringList DatabaseManager::getDictionaries()
 {
-    incrementReaders();
+    m_dbLock.lockForRead();
 
     QStringList   dictionaries;
     sqlite3_stmt *stmt  = NULL;
@@ -229,7 +199,7 @@ QStringList DatabaseManager::getDictionaries()
 
 cleanup:
     sqlite3_finalize(stmt);
-    decrementReaders();
+    m_dbLock.unlock();
 
     return dictionaries;
 }
@@ -258,7 +228,7 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
         return "Database is invalid";
 
     /* Try to acquire the database lock, early return if we can't */
-    if (!incrementReaders())
+    if (!m_dbLock.tryLockForRead())
         return "";
 
     QString       ret;
@@ -315,15 +285,15 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
     }
 
     /* Return results on success */
-    decrementReaders();
     sqlite3_finalize(stmt);
+    m_dbLock.unlock();
     terms.append(termList);
 
     return ret;
 
 error:
     /* Free up memory on failure */
-    decrementReaders();
+    m_dbLock.unlock();
     sqlite3_finalize(stmt);
     for (Term *term : termList)
         delete term;
@@ -362,7 +332,7 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
         return "Database is invalid";
 
     /* Try to acquire the database lock, early return if we can't */
-    if (!incrementReaders())
+    if (!m_dbLock.tryLockForRead())
         return "";
 
     QString       ret;
@@ -445,8 +415,8 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
     }
 
 cleanup:
-    decrementReaders();
     sqlite3_finalize(stmt);
+    m_dbLock.unlock();
 
     return ret;
 }

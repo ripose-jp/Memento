@@ -69,6 +69,11 @@ private Q_SLOTS:
     void applySettings();
 
     /**
+     * Restores settings then applies them.
+     */
+    void restoreApply();
+
+    /**
      * Moves the selected dictionary up in the list.
      */
     void moveUp();
