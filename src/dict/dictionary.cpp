@@ -34,17 +34,10 @@
 
 /* Begin Constructor/Destructor */
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) || APPIMAGE
     #define MECAB_ARG ( \
         "-r " + DirectoryUtils::getDictionaryDir() + "ipadic" + SLASH + "dicrc " \
         "-d " + DirectoryUtils::getDictionaryDir() + "ipadic" \
-    ).toUtf8()
-#elif APPIMAGE
-    #include <QCoreApplication>
-
-    #define MECAB_ARG ( \
-        "-r " + QCoreApplication::applicationDirPath() + "/../lib/mecab/dic/ipadic/dicrc " + \
-        "-d " + QCoreApplication::applicationDirPath() + "/../lib/mecab/dic/ipadic" \
     ).toUtf8()
 #elif __linux__ || __APPLE__
     #define MECAB_ARG ("")
@@ -69,8 +62,8 @@ Dictionary::Dictionary(QObject *parent) : QObject(parent)
             "Make sure that ipadic is present in " +
             DirectoryUtils::getDictionaryDir()
         #elif defined(APPIMAGE)
-            "Please report this bug "
-            "<a href=\"https://github.com/ripose-jp/Memento/issues\">here</a>."
+            "Please report this bug at "
+            "https://github.com/ripose-jp/Memento/issues"
         #else
             "Make sure you have a system dictionary installed by running "
             "'mecab -D' from the command line."

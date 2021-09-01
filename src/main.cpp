@@ -25,6 +25,10 @@
 #include <QMessageBox>
 #include <QSettings>
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    #include <QStandardPaths>
+#endif
+
 #if __APPLE__
     #include <locale.h>
 #endif
@@ -68,6 +72,38 @@ void updateSettings()
         settings.remove(SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE);
         settings.endGroup();
     }
+    case 1:
+    {
+        /* These paths are hardcoded because DirectoryUtils may change in the
+         * future. */
+    #if __linux__
+        QDir configDir(QString(getenv("HOME")) + "/.config/memento");
+        configDir.rename("./dict/dictionaries.sqlite", "./dictionaries.sqlite");
+
+        QDir dictDir(configDir.absolutePath() + "/dict");
+        dictDir.removeRecursively();
+    #elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+        QDir programDir(DirectoryUtils::getProgramDirectory());
+        programDir.rename(
+            ".\\config\\dict\\dictionaries.sqlite",
+            ".\\config\\dictionaries.sqlite"
+        );
+
+        QDir dictDir(DirectoryUtils::getProgramDirectory() + "config\\dict");
+        dictDir.removeRecursively();
+
+        QString configPath = QDir::toNativeSeparators(
+                QStandardPaths::writableLocation(
+                    QStandardPaths::AppConfigLocation
+                )
+            );
+        configPath.chop(sizeof("memento") - 1);
+        QDir configDir(configPath);
+        configDir.removeRecursively();
+
+        programDir.rename(".\\config", configDir.absolutePath());
+    #endif
+    }
     }
 
     /* Remove saved window configurations just to be safe */
@@ -99,7 +135,6 @@ int main(int argc, char *argv[])
     /* Set the window icon */
     QGuiApplication::setWindowIcon(QIcon(":memento.svg"));
 
-    /* Update settings */
     updateSettings();
 
     /* Create the configuration directory if it doesn't exist */
@@ -111,19 +146,6 @@ int main(int argc, char *argv[])
             0, "Error Creating Config Directory",
             "Could not make configuration directory at " +
             DirectoryUtils::getConfigDir()
-        );
-        return EXIT_FAILURE;
-    }
-
-    /* Create the dictionary directory if it doesn't exist */
-    if (!QDir(DirectoryUtils::getDictionaryDir()).exists() &&
-        !QDir().mkdir(DirectoryUtils::getDictionaryDir()))
-    {
-        QMessageBox message;
-        message.critical(
-            0, "Error Creating Dict Directory",
-            "Could not make dictionary directory at " +
-            DirectoryUtils::getDictionaryDir()
         );
         return EXIT_FAILURE;
     }

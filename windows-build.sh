@@ -25,11 +25,11 @@ cd build
 $PREFIX/bin/cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
 $PREFIX/bin/cmake --build . -- -j4
 
-#release dlls and exe to a new directory
+# move DLLs and exe to a new directory
 mkdir Memento_$arch
 rm -rf Memento_$arch/memento.exe
 cp src/memento.exe Memento_$arch
-cp -r ../config Memento_$arch
+cp -r ../dic Memento_$arch
 
 python3 ../mingw-bundledlls.py --copy ./Memento_$arch/memento.exe
 cp $PREFIX/bin/libssl-1_1-x64.dll ./Memento_$arch
@@ -38,6 +38,6 @@ cd Memento_$arch
 windeployqt memento.exe
 rm -rf translations
 
-#Get the latest youtube-dl
+# Get the latest youtube-dl
 cd config
 wget https://yt-dl.org/downloads/latest/youtube-dl.exe
