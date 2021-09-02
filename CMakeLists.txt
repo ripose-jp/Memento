@@ -6,19 +6,23 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+list(PREPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
+
 if(APPIMAGE)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAPPIMAGE=1")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAPPIMAGE=1")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAPPIMAGE=1 -Wall -Wextra")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAPPIMAGE=1 -Wall -Wextra")
 endif()
 
-if(UNIX AND APPLE)
+if(APPLE)
 	include_directories(
 		${CMAKE_INCLUDE_PATH}
 		${CMAKE_CURRENT_SOURCE_DIR}
 		${CMAKE_CURRENT_BINARY_DIR}
-		/usr/local/include/
+		/opt/homebrew/include
 	)
-	set(CMAKE_PREFIX_PATH /usr/local/opt/)
+
+	list(PREPEND CMAKE_PREFIX_PATH /opt/homebrew/opt)
+	list(PREPEND CMAKE_PREFIX_PATH /opt/homebrew)
 else()
 	include_directories(
 		${CMAKE_INCLUDE_PATH}
@@ -36,16 +40,9 @@ elseif(WIN32)
 	find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
 endif()
 
-# OS X Links the non-brew versions
-if(UNIX AND APPLE)
-	set(SQLITE "/usr/local/opt/sqlite3/lib/libsqlite3.dylib")
-	set(MECAB "/usr/local/opt/mecab/lib/libmecab.dylib")
-else()
-	find_library(SQLITE sqlite3)
-	find_library(MECAB mecab)
-endif()
-
 # Other dependencies
+find_package(SQLITE)
+find_package(MECAB)
 find_library(MPV_LIB mpv)
 find_library(JSONC json-c)
 find_library(LIBZIP zip)

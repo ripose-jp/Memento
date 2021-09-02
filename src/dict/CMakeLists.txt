@@ -7,10 +7,10 @@ add_library(
 )
 target_link_libraries(
     dictionary_db
-    ${SQLITE}
+    ${SQLITE_LIBRARY}
     ${JSONC}
     ${LIBZIP}
-    ${MECAB}
+    ${MECAB_LIBRARY}
     Qt5::Core
     Qt5::Widgets
 )
