@@ -75,7 +75,7 @@ protected:
      * Paints chapter tick marks on the slider.
      * @param event The paint event.
      */
-    void paintEvent(QPaintEvent* event);
+    void paintEvent(QPaintEvent* event) override;
 
 private Q_SLOTS:
     /**
