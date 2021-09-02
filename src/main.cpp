@@ -57,9 +57,9 @@ void updateSettings()
     {
         QMessageBox message;
         message.critical(
-            0, "Newer Settings Version Found",
+            0, "Settings From a Newer Version Found",
             "The Memento settings found belong to a newer version.\n"
-            "No guarantees can be made that nothing will break of get lost."
+            "No guarantees can be made that nothing will break or get lost."
         );
     }
 
