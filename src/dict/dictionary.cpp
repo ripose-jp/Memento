@@ -32,14 +32,75 @@
 #include "../util/utils.h"
 #include "databasemanager.h"
 
+/* Begin Static Helpers */
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+/**
+ * This whole section is neccesary on Windows because MeCab has a bug that
+ * prevents it from loading dictionaries if there are spaces in the path on
+ * Windows. If Memento is to be install in "Program Files", this quickly
+ * becomes an issue. This workaround turns all long paths into space-less
+ * short paths.
+ */
+
+#include <fileapi.h>
+
+/**
+ * Takes a Windows long path and returns an 8.3/short path.
+ * @param path The Window long path to convert.
+ * @return A Windows short path, or the empty string on error.
+ */
+static QByteArray toWindowsShortPath(const QString &path)
+{
+    QByteArray pathArr = path.toUtf8();
+    DWORD length = 0;
+    TCHAR *buf = NULL;
+
+    length = GetShortPathName(pathArr.constData(), NULL, 0);
+    if (length == 0)
+    {
+        return "";
+    }
+
+    buf = new TCHAR[length];
+    length = GetShortPathName(pathArr, buf, length);
+    if (length == 0)
+    {
+        delete[] buf;
+        return "";
+    }
+
+    QByteArray ret = QByteArray(buf);
+    delete[] buf;
+    return ret;
+}
+
+/**
+ * Generates the MeCab argument on Windows.
+ * @return An argument to pass MeCab so it uses the install's ipadic.
+ */
+static QByteArray genMecabArg()
+{
+    QByteArray arg = "-r ";
+    arg += toWindowsShortPath(
+        DirectoryUtils::getDictionaryDir() + "ipadic" + SLASH + "dicrc"
+    );
+    arg += " -d ";
+    arg += toWindowsShortPath(DirectoryUtils::getDictionaryDir() + "ipadic");
+    return arg;
+}
+
+#endif
+/* End Static Helpers */
 /* Begin Constructor/Destructor */
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) || APPIMAGE
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    #define MECAB_ARG (genMecabArg())
+#elif APPIMAGE
     #define MECAB_ARG ( \
         "-r " + DirectoryUtils::getDictionaryDir() + "ipadic" + SLASH + "dicrc " \
         "-d " + DirectoryUtils::getDictionaryDir() + "ipadic" \
     ).toUtf8()
-#elif __linux__ || __APPLE__
+#else
     #define MECAB_ARG ("")
 #endif
 
