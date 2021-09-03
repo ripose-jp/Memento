@@ -934,6 +934,12 @@ void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
         direction += "LEFT";
     }
 
+    /* Prevent bad input from being sent to mpv. */
+    if (direction == "WHEEL_")
+    {
+        return;
+    }
+
     const char *args[3] = {
         "keypress",
         direction,
