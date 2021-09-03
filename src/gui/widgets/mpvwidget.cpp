@@ -98,6 +98,13 @@ MpvWidget::MpvWidget(QWidget *parent)
     mpv_set_option_string(mpv, "input-default-bindings", "yes");
     mpv_set_option_string(mpv, "ytdl",                   "yes");
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    QByteArray ytdlOpt = "ytdl_hook-ytdl_path=";
+    ytdlOpt += DirectoryUtils::getProgramDirectory().toUtf8();
+    ytdlOpt += "youtube-dl";
+    mpv_set_option_string(mpv, "script-opts", ytdlOpt);
+#endif
+
     QByteArray configDir = DirectoryUtils::getConfigDir().toUtf8();
     mpv_set_option_string(mpv, "config-dir", configDir);
 
