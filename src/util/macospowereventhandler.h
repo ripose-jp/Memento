@@ -41,6 +41,12 @@ public:
     ~MacOSPowerEventHandler();
 
     /**
+     * Sets the CF run loop reference for this event handler.
+     * @param ref The ref to set.
+     */
+    void setRunLoopRef(CFRunLoopRef ref);
+
+    /**
      * Sets the root power domain.
      * Allows the root power domain to be set from the event loop.
      * @param r The root power domain to set.
@@ -69,6 +75,7 @@ private:
     std::thread       *eventThread;
     io_connect_t       rootPowerDomain;
     std::atomic<bool>  preventSleep;
+    CFRunLoopRef       runLoopRef;
 };
 
 #endif // MACOSPOWEREVENTHANDLER_H

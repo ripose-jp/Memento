@@ -58,6 +58,8 @@ static void eventLoop(MacOSPowerEventHandler *handler)
 {
     IONotificationPortRef notifyPortRef;
     io_object_t           notifierObj;
+
+    handler->setRunLoopRef(CFRunLoopGetCurrent());
     handler->setRootPowerDomain(
         IORegisterForSystemPower(
             handler, &notifyPortRef, sleepWakeupCallBack, &notifierObj
@@ -76,14 +78,23 @@ static void eventLoop(MacOSPowerEventHandler *handler)
     CFRunLoopRun();
 }
 
-MacOSPowerEventHandler::MacOSPowerEventHandler() : preventSleep(false)
+MacOSPowerEventHandler::MacOSPowerEventHandler()
+    : preventSleep(false),
+      runLoopRef(NULL)
 {
     eventThread = new std::thread(eventLoop, this);
 }
 
 MacOSPowerEventHandler::~MacOSPowerEventHandler()
 {
+    CFRunLoopStop(runLoopRef);
+    eventThread->join();
     delete eventThread;
+}
+
+void MacOSPowerEventHandler::setRunLoopRef(CFRunLoopRef ref)
+{
+    runLoopRef = ref;
 }
 
 void MacOSPowerEventHandler::setRootPowerDomain(const io_connect_t &r)
