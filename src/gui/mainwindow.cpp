@@ -588,10 +588,21 @@ void MainWindow::changeEvent(QEvent *event)
     {
         Q_EMIT m_mediator->windowFocusChanged(isActiveWindow());
     }
+#if __APPLE__
     if (event->type() == QEvent::WindowStateChange)
     {
+        bool paused = m_player->isPaused();
+        m_player->pause();
+        QApplication::processEvents();
+
         m_player->setFullscreen(isFullScreen());
+
+        if (!paused)
+        {
+            m_player->play();
+        }
     }
+#endif
 }
 
 /* End Event Handlers */

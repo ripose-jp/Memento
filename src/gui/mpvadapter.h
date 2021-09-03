@@ -62,6 +62,8 @@ public:
 
     bool isFullscreen() const override;
 
+    bool isPaused() const override;
+
     bool canGetSecondarySubText() const override;
 
 public Q_SLOTS:

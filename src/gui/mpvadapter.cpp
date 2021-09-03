@@ -451,6 +451,17 @@ bool MpvAdapter::isFullscreen() const
     return flag;
 }
 
+bool MpvAdapter::isPaused() const
+{
+    int flag;
+    if (mpv_get_property(m_handle, "pause", MPV_FORMAT_FLAG, &flag))
+    {
+        qDebug() << "Could not get mpv property pause";
+        return false;
+    }
+    return flag;
+}
+
 bool MpvAdapter::canGetSecondarySubText() const
 {
     char *str = NULL;

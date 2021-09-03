@@ -172,6 +172,12 @@ public:
     virtual bool isFullscreen() const = 0;
 
     /**
+     * Returns if the player is paused.
+     * @return true if paused, false otherwise.
+     */
+    virtual bool isPaused() const = 0;
+
+    /**
      * Returns if the secondary subtitle text can be accessed.
      * @return true if secondary subtitles can be accessed, false otherwise.
      */
