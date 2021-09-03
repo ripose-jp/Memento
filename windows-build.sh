@@ -39,5 +39,4 @@ windeployqt memento.exe
 rm -rf translations
 
 # Get the latest youtube-dl
-cd config
 wget https://yt-dl.org/downloads/latest/youtube-dl.exe
