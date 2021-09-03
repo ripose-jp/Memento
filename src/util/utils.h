@@ -47,8 +47,7 @@ class DirectoryUtils
 {
 public:
     /**
-     * Gets the base directory of the program. This is the executable directory
-     * on Windows and the HOME directory on *nix.
+     * Gets the directory the exectuable is in.
      * @return Path to the program directory.
      */
     static QString getProgramDirectory();
@@ -60,8 +59,9 @@ public:
     static QString getConfigDir();
 
     /**
-     * Gets the dictionary directory.
-     * @return Path to the dictionary directory.
+     * Gets the dictionary directory if it exists.
+     * @return Path to the dictionary directory if it exists, empty string
+     *         otherwise.
      */
     static QString getDictionaryDir();
 

@@ -32,7 +32,7 @@ appimage: setup
 	make install DESTDIR=AppDir; \
 	mkdir -p ./AppDir/usr/lib/mecab; \
 	mkdir -p ./AppDir/usr/lib/mecab/dic; \
-	cp -r ../config/dict/ipadic ./AppDir/usr/lib/mecab/dic; \
+	cp -r ../dic/ipadic ./AppDir/usr/lib/mecab/dic; \
 	wget -nc https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage; \
 	wget -nc https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage; \
 	wget -nc https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage; \

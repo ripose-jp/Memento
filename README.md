@@ -151,13 +151,20 @@ The Memento config directory is located at:
 ```
 
 ### Windows
+
+Version 0.5.1 and later
+```
+%APPDATA%\Local\memento
+```
+
+Version 0.5.0-1 and earlier
 ```
 [installation directory]\config
 ```
 
 ### Mac OS X
 ```
-~/.config/memento
+~/Library/Preferences/memento
 ```
 
 If any mpv binds or plugins do not work, please create an issue in the issue

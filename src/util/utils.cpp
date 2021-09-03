@@ -20,79 +20,64 @@
 
 #include "utils.h"
 
+#include <QCoreApplication>
 #include <QCryptographicHash>
+#include <QDir>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QStandardPaths>
 #include <QStringList>
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    #include <windows.h>
+#endif
 
 #include "constants.h"
 #include "globalmediator.h"
 
 /* Begin Directory Utils */
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    #include <windows.h>
-    #define CONFIG_PATH "config"
-#elif __linux__
-    #define BASE_DIR getenv("HOME")
-    #define CONFIG_PATH "/.config/memento/"
-#elif __APPLE__
-    #define BASE_DIR getenv("HOME")
-    #define CONFIG_PATH "/.config/memento/"
-#else
-    #error "OS not supported"
-#endif
-
-#define DICTIONARY_DIR "dict"
-
 QString DirectoryUtils::getProgramDirectory()
 {
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    WCHAR buf[MAX_PATH];
-    GetModuleFileNameW(NULL, buf, MAX_PATH);
-    QString path = QString::fromWCharArray(buf);
-    return path.left(path.lastIndexOf(SLASH) + 1);
-#elif __linux__ || __APPLE__
-    return BASE_DIR;
-#endif
+    return QDir::toNativeSeparators(
+            QCoreApplication::applicationDirPath()
+        ) + SLASH;
 }
 
 QString DirectoryUtils::getConfigDir()
 {
-    QString path = getProgramDirectory();
-    path += CONFIG_PATH;
+    QString path = QDir::toNativeSeparators(
+            QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
+        );
+    path.chop(sizeof("memento") - 1);
     path += SLASH;
     return path;
 }
 
 QString DirectoryUtils::getDictionaryDir()
 {
-    return getConfigDir() + DICTIONARY_DIR + SLASH;
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    return getProgramDirectory() + "dic\\";
+#elif APPIMAGE
+    return getProgramDirectory() + "/../lib/mecab/dic/";
+#else
+    return "";
+#endif
 }
 
 QString DirectoryUtils::getDictionaryDB()
 {
-    return getDictionaryDir() + DICT_DB_FILE;
+    return getConfigDir() + DICT_DB_FILE;
 }
 
 QString DirectoryUtils::getMpvInputConfig()
 {
     return getConfigDir() + MPV_INPUT_CONF_FILE;
 }
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    #undef CONFIG_PATH
-#elif __linux__
-    #undef BASE_DIR
-    #undef CONFIG_PATH
-#elif __APPLE__
-    #undef BASE_DIR
-    #undef CONFIG_PATH
-#endif
 
 /* End DirectoryUtils */
 /* Begin FileUtils */

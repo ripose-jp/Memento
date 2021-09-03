@@ -27,7 +27,7 @@
 
 /* Versioning */
 #define SETTINGS_VERSION                "version"
-#define SETTINGS_VERSION_CURRENT        1
+#define SETTINGS_VERSION_CURRENT        2
 
 /* Window Sizes */
 #define SETTINGS_GROUP_WINDOW           "main-window"
