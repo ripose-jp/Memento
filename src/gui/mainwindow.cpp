@@ -588,6 +588,10 @@ void MainWindow::changeEvent(QEvent *event)
     {
         Q_EMIT m_mediator->windowFocusChanged(isActiveWindow());
     }
+    if (event->type() == QEvent::WindowStateChange)
+    {
+        m_player->setFullscreen(isFullScreen());
+    }
 }
 
 /* End Event Handlers */
