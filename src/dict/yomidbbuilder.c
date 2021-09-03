@@ -370,7 +370,11 @@ static int get_json_obj(zip_t *archive, const char *filename, json_object **obj)
     if (bytes_read == -1 || bytes_read != st.size)
     {
         fprintf(stderr, "Did not read expected number of bytes in %s\n", filename);
+    #ifdef __APPLE__
         fprintf(stderr, "Expected bytes: %llu\tActual bytes read %llu\n", st.size, bytes_read);
+    #else
+        fprintf(stderr, "Expected bytes: %ld\tActual bytes read %ld\n", st.size, bytes_read);
+    #endif
         ret = ZIP_FILE_READ_ERR;
         goto cleanup;
     }
