@@ -19,6 +19,7 @@ if(APPLE)
 		${CMAKE_CURRENT_SOURCE_DIR}
 		${CMAKE_CURRENT_BINARY_DIR}
 		/opt/homebrew/include
+		/opt/homebrew/opt/qt5/include
 	)
 
 	list(PREPEND CMAKE_PREFIX_PATH /opt/homebrew/opt)
