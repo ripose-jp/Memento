@@ -34,10 +34,8 @@ extern "C"
 DatabaseManager::DatabaseManager(const QString &path)
     : m_dbpath(path.toUtf8())
 {
-    if (yomi_prepare_db(m_dbpath, NULL) ||
-        sqlite3_open_v2(m_dbpath, &m_db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
+    if (yomi_prepare_db(m_dbpath, NULL))
     {
-        m_db = nullptr;
         qDebug() << "Could not open dictionary database";
     }
 
@@ -61,11 +59,6 @@ DatabaseManager::DatabaseManager(const QString &path)
     initCache();
 }
 
-DatabaseManager::~DatabaseManager()
-{
-    sqlite3_close_v2(m_db);
-}
-
 /* End Constructor/Destructor */
 /* Begin Initializers */
 
@@ -82,6 +75,7 @@ DatabaseManager::~DatabaseManager()
 int DatabaseManager::initCache()
 {
     int           ret;
+    sqlite3      *db   = NULL;
     sqlite3_stmt *stmt = NULL;
     int           step = 0;
 
@@ -90,7 +84,12 @@ int DatabaseManager::initCache()
     m_dictionaryCache.clear();
 
     /* Build dictionary cache */
-    if (sqlite3_prepare_v2(m_db, QUERY_DICTIONARY, -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_open_v2(m_dbpath, &db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
+    {
+        ret = -1;
+        goto cleanup;
+    }
+    if (sqlite3_prepare_v2(db, QUERY_DICTIONARY, -1, &stmt, NULL) != SQLITE_OK)
     {
         ret = -1;
         goto cleanup;
@@ -110,7 +109,7 @@ int DatabaseManager::initCache()
     stmt = NULL;
 
     /* Build tag cache */
-    if (sqlite3_prepare_v2(m_db, QUERY_TAGS, -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_prepare_v2(db, QUERY_TAGS, -1, &stmt, NULL) != SQLITE_OK)
     {
         ret = -1;
         goto cleanup;
@@ -138,6 +137,7 @@ int DatabaseManager::initCache()
 
 cleanup:
     sqlite3_finalize(stmt);
+    sqlite3_close_v2(db);
 
     return ret;
 }
@@ -185,10 +185,15 @@ QStringList DatabaseManager::getDictionaries()
     m_dbLock.lockForRead();
 
     QStringList   dictionaries;
+    sqlite3      *db    = NULL;
     sqlite3_stmt *stmt  = NULL;
     int           step  = 0;
 
-    if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_open_v2(m_dbpath, &db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
+    {
+        goto cleanup;
+    }
+    if (sqlite3_prepare_v2(db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
     {
         goto cleanup;
     }
@@ -199,6 +204,7 @@ QStringList DatabaseManager::getDictionaries()
 
 cleanup:
     sqlite3_finalize(stmt);
+    sqlite3_close_v2(db);
     m_dbLock.unlock();
 
     return dictionaries;
@@ -224,9 +230,6 @@ cleanup:
 
 QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
 {
-    if (m_db == nullptr)
-        return "Database is invalid";
-
     /* Try to acquire the database lock, early return if we can't */
     if (!m_dbLock.tryLockForRead())
         return "";
@@ -235,13 +238,19 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
     QByteArray    exp          = query.toUtf8();
     QByteArray    hiragana     = kataToHira(query).toUtf8();
     bool          containsKata = hiragana != exp;
+    sqlite3      *db           = NULL;
     sqlite3_stmt *stmt         = NULL;
     const char   *sql_query    = containsKata ? QUERY_WITH_KATAKANA : QUERY;
     int           step         = 0;
     QList<Term *> termList;
 
     /* Query for all the different terms in the database */
-    if (sqlite3_prepare_v2(m_db, sql_query, -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_open_v2(m_dbpath, &db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
+    {
+        ret = "Could not connect to database";
+        goto error;
+    }
+    if (sqlite3_prepare_v2(db, sql_query, -1, &stmt, NULL) != SQLITE_OK)
     {
         ret = "Could not prepare database query";
         goto error;
@@ -286,6 +295,7 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
 
     /* Return results on success */
     sqlite3_finalize(stmt);
+    sqlite3_close_v2(db);
     m_dbLock.unlock();
     terms.append(termList);
 
@@ -295,6 +305,7 @@ error:
     /* Free up memory on failure */
     m_dbLock.unlock();
     sqlite3_finalize(stmt);
+    sqlite3_close_v2(db);
     for (Term *term : termList)
         delete term;
 
@@ -328,15 +339,13 @@ error:
 
 QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
 {
-    if (m_db == nullptr)
-        return "Database is invalid";
-
     /* Try to acquire the database lock, early return if we can't */
     if (!m_dbLock.tryLockForRead())
         return "";
 
     QString       ret;
     QByteArray    ch   = query.toUtf8();
+    sqlite3      *db   = NULL;
     sqlite3_stmt *stmt = NULL;
     int           step = 0;
 
@@ -344,7 +353,12 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
     addFrequencies(kanji);
 
     /* Query for the database for the definitions */
-    if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_open_v2(m_dbpath, &db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
+    {
+        ret = "Could not connect to database";
+        goto cleanup;
+    }
+    if (sqlite3_prepare_v2(db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
     {
         ret = "Could not prepare database query";
         goto cleanup;
@@ -416,6 +430,7 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
 
 cleanup:
     sqlite3_finalize(stmt);
+    sqlite3_close_v2(db);
     m_dbLock.unlock();
 
     return ret;
@@ -455,6 +470,7 @@ cleanup:
 int DatabaseManager::populateTerms(const QList<Term *> &terms) const
 {
     int           ret     = 0;
+    sqlite3      *db      = NULL;
     sqlite3_stmt *stmt    = NULL;
     int           step    = 0;
     QByteArray    exp;
@@ -465,7 +481,12 @@ int DatabaseManager::populateTerms(const QList<Term *> &terms) const
         exp     = term->expression.toUtf8();
         reading = term->reading.toUtf8();
 
-        if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+        if (sqlite3_open_v2(m_dbpath, &db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
+        {
+            ret = -1;
+            goto cleanup;
+        }
+        if (sqlite3_prepare_v2(db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
         {
             ret = -1;
             goto cleanup;
@@ -518,6 +539,7 @@ int DatabaseManager::populateTerms(const QList<Term *> &terms) const
 
 cleanup:
     sqlite3_finalize(stmt);
+    sqlite3_close_v2(db);
 
     return ret;
 }
@@ -582,11 +604,18 @@ int DatabaseManager::addFrequencies(const char       *query,
                                     QList<Frequency> &freq) const
 {
     int           ret  = 0;
+    sqlite3      *db   = NULL;
     sqlite3_stmt *stmt = NULL;
     int           step = 0;
     QByteArray    exp  = expression.toUtf8();
 
-    if (sqlite3_prepare_v2(m_db, query, -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_open_v2(m_dbpath, &db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
+    {
+        qDebug() << "Could not open a database connection";
+        ret = -1;
+        goto cleanup;
+    }
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, NULL) != SQLITE_OK)
     {
         qDebug() << "Could not prepare frequency query";
         ret = -1;
@@ -614,6 +643,7 @@ int DatabaseManager::addFrequencies(const char       *query,
 
 cleanup:
     sqlite3_finalize(stmt);
+    sqlite3_close_v2(db);
 
     return ret;
 }
@@ -629,11 +659,18 @@ cleanup:
 int DatabaseManager::addPitches(Term &term) const
 {
     int           ret  = 0;
+    sqlite3      *db   = NULL;
     sqlite3_stmt *stmt = NULL;
     int           step = 0;
     QByteArray    exp  = term.expression.toUtf8();
 
-    if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_open_v2(m_dbpath, &db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
+    {
+        qDebug() << "Could not open a databse connection";
+        ret = -1;
+        goto cleanup;
+    }
+    if (sqlite3_prepare_v2(db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
     {
         qDebug() << "Could not prepare pitch query";
         ret = -1;
@@ -693,6 +730,7 @@ int DatabaseManager::addPitches(Term &term) const
 
 cleanup:
     sqlite3_finalize(stmt);
+    sqlite3_close_v2(db);
 
     return ret;
 }
