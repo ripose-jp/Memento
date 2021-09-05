@@ -40,6 +40,7 @@ public:
      * @param path The path to the dictionary database.
      */
     DatabaseManager(const QString &path);
+    ~DatabaseManager();
 
     /**
      * Adds a dictionary to the database.
@@ -174,6 +175,9 @@ private:
      * @return true if code is an error, false otherwise.
      */
     static bool inline isStepError(const int step);
+
+    /* A readonly connection to the dictionary database. */
+    sqlite3 *m_db;
 
     /* Locks the database for reading and writing. */
     QReadWriteLock m_dbLock;
