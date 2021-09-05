@@ -1563,7 +1563,7 @@ QString AnkiClient::buildFrequencies(const QList<Frequency> &frequencies)
         freqStr += "<li>";
         freqStr += freq.dictionary;
         freqStr += freq.dictionary.endsWith(':') ? " " : ": ";
-        freqStr += QString::number(freq.freq);
+        freqStr += freq.freq;
         freqStr += "</li>";
     }
     freqStr += "</ul>";

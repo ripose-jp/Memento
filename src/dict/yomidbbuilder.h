@@ -23,7 +23,7 @@
 
 #include <sqlite3.h>
 
-#define YOMI_DB_VERSION                 1
+#define YOMI_DB_VERSION                 2
 #define YOMI_DB_FORMAT_VERSION          3
 
 #define YOMI_ERR_OPENING_DIC            1
@@ -36,6 +36,17 @@
 #define YOMI_ERR_ADDING_KANJI           8
 #define YOMI_ERR_ADDING_KANJI_META      9
 #define YOMI_ERR_DELETE                 10
+
+enum yomi_blob_t
+{
+    YOMI_BLOB_TYPE_NULL     = 0,
+    YOMI_BLOB_TYPE_INT      = 1,
+    YOMI_BLOB_TYPE_STRING   = 2,
+    YOMI_BLOB_TYPE_DOUBLE   = 3,
+    YOMI_BLOB_TYPE_OBJECT   = 4,
+    YOMI_BLOB_TYPE_ARRAY    = 5,
+    YOMI_BLOB_TYPE_BOOLEAN  = 6,
+} typedef yomi_blob_t;
 
 /**
  * Prepare a dictionary database if one doesn't already exist

@@ -58,6 +58,7 @@
 #define UNKNOWN_DATA_TYPE_ERR       -21
 #define PRAGMA_SET_ERR              -22
 #define TRANSACTION_ERR             -23
+#define DB_ALTER_TABLE_ERR          -24
 
 enum bank_type
 {
@@ -142,10 +143,9 @@ static int drop_all_tables_callback(void *db, int argc, char **argv, char **unus
 /**
  * Brings the database schema up to the current version's specifications
  * @param   db      The database to modify
- * @param   version The current reported version of the database
  * @return Error code
  */
-static int create_db(sqlite3 *db, const int version)
+static int create_db(sqlite3 *db)
 {
     int   ret    = 0;
     char *errmsg = NULL;
@@ -211,6 +211,7 @@ static int create_db(sqlite3 *db, const int version)
             "dic_id     INTEGER     NOT NULL,"
             "expression TEXT        NOT NULL,"
             "mode       TEXT        NOT NULL,"
+            "type       INTEGER     NOT NULL,"  // Type of data in the blob
             "data       BLOB"                   // Data defined by mode
         ");"
         "CREATE INDEX idx_term_meta_exp ON term_meta_bank(expression, mode);"
@@ -230,6 +231,7 @@ static int create_db(sqlite3 *db, const int version)
             "dic_id     INTEGER     NOT NULL,"
             "expression TEXT        NOT NULL,"
             "mode       TEXT        NOT NULL,"
+            "type       INTEGER     NOT NULL," // Type of data in the blob
             "data       BLOB"                  // Data defined by mode
         ");"
         "CREATE INDEX idx_kanji_meta_exp ON kanji_meta_bank(expression, mode);",
@@ -255,6 +257,61 @@ static int create_db(sqlite3 *db, const int version)
     {
         fprintf(stderr, "Failed to create tables\nError: %s\n", errmsg);
         ret = DB_CREATE_TABLE_ERR;
+        goto cleanup;
+    }
+
+cleanup:
+    sqlite3_free(errmsg);
+    sqlite3_free(pragma);
+
+    return ret;
+}
+
+static int update_v1_to_v2(sqlite3 *db)
+{
+    int   ret    = 0;
+    char *pragma = NULL;
+    char *errmsg = NULL;
+
+    pragma = sqlite3_mprintf(
+        "ALTER TABLE term_meta_bank  ADD type INTEGER NOT NULL DEFAULT 0;"
+        "ALTER TABLE kanji_meta_bank ADD type INTEGER NOT NULL DEFAULT 0;"
+
+        "UPDATE term_meta_bank "
+            "SET   type = %u "
+            "WHERE mode = 'pitch';"
+        "UPDATE kanji_meta_bank "
+            "SET   type = %u "
+            "WHERE mode = 'pitch';"
+
+        "UPDATE term_meta_bank "
+            "SET   type = %u "
+            "WHERE mode = 'freq';"
+        "UPDATE kanji_meta_bank "
+            "SET   type = %u "
+            "WHERE mode = 'freq';"
+
+        "PRAGMA user_version = %d;",
+        YOMI_BLOB_TYPE_OBJECT, YOMI_BLOB_TYPE_OBJECT,
+        YOMI_BLOB_TYPE_INT,    YOMI_BLOB_TYPE_INT,
+        YOMI_DB_VERSION
+    );
+    if (pragma == NULL)
+    {
+        fprintf(stderr, "Could not allocate memory for query\n");
+        ret = MALLOC_FAILURE_ERR;
+        goto cleanup;
+    }
+
+    if (sqlite3_exec(db, pragma, NULL, NULL, &errmsg) != SQLITE_OK)
+    {
+        fprintf(stderr,
+            "Failed to update database from version 1 to 2.\n"
+            "Error: %s\n"
+            "Query: %s\n",
+            errmsg, pragma
+        );
+        ret = DB_ALTER_TABLE_ERR;
         goto cleanup;
     }
 
@@ -297,10 +354,24 @@ static int prepare_db(sqlite3 *db)
         ret = DB_NEW_VERSION_ERR;
         goto cleanup;
     }
-    else if (user_version < YOMI_DB_VERSION && (ret = create_db(db, user_version)))
+
+    switch (user_version)
     {
-        fprintf(stderr, "Could not update the database, reported version %d\n", user_version);
-        goto cleanup;
+    case 0:
+        if ((ret = create_db(db)))
+        {
+            fprintf(stderr, "Could not update the database, reported version %d\n", user_version);
+            goto cleanup;
+        }
+        break;
+
+    case 1:
+        if ((ret = update_v1_to_v2(db)))
+        {
+            fprintf(stderr, "Could not update the database from version 1 to 2.\n");
+            goto cleanup;
+        }
+        break;
     }
 
     /* Set all PRAGMA value to their expected values */
@@ -982,7 +1053,8 @@ cleanup:
 #define QUERY_DIC_ID_INDEX          1
 #define QUERY_EXPRESSION_INDEX      2
 #define QUERY_MODE_INDEX            3
-#define QUERY_DATA_INDEX            4
+#define QUERY_TYPE_INDEX            4
+#define QUERY_DATA_INDEX            5
 
 /**
  * Add the metadata stored in the json array
@@ -994,20 +1066,21 @@ cleanup:
  */
 static int add_meta(sqlite3 *db, json_object *meta, const sqlite3_int64 id, const char *query)
 {
-    int           ret         = 0;
-    json_object  *ret_obj     = NULL;
+    int         ret         = 0;
+    json_object *ret_obj    = NULL;
 
-    const char   *exp         = NULL;
-    const char   *mode        = NULL;
-    const void   *data        = NULL;
-    size_t        data_len    = 0;
-    int64_t       data_int    = 0;
-    json_bool     data_bool   = 0;
-    double        data_double = 0.0;
-    int           data_null   = 0;
+    const char  *exp        = NULL;
+    const char  *mode       = NULL;
+    const void  *data       = NULL;
+    yomi_blob_t type        = 0;
+    size_t      data_len    = 0;
+    int64_t     data_int    = 0;
+    json_bool   data_bool   = 0;
+    double      data_double = 0.0;
+    int         data_null   = 0;
 
-    sqlite3_stmt *stmt        = NULL;
-    int           step        = 0;
+    sqlite3_stmt *stmt      = NULL;
+    int           step      = 0;
 
     /* Make sure the length of the metadata array is correct */
     if (json_object_array_length(meta) != META_ARRAY_SIZE)
@@ -1032,31 +1105,40 @@ static int add_meta(sqlite3 *db, json_object *meta, const sqlite3_int64 id, cons
     switch (json_object_get_type(ret_obj))
     {
     case json_type_array:
+        data = json_object_to_json_string_length(ret_obj, JSON_C_TO_STRING_SPACED, &data_len);
+        ++data_len;
+        type = YOMI_BLOB_TYPE_ARRAY;
     case json_type_object:
         data = json_object_to_json_string_length(ret_obj, JSON_C_TO_STRING_SPACED, &data_len);
         ++data_len;
+        type = YOMI_BLOB_TYPE_OBJECT;
         break;
     case json_type_int:
         data_int = json_object_get_int64(ret_obj);
         data = &data_int;
         data_len = sizeof(int64_t);
+        type = YOMI_BLOB_TYPE_INT;
         break;
     case json_type_boolean:
         data_bool = json_object_get_boolean(ret_obj);
         data = &data_bool;
         data_len = sizeof(json_bool);
+        type = YOMI_BLOB_TYPE_BOOLEAN;
         break;
     case json_type_double:
         data_double = json_object_get_double(ret_obj);
         data = &data_double;
         data_len = sizeof(double);
+        type = YOMI_BLOB_TYPE_DOUBLE;
         break;
     case json_type_string:
         data = json_object_get_string(ret_obj);
         data_len = json_object_get_string_len(ret_obj) + 1;
+        type = YOMI_BLOB_TYPE_STRING;
         break;
     case json_type_null:
         data_null = 1;
+        type = YOMI_BLOB_TYPE_NULL;
         break;
     default:
         fprintf(stderr, "Unknown json type stored in data\n");
@@ -1074,7 +1156,8 @@ static int add_meta(sqlite3 *db, json_object *meta, const sqlite3_int64 id, cons
     }
     if (sqlite3_bind_int (stmt, QUERY_DIC_ID_INDEX,     id            ) != SQLITE_OK ||
         sqlite3_bind_text(stmt, QUERY_EXPRESSION_INDEX, exp,  -1, NULL) != SQLITE_OK ||
-        sqlite3_bind_text(stmt, QUERY_MODE_INDEX,       mode, -1, NULL) != SQLITE_OK)
+        sqlite3_bind_text(stmt, QUERY_MODE_INDEX,       mode, -1, NULL) != SQLITE_OK ||
+        sqlite3_bind_int (stmt, QUERY_TYPE_INDEX,       type)           != SQLITE_OK)
     {
         fprintf(stderr, "Could not bind values to sqlite statement\n");
         ret = STATEMENT_BIND_ERR;
@@ -1137,8 +1220,8 @@ static int add_term_meta(sqlite3 *db, json_object *term_meta, const sqlite3_int6
         db,
         term_meta,
         id,
-        "INSERT INTO term_meta_bank (dic_id, expression, mode, data) "
-            "VALUES (?, ?, ?, ?);"
+        "INSERT INTO term_meta_bank (dic_id, expression, mode, type, data) "
+            "VALUES (?, ?, ?, ?, ?);"
     );
 }
 
@@ -1155,8 +1238,8 @@ static int add_kanji_meta(sqlite3 *db, json_object *kanji_meta, const sqlite3_in
         db,
         kanji_meta,
         id,
-        "INSERT INTO kanji_meta_bank (dic_id, expression, mode, data) "
-            "VALUES (?, ?, ?, ?);"
+        "INSERT INTO kanji_meta_bank (dic_id, expression, mode, type, data) "
+            "VALUES (?, ?, ?, ?, ?);"
     );
 }
 

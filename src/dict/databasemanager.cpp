@@ -573,7 +573,7 @@ void DatabaseManager::addTags(const uint64_t  id,
     }
 }
 
-#define QUERY   "SELECT dic_id, data "\
+#define QUERY   "SELECT dic_id, data, type "\
                     "FROM term_meta_bank "\
                     "WHERE (expression = ? AND mode = 'freq');"
 
@@ -584,7 +584,7 @@ int DatabaseManager::addFrequencies(Term &term) const
 
 #undef QUERY
 
-#define QUERY   "SELECT dic_id, data "\
+#define QUERY   "SELECT dic_id, data, type "\
                     "FROM kanji_meta_bank "\
                     "WHERE (expression = ? AND mode = 'freq');"
 
@@ -618,9 +618,25 @@ int DatabaseManager::addFrequencies(const char       *query,
     }
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
+        QString freqStr;
+        switch ((yomi_blob_t)sqlite3_column_int(stmt, 2))
+        {
+        case YOMI_BLOB_TYPE_STRING:
+            freqStr = (const char *)sqlite3_column_blob(stmt, 1);
+            break;
+
+        case YOMI_BLOB_TYPE_INT:
+            freqStr = QString::number(
+                *(const uint64_t *)sqlite3_column_blob(stmt, 1)
+            );
+            break;
+
+        default:
+            continue;
+        }
         freq.append(Frequency {
             getDictionary(sqlite3_column_int64(stmt, 0)),
-            *(const uint64_t *)sqlite3_column_blob(stmt, 1)
+            freqStr
         });
     }
     if (isStepError(step))

@@ -64,7 +64,7 @@ struct Frequency
     QString dictionary;
 
     /* Frequency of the expression/kanji/etc. */
-    uint64_t freq;
+    QString freq;
 } typedef Frequency;
 
 /**
