@@ -204,7 +204,14 @@ void ProgressSlider::mouseMoveEvent(QMouseEvent *event)
 
     m_labelTimecode->move(mapToParent(QPoint(tipX, 0)).x(), tipY);
 
-    m_labelTimecode->show();
+    if (tipX < 0 || tipX + m_labelTimecode->width() > width())
+    {
+        m_labelTimecode->hide();
+    }
+    else
+    {
+        m_labelTimecode->show();
+    }
 
     QSlider::mouseMoveEvent(event);
 }
