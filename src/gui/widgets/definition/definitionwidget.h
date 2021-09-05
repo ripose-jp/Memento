@@ -100,15 +100,13 @@ protected:
 
     /* Prevents these events from being sent to mpv when widget has focus. */
     void mouseMoveEvent(QMouseEvent *event) override
-        { event->accept(); }
+        { QWidget::mouseMoveEvent(event); event->accept(); }
     void mouseReleaseEvent(QMouseEvent *event) override
-        { event->accept(); }
+        { QWidget::mouseReleaseEvent(event); event->accept(); }
     void mouseDoubleClickEvent(QMouseEvent *event) override
-        { event->accept(); }
+        { QWidget::mouseDoubleClickEvent(event); event->accept(); }
     void mousePressEvent(QMouseEvent *event) override
-        { event->accept(); }
-    void wheelEvent(QWheelEvent *event) override
-        { event->accept(); }
+        { QWidget::mousePressEvent(event); event->accept(); }
 
 private:
     /* UI object containing all the widgets. */

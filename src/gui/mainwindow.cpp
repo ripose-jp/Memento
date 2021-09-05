@@ -540,7 +540,8 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 void MainWindow::wheelEvent(QWheelEvent *event)
 {
-    if (!m_ui->subtitleList->underMouse())
+    if (!m_ui->subtitleList->underMouse() &&
+        (m_definition == nullptr || !m_definition->underMouse()))
     {
         Q_EMIT m_mediator->wheelMoved(event);
     }
