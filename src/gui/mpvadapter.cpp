@@ -853,10 +853,12 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
     {
         key += "Meta+";
     }
+#if !__APPLE__
     if (event->modifiers() & Qt::KeypadModifier)
     {
         key += "KP";
     }
+#endif
 
     if (event->key() >= Qt::Key::Key_F1 && event->key() <= Qt::Key::Key_F30)
     {
