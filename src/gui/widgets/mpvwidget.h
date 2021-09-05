@@ -234,6 +234,14 @@ protected:
     void paintGL() override;
 
     /**
+     * Called when the widget is resized.
+     * @param width The new width of the widget. Not accurate on HiDPI displays.
+     * @param height The new width of the widget. Not accurate on HiDPI
+     *        displays.
+     */
+    void resizeGL(int width, int height) override;
+
+    /**
      * Called when the mouse is moved.
      * @param event The mouse move event.
      */
@@ -252,12 +260,6 @@ protected:
      * @param event The double click event.
      */
     void mouseDoubleClickEvent(QMouseEvent *event) override;
-
-    /**
-     * Called when the widget is resized.
-     * @param event The resize event.
-     */
-    void resizeEvent(QResizeEvent *event) override;
 
 private Q_SLOTS:
     /**

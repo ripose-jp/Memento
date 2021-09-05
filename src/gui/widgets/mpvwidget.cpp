@@ -481,6 +481,11 @@ void MpvWidget::paintGL()
     mpv_render_context_render(mpv_gl, params);
 }
 
+void MpvWidget::resizeGL(int width, int height)
+{
+    Q_EMIT GlobalMediator::getGlobalMediator()->playerResized();
+}
+
 // Make Qt invoke mpv_render_context_render() to draw a new/updated video frame.
 void MpvWidget::maybeUpdate()
 {
@@ -547,13 +552,6 @@ void MpvWidget::onMpvEvents()
         }
         handleMpvEvent(event);
     }
-}
-
-void MpvWidget::resizeEvent(QResizeEvent *event)
-{
-    QOpenGLWidget::resizeEvent(event);
-    event->ignore();
-    Q_EMIT GlobalMediator::getGlobalMediator()->playerResized();
 }
 
 void MpvWidget::mouseMoveEvent(QMouseEvent *event)
