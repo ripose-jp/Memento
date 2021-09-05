@@ -20,9 +20,11 @@
 
 #include "databasemanager.h"
 
+#include <QApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QMessageBox>
 
 extern "C"
 {
@@ -34,8 +36,24 @@ extern "C"
 DatabaseManager::DatabaseManager(const QString &path)
     : m_dbpath(path.toUtf8())
 {
+    if (!sqlite3_threadsafe())
+    {
+        QMessageBox::critical(
+            0, "SQLite Error",
+            "The version of SQLite on this system is not threadsafe.\n "
+            "Because of this, Memento will not work.\n Please install a "
+            "version SQLite compiled with SQLITE_THREADSAFE=1 or 2."
+        );
+        QApplication::exit(EXIT_FAILURE);
+    }
+
     if (yomi_prepare_db(m_dbpath, NULL) ||
-        sqlite3_open_v2(m_dbpath, &m_db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
+        sqlite3_open_v2(
+            m_dbpath,
+            &m_db,
+            SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX,
+            NULL
+        ) != SQLITE_OK)
     {
         m_db = nullptr;
         qDebug() << "Could not open dictionary database";
