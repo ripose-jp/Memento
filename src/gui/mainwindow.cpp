@@ -25,6 +25,7 @@
 #include <QMimeData>
 #include <QScreen>
 #include <QSettings>
+#include <QStyleFactory>
 
 #include "../dict/dictionary.h"
 #include "../util/constants.h"
