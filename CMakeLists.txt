@@ -40,11 +40,7 @@ elseif(WIN32)
 endif()
 
 # Other dependencies
-if(APPLE)
-	set(MECAB "/opt/homebrew/lib/libmecab.dylib")
-else()
-	find_library(MECAB mecab)
-endif()
+find_library(MECAB mecab)
 find_library(SQLITE sqlite3)
 find_library(MPV_LIB mpv)
 find_library(JSONC json-c)
