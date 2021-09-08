@@ -54,7 +54,10 @@ QString DirectoryUtils::getConfigDir()
             QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
         );
     path.chop(sizeof("memento") - 1);
-    path += SLASH;
+    if (path.isEmpty() || !path.endsWith(SLASH))
+    {
+        path += SLASH;
+    }
     return path;
 }
 
