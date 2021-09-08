@@ -322,8 +322,10 @@ Q_SIGNALS:
 
     /**
      * Emitted when the player loads a new file.
+     * @param width  The width of the file.
+     * @param height The height of the file.
      */
-    void playerFileLoaded() const;
+    void playerFileLoaded(int width, int height) const;
 
     /**
      * Emitted when the player terminates.

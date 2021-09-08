@@ -18,26 +18,26 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef SEARCHSETTINGS_H
-#define SEARCHSETTINGS_H
+#ifndef BEHAVIORSETTINGS_H
+#define BEHAVIORSETTINGS_H
 
 #include <QWidget>
 
 namespace Ui
 {
-    class SearchSettings;
+    class BehaviorSettings;
 }
 
 /**
- * Settings widget for configuring SubtitleWidget.
+ * Settings widget for configuring player behavior.
  */
-class SearchSettings : public QWidget
+class BehaviorSettings : public QWidget
 {
     Q_OBJECT
 
 public:
-    SearchSettings(QWidget *parent = nullptr);
-    ~SearchSettings();
+    BehaviorSettings(QWidget *parent = nullptr);
+    ~BehaviorSettings();
 
 protected:
     /**
@@ -62,15 +62,9 @@ private Q_SLOTS:
      */
     void applySettings();
 
-    /**
-     * Handles changes to the UI when the search method combobox is changed.
-     * @param text The text of the combo box.
-     */
-    void methodTextChanged(const QString &text);
-
 private:
     /* The UI object containing all the widgets. */
-    Ui::SearchSettings *m_ui;
+    Ui::BehaviorSettings *m_ui;
 };
 
-#endif // SEARCHSETTINGS_H
+#endif // BEHAVIORSETTINGS_H

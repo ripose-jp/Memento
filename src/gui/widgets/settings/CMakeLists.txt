@@ -28,6 +28,17 @@ target_link_libraries(
 )
 
 add_library(
+    behaviorsettings
+    behaviorsettings.cpp
+    behaviorsettings.ui
+)
+target_link_libraries(
+    behaviorsettings
+    globalmediator
+    Qt5::Widgets
+)
+
+add_library(
     dictionarysettings
     dictionarysettings.cpp
     dictionarysettings.ui
@@ -68,9 +79,10 @@ add_library(
 )
 target_link_libraries(
     optionswindow
-    dictionarysettings
     ankisettings
-    searchsettings
-    interfacesettings
     audiosourcesettings
+    behaviorsettings
+    dictionarysettings
+    interfacesettings
+    searchsettings
 )

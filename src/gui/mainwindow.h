@@ -134,6 +134,13 @@ private Q_SLOTS:
      */
     void initTheme();
 
+    /**
+     * Automatically resizes the screen to the supplied width and height.
+     * Will not exceed the dimensions of the screen and only happens if in
+     * windowed mode and autofit is enabled.
+     */
+    void autoFitMedia(int width, int height);
+
 private:
     /**
      * Loads the last saved MainWindow settings. Currently size and maximized

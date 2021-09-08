@@ -533,7 +533,11 @@ void MpvWidget::handleMpvEvent(mpv_event *event)
     }
     case MPV_EVENT_FILE_LOADED:
     {
-        Q_EMIT newFileLoaded();
+        int64_t w;
+        mpv_get_property(mpv, "dwidth", MPV_FORMAT_INT64, &w);
+        int64_t h;
+        mpv_get_property(mpv, "dheight", MPV_FORMAT_INT64, &h);
+        Q_EMIT newFileLoaded(w, h);
         break;
     }
     case MPV_EVENT_SHUTDOWN:

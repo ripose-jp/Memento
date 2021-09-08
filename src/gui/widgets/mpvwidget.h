@@ -213,8 +213,10 @@ Q_SIGNALS:
 
     /**
      * Emitted when a new file is loaded.
+     * @param width The width of the media.
+     * @param height The height of the media.
      */
-    void newFileLoaded() const;
+    void newFileLoaded(int64_t width, int64_t height) const;
 
     /**
      * Emitted when mpv is shutdown.

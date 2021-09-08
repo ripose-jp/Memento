@@ -23,6 +23,7 @@
 
 #include <QMessageBox>
 #include <QMimeData>
+#include <QScreen>
 #include <QSettings>
 
 #include "../dict/dictionary.h"
@@ -59,6 +60,10 @@ MainWindow::MainWindow(QWidget *parent)
     /* About Window */
     m_aboutWindow = new AboutWindow;
     m_aboutWindow->hide();
+
+    /* Splitter */
+    m_ui->splitterPlayerSubtitles->setStretchFactor(0, 1);
+    m_ui->splitterPlayerSubtitles->setStretchFactor(1, 0);
 
     /* Initializers */
     initTheme();
@@ -101,6 +106,10 @@ void MainWindow::initWindow()
     connect(
         m_mediator, &GlobalMediator::playerFullscreenChanged,
         this,       &MainWindow::setFullscreen
+    );
+        connect(
+        m_mediator, &GlobalMediator::playerFileLoaded,
+        this,       &MainWindow::autoFitMedia
     );
     connect(
         m_mediator, &GlobalMediator::playerClosed,
@@ -365,7 +374,7 @@ void MainWindow::changeEvent(QEvent *event)
 }
 
 /* End Event Handlers */
-/* Begin Fullscreen Helpers */
+/* Begin Window Helpers */
 
 void MainWindow::setFullscreen(bool value)
 {
@@ -400,7 +409,44 @@ void MainWindow::setFullscreen(bool value)
     }
 }
 
-/* End Fullscreen Helpers */
+void MainWindow::autoFitMedia(int width, int height)
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_BEHAVIOR);
+    bool autoFit = settings.value(
+            SETTINGS_BEHAVIOR_AUTOFIT, SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT
+        ).toBool();
+    settings.endGroup();
+
+    if (window()->isFullScreen() || window()->isMaximized() || !autoFit)
+    {
+        return;
+    }
+
+    QSize subListDim = m_ui->subtitleList->size();
+    if (m_ui->subtitleList->isVisible())
+    {
+        width += subListDim.width();
+    }
+
+    QSize screenDim = screen()->size();
+    if (width > screenDim.width())
+    {
+        width = screenDim.width();
+    }
+    if (height > screenDim.height())
+    {
+        height = screenDim.height();
+    }
+
+    window()->resize(width, height);
+    if (m_ui->subtitleList->isVisible())
+    {
+        m_ui->subtitleList->resize(subListDim);
+    }
+}
+
+/* End Window Helpers */
 /* Begin Dialog Methods */
 
 void MainWindow::showErrorMessage(const QString title,
