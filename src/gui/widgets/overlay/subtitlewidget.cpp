@@ -551,12 +551,8 @@ void SubtitleWidget::deselectText()
 
 void SubtitleWidget::fitToContents()
 {
-    updateGeometry();
-    int width = document()->idealWidth() + 4;
-    if (width > GlobalMediator::getGlobalMediator()->getPlayerWidget()->width())
-    {
-        width = GlobalMediator::getGlobalMediator()->getPlayerWidget()->width();
-    }
+    document()->adjustSize();
+    int width = document()->idealWidth() + 10;
     setFixedWidth(width);
     int height = document()->size().toSize().height();
     setFixedHeight(height);
