@@ -156,6 +156,9 @@ void MainWindow::initTheme()
         if (style)
             QApplication::setStyle(style);
     #endif
+    #if __APPLE__
+        setStyleSheet("");
+    #endif
         QColor lightColor(240, 240, 240);
         QColor disabledColor(178, 179, 180);
         QColor white(255, 255, 255);
@@ -187,6 +190,9 @@ void MainWindow::initTheme()
         QStyle *style = QStyleFactory::create("fusion");
         if (style)
             QApplication::setStyle(style);
+    #endif
+    #if __APPLE__
+        setStyleSheet("");
     #endif
         /* Modified from
          * https://forum.qt.io/topic/101391/windows-10-dark-theme/5
@@ -225,6 +231,17 @@ void MainWindow::initTheme()
         QStyle *style = QStyleFactory::create("macintosh");
         if (style)
             QApplication::setStyle(style);
+        setStyleSheet(
+            "QToolButton {"
+                "border: 0px;"
+                "border-radius: 4px;"
+                "background-color: palette(window);"
+            "}"
+            "QToolButton:hover:!pressed"
+            "{"
+                "border: 1px solid palette(highlight);"
+            "}"
+        );
     #endif
         pal = QApplication::style()->standardPalette();
     }
