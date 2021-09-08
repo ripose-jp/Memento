@@ -59,7 +59,7 @@ public:
      * shown.
      * @return The recommend size of the widget.
      */
-    QSize sizeHint() const override { return QSize(480, 270);}
+    QSize sizeHint() const override { return QSize(480, 270); }
 
 Q_SIGNALS:
     /**
@@ -318,6 +318,12 @@ private:
 
     /* The mpv render context */
     mpv_render_context *mpv_gl;
+
+    /* The height of the player adjusted for DPI. */
+    int m_height;
+
+    /* The width of the player adjusted for DPI. */
+    int m_width;
 
     /* Maps mpv properties to the appropriate event handling function */
     QHash<QString, std::function<void(mpv_event_property *)>> m_propertyMap;

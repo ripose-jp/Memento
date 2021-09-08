@@ -39,7 +39,7 @@
 #include "../../util/globalmediator.h"
 
 /* Timeout before the cursor disappears */
-#define CURSOR_TIMEOUT  700
+#define CURSOR_TIMEOUT 700
 
 /* Begin C functions */
 
@@ -69,7 +69,9 @@ static void onUpdate(void *ctx)
 
 MpvWidget::MpvWidget(QWidget *parent)
     : QOpenGLWidget(parent),
-      m_cursorTimer(new QTimer(this))
+      m_cursorTimer(new QTimer(this)),
+      m_height(height() * QApplication::desktop()->devicePixelRatioF()),
+      m_width(width() * QApplication::desktop()->devicePixelRatioF())
 {
     /* Run initialization tasks */
     m_cursorTimer->setSingleShot(true);
@@ -462,11 +464,10 @@ void MpvWidget::initializeGL()
 
 void MpvWidget::paintGL()
 {
-    qreal ratio = QApplication::desktop()->devicePixelRatioF();
     mpv_opengl_fbo mpfbo{
         static_cast<int>(defaultFramebufferObject()),
-        (int) (width()  * ratio),
-        (int) (height() * ratio),
+        m_width,
+        m_height,
         0
     };
     int flip_y{1};
@@ -483,6 +484,9 @@ void MpvWidget::paintGL()
 
 void MpvWidget::resizeGL(int width, int height)
 {
+    qreal ratio = QApplication::desktop()->devicePixelRatioF();
+    m_width = width * ratio;
+    m_height = height * ratio;
     Q_EMIT GlobalMediator::getGlobalMediator()->playerResized();
 }
 
