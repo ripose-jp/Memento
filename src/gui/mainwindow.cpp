@@ -438,14 +438,17 @@ void MainWindow::autoFitMedia(int width, int height)
         width += subListDim.width();
     }
 
+    float ratio = ((float)width) / height;
     QSize screenDim = screen()->size();
     if (width > screenDim.width())
     {
         width = screenDim.width();
+        height = (int) (width * (1 / ratio));
     }
     if (height > screenDim.height())
     {
         height = screenDim.height();
+        width = (int) (height * ratio);
     }
 
     window()->resize(width, height);
