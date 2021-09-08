@@ -108,12 +108,9 @@ sudo make install
     build/Memento_x86_64
     ```
 
-### Mac OS X
+### macOS
 
-**Important Note:** The OS X version of Memento has a myriad of problems that make it
-unusable for casual use. This build guide is intended for OS X developers interested
-in fixing the OS X port of Memento. Check this [issue](https://github.com/ripose-jp/Memento/issues/7)
-for a list of confirmed bugs or to contribute new bugs.
+**Important:** Clang is the only officially supported compiler for building Memento on macOS.
 
 1. Install [Homebrew](https://brew.sh/) with this command:
    ```
@@ -121,7 +118,7 @@ for a list of confirmed bugs or to contribute new bugs.
    ```
 1. Install the necessary tools and dependencies:
    ```
-   brew install git cmake gcc ffmpeg sqlite3 qt5 mpv mecab mecab-ipadic json-c libzip
+   brew install git cmake ffmpeg sqlite3 qt5 mpv mecab mecab-ipadic json-c libzip
    ```
 1. Clone the repository:
    ```
