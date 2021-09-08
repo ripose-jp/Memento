@@ -360,16 +360,7 @@ void MainWindow::changeEvent(QEvent *event)
 #if __APPLE__
     else if (event->type() == QEvent::WindowStateChange)
     {
-        bool paused = m_player->isPaused();
-        m_player->pause();
-        QApplication::processEvents();
-
         m_player->setFullscreen(isFullScreen());
-
-        if (!paused)
-        {
-            m_player->play();
-        }
     }
 #endif
 }

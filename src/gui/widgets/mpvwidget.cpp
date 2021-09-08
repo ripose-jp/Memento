@@ -33,6 +33,7 @@
 #include <QtDBus>
 #elif __APPLE__
 #include "../../util/macospowereventhandler.h"
+#include "cocoaeventhandler.h"
 #endif
 
 #include "../../util/constants.h"
@@ -75,9 +76,6 @@ MpvWidget::MpvWidget(QWidget *parent)
 {
     /* Run initialization tasks */
     m_cursorTimer->setSingleShot(true);
-#if __APPLE__
-    m_powerHandler = new MacOSPowerEventHandler;
-#endif
     initPropertyMap();
     initSubtitleRegex();
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
@@ -93,6 +91,11 @@ MpvWidget::MpvWidget(QWidget *parent)
         );
         QCoreApplication::exit(EXIT_FAILURE);
     }
+
+#if __APPLE__
+    m_cocoaHandler = new CocoaEventHandler(mpv);
+    m_powerHandler = new MacOSPowerEventHandler;
+#endif
 
     mpv_set_option_string(mpv, "terminal",               "yes");
     mpv_set_option_string(mpv, "keep-open",              "yes");
@@ -165,14 +168,15 @@ MpvWidget::MpvWidget(QWidget *parent)
 MpvWidget::~MpvWidget()
 {
     disconnect();
+    delete m_cursorTimer;
+#if __APPLE__
+    delete m_cocoaHandler;
+    delete m_powerHandler;
+#endif
     makeCurrent();
     if (mpv_gl)
         mpv_render_context_free(mpv_gl);
     mpv_terminate_destroy(mpv);
-    delete m_cursorTimer;
-#if __APPLE__
-    delete m_powerHandler;
-#endif
 }
 
 /* End Constructor/Destructor */

@@ -33,6 +33,7 @@
 #include "../../util/utils.h"
 
 #if __APPLE__
+class CocoaEventHandler;
 class MacOSPowerEventHandler;
 #endif
 
@@ -341,6 +342,9 @@ private:
     uint32_t dbus_cookie;
 
 #elif __APPLE__
+    /* Handles Cocoa events not availible to Qt */
+    CocoaEventHandler *m_cocoaHandler;
+
     /* The power event handler that prevents or allows the screen to dim. */
     MacOSPowerEventHandler *m_powerHandler;
 #endif

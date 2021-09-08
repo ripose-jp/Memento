@@ -1,9 +1,19 @@
 add_subdirectory(common)
 
-add_library(
-    mpvwidget
-    mpvwidget.cpp
-)
+# Add MpvWidget
+if (APPLE)
+    add_library(
+        mpvwidget
+        mpvwidget.cpp
+        cocoaeventhandler.mm
+    )
+else()
+    add_library(
+        mpvwidget
+        mpvwidget.cpp
+    )
+endif()
+
 set(
     MPV_WIDGET_LIBS
     ${MPV_LIB}
@@ -21,6 +31,7 @@ elseif(UNIX AND APPLE)
         MPV_WIDGET_LIBS
         ${MPV_WIDGET_LIBS}
         macos_power_handler
+        "-framework cocoa"
     )
 endif()
 target_link_libraries(
@@ -28,6 +39,7 @@ target_link_libraries(
     ${MPV_WIDGET_LIBS}
 )
 
+# Add About Window
 add_library(
     aboutwindow
     aboutwindow.cpp
@@ -38,6 +50,7 @@ target_link_libraries(
     Qt5::Core
 )
 
+# Add Subtitle List
 add_library(
     subtitlelist
     subtitlelistwidget.cpp
