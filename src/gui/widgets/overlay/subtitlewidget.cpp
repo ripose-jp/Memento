@@ -46,6 +46,9 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
       m_dictionary(new Dictionary),
       m_currentIndex(-1),
       m_findDelay(new QTimer(this)),
+#if __APPLE__
+      m_cocoaHandler(new CocoaEventHandler(this)),
+#endif
       m_paused(true)
 {
     initTheme();
@@ -119,6 +122,9 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
 SubtitleWidget::~SubtitleWidget()
 {
     disconnect();
+#if __APPLE__
+    delete m_cocoaHandler;
+#endif
     delete m_findDelay;
 }
 
@@ -404,6 +410,22 @@ void SubtitleWidget::paintEvent(QPaintEvent *event)
     cursor.mergeCharFormat(format);
     QTextEdit::paintEvent(event);
 }
+
+#if __APPLE__
+
+void SubtitleWidget::beforeTransition()
+{
+    m_oldUpdatesEnabled = updatesEnabled();
+    setUpdatesEnabled(false);
+}
+
+void SubtitleWidget::afterTransition()
+{
+    setUpdatesEnabled(true);
+    update();
+}
+
+#endif
 
 /* End Event Handlers */
 /* Begin General Slots */

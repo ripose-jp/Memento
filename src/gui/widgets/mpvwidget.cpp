@@ -33,7 +33,6 @@
 #include <QtDBus>
 #elif __APPLE__
 #include "../../util/macospowereventhandler.h"
-#include "cocoaeventhandler.h"
 #endif
 
 #include "../../util/constants.h"
@@ -74,6 +73,10 @@ MpvWidget::MpvWidget(QWidget *parent)
       m_width(width() * QApplication::desktop()->devicePixelRatioF())
 {
     /* Run initialization tasks */
+#if __APPLE__
+    m_cocoaHandler = new CocoaEventHandler(this);
+    m_powerHandler = new MacOSPowerEventHandler;
+#endif
     m_cursorTimer.setSingleShot(true);
     initPropertyMap();
     initSubtitleRegex();
@@ -90,11 +93,6 @@ MpvWidget::MpvWidget(QWidget *parent)
         );
         QCoreApplication::exit(EXIT_FAILURE);
     }
-
-#if __APPLE__
-    m_cocoaHandler = new CocoaEventHandler(mpv);
-    m_powerHandler = new MacOSPowerEventHandler;
-#endif
 
     mpv_set_option_string(mpv, "terminal",               "yes");
     mpv_set_option_string(mpv, "keep-open",              "yes");
@@ -715,5 +713,19 @@ QString MpvWidget::mouseButtonStringToString(const Qt::MouseButton button,
 
     return str;
 }
+
+#if __APPLE__
+void MpvWidget::beforeTransition()
+{
+    mpv_get_property(mpv, "pause", MPV_FORMAT_FLAG, &m_oldPause);
+    int pause = 1;
+    mpv_set_property(mpv, "pause", MPV_FORMAT_FLAG, &pause);
+}
+
+void MpvWidget::afterTransition()
+{
+    mpv_set_property(mpv, "pause", MPV_FORMAT_FLAG, &m_oldPause);
+}
+#endif
 
 /* End Helper Functions */

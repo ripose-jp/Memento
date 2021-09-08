@@ -21,12 +21,27 @@
 #ifndef COCOAEVENTHANDLER_H
 #define COCOAEVENTHANDLER_H
 
-#include <mpv/client.h>
-
 struct _NSContainer;
 
 /**
- * Class for handling events specific to Cocoa/macOS with regard to mpv.
+ * Interface for implementing callbacks.
+ */
+class CocoaEventHandlerCallback
+{
+public:
+    /**
+     * Called before macOS enters fullscreen.
+     */
+    virtual void beforeTransition() = 0;
+
+    /**
+     * Called after macOS enters fullscreen.
+     */
+    virtual void afterTransition() = 0;
+};
+
+/**
+ * Class for handling events specific to Cocoa/macOS.
  */
 class CocoaEventHandler
 {
@@ -35,7 +50,7 @@ public:
      * Constructs a CocoaEventHandler.
      * @param mpv The handle of the currently playing mpv instance.
      */
-    CocoaEventHandler(mpv_handle *mpv);
+    CocoaEventHandler(CocoaEventHandlerCallback *cb);
     ~CocoaEventHandler();
 
 private:

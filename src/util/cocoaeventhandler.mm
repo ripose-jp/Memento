@@ -22,23 +22,15 @@
 
 #import <Cocoa/Cocoa.h>
 
-#include "../../util/globalmediator.h"
-#include "../playeradapter.h"
-
 /**
  * Objective-C class for actually handling native events.
  */
 @interface EVHandler : NSObject
 {
-    /* The mpv handle to manipulate. */
-    mpv_handle *m_mpv;
-
-    /* The last saved pause state. Set in handleWindowWillChange and then used
-     * in handleWindowDidChange. */
-    int m_paused;
+    /* Callback functions */
+    CocoaEventHandlerCallback *m_cb;
 }
-
-- (id) initWithMpvHandle:(mpv_handle *)mpv;
+- (id) initWithCallback:(CocoaEventHandlerCallback *)cb;
 
 /**
  * Pauses mpv and saves the pause state before the window changes.
@@ -58,10 +50,10 @@ struct _NSContainer
     EVHandler *eh;
 };
 
-CocoaEventHandler::CocoaEventHandler(mpv_handle *mpv)
+CocoaEventHandler::CocoaEventHandler(CocoaEventHandlerCallback *cb)
 {
     nsc = new _NSContainer;
-    nsc->eh = [ [ EVHandler alloc ] initWithMpvHandle:mpv ];
+    nsc->eh = [ [ EVHandler alloc ] initWithCallback:cb ];
 }
 
 CocoaEventHandler::~CocoaEventHandler()
@@ -72,10 +64,9 @@ CocoaEventHandler::~CocoaEventHandler()
 
 @implementation EVHandler
 
-- (id) initWithMpvHandle:(mpv_handle *)mpv
+- (id) initWithCallback:(CocoaEventHandlerCallback *)cb
 {
-    m_mpv = mpv;
-    m_paused = 1;
+    m_cb = cb;
 
     [ [ NSNotificationCenter defaultCenter ]
         addObserver:self
@@ -108,14 +99,12 @@ CocoaEventHandler::~CocoaEventHandler()
 
 - (void) handleWindowWillChange:(NSNotification *)notification
 {
-    mpv_get_property(m_mpv, "pause", MPV_FORMAT_FLAG, &m_paused);
-    int pause = 1;
-    mpv_set_property(m_mpv, "pause", MPV_FORMAT_FLAG, &pause);
+    m_cb->beforeTransition();
 }
 
 - (void) handleWindowDidChange:(NSNotification *)notification
 {
-    mpv_set_property(m_mpv, "pause", MPV_FORMAT_FLAG, &m_paused);
+    m_cb->afterTransition();
 }
 
 @end

@@ -1,19 +1,10 @@
 add_subdirectory(common)
 
 # Add MpvWidget
-if (APPLE)
-    add_library(
-        mpvwidget
-        mpvwidget.cpp
-        cocoaeventhandler.mm
-    )
-else()
-    add_library(
-        mpvwidget
-        mpvwidget.cpp
-    )
-endif()
-
+add_library(
+    mpvwidget
+    mpvwidget.cpp
+)
 set(
     MPV_WIDGET_LIBS
     ${MPV_LIB}
@@ -31,7 +22,7 @@ elseif(UNIX AND APPLE)
         MPV_WIDGET_LIBS
         ${MPV_WIDGET_LIBS}
         macos_power_handler
-        "-framework cocoa"
+        cocoa_event_handler
     )
 endif()
 target_link_libraries(

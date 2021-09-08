@@ -31,6 +31,15 @@ target_link_libraries(
 
 if (APPLE)
     add_library(
+        cocoa_event_handler
+        cocoaeventhandler.mm
+    )
+    target_link_libraries(
+        cocoa_event_handler
+        "-framework cocoa"
+    )
+
+    add_library(
         macos_power_handler
         macospowereventhandler.cpp
     )
