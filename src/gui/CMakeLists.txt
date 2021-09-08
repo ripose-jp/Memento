@@ -27,12 +27,12 @@ set(
     mpvwidget
     mpvadapter
     subtitlelist
-    playercontrols
     definitionwidget
     anki
     dictionary_db
     optionswindow
     aboutwindow
+    playeroverlay
 )
 
 add_library(mainwindow ${GUI_SRCS})

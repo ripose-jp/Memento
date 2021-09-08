@@ -1,0 +1,47 @@
+add_library(
+    playermenu
+    playermenu.cpp
+    playermenu.ui
+)
+target_link_libraries(
+    playermenu
+    Qt5::Widgets
+)
+
+add_library(
+    subtitlewidget
+    subtitlewidget.cpp
+)
+target_link_libraries(
+    subtitlewidget
+    Qt5::Widgets
+    globalmediator
+    dictionary_db
+    mpvadapter
+)
+
+add_library(
+    playercontrols
+    playercontrols.ui
+    playercontrols.cpp
+)
+target_link_libraries(
+    playercontrols
+    Qt5::Widgets
+    iconfactory
+    sliderjumpstyle
+    subtitlewidget
+    progressslider
+)
+
+add_library(
+    playeroverlay
+    playeroverlay.cpp
+)
+target_link_libraries(
+    playeroverlay
+    playermenu
+    subtitlewidget
+    playercontrols
+    definitionwidget
+)

@@ -21,9 +21,9 @@
 #include "playercontrols.h"
 #include "ui_playercontrols.h"
 
-#include "../../util/globalmediator.h"
-#include "../playeradapter.h"
-#include "common/sliderjumpstyle.h"
+#include "../../../util/globalmediator.h"
+#include "../../playeradapter.h"
+#include "../common/sliderjumpstyle.h"
 
 /* Begin Constructor/Destructor */
 

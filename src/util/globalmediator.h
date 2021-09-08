@@ -354,6 +354,41 @@ Q_SIGNALS:
     void interfaceSettingsChanged() const;
 
     /* End Settings Signals */
+    /* Begin Menu Signals */
+
+    /**
+     * Emitted when the action for increasing the size of the subtitles is
+     * triggered.
+     */
+    void menuSubtitleSizeIncrease() const;
+
+    /**
+     * Emitted when the action for decreasing the size of the subtitles is
+     * triggered.
+     */
+    void menuSubtitleSizeDecrease() const;
+
+    /**
+     * Emitted when the action for moving the subtitles up is triggered.
+     */
+    void menuSubtitlesMoveUp() const;
+
+    /**
+     * Emitted when the action for moving the subtitles down is triggered.
+     */
+    void menuSubtitlesMoveDown() const;
+
+    /**
+     * Emitted when the menu action for showing options is triggered.
+     */
+    void menuShowOptions() const;
+
+    /**
+     * Emitted when the menu action for showing the about page is triggered.
+     */
+    void menuShowAbout() const;
+
+    /* End Menu Signals */
     /* Begin Player Control Signals */
 
     /**

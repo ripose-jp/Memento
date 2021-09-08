@@ -28,10 +28,10 @@
 #include <QSettings>
 #include <QThreadPool>
 
-#include "../../util/constants.h"
-#include "../../util/globalmediator.h"
-#include "../../util/utils.h"
-#include "../playeradapter.h"
+#include "../../../util/constants.h"
+#include "../../../util/globalmediator.h"
+#include "../../../util/utils.h"
+#include "../../playeradapter.h"
 
 /* The maximum length of text that can be searched. */
 #define MAX_QUERY_LENGTH 37

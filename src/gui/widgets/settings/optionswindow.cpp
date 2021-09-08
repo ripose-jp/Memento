@@ -27,6 +27,8 @@
 #include "interfacesettings.h"
 #include "searchsettings.h"
 
+#include "../../../util/globalmediator.h"
+
 /* Begin Constructor/Destructor */
 
 #define NAME_ANKI           "Anki Integration"
@@ -59,6 +61,10 @@ OptionsWindow::OptionsWindow(QWidget *parent)
     connect(
         m_ui->listOptions, &QListWidget::itemSelectionChanged,
         this,              &OptionsWindow::showSelectedOption
+    );
+    connect(
+        GlobalMediator::getGlobalMediator(), &GlobalMediator::menuShowOptions,
+        this, &QDialog::show
     );
 }
 

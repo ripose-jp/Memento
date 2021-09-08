@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PlayerMenu</class>
+ <widget class="QWidget" name="PlayerMenu">
+  <property name="cursor">
+   <cursorShape>ArrowCursor</cursorShape>
+  </property>
+  <property name="mouseTracking">
+   <bool>true</bool>
+  </property>
+  <property name="focusPolicy">
+   <enum>Qt::NoFocus</enum>
+  </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
+  </property>
+  <property name="windowTitle">
+   <string>Memento</string>
+  </property>
+  <property name="autoFillBackground">
+   <bool>true</bool>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QMenuBar" name="menubar">
+     <widget class="QMenu" name="menuMedia">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="title">
+       <string>Media</string>
+      </property>
+      <addaction name="actionOpen"/>
+      <addaction name="actionOpenUrl"/>
+     </widget>
+     <widget class="QMenu" name="menuAudio">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="title">
+       <string>Audio</string>
+      </property>
+      <addaction name="actionAudioNone"/>
+     </widget>
+     <widget class="QMenu" name="menuVideo">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="title">
+       <string>Video</string>
+      </property>
+      <addaction name="actionVideoNone"/>
+     </widget>
+     <widget class="QMenu" name="menuSubtitle">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="title">
+       <string>Subtitle</string>
+      </property>
+      <widget class="QMenu" name="menuSubtitleTwo">
+       <property name="title">
+        <string>Second Track</string>
+       </property>
+       <addaction name="actionSubtitleTwoNone"/>
+      </widget>
+      <addaction name="actionAddSubtitle"/>
+      <addaction name="menuSubtitleTwo"/>
+      <addaction name="separator"/>
+      <addaction name="actionSubtitleNone"/>
+     </widget>
+     <widget class="QMenu" name="menuSettings">
+      <property name="geometry">
+       <rect>
+        <x>714</x>
+        <y>327</y>
+        <width>200</width>
+        <height>211</height>
+       </rect>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="title">
+       <string>Settings</string>
+      </property>
+      <widget class="QMenu" name="menuAnkiProfile">
+       <property name="geometry">
+        <rect>
+         <x>664</x>
+         <y>189</y>
+         <width>142</width>
+         <height>60</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Anki Profile</string>
+       </property>
+      </widget>
+      <widget class="QMenu" name="menuSubtitle_Search">
+       <property name="title">
+        <string>Subtitle Search</string>
+       </property>
+       <addaction name="actionIncreaseSize"/>
+       <addaction name="actionDecreaseSize"/>
+       <addaction name="actionMoveUp"/>
+       <addaction name="actionMoveDown"/>
+      </widget>
+      <addaction name="menuAnkiProfile"/>
+      <addaction name="menuSubtitle_Search"/>
+      <addaction name="actionOptions"/>
+      <addaction name="separator"/>
+      <addaction name="actionAbout"/>
+      <addaction name="actionUpdate"/>
+     </widget>
+     <addaction name="menuMedia"/>
+     <addaction name="menuAudio"/>
+     <addaction name="menuVideo"/>
+     <addaction name="menuSubtitle"/>
+     <addaction name="menuSettings"/>
+    </widget>
+   </item>
+  </layout>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open File</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionAudioNone">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>None</string>
+   </property>
+  </action>
+  <action name="actionVideoNone">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>None</string>
+   </property>
+  </action>
+  <action name="actionSubtitleNone">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>None</string>
+   </property>
+  </action>
+  <action name="actionSubtitleTwoNone">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>None</string>
+   </property>
+  </action>
+  <action name="actionAddSubtitle">
+   <property name="text">
+    <string>Add Subtitle File</string>
+   </property>
+  </action>
+  <action name="actionUpdate">
+   <property name="text">
+    <string>Check for Updates</string>
+   </property>
+  </action>
+  <action name="actionOptions">
+   <property name="text">
+    <string>Options</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About Memento</string>
+   </property>
+  </action>
+  <action name="actionIncreaseSize">
+   <property name="text">
+    <string>Increase Size</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
+   </property>
+  </action>
+  <action name="actionDecreaseSize">
+   <property name="text">
+    <string>Decrease Size</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
+  </action>
+  <action name="actionMoveUp">
+   <property name="text">
+    <string>Move Up</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+2</string>
+   </property>
+  </action>
+  <action name="actionMoveDown">
+   <property name="text">
+    <string>Move Down</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+1</string>
+   </property>
+  </action>
+  <action name="actionOpenUrl">
+   <property name="text">
+    <string>Open URL</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+U</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -20,10 +20,11 @@
 
 #include "aboutwindow.h"
 
-#include "../../util/constants.h"
-
 #include <QVBoxLayout>
 #include <QLabel>
+
+#include "../../util/constants.h"
+#include "../../util/globalmediator.h"
 
 AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
 {
@@ -59,4 +60,9 @@ AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
         "Copyright Ripose 2020-2021"
     );
     parentLayout->addWidget(labelInfo);
+
+    connect(
+        GlobalMediator::getGlobalMediator(), &GlobalMediator::menuShowAbout,
+        this, &QDialog::show
+    );
 }

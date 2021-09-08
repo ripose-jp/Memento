@@ -26,7 +26,7 @@
 #include <QMouseEvent>
 #include <QTimer>
 
-#include "../../dict/dictionary.h"
+#include "../../../dict/dictionary.h"
 
 /**
  * Widget used to display subtitle text and initiate searches.

@@ -23,7 +23,7 @@
 
 #include <QWidget>
 
-#include "../../util/iconfactory.h"
+#include "../../../util/iconfactory.h"
 
 namespace Ui
 {

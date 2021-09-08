@@ -39,18 +39,6 @@ target_link_libraries(
 )
 
 add_library(
-    subtitlewidget
-    subtitlewidget.cpp
-)
-target_link_libraries(
-    subtitlewidget
-    Qt5::Widgets
-    globalmediator
-    dictionary_db
-    mpvadapter
-)
-
-add_library(
     subtitlelist
     subtitlelistwidget.cpp
     subtitlelistwidget.ui
@@ -61,19 +49,6 @@ target_link_libraries(
     mpvadapter
 )
 
-add_library(
-    playercontrols
-    playercontrols.ui
-    playercontrols.cpp
-)
-target_link_libraries(
-    playercontrols
-    Qt5::Widgets
-    iconfactory
-    sliderjumpstyle
-    subtitlewidget
-    progressslider
-)
-
 add_subdirectory(settings)
 add_subdirectory(definition)
+add_subdirectory(overlay)
