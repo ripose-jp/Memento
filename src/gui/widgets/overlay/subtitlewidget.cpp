@@ -164,21 +164,21 @@ void SubtitleWidget::initTheme()
         ).toBool()
     );
     font.setStyleStrategy(QFont::PreferAntialias);
-    setFont(font);
-
-    QString stylesheetFormat =
-        "QTextEdit {"
-            "font-size: %1px;"
-            "color: rgba(%2, %3, %4, %5);"
-            "background: rgba(%6, %7, %8, %9);"
-        "}";
-
-    int fontSize = (int)
+    font.setPixelSize(
         GlobalMediator::getGlobalMediator()->getPlayerWidget()->height() *
         settings.value(
             SETTINGS_INTERFACE_SUB_SCALE,
             SETTINGS_INTERFACE_SUB_SCALE_DEFAULT
-        ).toDouble();
+        ).toDouble()
+    );
+    setFont(font);
+
+    QString stylesheetFormat =
+        "QTextEdit {"
+            "color: rgba(%1, %2, %3, %4);"
+            "background: rgba(%5, %6, %7, %8);"
+        "}";
+
     QColor fontColor(
         settings.value(
             SETTINGS_INTERFACE_SUB_TEXT_COLOR,
@@ -193,8 +193,7 @@ void SubtitleWidget::initTheme()
     );
 
     setStyleSheet(
-        stylesheetFormat.arg(QString::number(fontSize))
-                        .arg(QString::number(fontColor.red()))
+        stylesheetFormat.arg(QString::number(fontColor.red()))
                         .arg(QString::number(fontColor.green()))
                         .arg(QString::number(fontColor.blue()))
                         .arg(QString::number(fontColor.alpha()))
