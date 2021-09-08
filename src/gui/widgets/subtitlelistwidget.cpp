@@ -168,6 +168,8 @@ void SubtitleListWidget::showEvent(QShowEvent *event)
     QApplication::processEvents();
     m_ui->tablePrim->scrollToItem(m_ui->tablePrim->currentItem());
     m_ui->tableSec->scrollToItem(m_ui->tableSec->currentItem());
+    m_ui->tablePrim->resizeRowsToContents();
+    m_ui->tableSec->resizeRowsToContents();
 
     Q_EMIT GlobalMediator::getGlobalMediator()->subtitleListShown();
 }
