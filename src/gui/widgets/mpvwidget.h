@@ -332,7 +332,7 @@ private:
     QHash<QString, std::function<void(mpv_event_property *)>> m_propertyMap;
 
     /* Timer responsible for showing and hiding the cursor */
-    QTimer *m_cursorTimer;
+    QTimer m_cursorTimer;
 
     /* Regular expression used to filter subtitles */
     QRegularExpression m_regex;

@@ -70,12 +70,11 @@ static void onUpdate(void *ctx)
 
 MpvWidget::MpvWidget(QWidget *parent)
     : QOpenGLWidget(parent),
-      m_cursorTimer(new QTimer(this)),
       m_height(height() * QApplication::desktop()->devicePixelRatioF()),
       m_width(width() * QApplication::desktop()->devicePixelRatioF())
 {
     /* Run initialization tasks */
-    m_cursorTimer->setSingleShot(true);
+    m_cursorTimer.setSingleShot(true);
     initPropertyMap();
     initSubtitleRegex();
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
@@ -154,10 +153,16 @@ MpvWidget::MpvWidget(QWidget *parent)
     mpv_set_wakeup_callback(mpv, wakeup, this);
 
     /* Signals */
-    connect(m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
+    connect(&m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
     connect(
-        mediator, &GlobalMediator::definitionsHidden,
-        this,     [=] { m_cursorTimer->start(CURSOR_TIMEOUT); }
+        mediator, &GlobalMediator::definitionsHidden, this,
+        [=] {
+            try
+            {
+                m_cursorTimer.start(CURSOR_TIMEOUT);
+            }
+            catch (std::bad_alloc) {} // Find somebody else who cares
+        }
     );
     connect(
         mediator, &GlobalMediator::searchSettingsChanged,
@@ -168,7 +173,6 @@ MpvWidget::MpvWidget(QWidget *parent)
 MpvWidget::~MpvWidget()
 {
     disconnect();
-    delete m_cursorTimer;
 #if __APPLE__
     delete m_cocoaHandler;
     delete m_powerHandler;
@@ -576,7 +580,7 @@ void MpvWidget::mouseMoveEvent(QMouseEvent *event)
     {
         setCursor(Qt::ArrowCursor);
     }
-    m_cursorTimer->start(CURSOR_TIMEOUT);
+    m_cursorTimer.start(CURSOR_TIMEOUT);
     Q_EMIT mouseMoved(event);
 }
 
