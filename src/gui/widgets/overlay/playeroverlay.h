@@ -46,6 +46,12 @@ public:
 
 public Q_SLOTS:
     /**
+     * Returns if the cursor if over the children of the player.
+     * @return true if the cursor is over part of the overlay, false otherwise.
+     */
+    bool underMouse() const;
+
+    /**
      * Hides the overlay if it should be hidden.
      */
     void hideOverlay();
@@ -105,12 +111,6 @@ private Q_SLOTS:
     void deleteDefinitionWidget();
 
 private:
-    /**
-     * Returns if the cursor if over the children of the player.
-     * @return true if the cursor is over part of the overlay, false otherwise.
-     */
-    bool underMouse() const;
-
     /**
      * Changes the subtitle scale. Saved in settings.
      * @param inc A value between -1.0 and 1.0 to increment the current scale
