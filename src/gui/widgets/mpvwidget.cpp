@@ -96,6 +96,7 @@ MpvWidget::MpvWidget(QWidget *parent)
 
     mpv_set_option_string(mpv, "terminal",               "yes");
     mpv_set_option_string(mpv, "keep-open",              "yes");
+    mpv_set_option_string(mpv, "hwdec",                  "auto-safe");
     mpv_set_option_string(mpv, "config",                 "yes");
     mpv_set_option_string(mpv, "input-default-bindings", "yes");
     mpv_set_option_string(mpv, "ytdl",                   "yes");
