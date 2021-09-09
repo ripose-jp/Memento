@@ -46,10 +46,13 @@
 #define SETTINGS_AUDIO_SRC_MD5_DEFAULT  (QString("7e2c2f954ef6051373ba916f000168dc"))
 
 /* Behavior Settings */
-#define SETTINGS_BEHAVIOR                   "behavior"
+#define SETTINGS_BEHAVIOR                           "behavior"
 
-#define SETTINGS_BEHAVIOR_AUTOFIT           "autofit"
-#define SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT   true
+#define SETTINGS_BEHAVIOR_AUTOFIT                   "autofit"
+#define SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT           true
+
+#define SETTINGS_BEHAVIOR_AUTOFIT_PERCENT           "autofit-percent"
+#define SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT   100
 
 /* Dictionary Settings */
 #define SETTINGS_DICTIONARIES           "dictionaries"

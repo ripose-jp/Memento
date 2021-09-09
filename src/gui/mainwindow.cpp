@@ -418,13 +418,23 @@ void MainWindow::setFullscreen(bool value)
     }
 }
 
+/* https://github.com/u8sand/Baka-MPlayer/blob/4009cd02ef70b365105a00de6b5dc375f76c02ef/src/bakacommands.cpp#L425 */
 void MainWindow::autoFitMedia(int width, int height)
 {
+    if (width == 0 || height == 0)
+    {
+        return;
+    }
+
     QSettings settings;
     settings.beginGroup(SETTINGS_BEHAVIOR);
     bool autoFit = settings.value(
             SETTINGS_BEHAVIOR_AUTOFIT, SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT
         ).toBool();
+    unsigned int percent = settings.value(
+            SETTINGS_BEHAVIOR_AUTOFIT_PERCENT,
+            SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT
+        ).toUInt();
     settings.endGroup();
 
     if (window()->isFullScreen() || window()->isMaximized() || !autoFit)
@@ -432,30 +442,79 @@ void MainWindow::autoFitMedia(int width, int height)
         return;
     }
 
-    QSize subListDim = m_ui->subtitleList->size();
-    if (m_ui->subtitleList->isVisible())
+    QSize vG = QSize(width, height);                               // video geometry
+    QRect mG = m_ui->player->geometry();                           // mpv geometry
+    QRect wfG = window()->frameGeometry();                         // frame geometry of window (window geometry + window frame)
+    QRect wG = window()->geometry();                               // window geometry
+    QRect aG = QGuiApplication::screenAt(wfG.center())->availableGeometry();   // available geometry of the screen we're in--(geometry not including the taskbar)
+
+    double a; // aspect ratio
+    double w; // width of vid we want
+    double h; // height of vid we want
+
+    // obtain natural video aspect ratio
+    a = double(vG.width()) / vG.height(); // use display width and height for aspect ratio
+
+    // calculate resulting display:
+    if(percent == 0) // fit to window
     {
-        width += subListDim.width();
+        // set our current mpv frame dimensions
+        w = mG.width();
+        h = mG.height();
+
+        double cmp = w/h - a; // comparison
+        double eps = 0.01;  // epsilon (deal with rounding errors) we consider -eps < 0 < eps ==> 0
+
+        if(cmp > eps) // too wide
+        {
+            w = h * a; // calculate width based on the correct height
+        }
+        else if(cmp < -eps) // too long
+        {
+            h = w / a; // calculate height based on the correct width
+        }
+    }
+    else // fit into desired dimensions
+    {
+        double scale = percent / 100.0; // get scale
+
+        w = vG.width() * scale;  // get scaled width
+        h = vG.height() * scale; // get scaled height
     }
 
-    float ratio = ((float)width) / height;
-    QSize screenDim = screen()->size();
-    if (width > screenDim.width())
+    double dW = w + (wfG.width() - mG.width());   // calculate display width of the window
+    double dH = h + (wfG.height() - mG.height()); // calculate display height of the window
+
+    if(dW > aG.width()) // if the width is bigger than the available area
     {
-        width = screenDim.width();
-        height = (int) (width * (1 / ratio));
+        dW = aG.width(); // set the width equal to the available area
+        w = dW - (wfG.width() - mG.width());    // calculate the width
+        h = w / a;                              // calculate height
+        dH = h + (wfG.height() - mG.height());  // calculate new display height
     }
-    if (height > screenDim.height())
+    if(dH > aG.height()) // if the height is bigger than the available area
     {
-        height = screenDim.height();
-        width = (int) (height * ratio);
+        dH = aG.height(); // set the height equal to the available area
+        h = dH - (wfG.height() - mG.height()); // calculate the height
+        w = h * a;                             // calculate the width accordingly
+        dW = w + (wfG.width() - mG.width());   // calculate new display width
     }
 
-    window()->resize(width, height);
-    if (m_ui->subtitleList->isVisible())
-    {
-        m_ui->subtitleList->resize(subListDim);
-    }
+    // get the centered rectangle we want
+    QRect rect = QStyle::alignedRect(
+        Qt::LeftToRight, Qt::AlignCenter,
+        QSize(dW, dH),
+        percent == 0 ? wfG : aG // center in window (autofit) or on our screen
+    );
+
+    // adjust the rect to compensate for the frame
+    rect.setLeft(rect.left() + (wG.left() - wfG.left()));
+    rect.setTop(rect.top() + (wG.top() - wfG.top()));
+    rect.setRight(rect.right() - (wfG.right() - wG.right()));
+    rect.setBottom(rect.bottom() - (wfG.bottom() - wG.bottom()));
+
+    // finally set the geometry of the window
+    window()->setGeometry(rect);
 }
 
 /* End Window Helpers */

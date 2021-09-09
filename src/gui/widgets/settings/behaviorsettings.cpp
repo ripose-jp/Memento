@@ -82,12 +82,19 @@ void BehaviorSettings::restoreSaved()
             SETTINGS_BEHAVIOR_AUTOFIT, SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT
         ).toBool()
     );
+    m_ui->spinAutofit->setValue(
+        settings.value(
+            SETTINGS_BEHAVIOR_AUTOFIT_PERCENT,
+            SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT
+        ).toInt()
+    );
     settings.endGroup();
 }
 
 void BehaviorSettings::restoreDefaults()
 {
     m_ui->checkAutofit->setChecked(SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT);
+    m_ui->spinAutofit->setValue(SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT);
 }
 
 void BehaviorSettings::applySettings()
@@ -96,6 +103,9 @@ void BehaviorSettings::applySettings()
     settings.beginGroup(SETTINGS_BEHAVIOR);
     settings.setValue(
         SETTINGS_BEHAVIOR_AUTOFIT, m_ui->checkAutofit->isChecked()
+    );
+    settings.setValue(
+        SETTINGS_BEHAVIOR_AUTOFIT_PERCENT, m_ui->spinAutofit->value()
     );
     settings.endGroup();
 }

@@ -540,10 +540,10 @@ void MpvWidget::handleMpvEvent(mpv_event *event)
     }
     case MPV_EVENT_FILE_LOADED:
     {
-        int64_t w;
-        mpv_get_property(mpv, "dwidth", MPV_FORMAT_INT64, &w);
-        int64_t h;
-        mpv_get_property(mpv, "dheight", MPV_FORMAT_INT64, &h);
+        int64_t w = 0;
+        mpv_get_property(mpv, "video-params/w", MPV_FORMAT_INT64, &w);
+        int64_t h = 0;
+        mpv_get_property(mpv, "video-params/h", MPV_FORMAT_INT64, &h);
         Q_EMIT newFileLoaded(w, h);
         break;
     }

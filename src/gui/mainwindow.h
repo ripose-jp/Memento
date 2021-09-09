@@ -138,6 +138,8 @@ private Q_SLOTS:
      * Automatically resizes the screen to the supplied width and height.
      * Will not exceed the dimensions of the screen and only happens if in
      * windowed mode and autofit is enabled.
+     * @param width  The width of the video.
+     * @param height The height of the video.
      */
     void autoFitMedia(int width, int height);
 
