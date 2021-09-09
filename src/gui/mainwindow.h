@@ -210,6 +210,9 @@ private:
      */
     bool m_maximized;
 
+    /* true if the window has never been shown before, false otherwise */
+    bool m_firstShow;
+
 #if __APPLE__
     /* The Cocoa event handler for preventing updates on screen transitions. */
     CocoaEventHandler *m_cocoaHandler;

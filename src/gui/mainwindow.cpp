@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
       m_mediator(GlobalMediator::getGlobalMediator()),
       m_ui(new Ui::MainWindow),
       m_ankiClient(new AnkiClient(this)),
+      m_firstShow(true),
       m_maximized(false)
 {
     m_ui->setupUi(this);
@@ -288,6 +289,14 @@ void MainWindow::initTheme()
 
 void MainWindow::showEvent(QShowEvent *event)
 {
+    QMainWindow::showEvent(event);
+
+    if (!m_firstShow)
+    {
+        return;
+    }
+    m_firstShow = false;
+
     /* Check for installed dictionaries */
     if (m_mediator->getDictionary()->getDictionaries().isEmpty())
     {
@@ -314,8 +323,6 @@ void MainWindow::showEvent(QShowEvent *event)
     /* Load files opened with Memento */
     m_player->loadCommandLineArgs();
     m_player->play();
-
-    QMainWindow::showEvent(event);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
