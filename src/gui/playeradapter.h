@@ -201,8 +201,9 @@ public Q_SLOTS:
      * is a subtitle file, the subtitle file will be added to the currently
      * playing file.
      * @param files The list of files to open.
+     * @return true if a media was opened, false otherwise.
      */
-    virtual void open(const QList<QUrl> &files) = 0;
+    virtual bool open(const QList<QUrl> &files) = 0;
 
     /**
      * Adds the subtitle file to add to the playback.

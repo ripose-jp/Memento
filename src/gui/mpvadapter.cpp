@@ -498,10 +498,12 @@ void MpvAdapter::open(const QString     &file,
     }
 }
 
-void MpvAdapter::open(const QList<QUrl> &files)
+bool MpvAdapter::open(const QList<QUrl> &files)
 {
     if (files.isEmpty())
-        return;
+    {
+        return false;
+    }
 
     bool firstFile = true;
 
@@ -524,6 +526,8 @@ void MpvAdapter::open(const QList<QUrl> &files)
             firstFile = false;
         }
     }
+
+    return !firstFile;
 }
 
 void MpvAdapter::addSubtitle(const QString &file)

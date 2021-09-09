@@ -369,8 +369,10 @@ void MainWindow::dropEvent(QDropEvent *event)
 {
     if (event->mimeData()->hasUrls())
     {
-        m_player->open(event->mimeData()->urls());
-        m_player->play();
+        if (m_player->open(event->mimeData()->urls()))
+        {
+            m_player->play();
+        }
     }
     QMainWindow::dropEvent(event);
 }
