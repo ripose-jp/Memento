@@ -30,7 +30,9 @@
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #include <winbase.h>
 #elif __linux__
+#include <qpa/qplatformnativeinterface.h>
 #include <QtDBus>
+#include <QX11Info>
 #elif __APPLE__
 #include "../../util/macospowereventhandler.h"
 #endif
@@ -453,8 +455,24 @@ void MpvWidget::initializeGL()
             const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)
         },
         {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init_params},
+        {MPV_RENDER_PARAM_INVALID,            nullptr},
         {MPV_RENDER_PARAM_INVALID,            nullptr}
     };
+
+#if __linux__
+    if (QGuiApplication::platformName().contains("xcb"))
+    {
+        params[2].type = MPV_RENDER_PARAM_X11_DISPLAY;
+        params[2].data = QX11Info::display();
+    }
+    else if (QGuiApplication::platformName().contains("wayland"))
+    {
+        QPlatformNativeInterface *native =
+            QGuiApplication::platformNativeInterface();
+        params[2].type = MPV_RENDER_PARAM_WL_DISPLAY;
+        params[2].data = native->nativeResourceForWindow("display", nullptr);
+    }
+#endif
 
     if (mpv_render_context_create(&mpv_gl, mpv, params) < 0)
     {

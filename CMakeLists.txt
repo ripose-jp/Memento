@@ -32,7 +32,8 @@ endif()
 
 # Find Qt
 if(UNIX AND NOT APPLE)
-	find_package(Qt5 COMPONENTS Widgets Network DBus REQUIRED)
+	find_package(Qt5 COMPONENTS Widgets Network DBus X11Extras REQUIRED)
+	include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
 elseif(UNIX AND APPLE)
 	find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
 elseif(WIN32)

@@ -56,6 +56,7 @@ This error can be fixed by installing the
     * QtNetwork
     * QtSvg
     * QtDBus (Linux)
+    * X11Extras (Linux)
 * mpv
 * sqlite3
 * MeCab
@@ -176,6 +177,10 @@ https://github.com/mpv-player/mpv-examples/tree/master/libmpv/qt_opengl
 Some code based off of Baka-MPlayer.
 
 https://github.com/u8sand/Baka-MPlayer
+
+Hardware acceleration achieved on Linux using mpc-qt code.
+
+https://github.com/mpc-qt/mpc-qt
 
 UI inspired by and dictionaries provided by Yomichan.
 

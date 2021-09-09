@@ -16,6 +16,7 @@ if(UNIX AND NOT APPLE)
         MPV_WIDGET_LIBS
 	    ${MPV_WIDGET_LIBS}
 	    Qt5::DBus
+        Qt5::X11Extras
     )
 elseif(UNIX AND APPLE)
     set(
