@@ -43,6 +43,11 @@ MainWindow::MainWindow(QWidget *parent)
 {
     m_ui->setupUi(this);
 
+#if __APPLE__
+    m_oldUpdatesEnabled = updatesEnabled();
+    m_cocoaHandler = new CocoaEventHandler(this);
+#endif
+
     /* Player Adapter */
     m_player = new MpvAdapter(m_ui->player, this);
     m_player->pause();
@@ -84,6 +89,9 @@ MainWindow::~MainWindow()
     /* Wrappers and Clients */
     m_player->deleteLater();
     m_ankiClient->deleteLater();
+#if __APPLE__
+    delete m_cocoaHandler;
+#endif
 }
 
 /* End Constructor/Destructor */
@@ -535,3 +543,26 @@ void MainWindow::showInfoMessage(const QString title,
 }
 
 /* End Dialog Methods */
+#if __APPLE__
+/* Begin Cocoa Handlers */
+
+void MainWindow::beforeTransition()
+{
+    m_oldUpdatesEnabled = updatesEnabled();
+    setUpdatesEnabled(false);
+
+    m_oldPause = m_player->isPaused();
+    m_player->pause();
+}
+
+void MainWindow::afterTransition()
+{
+    setUpdatesEnabled(m_oldUpdatesEnabled);
+    if (!m_oldPause)
+    {
+        m_player->play();
+    }
+}
+
+/* End Cocoa Handlers */
+#endif

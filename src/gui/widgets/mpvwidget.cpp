@@ -76,7 +76,6 @@ MpvWidget::MpvWidget(QWidget *parent)
 {
     /* Run initialization tasks */
 #if __APPLE__
-    m_cocoaHandler = new CocoaEventHandler(this);
     m_powerHandler = new MacOSPowerEventHandler;
 #endif
     m_cursorTimer.setSingleShot(true);
@@ -174,7 +173,6 @@ MpvWidget::~MpvWidget()
 {
     disconnect();
 #if __APPLE__
-    delete m_cocoaHandler;
     delete m_powerHandler;
 #endif
     makeCurrent();
@@ -526,7 +524,7 @@ void MpvWidget::maybeUpdate()
      *       be skipped, and the following code still fails when e.g. switching
      *       to a different workspace with a reparenting window manager.
      */
-    if (window()->isMinimized())
+    if (window()->isMinimized() || !updatesEnabled())
     {
         makeCurrent();
         paintGL();
@@ -731,19 +729,5 @@ QString MpvWidget::mouseButtonStringToString(const Qt::MouseButton button,
 
     return str;
 }
-
-#if __APPLE__
-void MpvWidget::beforeTransition()
-{
-    mpv_get_property(mpv, "pause", MPV_FORMAT_FLAG, &m_oldPause);
-    int pause = 1;
-    mpv_set_property(mpv, "pause", MPV_FORMAT_FLAG, &pause);
-}
-
-void MpvWidget::afterTransition()
-{
-    mpv_set_property(mpv, "pause", MPV_FORMAT_FLAG, &m_oldPause);
-}
-#endif
 
 /* End Helper Functions */

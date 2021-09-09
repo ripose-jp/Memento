@@ -31,27 +31,15 @@
 #include "../../../util/globalmediator.h"
 #include "sliderjumpstyle.h"
 
-#if __APPLE__
-#include "../../../util/cocoaeventhandler.h"
-#endif
-
 /* Begin StrokeLabel */
 
 /**
  * A widget that displays text with a stroke.
  */
-#if __APPLE__
-class StrokeLabel : public QTextEdit, public CocoaEventHandlerCallback
-#else
 class StrokeLabel : public QTextEdit
-#endif
 {
 public:
     StrokeLabel(QWidget *parent = nullptr);
-
-#if __APPLE__
-    ~StrokeLabel() { delete m_cocoaHandler; }
-#endif
 
     /**
      * Sets the text of the widget and adjusts the size according to the
@@ -60,38 +48,16 @@ public:
      */
     void setText(const QString &text);
 
-#if __APPLE__
-    /**
-     * Prevents updates during fullscreen to avoid freezes.
-     */
-    void beforeTransition() override
-        { setUpdatesEnabled(false); }
-
-    /**
-     * Reenables updates after fullscreen.
-     */
-    void afterTransition() override
-        { setUpdatesEnabled(true); }
-#endif
-
 protected:
     /**
      * Adds the stroke.
      * @param event The paint event.
      */
     void paintEvent(QPaintEvent *event) override;
-
-#if __APPLE__
-private:
-    CocoaEventHandler *m_cocoaHandler;
-#endif
 };
 
 StrokeLabel::StrokeLabel(QWidget *parent) : QTextEdit(parent)
 {
-#if __APPLE__
-    m_cocoaHandler = new CocoaEventHandler(this);
-#endif
     setReadOnly(true);
     setAutoFillBackground(false);
     setFrameStyle(QFrame::NoFrame);

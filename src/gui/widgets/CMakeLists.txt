@@ -23,7 +23,6 @@ elseif(UNIX AND APPLE)
         MPV_WIDGET_LIBS
         ${MPV_WIDGET_LIBS}
         macos_power_handler
-        cocoa_event_handler
     )
 endif()
 target_link_libraries(

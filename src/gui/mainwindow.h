@@ -31,6 +31,10 @@
 #include "widgets/overlay/playeroverlay.h"
 #include "widgets/settings/optionswindow.h"
 
+#if __APPLE__
+#include "../util/cocoaeventhandler.h"
+#endif
+
 namespace Ui
 {
     class MainWindow;
@@ -39,13 +43,31 @@ namespace Ui
 /**
  * The MainWindow Memento.
  */
+#if __APPLE__
+class MainWindow : public QMainWindow, public CocoaEventHandlerCallback
+#else
 class MainWindow : public QMainWindow
+#endif
 {
     Q_OBJECT
 
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+#if __APPLE__
+    /**
+     * Call back for the Cocoa event handler. Disables UI updates and pauses
+     * the player.
+     */
+    void beforeTransition() override;
+
+    /**
+     * Call back for the Cocoa event handler. Restores updatesEnabled() and the
+     * player's pause state.
+     */
+    void afterTransition() override;
+#endif
 
 public Q_SLOTS:
     /**
@@ -187,6 +209,17 @@ private:
      * restoring window state when leaving fullscreen.
      */
     bool m_maximized;
+
+#if __APPLE__
+    /* The Cocoa event handler for preventing updates on screen transitions. */
+    CocoaEventHandler *m_cocoaHandler;
+
+    /* The old updatesEnabled() value before screen transitions. */
+    bool m_oldUpdatesEnabled;
+
+    /* The old pause state before screen transitions. */
+    bool m_oldPause;
+#endif
 };
 
 #endif // MAINWINDOW_H

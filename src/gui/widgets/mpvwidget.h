@@ -33,19 +33,13 @@
 #include "../../util/utils.h"
 
 #if __APPLE__
-#include "../../util/cocoaeventhandler.h"
-
 class MacOSPowerEventHandler;
 #endif
 
 /**
  * Widget that displays the video output from mpv.
  */
-#if __APPLE__
-class MpvWidget : public QOpenGLWidget, public CocoaEventHandlerCallback
-#else
 class MpvWidget : public QOpenGLWidget
-#endif
 {
     Q_OBJECT
 
@@ -66,18 +60,6 @@ public:
      * @return The recommend size of the widget.
      */
     QSize sizeHint() const override { return QSize(480, 270); }
-
-#if __APPLE__
-    /**
-     * Pauses mpv before fullscreening and saves the pause state.
-     */
-    void beforeTransition() override;
-
-    /**
-     * Unpauses mpv after fullscreening and restores the pause state.
-     */
-    void afterTransition() override;
-#endif
 
 Q_SIGNALS:
     /**
@@ -360,12 +342,6 @@ private:
 #endif
 
 #if __APPLE__
-    /* Handles Cocoa events not availible to Qt */
-    CocoaEventHandler *m_cocoaHandler;
-
-    /* The old pause state of mpv. Used for handling fullscreen transitions. */
-    int m_oldPause;
-
     /* The power event handler that prevents or allows the screen to dim. */
     MacOSPowerEventHandler *m_powerHandler;
 #endif

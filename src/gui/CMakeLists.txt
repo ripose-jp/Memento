@@ -35,5 +35,9 @@ set(
     playeroverlay
 )
 
+if (APPLE)
+    set(GUI_LIBS ${GUI_LIBS} cocoa_event_handler)
+endif()
+
 add_library(mainwindow ${GUI_SRCS})
 target_link_libraries(mainwindow ${GUI_LIBS})

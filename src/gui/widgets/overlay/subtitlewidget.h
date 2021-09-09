@@ -28,36 +28,16 @@
 
 #include "../../../dict/dictionary.h"
 
-#if __APPLE__
-#include "../../../util/cocoaeventhandler.h"
-#endif
-
 /**
  * Widget used to display subtitle text and initiate searches.
  */
-#if __APPLE__
-class SubtitleWidget : public QTextEdit, public CocoaEventHandlerCallback
-#else
 class SubtitleWidget : public QTextEdit
-#endif
 {
     Q_OBJECT
 
 public:
     SubtitleWidget(QWidget *parent = 0);
     ~SubtitleWidget();
-
-#if __APPLE__
-    /**
-     * Hides the widget before entering fullscreen.
-     */
-    void beforeTransition() override;
-
-    /**
-     * Shows the widget after entering fullscreen.
-     */
-    void afterTransition() override;
-#endif
 
 protected:
     /**
@@ -168,14 +148,6 @@ private:
      * Destructor for the term list.
      */
     void deleteTerms(QList<Term *> *terms);
-
-#if __APPLE__
-    /* Handles fullscreen events synchronously to prevent lockups. */
-    CocoaEventHandler *m_cocoaHandler;
-
-    /* Saves the old visibility before fullscreen. */
-    bool m_oldUpdatesEnabled;
-#endif
 
     /* The dictionary object, used for query for terms. */
     Dictionary *m_dictionary;
