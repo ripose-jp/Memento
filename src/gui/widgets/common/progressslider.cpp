@@ -260,8 +260,13 @@ void ProgressSlider::leaveEvent(QEvent *event)
 #define BASE_TEN            10
 #define FILL_CHAR           '0'
 
-QString ProgressSlider::formatTime(const int64_t time)
+QString ProgressSlider::formatTime(int64_t time)
 {
+    if (time < 0)
+    {
+        time = 0;
+    }
+
     int hours   = time / SECONDS_IN_HOUR;
     int minutes = (time % SECONDS_IN_HOUR) / SECONDS_IN_MINUTE;
     int seconds = time % SECONDS_IN_MINUTE;

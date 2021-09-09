@@ -41,7 +41,7 @@ public:
      * @param time The time in seconds.
      * @return (HH):MM:SS timestamp string.
      */
-    static QString formatTime(const int64_t time);
+    static QString formatTime(int64_t time);
 
 public Q_SLOTS:
     void setChapters(QList<double> chapters);
