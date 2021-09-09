@@ -31,7 +31,7 @@ rm -rf Memento_$arch/memento.exe
 cp src/memento.exe Memento_$arch
 cp -r ../dic Memento_$arch
 
-python3 ../mingw-bundledlls.py --copy ./Memento_$arch/memento.exe
+python3 ../windows/mingw-bundledlls.py --copy ./Memento_$arch/memento.exe
 cp $PREFIX/bin/libssl-1_1-x64.dll ./Memento_$arch
 
 cd Memento_$arch

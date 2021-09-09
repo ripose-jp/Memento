@@ -102,7 +102,7 @@ sudo make install
 3. Build Memento:
     ```
     cd Memento
-    ./windows-build.sh x86_64
+    ./windows/windows-build.sh x86_64
     ```
 4. The resulting file will be in
     ```
