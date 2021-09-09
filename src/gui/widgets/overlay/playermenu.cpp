@@ -22,6 +22,7 @@
 #include "ui_playermenu.h"
 
 #include <QClipboard>
+#include <QDesktopServices>
 #include <QFileDialog>
 #include <QGuiApplication>
 #include <QInputDialog>
@@ -145,6 +146,10 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     connect(
         m_ui->actionAbout, &QAction::triggered,
         mediator, &GlobalMediator::menuShowAbout
+    );
+    connect(
+        m_ui->actionOpenConfig, &QAction::triggered,
+        this, &PlayerMenu::openConfigFolder
     );
     connect(
         mediator, &GlobalMediator::ankiSettingsChanged,
@@ -548,6 +553,16 @@ void PlayerMenu::openSubtitle()
 }
 
 /* End Media Openers */
+/* Begin Config Actions */
+
+void PlayerMenu::openConfigFolder() const
+{
+    QDesktopServices::openUrl(
+        QUrl::fromLocalFile(DirectoryUtils::getConfigDir())
+    );
+}
+
+/* End Config Actions */
 /* Begin Anki Profile Handler */
 
 void PlayerMenu::updateAnkiProfileMenu()

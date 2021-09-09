@@ -147,6 +147,11 @@ private Q_SLOTS:
     void openSubtitle();
 
     /**
+     * Opens the configuration directory in the native file browser.
+     */
+    void openConfigFolder() const;
+
+    /**
      * Updates the values under Settings -> Anki Profile with up to date
      * information.
      */
