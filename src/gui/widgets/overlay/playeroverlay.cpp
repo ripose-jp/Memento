@@ -361,9 +361,11 @@ void PlayerOverlay::hideOverlay()
             controlFade, &QPropertyAnimation::finished,
             m_controls, &QWidget::hide
         );
+        connect(
+            controlFade, &QPropertyAnimation::finished,
+            this, &PlayerOverlay::repositionSubtitles
+        );
         controlFade->start(QPropertyAnimation::DeleteWhenStopped);
-
-        repositionSubtitles();
     }
 }
 
