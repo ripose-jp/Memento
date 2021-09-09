@@ -48,6 +48,8 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
       m_findDelay(new QTimer(this)),
       m_paused(true)
 {
+    m_settings.showSubtitles = true;
+
     initTheme();
 
     setFixedHeight(0);
@@ -107,6 +109,13 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
     connect(
         mediator, &GlobalMediator::playerSubtitleTrackChanged,
         this,     [=] { positionChanged(-1); }
+    );
+    connect(
+        mediator, &GlobalMediator::menuSubtitleVisibilityToggled, this,
+        [=] (bool visible) {
+            m_settings.showSubtitles = visible;
+            adjustVisibility();
+        }
     );
     connect(mediator, &GlobalMediator::playerPauseStateChanged, this,
         [=] (const bool paused) {
@@ -454,7 +463,11 @@ void SubtitleWidget::findTerms()
 
 void SubtitleWidget::adjustVisibility()
 {
-    if (toPlainText().isEmpty())
+    if (!m_settings.showSubtitles)
+    {
+        hide();
+    }
+    else if (toPlainText().isEmpty())
     {
         hide();
     }

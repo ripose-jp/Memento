@@ -107,7 +107,7 @@
      <widget class="QMenu" name="menuSettings">
       <property name="geometry">
        <rect>
-        <x>549</x>
+        <x>548</x>
         <y>107</y>
         <width>200</width>
         <height>164</height>
@@ -135,17 +135,18 @@
         <string>Anki Profile</string>
        </property>
       </widget>
-      <widget class="QMenu" name="menuSubtitle_Search">
+      <widget class="QMenu" name="menuSubtitleSearch">
        <property name="title">
         <string>Subtitle Search</string>
        </property>
+       <addaction name="actionSubVis"/>
        <addaction name="actionIncreaseSize"/>
        <addaction name="actionDecreaseSize"/>
        <addaction name="actionMoveUp"/>
        <addaction name="actionMoveDown"/>
       </widget>
       <addaction name="menuAnkiProfile"/>
-      <addaction name="menuSubtitle_Search"/>
+      <addaction name="menuSubtitleSearch"/>
       <addaction name="actionOptions"/>
       <addaction name="separator"/>
       <addaction name="actionAbout"/>
@@ -275,6 +276,20 @@
   <action name="actionOpenConfig">
    <property name="text">
     <string>Open Config Folder</string>
+   </property>
+  </action>
+  <action name="actionSubVis">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Subtitles Visible</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+0</string>
    </property>
   </action>
  </widget>

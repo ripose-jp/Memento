@@ -359,6 +359,12 @@ Q_SIGNALS:
     /* Begin Menu Signals */
 
     /**
+     * Emitted when subtitle visibility should be toggled.
+     * @param visible true if subtitles should be visible, false otherwise.
+     */
+    void menuSubtitleVisibilityToggled(bool visible) const;
+
+    /**
      * Emitted when the action for increasing the size of the subtitles is
      * triggered.
      */

@@ -225,8 +225,9 @@ private:
 
         /* The size of the stroke. */
         double strokeSize;
-    } m_settings;
 
+        bool showSubtitles;
+    } m_settings;
 };
 
 #endif // SUBTITLEWIDGET_H

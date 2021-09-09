@@ -156,6 +156,10 @@ PlayerMenu::PlayerMenu(QWidget *parent)
         this, &PlayerMenu::updateAnkiProfileMenu
     );
     connect(
+        m_ui->actionSubVis, &QAction::toggled,
+        mediator, &GlobalMediator::menuSubtitleVisibilityToggled
+    );
+    connect(
         m_ui->actionIncreaseSize, &QAction::triggered,
         mediator, &GlobalMediator::menuSubtitleSizeIncrease
     );
