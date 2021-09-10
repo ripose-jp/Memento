@@ -31,8 +31,7 @@ PlayerControls::PlayerControls(QWidget *parent)
     : QWidget(parent),
       m_ui(new Ui::PlayerControls),
       m_ignorePause(false),
-      m_paused(true),
-      m_sliderStyle(nullptr)
+      m_paused(true)
 {
     m_ui->setupUi(this);
 
@@ -183,11 +182,6 @@ void PlayerControls::initTheme()
         factory->getIcon(IconFactory::Icon::hamburger)
     );
     m_ui->buttonToggleSubList->setAutoRaise(true);
-
-    SliderJumpStyle *style = new SliderJumpStyle(QApplication::style());
-    m_ui->sliderVolume->setStyle(style);
-    delete m_sliderStyle;
-    m_sliderStyle = style;
 }
 
 /* End Initializers */

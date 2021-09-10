@@ -22,7 +22,6 @@ add_library(
 )
 target_link_libraries(
     progressslider
-    sliderjumpstyle
     Qt5::Widgets
     Qt5::Core
 )

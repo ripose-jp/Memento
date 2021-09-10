@@ -29,7 +29,6 @@
 #include <QTextEdit>
 
 #include "../../../util/globalmediator.h"
-#include "sliderjumpstyle.h"
 
 /* Begin StrokeLabel */
 
@@ -118,9 +117,7 @@ void StrokeLabel::setText(const QString &text)
         "}" \
     ))
 
-ProgressSlider::ProgressSlider(QWidget *parent)
-    : QSlider(parent),
-      m_currentStyle(nullptr)
+ProgressSlider::ProgressSlider(QWidget *parent) : QSlider(parent)
 {
     setMouseTracking(true);
     setOrientation(Qt::Horizontal);
@@ -151,10 +148,6 @@ ProgressSlider::~ProgressSlider()
 
 void ProgressSlider::initTheme()
 {
-    SliderJumpStyle *style = new SliderJumpStyle(QApplication::style());
-    setStyle(style);
-    delete m_currentStyle;
-    m_currentStyle = style;
     m_labelTimecode->setPalette(palette());
     initStylesheet();
 }

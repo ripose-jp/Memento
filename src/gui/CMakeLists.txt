@@ -23,16 +23,17 @@ set(
     GUI_LIBS
     Qt5::Gui
     Qt5::Core
-    globalmediator
-    mpvwidget
-    mpvadapter
-    subtitlelist
-    definitionwidget
-    anki
-    dictionary_db
-    optionswindow
     aboutwindow
+    anki
+    definitionwidget
+    dictionary_db
+    globalmediator
+    mpvadapter
+    mpvwidget
+    optionswindow
     playeroverlay
+    sliderjumpstyle
+    subtitlelist
 )
 
 if (APPLE)

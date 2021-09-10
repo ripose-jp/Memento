@@ -29,7 +29,6 @@ target_link_libraries(
     playercontrols
     Qt5::Widgets
     iconfactory
-    sliderjumpstyle
     subtitlewidget
     progressslider
 )

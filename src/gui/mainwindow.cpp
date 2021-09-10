@@ -31,6 +31,7 @@
 #include "../util/constants.h"
 #include "../util/iconfactory.h"
 #include "mpvadapter.h"
+#include "widgets/common/sliderjumpstyle.h"
 
 /* Begin Constructor/Destructor */
 
@@ -255,6 +256,7 @@ void MainWindow::initTheme()
         pal = QApplication::style()->standardPalette();
     }
     QApplication::setPalette(pal);
+    QApplication::setStyle(new SliderJumpStyle(QApplication::style()));
 
     IconFactory::create()->buildIcons();
 
