@@ -132,8 +132,10 @@ int main(int argc, char *argv[])
     /* Construct the application */
     QApplication memento(argc, argv);
 
+#if !__APPLE__
     /* Set the window icon */
     QGuiApplication::setWindowIcon(QIcon(":memento.svg"));
+#endif
 
     updateSettings();
 

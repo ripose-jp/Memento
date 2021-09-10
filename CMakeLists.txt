@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.1.0)
-project(memento VERSION "0.5.0.1")
+
+set(MEMENTO_VERSION "0.5.0-1-beta")
+set(MEMENTO_SHORT_VERSION "0.5.0.1")
+if(APPLE)
+	project(Memento VERSION ${MEMENTO_SHORT_VERSION})
+else()
+	project(memento VERSION ${MEMENTO_SHORT_VERSION})
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
@@ -32,12 +39,12 @@ endif()
 
 # Find Qt
 if(UNIX AND NOT APPLE)
-	find_package(Qt5 COMPONENTS Widgets Network DBus X11Extras REQUIRED)
+	find_package(Qt5 COMPONENTS Widgets Network DBus X11Extras Svg REQUIRED)
 	include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
-elseif(UNIX AND APPLE)
-	find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
+elseif(APPLE)
+	find_package(Qt5 COMPONENTS Widgets Network Svg REQUIRED)
 elseif(WIN32)
-	find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
+	find_package(Qt5 COMPONENTS Widgets Network Svg REQUIRED)
 endif()
 
 # Other dependencies

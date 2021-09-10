@@ -41,3 +41,8 @@ appimage: setup
 			 linuxdeploy-plugin-appimage-x86_64.AppImage; \
 	export VERSION=0.5.0-1; \
 	./linuxdeploy-x86_64.AppImage --appdir AppDir --plugin qt --output appimage
+
+appbundle: setup
+	cd build; \
+	cmake -DAPPBUNDLE=ON -DCERT=${CERT_NAME} -DCMAKE_BUILD_TYPE=Release ..; \
+	make -j$(nproc)

@@ -128,15 +128,36 @@ sudo make install
 1. Build Memento:
    ```
    cd memento
-   mkdir build
-   cd build
-   cmake ..
-   cmake --build .
+   make
    ```
 1. The resulting executable will be:
    ```
-   memento/build/src/memento
+   Memento/build/src/Memento
    ```
+
+### macOS App Bundle
+
+1. Follow steps 1 - 3 of the macOS build instructions.
+
+1. Open the **Keychain Access** app.
+
+1. Go to **Keychain Access** > **Certificate Assistant** > **Create a Certificate...**
+   in the menubar.
+
+1. Put the name of your certificate in the 'Name' field, set the 'Certificate Type'
+   to 'Code Signing', and click 'Create'.
+
+1. Return to your terminal and input:
+    ```
+    cd Memento
+    make appbundle CERT_NAME='<name entered in the last step>'
+    ```
+
+1. The resulting app bundle will located at:
+    ```
+    Memento/build/src/Memento.app
+    ```
+
 
 ## Configuration
 
