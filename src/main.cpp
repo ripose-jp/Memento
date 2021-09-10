@@ -34,6 +34,7 @@
 #endif
 
 #include "audio/audioplayer.h"
+#include "dict/dictionary.h"
 #include "gui/mainwindow.h"
 #include "util/constants.h"
 #include "util/globalmediator.h"
@@ -165,6 +166,7 @@ int main(int argc, char *argv[])
     /* Deallocate shared resources */
     delete main_window;
     delete GlobalMediator::getGlobalMediator()->getAudioPlayer();
+    delete GlobalMediator::getGlobalMediator()->getDictionary();
     delete GlobalMediator::getGlobalMediator();
     IconFactory::destroy();
 

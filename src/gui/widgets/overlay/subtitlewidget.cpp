@@ -43,11 +43,15 @@
 
 SubtitleWidget::SubtitleWidget(QWidget *parent)
     : QTextEdit(parent),
-      m_dictionary(new Dictionary),
+      m_dictionary(GlobalMediator::getGlobalMediator()->getDictionary()),
       m_currentIndex(-1),
       m_findDelay(new QTimer(this)),
       m_paused(true)
 {
+    if (m_dictionary == nullptr)
+    {
+        m_dictionary = new Dictionary;
+    }
     m_settings.showSubtitles = true;
 
     initTheme();
