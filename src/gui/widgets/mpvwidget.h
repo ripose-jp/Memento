@@ -270,6 +270,11 @@ private Q_SLOTS:
     void onMpvEvents();
 
     /**
+     * Reports a frameswap to mpv for better timing.
+     */
+    void reportFrameSwap();
+
+    /**
      * Updates the current output if it needs to be updated.
      */
     void maybeUpdate();

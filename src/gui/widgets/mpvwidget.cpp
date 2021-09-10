@@ -152,6 +152,10 @@ MpvWidget::MpvWidget(QWidget *parent)
     mpv_set_wakeup_callback(mpv, wakeup, this);
 
     /* Signals */
+    connect(
+        this, &QOpenGLWidget::frameSwapped,
+        this, &MpvWidget::reportFrameSwap
+    );
     connect(&m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
     connect(
         mediator, &GlobalMediator::definitionsHidden, this,
@@ -513,6 +517,14 @@ void MpvWidget::resizeGL(int width, int height)
     Q_EMIT GlobalMediator::getGlobalMediator()->playerResized();
 }
 
+void MpvWidget::reportFrameSwap()
+{
+    if (mpv_gl)
+    {
+        mpv_render_context_report_swap(mpv_gl);
+    }
+}
+
 // Make Qt invoke mpv_render_context_render() to draw a new/updated video frame.
 void MpvWidget::maybeUpdate()
 {
@@ -529,6 +541,7 @@ void MpvWidget::maybeUpdate()
         makeCurrent();
         paintGL();
         context()->swapBuffers(context()->surface());
+        reportFrameSwap();
         doneCurrent();
     }
     else
