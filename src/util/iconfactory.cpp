@@ -48,8 +48,16 @@
 IconFactory *IconFactory::create()
 {
     if (m_factory == nullptr)
+    {
         m_factory = FACTORY_CLASS();
+    }
     return m_factory;
+}
+
+void IconFactory::destroy()
+{
+    delete m_factory;
+    m_factory = nullptr;
 }
 
 StyleFactory::StyleFactory()
@@ -105,7 +113,7 @@ ThemeFactory::ThemeFactory()
 
 void ThemeFactory::buildIcons()
 {
-    const QString names[9] = {
+    static const char *names[9] = {
         PLAY_THEME,
         PAUSE_THEME,
         STOP_THEME,

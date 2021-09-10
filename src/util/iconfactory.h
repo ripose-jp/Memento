@@ -66,8 +66,6 @@ public:
         noaudio
     };
 
-    virtual ~IconFactory() { m_factory = nullptr; }
-
     /**
      * Gets the icon corresponding the Icon enum.
      * @param icon The requested icon.
@@ -87,11 +85,18 @@ public:
      */
     static IconFactory *create();
 
+    /**
+     * Destroys the resources of the currently allocated IconFactory. No-ops if
+     * there is no factory allocated.
+     */
+    static void destroy();
+
 protected:
     /* Shared IconFactory object. */
     static inline IconFactory *m_factory = nullptr;
 
     IconFactory() {}
+    virtual ~IconFactory() {}
 };
 
 /**

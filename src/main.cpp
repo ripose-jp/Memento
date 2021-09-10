@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
     delete main_window;
     delete GlobalMediator::getGlobalMediator()->getAudioPlayer();
     delete GlobalMediator::getGlobalMediator();
-    delete IconFactory::create();
+    IconFactory::destroy();
 
     return ret;
 }
