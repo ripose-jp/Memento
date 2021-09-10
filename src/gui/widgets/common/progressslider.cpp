@@ -118,7 +118,9 @@ void StrokeLabel::setText(const QString &text)
         "}" \
     ))
 
-ProgressSlider::ProgressSlider(QWidget *parent) : QSlider(parent)
+ProgressSlider::ProgressSlider(QWidget *parent)
+    : QSlider(parent),
+      m_currentStyle(nullptr)
 {
     setMouseTracking(true);
     setOrientation(Qt::Horizontal);
@@ -149,7 +151,10 @@ ProgressSlider::~ProgressSlider()
 
 void ProgressSlider::initTheme()
 {
-    setStyle(new SliderJumpStyle(QApplication::style()));
+    SliderJumpStyle *style = new SliderJumpStyle(QApplication::style());
+    setStyle(style);
+    delete m_currentStyle;
+    m_currentStyle = style;
     m_labelTimecode->setPalette(palette());
     initStylesheet();
 }

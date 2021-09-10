@@ -94,6 +94,9 @@ private:
 
     /* Saved chapter times in seconds. */
     QList<double> m_chapterTimes;
+
+    /* A saved pointer to the currently allocated style */
+    QStyle *m_currentStyle;
 };
 
 #endif // PROGRESSSLIDER_H

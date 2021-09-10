@@ -123,6 +123,9 @@ private:
 
     /* The current duration of the media playing. */
     double m_duration;
+
+    /* A saved pointer to the current ProgressSlider style. */
+    QStyle *m_sliderStyle;
 };
 
 #endif // PLAYERCONTROLS_H
