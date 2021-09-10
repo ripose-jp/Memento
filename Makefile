@@ -45,4 +45,18 @@ appimage: setup
 appbundle: setup
 	cd build; \
 	cmake -DAPPBUNDLE=ON -DCERT=${CERT_NAME} -DCMAKE_BUILD_TYPE=Release ..; \
-	make -j$(nproc)
+	make -j$(nproc); \
+	mkdir -p ./src/Memento.app/Contents/Frameworks/mecab; \
+	cp -r ../dic ./src/Memento.app/Contents/Frameworks/mecab
+
+# This target is for building x86_64 app bundles on arm Macs
+appbundle_x86: setup
+	cd build; \
+	cmake -DAPPBUNDLE=ON \
+		  -DMAC_X86=ON \
+		  -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+		  -DCERT=${CERT_NAME} \
+		  -DCMAKE_BUILD_TYPE=Release ..; \
+	make -j$(nproc); \
+	mkdir -p ./src/Memento.app/Contents/Frameworks/mecab; \
+	cp -r ../dic ./src/Memento.app/Contents/Frameworks/mecab

@@ -9,7 +9,6 @@ if(WIN32)
     set(WINDOWS_EXE_OPTION WIN32)
 endif()
 
-# This is need to create an app bundle
 if(APPLE AND APPBUNDLE)
 	set(MACOS_ICON_FILE memento.icns)
 	set(MACOS_ICON_PATH ${PROJECT_SOURCE_DIR}/res/${MACOS_ICON_FILE})
@@ -34,10 +33,16 @@ if(APPLE AND APPBUNDLE)
 		MACOSX_BUNDLE_INFO_PLIST ${PROJECT_SOURCE_DIR}/macos/MementoInfo.plist.in
 		RESOURCE ${MACOS_ICON_PATH}
 	)
+	# Must call the correct macdeployqt when compiling
+	if (MAC_X86)
+		set(MACDEPLOYQT_BIN "/usr/local/opt/qt5/bin/macdeployqt")
+	else()
+		set(MACDEPLOYQT_BIN macdeployqt)
+	endif()
 	add_custom_command(
 		TARGET ${PROJECT_NAME}
 		POST_BUILD
-		COMMAND macdeployqt ${PROJECT_NAME}.app -codesign=${CERT}
+		COMMAND ${MACDEPLOYQT_BIN} ${PROJECT_NAME}.app -codesign=${CERT}
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src
 	)
 else()

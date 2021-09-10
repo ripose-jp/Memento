@@ -95,7 +95,7 @@ static QByteArray genMecabArg()
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #define MECAB_ARG (genMecabArg())
-#elif APPIMAGE
+#elif APPIMAGE || APPBUNDLE
     #define MECAB_ARG ( \
         "-r " + DirectoryUtils::getDictionaryDir() + "ipadic" + SLASH + "dicrc " \
         "-d " + DirectoryUtils::getDictionaryDir() + "ipadic" \

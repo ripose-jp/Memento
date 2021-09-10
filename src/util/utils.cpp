@@ -67,6 +67,8 @@ QString DirectoryUtils::getDictionaryDir()
     return getProgramDirectory() + "dic\\";
 #elif APPIMAGE
     return getProgramDirectory() + "/../lib/mecab/dic/";
+#elif APPBUNDLE
+    return getProgramDirectory() + "/../Frameworks/mecab/dic/";
 #else
     return "";
 #endif
