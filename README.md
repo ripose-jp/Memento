@@ -119,7 +119,7 @@ sudo make install
    ```
 1. Install the necessary tools and dependencies:
    ```
-   brew install git cmake ffmpeg sqlite3 qt5 mpv mecab mecab-ipadic json-c libzip
+   brew install git cmake sqlite3 qt5 mpv mecab mecab-ipadic json-c libzip
    ```
 1. Clone the repository:
    ```
