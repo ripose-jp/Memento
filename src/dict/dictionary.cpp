@@ -120,11 +120,16 @@ Dictionary::Dictionary(QObject *parent) : QObject(parent)
             "Memento will still work, but search results will suffer.\n"
         #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||\
             defined(__NT__)
-            "Make sure that ipadic is present in " +
+            "Make sure that ipadic is present in\n" +
             DirectoryUtils::getDictionaryDir()
-        #elif defined(APPIMAGE)
+        #elif APPIMAGE
             "Please report this bug at "
             "https://github.com/ripose-jp/Memento/issues"
+        #elif APPBUNDLE
+            "The current dictionary directory\n" +
+            DirectoryUtils::getDictionaryDir() +
+            "\nIf there are spaces in this path, please move Memento to a "
+            "directory without spaces."
         #else
             "Make sure you have a system dictionary installed by running "
             "'mecab -D' from the command line."
