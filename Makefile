@@ -39,7 +39,7 @@ appimage: setup
 	chmod +x linuxdeploy-x86_64.AppImage \
 			 linuxdeploy-plugin-qt-x86_64.AppImage \
 			 linuxdeploy-plugin-appimage-x86_64.AppImage; \
-	export VERSION=0.5.0-1; \
+	export VERSION=0.5.1; \
 	./linuxdeploy-x86_64.AppImage --appdir AppDir --plugin qt --output appimage
 
 appbundle: setup

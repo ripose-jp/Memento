@@ -21,7 +21,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-#define VERSION                         (QString("v0.5.0-1-beta"))
+#define VERSION                         (QString("v0.5.1-beta"))
 #define GITHUB_API_LINK                 (QString("https://api.github.com/repos/ripose-jp/memento/releases"))
 #define GITHUB_RELEASES                 (QString("https://github.com/ripose-jp/memento/releases"))
 
