@@ -1,4 +1,4 @@
-.PHONY: setup compile debug install clean uninstall appimage
+.PHONY: setup compile debug install clean uninstall appimage appbundle appbundle_x86
 
 release: setup
 	cd build; \
