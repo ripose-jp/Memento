@@ -105,6 +105,11 @@ enum class Theme
 #define SETTINGS_INTERFACE_SYSTEM_ICONS_DEFAULT             true
 #endif
 
+#ifdef APPIMAGE
+#define SETTINGS_INTERFACE_SYSTEM_ICONS                     "system-icons"
+#define SETTINGS_INTERFACE_SYSTEM_ICONS_DEFAULT             false
+#endif
+
 #define SETTINGS_INTERFACE_STYLESHEETS                      "stylesheets-enabled"
 #define SETTINGS_INTERFACE_STYLESHEETS_DEFAULT              false
 
