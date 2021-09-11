@@ -47,6 +47,12 @@ Memento is a FOSS, mpv-based video player for studying Japanese.
 This error can be fixed by installing the
 [Microsoft Visual C++ 2010 Service Pack 1 Redistributable Package (x86)](https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x86.exe).
 
+### macOS: Could not initialize MeCab
+
+Move the Memento application to a directory that doesn't have spaces in the path
+like `/Applications`. Unfortunately, this is an limitation of MeCab and there is
+no workaround that can be implemented.
+
 ## Dependencies
 
 * Qt5 (>= 5.15)
@@ -157,7 +163,6 @@ sudo make install
     ```
     Memento/build/src/Memento.app
     ```
-
 
 ## Configuration
 
