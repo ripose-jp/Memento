@@ -47,6 +47,17 @@ Memento is a FOSS, mpv-based video player for studying Japanese.
 This error can be fixed by installing the
 [Microsoft Visual C++ 2010 Service Pack 1 Redistributable Package (x86)](https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x86.exe).
 
+### macOS: Streaming video doesn't work
+
+This means that mpv cannot find your youtube-dl installation.
+
+There are several ways to fix this, but the easiet is to open terminal and run
+these commands:
+```
+curl -L https://yt-dl.org/downloads/latest/youtube-dl -o ~/Library/Preferences/memento/youtube-dl
+chmod a+rx ~/Library/Preferences/memento/youtube-dl
+```
+
 ### macOS: Could not initialize MeCab
 
 Move the Memento application to a directory that doesn't have spaces in the path
