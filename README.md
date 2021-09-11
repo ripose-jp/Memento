@@ -127,7 +127,7 @@ sudo make install
    ```
 1. Build Memento:
    ```
-   cd memento
+   cd Memento
    make
    ```
 1. The resulting executable will be:
