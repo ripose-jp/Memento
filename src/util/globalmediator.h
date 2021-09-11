@@ -476,6 +476,11 @@ Q_SIGNALS:
      */
     void subtitleExpired() const;
 
+    /**
+     * Emitted when the subtitle search is hidden.
+     */
+    void subtitleHidden() const;
+
     /* End Subtitle Widget Signals */
     /* Begin Definition Signals */
 

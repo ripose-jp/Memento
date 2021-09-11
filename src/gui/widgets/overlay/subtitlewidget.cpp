@@ -339,6 +339,7 @@ void SubtitleWidget::hideEvent(QHideEvent *event)
         Q_EMIT GlobalMediator::getGlobalMediator()
             ->requestSetSubtitleVisibility(true);
     }
+    Q_EMIT GlobalMediator::getGlobalMediator()->subtitleHidden();
     QTextEdit::hideEvent(event);
 }
 

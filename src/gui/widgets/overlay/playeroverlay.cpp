@@ -147,6 +147,10 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
         this, &PlayerOverlay::deleteDefinitionWidget
     );
     connect(
+        mediator, &GlobalMediator::subtitleHidden,
+        this, &PlayerOverlay::deleteDefinitionWidget
+    );
+    connect(
         mediator, &GlobalMediator::playerPauseStateChanged, this,
         [=] (const bool paused) {
             if (!paused)
