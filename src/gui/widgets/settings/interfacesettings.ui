@@ -28,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>728</width>
-        <height>747</height>
+        <height>779</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -71,6 +71,16 @@
            <string>Dark</string>
           </property>
          </item>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkSystemIcons">
+         <property name="toolTip">
+          <string>Uses system icons when available on Linux.</string>
+         </property>
+         <property name="text">
+          <string>Use system icons</string>
+         </property>
         </widget>
        </item>
        <item>

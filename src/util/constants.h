@@ -100,6 +100,11 @@ enum class Theme
 #define SETTINGS_INTERFACE_THEME                            "theme"
 #define SETTINGS_INTERFACE_THEME_DEFAULT                    Theme::System
 
+#ifdef __linux__
+#define SETTINGS_INTERFACE_SYSTEM_ICONS                     "system-icons"
+#define SETTINGS_INTERFACE_SYSTEM_ICONS_DEFAULT             true
+#endif
+
 #define SETTINGS_INTERFACE_STYLESHEETS                      "stylesheets-enabled"
 #define SETTINGS_INTERFACE_STYLESHEETS_DEFAULT              false
 

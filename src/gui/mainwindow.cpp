@@ -258,7 +258,16 @@ void MainWindow::initTheme()
     QApplication::setPalette(pal);
     QApplication::setStyle(new SliderJumpStyle(QApplication::style()));
 
+#if __linux__
+    IconFactory::recreate(
+        settings.value(
+            SETTINGS_INTERFACE_SYSTEM_ICONS,
+            SETTINGS_INTERFACE_SYSTEM_ICONS_DEFAULT
+        ).toBool()
+    );
+#else
     IconFactory::create()->buildIcons();
+#endif
 
     Q_EMIT m_mediator->requestThemeRefresh();
 

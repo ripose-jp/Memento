@@ -54,6 +54,24 @@ IconFactory *IconFactory::create()
     return m_factory;
 }
 
+IconFactory *IconFactory::recreate(bool useTheme)
+{
+    delete m_factory;
+#if __linux__
+    if (useTheme)
+    {
+        m_factory = new ThemeFactory;
+    }
+    else
+    {
+        m_factory = new StyleFactory;
+    }
+#else
+    m_factory = new StyleFactory;
+#endif
+    return m_factory;
+}
+
 void IconFactory::destroy()
 {
     delete m_factory;

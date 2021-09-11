@@ -74,8 +74,7 @@ public:
     virtual const QIcon &getIcon(IconFactory::Icon icon) const = 0;
 
     /**
-     * (Re)builds icons. Should be called manually every time there is a palette
-     * change.
+     * (Re)builds icons.
      */
     virtual void buildIcons() = 0;
 
@@ -86,22 +85,30 @@ public:
     static IconFactory *create();
 
     /**
+     * Returns a new IconFactory. Caller does not have ownership, factory is
+     * shared.
+     *
+     * @param useTheme true if the theme icons should be used, false otherwise.
+     *                 Ignored on platforms without theme icons.
+     */
+    static IconFactory *recreate(bool useTheme);
+
+    /**
      * Destroys the resources of the currently allocated IconFactory. No-ops if
      * there is no factory allocated.
      */
     static void destroy();
 
 protected:
-    /* Shared IconFactory object. */
-    static inline IconFactory *m_factory = nullptr;
-
     IconFactory() {}
     virtual ~IconFactory() {}
+
+    /* Shared IconFactory object. */
+    static inline IconFactory *m_factory = nullptr;
 };
 
 /**
- * An IconFactory that sources as many XDG icons as possible before using baked
- * in ones.
+ * An IconFactory that only uses icons included in Memento.
  */
 class StyleFactory : public IconFactory
 {
@@ -112,8 +119,6 @@ public:
     void buildIcons() override;
 
 private:
-    QIcon icons[ICON_ENUM_SIZE];
-
     /**
      * Generates an icon from an image.
      * @param path Path to the icon.
@@ -121,11 +126,13 @@ private:
      *         palette.
      */
     QIcon buildIcon(const QString &path);
+
+    QIcon icons[ICON_ENUM_SIZE];
 };
 
-
 /**
- * An IconFactory that only uses icons included in Memento.
+ * An IconFactory that sources as many XDG icons as possible before using baked
+ * in ones.
  */
 class ThemeFactory : public IconFactory
 {
