@@ -51,7 +51,7 @@ This error can be fixed by installing the
 
 This means that mpv cannot find your youtube-dl installation.
 
-There are several ways to fix this, but the easiet is to open terminal and run
+There are several ways to fix this, but the easiest is to open terminal and run
 these commands:
 ```
 curl -L https://yt-dl.org/downloads/latest/youtube-dl -o ~/Library/Preferences/memento/youtube-dl
