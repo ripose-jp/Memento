@@ -42,7 +42,31 @@ if(APPLE AND APPBUNDLE)
 	add_custom_command(
 		TARGET ${PROJECT_NAME}
 		POST_BUILD
-		COMMAND ${MACDEPLOYQT_BIN} ${PROJECT_NAME}.app -codesign=${CERT}
+		COMMAND ${MACDEPLOYQT_BIN} ${PROJECT_NAME}.app
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src
+	)
+	# macdeployqt will miss mujs, so this is necessary
+	execute_process(
+		COMMAND ./getlib.sh ${MPV_LIB} mujs
+		OUTPUT_VARIABLE LIBMUJS
+		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/macos
+	)
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND cp ${LIBMUJS} .
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks
+	)
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND install_name_tool -change ${LIBMUJS} @executable_path/../Frameworks/libmujs.so libmpv.1.dylib
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks
+	)
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND codesign -s '${CERT}' --deep -f ${PROJECT_NAME}.app
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src
 	)
 else()
