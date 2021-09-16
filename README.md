@@ -156,6 +156,11 @@ sudo make install
 
 1. Follow steps 1 - 3 of the macOS build instructions.
 
+1. `dylibbundler` is also needed when creating an app bundle, so install it with:
+```
+brew install dylibbundler
+```
+
 1. Open the **Keychain Access** app.
 
 1. Go to **Keychain Access** > **Certificate Assistant** > **Create a Certificate...**

@@ -33,7 +33,43 @@ if(APPLE AND APPBUNDLE)
 		MACOSX_BUNDLE_INFO_PLIST ${PROJECT_SOURCE_DIR}/macos/MementoInfo.plist.in
 		RESOURCE ${MACOS_ICON_PATH}
 	)
-	# Must call the correct macdeployqt when compiling
+
+	# Add in the dylibs
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND dylibbundler -od -b -x ./MacOS/Memento -d ./Frameworks -p @executable_path/../Frameworks
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents
+	)
+
+	# Manually add Python
+	# Get the path to vapoursynth-script
+	execute_process(
+		COMMAND ./getlib.sh ${MPV_LIB} vapoursynth-script
+		OUTPUT_VARIABLE OTOOL_VAPOURSYNTH_SCRIPT
+		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/macos
+	)
+	# Get the filename of vapoursynth-script mpv is linked to
+	string(REGEX MATCH "[^/]*$" VAPOURSYNTH_SCRIPT_NAME ${OTOOL_VAPOURSYNTH_SCRIPT})
+	# Get the otool path of Python vapoursynth-script is linked to
+	execute_process(
+		COMMAND ./getlib.sh ${OTOOL_VAPOURSYNTH_SCRIPT} Python
+		OUTPUT_VARIABLE OTOOL_PYTHON
+		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/macos
+	)
+	# Get the python framework paths
+	string(REGEX MATCH ".*Python\.framework" PYTHON_FRAMEWORK_PATH ${OTOOL_PYTHON})
+	# Get the path as it is in the appbundle
+	string(REGEX MATCH "Python\.framework.*" PYTHON_FRAMEWORK_END ${OTOOL_PYTHON})
+	# Change the path in vapoursynth-script
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND install_name_tool -change ${OTOOL_PYTHON} @executable_path/../Frameworks/${PYTHON_FRAMEWORK_END} ${VAPOURSYNTH_SCRIPT_NAME}
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks
+	)
+
+	# Run macdeployqt to pick up any plugins dylibbundler missed
 	if (MAC_X86)
 		set(MACDEPLOYQT_BIN "/usr/local/opt/qt5/bin/macdeployqt")
 	else()
@@ -45,29 +81,21 @@ if(APPLE AND APPBUNDLE)
 		COMMAND ${MACDEPLOYQT_BIN} ${PROJECT_NAME}.app
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src
 	)
-	# macdeployqt will miss mujs, so this is necessary
-	execute_process(
-		COMMAND ./getlib.sh ${MPV_LIB} mujs
-		OUTPUT_VARIABLE LIBMUJS
-		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/macos
-	)
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND cp ${LIBMUJS} .
-		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks
-	)
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND install_name_tool -change ${LIBMUJS} @executable_path/../Frameworks/libmujs.so libmpv.1.dylib
-		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks
-	)
+
+	# Sign the code
 	add_custom_command(
 		TARGET ${PROJECT_NAME}
 		POST_BUILD
 		COMMAND codesign -s '${CERT}' --deep -f ${PROJECT_NAME}.app
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src
+	)
+
+	# Copy python. This need to happen here because Python confuses codesign
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND cp -r ${PYTHON_FRAMEWORK_PATH} .
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks
 	)
 else()
 	add_executable(
