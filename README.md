@@ -177,8 +177,13 @@ sudo make install
 
 ## Configuration
 
-Most mpv shaders, plugins, and configuration files will work out of the box.
-The Memento config directory is located at:
+Most mpv shaders, plugins, and configuration files will work without modification.
+
+It is important to note that mpv and Memento's configuration directories are
+**separate**. This means mpv configuration files, scripts, etc. intended to modify
+Memento's behavior should be placed in Memento's configuration directory.
+
+The Memento configuration directory is located at:
 
 ### Linux
 ```
@@ -197,7 +202,7 @@ Version 0.5.0-1 and earlier
 [installation directory]\config
 ```
 
-### Mac OS X
+### macOS
 ```
 ~/Library/Preferences/memento
 ```
