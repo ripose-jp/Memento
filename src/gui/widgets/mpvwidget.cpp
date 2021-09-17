@@ -33,8 +33,6 @@
 #include <qpa/qplatformnativeinterface.h>
 #include <QtDBus>
 #include <QX11Info>
-#elif __APPLE__
-#include "../../util/macospowereventhandler.h"
 #endif
 
 #include "../../util/constants.h"
@@ -76,7 +74,7 @@ MpvWidget::MpvWidget(QWidget *parent)
 {
     /* Run initialization tasks */
 #if __APPLE__
-    m_powerHandler = new MacOSPowerEventHandler;
+    m_sleepAssertIDValid = false;
 #endif
     m_cursorTimer.setSingleShot(true);
     initPropertyMap();
@@ -176,9 +174,6 @@ MpvWidget::MpvWidget(QWidget *parent)
 MpvWidget::~MpvWidget()
 {
     disconnect();
-#if __APPLE__
-    delete m_powerHandler;
-#endif
     makeCurrent();
     if (mpv_gl)
         mpv_render_context_free(mpv_gl);
@@ -669,7 +664,21 @@ void MpvWidget::allowScreenDimming()
     );
     screenSaver.call("UnInhibit", dbus_cookie);
 #elif __APPLE__
-    m_powerHandler->setPreventSleep(false);
+    if (!m_sleepAssertIDValid)
+    {
+        return;
+    }
+
+    IOReturn success = IOPMAssertionRelease(m_sleepAssertID);
+    if (success == kIOReturnSuccess)
+    {
+        m_sleepAssertIDValid = false;
+    }
+    else
+    {
+        qDebug() << "Could not uninhibit sleep!";
+        qDebug() << "Error code:" << success;
+    }
 #endif
 }
 
@@ -708,7 +717,25 @@ void MpvWidget::preventScreenDimming()
         break;
     }
 #elif __APPLE__
-    m_powerHandler->setPreventSleep(true);
+    CFStringRef reasonForActivity =
+        CFSTR("Memento: Media is playing, preventing sleep...");
+
+    IOReturn success = IOPMAssertionCreateWithName(
+        kIOPMAssertionTypeNoDisplaySleep,
+        kIOPMAssertionLevelOn,
+        reasonForActivity,
+        &m_sleepAssertID
+    );
+
+    if (success == kIOReturnSuccess)
+    {
+        m_sleepAssertIDValid = true;
+    }
+    else
+    {
+        qDebug() << "Could not inhibit sleep!";
+        qDebug() << "Error code:" << success;
+    }
 #endif
 }
 

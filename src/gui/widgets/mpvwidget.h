@@ -33,7 +33,7 @@
 #include "../../util/utils.h"
 
 #if __APPLE__
-class MacOSPowerEventHandler;
+#include <IOKit/pwr_mgt/IOPMLib.h>
 #endif
 
 /**
@@ -347,8 +347,11 @@ private:
 #endif
 
 #if __APPLE__
-    /* The power event handler that prevents or allows the screen to dim. */
-    MacOSPowerEventHandler *m_powerHandler;
+    /* Assertion ID for preventing sleep on macOS */
+    IOPMAssertionID m_sleepAssertID;
+
+    /* True if the AssertionID is currently valid. */
+    bool m_sleepAssertIDValid;
 #endif
 };
 

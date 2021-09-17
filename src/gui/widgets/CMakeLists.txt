@@ -22,7 +22,7 @@ elseif(UNIX AND APPLE)
     set(
         MPV_WIDGET_LIBS
         ${MPV_WIDGET_LIBS}
-        macos_power_handler
+        "-framework IOKit -framework CoreFoundation"
     )
 endif()
 target_link_libraries(

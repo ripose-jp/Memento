@@ -38,13 +38,4 @@ if (APPLE)
         cocoa_event_handler
         "-framework cocoa"
     )
-
-    add_library(
-        macos_power_handler
-        macospowereventhandler.cpp
-    )
-    target_link_libraries(
-        macos_power_handler
-        "-framework IOKit -framework CoreFoundation"
-    )
 endif()
