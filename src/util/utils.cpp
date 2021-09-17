@@ -139,21 +139,11 @@ void NetworkUtils::checkForUpdates()
 
             /* Error check the reply to make sure it was valid */
             replyDoc = QJsonDocument::fromJson(reply->readAll());
-            if (replyDoc.isNull() || !replyDoc.isArray())
+            if (replyDoc.isNull() || !replyDoc.isObject())
             {
                 goto error;
             }
-            replyArr = replyDoc.array();
-            if (replyArr.isEmpty())
-            {
-                goto error;
-            }
-            replyVal = replyArr.first();
-            if (!replyVal.isObject())
-            {
-                goto error;
-            }
-            replyObj = replyVal.toObject();
+            replyObj = replyDoc.object();
             tag = replyObj.value("tag_name").toString();
             url = replyObj.value("html_url").toString();
             if (tag.isEmpty() || url.isEmpty())
