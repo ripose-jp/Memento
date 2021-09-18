@@ -49,10 +49,11 @@ This error can be fixed by installing the
 
 ### macOS: Streaming video doesn't work
 
-This means that mpv cannot find your youtube-dl installation.
+This means that mpv cannot find your youtube-dl installation. Memento expects
+that youtube-dl will be located at `~/Library/Preferences/memento/youtube-dl` on
+macOS. If youtube-dl is not located there, some functionality may not work.
 
-There are several ways to fix this, but the easiest is to open terminal and run
-these commands:
+To install youtube-dl, paste these commands into Terminal:
 ```
 curl -L https://yt-dl.org/downloads/latest/youtube-dl -o ~/Library/Preferences/memento/youtube-dl
 chmod a+rx ~/Library/Preferences/memento/youtube-dl

@@ -790,6 +790,9 @@ QString MpvAdapter::tempAudioClip(double start, double end, const QString &ext)
     };
     mpv_event *event = NULL;
 
+#if APPBUNDLE
+    QByteArray ytdlPath = "ytdl_hook-ytdl_path=";
+#endif
     mpv_handle *enc_h = mpv_create();
     if (enc_h == NULL)
     {
@@ -803,6 +806,13 @@ QString MpvAdapter::tempAudioClip(double start, double end, const QString &ext)
     mpv_set_option_string(enc_h, "vid", "no");
     mpv_set_option_string(enc_h, "sid", "no");
     mpv_set_option_string(enc_h, "secondary-sid", "no");
+    mpv_set_option_string(enc_h, "ytdl", "yes");
+    mpv_set_option_string(enc_h, "config", "no");
+#if APPBUNDLE
+    ytdlPath += DirectoryUtils::getConfigDir().toUtf8();
+    ytdlPath += "youtube-dl";
+    mpv_set_option_string(enc_h, "script-opts", ytdlPath);
+#endif
     mpv_set_option_string(enc_h, "o", filename);
 
     if (mpv_initialize(enc_h) < 0)
