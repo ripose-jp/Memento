@@ -788,11 +788,12 @@ QString MpvAdapter::tempAudioClip(double start, double end, const QString &ext)
         optionCmd,
         NULL
     };
-    mpv_event *event = NULL;
 
 #if APPBUNDLE
     QByteArray ytdlPath = "ytdl_hook-ytdl_path=";
 #endif
+    char *script_opts = NULL;
+    mpv_event *event = NULL;
     mpv_handle *enc_h = mpv_create();
     if (enc_h == NULL)
     {
@@ -808,12 +809,23 @@ QString MpvAdapter::tempAudioClip(double start, double end, const QString &ext)
     mpv_set_option_string(enc_h, "secondary-sid", "no");
     mpv_set_option_string(enc_h, "ytdl", "yes");
     mpv_set_option_string(enc_h, "config", "no");
-#if APPBUNDLE
-    ytdlPath += DirectoryUtils::getConfigDir().toUtf8();
-    ytdlPath += "youtube-dl";
-    mpv_set_option_string(enc_h, "script-opts", ytdlPath);
-#endif
     mpv_set_option_string(enc_h, "o", filename);
+
+    /* This guarantees the correct version of youtube-dl is used. */
+    script_opts = mpv_get_property_string(m_handle, "script-opts");
+    if (script_opts && QByteArray(script_opts).contains("ytdl_hook-ytdl_path="))
+    {
+        mpv_set_option_string(enc_h, "script-opts", script_opts);
+    }
+    #if APPBUNDLE
+    else
+    {
+        ytdlPath += DirectoryUtils::getConfigDir().toUtf8();
+        ytdlPath += "youtube-dl";
+        mpv_set_option_string(enc_h, "script-opts", ytdlPath);
+    }
+    #endif
+    mpv_free(script_opts);
 
     if (mpv_initialize(enc_h) < 0)
     {
