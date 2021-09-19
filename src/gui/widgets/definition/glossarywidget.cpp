@@ -55,7 +55,11 @@ GlossaryWidget::GlossaryWidget(const size_t          number,
     m_layoutHeader->addWidget(new TagWidget(m_def.dictionary));
 
     m_checkBoxAdd->setChecked(true);
+#if __APPLE__
+    m_checkBoxAdd->setText(" ");
+#else
     m_checkBoxAdd->setText("");
+#endif
     m_checkBoxAdd->setToolTip("Add this entry to an Anki note");
     m_checkBoxAdd->hide();
 
