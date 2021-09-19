@@ -108,6 +108,18 @@ else()
 endif()
 target_link_libraries(${PROJECT_NAME} mainwindow Qt5::Svg)
 
+# This is a target that will create memento_debug.exe so that issues can be
+# debugged easier on Windows
+if(WIN32)
+	add_executable(
+		${PROJECT_NAME}_debug
+		${WINDOWS_APP_ICON_RESOURCE}
+		main.cpp
+		../res/resources.qrc
+	)
+	target_link_libraries(${PROJECT_NAME}_debug mainwindow Qt5::Svg)
+endif()
+
 # Install targets
 if(UNIX AND NOT APPLE)
 	install(

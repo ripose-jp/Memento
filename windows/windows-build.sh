@@ -29,6 +29,8 @@ $PREFIX/bin/cmake --build . -- -j4
 mkdir Memento_$arch
 rm -rf Memento_$arch/memento.exe
 cp src/memento.exe Memento_$arch
+rm -rf Memento_$arch/memento_debug.exe
+cp src/memento_debug.exe Memento_$arch
 cp -r ../dic Memento_$arch
 
 python3 ../windows/mingw-bundledlls.py --copy ./Memento_$arch/memento.exe
