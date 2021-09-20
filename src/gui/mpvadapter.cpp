@@ -789,9 +789,6 @@ QString MpvAdapter::tempAudioClip(double start, double end, const QString &ext)
         NULL
     };
 
-#if APPBUNDLE
-    QByteArray ytdlPath = "ytdl_hook-ytdl_path=";
-#endif
     char *script_opts = NULL;
     mpv_event *event = NULL;
     mpv_handle *enc_h = mpv_create();
@@ -817,14 +814,25 @@ QString MpvAdapter::tempAudioClip(double start, double end, const QString &ext)
     {
         mpv_set_option_string(enc_h, "script-opts", script_opts);
     }
-    #if APPBUNDLE
+#if APPBUNDLE
     else
     {
-        ytdlPath += DirectoryUtils::getConfigDir().toUtf8();
+        QByteArray ytdlPath = "ytdl_hook-ytdl_path=";
+        char *config_dir = mpv_get_property_string(m_handle, "config-dir");
+        if (config_dir)
+        {
+            ytdlPath += config_dir;
+            ytdlPath += SLASH;
+        }
+        else
+        {
+            ytdlPath += DirectoryUtils::getConfigDir().toUtf8();
+        }
+        mpv_free(config_dir);
         ytdlPath += "youtube-dl";
         mpv_set_option_string(enc_h, "script-opts", ytdlPath);
     }
-    #endif
+#endif
     mpv_free(script_opts);
 
     if (mpv_initialize(enc_h) < 0)
