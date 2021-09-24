@@ -24,7 +24,6 @@
 #include <QFontDatabase>
 #include <QMessageBox>
 #include <QSettings>
-#include <QSurfaceFormat>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #include <QStandardPaths>
@@ -32,6 +31,7 @@
 
 #if __APPLE__
     #include <locale.h>
+    #include <QSurfaceFormat>
 #endif
 
 #include "audio/audioplayer.h"
