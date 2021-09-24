@@ -24,6 +24,7 @@
 #include <QFontDatabase>
 #include <QMessageBox>
 #include <QSettings>
+#include <QSurfaceFormat>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #include <QStandardPaths>
@@ -132,6 +133,14 @@ int main(int argc, char *argv[])
 
     /* Construct the application */
     QApplication memento(argc, argv);
+
+#if __APPLE__
+    QSurfaceFormat qSurfaceFormat;
+    qSurfaceFormat.setMajorVersion(4);
+    qSurfaceFormat.setMinorVersion(1);
+    qSurfaceFormat.setProfile(QSurfaceFormat::CoreProfile);
+    QSurfaceFormat::setDefaultFormat(qSurfaceFormat);
+#endif
 
 #if !__APPLE__
     /* Set the window icon */
