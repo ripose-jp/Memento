@@ -31,6 +31,7 @@
 
 #if __APPLE__
     #include <locale.h>
+    #include <QSurfaceFormat>
 #endif
 
 #include "audio/audioplayer.h"
@@ -132,6 +133,14 @@ int main(int argc, char *argv[])
 
     /* Construct the application */
     QApplication memento(argc, argv);
+
+#if __APPLE__
+    QSurfaceFormat qSurfaceFormat;
+    qSurfaceFormat.setMajorVersion(4);
+    qSurfaceFormat.setMinorVersion(1);
+    qSurfaceFormat.setProfile(QSurfaceFormat::CoreProfile);
+    QSurfaceFormat::setDefaultFormat(qSurfaceFormat);
+#endif
 
 #if !__APPLE__
     /* Set the window icon */
