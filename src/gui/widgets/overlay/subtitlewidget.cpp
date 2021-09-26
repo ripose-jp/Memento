@@ -354,8 +354,6 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
 
 void SubtitleWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    StrokeLabel::mouseDoubleClickEvent(event);
-
     QApplication::clipboard()->setText(m_subtitle.rawText);
 }
 
