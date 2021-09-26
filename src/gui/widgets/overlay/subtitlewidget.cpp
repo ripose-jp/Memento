@@ -42,7 +42,7 @@
 /* Begin Constructor/Destructor */
 
 SubtitleWidget::SubtitleWidget(QWidget *parent)
-    : QTextEdit(parent),
+    : StrokeLabel(parent),
       m_dictionary(GlobalMediator::getGlobalMediator()->getDictionary()),
       m_currentIndex(-1),
       m_findDelay(new QTimer(this)),
@@ -56,19 +56,9 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
 
     initTheme();
 
-    setFixedHeight(0);
-    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
-    setFocusPolicy(Qt::FocusPolicy::NoFocus);
-    setAcceptDrops(false);
-    setFrameShape(QFrame::Shape::NoFrame);
-    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setLineWrapMode(QTextEdit::NoWrap);
-    setReadOnly(true);
-    setAcceptRichText(false);
-    setTextInteractionFlags(Qt::NoTextInteraction);
-    hide();
+    setMouseTracking(true);
     setCursor(Qt::ArrowCursor);
+    hide();
 
     m_findDelay->setSingleShot(true);
 
@@ -92,7 +82,7 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
     );
     connect(
         mediator, &GlobalMediator::definitionsHidden,
-        this,     &SubtitleWidget::deselectText
+        this,     &StrokeLabel::deselectText
     );
     connect(
         mediator, &GlobalMediator::definitionsShown,
@@ -178,13 +168,7 @@ void SubtitleWidget::initTheme()
             SETTINGS_INTERFACE_SUB_SCALE_DEFAULT
         ).toDouble()
     );
-    setFont(font);
-
-    QString stylesheetFormat =
-        "QTextEdit {"
-            "color: rgba(%1, %2, %3, %4);"
-            "background: rgba(%5, %6, %7, %8);"
-        "}";
+    setTextFont(font);
 
     QColor fontColor(
         settings.value(
@@ -192,35 +176,29 @@ void SubtitleWidget::initTheme()
             SETTINGS_INTERFACE_SUB_TEXT_COLOR_DEFAULT
         ).toString()
     );
+    setTextColor(fontColor);
+
     QColor bgColor(
         settings.value(
             SETTINGS_INTERFACE_SUB_BG_COLOR,
             SETTINGS_INTERFACE_SUB_BG_COLOR_DEFAULT
         ).toString()
     );
+    setBackgroundColor(bgColor);
 
-    setStyleSheet(
-        stylesheetFormat.arg(QString::number(fontColor.red()))
-                        .arg(QString::number(fontColor.green()))
-                        .arg(QString::number(fontColor.blue()))
-                        .arg(QString::number(fontColor.alpha()))
-                        .arg(QString::number(bgColor.red()))
-                        .arg(QString::number(bgColor.green()))
-                        .arg(QString::number(bgColor.blue()))
-                        .arg(QString::number(bgColor.alpha()))
-
-    );
-
-    m_settings.strokeColor.setNamedColor(
+    QColor strokeColor(
         settings.value(
             SETTINGS_INTERFACE_SUB_STROKE_COLOR,
             SETTINGS_INTERFACE_SUB_STROKE_COLOR_DEFAULT
         ).toString()
     );
-    m_settings.strokeSize = settings.value(
+    setStrokeColor(strokeColor);
+
+    double strokeSize = settings.value(
         SETTINGS_INTERFACE_SUB_STROKE,
         SETTINGS_INTERFACE_SUB_STROKE_DEFAULT
     ).toDouble();
+    setStrokeSize(strokeSize);
 
     settings.endGroup();
 
@@ -324,30 +302,32 @@ void SubtitleWidget::initSettings()
 
 void SubtitleWidget::showEvent(QShowEvent *event)
 {
+    StrokeLabel::showEvent(event);
+
     if (m_settings.hideSubsWhenVisible)
     {
         Q_EMIT GlobalMediator::getGlobalMediator()
             ->requestSetSubtitleVisibility(false);
     }
-    QTextEdit::showEvent(event);
 }
 
 void SubtitleWidget::hideEvent(QHideEvent *event)
 {
+    StrokeLabel::hideEvent(event);
+
     if (m_settings.hideSubsWhenVisible && m_settings.hideOnPlay)
     {
         Q_EMIT GlobalMediator::getGlobalMediator()
             ->requestSetSubtitleVisibility(true);
     }
     Q_EMIT GlobalMediator::getGlobalMediator()->subtitleHidden();
-    QTextEdit::hideEvent(event);
 }
 
 void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    int position = document()->documentLayout()->hitTest(
-        event->pos(), Qt::ExactHit
-    );
+    StrokeLabel::mouseMoveEvent(event);
+
+    int position = getPosition(event->pos());
     if (!m_paused || position == m_currentIndex || position == -1)
     {
         return;
@@ -374,48 +354,24 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
 
 void SubtitleWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
+    StrokeLabel::mouseDoubleClickEvent(event);
+
     QApplication::clipboard()->setText(m_subtitle.rawText);
 }
 
 void SubtitleWidget::leaveEvent(QEvent *event)
 {
+    StrokeLabel::leaveEvent(event);
+
     m_findDelay->stop();
     m_currentIndex = -1;
 }
 
 void SubtitleWidget::resizeEvent(QResizeEvent *event)
 {
-    setAlignment(Qt::AlignHCenter);
-    if (!m_subtitle.rawText.isEmpty())
-        fitToContents();
-
-    event->ignore();
-    QTextEdit::resizeEvent(event);
+    StrokeLabel::resizeEvent(event);
 
     Q_EMIT GlobalMediator::getGlobalMediator()->requestDefinitionDelete();
-}
-
-void SubtitleWidget::paintEvent(QPaintEvent *event)
-{
-    QTextCharFormat format;
-    format.setTextOutline(
-        QPen(
-            m_settings.strokeColor,
-            m_settings.strokeSize,
-            Qt::SolidLine,
-            Qt::RoundCap,
-            Qt::RoundJoin
-        )
-    );
-    QTextCursor cursor(document());
-    cursor.select(QTextCursor::Document);
-    cursor.mergeCharFormat(format);
-    QTextEdit::paintEvent(event);
-
-    format = QTextCharFormat();
-    format.setTextOutline(QPen(Qt::transparent)); // Potential SIGSEGV
-    cursor.mergeCharFormat(format);
-    QTextEdit::paintEvent(event);
 }
 
 /* End Event Handlers */
@@ -458,7 +414,7 @@ void SubtitleWidget::findTerms()
                 Q_EMIT GlobalMediator::getGlobalMediator()->termsChanged(terms);
                 m_lastEmittedIndex = index;
                 m_lastEmittedSize  = terms->first()->clozeBody.size();
-                m_lastEmittedSize += toPlainText()
+                m_lastEmittedSize += getText()
                     .midRef(m_lastEmittedIndex, m_lastEmittedSize)
                     .count('\n');
             }
@@ -472,7 +428,7 @@ void SubtitleWidget::adjustVisibility()
     {
         hide();
     }
-    else if (toPlainText().isEmpty())
+    else if (getText().isEmpty())
     {
         hide();
     }
@@ -496,7 +452,7 @@ void SubtitleWidget::positionChanged(const double value)
         value > m_subtitle.endTime + DOUBLE_DELTA)
     {
         m_subtitle.rawText.clear();
-        clear();
+        clearText();
         hide();
         Q_EMIT GlobalMediator::getGlobalMediator()->subtitleExpired();
     }
@@ -516,26 +472,7 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     }
 
     /* Add it to the text edit */
-    clear();
-    QStringList subList = subtitle.split('\n');
-    for (const QString &text : subList)
-    {
-        if (text.isEmpty())
-            continue;
-
-        append(text);
-        setAlignment(Qt::AlignHCenter);
-    }
-
-    /* Update Size */
-    if (m_subtitle.rawText.isEmpty())
-    {
-        setFixedSize(QSize(0, 0));
-    }
-    else
-    {
-        fitToContents();
-    }
+    setText(subtitle);
 
     /* Keep track of when to delete the subtitle */
     m_subtitle.startTime = start + delay;
@@ -547,37 +484,7 @@ void SubtitleWidget::setSubtitle(QString subtitle,
 
 void SubtitleWidget::selectText()
 {
-    QTextCursor q = textCursor();
-    q.setPosition(m_lastEmittedIndex);
-    q.setPosition(
-        m_lastEmittedIndex + m_lastEmittedSize,
-        QTextCursor::KeepAnchor
-    );
-    setTextCursor(q);
-}
-
-void SubtitleWidget::deselectText()
-{
-    QTextCursor q = textCursor();
-    q.clearSelection();
-    setTextCursor(q);
+    StrokeLabel::selectText(m_lastEmittedIndex, m_lastEmittedSize);
 }
 
 /* End General Slots */
-/* Begin Helpers */
-
-void SubtitleWidget::fitToContents()
-{
-    updateGeometry();
-    int width = document()->idealWidth() + 4;
-    if (width > GlobalMediator::getGlobalMediator()->getPlayerWidget()->width())
-    {
-        width = GlobalMediator::getGlobalMediator()->getPlayerWidget()->width();
-    }
-    setFixedWidth(width);
-    int height = document()->size().toSize().height();
-    setFixedHeight(height);
-    updateGeometry();
-}
-
-/* End Helpers */

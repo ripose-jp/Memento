@@ -21,7 +21,7 @@
 #ifndef SUBTITLEWIDGET_H
 #define SUBTITLEWIDGET_H
 
-#include <QTextEdit>
+#include "../common/strokelabel.h"
 
 #include <QMouseEvent>
 #include <QTimer>
@@ -31,7 +31,7 @@
 /**
  * Widget used to display subtitle text and initiate searches.
  */
-class SubtitleWidget : public QTextEdit
+class SubtitleWidget : public StrokeLabel
 {
     Q_OBJECT
 
@@ -66,12 +66,6 @@ protected:
      * @param event The resize event, not used.
      */
     void resizeEvent(QResizeEvent *event) override;
-
-    /**
-     * Applys a stroke to the text if needed.
-     * @param event The paint event.
-     */
-    void paintEvent(QPaintEvent *event) override;
 
     /**
      * Hides the player subtitles when visible if set.
@@ -133,17 +127,7 @@ private Q_SLOTS:
      */
     void selectText();
 
-    /**
-     * Deselects any currently selected text.
-     */
-    void deselectText();
-
 private:
-    /**
-     * Resizes the widget to the current text.
-     */
-    void fitToContents();
-
     /**
      * Destructor for the term list.
      */
@@ -220,12 +204,7 @@ private:
         /* The string to replace newlines with if replaceNewLines is true. */
         QString replaceStr;
 
-        /* The color of the stroke. */
-        QColor strokeColor;
-
-        /* The size of the stroke. */
-        double strokeSize;
-
+        /* true if subtitles should be shown when needed, false otherwise. */
         bool showSubtitles;
     } m_settings;
 };

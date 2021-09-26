@@ -8,22 +8,21 @@ target_link_libraries(
 )
 
 add_library(
+    strokelabel
+    strokelabel.cpp
+)
+target_link_libraries(
+    strokelabel
+    Qt5::Widgets
+)
+
+add_library(
     sliderjumpstyle
     sliderjumpstyle.cpp
 )
 target_link_libraries(
     sliderjumpstyle
     Qt5::Widgets
-)
-
-add_library(
-    progressslider
-    progressslider.cpp
-)
-target_link_libraries(
-    progressslider
-    Qt5::Widgets
-    Qt5::Core
 )
 
 add_library(

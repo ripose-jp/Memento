@@ -294,7 +294,7 @@
   <customwidget>
    <class>ProgressSlider</class>
    <extends>QSlider</extends>
-   <header>src/gui/widgets/common/progressslider.h</header>
+   <header>src/gui/widgets/overlay/progressslider.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

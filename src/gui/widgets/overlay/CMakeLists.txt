@@ -1,4 +1,15 @@
 add_library(
+    progressslider
+    progressslider.cpp
+)
+target_link_libraries(
+    progressslider
+    strokelabel
+    Qt5::Widgets
+    Qt5::Core
+)
+
+add_library(
     playermenu
     playermenu.cpp
     playermenu.ui
@@ -14,6 +25,7 @@ add_library(
 )
 target_link_libraries(
     subtitlewidget
+    strokelabel
     Qt5::Widgets
     globalmediator
     dictionary_db

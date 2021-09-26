@@ -29,78 +29,8 @@
 #include <QTextEdit>
 
 #include "../../../util/globalmediator.h"
+#include "../common/strokelabel.h"
 
-/* Begin StrokeLabel */
-
-/**
- * A widget that displays text with a stroke.
- */
-class StrokeLabel : public QTextEdit
-{
-public:
-    StrokeLabel(QWidget *parent = nullptr);
-
-    /**
-     * Sets the text of the widget and adjusts the size according to the
-     * content.
-     * @param text The text to set the widget to.
-     */
-    void setText(const QString &text);
-
-protected:
-    /**
-     * Adds the stroke.
-     * @param event The paint event.
-     */
-    void paintEvent(QPaintEvent *event) override;
-};
-
-StrokeLabel::StrokeLabel(QWidget *parent) : QTextEdit(parent)
-{
-    setReadOnly(true);
-    setAutoFillBackground(false);
-    setFrameStyle(QFrame::NoFrame);
-    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setStyleSheet("QTextEdit { background : rgba(0, 0, 0, 0); }");
-}
-
-void StrokeLabel::paintEvent(QPaintEvent *event)
-{
-    QTextCharFormat format;
-    format.setTextOutline(
-        QPen(
-            parentWidget()->palette().window(),
-            3.0,
-            Qt::SolidLine,
-            Qt::RoundCap,
-            Qt::RoundJoin
-        )
-    );
-    QTextCursor cursor(document());
-    cursor.select(QTextCursor::Document);
-    cursor.mergeCharFormat(format);
-    QTextEdit::paintEvent(event);
-
-    format = QTextCharFormat();
-    format.setTextOutline(QPen(Qt::transparent));
-    cursor.mergeCharFormat(format);
-    QTextEdit::paintEvent(event);
-}
-
-void StrokeLabel::setText(const QString &text)
-{
-    setPlainText(text);
-    document()->adjustSize();
-    int width = document()->idealWidth() + 10;
-    setFixedWidth(width);
-    int height = document()->size().toSize().height();
-    setFixedHeight(height);
-    updateGeometry();
-}
-
-/* End StrokeLabel */
 /* Begin Constructor/Destructor */
 
 /**
@@ -148,7 +78,8 @@ ProgressSlider::~ProgressSlider()
 
 void ProgressSlider::initTheme()
 {
-    m_labelTimecode->setPalette(palette());
+    m_labelTimecode->setTextColor(palette().text().color());
+    m_labelTimecode->setStrokeColor(palette().window().color());
     initStylesheet();
 }
 
@@ -166,9 +97,9 @@ void ProgressSlider::initStylesheet()
 
 void ProgressSlider::showEvent(QShowEvent *event)
 {
-    QFont font = m_labelTimecode->font();
+    QFont font = m_labelTimecode->textFont();
     font.setPixelSize(height());
-    m_labelTimecode->setFont(font);
+    m_labelTimecode->setTextFont(font);
 }
 
 void ProgressSlider::hideEvent(QHideEvent *event)
@@ -181,6 +112,8 @@ void ProgressSlider::hideEvent(QHideEvent *event)
 
 void ProgressSlider::mouseMoveEvent(QMouseEvent *event)
 {
+    QSlider::mouseMoveEvent(event);
+
     if (maximum() == 0)
     {
         QSlider::mouseMoveEvent(event);
@@ -210,8 +143,6 @@ void ProgressSlider::mouseMoveEvent(QMouseEvent *event)
     {
         m_labelTimecode->show();
     }
-
-    QSlider::mouseMoveEvent(event);
 }
 
 #undef MOUSE_OFFSET
@@ -219,6 +150,7 @@ void ProgressSlider::mouseMoveEvent(QMouseEvent *event)
 void ProgressSlider::paintEvent(QPaintEvent* event)
 {
     QSlider::paintEvent(event);
+
     QRect rect = event->rect();
     QPainter p(this);
     p.setPen(palette().window().color());
