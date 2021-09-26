@@ -97,6 +97,10 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
         this, &PlayerOverlay::hideOverlay
     );
     connect(
+        mediator, &GlobalMediator::playerFullscreenChanged,
+        this, &PlayerOverlay::hideOverlay
+    );
+    connect(
         m_menu, &PlayerMenu::aboutToHide,
         this, &PlayerOverlay::hideOverlay
     );
@@ -375,7 +379,11 @@ void PlayerOverlay::hideOverlay()
 
 void PlayerOverlay::showOverlay()
 {
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    if (!m_menu->menuVisible() && !m_menu->window()->isFullScreen())
+#else
     if (!m_menu->menuVisible())
+#endif
     {
         m_menu->showMenu();
         QPropertyAnimation *menuFade =
