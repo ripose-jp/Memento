@@ -182,6 +182,12 @@ void StrokeLabel::setText(const QString &text)
     cursor.select(QTextCursor::Document);
     cursor.mergeCharFormat(format);
 
+    format = QTextCharFormat();
+    format.setTextOutline(QPen(Qt::transparent));
+    cursor = QTextCursor(m_foregroundText->document());
+    cursor.select(QTextCursor::Document);
+    cursor.mergeCharFormat(format);
+
     fitToContents();
 }
 
