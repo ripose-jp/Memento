@@ -413,13 +413,6 @@ private:
      */
     QString &accumulateTags(const QList<Tag> &tags, QString &tagStr);
 
-    /**
-     * Extracts local files from an Anki note JSON object.
-     * @param note The JSON note object.
-     * @return A list of paths to all the local files.
-     */
-    QStringList extractLocalFilePaths(const QJsonObject &note) const;
-
     /* The enabled state of the AnkiClient. */
     bool m_enabled;
 
@@ -440,6 +433,9 @@ private:
 
     /* The Network Manager for this object. */
     QNetworkAccessManager *m_manager;
+
+    /* List of temp files to clean up */
+    QList<QString> m_tempFiles;
 };
 
 #endif // ANKICLIENT_H

@@ -130,6 +130,10 @@ AnkiClient::AnkiClient(QObject *parent)
 
 AnkiClient::~AnkiClient()
 {
+    for (const QString &path : m_tempFiles)
+    {
+        QFile(path).remove();
+    }
     clearProfiles();
     delete m_configs;
     delete m_manager;
@@ -693,17 +697,6 @@ AnkiReply *AnkiClient::addNote(const Term *term)
             QJsonObject note = createAnkiNoteObject(*term, true);
             delete term;
             params[ANKI_ADD_NOTE_PARAM] = note;
-
-            QStringList paths = extractLocalFilePaths(note);
-            connect(ankiReply, &AnkiReply::finishedInt, this,
-                [=] {
-                    for (const QString &path : paths)
-                    {
-                        QFile(path).remove();
-                    }
-                }
-            );
-
             Q_EMIT sendIntRequest(ANKI_ADD_NOTE, params, ankiReply);
         }
     );
@@ -722,17 +715,6 @@ AnkiReply *AnkiClient::addNote(const Kanji *kanji)
             QJsonObject note = createAnkiNoteObject(*kanji, true);
             delete kanji;
             params[ANKI_ADD_NOTE_PARAM] = note;
-
-            QStringList paths = extractLocalFilePaths(note);
-            connect(ankiReply, &AnkiReply::finishedInt, this,
-                [=] {
-                    for (const QString &path : paths)
-                    {
-                        QFile(path).remove();
-                    }
-                }
-            );
-
             Q_EMIT sendIntRequest(ANKI_ADD_NOTE, params, ankiReply);
         }
     );
@@ -1280,6 +1262,7 @@ void AnkiClient::buildCommonNote(const QJsonObject &configFields,
             }
             if (!path.isEmpty()) {
                 audObj[ANKI_NOTE_PATH] = path;
+                m_tempFiles.append(path);
                 QString filename = FileUtils::calculateMd5(path) + ".aac";
                 audObj[ANKI_NOTE_FILENAME] = filename;
                 audObj[ANKI_NOTE_FIELDS] = fieldsWithAudioMedia;
@@ -1319,6 +1302,7 @@ void AnkiClient::buildCommonNote(const QJsonObject &configFields,
             player->setSubVisiblity(true);
             QString path = player->tempScreenshot(true, imageExt);
             image[ANKI_NOTE_PATH] = path;
+            m_tempFiles.append(path);
             player->setSubVisiblity(visibility);
 
             QString filename = FileUtils::calculateMd5(path) + imageExt;
@@ -1338,6 +1322,7 @@ void AnkiClient::buildCommonNote(const QJsonObject &configFields,
             QString path = GlobalMediator::getGlobalMediator()
                 ->getPlayerAdapter()->tempScreenshot(false, imageExt);
             image[ANKI_NOTE_PATH] = path;
+            m_tempFiles.append(path);
 
             QString filename = FileUtils::calculateMd5(path) + imageExt;
             image[ANKI_NOTE_FILENAME] = filename;
@@ -1592,33 +1577,6 @@ QString &AnkiClient::accumulateTags(const QList<Tag> &tags, QString &tagStr)
     }
 
     return tagStr;
-}
-
-QStringList AnkiClient::extractLocalFilePaths(const QJsonObject &note) const
-{
-    QStringList paths;
-
-    QJsonArray arr = note[ANKI_NOTE_AUDIO].toArray();
-    for (const QJsonValue &val : arr)
-    {
-        QString path = val.toObject()[ANKI_NOTE_PATH].toString();
-        if (!path.isEmpty())
-        {
-            paths << path;
-        }
-    }
-
-    arr = note[ANKI_NOTE_PICTURE].toArray();
-    for (const QJsonValue &val : arr)
-    {
-        QString path = val.toObject()[ANKI_NOTE_PATH].toString();
-        if (!path.isEmpty())
-        {
-            paths << path;
-        }
-    }
-
-    return paths;
 }
 
 /* End Note Helpers */
