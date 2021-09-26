@@ -26,6 +26,7 @@
 #include <QDebug>
 #include <QScrollBar>
 #include <QSettings>
+#include <QTextEdit>
 #include <QThreadPool>
 
 #include "../../../util/constants.h"
@@ -486,3 +487,26 @@ void SubtitleWidget::selectText()
 }
 
 /* End General Slots */
+/* Begin Reimplemented Methods */
+
+void SubtitleWidget::fitToContents()
+{
+    m_backgroundText->updateGeometry();
+    QWidget *p = GlobalMediator::getGlobalMediator()->getPlayerWidget();
+
+    int width = m_backgroundText->document()->idealWidth() + 4;
+    if (width > p->width())
+    {
+        width = p->width();
+    }
+
+    int height = m_backgroundText->document()->size().toSize().height();
+    if (height > p->height())
+    {
+        height = p->height();
+    }
+
+    setSize(width, height);
+}
+
+/* End Reimplemented Methods */

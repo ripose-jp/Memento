@@ -110,19 +110,7 @@ protected:
     /**
      * Resizes the label to fit the context of the current text.
      */
-    void fitToContents();
-
-private:
-    /**
-     * Initializes a QTextEdit with all the expected common configuration.
-     * @param te The QTextEdit to initialize.
-     */
-    void initTextEdit(QTextEdit *te);
-
-    /**
-     * Updates the colors of the QTextEdit.
-     */
-    void updateColors();
+    virtual void fitToContents();
 
     /**
      * Sets the fixed size of the widget.
@@ -136,6 +124,18 @@ private:
 
     /* The foreground QTextEdit that creates the text */
     QTextEdit *m_foregroundText;
+
+private:
+    /**
+     * Initializes a QTextEdit with all the expected common configuration.
+     * @param te The QTextEdit to initialize.
+     */
+    void initTextEdit(QTextEdit *te);
+
+    /**
+     * Updates the colors of the QTextEdit.
+     */
+    void updateColors();
 
     /* The current color of the text */
     QColor m_textColor;

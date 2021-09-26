@@ -96,7 +96,6 @@ void StrokeLabel::updateColors()
     setText(m_foregroundText->toPlainText());
 }
 
-
 void StrokeLabel::fitToContents()
 {
     m_backgroundText->updateGeometry();
