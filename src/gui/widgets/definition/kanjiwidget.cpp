@@ -30,6 +30,7 @@
 #include "../../../util/globalmediator.h"
 #include "../../../util/iconfactory.h"
 #include "../common/flowlayout.h"
+#include "../subtitlelistwidget.h"
 #include "tagwidget.h"
 
 /* Begin Constructor/Destructor */
@@ -229,9 +230,15 @@ void KanjiWidget::addKVSection(const QString &title,
 void KanjiWidget::addKanji()
 {
     m_buttonAnkiAdd->setVisible(false);
+
+    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     Kanji *kanji = new Kanji(*m_kanji);
-    AnkiReply *reply = GlobalMediator::getGlobalMediator()
-        ->getAnkiClient()->addNote(kanji);
+    kanji->context =
+        mediator->getSubtitleListWidget()->getPrimaryContext("\n");
+    kanji->context2 =
+        mediator->getSubtitleListWidget()->getSecondaryContext("\n");
+
+    AnkiReply *reply = mediator->getAnkiClient()->addNote(kanji);
     connect(reply, &AnkiReply::finishedInt, this,
         [=] (const int id, const QString &error) {
             if (!error.isEmpty())

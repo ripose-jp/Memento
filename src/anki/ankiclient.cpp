@@ -1199,14 +1199,9 @@ void AnkiClient::buildCommonNote(const QJsonObject     &configFields,
     note[ANKI_NOTE_TAGS] = m_currentConfig->tags;
 
     /* Find and replace markers with processed data */
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-    QString title     = mediator->getPlayerAdapter()->getTitle();
-    QString context   = mediator->getSubtitleListWidget()
-        ->getPrimaryContext("<br>");
-    QString context2  = mediator->getSubtitleListWidget()
-        ->getSecondaryContext("<br>");
-    QString sentence2 = mediator->getPlayerAdapter()
-        ->getSecondarySubtitle().replace('\n', "<br>");
+    QString context   = QString(exp.context).replace('\n', "<br>");
+    QString context2  = QString(exp.context2).replace('\n', "<br>");
+    QString sentence2 = QString(exp.sentence2).replace('\n', "<br>");
     QJsonArray fieldsWithAudioMedia;
     QJsonArray fieldsWithScreenshot;
     QJsonArray fieldWithScreenshotVideo;
@@ -1233,7 +1228,7 @@ void AnkiClient::buildCommonNote(const QJsonObject     &configFields,
         }
         value.replace(REPLACE_SCREENSHOT_VIDEO, "");
 
-        value.replace(REPLACE_TITLE,        title);
+        value.replace(REPLACE_TITLE,        exp.title);
         value.replace(REPLACE_CONTEXT,      context);
         value.replace(REPLACE_CONTEXT_SEC,  context2);
         value.replace(REPLACE_SENTENCE_SEC, sentence2);
@@ -1251,12 +1246,8 @@ void AnkiClient::buildCommonNote(const QJsonObject     &configFields,
             PlayerAdapter *player =
                 GlobalMediator::getGlobalMediator()->getPlayerAdapter();
 
-            double startTime = exp.startTime -
-                               player->getAudioDelay() -
-                               m_currentConfig->audioPadStart;
-            double endTime = exp.endTime -
-                             player->getAudioDelay() +
-                             m_currentConfig->audioPadEnd;
+            double startTime = exp.startTime - m_currentConfig->audioPadStart;
+            double endTime = exp.endTime + m_currentConfig->audioPadEnd;
 
             QString path;
             if (startTime >= 0 && endTime >= 0 && startTime < endTime)

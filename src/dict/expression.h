@@ -111,6 +111,9 @@ struct TermDefinition
  */
 struct CommonExpFields
 {
+    /* The title of the expression this came from. */
+    QString title;
+
     /* The complete sentence this term was found in. */
     QString sentence;
 
@@ -119,6 +122,15 @@ struct CommonExpFields
 
     /* The end time of the subtitle. */
     double endTime;
+
+    /* The currently selected context. */
+    QString context;
+
+    /* The current secondary subtitle. */
+    QString sentence2;
+
+    /* The current secondary context. */
+    QString context2;
 
     /* The raw term as it was matched by Memento. */
     QString clozeBody;

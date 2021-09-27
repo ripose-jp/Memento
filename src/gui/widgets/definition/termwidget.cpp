@@ -27,6 +27,7 @@
 #include "../../../dict/dictionary.h"
 #include "../../../util/globalmediator.h"
 #include "../../../util/iconfactory.h"
+#include "../subtitlelistwidget.h"
 #include "glossarywidget.h"
 #include "pitchwidget.h"
 #include "tagwidget.h"
@@ -206,6 +207,12 @@ void TermWidget::addNote()
         widget->setCheckable(false);
     }
 
+    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+    term->context =
+        mediator->getSubtitleListWidget()->getPrimaryContext("\n");
+    term->context2 =
+        mediator->getSubtitleListWidget()->getSecondaryContext("\n");
+
     AnkiReply *reply = m_client->addNote(term);
     connect(reply, &AnkiReply::finishedInt, this,
         [=] (const int id, const QString &error) {
@@ -287,9 +294,11 @@ void TermWidget::searchKanji(const QString &ch)
         GlobalMediator::getGlobalMediator()->getDictionary()->searchKanji(ch);
     if (kanji)
     {
+        kanji->title       = m_term->title;
         kanji->sentence    = m_term->sentence;
         kanji->startTime   = m_term->startTime;
         kanji->endTime     = m_term->endTime;
+        kanji->sentence2   = m_term->sentence2;
         kanji->clozePrefix = m_term->clozePrefix;
         kanji->clozeBody   = m_term->clozeBody;
         kanji->clozeSuffix = m_term->clozeSuffix;

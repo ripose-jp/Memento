@@ -390,8 +390,15 @@ void SubtitleWidget::findTerms()
         return;
     }
 
-    double startTime = m_subtitle.startTime;
-    double endTime = m_subtitle.endTime;
+    /* Get common fields. */
+    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+    QString title = mediator->getPlayerAdapter()->getTitle();
+
+    double audioDelay = mediator->getPlayerAdapter()->getAudioDelay();
+    double startTime = m_subtitle.startTime - audioDelay;
+    double endTime = m_subtitle.endTime - audioDelay;
+
+    QString sentence2 = mediator->getPlayerAdapter()->getSecondarySubtitle();
 
     QThreadPool::globalInstance()->start(
         [=] {
@@ -413,11 +420,13 @@ void SubtitleWidget::findTerms()
             }
             else
             {
-                /* Set the start and end times */
+                /* Populate the missing fields */
                 for (Term *term : *terms)
                 {
+                    term->title = title;
                     term->startTime = startTime;
                     term->endTime = endTime;
+                    term->sentence2 = sentence2;
                 }
 
                 Q_EMIT GlobalMediator::getGlobalMediator()->termsChanged(terms);
