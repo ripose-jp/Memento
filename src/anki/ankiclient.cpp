@@ -922,7 +922,9 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
     /* Build common parts of a note */
     QJsonObject note;
     QJsonObject fieldsObj;
-    buildCommonNote(m_currentConfig->termFields, media, note, fieldsObj);
+    buildCommonNote(
+        m_currentConfig->termFields, term, media, note, fieldsObj
+    );
 
     /* Set Term and Model */
     note[ANKI_NOTE_DECK] = m_currentConfig->termDeck;
@@ -1048,7 +1050,9 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji,
     /* Build common parts of a note */
     QJsonObject note;
     QJsonObject fieldsObj;
-    buildCommonNote(m_currentConfig->kanjiFields, media, note, fieldsObj);
+    buildCommonNote(
+        m_currentConfig->kanjiFields, kanji, media, note, fieldsObj
+    );
 
     /* Set Term and Model */
     note[ANKI_NOTE_DECK] = m_currentConfig->kanjiDeck;
@@ -1165,10 +1169,11 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji,
     return note;
 }
 
-void AnkiClient::buildCommonNote(const QJsonObject &configFields,
-                                 const bool         media,
-                                 QJsonObject       &note,
-                                 QJsonObject       &fieldObj)
+void AnkiClient::buildCommonNote(const QJsonObject     &configFields,
+                                 const CommonExpFields &exp,
+                                 const bool             media,
+                                 QJsonObject           &note,
+                                 QJsonObject           &fieldObj)
 {
     /* Set Duplicate Policy */
     switch (m_currentConfig->duplicatePolicy)
@@ -1246,12 +1251,10 @@ void AnkiClient::buildCommonNote(const QJsonObject &configFields,
             PlayerAdapter *player =
                 GlobalMediator::getGlobalMediator()->getPlayerAdapter();
 
-            double startTime = player->getSubStart() +
-                               player->getSubDelay() -
+            double startTime = exp.startTime -
                                player->getAudioDelay() -
                                m_currentConfig->audioPadStart;
-            double endTime = player->getSubEnd() +
-                             player->getSubDelay() -
+            double endTime = exp.endTime -
                              player->getAudioDelay() +
                              m_currentConfig->audioPadEnd;
 

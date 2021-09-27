@@ -106,9 +106,34 @@ struct TermDefinition
 } typedef TermDefinition;
 
 /**
+ * A parent struct of Term and Kanji that contains fields common between the
+ * two.
+ */
+struct CommonExpFields
+{
+    /* The complete sentence this term was found in. */
+    QString sentence;
+
+    /* The start time of the subtitle. */
+    double startTime;
+
+    /* The end time of the subtitle. */
+    double endTime;
+
+    /* The raw term as it was matched by Memento. */
+    QString clozeBody;
+
+    /* Everything in the sentence before the cloze body. */
+    QString clozePrefix;
+
+    /* Everything in the sentence after the cloze body. */
+    QString clozeSuffix;
+} typedef CommonExpFields;
+
+/**
  * A struct containg all the information that makes up one term.
  */
-struct Term
+struct Term : public CommonExpFields
 {
     Term() : score(0) {}
 
@@ -134,22 +159,7 @@ struct Term
      * Larger values generally mean this term is more common.
      */
     int score;
-
-    /* Values below here will be set outside of DatabaseManager. */
-
-    /* The complete sentence this term was found in. */
-    QString sentence;
-
-    /* The raw term as it was matched by Memento. */
-    QString clozeBody;
-
-    /* Everything in the sentence before the cloze body. */
-    QString clozePrefix;
-
-    /* Everything in the sentence after the cloze body. */
-    QString clozeSuffix;
 } typedef Term;
-
 
 /**
  * Struct containing all the information that makes up a single kanji
@@ -200,7 +210,7 @@ struct KanjiDefinition
 /**
  * A struct containing everything that makes up a kanji entry.
  */
-struct Kanji
+struct Kanji : public CommonExpFields
 {
     /* The kanji. */
     QString character;
@@ -210,20 +220,6 @@ struct Kanji
 
     /* A list of frequencies corresponding to the kanji. */
     QList<Frequency>       frequencies;
-
-    /* Values below here will be set outside of DatabaseManager. */
-
-    /* The complete sentence this kanji was found in. */
-    QString sentence;
-
-    /* The raw term as it was matched by Memento. Not the raw kanji. */
-    QString clozeBody;
-
-    /* Everything in the sentence before the cloze body. */
-    QString clozePrefix;
-
-    /* Everything in the sentence after the cloze body. */
-    QString clozeSuffix;
 } typedef Kanji;
 
 #endif // EXPRESSION_H

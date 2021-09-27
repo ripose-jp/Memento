@@ -358,15 +358,17 @@ private:
      * Helper method for processing the card markers shared by both term and
      * kanji cards.
      * @param      configFields The raw fields object for the note type.
+     * @param      exp          The fields common between Kanji and Terms.
      * @param      media        true if audio and screenshots should be added,
      *                          false otherwise.
      * @param[out] note         The note object to populate.
      * @param[out] fieldObj     The processed fields object.
      */
-    void buildCommonNote(const QJsonObject &configFields,
-                         const bool         media,
-                         QJsonObject       &note,
-                         QJsonObject       &fieldObj);
+    void buildCommonNote(const QJsonObject     &configFields,
+                         const CommonExpFields &exp,
+                         const bool             media,
+                         QJsonObject           &note,
+                         QJsonObject           &fieldObj);
 
     /**
      * Generates an HTML representation of the frequencies.

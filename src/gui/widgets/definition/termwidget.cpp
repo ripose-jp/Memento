@@ -288,6 +288,8 @@ void TermWidget::searchKanji(const QString &ch)
     if (kanji)
     {
         kanji->sentence    = m_term->sentence;
+        kanji->startTime   = m_term->startTime;
+        kanji->endTime     = m_term->endTime;
         kanji->clozePrefix = m_term->clozePrefix;
         kanji->clozeBody   = m_term->clozeBody;
         kanji->clozeSuffix = m_term->clozeSuffix;

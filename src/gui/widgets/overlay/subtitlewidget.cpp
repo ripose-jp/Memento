@@ -390,6 +390,9 @@ void SubtitleWidget::findTerms()
         return;
     }
 
+    double startTime = m_subtitle.startTime;
+    double endTime = m_subtitle.endTime;
+
     QThreadPool::globalInstance()->start(
         [=] {
             QList<Term *> *terms = m_dictionary->searchTerms(
@@ -410,7 +413,15 @@ void SubtitleWidget::findTerms()
             }
             else
             {
+                /* Set the start and end times */
+                for (Term *term : *terms)
+                {
+                    term->startTime = startTime;
+                    term->endTime = endTime;
+                }
+
                 Q_EMIT GlobalMediator::getGlobalMediator()->termsChanged(terms);
+
                 m_lastEmittedIndex = index;
                 m_lastEmittedSize  = terms->first()->clozeBody.size();
                 m_lastEmittedSize += getText()
