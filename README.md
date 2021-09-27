@@ -76,7 +76,7 @@ no workaround that can be implemented.
 * mpv
 * sqlite3
 * MeCab
-    * With a system dictionary like ipadic on Linux and OS X
+    * With either ipadic or NAIST-jdic installed as a system dictionary on Linux and macOS. This only applies to self-compiled versions, not appimages or app bundles.
 * Json-C
 * libzip
 * youtube-dl (optional)
