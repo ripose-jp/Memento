@@ -48,7 +48,7 @@ protected:
 
 private Q_SLOTS:
     /**
-     * Applys the current configuration to the settings.
+     * Applies the current configuration to the settings.
      */
     void applyChanges();
 
@@ -91,13 +91,13 @@ private:
     void moveRow(const int row, const int step);
 
     /**
-     * Gaurentees the last row is empty and removes empty rows that are not the
+     * Guarantees the last row is empty and removes empty rows that are not the
      * last row.
      */
     void updateRows();
 
     /**
-     * Verifies that names in the name column are not empty or dupicated.
+     * Verifies that names in the name column are not empty or duplicated.
      * @return Error string. Empty string on no error.
      */
     QString verifyNames() const;

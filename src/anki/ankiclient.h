@@ -278,7 +278,7 @@ private Q_SLOTS:
      * @param params    Parameters for the action.
      * @param ankiReply The AnkiReply to emit the finishedInt() signal on.
      */
-    void recieveIntRequest(const QString     &action,
+    void receiveIntRequest(const QString     &action,
                            const QJsonObject &params,
                            AnkiReply         *ankiReply);
 
@@ -309,7 +309,7 @@ private:
      * Makes a request to AnkiConnect.
      * @param action The AnkiConnection 'verb' to execute.
      * @param params The parameters of the action.
-     * @return A QNetworkReply where the result will be recieved. Caller takes
+     * @return A QNetworkReply where the result will be received. Caller takes
      *         ownership.
      */
     QNetworkReply *makeRequest(const QString     &action,
@@ -373,7 +373,7 @@ private:
     /**
      * Generates an HTML representation of the frequencies.
      * @param freq The frequencies to represent as HTML.
-     * @return The HTML representation of al lthe frequencies. The empty string
+     * @return The HTML representation of all the frequencies. The empty string
      *         if there are none.
      */
     QString buildFrequencies(const QList<Frequency> &freq);
@@ -408,7 +408,7 @@ private:
     QString buildGlossary(const QList<KanjiDefinition> &definitions);
 
     /**
-     * Helper method for wraping tags in <li></li>'s.
+     * Helper method for wrapping tags in <li></li>'s.
      * @param      tags   The tags to create a list from.
      * @param[out] tagStr The string to append to.
      * @return tagstr

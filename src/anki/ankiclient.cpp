@@ -122,7 +122,7 @@ AnkiClient::AnkiClient(QObject *parent)
 
     connect(
         this, &AnkiClient::sendIntRequest,
-        this, &AnkiClient::recieveIntRequest
+        this, &AnkiClient::receiveIntRequest
     );
 
     GlobalMediator::getGlobalMediator()->setAnkiClient(this);
@@ -208,7 +208,7 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         }
         QJsonObject profile = profiles[i].toObject();
 
-        /* Initilize default values for old configs */
+        /* Initialize default values for old configs */
         bool modified = false;
         if (profile[CONFIG_DUPLICATE].isNull())
         {
@@ -849,7 +849,7 @@ QJsonObject AnkiClient::processReply(QNetworkReply *reply, QString &error)
     return QJsonObject();
 }
 
-void AnkiClient::recieveIntRequest(const QString     &action,
+void AnkiClient::receiveIntRequest(const QString     &action,
                                    const QJsonObject &params,
                                    AnkiReply         *ankiReply)
 {

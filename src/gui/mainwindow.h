@@ -86,7 +86,7 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
     /**
-     * Opens all media passed in as command line arguements.
+     * Opens all media passed in as command line arguments.
      * Shows a message if no dictionaries are installed.
      * @param event The show event.
      */
@@ -149,7 +149,7 @@ private Q_SLOTS:
 
     /**
      * Updates the user interface Memento.
-     * MainWindow is repsonsible for
+     * MainWindow is responsible for
      * - The global palette
      * - The splitter between the player and subtitle list
      * - The position of the subtitle search widget

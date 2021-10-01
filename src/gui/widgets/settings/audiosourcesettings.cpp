@@ -28,7 +28,7 @@
 #include "../../../util/constants.h"
 #include "../../../util/iconfactory.h"
 
-/* Column indicies */
+/* Column indices */
 #define COL_NAME    0
 #define COL_URL     1
 #define COL_MD5     2

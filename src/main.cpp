@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     /* HiDPI support */
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-    /* Originization Info */
+    /* Organization Info */
     QCoreApplication::setOrganizationName("memento");
     QCoreApplication::setOrganizationDomain("ripose.projects");
     QCoreApplication::setApplicationName("memento");
