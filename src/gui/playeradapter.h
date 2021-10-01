@@ -273,7 +273,7 @@ public Q_SLOTS:
     virtual void disableSubtitleTwo() = 0;
 
     /**
-     * Sets the subtitle visbility.
+     * Sets the subtitle visibility.
      * @param visible true to make subtitle visible, false otherwise.
      */
     virtual void setSubVisiblity(const bool visible) = 0;

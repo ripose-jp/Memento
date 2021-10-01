@@ -21,7 +21,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="labelExplination">
+    <widget class="QLabel" name="labelExplanation">
      <property name="text">
       <string>Below is the list of special expressions that can be entered in the value field.
 These will expand to larger expressions in the final card.</string>
@@ -995,7 +995,7 @@ These will expand to larger expressions in the final card.</string>
          <item row="9" column="1">
           <widget class="QLabel" name="labelKanjiKunyomiEx">
            <property name="text">
-            <string>A comma seperated list of kunyomi (Japanese) readings written in katakana.</string>
+            <string>A comma separated list of kunyomi (Japanese) readings written in katakana.</string>
            </property>
           </widget>
          </item>
@@ -1022,7 +1022,7 @@ These will expand to larger expressions in the final card.</string>
          <item row="10" column="1">
           <widget class="QLabel" name="labelKanjiOnyomiEx">
            <property name="text">
-            <string>A comma seperated list of kunyomi (Chinese) readings written in hiragana.</string>
+            <string>A comma separated list of kunyomi (Chinese) readings written in hiragana.</string>
            </property>
           </widget>
          </item>

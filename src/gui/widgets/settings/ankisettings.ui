@@ -424,7 +424,7 @@ Only change this if you know what you're doing.</string>
            <widget class="QLineEdit" name="lineEditTags">
             <property name="toolTip">
              <string>Tags added to cards created by Memento.
-Comma or space seperated list.</string>
+Comma or space separated list.</string>
             </property>
             <property name="text">
              <string>memento</string>

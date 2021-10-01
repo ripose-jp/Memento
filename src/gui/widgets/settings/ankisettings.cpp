@@ -525,7 +525,7 @@ void AnkiSettings::renameProfile(const QString &oldName, const QString &newName)
     {
         Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
             "Info",
-            "Default profile cannnot be renamed"
+            "Default profile cannot be renamed"
         );
         m_ui->lineEditProfileName->setText(DEFAULT_PROFILE);
     }

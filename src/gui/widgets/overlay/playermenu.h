@@ -199,16 +199,16 @@ private:
         /* Action group for the tracks in the "Secondary Subtitle" menu */
         QActionGroup *subtitleTwo;
 
-        /* List of audio QActions (exclusing "None") */
+        /* List of audio QActions (excluding "None") */
         QList<QAction *> audioActions;
 
-        /* List of video QActions (exclusing "None") */
+        /* List of video QActions (excluding "None") */
         QList<QAction *> videoActions;
 
-        /* List of subtitle QActions (exclusing "None") */
+        /* List of subtitle QActions (excluding "None") */
         QList<QAction *> subtitleActions;
 
-        /* List of secondary subtitle QActions (exclusing "None") */
+        /* List of secondary subtitle QActions (excluding "None") */
         QList<QAction *> subtitleTwoActions;
     } m_actionGroups;
 

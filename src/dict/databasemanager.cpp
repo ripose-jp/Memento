@@ -286,7 +286,7 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
         if (addFrequencies(*term))
             qDebug() << "Could not add frequencies for" << term->expression;
         if (addPitches(*term))
-            qDebug() << "Could not add pithces for" << term->expression;
+            qDebug() << "Could not add pitches for" << term->expression;
         termList.append(term);
     }
     if (isStepError(step))

@@ -176,7 +176,7 @@ PlayerMenu::PlayerMenu(QWidget *parent)
         mediator, &GlobalMediator::menuSubtitlesMoveDown
     );
 
-    /* aboutToHide Singnals */
+    /* aboutToHide Signals */
     QList<QMenu *> menus = m_ui->menubar->findChildren<QMenu *>();
     for (const QMenu *menu : menus)
     {

@@ -63,7 +63,7 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     /**
-     * Intializes the settings relavent to the overlay.
+     * Intializes the settings relevant to the overlay.
      */
     void initSettings();
 

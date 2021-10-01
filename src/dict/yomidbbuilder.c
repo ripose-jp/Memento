@@ -106,7 +106,7 @@ static int commit_transaction(sqlite3 *db)
 /**
  * Drops all the tables provided in argv
  * @param   db   The database to drop tables from
- * @param   argc The number of values in the next arguement
+ * @param   argc The number of values in the next argument
  * @param   argv The array of table names to drop
  * @return Error code
  */
@@ -196,12 +196,12 @@ static int create_db(sqlite3 *db)
             "dic_id     INTEGER     NOT NULL,"
             "expression TEXT        NOT NULL,"
             "reading    TEXT        NOT NULL,"
-            "def_tags   TEXT        NOT NULL,"  // Space seperated list
-            "rules      TEXT        NOT NULL,"  // Space seperated list
+            "def_tags   TEXT        NOT NULL,"  // Space separated list
+            "rules      TEXT        NOT NULL,"  // Space separated list
             "score      INTEGER     NOT NULL,"
             "glossary   TEXT        NOT NULL,"  // Json array
             "sequence   INTEGER     NOT NULL,"
-            "term_tags  TEXT        NOT NULL"   // Space seperated list
+            "term_tags  TEXT        NOT NULL"   // Space separated list
         ");"
         "CREATE INDEX idx_term_bank_exp     ON term_bank(expression);"
         "CREATE INDEX idx_term_bank_reading ON term_bank(reading);"
@@ -219,9 +219,9 @@ static int create_db(sqlite3 *db)
         "CREATE TABLE kanji_bank ("
             "dic_id     INTEGER     NOT NULL,"
             "char       TEXT        NOT NULL,"
-            "onyomi     TEXT        NOT NULL,"  // Space seperated list
-            "kunyomi    TEXT        NOT NULL,"  // Space seperated list
-            "tags       TEXT        NOT NULL,"  // Space seperated list
+            "onyomi     TEXT        NOT NULL,"  // Space separated list
+            "kunyomi    TEXT        NOT NULL,"  // Space separated list
+            "tags       TEXT        NOT NULL,"  // Space separated list
             "meanings   TEXT        NOT NULL,"  // Json array
             "stats      TEXT        NOT NULL"   // Json object
         ");"
@@ -563,7 +563,7 @@ static int add_index(zip_t *dict_archive, sqlite3 *db, sqlite3_int64 *id)
     /* Check that the format is valid */
     if (format != YOMI_DB_FORMAT_VERSION)
     {
-        fprintf(stderr, "Unsuppored dictionary format %d different from supported %d\n",
+        fprintf(stderr, "Unsupported dictionary format %d different from supported %d\n",
                 format, YOMI_DB_FORMAT_VERSION);
         ret = UNSUPPORTED_FORMAT_ERR;
         goto cleanup;

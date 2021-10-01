@@ -143,7 +143,7 @@ struct CommonExpFields
 } typedef CommonExpFields;
 
 /**
- * A struct containg all the information that makes up one term.
+ * A struct containing all the information that makes up one term.
  */
 struct Term : public CommonExpFields
 {

@@ -35,7 +35,7 @@
 /* Begin Static Helpers */
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 /**
- * This whole section is neccesary on Windows because MeCab has a bug that
+ * This whole section is necessary on Windows because MeCab has a bug that
  * prevents it from loading dictionaries if there are spaces in the path on
  * Windows. If Memento is to be install in "Program Files", this quickly
  * becomes an issue. This workaround turns all long paths into space-less
@@ -324,7 +324,7 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
         threads.append(worker);
     }
 
-    /* Get lematized queries */
+    /* Get lemmatized queries */
     QList<QPair<QString, QString>> queries = generateQueries(query);
     if (!queries.isEmpty())
     {

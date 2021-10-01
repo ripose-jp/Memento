@@ -87,7 +87,7 @@ Zero is equivalent to no limit.</string>
          <property name="toolTip">
           <string>Sets how searches are started.&lt;br&gt;
 &lt;b&gt;Hover:&lt;/b&gt; Searches start when the mouse hovers over a subtitle.&lt;br&gt;
-&lt;b&gt;Modifier:&lt;/b&gt; Searches start when the modifer key is held.</string>
+&lt;b&gt;Modifier:&lt;/b&gt; Searches start when the modifier key is held.</string>
          </property>
         </widget>
        </item>

@@ -37,7 +37,7 @@ struct Term;
 struct Track;
 
 /**
- * A mediator that other objects can tap in to in order to send and recieve
+ * A mediator that other objects can tap in to in order to send and receive
  * signals without having to know about eachother. Also contains pointers
  * to several shared objects.
  */
@@ -541,7 +541,7 @@ Q_SIGNALS:
     void requestDefinitionDelete() const;
 
     /**
-     * Requets a global theme refresh.
+     * Requests a global theme refresh.
      */
     void requestThemeRefresh() const;
 

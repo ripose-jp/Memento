@@ -49,22 +49,22 @@ public:
     /**
      * Returns a string containing all the selected rows in the primary subtitle
      * list.
-     * @param seperator String to replace newlines with and place inbetween
+     * @param separator String to replace newlines with and place inbetween
      *                  subtitles.
-     * @return String containing the selected rows with the seperator inbetween
+     * @return String containing the selected rows with the separator inbetween
      *         them.
      */
-    QString getPrimaryContext(const QString &seperator) const;
+    QString getPrimaryContext(const QString &separator) const;
 
     /**
      * Returns a string containing all the selected rows in the secondary
      * subtitle list.
-     * @param seperator String to replace newlines with and place inbetween
+     * @param separator String to replace newlines with and place inbetween
      *                  subtitles.
-     * @return String containing the selected rows with the seperator inbetween
+     * @return String containing the selected rows with the separator inbetween
      *         them.
      */
-    QString getSecondaryContext(const QString &seperator) const;
+    QString getSecondaryContext(const QString &separator) const;
 
 protected:
     /**
@@ -80,7 +80,7 @@ protected:
     void hideEvent(QHideEvent *event) override;
 
     /**
-     * Maintains well sized rows and avoids the need for horizonal scrolling or
+     * Maintains well sized rows and avoids the need for horizontal scrolling or
      * wasted space.
      * @param event The resize event, not used.
      */
@@ -168,12 +168,12 @@ private:
     /**
      * Helper method for getting a context string from a subtitle list.
      * @param table     The table to get selected rows from.
-     * @param seperator The seperator to place between subtitles and replace
+     * @param separator The separator to place between subtitles and replace
      *                  newlines with.
      * @return A string containing all the selected rows in the table.
      */
     QString getContext(const QTableWidget *table,
-                       const QString      &seperator) const;
+                       const QString      &separator) const;
 
     /**
      * Helper method for adding a subtitle to a table.
