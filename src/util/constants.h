@@ -54,6 +54,9 @@
 #define SETTINGS_BEHAVIOR_AUTOFIT_PERCENT           "autofit-percent"
 #define SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT   100
 
+#define SETTINGS_BEHAVIOR_SUBTITLE_PAUSE            "subtitle-pause"
+#define SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT    false
+
 /* Dictionary Settings */
 #define SETTINGS_DICTIONARIES           "dictionaries"
 

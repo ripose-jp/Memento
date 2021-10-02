@@ -70,6 +70,10 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
     /* Slots */
     connect(m_findDelay, &QTimer::timeout, this, &SubtitleWidget::findTerms);
     connect(
+        mediator, &GlobalMediator::behaviorSettingsChanged,
+        this,     &SubtitleWidget::initSettings
+    );
+    connect(
         mediator, &GlobalMediator::searchSettingsChanged,
         this,     &SubtitleWidget::initSettings
     );
@@ -296,6 +300,13 @@ void SubtitleWidget::initSettings()
         m_subtitle.rawText, m_subtitle.startTime, m_subtitle.endTime, 0
     );
     settings.endGroup();
+
+    settings.beginGroup(SETTINGS_BEHAVIOR);
+    m_settings.pauseOnSubtitleEnd = settings.value(
+            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE,
+            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
+        ).toBool();
+    settings.endGroup();
 }
 
 /* End Intializers */
@@ -467,6 +478,14 @@ void SubtitleWidget::adjustVisibility()
 
 void SubtitleWidget::positionChanged(const double value)
 {
+    if (m_settings.pauseOnSubtitleEnd
+        && !m_pausedForCurrentSubtitle
+        && (m_subtitle.endTime - value <= 0))
+    {
+         GlobalMediator::getGlobalMediator()->getPlayerAdapter()->pause();
+         m_pausedForCurrentSubtitle = true;
+    }
+
     if (value < m_subtitle.startTime - DOUBLE_DELTA ||
         value > m_subtitle.endTime + DOUBLE_DELTA)
     {
@@ -499,6 +518,11 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     m_currentIndex = -1;
 
     adjustVisibility();
+
+    if (m_settings.pauseOnSubtitleEnd)
+    {
+        m_pausedForCurrentSubtitle = false;
+    }
 }
 
 void SubtitleWidget::selectText()

@@ -157,6 +157,10 @@ private:
     /* Saved pause state of the player. */
     bool m_paused;
 
+    /* True if playback has already been paused for the current subtitle, false
+     * otherwise. */
+    bool m_pausedForCurrentSubtitle = false;
+
     /* Contains information about the current subtitle. */
     struct Subtitle
     {
@@ -212,6 +216,10 @@ private:
 
         /* true if subtitles should be shown when needed, false otherwise. */
         bool showSubtitles;
+
+	/* True if playback should be paused for the current subtitle, false
+	 * otherwise. */
+	bool pauseOnSubtitleEnd;
     } m_settings;
 };
 
