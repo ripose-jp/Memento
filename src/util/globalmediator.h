@@ -346,6 +346,11 @@ Q_SIGNALS:
     void ankiSettingsChanged() const;
 
     /**
+     * Emitted when behavior settings are changed.
+     */
+    void behaviorSettingsChanged() const;
+
+    /**
      * Emitted when search settings are changed.
      */
     void searchSettingsChanged() const;

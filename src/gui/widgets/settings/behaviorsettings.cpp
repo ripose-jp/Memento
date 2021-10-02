@@ -88,6 +88,12 @@ void BehaviorSettings::restoreSaved()
             SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT
         ).toInt()
     );
+    m_ui->checkSubtitlePause->setChecked(
+        settings.value(
+            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE,
+            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
+        ).toBool()
+    );
     settings.endGroup();
 }
 
@@ -95,6 +101,9 @@ void BehaviorSettings::restoreDefaults()
 {
     m_ui->checkAutofit->setChecked(SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT);
     m_ui->spinAutofit->setValue(SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT);
+    m_ui->checkSubtitlePause->setChecked(
+        SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
+    );
 }
 
 void BehaviorSettings::applySettings()
@@ -107,7 +116,12 @@ void BehaviorSettings::applySettings()
     settings.setValue(
         SETTINGS_BEHAVIOR_AUTOFIT_PERCENT, m_ui->spinAutofit->value()
     );
+    settings.setValue(
+        SETTINGS_BEHAVIOR_SUBTITLE_PAUSE, m_ui->checkSubtitlePause->isChecked()
+    );
     settings.endGroup();
+
+    Q_EMIT GlobalMediator::getGlobalMediator()->behaviorSettingsChanged();
 }
 
 /* Begin Button Box Handlers */

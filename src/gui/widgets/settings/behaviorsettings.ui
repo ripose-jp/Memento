@@ -84,6 +84,13 @@ A value of 0% will fit to media to the window size instead.</string>
         </layout>
        </item>
        <item>
+        <widget class="QCheckBox" name="checkSubtitlePause">
+         <property name="text">
+          <string>Automatically pause the player at the end of a subtitle</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
