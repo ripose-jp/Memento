@@ -27,8 +27,10 @@
 #include <QGuiApplication>
 #include <QInputDialog>
 #include <QList>
+#include <QSettings>
 
 #include "../../../anki/ankiclient.h"
+#include "../../../util/constants.h"
 #include "../../../util/globalmediator.h"
 #include "../../../util/utils.h"
 #include "../../playeradapter.h"
@@ -41,6 +43,8 @@ PlayerMenu::PlayerMenu(QWidget *parent)
       m_player(GlobalMediator::getGlobalMediator()->getPlayerAdapter())
 {
     m_ui->setupUi(this);
+
+    updateSubtitlePauseAction();
 
     /* Anki */
     m_actionGroupAnkiProfile = new QActionGroup(this);
@@ -140,6 +144,10 @@ PlayerMenu::PlayerMenu(QWidget *parent)
 
     /* Option Signals */
     connect(
+        m_ui->actionSubtitlePause, &QAction::toggled,
+        this, &PlayerMenu::applySubtitlePauseSetting
+    );
+    connect(
         m_ui->actionOptions, &QAction::triggered,
         mediator, &GlobalMediator::menuShowOptions
     );
@@ -150,6 +158,10 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     connect(
         m_ui->actionOpenConfig, &QAction::triggered,
         this, &PlayerMenu::openConfigFolder
+    );
+    connect(
+        mediator, &GlobalMediator::behaviorSettingsChanged,
+        this, &PlayerMenu::updateSubtitlePauseAction
     );
     connect(
         mediator, &GlobalMediator::ankiSettingsChanged,
@@ -567,6 +579,33 @@ void PlayerMenu::openConfigFolder() const
 }
 
 /* End Config Actions */
+/* Begin Playback Actions */
+void PlayerMenu::updateSubtitlePauseAction()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_BEHAVIOR);
+    const bool newSubtitlePauseSetting = settings.value(
+            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE,
+            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
+        ).toBool();
+    settings.endGroup();
+
+    m_ui->actionSubtitlePause->setChecked(newSubtitlePauseSetting);
+}
+
+void PlayerMenu::applySubtitlePauseSetting()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_BEHAVIOR);
+    settings.setValue(
+        SETTINGS_BEHAVIOR_SUBTITLE_PAUSE,
+        m_ui->actionSubtitlePause->isChecked()
+    );
+    settings.endGroup();
+
+    Q_EMIT GlobalMediator::getGlobalMediator()->behaviorSettingsChanged();
+}
+/* End Playback Actions */
 /* Begin Anki Profile Handler */
 
 void PlayerMenu::updateAnkiProfileMenu()

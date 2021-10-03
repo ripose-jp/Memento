@@ -86,7 +86,7 @@ A value of 0% will fit to media to the window size instead.</string>
        <item>
         <widget class="QCheckBox" name="checkSubtitlePause">
          <property name="text">
-          <string>Automatically pause the player at the end of a subtitle</string>
+          <string>Automatically pause at the end of subtitles</string>
          </property>
         </widget>
        </item>
