@@ -152,6 +152,11 @@ private Q_SLOTS:
     void openConfigFolder() const;
 
     /**
+     * Updates the menu checkbox for the option to pause on subtitle end.
+     */
+    void updateSubtitlePauseAction();
+
+    /**
      * Updates the values under Settings -> Anki Profile with up to date
      * information.
      */
@@ -181,6 +186,11 @@ private:
      * @return A QAction corresponding to the track. Belongs to the caller.
      */
     QAction *createTrackAction(const Track *track) const;
+
+    /**
+     * Toggles pausing on subtitle end in response to the menu option.
+     */
+    void applySubtitlePauseSetting();
 
     Ui::PlayerMenu *m_ui;
 

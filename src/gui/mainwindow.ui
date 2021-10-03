@@ -136,6 +136,20 @@
     <string>Add Subtitle File</string>
    </property>
   </action>
+  <action name="actionSubtitlePause">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Auto Pause</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
   <action name="actionUpdate">
    <property name="text">
     <string>Check for Updates</string>
