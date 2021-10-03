@@ -42,6 +42,27 @@ Memento is a FOSS, mpv-based video player for studying Japanese.
 
 ## Troubleshooting
 
+### Secondary Subtitles Don't Work
+
+This is (unfortunately) intended behavior.
+If you would like to use secondary subtitles, there are two methods to do so.
+
+#### Method 1
+
+Go to Settings → Options → Search, uncheck "Hide mpv subtitles when search bar
+is visible", and check "Hide search bar while playing media".
+
+If the searchable subtitles become harder to read, consider adding a background.
+This can be done in Interface settings.
+Make sure you set the alpha/opacity channel to 255 in order to avoid your
+background being transparent.
+
+#### Method 2
+
+When the Memento is paused, manually toggle subtitle visibility to reveal the
+secondary subtitle.
+Subtitle visibility is bound to **v** by default.
+
 ### Windows: MSVCR100.dll is Missing When Trying to Stream
 
 This error can be fixed by installing the
