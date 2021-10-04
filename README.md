@@ -235,6 +235,10 @@ Version 0.5.0-1 and earlier
 If any mpv binds or plugins do not work, please create an issue in the issue
 tracker.
 
+## Contributing
+
+Before making a pull request, please read [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Acknowledgements
 
 MpvWidget code is based off of libmpv example code by w4m.
