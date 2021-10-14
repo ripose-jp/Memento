@@ -526,10 +526,8 @@ void SubtitleWidget::setSubtitle(QString subtitle,
 
     adjustVisibility();
 
-    if (m_settings.pauseOnSubtitleEnd)
-    {
-        m_pausedForCurrentSubtitle = false;
-    }
+    /* Reset auto pause state */
+    m_pausedForCurrentSubtitle = false;
 }
 
 void SubtitleWidget::selectText()
