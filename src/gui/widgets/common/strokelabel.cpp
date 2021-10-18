@@ -158,6 +158,9 @@ void StrokeLabel::setTextFont(const QFont &f)
 
 void StrokeLabel::setText(const QString &text)
 {
+    bool oldUpdatesEnabled = updatesEnabled();
+    setUpdatesEnabled(false);
+
     clearText();
     QStringList subList = text.split('\n');
     for (const QString &text : subList)
@@ -194,6 +197,8 @@ void StrokeLabel::setText(const QString &text)
     cursor.mergeCharFormat(format);
 
     fitToContents();
+
+    setUpdatesEnabled(oldUpdatesEnabled);
 }
 
 
