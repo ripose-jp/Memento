@@ -79,12 +79,6 @@ protected:
      */
     void hideEvent(QHideEvent *event) override;
 
-    /**
-     * Resizes the subtitles to the contents of the subtitles without making
-     * them larger than the player.
-     */
-    void fitToContents() override;
-
 private Q_SLOTS:
     /**
      * Initializes the subtitle theme.

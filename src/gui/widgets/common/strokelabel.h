@@ -106,11 +106,10 @@ public Q_SLOTS:
      */
     void deselectText();
 
-protected:
     /**
      * Resizes the label to fit the context of the current text.
      */
-    virtual void fitToContents();
+    void fitToContents();
 
     /**
      * Sets the fixed size of the widget.
@@ -118,12 +117,6 @@ protected:
      * @param w The width of the widget.
      */
     void setSize(int h, int w);
-
-    /* The background QTextEdit that creates the stroke effect. */
-    QTextEdit *m_backgroundText;
-
-    /* The foreground QTextEdit that creates the text */
-    QTextEdit *m_foregroundText;
 
 private:
     /**
@@ -136,6 +129,12 @@ private:
      * Updates the colors of the QTextEdit.
      */
     void updateColors();
+
+    /* The background QTextEdit that creates the stroke effect. */
+    QTextEdit *m_backgroundText;
+
+    /* The foreground QTextEdit that creates the text */
+    QTextEdit *m_foregroundText;
 
     /* The current color of the text */
     QColor m_textColor;

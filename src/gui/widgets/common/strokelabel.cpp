@@ -99,8 +99,13 @@ void StrokeLabel::updateColors()
 void StrokeLabel::fitToContents()
 {
     m_backgroundText->updateGeometry();
+    QWidget *pw = parentWidget();
     int width = m_backgroundText->document()->idealWidth() + 4;
     int height = m_backgroundText->document()->size().toSize().height();
+    if (pw && width > pw->width())
+    {
+        width = pw->width();
+    }
     setSize(width, height);
 }
 
