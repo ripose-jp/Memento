@@ -224,14 +224,12 @@ cleanup:
 
 #undef QUERY
 
-#define QUERY               "SELECT expression, reading "\
+#define QUERY               "SELECT DISTINCT expression, reading "\
                                 "FROM term_bank "\
-                                "WHERE (expression = ? OR reading = ?) "\
-                                "GROUP BY expression, reading;"
-#define QUERY_WITH_KATAKANA "SELECT expression, reading "\
+                                "WHERE (expression = ? OR reading = ?);"
+#define QUERY_WITH_KATAKANA "SELECT DISTINCT expression, reading "\
                                 "FROM term_bank "\
-                                "WHERE (expression = ? OR reading = ? OR reading = ?) "\
-                                "GROUP BY expression, reading;"
+                                "WHERE (expression = ? OR reading = ? OR reading = ?);"
 
 #define QUERY_EXP_IDX           1
 #define QUERY_READING_HIRA_IDX  2
