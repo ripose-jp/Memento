@@ -204,6 +204,16 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     );
 }
 
+QString MpvAdapter::quoteArg(QString arg) const
+{
+    int eqidx = arg.indexOf("=");
+    if (eqidx == -1)
+    {
+        return arg;
+    }
+    return arg.insert(eqidx + 1, "'").append("'");
+}
+
 bool MpvAdapter::commandLineArgsValid(const QStringList &args) const
 {
     int count = 0;
@@ -255,7 +265,7 @@ int MpvAdapter::buildArgsTree(const QStringList &args,
         }
         else if (args[i].startsWith("--"))
         {
-            parent.options << args[i].mid(2);
+            parent.options << quoteArg(args[i].mid(2));
         }
         else
         {

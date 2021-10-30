@@ -153,6 +153,13 @@ private:
                       int depth = 10) const;
 
     /**
+     * Quotes an option correctly
+     * @param arg argument to quote.
+     * @return the quoted argument if arg contained "=", otherwise arg.
+     */
+    QString quoteArg(QString arg) const;
+
+    /**
      * Loads files from a tree of LoadFileNodes.
      * @param parent  The parent to load files from.
      * @param options Options inherited by files at this level.
