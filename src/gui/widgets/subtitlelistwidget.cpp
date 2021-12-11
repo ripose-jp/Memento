@@ -72,14 +72,10 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     );
     connect(
         mediator, &GlobalMediator::playerSubtitleTrackChanged,
-        this,     &SubtitleListWidget::clearPrimarySubtitles
+        this,     &SubtitleListWidget::handlePrimaryTrackChange
     );
     connect(
         mediator, &GlobalMediator::playerSubtitlesDisabled,
-        this,     &SubtitleListWidget::clearPrimarySubtitles
-    );
-    connect(
-        mediator, &GlobalMediator::playerTracksChanged,
         this,     &SubtitleListWidget::clearPrimarySubtitles
     );
     connect(
@@ -93,14 +89,10 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     );
     connect(
         mediator, &GlobalMediator::playerSecondSubtitleTrackChanged,
-        this,     &SubtitleListWidget::clearSecondarySubtitles
+        this,     &SubtitleListWidget::handleSecondaryTrackChange
     );
     connect(
         mediator, &GlobalMediator::playerSecondSubtitlesDisabled,
-        this,     &SubtitleListWidget::clearSecondarySubtitles
-    );
-    connect(
-        mediator, &GlobalMediator::playerTracksChanged,
         this,     &SubtitleListWidget::clearSecondarySubtitles
     );
     connect(
@@ -110,6 +102,15 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     connect(
         mediator, &GlobalMediator::playerSecondSubtitlesDisabled,
         this,     &SubtitleListWidget::hideSecondarySubs
+    );
+
+    connect(
+        mediator, &GlobalMediator::playerFileChanged,
+        this,     &SubtitleListWidget::clearCachedSubtitles
+    );
+    connect(
+        mediator, &GlobalMediator::playerTracksChanged,
+        this,     &SubtitleListWidget::handleTracklistChange
     );
 
     connect(mediator, &GlobalMediator::controlsSubtitleListToggled, this,
@@ -205,6 +206,16 @@ void SubtitleListWidget::resizeEvent(QResizeEvent *event)
 /* End Event Handlers */
 /* Begin Adder Methods */
 
+void SubtitleListWidget::handleTracklistChange()
+{
+    PlayerAdapter *player =
+        GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+    clearPrimarySubtitles();
+    clearSecondarySubtitles();
+    handlePrimaryTrackChange(player->getSubtitleTrack());
+    handleSecondaryTrackChange(player->getSecondarySubtitleTrack());
+}
+
 QString SubtitleListWidget::formatTimecode(const int time)
 {
     const int SECONDS_IN_HOUR = 3600;
@@ -220,14 +231,14 @@ QString SubtitleListWidget::formatTimecode(const int time)
                   .arg(seconds, 2, 10, QLatin1Char('0'));
 }
 
-#include <QDebug>
-
 void SubtitleListWidget::addSubtitle(
     QTableWidget *table,
+    QList<SubtitleInfo> *subInfos,
     QMultiMap<double, QTableWidgetItem *> &seenSubs,
-    QHash<QTableWidgetItem *, double> &startTimes,
+    QHash<QTableWidgetItem *, SubtitleInfo *> &startTimes,
     const QString &subtitle,
     const double start,
+    const double end,
     const double delay)
 {
     /* Check if we have already seen this subtitle. Finds it if we have. */
@@ -244,10 +255,12 @@ void SubtitleListWidget::addSubtitle(
     QTableWidgetItem *subtitleItem = nullptr;
     if (it == seenSubs.end() || it.key() != start)
     {
+        subInfos->append(SubtitleInfo{subtitle, start, end});
+
         subtitleItem = new QTableWidgetItem(subtitle);
         table->setWordWrap(true);
-        startTimes.insert(subtitleItem, start);
-        auto end = seenSubs.insert(start, subtitleItem);
+        startTimes.insert(subtitleItem, &subInfos->last());
+        auto endIt = seenSubs.insert(start, subtitleItem);
 
         /* This is a bit of a hack to get the subtitles to appear in order.
          * If a subtitle starts at the same start time as another, the subtitle
@@ -257,8 +270,10 @@ void SubtitleListWidget::addSubtitle(
          * going to work 100% of the time, but it's right enough of the time to
          * be worth it.
          */
-        size_t i = std::distance(seenSubs.begin(), end);
-        for (end += 1; end != seenSubs.end() && end.key() == start; ++end)
+        size_t i = std::distance(seenSubs.begin(), endIt);
+        for (endIt += 1;
+             endIt != seenSubs.end() && endIt.key() == start;
+             ++endIt)
         {
             ++i;
         }
@@ -281,6 +296,30 @@ void SubtitleListWidget::addSubtitle(
     table->setCurrentItem(subtitleItem);
 }
 
+void SubtitleListWidget::handlePrimaryTrackChange(int64_t sid)
+{
+    clearPrimarySubtitles();
+    m_primarySubInfoList = &m_subtitleMap[sid];
+    double delay =
+        GlobalMediator::getGlobalMediator()->getPlayerAdapter()->getSubDelay();
+    for (const SubtitleInfo &info : *m_primarySubInfoList)
+    {
+        addPrimarySubtitle(info.subtitle, info.start, info.end, delay);
+    }
+}
+
+void SubtitleListWidget::handleSecondaryTrackChange(int64_t sid)
+{
+    clearSecondarySubtitles();
+    m_secondarySubInfoList = &m_subtitleMap[sid];
+    double delay =
+        GlobalMediator::getGlobalMediator()->getPlayerAdapter()->getSubDelay();
+    for (const SubtitleInfo &info : *m_secondarySubInfoList)
+    {
+        addSecondarySubtitle(info.subtitle, info.start, info.end, delay);
+    }
+}
+
 void SubtitleListWidget::addPrimarySubtitle(const QString &subtitle,
                                             const double   start,
                                             const double   end,
@@ -288,10 +327,12 @@ void SubtitleListWidget::addPrimarySubtitle(const QString &subtitle,
 {
     addSubtitle(
         m_ui->tablePrim,
+        m_primarySubInfoList,
         m_seenPrimarySubs,
         m_timesPrimarySubs,
         subtitle,
         start,
+        end,
         delay
     );
 }
@@ -303,10 +344,12 @@ void SubtitleListWidget::addSecondarySubtitle(const QString &subtitle,
 {
     addSubtitle(
         m_ui->tableSec,
+        m_secondarySubInfoList,
         m_seenSecondarySubs,
         m_timesSecondarySubs,
         subtitle,
         start,
+        end,
         delay
     );
 }
@@ -366,11 +409,11 @@ QString SubtitleListWidget::getSecondaryContext(const QString &separator) const
 
 void SubtitleListWidget::seekToSubtitle(
     QTableWidgetItem *item,
-    const QHash<QTableWidgetItem *, double> &startTimes) const
+    const QHash<QTableWidgetItem *, SubtitleInfo *> &startTimes) const
 {
     PlayerAdapter *player =
         GlobalMediator::getGlobalMediator()->getPlayerAdapter();
-    double pos = startTimes[item] + player->getSubDelay();
+    double pos = startTimes[item]->start + player->getSubDelay();
     if (pos < 0)
     {
         pos = 0;
@@ -394,7 +437,7 @@ void SubtitleListWidget::seekToSecondarySubtitle(QTableWidgetItem *item) const
 void SubtitleListWidget::clearSubtitles(
     QTableWidget *table,
     QMultiMap<double, QTableWidgetItem *> &seenSubs,
-    QHash<QTableWidgetItem *, double> &startTimes)
+    QHash<QTableWidgetItem *, SubtitleInfo *> &startTimes)
 {
     table->clearContents();
     table->setRowCount(0);
@@ -405,11 +448,20 @@ void SubtitleListWidget::clearSubtitles(
 void SubtitleListWidget::clearPrimarySubtitles()
 {
     clearSubtitles(m_ui->tablePrim, m_seenPrimarySubs, m_timesPrimarySubs);
+    m_primarySubInfoList = nullptr;
 }
 
 void SubtitleListWidget::clearSecondarySubtitles()
 {
     clearSubtitles(m_ui->tableSec, m_seenSecondarySubs, m_timesSecondarySubs);
+    m_secondarySubInfoList = nullptr;
+}
+
+void SubtitleListWidget::clearCachedSubtitles()
+{
+    clearPrimarySubtitles();
+    clearSecondarySubtitles();
+    m_subtitleMap.clear();
 }
 
 /* End Clear Methods */

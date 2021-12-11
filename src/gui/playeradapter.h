@@ -153,6 +153,20 @@ public:
     virtual int64_t getAudioTrack() const = 0;
 
     /**
+     * Gets the id of the current primary subtitle track.
+     * @return The current primary subtitle track. 0 if none is selected or
+     *         there was an error.
+     */
+    virtual int64_t getSubtitleTrack() const = 0;
+
+    /**
+     * Gets the id of the current secondary subtitle track.
+     * @return The current secondary subtitle track. 0 if none is selected or
+     *         there was an error.
+     */
+    virtual int64_t getSecondarySubtitleTrack() const = 0;
+
+    /**
      * Get the path of the current playing file.
      * @return The path of the currently playing file.
      */

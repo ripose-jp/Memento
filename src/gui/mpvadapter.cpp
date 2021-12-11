@@ -415,11 +415,33 @@ QList<const Track *> MpvAdapter::getTracks()
 
 int64_t MpvAdapter::getAudioTrack() const
 {
-    int64_t track;
+    int64_t track = 0;
     if (mpv_get_property(m_handle, "aid", MPV_FORMAT_INT64, &track) < 0)
     {
         qDebug() << "Could not get mpv aid property";
-        return -1;
+        return 0;
+    }
+    return track;
+}
+
+int64_t MpvAdapter::getSubtitleTrack() const
+{
+    int64_t track = 0;
+    if (mpv_get_property(m_handle, "sid", MPV_FORMAT_INT64, &track) < 0)
+    {
+        //qDebug() << "Could not get mpv sid property";
+        return 0;
+    }
+    return track;
+}
+
+int64_t MpvAdapter::getSecondarySubtitleTrack() const
+{
+    int64_t track = 0;
+    if (mpv_get_property(m_handle, "secondary-sid", MPV_FORMAT_INT64, &track) < 0)
+    {
+        //qDebug() << "Could not get mpv secondary-sid property";
+        return 0;
     }
     return track;
 }
