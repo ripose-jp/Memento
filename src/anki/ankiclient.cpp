@@ -1203,6 +1203,7 @@ void AnkiClient::buildCommonNote(const QJsonObject     &configFields,
     QString context2  = QString(exp.context2).replace('\n', "<br>");
     QString sentence2 = QString(exp.sentence2).replace('\n', "<br>");
     QJsonArray fieldsWithAudioMedia;
+    QJsonArray fieldsWithAudioContext;
     QJsonArray fieldsWithScreenshot;
     QJsonArray fieldWithScreenshotVideo;
     QStringList fields = configFields.keys();
@@ -1215,6 +1216,12 @@ void AnkiClient::buildCommonNote(const QJsonObject     &configFields,
             fieldsWithAudioMedia.append(field);
         }
         value.replace(REPLACE_AUDIO_MEDIA, "");
+
+        if (value.contains(REPLACE_AUDIO_CONTEXT))
+        {
+            fieldsWithAudioContext.append(field);
+        }
+        value.replace(REPLACE_AUDIO_CONTEXT, "");
 
         if (value.contains(REPLACE_SCREENSHOT))
         {
@@ -1260,6 +1267,31 @@ void AnkiClient::buildCommonNote(const QJsonObject     &configFields,
                 QString filename = FileUtils::calculateMd5(path) + ".aac";
                 audObj[ANKI_NOTE_FILENAME] = filename;
                 audObj[ANKI_NOTE_FIELDS] = fieldsWithAudioMedia;
+                audio.append(audObj);
+            }
+        }
+
+        if (!fieldsWithAudioContext.isEmpty())
+        {
+            QJsonObject audObj;
+            PlayerAdapter *player =
+                GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+
+            double startTime =
+                exp.startTimeContext - m_currentConfig->audioPadStart;
+            double endTime = exp.endTimeContext + m_currentConfig->audioPadEnd;
+
+            QString path;
+            if (startTime >= 0 && endTime >= 0 && startTime < endTime)
+            {
+                path = player->tempAudioClip(startTime, endTime);
+            }
+            if (!path.isEmpty()) {
+                audObj[ANKI_NOTE_PATH] = path;
+                m_tempFiles.append(path);
+                QString filename = FileUtils::calculateMd5(path) + ".aac";
+                audObj[ANKI_NOTE_FILENAME] = filename;
+                audObj[ANKI_NOTE_FIELDS] = fieldsWithAudioContext;
                 audio.append(audObj);
             }
         }

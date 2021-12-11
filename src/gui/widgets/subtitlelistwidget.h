@@ -82,6 +82,15 @@ public:
      */
     QString getSecondaryContext(const QString &separator) const;
 
+    /**
+     * Returns a pair containing the earliest start time and latest end time of
+     * the subtitles selected.
+     *
+     * @return The start time in the first element, the end time in the second
+     *         element. Both elements are 0.0 if nothing is selected.
+     */
+    QPair<double, double> getPrimaryContextTime() const;
+
 protected:
     /**
      * Scrolls to the current selected row on show.

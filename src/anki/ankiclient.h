@@ -32,6 +32,7 @@
 
 /* Shared Markers */
 #define REPLACE_AUDIO_MEDIA         "{audio-media}"
+#define REPLACE_AUDIO_CONTEXT       "{audio-context}"
 #define REPLACE_CLOZE_BODY          "{cloze-body}"
 #define REPLACE_CLOZE_PREFIX        "{cloze-prefix}"
 #define REPLACE_CLOZE_SUFFIX        "{cloze-suffix}"
@@ -45,7 +46,6 @@
 #define REPLACE_SENTENCE_SEC        "{sentence-2}"
 #define REPLACE_TAGS                "{tags}"
 #define REPLACE_TITLE               "{title}"
-
 
 /* Term Markers */
 #define REPLACE_AUDIO               "{audio}"

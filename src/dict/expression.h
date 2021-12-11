@@ -123,6 +123,12 @@ struct CommonExpFields
     /* The end time of the subtitle. */
     double endTime;
 
+    /* The start time of the selected context */
+    double startTimeContext;
+
+    /* The end time of the selected context */
+    double endTimeContext;
+
     /* The currently selected context. */
     QString context;
 

@@ -232,19 +232,20 @@ void KanjiWidget::addKanji()
     m_buttonAnkiAdd->setVisible(false);
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+    SubtitleListWidget *subList = mediator->getSubtitleListWidget();
     Kanji *kanji = new Kanji(*m_kanji);
-    kanji->context =
-        mediator->getSubtitleListWidget()->getPrimaryContext("\n");
-    kanji->context2 =
-        mediator->getSubtitleListWidget()->getSecondaryContext("\n");
+    kanji->context = subList->getPrimaryContext("\n");
+    kanji->context2 = subList->getSecondaryContext("\n");
+    QPair<double, double> contextTimes = subList->getPrimaryContextTime();
+    kanji->startTimeContext = contextTimes.first;
+    kanji->endTimeContext = contextTimes.second;
 
     AnkiReply *reply = mediator->getAnkiClient()->addNote(kanji);
     connect(reply, &AnkiReply::finishedInt, this,
         [=] (const int id, const QString &error) {
             if (!error.isEmpty())
             {
-                Q_EMIT GlobalMediator::getGlobalMediator()
-                    ->showCritical("Error Adding Note", error);
+                Q_EMIT mediator->showCritical("Error Adding Note", error);
             }
             else
             {

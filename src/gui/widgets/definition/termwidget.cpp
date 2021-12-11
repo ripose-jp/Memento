@@ -208,18 +208,19 @@ void TermWidget::addNote()
     }
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-    term->context =
-        mediator->getSubtitleListWidget()->getPrimaryContext("\n");
-    term->context2 =
-        mediator->getSubtitleListWidget()->getSecondaryContext("\n");
+    SubtitleListWidget *subList = mediator->getSubtitleListWidget();
+    term->context = subList->getPrimaryContext("\n");
+    term->context2 = subList->getSecondaryContext("\n");
+    QPair<double, double> contextTimes = subList->getPrimaryContextTime();
+    term->startTimeContext = contextTimes.first;
+    term->endTimeContext = contextTimes.second;
 
     AnkiReply *reply = m_client->addNote(term);
     connect(reply, &AnkiReply::finishedInt, this,
         [=] (const int id, const QString &error) {
             if (!error.isEmpty())
             {
-                Q_EMIT GlobalMediator::getGlobalMediator()
-                    ->showCritical("Error Adding Note", error);
+                Q_EMIT mediator->showCritical("Error Adding Note", error);
             }
             else
             {

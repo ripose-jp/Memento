@@ -404,6 +404,21 @@ QString SubtitleListWidget::getSecondaryContext(const QString &separator) const
     return getContext(m_ui->tableSec, separator);
 }
 
+QPair<double, double> SubtitleListWidget::getPrimaryContextTime() const
+{
+    double start = 0.0;
+    double end = 0.0;
+
+    QList<QTableWidgetItem *> items = m_ui->tablePrim->selectedItems();
+    if (!items.isEmpty())
+    {
+        start = m_timesPrimarySubs[items.first()]->start;
+        end = m_timesPrimarySubs[items.last()]->end;
+    }
+
+    return QPair<double, double>(start, end);
+}
+
 /* End Context Methods */
 /* Begin Seek Methods */
 

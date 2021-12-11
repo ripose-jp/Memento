@@ -35,11 +35,11 @@ AnkiSettingsHelp::AnkiSettingsHelp(QWidget *parent)
     PlayerAdapter *player = GlobalMediator::getGlobalMediator()->getPlayerAdapter();
     if (!player->canGetSecondarySubText())
     {
-        m_ui->labelSentence2->hide();
-        m_ui->labelSentence2Ex->hide();
+        m_ui->labelTermSentence2->hide();
+        m_ui->labelTermSentence2Ex->hide();
 
-        m_ui->labelContext2->hide();
-        m_ui->labelContext2Ex->hide();
+        m_ui->labelTermContext2->hide();
+        m_ui->labelTermContext2Ex->hide();
 
         m_ui->labelKanjiSentence2->hide();
         m_ui->labelKanjiSentence2Ex->hide();
