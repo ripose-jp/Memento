@@ -26,6 +26,8 @@
 #include <QHash>
 #include <QMultiMap>
 
+#include "../playeradapter.h"
+
 class QTableWidget;
 class QTableWidgetItem;
 
@@ -120,7 +122,7 @@ private Q_SLOTS:
     /**
      * Handles the track list changing.
      */
-    void handleTracklistChange();
+    void handleTracklistChange(const QList<const Track *> &tracks);
 
     /**
      * Handles a change in the sid of the primary subtitle track.

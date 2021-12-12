@@ -81,7 +81,7 @@ private Q_SLOTS:
      * Updates the menu with the currently available tracks.
      * @param tracks A list of the currently available tracks.
      */
-    void setTracks(QList<const Track *> tracks);
+    void setTracks(const QList<const Track *> &tracks);
 
     /**
      * Changes audio track to the one specified.

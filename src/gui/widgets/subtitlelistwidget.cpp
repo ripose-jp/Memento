@@ -29,7 +29,6 @@
 #include "../../util/constants.h"
 #include "../../util/globalmediator.h"
 #include "../../util/utils.h"
-#include "../playeradapter.h"
 
 /* Begin Constructor/Destructors */
 
@@ -206,14 +205,39 @@ void SubtitleListWidget::resizeEvent(QResizeEvent *event)
 /* End Event Handlers */
 /* Begin Adder Methods */
 
-void SubtitleListWidget::handleTracklistChange()
+void SubtitleListWidget::handleTracklistChange(
+    const QList<const Track *> &tracks)
 {
+    int64_t primarySid = -1;
+    int64_t secondarySid = -1;
+    for (const Track *track : tracks)
+    {
+        if (track->type == Track::subtitle)
+        {
+            if (track->selected)
+            {
+                if (track->mainSelection == 0)
+                {
+                    primarySid = track->id;
+                }
+                else
+                {
+                    secondarySid = track->id;
+                }
+            }
+        }
+    }
+
     PlayerAdapter *player =
         GlobalMediator::getGlobalMediator()->getPlayerAdapter();
-    clearPrimarySubtitles();
-    clearSecondarySubtitles();
-    handlePrimaryTrackChange(player->getSubtitleTrack());
-    handleSecondaryTrackChange(player->getSecondarySubtitleTrack());
+    if (primarySid != -1)
+    {
+        handlePrimaryTrackChange(primarySid);
+    }
+    if (secondarySid != -1)
+    {
+        handleSecondaryTrackChange(secondarySid);
+    }
 }
 
 QString SubtitleListWidget::formatTimecode(const int time)

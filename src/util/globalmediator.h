@@ -177,9 +177,10 @@ Q_SIGNALS:
 
     /**
      * Emitted when the player tracks change.
-     * @param tracks A list of player tracks. Belongs to the recipient.
+     * @param tracks A list of player tracks. All tracks are deleted when
+     *               callees return.
      */
-    void playerTracksChanged(QList<const Track *> tracks) const;
+    void playerTracksChanged(const QList<const Track *> &tracks) const;
 
     /**
      * Emitted when the player chapters change.

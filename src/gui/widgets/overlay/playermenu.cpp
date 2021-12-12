@@ -305,7 +305,7 @@ QAction *PlayerMenu::createTrackAction(const Track *track) const
     return action;
 }
 
-void PlayerMenu::setTracks(QList<const Track *> tracks)
+void PlayerMenu::setTracks(const QList<const Track *> &tracks)
 {
     clearTracks();
 
@@ -421,8 +421,6 @@ void PlayerMenu::setTracks(QList<const Track *> tracks)
             break;
         }
         }
-
-        delete track;
     }
 
     m_actionGroups.audio->blockSignals(false);

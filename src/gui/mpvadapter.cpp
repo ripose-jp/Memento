@@ -47,7 +47,12 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     connect(
         m_mpv, &MpvWidget::tracklistChanged, this,
         [=] (const mpv_node *node) {
-            Q_EMIT mediator->playerTracksChanged(processTracks(node));
+            QList<const Track *> tracks = processTracks(node);
+            Q_EMIT mediator->playerTracksChanged(tracks);
+            for (const Track *track : tracks)
+            {
+                delete track;
+            }
         }
     );
     connect(
@@ -429,7 +434,7 @@ int64_t MpvAdapter::getSubtitleTrack() const
     int64_t track = 0;
     if (mpv_get_property(m_handle, "sid", MPV_FORMAT_INT64, &track) < 0)
     {
-        //qDebug() << "Could not get mpv sid property";
+        qDebug() << "Could not get mpv sid property";
         return 0;
     }
     return track;
@@ -440,7 +445,7 @@ int64_t MpvAdapter::getSecondarySubtitleTrack() const
     int64_t track = 0;
     if (mpv_get_property(m_handle, "secondary-sid", MPV_FORMAT_INT64, &track) < 0)
     {
-        //qDebug() << "Could not get mpv secondary-sid property";
+        qDebug() << "Could not get mpv secondary-sid property";
         return 0;
     }
     return track;
