@@ -25,32 +25,18 @@
 
 #include <QHash>
 #include <QMultiMap>
+#include <QMutex>
 
 #include "../playeradapter.h"
 
 class QTableWidget;
 class QTableWidgetItem;
+struct SubtitleInfo;
 
 namespace Ui
 {
     class SubtitleListWidget;
 }
-
-struct SubtitleInfo
-{
-    QString subtitle;
-    double start;
-    double end;
-
-    SubtitleInfo &operator=(const SubtitleInfo &rhs)
-    {
-        subtitle = rhs.subtitle;
-        start = rhs.start;
-        end = rhs.end;
-
-        return *this;
-    }
-} typedef SubtitleTrack;
 
 /**
  * A widget that displays a list of primary and secondary subtitles as reported
@@ -235,14 +221,32 @@ private:
      * @param end        The end time of the subtitle.
      * @param delay      The signed delay of the subtitle.
      */
-    void addSubtitle(QTableWidget *table,
-                     QList<SubtitleInfo> *subInfos,
-                     QMultiMap<double, QTableWidgetItem *> &seenSubs,
-                     QHash<QTableWidgetItem *, SubtitleInfo *> &startTimes,
-                     const QString &subtitle,
-                     const double start,
-                     const double end,
-                     const double delay);
+    void addSubtitle(
+        QTableWidget *table,
+        QList<SubtitleInfo> *subInfos,
+        QMultiMap<double, QTableWidgetItem *> &seenSubs,
+        QHash<QTableWidgetItem *, const SubtitleInfo *> &startTimes,
+        const QString &subtitle,
+        const double start,
+        const double end,
+        const double delay);
+
+    /**
+     * Adds an item to a subtitle table. Assumes the subtitle is not already in
+     * the table.
+     * @param table      The table to add the subtitle to.
+     * @param seenSubs   Map used for mapping timecodes to table items.
+     * @param startTimes Map used for mapping table items to timecodes.
+     * @param info       The subtitle information.
+     * @param delay      The signed delay of the subtitle.
+     * @return The constructed QTableWidgetItem. Belongs to table.
+     */
+    QTableWidgetItem *addTableItem(
+        QTableWidget *table,
+        QMultiMap<double, QTableWidgetItem *> &seenSubs,
+        QHash<QTableWidgetItem *, const SubtitleInfo *> &startTimes,
+        const SubtitleInfo &info,
+        const double delay);
 
     /**
      * Helper method that converts a time in seconds to a timecode string of the
@@ -272,7 +276,7 @@ private:
     void clearSubtitles(
         QTableWidget *table,
         QMultiMap<double, QTableWidgetItem *> &seenSubs,
-        QHash<QTableWidgetItem *, SubtitleInfo *> &startTimes);
+        QHash<QTableWidgetItem *, const SubtitleInfo *> &startTimes);
 
     /**
      * Seeks to the subtitle belonging to the item.
@@ -282,7 +286,7 @@ private:
      */
     void seekToSubtitle(
         QTableWidgetItem *item,
-        const QHash<QTableWidgetItem *, SubtitleInfo *> &startTimes) const;
+        const QHash<QTableWidgetItem *, const SubtitleInfo *> &startTimes) const;
 
     /* The UI item containing the widgets. */
     Ui::SubtitleListWidget *m_ui;
@@ -290,20 +294,26 @@ private:
     /* Maps sid to a list of subtitles */
     QHash<int64_t, QList<SubtitleInfo>> m_subtitleMap;
 
+    /* Locks all structures related to the primary subtitle. */
+    QMutex m_primaryLock;
+
     /* Maps timecodes to table widget items for the primary subtitles. */
     QMultiMap<double, QTableWidgetItem *> m_seenPrimarySubs;
 
     /* Maps table widget items to subtitle info for the primary subtitles. */
-    QHash<QTableWidgetItem *, SubtitleInfo *> m_timesPrimarySubs;
+    QHash<QTableWidgetItem *, const SubtitleInfo *> m_timesPrimarySubs;
 
     /* Holds subtitle info for the current primary track. */
     QList<SubtitleInfo> *m_primarySubInfoList;
+
+    /* Locks all structures related to the secondary subtitle. */
+    QMutex m_secondaryLock;
 
     /* Maps timecodes to table widget items for the secondary subtitles. */
     QMultiMap<double, QTableWidgetItem *>  m_seenSecondarySubs;
 
     /* Maps table widget items to subtitle info for the secondary subtitles. */
-    QHash<QTableWidgetItem *, SubtitleInfo *> m_timesSecondarySubs;
+    QHash<QTableWidgetItem *, const SubtitleInfo *> m_timesSecondarySubs;
 
     /* Holds subtitle info for the current secondary track. */
     QList<SubtitleInfo> *m_secondarySubInfoList;

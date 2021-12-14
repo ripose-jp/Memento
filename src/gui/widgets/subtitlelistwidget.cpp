@@ -30,6 +30,30 @@
 #include "../../util/globalmediator.h"
 #include "../../util/utils.h"
 
+/**
+ * Information about a subtitle.
+ */
+struct SubtitleInfo
+{
+    /* The text of the subtitle */
+    QString text;
+
+    /* The start time of the subtitle in seconds */
+    double start;
+
+    /* The end time of the subtitle in seconds */
+    double end;
+
+    SubtitleInfo &operator=(const SubtitleInfo &rhs)
+    {
+        text = rhs.text;
+        start = rhs.start;
+        end = rhs.end;
+
+        return *this;
+    }
+} typedef SubtitleInfo;
+
 /* Begin Constructor/Destructors */
 
 SubtitleListWidget::SubtitleListWidget(QWidget *parent)
@@ -212,18 +236,15 @@ void SubtitleListWidget::handleTracklistChange(
     int64_t secondarySid = -1;
     for (const Track *track : tracks)
     {
-        if (track->type == Track::subtitle)
+        if (track->type == Track::subtitle && track->selected)
         {
-            if (track->selected)
+            if (track->mainSelection == 0)
             {
-                if (track->mainSelection == 0)
-                {
-                    primarySid = track->id;
-                }
-                else
-                {
-                    secondarySid = track->id;
-                }
+                primarySid = track->id;
+            }
+            else
+            {
+                secondarySid = track->id;
             }
         }
     }
@@ -255,11 +276,50 @@ QString SubtitleListWidget::formatTimecode(const int time)
                   .arg(seconds, 2, 10, QLatin1Char('0'));
 }
 
+QTableWidgetItem *SubtitleListWidget::addTableItem(
+    QTableWidget *table,
+    QMultiMap<double, QTableWidgetItem *> &seenSubs,
+    QHash<QTableWidgetItem *, const SubtitleInfo *> &startTimes,
+    const SubtitleInfo &info,
+    const double delay)
+{
+    QTableWidgetItem *subtitleItem = new QTableWidgetItem(info.text);
+    startTimes.insert(subtitleItem, &info);
+    auto endIt = seenSubs.insert(info.start, subtitleItem);
+
+    /* This is a bit of a hack to get the subtitles to appear in order.
+     * If a subtitle starts at the same start time as another, the subtitle
+     * that appears later will be closer to seenSubs.begin() than the
+     * earlier subtitle. To get around this, we assume the subtitle being
+     * added came after all subtitles with the same start time. This isn't
+     * going to work 100% of the time, but it's right enough of the time to
+     * be worth it.
+     */
+    size_t i = std::distance(seenSubs.begin(), endIt);
+    for (endIt += 1;
+         endIt != seenSubs.end() && endIt.key() == info.start;
+         ++endIt)
+    {
+        ++i;
+    }
+
+    QTableWidgetItem *timecodeItem =
+        new QTableWidgetItem(formatTimecode(info.start + delay));
+    timecodeItem->setFlags(Qt::NoItemFlags);
+
+    table->insertRow(i);
+    table->setItem(i, 1, subtitleItem);
+    table->setItem(i, 0, timecodeItem);
+    table->resizeRowToContents(i);
+
+    return subtitleItem;
+}
+
 void SubtitleListWidget::addSubtitle(
     QTableWidget *table,
     QList<SubtitleInfo> *subInfos,
     QMultiMap<double, QTableWidgetItem *> &seenSubs,
-    QHash<QTableWidgetItem *, SubtitleInfo *> &startTimes,
+    QHash<QTableWidgetItem *, const SubtitleInfo *> &startTimes,
     const QString &subtitle,
     const double start,
     const double end,
@@ -279,37 +339,15 @@ void SubtitleListWidget::addSubtitle(
     QTableWidgetItem *subtitleItem = nullptr;
     if (it == seenSubs.end() || it.key() != start)
     {
-        subInfos->append(SubtitleInfo{subtitle, start, end});
+        subInfos->append(SubtitleInfo{
+            .text = subtitle,
+            .start = start,
+            .end = end
+        });
 
-        subtitleItem = new QTableWidgetItem(subtitle);
-        table->setWordWrap(true);
-        startTimes.insert(subtitleItem, &subInfos->last());
-        auto endIt = seenSubs.insert(start, subtitleItem);
-
-        /* This is a bit of a hack to get the subtitles to appear in order.
-         * If a subtitle starts at the same start time as another, the subtitle
-         * that appears later will be closer to seenSubs.begin() than the
-         * earlier subtitle. To get around this, we assume the subtitle being
-         * added came after all subtitles with the same start time. This isn't
-         * going to work 100% of the time, but it's right enough of the time to
-         * be worth it.
-         */
-        size_t i = std::distance(seenSubs.begin(), endIt);
-        for (endIt += 1;
-             endIt != seenSubs.end() && endIt.key() == start;
-             ++endIt)
-        {
-            ++i;
-        }
-
-        QTableWidgetItem *timecodeItem =
-            new QTableWidgetItem(formatTimecode(start + delay));
-        timecodeItem->setFlags(Qt::NoItemFlags);
-
-        table->insertRow(i);
-        table->setItem(i, 1, subtitleItem);
-        table->setItem(i, 0, timecodeItem);
-        table->resizeRowToContents(i);
+        subtitleItem = addTableItem(
+            table, seenSubs, startTimes, subInfos->last(), delay
+        );
     }
     else
     {
@@ -322,26 +360,42 @@ void SubtitleListWidget::addSubtitle(
 
 void SubtitleListWidget::handlePrimaryTrackChange(int64_t sid)
 {
+    m_primaryLock.lock();
     clearPrimarySubtitles();
     m_primarySubInfoList = &m_subtitleMap[sid];
     double delay =
         GlobalMediator::getGlobalMediator()->getPlayerAdapter()->getSubDelay();
     for (const SubtitleInfo &info : *m_primarySubInfoList)
     {
-        addPrimarySubtitle(info.subtitle, info.start, info.end, delay);
+        addTableItem(
+            m_ui->tablePrim,
+            m_seenPrimarySubs,
+            m_timesPrimarySubs,
+            info,
+            delay
+        );
     }
+    m_primaryLock.unlock();
 }
 
 void SubtitleListWidget::handleSecondaryTrackChange(int64_t sid)
 {
+    m_secondaryLock.lock();
     clearSecondarySubtitles();
     m_secondarySubInfoList = &m_subtitleMap[sid];
     double delay =
         GlobalMediator::getGlobalMediator()->getPlayerAdapter()->getSubDelay();
     for (const SubtitleInfo &info : *m_secondarySubInfoList)
     {
-        addSecondarySubtitle(info.subtitle, info.start, info.end, delay);
+        addTableItem(
+            m_ui->tableSec,
+            m_seenSecondarySubs,
+            m_timesPrimarySubs,
+            info,
+            delay
+        );
     }
+    m_secondaryLock.unlock();
 }
 
 void SubtitleListWidget::addPrimarySubtitle(const QString &subtitle,
@@ -349,6 +403,7 @@ void SubtitleListWidget::addPrimarySubtitle(const QString &subtitle,
                                             const double   end,
                                             const double   delay)
 {
+    m_primaryLock.lock();
     addSubtitle(
         m_ui->tablePrim,
         m_primarySubInfoList,
@@ -359,6 +414,7 @@ void SubtitleListWidget::addPrimarySubtitle(const QString &subtitle,
         end,
         delay
     );
+    m_primaryLock.unlock();
 }
 
 void SubtitleListWidget::addSecondarySubtitle(const QString &subtitle,
@@ -366,6 +422,7 @@ void SubtitleListWidget::addSecondarySubtitle(const QString &subtitle,
                                               const double   end,
                                               const double   delay)
 {
+    m_secondaryLock.lock();
     addSubtitle(
         m_ui->tableSec,
         m_secondarySubInfoList,
@@ -376,6 +433,7 @@ void SubtitleListWidget::addSecondarySubtitle(const QString &subtitle,
         end,
         delay
     );
+    m_secondaryLock.unlock();
 }
 
 void SubtitleListWidget::updateTimestampsHelper(
@@ -448,7 +506,7 @@ QPair<double, double> SubtitleListWidget::getPrimaryContextTime() const
 
 void SubtitleListWidget::seekToSubtitle(
     QTableWidgetItem *item,
-    const QHash<QTableWidgetItem *, SubtitleInfo *> &startTimes) const
+    const QHash<QTableWidgetItem *, const SubtitleInfo *> &startTimes) const
 {
     PlayerAdapter *player =
         GlobalMediator::getGlobalMediator()->getPlayerAdapter();
@@ -476,7 +534,7 @@ void SubtitleListWidget::seekToSecondarySubtitle(QTableWidgetItem *item) const
 void SubtitleListWidget::clearSubtitles(
     QTableWidget *table,
     QMultiMap<double, QTableWidgetItem *> &seenSubs,
-    QHash<QTableWidgetItem *, SubtitleInfo *> &startTimes)
+    QHash<QTableWidgetItem *, const SubtitleInfo *> &startTimes)
 {
     table->clearContents();
     table->setRowCount(0);
