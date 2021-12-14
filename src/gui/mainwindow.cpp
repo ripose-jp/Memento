@@ -474,7 +474,12 @@ void MainWindow::autoFitMedia(int width, int height)
     QRect mG = m_ui->player->geometry();                           // mpv geometry
     QRect wfG = window()->frameGeometry();                         // frame geometry of window (window geometry + window frame)
     QRect wG = window()->geometry();                               // window geometry
-    QRect aG = QGuiApplication::screenAt(wfG.center())->availableGeometry();   // available geometry of the screen we're in--(geometry not including the taskbar)
+    QScreen *sAt = QGuiApplication::screenAt(wfG.center());
+    if (sAt == nullptr)
+    {
+        return;
+    }
+    QRect aG = sAt->availableGeometry();   // available geometry of the screen we're in--(geometry not including the taskbar)
 
     double a; // aspect ratio
     double w; // width of vid we want
