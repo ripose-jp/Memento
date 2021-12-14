@@ -29,6 +29,15 @@ target_link_libraries(
     Qt5::Widgets
 )
 
+add_library(
+    subtitleparser
+    subtitleparser.cpp
+)
+target_link_libraries(
+    subtitleparser
+    Qt5::Core
+)
+
 if (APPLE)
     add_library(
         cocoa_event_handler

@@ -25,34 +25,12 @@
 #include <QApplication>
 #include <QMultiMap>
 #include <QSettings>
+#include <QThreadPool>
 
 #include "../../util/constants.h"
 #include "../../util/globalmediator.h"
+#include "../../util/subtitleparser.h"
 #include "../../util/utils.h"
-
-/**
- * Information about a subtitle.
- */
-struct SubtitleInfo
-{
-    /* The text of the subtitle */
-    QString text;
-
-    /* The start time of the subtitle in seconds */
-    double start;
-
-    /* The end time of the subtitle in seconds */
-    double end;
-
-    SubtitleInfo &operator=(const SubtitleInfo &rhs)
-    {
-        text = rhs.text;
-        start = rhs.start;
-        end = rhs.end;
-
-        return *this;
-    }
-} typedef SubtitleInfo;
 
 /* Begin Constructor/Destructors */
 
@@ -62,6 +40,7 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
 {
     m_ui->setupUi(this);
     initTheme();
+    initRegex();
     hideSecondarySubs();
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
@@ -85,8 +64,16 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
         this,     &SubtitleListWidget::initTheme
     );
     connect(
+        mediator, &GlobalMediator::searchSettingsChanged,
+        this,     &SubtitleListWidget::initRegex
+    );
+    connect(
         mediator, &GlobalMediator::playerSubDelayChanged,
         this,     &SubtitleListWidget::updateTimestamps
+    );
+    connect(
+        this, &SubtitleListWidget::requestRefresh,
+        this, &SubtitleListWidget::handleRefresh
     );
 
     connect(
@@ -182,6 +169,33 @@ void SubtitleListWidget::initTheme()
     settings.endGroup();
 }
 
+void SubtitleListWidget::initRegex()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_SEARCH);
+    m_subRegexLock.lock();
+    m_subRegex.setPattern(
+        settings.value(
+            SETTINGS_SEARCH_REMOVE_REGEX,
+            DEFAULT_REMOVE_REGEX
+        ).toString()
+    );
+    m_subRegexLock.unlock();
+    settings.endGroup();
+
+    PlayerAdapter *player =
+        GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+    if (player)
+    {
+        QList<const Track *> tracks = player->getTracks();
+        handleTracklistChange(tracks);
+        for (const Track *track : tracks)
+        {
+            delete track;
+        }
+    }
+}
+
 /* End Initializers */
 /* Begin Event Handlers */
 
@@ -234,20 +248,57 @@ void SubtitleListWidget::handleTracklistChange(
 {
     int64_t primarySid = -1;
     int64_t secondarySid = -1;
+    QStringList extTracks;
+    QList<int64_t> extSids;
     for (const Track *track : tracks)
     {
-        if (track->type == Track::subtitle && track->selected)
+        if (track->type == Track::subtitle)
         {
-            if (track->mainSelection == 0)
+            if (track->selected)
             {
-                primarySid = track->id;
+                if (track->mainSelection == 0)
+                {
+                    primarySid = track->id;
+                }
+                else
+                {
+                    secondarySid = track->id;
+                }
             }
-            else
+
+            if (track->external)
             {
-                secondarySid = track->id;
+                extTracks << track->externalFilename;
+                extSids << track->id;
             }
         }
     }
+
+    QThreadPool::globalInstance()->start([=] {
+        SubtitleParser parser;
+        m_subRegexLock.lock();
+        m_primaryLock.lock();
+        m_secondaryLock.lock();
+        for (size_t i = 0; i < extTracks.size(); ++i)
+        {
+            m_subtitleMap[extSids[i]] =
+                parser.parseSubtitles(extTracks[i], true);
+
+            QList<SubtitleInfo> &subList = m_subtitleMap[extSids[i]];
+            for (int i = 0; i < subList.size(); i++)
+            {
+                if (subList[i].text.remove(m_subRegex).isEmpty())
+                {
+                    subList.removeAt(i--);
+                }
+            }
+        }
+        m_secondaryLock.unlock();
+        m_primaryLock.unlock();
+        m_subRegexLock.unlock();
+
+        Q_EMIT requestRefresh();
+    });
 
     PlayerAdapter *player =
         GlobalMediator::getGlobalMediator()->getPlayerAdapter();
@@ -258,6 +309,23 @@ void SubtitleListWidget::handleTracklistChange(
     if (secondarySid != -1)
     {
         handleSecondaryTrackChange(secondarySid);
+    }
+}
+
+void SubtitleListWidget::handleRefresh()
+{
+    PlayerAdapter *player =
+        GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+    int64_t sid = player->getSubtitleTrack();
+    if (sid > 0)
+    {
+        handlePrimaryTrackChange(sid);
+    }
+
+    sid = player->getSecondarySubtitleTrack();
+    if (sid > 0)
+    {
+        handleSecondaryTrackChange(sid);
     }
 }
 
@@ -403,7 +471,10 @@ void SubtitleListWidget::addPrimarySubtitle(const QString &subtitle,
                                             const double   end,
                                             const double   delay)
 {
-    m_primaryLock.lock();
+    if (!m_primaryLock.try_lock())
+    {
+        return;
+    }
     addSubtitle(
         m_ui->tablePrim,
         m_primarySubInfoList,
@@ -422,7 +493,10 @@ void SubtitleListWidget::addSecondarySubtitle(const QString &subtitle,
                                               const double   end,
                                               const double   delay)
 {
-    m_secondaryLock.lock();
+    if (!m_secondaryLock.try_lock())
+    {
+        return;
+    }
     addSubtitle(
         m_ui->tableSec,
         m_secondarySubInfoList,

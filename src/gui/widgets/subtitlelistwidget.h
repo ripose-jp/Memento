@@ -26,6 +26,7 @@
 #include <QHash>
 #include <QMultiMap>
 #include <QMutex>
+#include <QRegularExpression>
 
 #include "../playeradapter.h"
 
@@ -99,6 +100,12 @@ protected:
      */
     void resizeEvent(QResizeEvent *event) override;
 
+Q_SIGNALS:
+    /**
+     * Requests that the subtitle list be refreshed.
+     */
+    void requestRefresh();
+
 private Q_SLOTS:
     /**
      * Initializes the style sheets for the widget.
@@ -106,9 +113,19 @@ private Q_SLOTS:
     void initTheme();
 
     /**
+     * Initializes the subtitle filter regex.
+     */
+    void initRegex();
+
+    /**
      * Handles the track list changing.
      */
     void handleTracklistChange(const QList<const Track *> &tracks);
+
+    /**
+     * Refreshes the contents of the subtitle list.
+     */
+    void handleRefresh();
 
     /**
      * Handles a change in the sid of the primary subtitle track.
@@ -290,6 +307,12 @@ private:
 
     /* The UI item containing the widgets. */
     Ui::SubtitleListWidget *m_ui;
+
+    /* Regular expression for filtering subtitles */
+    QRegularExpression m_subRegex;
+
+    /* Lock for the regular expression */
+    QMutex m_subRegexLock;
 
     /* Maps sid to a list of subtitles */
     QHash<int64_t, QList<SubtitleInfo>> m_subtitleMap;

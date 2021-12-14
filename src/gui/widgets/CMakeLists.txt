@@ -51,6 +51,7 @@ target_link_libraries(
     subtitlelist
     Qt5::Widgets
     mpvadapter
+    subtitleparser
 )
 
 add_subdirectory(settings)

@@ -372,7 +372,7 @@ void MpvWidget::initPropertyMap()
             if (prop->format == MPV_FORMAT_STRING)
             {
                 QString subtitle = *(const char **)prop->data;
-                subtitle.replace(m_regex, "");
+                subtitle.remove(m_regex);
                 if (!subtitle.isEmpty())
                 {
                     double delay, start, end;
