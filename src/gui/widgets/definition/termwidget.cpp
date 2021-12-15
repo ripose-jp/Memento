@@ -212,8 +212,11 @@ void TermWidget::addNote()
     term->context = subList->getPrimaryContext("\n");
     term->context2 = subList->getSecondaryContext("\n");
     QPair<double, double> contextTimes = subList->getPrimaryContextTime();
-    term->startTimeContext = contextTimes.first;
-    term->endTimeContext = contextTimes.second;
+    double delay =
+        mediator->getPlayerAdapter()->getSubDelay() -
+        mediator->getPlayerAdapter()->getAudioDelay();
+    term->startTimeContext = contextTimes.first + delay;
+    term->endTimeContext = contextTimes.second + delay;
 
     AnkiReply *reply = m_client->addNote(term);
     connect(reply, &AnkiReply::finishedInt, this,

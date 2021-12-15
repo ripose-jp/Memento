@@ -237,8 +237,11 @@ void KanjiWidget::addKanji()
     kanji->context = subList->getPrimaryContext("\n");
     kanji->context2 = subList->getSecondaryContext("\n");
     QPair<double, double> contextTimes = subList->getPrimaryContextTime();
-    kanji->startTimeContext = contextTimes.first;
-    kanji->endTimeContext = contextTimes.second;
+    double delay =
+        mediator->getPlayerAdapter()->getSubDelay() -
+        mediator->getPlayerAdapter()->getAudioDelay();
+    kanji->startTimeContext = contextTimes.first + delay;
+    kanji->endTimeContext = contextTimes.second + delay;
 
     AnkiReply *reply = mediator->getAnkiClient()->addNote(kanji);
     connect(reply, &AnkiReply::finishedInt, this,

@@ -409,9 +409,11 @@ void SubtitleWidget::findTerms()
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     QString title = mediator->getPlayerAdapter()->getTitle();
 
-    double audioDelay = mediator->getPlayerAdapter()->getAudioDelay();
-    double startTime = m_subtitle.startTime - audioDelay;
-    double endTime = m_subtitle.endTime - audioDelay;
+    double delay =
+        mediator->getPlayerAdapter()->getSubDelay() -
+        mediator->getPlayerAdapter()->getAudioDelay();
+    double startTime = m_subtitle.startTime + delay;
+    double endTime = m_subtitle.endTime + delay;
 
     QString sentence2 = mediator->getPlayerAdapter()->getSecondarySubtitle();
 
