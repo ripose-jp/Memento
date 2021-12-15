@@ -582,7 +582,7 @@ void MpvAdapter::addSubtitle(const QString &file)
     }
 }
 
-void MpvAdapter::seek(const int64_t time)
+void MpvAdapter::seek(const double time)
 {
     QByteArray timestr = QString::number(time).toUtf8();
     const char *args[4] = {

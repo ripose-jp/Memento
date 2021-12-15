@@ -78,7 +78,7 @@ public Q_SLOTS:
 
     void addSubtitle(const QString &file) override;
 
-    void seek(const int64_t time) override;
+    void seek(const double time) override;
 
     void play()  override;
     void pause() override;

@@ -230,7 +230,7 @@ public Q_SLOTS:
      * Seeks to the time in seconds.
      * @param time The time in seconds to seek to.
      */
-    virtual void seek(const int64_t time) = 0;
+    virtual void seek(const double time) = 0;
 
     /**
      * Resumes playback.
