@@ -395,18 +395,38 @@ bool SubtitleParser::parseSRT(QFile &file, QList<SubtitleInfo> &out) const
 
 bool SubtitleParser::parseVTT(QFile &file, QList<SubtitleInfo> &out) const
 {
-    if (file.atEnd() || !file.readLine().startsWith(VTT_HEADER))
+    /* Exit if the file is empty */
+    if (file.atEnd())
     {
+        qDebug() << "VTT Parser: Unexpected empty file";
+        return false;
+    }
+    /* Exit if the file is missing the header */
+    else if (!file.readLine().startsWith(VTT_HEADER))
+    {
+        qDebug() << "VTT Parser: Missing VTT header";
         return false;
     }
 
+    /* Skip past header info */
+    while (!file.atEnd())
+    {
+        if (file.readLine().trimmed().isEmpty())
+        {
+            break;
+        }
+    }
+
+    /* Read subtitles */
     while (!file.atEnd())
     {
         QString currentLine = file.readLine().trimmed();
+        /* Skip empty lines */
         if (currentLine.isEmpty())
         {
             continue;
         }
+        /* Skip non-subtitle sections */
         else if (m_vttSections.contains(currentLine.split(' ')[0]))
         {
             while (!file.atEnd())
@@ -419,15 +439,10 @@ bool SubtitleParser::parseVTT(QFile &file, QList<SubtitleInfo> &out) const
             }
             continue;
         }
-        else if (file.atEnd())
-        {
-            break;
-        }
 
         SubtitleInfo info;
 
         /* Get timings */
-        currentLine = file.readLine();
         QStringList timings = currentLine.split(' ');
         if (timings.size() < 3 || timings[TIMING_ARROW_INDEX] != TIMING_ARROW)
         {
