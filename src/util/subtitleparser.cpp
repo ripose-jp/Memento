@@ -23,17 +23,37 @@
 #include <limits>
 #include <QDebug>
 #include <QFile>
+#include <QSet>
+
+/**
+ * Information about an SRT subtitle.
+ */
+struct SRTInfo : public SubtitleInfo
+{
+    /* The position of this subtitle. */
+    QString position;
+
+    SRTInfo &operator=(const SRTInfo &rhs)
+    {
+        SubtitleInfo::operator=(rhs);
+        position = rhs.position;
+
+        return *this;
+    }
+} typedef SRTInfo;
 
 SubtitleParser::SubtitleParser()
-    : m_timecodeSplitter(QRegularExpression("[:,]")),
+    : m_timecodeSplitter(QRegularExpression("[:\\.,]")),
       m_srtFilter(
           QRegularExpression(
               "<\\/?[biu]>|" // Removes <b></b> <i></i> <u></u>
               "{\\/?[biu]}|" // Removes {b}{/b} {i}{/i} {u}{/u}
               "{\\\\a\\d}"   // Removes {\a#}
           )
-      )
+      ),
+      m_angleBraceCleaner(QRegularExpression("<[^>]*>"))
 {
+    m_vttSections << "NOTE" << "STYLE" << "REGION";
 }
 
 QList<SubtitleInfo> SubtitleParser::parseSubtitles(
@@ -168,12 +188,13 @@ bool SubtitleParser::parseSRT(QFile &file, QList<SubtitleInfo> &out) const
     }
 
     std::sort(subs.begin(), subs.end(),
-              [](const SRTInfo &lhs, const SRTInfo &rhs)
-              {
-                  return lhs.start < rhs.start ||
-                         (lhs.start == rhs.start &&
-                          lhs.position < rhs.position);
-              });
+        [] (const SRTInfo &lhs, const SRTInfo &rhs)
+        {
+            return lhs.start < rhs.start ||
+                   (lhs.start == rhs.start &&
+                   lhs.position < rhs.position);
+        }
+    );
     for (const SRTInfo &info : subs)
     {
         out << info;
@@ -187,10 +208,121 @@ bool SubtitleParser::parseSRT(QFile &file, QList<SubtitleInfo> &out) const
 
 #undef TIMING_ARROW
 
+#define TIMING_START_INDEX 0
+#define TIMING_ARROW_INDEX 1
+#define TIMING_END_INDEX 2
+
+#define VTT_HEADER      "WEBVTT"
+#define TIMING_ARROW    "-->"
+
 bool SubtitleParser::parseVTT(QFile &file, QList<SubtitleInfo> &out) const
 {
-    return false;
+    if (file.atEnd() || !file.readLine().startsWith(VTT_HEADER))
+    {
+        return false;
+    }
+
+    while (!file.atEnd())
+    {
+        QString currentLine = file.readLine().trimmed();
+        if (currentLine.isEmpty())
+        {
+            continue;
+        }
+        else if (m_vttSections.contains(currentLine.split(' ')[0]))
+        {
+            while (!file.atEnd())
+            {
+                currentLine = file.readLine();
+                if (currentLine.trimmed().isEmpty())
+                {
+                    break;
+                }
+            }
+            continue;
+        }
+        else if (file.atEnd())
+        {
+            break;
+        }
+
+        SubtitleInfo info;
+
+        /* Get timings */
+        currentLine = file.readLine();
+        QStringList timings = currentLine.split(' ');
+        if (timings.size() < 3 || timings[TIMING_ARROW_INDEX] != TIMING_ARROW)
+        {
+            if (file.atEnd())
+            {
+                qDebug() << "VTT Parser: Unexpected file end after cue";
+                return false;
+            }
+            currentLine = file.readLine();
+            timings = currentLine.split(' ');
+            if (timings.size() < 3 || timings[TIMING_ARROW_INDEX] != TIMING_ARROW)
+            {
+                qDebug() << "VTT Parser: Invalid timing line";
+                qDebug() << currentLine;
+                return false;
+            }
+        }
+        bool ok = false;
+        info.start = timecodeToDouble(timings[TIMING_START_INDEX], &ok);
+        if (!ok || info.start < 0.0)
+        {
+            qDebug() << "VTT Parser: Invalid start time";
+            qDebug() << timings[TIMING_START_INDEX];
+            return false;
+        }
+        info.end = timecodeToDouble(timings[TIMING_END_INDEX], &ok);
+        if (!ok || info.end < info.start)
+        {
+            qDebug() << "VTT Parser: Invalid end time";
+            qDebug() << timings[TIMING_END_INDEX];
+            return false;
+        }
+
+        /* Get the lines */
+        if (file.atEnd())
+        {
+            qDebug() << "VTT Parser: Unexpected file end after timings";
+            return false;
+        }
+        while (!file.atEnd() && (currentLine = file.readLine()) != '\n')
+        {
+            info.text += currentLine;
+        }
+        info.text.chop(1);
+
+        /* Filter out VTT angle brace formatting */
+        info.text.remove(m_angleBraceCleaner);
+
+        /* Don't add if the subtitle is only whitespace */
+        if (info.text.trimmed().isEmpty())
+        {
+            continue;
+        }
+
+        /* Append to the output list */
+        out << info;
+    }
+
+    std::sort(out.begin(), out.end(),
+        [] (const SubtitleInfo &lhs, const SubtitleInfo &rhs)
+        {
+            return lhs.start < rhs.start;
+        }
+    );
+    return true;
 }
+
+#undef TIMING_START_INDEX
+#undef TIMING_ARROW_INDEX
+#undef TIMING_END_INDEX
+
+#undef VTT_HEADER
+#undef TIMING_ARROW
 
 #define SECONDS_IN_HOUR 3600
 #define SECONDS_IN_MINUTE 60
@@ -200,37 +332,48 @@ double SubtitleParser::timecodeToDouble(const QString &timecode, bool *ok) const
 {
     double timeDouble = 0.0;
 
-    QStringList pieces = timecode.split(m_timecodeSplitter);
-    if (
-        pieces.length() != 4 ||
-        pieces[0].length() < 2 ||
-        pieces[1].length() != 2 ||
-        pieces[2].length() != 2 ||
-        pieces[3].length() != 3)
+    QStringList pieces = timecode.trimmed().split(m_timecodeSplitter);
+    std::reverse(pieces.begin(), pieces.end());
+    if (pieces.length() == 3 &&
+        (
+            pieces[0].length() != 3 ||
+            pieces[1].length() != 2 ||
+            pieces[2].length() != 2
+        ) ||
+        pieces.length() == 4 &&
+        (
+            pieces[0].length() != 3 ||
+            pieces[1].length() != 2 ||
+            pieces[2].length() != 2 ||
+            pieces[3].length() < 2
+        ))
     {
         goto error;
     }
 
     bool localOk;
-    timeDouble += pieces[0].toDouble(&localOk) * SECONDS_IN_HOUR;
+    timeDouble += pieces[0].toInt(&localOk) * SECONDS_IN_MILLISECOND;
     if (!localOk)
     {
         goto error;
     }
-    timeDouble += pieces[1].toDouble(&localOk) * SECONDS_IN_MINUTE;
+    timeDouble += pieces[1].toInt(&localOk);
     if (!localOk)
     {
         goto error;
     }
-    timeDouble += pieces[2].toDouble(&localOk);
+    timeDouble += pieces[2].toInt(&localOk) * SECONDS_IN_MINUTE;
     if (!localOk)
     {
         goto error;
     }
-    timeDouble += pieces[3].toDouble(&localOk) * SECONDS_IN_MILLISECOND;
-    if (!localOk)
+    if (pieces.length() == 4)
     {
-        goto error;
+        timeDouble += pieces[3].toInt(&localOk) * SECONDS_IN_HOUR;
+        if (!localOk)
+        {
+            goto error;
+        }
     }
 
     if (ok)

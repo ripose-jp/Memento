@@ -23,6 +23,7 @@
 
 #include <QList>
 #include <QRegularExpression>
+#include <QSet>
 #include <QString>
 
 class QFile;
@@ -50,23 +51,6 @@ struct SubtitleInfo
         return *this;
     }
 } typedef SubtitleInfo;
-
-/**
- * Information about an SRT subtitle.
- */
-struct SRTInfo : public SubtitleInfo
-{
-    /* The position of this subtitle. */
-    QString position;
-
-    SRTInfo &operator=(const SRTInfo &rhs)
-    {
-        SubtitleInfo::operator=(rhs);
-        position = rhs.position;
-
-        return *this;
-    }
-} typedef SRTInfo;
 
 /**
  * Object for parsing subtitles of various formats.
@@ -135,6 +119,12 @@ private:
 
     /* The regular expression for removing SRT formatting */
     QRegularExpression m_srtFilter;
+
+    /* Removes everything between angle braces */
+    QRegularExpression m_angleBraceCleaner;
+
+    /* A set of special VTT sections */
+    QSet<QString> m_vttSections;
 };
 
 #endif // SUBTITLEPARSER_H
