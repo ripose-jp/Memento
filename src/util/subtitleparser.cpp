@@ -331,6 +331,7 @@ bool SubtitleParser::parseVTT(QFile &file, QList<SubtitleInfo> &out) const
 double SubtitleParser::timecodeToDouble(const QString &timecode, bool *ok) const
 {
     double timeDouble = 0.0;
+    int tmp;
 
     QStringList pieces = timecode.trimmed().split(m_timecodeSplitter);
     std::reverse(pieces.begin(), pieces.end());
@@ -352,28 +353,35 @@ double SubtitleParser::timecodeToDouble(const QString &timecode, bool *ok) const
     }
 
     bool localOk;
-    timeDouble += pieces[0].toInt(&localOk) * SECONDS_IN_MILLISECOND;
-    if (!localOk)
+    tmp = pieces[0].toInt(&localOk);
+    if (!localOk || tmp < 0 || tmp > 999)
     {
         goto error;
     }
-    timeDouble += pieces[1].toInt(&localOk);
-    if (!localOk)
+    timeDouble += tmp * SECONDS_IN_MILLISECOND;
+
+    tmp = pieces[1].toInt(&localOk);
+    if (!localOk || tmp < 0 || tmp > 59)
     {
         goto error;
     }
-    timeDouble += pieces[2].toInt(&localOk) * SECONDS_IN_MINUTE;
-    if (!localOk)
+    timeDouble += tmp;
+
+    tmp = pieces[2].toInt(&localOk);
+    if (!localOk || tmp < 0 || tmp > 59)
     {
         goto error;
     }
+    timeDouble += tmp * SECONDS_IN_MINUTE;
+
     if (pieces.length() == 4)
     {
-        timeDouble += pieces[3].toInt(&localOk) * SECONDS_IN_HOUR;
-        if (!localOk)
+        tmp = pieces[3].toInt(&localOk);
+        if (!localOk || tmp < 0)
         {
             goto error;
         }
+        timeDouble += tmp * SECONDS_IN_HOUR;
     }
 
     if (ok)
