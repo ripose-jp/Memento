@@ -383,6 +383,8 @@ QTableWidgetItem *SubtitleListWidget::addTableItem(
     return subtitleItem;
 }
 
+#define TIME_DELTA 0.0001
+
 void SubtitleListWidget::addSubtitle(
     QTableWidget *table,
     QList<SubtitleInfo> *subInfos,
@@ -394,8 +396,8 @@ void SubtitleListWidget::addSubtitle(
     const double delay)
 {
     /* Check if we have already seen this subtitle. Finds it if we have. */
-    auto it = seenSubs.find(start);
-    while (it != seenSubs.end() && it.key() == start)
+    auto it = seenSubs.lowerBound(start - TIME_DELTA);
+    while (it != seenSubs.end() && it.key() - start <= TIME_DELTA)
     {
         if ((*it)->text() == subtitle)
         {
@@ -405,7 +407,7 @@ void SubtitleListWidget::addSubtitle(
     }
 
     QTableWidgetItem *subtitleItem = nullptr;
-    if (it == seenSubs.end() || it.key() != start)
+    if (it == seenSubs.end() || it.key() - start > TIME_DELTA)
     {
         subInfos->append(SubtitleInfo{
             .text = subtitle,
@@ -425,6 +427,8 @@ void SubtitleListWidget::addSubtitle(
     table->clearSelection();
     table->setCurrentItem(subtitleItem);
 }
+
+#undef TIME_DELTA
 
 void SubtitleListWidget::handlePrimaryTrackChange(int64_t sid)
 {
