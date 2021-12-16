@@ -117,6 +117,12 @@ private:
     /* The regular expression for splitting timecodes */
     QRegularExpression m_timecodeSplitter;
 
+    /* Removes ASS styling overrides */
+    QRegularExpression m_assFilter;
+
+    /* Adds newlines to ASS subtitles */
+    QRegularExpression m_assNewLineReplacer;
+
     /* The regular expression for removing SRT formatting */
     QRegularExpression m_srtFilter;
 

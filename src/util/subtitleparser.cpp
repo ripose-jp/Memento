@@ -44,6 +44,8 @@ struct SRTInfo : public SubtitleInfo
 
 SubtitleParser::SubtitleParser()
     : m_timecodeSplitter(QRegularExpression("[:\\.,]")),
+      m_assFilter(QRegularExpression("{\\\\.*?}")),
+      m_assNewLineReplacer(QRegularExpression("\\\\n|\\\\N")),
       m_srtFilter(
           QRegularExpression(
               "<\\/?[biu]>|" // Removes <b></b> <i></i> <u></u>
@@ -98,10 +100,186 @@ QList<SubtitleInfo> SubtitleParser::parseSubtitles(
     return subtitles;
 }
 
+#define ASS_HEADER      "[Script Info]"
+#define STYLE_HEADER    "[V4+ Styles]"
+#define EVENT_HEADER    "[Events]"
+
+#define FORMAT_PREFIX   "Format: "
+#define STYLE_PREFIX    "Style: "
+#define DIALOGUE_PREFIX "Dialogue: "
+
+#define START_FORMAT    "Start"
+#define END_FORMAT      "End"
+#define TEXT_FORMAT     "Text"
+
 bool SubtitleParser::parseASS(QFile &file, QList<SubtitleInfo> &out) const
 {
-    return false;
+    /* Make sure the file isn't empty */
+    if (file.atEnd())
+    {
+        qDebug() << "ASS Parser: Empty file";
+        return false;
+    }
+
+    /* Check for the header */
+    QString currentLine = file.readLine();
+    if (currentLine.trimmed() != ASS_HEADER)
+    {
+        qDebug() << "ASS Parser: Missing ASS header";
+        qDebug() << currentLine;
+        return false;
+    }
+
+    /* Skip to the [Events] section */
+    while (!file.atEnd())
+    {
+        currentLine = file.readLine();
+        if (currentLine.trimmed() == EVENT_HEADER)
+        {
+            break;
+        }
+    }
+
+    /* There is no [Events] section. This is odd but valid. */
+    if (file.atEnd())
+    {
+        return true;
+    }
+
+    /* Get format section */
+    currentLine = file.readLine();
+    if (!currentLine.startsWith(FORMAT_PREFIX))
+    {
+        qDebug() << "ASS Parser: Missing Format line in the [Events] section";
+        qDebug() << currentLine;
+        return false;
+    }
+    int startIndex = -1;
+    int endIndex = -1;
+    int textIndex = -1;
+    QStringList format =
+        currentLine
+            .right(currentLine.size() - sizeof(FORMAT_PREFIX) + 1)
+            .split(',');
+    for (int i = 0; i < format.size(); ++i)
+    {
+        if (format[i].trimmed() == START_FORMAT)
+        {
+            if (startIndex != -1)
+            {
+                qDebug() << "ASS Parser: Start format redefinition";
+                return false;
+            }
+            startIndex = i;
+        }
+        else if (format[i].trimmed() == END_FORMAT)
+        {
+            if (endIndex != -1)
+            {
+                qDebug() << "ASS Parser: End format redefinition";
+                return false;
+            }
+            endIndex = i;
+        }
+        else if (format[i].trimmed() == TEXT_FORMAT)
+        {
+            if (textIndex != -1)
+            {
+                qDebug() << "ASS Parser: Text format redefinition";
+                return false;
+            }
+            textIndex = i;
+        }
+    }
+
+    /* Get dialogue */
+    while (!file.atEnd())
+    {
+        currentLine = file.readLine();
+
+        /* End of the [Events] section */
+        if (currentLine.trimmed().isEmpty())
+        {
+            break;
+        }
+        /* Skip non-dialogue lines */
+        else if (!currentLine.startsWith(DIALOGUE_PREFIX))
+        {
+            continue;
+        }
+
+        /* Split dialogue line */
+        QStringList dialogue =
+            currentLine
+                .right(currentLine.size() - sizeof(DIALOGUE_PREFIX) + 1)
+                .split(',');
+        if (dialogue.size() < format.size())
+        {
+            qDebug() << "ASS Parser: Dialogue-Format mismatch";
+            return false;
+        }
+
+        /* Construct the SubtitleInfo */
+        SubtitleInfo info;
+
+        /* Get timings */
+        bool ok = false;
+        info.start = timecodeToDouble(dialogue[startIndex], &ok);
+        if (!ok || info.start < 0)
+        {
+            qDebug() << "ASS Parser: Invalid start time";
+            qDebug() << dialogue[startIndex];
+            return false;
+        }
+        info.end = timecodeToDouble(dialogue[startIndex], &ok);
+        if (!ok || info.end < info.start)
+        {
+            qDebug() << "ASS Parser: Invalid end time";
+            qDebug() << dialogue[endIndex];
+            return false;
+        }
+
+        /* Get Text */
+        info.text = dialogue[textIndex];
+        for (int i = textIndex + 1; i < dialogue.size(); ++i)
+        {
+            info.text += ',';
+            info.text += dialogue[textIndex];
+        }
+        info.text.remove(m_assFilter);
+        info.text.replace(m_assNewLineReplacer, "\n");
+        info.text.chop(1);
+
+        /* Throw out empty subtitles */
+        if (info.text.trimmed().isEmpty())
+        {
+            continue;
+        }
+
+        /* Add the subtitle */
+        out << info;
+    }
+
+    std::sort(out.begin(), out.end(),
+        [] (const SubtitleInfo &lhs, const SubtitleInfo &rhs)
+        {
+            return lhs.start < rhs.start;
+        }
+    );
+    return true;
 }
+
+#undef ASS_HEADER
+#undef STYLE_HEADER
+#undef EVENT_HEADER
+
+#undef FORMAT_PREFIX
+#undef STYLE_PREFIX
+#undef DIALOGUE_PREFIX
+
+#undef START_FORMAT
+#undef END_FORMAT
+#undef TEXT_FORMAT
 
 #define TIMING_START_INDEX 0
 #define TIMING_ARROW_INDEX 1
@@ -324,9 +502,10 @@ bool SubtitleParser::parseVTT(QFile &file, QList<SubtitleInfo> &out) const
 #undef VTT_HEADER
 #undef TIMING_ARROW
 
-#define SECONDS_IN_HOUR 3600
-#define SECONDS_IN_MINUTE 60
-#define SECONDS_IN_MILLISECOND 0.001
+#define SECONDS_IN_HOUR         3600
+#define SECONDS_IN_MINUTE       60
+#define SECONDS_IN_MILLISECOND  0.001
+#define SECONDS_IN_HUNDREDTH    0.01
 
 double SubtitleParser::timecodeToDouble(const QString &timecode, bool *ok) const
 {
@@ -335,31 +514,37 @@ double SubtitleParser::timecodeToDouble(const QString &timecode, bool *ok) const
 
     QStringList pieces = timecode.trimmed().split(m_timecodeSplitter);
     std::reverse(pieces.begin(), pieces.end());
-    if (pieces.length() == 3 &&
-        (
-            pieces[0].length() != 3 ||
-            pieces[1].length() != 2 ||
-            pieces[2].length() != 2
-        ) ||
-        pieces.length() == 4 &&
-        (
-            pieces[0].length() != 3 ||
-            pieces[1].length() != 2 ||
-            pieces[2].length() != 2 ||
-            pieces[3].length() < 2
-        ))
+    if (pieces.length() != 3 && pieces.length() != 4)
     {
         goto error;
     }
 
+    /* Get sub-second values */
     bool localOk;
-    tmp = pieces[0].toInt(&localOk);
-    if (!localOk || tmp < 0 || tmp > 999)
+    if (pieces[0].size() == 2)
+    {
+        tmp = pieces[0].toInt(&localOk);
+        if (!localOk || tmp < 0 || tmp > 99)
+        {
+            goto error;
+        }
+        timeDouble += tmp * SECONDS_IN_HUNDREDTH;
+    }
+    else if (pieces[0].size() == 3)
+    {
+        tmp = pieces[0].toInt(&localOk);
+        if (!localOk || tmp < 0 || tmp > 999)
+        {
+            goto error;
+        }
+        timeDouble += tmp * SECONDS_IN_MILLISECOND;
+    }
+    else
     {
         goto error;
     }
-    timeDouble += tmp * SECONDS_IN_MILLISECOND;
 
+    /* Get Seconds */
     tmp = pieces[1].toInt(&localOk);
     if (!localOk || tmp < 0 || tmp > 59)
     {
@@ -367,6 +552,7 @@ double SubtitleParser::timecodeToDouble(const QString &timecode, bool *ok) const
     }
     timeDouble += tmp;
 
+    /* Get Minutes */
     tmp = pieces[2].toInt(&localOk);
     if (!localOk || tmp < 0 || tmp > 59)
     {
@@ -374,6 +560,7 @@ double SubtitleParser::timecodeToDouble(const QString &timecode, bool *ok) const
     }
     timeDouble += tmp * SECONDS_IN_MINUTE;
 
+    /* Get Hours */
     if (pieces.length() == 4)
     {
         tmp = pieces[3].toInt(&localOk);
@@ -401,6 +588,7 @@ error:
 #undef SECONDS_IN_HOUR
 #undef SECONDS_IN_MINUTE
 #undef SECONDS_IN_MILLISECOND
+#undef SECONDS_IN_HUNDREDTH
 
 QList<SubtitleInfo> SubtitleParser::compressSubtitles(
     const QList<SubtitleInfo> &subtitles) const
@@ -476,7 +664,8 @@ QList<SubtitleInfo> SubtitleParser::compressSubtitles(
         compressed << SubtitleInfo{
             .text = text,
             .start = currentSubInfos.first()->start,
-            .end = latestEnd};
+            .end = latestEnd
+        };
 
         /* Remove elements that already ended and find the new earliest end */
         double tmp = std::numeric_limits<double>::infinity();
