@@ -582,19 +582,26 @@ QPair<double, double> SubtitleListWidget::getPrimaryContextTime() const
 /* End Context Methods */
 /* Begin Seek Methods */
 
+#define SEEK_ERROR 0.028
+
 void SubtitleListWidget::seekToSubtitle(
     QTableWidgetItem *item,
     const QHash<QTableWidgetItem *, const SubtitleInfo *> &startTimes) const
 {
     PlayerAdapter *player =
         GlobalMediator::getGlobalMediator()->getPlayerAdapter();
-    double pos = startTimes[item]->start + player->getSubDelay();
+    double pos =
+        startTimes[item]->start +
+        player->getSubDelay() +
+        SEEK_ERROR;
     if (pos < 0)
     {
         pos = 0;
     }
     player->seek(pos);
 }
+
+#undef SEEK_ERROR
 
 void SubtitleListWidget::seekToPrimarySubtitle(QTableWidgetItem *item) const
 {
