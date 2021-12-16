@@ -38,7 +38,7 @@
 #define MAX_QUERY_LENGTH 37
 
 /* Prevents valid subtitles from being hidden due to double precision errors. */
-#define DOUBLE_DELTA 0.05
+#define DOUBLE_DELTA 0.001
 
 /* If pausing on subtitle end is enabled, prevents pausing on the next
  * subtitle. */
