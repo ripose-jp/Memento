@@ -191,6 +191,21 @@ bool SubtitleParser::parseASS(QFile &file, QList<SubtitleInfo> &out) const
             textIndex = i;
         }
     }
+    if (startIndex == -1)
+    {
+        qDebug() << "ASS Parser: Format missing start section";
+        return false;
+    }
+    else if (endIndex == -1)
+    {
+        qDebug() << "ASS Parser: Format missing end section";
+        return false;
+    }
+    else if (textIndex == -1)
+    {
+        qDebug() << "ASS Parser: Format missing text section";
+        return false;
+    }
 
     /* Get dialogue */
     while (!file.atEnd())
