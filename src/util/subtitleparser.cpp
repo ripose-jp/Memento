@@ -631,7 +631,9 @@ QList<SubtitleInfo> SubtitleParser::compressSubtitles(
     for (const SubtitleInfo &info : subtitles)
     {
         /* Add all the subtitles that ended before this one started */
-        while (!currentSubInfos.isEmpty() && earliestEnd <= info.start)
+        while (!currentSubInfos.isEmpty() &&
+               currentSubInfos.first()->start != info.start &&
+               earliestEnd <= info.start)
         {
             /* Add all the current subtitles */
             QString text;
@@ -678,6 +680,11 @@ QList<SubtitleInfo> SubtitleParser::compressSubtitles(
         {
             earliestEnd = info.end;
             latestEnd = info.end;
+        }
+        else
+        {
+            earliestEnd = earliestEnd >= info.end ? info.end : earliestEnd;
+            latestEnd = latestEnd <= info.end ? info.end : latestEnd;
         }
         currentSubInfos << &info;
     }
