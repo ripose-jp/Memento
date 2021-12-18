@@ -259,7 +259,7 @@ bool SubtitleParser::parseASS(QFile &file, QList<SubtitleInfo> &out) const
         for (int i = textIndex + 1; i < dialogue.size(); ++i)
         {
             info.text += ',';
-            info.text += dialogue[textIndex];
+            info.text += dialogue[i];
         }
         info.text.remove(m_assFilter);
         info.text.replace(m_assNewLineReplacer, "\n");
