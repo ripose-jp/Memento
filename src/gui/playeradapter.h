@@ -103,6 +103,12 @@ public:
      */
     virtual int64_t getMaxVolume() const = 0;
 
+   /**
+    * Get the current playback position
+    * @return The position in current file in seconds.
+    */
+    virtual double getTimePos() const = 0;
+
     /**
      * Get the start time of the current subtitle without delay.
      * @return The start time of the current subtitle in seconds.
