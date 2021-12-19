@@ -26,6 +26,7 @@
 #include <QMultiMap>
 #include <QSettings>
 #include <QThreadPool>
+#include <QStack>
 
 #include "../../util/constants.h"
 #include "../../util/globalmediator.h"
@@ -78,7 +79,7 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
 
     connect(
         mediator, &GlobalMediator::playerSubtitleChanged,
-        this,     &SubtitleListWidget::addPrimarySubtitle
+        this,     &SubtitleListWidget::updatePrimarySubtitle
     );
     connect(
         mediator, &GlobalMediator::playerSubtitleTrackChanged,
@@ -95,7 +96,7 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
 
     connect(
         mediator, &GlobalMediator::playerSecSubtitleChanged,
-        this,     &SubtitleListWidget::addSecondarySubtitle
+        this,     &SubtitleListWidget::updateSecondarySubtitle
     );
     connect(
         mediator, &GlobalMediator::playerSecondSubtitleTrackChanged,
@@ -282,7 +283,7 @@ void SubtitleListWidget::handleTracklistChange(
         for (size_t i = 0; i < extTracks.size(); ++i)
         {
             m_subtitleMap[extSids[i]] =
-                parser.parseSubtitles(extTracks[i], true);
+                parser.parseSubtitles(extTracks[i], false);
 
             QList<SubtitleInfo> &subList = m_subtitleMap[extSids[i]];
             for (int i = 0; i < subList.size(); i++)
@@ -297,6 +298,8 @@ void SubtitleListWidget::handleTracklistChange(
         m_primaryLock.unlock();
         m_subRegexLock.unlock();
 
+        m_didParsePrimarySubs = m_subtitleMap[primarySid].length() > 0;
+        m_didParseSecondarySubs = m_subtitleMap[secondarySid].length() > 0;
         Q_EMIT requestRefresh();
     });
 
@@ -428,8 +431,6 @@ void SubtitleListWidget::addSubtitle(
     table->setCurrentItem(subtitleItem);
 }
 
-#undef TIME_DELTA
-
 void SubtitleListWidget::handlePrimaryTrackChange(int64_t sid)
 {
     m_primaryLock.lock();
@@ -470,15 +471,41 @@ void SubtitleListWidget::handleSecondaryTrackChange(int64_t sid)
     m_secondaryLock.unlock();
 }
 
-void SubtitleListWidget::addPrimarySubtitle(const QString &subtitle,
-                                            const double   start,
-                                            const double   end,
-                                            const double   delay)
+void SubtitleListWidget::updatePrimarySubtitle(const QString &subtitle,
+                                               const double   start,
+                                               const double   end,
+                                               const double   delay)
 {
     if (!m_primaryLock.try_lock())
     {
         return;
     }
+    // if parsing has been completed
+    // assume entry is in list and only look up
+    if (m_didParsePrimarySubs)
+    {
+        double timePos = GlobalMediator::getGlobalMediator()
+                         ->getPlayerAdapter()->getTimePos();
+        auto it = --m_seenPrimarySubs
+                  .upperBound(timePos + TIME_DELTA - delay);
+        QStack<QTableWidgetItem *> visibleSubs;
+        visibleSubs.push(*it);
+        while (it-- != m_seenPrimarySubs.begin() &&
+               m_timesPrimarySubs[it.value()]->end >
+               timePos + TIME_DELTA - delay)
+        {
+            visibleSubs.push(*it);
+          }
+        m_ui->tablePrim->clearSelection();
+        while (!visibleSubs.isEmpty())
+        {
+            auto visible = visibleSubs.pop();
+            visible->setSelected(true);
+            m_ui->tablePrim->scrollToItem(visible);
+        }
+    }
+    else
+    {
     addSubtitle(
         m_ui->tablePrim,
         m_primarySubInfoList,
@@ -489,18 +516,46 @@ void SubtitleListWidget::addPrimarySubtitle(const QString &subtitle,
         end,
         delay
     );
+    }
     m_primaryLock.unlock();
 }
 
-void SubtitleListWidget::addSecondarySubtitle(const QString &subtitle,
-                                              const double   start,
-                                              const double   end,
-                                              const double   delay)
+void SubtitleListWidget::updateSecondarySubtitle(const QString &subtitle,
+                                                 const double   start,
+                                                 const double   end,
+                                                 const double   delay)
 {
+    // else try add entry
     if (!m_secondaryLock.try_lock())
     {
         return;
     }
+    // if parsing has been completed
+    // assume entry is in list and only look up
+    if (m_didParseSecondarySubs)
+    {
+        double timePos = GlobalMediator::getGlobalMediator()
+                         ->getPlayerAdapter()->getTimePos();
+        auto it = --m_seenSecondarySubs
+                  .upperBound(timePos + TIME_DELTA - delay);
+        QStack<QTableWidgetItem *> visibleSubs;
+        visibleSubs.push(*it);
+        while (it-- != m_seenSecondarySubs.begin() &&
+               m_timesSecondarySubs[it.value()]->end >
+               timePos + TIME_DELTA - delay)
+        {
+            visibleSubs.push(*it);
+        }
+        m_ui->tableSec->clearSelection();
+        while (!visibleSubs.isEmpty())
+        {
+            auto visible = visibleSubs.pop();
+            visible->setSelected(true);
+            m_ui->tableSec->scrollToItem(visible);
+        }
+    }
+    else
+    {
     addSubtitle(
         m_ui->tableSec,
         m_secondarySubInfoList,
@@ -511,8 +566,11 @@ void SubtitleListWidget::addSecondarySubtitle(const QString &subtitle,
         end,
         delay
     );
+    }
     m_secondaryLock.unlock();
 }
+
+#undef TIME_DELTA
 
 void SubtitleListWidget::updateTimestampsHelper(
     QTableWidget *table,

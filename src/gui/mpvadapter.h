@@ -40,6 +40,8 @@ public:
 
     int64_t getMaxVolume() const override;
 
+    double getTimePos() const override;
+
     double getSubStart() const override;
 
     double getSubEnd() const override;

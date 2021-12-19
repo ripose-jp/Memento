@@ -338,6 +338,17 @@ int64_t MpvAdapter::getMaxVolume() const
     return max;
 }
 
+double MpvAdapter::getTimePos() const
+{
+    double timePos;
+    if (mpv_get_property(m_handle, "time-pos", MPV_FORMAT_DOUBLE, &timePos) < 0)
+    {
+        qDebug() << "Could not get time-pos property";
+        return 0;
+    }
+    return timePos;
+}
+
 double MpvAdapter::getSubStart() const
 {
     double start;

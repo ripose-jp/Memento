@@ -140,28 +140,32 @@ private Q_SLOTS:
     void handleSecondaryTrackChange(int64_t sid);
 
     /**
-     * Adds a subtitle to the primary subtitle list.
+     * Updates the current primary subtitle
+     * if the primary subtitles are not populated from
+     * an external track, add the current subtitle
      * @param subtitle The subtitle to add.
      * @param start    The start time of the subtitle.
      * @param end      The end time of the subtitle.
      * @param delay    The signed delay of the subtitle.
      */
-    void addPrimarySubtitle(const QString &subtitle,
-                            const double   start,
-                            const double   end,
-                            const double   delay);
+    void updatePrimarySubtitle(const QString &subtitle,
+                               const double   start,
+                               const double   end,
+                               const double   delay);
 
     /**
-     * Adds a subtitle to the secondary subtitle list.
+     * Updates the current secondary subtitle
+     * if the secondary subtitles are not populated from
+     * an external track, add the current subtitle
      * @param subtitle The subtitle to add.
      * @param start    The start time of the subtitle.
      * @param end      The end time of the subtitle.
      * @param delay    The signed delay of the subtitle.
      */
-    void addSecondarySubtitle(const QString &subtitle,
-                              const double   start,
-                              const double   end,
-                              const double   delay);
+    void updateSecondarySubtitle(const QString &subtitle,
+                                 const double   start,
+                                 const double   end,
+                                 const double   delay);
 
     /**
      * Updates the timestamps of the subtitles with a new delay.
@@ -340,6 +344,12 @@ private:
 
     /* Holds subtitle info for the current secondary track. */
     QList<SubtitleInfo> *m_secondarySubInfoList;
+
+    /* Flag for whether the primary subs have been parsed & populated */
+    bool m_didParsePrimarySubs = false;
+
+    /* Flag for whether the secondary subs have been parsed & populated */
+    bool m_didParseSecondarySubs = false;
 };
 
 #endif // SUBTITLELISTWIDGET_H
