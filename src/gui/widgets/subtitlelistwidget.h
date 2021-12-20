@@ -360,10 +360,10 @@ private:
     QMutex m_subRegexLock;
 
     /* Maps sid to a list of subtitles */
-    QHash<int64_t, QList<SubtitleInfo>> m_subtitleMap;
+    QHash<int64_t, QList<SubtitleInfo> *> m_subtitleMap;
 
     /* Maps sid to whether or not the subtitle was parsed. */
-    QHash<int64_t, bool> m_subtitleParsed;
+    QHash<int64_t, bool *> m_subtitleParsed;
 
     /* The primary subtitle list */
     SubtitleList m_primary;

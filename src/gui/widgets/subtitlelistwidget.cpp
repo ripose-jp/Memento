@@ -286,9 +286,14 @@ void SubtitleListWidget::handleTracklistChange(
 
         for (size_t i = 0; i < extTracks.size(); ++i)
         {
-            m_subtitleMap[extSids[i]] =
+            if (!m_subtitleMap.contains(extSids[i]))
+            {
+                m_subtitleMap[extSids[i]] = new QList<SubtitleInfo>;
+                m_subtitleParsed[extSids[i]] = new bool;
+            }
+            *m_subtitleMap[extSids[i]] =
                 parser.parseSubtitles(extTracks[i], false);
-            m_subtitleParsed[extSids[i]] = true;
+            *m_subtitleParsed[extSids[i]] = true;
         }
 
         m_secondary.lock.unlock();
@@ -444,8 +449,14 @@ void SubtitleListWidget::handlePrimaryTrackChange(int64_t sid)
     m_primary.lock.lock();
 
     clearSubtitles(m_primary);
-    m_primary.subList = &m_subtitleMap[sid];
-    m_primary.subsParsed = &m_subtitleParsed[sid];
+
+    if (!m_subtitleMap.contains(sid))
+    {
+        m_subtitleMap[sid] = new QList<SubtitleInfo>;
+        m_subtitleParsed[sid] = new bool{false};
+    }
+    m_primary.subList = m_subtitleMap[sid];
+    m_primary.subsParsed = m_subtitleParsed[sid];
 
     double delay =
         GlobalMediator::getGlobalMediator()->getPlayerAdapter()->getSubDelay();
@@ -464,8 +475,14 @@ void SubtitleListWidget::handleSecondaryTrackChange(int64_t sid)
     m_secondary.lock.lock();
 
     clearSubtitles(m_secondary);
-    m_secondary.subList = &m_subtitleMap[sid];
-    m_secondary.subsParsed = &m_subtitleParsed[sid];
+
+    if (!m_subtitleMap.contains(sid))
+    {
+        m_subtitleMap[sid] = new QList<SubtitleInfo>;
+        m_subtitleParsed[sid] = new bool{false};
+    }
+    m_secondary.subList = m_subtitleMap[sid];
+    m_secondary.subsParsed = m_subtitleParsed[sid];
 
     double delay =
         GlobalMediator::getGlobalMediator()->getPlayerAdapter()->getSubDelay();
@@ -687,7 +704,15 @@ void SubtitleListWidget::clearCachedSubtitles()
 {
     clearPrimarySubtitles();
     clearSecondarySubtitles();
+    for (QList<SubtitleInfo> *l : m_subtitleMap)
+    {
+        delete l;
+    }
     m_subtitleMap.clear();
+    for (bool *b : m_subtitleParsed)
+    {
+        delete b;
+    }
     m_subtitleParsed.clear();
 }
 
