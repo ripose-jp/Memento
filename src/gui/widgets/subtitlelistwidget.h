@@ -149,7 +149,7 @@ private Q_SLOTS:
      * @param end      The end time of the subtitle.
      * @param delay    The signed delay of the subtitle.
      */
-    void updatePrimarySubtitle(QString subtitle,
+    void updatePrimarySubtitle(const QString &subtitle,
                                double start,
                                double end,
                                double delay);
@@ -294,17 +294,20 @@ private:
 
     /**
      * Helper method for adding a subtitle to a table.
-     * @param list       The subtitle list to operate on.
-     * @param subtitle   The subtitle to add.
-     * @param start      The start time of the subtitle.
-     * @param end        The end time of the subtitle.
-     * @param delay      The signed delay of the subtitle.
+     * @param list     The subtitle list to operate on.
+     * @param subtitle The subtitle to add.
+     * @param start    The start time of the subtitle.
+     * @param end      The end time of the subtitle.
+     * @param delay    The signed delay of the subtitle.
+     * @param regex    True if regex should be used to filter the subtitle,
+     *                 false otherwise.
      */
     void addSubtitle(SubtitleList &list,
                      const QString &subtitle,
                      double start,
                      double end,
-                     double delay);
+                     double delay,
+                     bool regex = false);
 
     /**
      * Adds an item to a subtitle table. Assumes the subtitle is not already in

@@ -409,7 +409,8 @@ void SubtitleListWidget::addSubtitle(
     const QString &subtitle,
     const double start,
     const double end,
-    const double delay)
+    const double delay,
+    const bool regex)
 {
     /* Check if we have already seen this subtitle. Finds it if we have. */
     auto it = list.startToItem.lowerBound(start - TIME_DELTA);
@@ -431,7 +432,15 @@ void SubtitleListWidget::addSubtitle(
             .end = end
         });
 
-        subtitleItem = addTableItem(list, list.subList->last(), delay);
+        if (regex)
+        {
+            m_subRegexLock.lock();
+        }
+        subtitleItem = addTableItem(list, list.subList->last(), delay, regex);
+        if (regex)
+        {
+            m_subRegexLock.unlock();
+        }
     }
     else
     {
@@ -525,7 +534,7 @@ void SubtitleListWidget::selectSubtitles(SubtitleList &list,
 
 #undef TIME_DELTA
 
-void SubtitleListWidget::updatePrimarySubtitle(QString subtitle,
+void SubtitleListWidget::updatePrimarySubtitle(const QString &subtitle,
                                                double start,
                                                double end,
                                                double delay)
@@ -540,10 +549,7 @@ void SubtitleListWidget::updatePrimarySubtitle(QString subtitle,
     }
     else
     {
-        m_subRegexLock.lock();
-        subtitle.remove(m_subRegex);
-        m_subRegexLock.unlock();
-        addSubtitle(m_primary, subtitle, start, end, delay);
+        addSubtitle(m_primary, subtitle, start, end, delay, true);
     }
     m_primary.lock.unlock();
 }
@@ -563,7 +569,7 @@ void SubtitleListWidget::updateSecondarySubtitle(const QString &subtitle,
     }
     else
     {
-        addSubtitle(m_secondary, subtitle, start, end, delay);
+        addSubtitle(m_secondary, subtitle, start, end, delay, false);
     }
     m_secondary.lock.unlock();
 }
