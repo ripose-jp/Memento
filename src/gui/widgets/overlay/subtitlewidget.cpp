@@ -95,7 +95,7 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
     );
     connect(
         mediator, &GlobalMediator::definitionsShown,
-        this, &SubtitleWidget::selectText
+        this,     &SubtitleWidget::selectText
     );
     connect(
         mediator, &GlobalMediator::playerSubtitleChanged,
@@ -397,7 +397,7 @@ void SubtitleWidget::findTerms()
         return;
 
     int index = m_currentIndex;
-    QString queryStr = m_subtitle.rawText;
+    QString queryStr = getText();
     queryStr.remove(0, index);
     queryStr.truncate(MAX_QUERY_LENGTH);
     if (queryStr.isEmpty() || queryStr[0].isSpace())
@@ -513,6 +513,7 @@ void SubtitleWidget::setSubtitle(QString subtitle,
     m_subtitle.rawText = subtitle;
 
     /* Process the subtitle */
+    subtitle = subtitle.trimmed();
     if (m_settings.replaceNewLines)
     {
         subtitle.replace('\n', m_settings.replaceStr);
