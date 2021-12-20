@@ -37,6 +37,9 @@ PlayerControls::PlayerControls(QWidget *parent)
 
 #if __APPLE__
     m_ui->layoutButtons->setSpacing(2);
+    m_ui->sliderVolume->setSizePolicy(
+        QSizePolicy::Expanding, QSizePolicy::Minimum
+    );
 #endif
 
     initTheme();
