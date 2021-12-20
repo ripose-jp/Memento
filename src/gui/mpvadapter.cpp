@@ -99,6 +99,10 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
         mediator, &GlobalMediator::playerSubtitleChanged
     );
     connect(
+        m_mpv,    &MpvWidget::subtitleChangedRaw,
+        mediator, &GlobalMediator::playerSubtitleChangedRaw
+    );
+    connect(
         m_mpv,    &MpvWidget::subtitleChangedSecondary,
         mediator, &GlobalMediator::playerSecSubtitleChanged
     );

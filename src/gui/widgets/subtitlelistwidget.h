@@ -24,6 +24,7 @@
 #include <QWidget>
 
 #include <QHash>
+#include <QMultiHash>
 #include <QMultiMap>
 #include <QMutex>
 #include <QRegularExpression>
@@ -148,10 +149,10 @@ private Q_SLOTS:
      * @param end      The end time of the subtitle.
      * @param delay    The signed delay of the subtitle.
      */
-    void updatePrimarySubtitle(const QString &subtitle,
-                               const double   start,
-                               const double   end,
-                               const double   delay);
+    void updatePrimarySubtitle(QString subtitle,
+                               double start,
+                               double end,
+                               double delay);
 
     /**
      * Updates the current secondary subtitle
@@ -163,9 +164,9 @@ private Q_SLOTS:
      * @param delay    The signed delay of the subtitle.
      */
     void updateSecondarySubtitle(const QString &subtitle,
-                                 const double   start,
-                                 const double   end,
-                                 const double   delay);
+                                 double start,
+                                 double end,
+                                 double delay);
 
     /**
      * Updates the timestamps of the subtitles with a new delay.
@@ -211,6 +212,31 @@ private Q_SLOTS:
     void seekToSecondarySubtitle(QTableWidgetItem *item) const;
 
 private:
+    /* Holds all structures relating to a subtitle list. */
+    struct SubtitleList
+    {
+        /* The table to populate subtitles with */
+        QTableWidget *table = nullptr;
+
+        /* Locks all structures related to the subtitle. */
+        QMutex lock;
+
+        /* Holds subtitle info for the current track. */
+        QList<SubtitleInfo> *subList;
+
+        /* true if subtitles were parsed, false otherwise */
+        bool *subsParsed = nullptr;
+
+        /* Maps timecodes to table widget items for the subtitles. */
+        QMultiMap<double, QTableWidgetItem *> startToItem;
+
+        /* Maps table widget items to subtitle infos. */
+        QHash<QTableWidgetItem *, const SubtitleInfo *> itemToSub;
+
+        /* Maps subtitle lines to table widget items for parsed subtitles. */
+        QMultiHash<QString, QTableWidgetItem *> lineToItem;
+    } typedef SubtitleList;
+
     /**
      * Hides the secondary subtitle list and tabs.
      */
@@ -220,6 +246,18 @@ private:
      * Shows the secondary subtitle list and tabs.
      */
     void showSecondarySubs();
+
+    /**
+     * Selects all the subtitles contained in the subtitle.
+     * @param list     The list to select subtitles from.
+     * @param subtitle The non-regex filtered subtitle.
+     * @param start    The start time of the subtitle.
+     * @param end      The end time of the subtitle.
+     * @param delay    The current subtitle delay.
+     */
+    void selectSubtitles(SubtitleList &list,
+                         const QString &subtitle,
+                         double delay);
 
     /**
      * Helper method for getting a context string from a subtitle list.
@@ -232,42 +270,56 @@ private:
                        const QString      &separator) const;
 
     /**
+     * Gets the earliest start and latest end time of the selected subtitles in
+     * the table.
+     * @param table The table to get the start and end times from.
+     * @return A pair containing the start time and end time.
+     */
+    QPair<double, double> getContextTime(const SubtitleList &list) const;
+
+    /**
+     * Selects parsed subtitles in the subtitle list.
+     *
+     * @param list
+     * @param subtitle
+     * @param start
+     * @param end
+     * @param delay
+     */
+    void selectParsedSubtitles(SubtitleList &list,
+                               const QString &subtitle,
+                               double start,
+                               double end,
+                               double delay);
+
+    /**
      * Helper method for adding a subtitle to a table.
-     * @param table      The table to add the subtitle to.
-     * @param subInfos   List of the SubtitleInfos for the current track.
-     * @param seenSubs   Map used for mapping timecodes to table items.
-     * @param startTimes Map used for mapping table items to timecodes.
+     * @param list       The subtitle list to operate on.
      * @param subtitle   The subtitle to add.
      * @param start      The start time of the subtitle.
      * @param end        The end time of the subtitle.
      * @param delay      The signed delay of the subtitle.
      */
-    void addSubtitle(
-        QTableWidget *table,
-        QList<SubtitleInfo> *subInfos,
-        QMultiMap<double, QTableWidgetItem *> &seenSubs,
-        QHash<QTableWidgetItem *, const SubtitleInfo *> &startTimes,
-        const QString &subtitle,
-        const double start,
-        const double end,
-        const double delay);
+    void addSubtitle(SubtitleList &list,
+                     const QString &subtitle,
+                     double start,
+                     double end,
+                     double delay);
 
     /**
      * Adds an item to a subtitle table. Assumes the subtitle is not already in
      * the table.
-     * @param table      The table to add the subtitle to.
-     * @param seenSubs   Map used for mapping timecodes to table items.
-     * @param startTimes Map used for mapping table items to timecodes.
+     * @param list       The subtitle list to add the item to.
      * @param info       The subtitle information.
      * @param delay      The signed delay of the subtitle.
-     * @return The constructed QTableWidgetItem. Belongs to table.
+     * @param regex      Filter the subtitle with the subtitle regex.
+     * @return The constructed QTableWidgetItem. Belongs to table. nullptr if
+     *         regex is true and the text is empty.
      */
-    QTableWidgetItem *addTableItem(
-        QTableWidget *table,
-        QMultiMap<double, QTableWidgetItem *> &seenSubs,
-        QHash<QTableWidgetItem *, const SubtitleInfo *> &startTimes,
-        const SubtitleInfo &info,
-        const double delay);
+    QTableWidgetItem *addTableItem(SubtitleList &list,
+                                   const SubtitleInfo &info,
+                                   double delay,
+                                   bool regex = false);
 
     /**
      * Helper method that converts a time in seconds to a timecode string of the
@@ -279,25 +331,16 @@ private:
 
     /**
      * Updates the timestamps in a table with a new delay.
-     * @param table    The table to change the timestamps on.
-     * @param seenSubs Map for mapping timecodes to table items.
+     * @param list     The list to update the timestamps of.
      * @param delay    The signed delay of the subtitle.
      */
-    void updateTimestampsHelper(
-        QTableWidget *table,
-        const QMultiMap<double, QTableWidgetItem *> &seenSubs,
-        const double delay);
+    void updateTimestampsHelper(SubtitleList &list, double delay);
 
     /**
      * Removes all the information in the table and cleans up metadata.
-     * @param table      The table to remove information from.
-     * @param seenSubs   The timecode to item map remove information from.
-     * @param startTimes The item top timecode map remove information from.
+     * @param list The list to remove items from.
      */
-    void clearSubtitles(
-        QTableWidget *table,
-        QMultiMap<double, QTableWidgetItem *> &seenSubs,
-        QHash<QTableWidgetItem *, const SubtitleInfo *> &startTimes);
+    void clearSubtitles(SubtitleList &list);
 
     /**
      * Seeks to the subtitle belonging to the item.
@@ -305,9 +348,7 @@ private:
      *                   timestamp item.
      * @param startTimes Maps an item to a timecode.
      */
-    void seekToSubtitle(
-        QTableWidgetItem *item,
-        const QHash<QTableWidgetItem *, const SubtitleInfo *> &startTimes) const;
+    void seekToSubtitle(QTableWidgetItem *item, const SubtitleList &list) const;
 
     /* The UI item containing the widgets. */
     Ui::SubtitleListWidget *m_ui;
@@ -321,35 +362,14 @@ private:
     /* Maps sid to a list of subtitles */
     QHash<int64_t, QList<SubtitleInfo>> m_subtitleMap;
 
-    /* Locks all structures related to the primary subtitle. */
-    QMutex m_primaryLock;
+    /* Maps sid to whether or not the subtitle was parsed. */
+    QHash<int64_t, bool> m_subtitleParsed;
 
-    /* Maps timecodes to table widget items for the primary subtitles. */
-    QMultiMap<double, QTableWidgetItem *> m_seenPrimarySubs;
+    /* The primary subtitle list */
+    SubtitleList m_primary;
 
-    /* Maps table widget items to subtitle info for the primary subtitles. */
-    QHash<QTableWidgetItem *, const SubtitleInfo *> m_timesPrimarySubs;
-
-    /* Holds subtitle info for the current primary track. */
-    QList<SubtitleInfo> *m_primarySubInfoList;
-
-    /* Locks all structures related to the secondary subtitle. */
-    QMutex m_secondaryLock;
-
-    /* Maps timecodes to table widget items for the secondary subtitles. */
-    QMultiMap<double, QTableWidgetItem *>  m_seenSecondarySubs;
-
-    /* Maps table widget items to subtitle info for the secondary subtitles. */
-    QHash<QTableWidgetItem *, const SubtitleInfo *> m_timesSecondarySubs;
-
-    /* Holds subtitle info for the current secondary track. */
-    QList<SubtitleInfo> *m_secondarySubInfoList;
-
-    /* Flag for whether the primary subs have been parsed & populated */
-    bool m_didParsePrimarySubs = false;
-
-    /* Flag for whether the secondary subs have been parsed & populated */
-    bool m_didParseSecondarySubs = false;
+    /* The secondary subtitle list */
+    SubtitleList m_secondary;
 };
 
 #endif // SUBTITLELISTWIDGET_H

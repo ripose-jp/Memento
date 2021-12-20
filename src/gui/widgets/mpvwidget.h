@@ -175,10 +175,22 @@ Q_SIGNALS:
      * @param end      The end time of the current subtitle in seconds.
      * @param delay    The signed delay of the current subtitle in seconds.
      */
-    void subtitleChanged(QString      subtitle,
+    void subtitleChanged(const QString &subtitle,
                          const double start,
                          const double end,
                          const double delay) const;
+
+    /**
+     * Emitted when the current subtitle changes. Unflitered by regex.
+     * @param subtitle The text of the current subtitle.
+     * @param start    The start time of the current subtitle in seconds.
+     * @param end      The end time of the current subtitle in seconds.
+     * @param delay    The signed delay of the current subtitle in seconds.
+     */
+    void subtitleChangedRaw(const QString &subtitle,
+                            const double start,
+                            const double end,
+                            const double delay) const;
 
     /**
      * Emitted when the current secondary subtitle changes.
@@ -189,7 +201,7 @@ Q_SIGNALS:
      *                 seconds.
      * @param delay    The signed delay of the current subtitle in seconds.
      */
-    void subtitleChangedSecondary(QString      subtitle,
+    void subtitleChangedSecondary(const QString &subtitle,
                                   const double start,
                                   const double end,
                                   const double delay) const;

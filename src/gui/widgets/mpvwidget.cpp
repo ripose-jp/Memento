@@ -388,6 +388,9 @@ void MpvWidget::initPropertyMap()
                     );
 
                     Q_EMIT subtitleChanged(subtitle, start, end, delay);
+                    Q_EMIT subtitleChangedRaw(
+                        *(const char **)prop->data, start, end, delay
+                    );
                 }
             }
         };
@@ -400,7 +403,6 @@ void MpvWidget::initPropertyMap()
                 if (strcmp(*subtitle, ""))
                 {
                     double start, end, delay;
-
 
                     mpv_get_property(
                         mpv, "secondary-sub-start", MPV_FORMAT_DOUBLE, &start
