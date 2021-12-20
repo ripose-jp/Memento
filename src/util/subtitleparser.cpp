@@ -246,7 +246,7 @@ bool SubtitleParser::parseASS(QFile &file, QList<SubtitleInfo> &out) const
             qDebug() << dialogue[startIndex];
             return false;
         }
-        info.end = timecodeToDouble(dialogue[startIndex], &ok);
+        info.end = timecodeToDouble(dialogue[endIndex], &ok);
         if (!ok || info.end < info.start)
         {
             qDebug() << "ASS Parser: Invalid end time";
