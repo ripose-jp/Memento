@@ -249,6 +249,12 @@ tracker.
 
 Before making a pull request, please read [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Animebook
+
+If you hate Memento, try [Animebook](https://animebook.github.io/).
+
+https://github.com/animebook/animebook.github.io
+
 ## Acknowledgements
 
 MpvWidget code is based off of libmpv example code by w4m.
