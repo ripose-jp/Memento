@@ -322,11 +322,10 @@ void MainWindow::showEvent(QShowEvent *event)
             "</a>."
             "<br>"
         #if __APPLE__
-            "To install a dictionary, go to Memento -> Preferences -> "
+            "To install a dictionary, go to Memento → Preferences → "
             "Dictionaries."
         #else
-            "To install a dictionary, go to Settings -> Options -> "
-            "Dictionaries."
+            "To install a dictionary, go to Settings → Options → Dictionaries."
         #endif
         );
     }
