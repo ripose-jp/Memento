@@ -40,10 +40,6 @@
 /* Prevents valid subtitles from being hidden due to double precision errors. */
 #define DOUBLE_DELTA 0.001
 
-/* If pausing on subtitle end is enabled, prevents pausing on the next
- * subtitle. */
-#define PAUSE_DELTA 0.028
-
 /* Begin Constructor/Destructor */
 
 SubtitleWidget::SubtitleWidget(QWidget *parent)
@@ -482,14 +478,18 @@ void SubtitleWidget::adjustVisibility()
     }
 }
 
+/* If pausing on subtitle end is enabled, prevents pausing on the next
+ * subtitle. */
+#define PAUSE_DELTA 0.028
+
 void SubtitleWidget::positionChanged(const double value)
 {
     const double timeToSubtitleEnd = m_subtitle.endTime - value;
     if (m_settings.pauseOnSubtitleEnd &&
         !m_pausedForCurrentSubtitle &&
-        timeToSubtitleEnd >= DOUBLE_DELTA * -4 &&
+        timeToSubtitleEnd >= -PAUSE_DELTA &&
         timeToSubtitleEnd <= PAUSE_DELTA &&
-        value > DOUBLE_DELTA * 4)
+        value > PAUSE_DELTA)
     {
          GlobalMediator::getGlobalMediator()->getPlayerAdapter()->pause();
          m_pausedForCurrentSubtitle = true;
@@ -504,6 +504,8 @@ void SubtitleWidget::positionChanged(const double value)
         Q_EMIT GlobalMediator::getGlobalMediator()->subtitleExpired();
     }
 }
+
+#undef PAUSE_DELTA
 
 void SubtitleWidget::setSubtitle(QString subtitle,
                                  const double start,
