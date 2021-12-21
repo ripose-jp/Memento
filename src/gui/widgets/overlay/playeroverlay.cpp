@@ -102,7 +102,7 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
     );
     connect(
         m_menu, &PlayerMenu::aboutToHide,
-        this, &PlayerOverlay::hideOverlay
+        mediator, &GlobalMediator::requestPlayerTimerReset
     );
 
     connect(

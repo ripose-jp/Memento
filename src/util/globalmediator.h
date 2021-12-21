@@ -564,6 +564,11 @@ Q_SIGNALS:
      */
     void requestThemeRefresh() const;
 
+    /**
+     * Requests the player cursor hide timer be reset.
+     */
+    void requestPlayerTimerReset() const;
+
     /* End Request Changes */
 
 private:

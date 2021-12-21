@@ -149,18 +149,16 @@ MpvWidget::MpvWidget(QWidget *parent)
     );
     connect(&m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
     connect(
-        mediator, &GlobalMediator::definitionsHidden, this,
-        [=] {
-            try
-            {
-                m_cursorTimer.start(CURSOR_TIMEOUT);
-            }
-            catch (std::bad_alloc) {} // Find somebody else who cares
-        }
+        mediator, &GlobalMediator::definitionsHidden,
+        this, &MpvWidget::resetTimer
+    );
+    connect(
+        mediator, &GlobalMediator::requestPlayerTimerReset,
+        this, &MpvWidget::resetTimer
     );
     connect(
         mediator, &GlobalMediator::searchSettingsChanged,
-        this,     &MpvWidget::initSubtitleRegex
+        this, &MpvWidget::initSubtitleRegex
     );
 }
 
@@ -634,6 +632,15 @@ void MpvWidget::mouseDoubleClickEvent(QMouseEvent *event)
     {
         qDebug() << "Could not send double click event to mpv";
     }
+}
+
+void MpvWidget::resetTimer()
+{
+    try
+    {
+        m_cursorTimer.start(CURSOR_TIMEOUT);
+    }
+    catch (std::bad_alloc) {} // Find somebody else who cares
 }
 
 void MpvWidget::hideCursor()
