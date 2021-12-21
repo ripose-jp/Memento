@@ -68,13 +68,23 @@ Subtitle visibility is bound to **v** by default.
 This error can be fixed by installing the
 [Microsoft Visual C++ 2010 Service Pack 1 Redistributable Package (x86)](https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x86.exe).
 
+### Windows: Updating youtube-dl/yt-dlp
+
+If you're version of youtube-dl is out of date, you may experience degraded streaming performance or websites not working entirely.
+
+Memento's version of youtube-dl can be updated by doing the following:
+
+1. Download [yt-dlp](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe)
+2. Rename the file to `youtube-dl.exe`
+3. Put `youtube-dl.exe` in Memento's install directory. For the portable version of Memento, this is located in the same folder as the executable. For the installed version, this is located at `C:\Program Files\Memento` by default.
+
 ### macOS: Streaming video doesn't work
 
 This means that mpv cannot find your youtube-dl installation.
 
 To install youtube-dl, paste these commands into Terminal:
 ```
-curl -L https://yt-dl.org/downloads/latest/youtube-dl -o ~/Library/Preferences/memento/youtube-dl
+curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ~/Library/Preferences/memento/youtube-dl
 chmod a+rx ~/Library/Preferences/memento/youtube-dl
 ```
 
@@ -100,7 +110,7 @@ no workaround that can be implemented.
     * With either ipadic or NAIST-jdic installed as a system dictionary on Linux and macOS. This only applies to self-compiled versions, not appimages or app bundles.
 * Json-C
 * libzip
-* youtube-dl (optional)
+* youtube-dl or yt-dlp (optional)
 
 For the best experience, install [Noto Sans CJK JP](https://www.google.com/get/noto/#sans-jpan)
 and the [Kanji Stroke Order](https://drive.google.com/uc?export=download&id=1oyQoTB531tbhlYaOW7ugvutXZ7HSlJfW) fonts.
