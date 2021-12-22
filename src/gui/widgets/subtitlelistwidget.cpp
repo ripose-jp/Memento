@@ -636,6 +636,12 @@ inline QPair<double, double> SubtitleListWidget::getContextTime(
         start = list.itemToSub[items.first()]->start;
         end = list.itemToSub[items.last()]->end;
     }
+    for (QTableWidgetItem *item : items)
+    {
+        const SubtitleInfo *info = list.itemToSub[item];
+        start = start < info->start ? start : info->start;
+        end = end > info->end ? end : info->end;
+    }
 
     return QPair<double, double>(start, end);
 }
