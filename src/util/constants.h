@@ -180,6 +180,34 @@ enum class Theme
     "    font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
     "    font-size: 20pt;\n"\
     "}"
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT      \
+    "QTabWidget::pane {\n"\
+    "    border-top: 0px;\n"\
+    "}\n"\
+    "\n"\
+    "QTabWidget::tab-bar {\n"\
+    "    border: 0px;\n"\
+    "    alignment: center;\n"\
+    "}\n"\
+    "\n"\
+    "QTabBar::tab {\n"\
+    "    background: black;\n"\
+    "}\n"\
+    "QTabBar::tab:selected {\n"\
+    "    color: white;\n"\
+    "}\n"\
+    "\n"\
+    "QTabBar::tab:!selected {\n"\
+    "    color: gray;\n"\
+    "}\n"\
+    "\n"\
+    "QTableWidget {\n"\
+    "    background: black;\n"\
+    "    color: white;\n"\
+    "    font-family: \"Meiryo\", \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
+    "    font-size: 14pt;\n"\
+    "}"
 #else
 #define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT      \
     "QTabWidget::pane {\n"\
@@ -226,6 +254,12 @@ enum class Theme
     "QLabel {\n"\
     "    font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
     "    font-size: 15pt;\n"\
+    "}"
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#define SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT         \
+    "QLabel {\n"\
+    "    font-family: \"Meiryo\", \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
+    "    font-size: 11pt;\n"\
     "}"
 #else
 #define SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT         \
