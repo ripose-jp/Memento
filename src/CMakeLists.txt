@@ -82,19 +82,11 @@ if(APPLE AND APPBUNDLE)
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src
 	)
 
-	# Sign the code
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND codesign -s '${CERT}' --deep -f ${PROJECT_NAME}.app
-		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src
-	)
-
 	# Copy python. This need to happen here because Python confuses codesign
 	add_custom_command(
 		TARGET ${PROJECT_NAME}
 		POST_BUILD
-		COMMAND cp -r ${PYTHON_FRAMEWORK_PATH} .
+		COMMAND cp -RL ${PYTHON_FRAMEWORK_PATH} . && chmod -R 755 Python.framework
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks
 	)
 	add_custom_command(
@@ -102,6 +94,20 @@ if(APPLE AND APPBUNDLE)
 		POST_BUILD
 		COMMAND rm -rf Current
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks/Python.framework/Versions
+	)
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND xattr -cr ${PROJECT_NAME}.app
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src
+	)
+
+	# Sign the code
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND codesign -s '${CERT}' --deep -f ${PROJECT_NAME}.app
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src
 	)
 else()
 	add_executable(
