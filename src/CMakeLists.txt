@@ -97,6 +97,12 @@ if(APPLE AND APPBUNDLE)
 		COMMAND cp -r ${PYTHON_FRAMEWORK_PATH} .
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks
 	)
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND rm -rf Current
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks/Python.framework/Versions
+	)
 else()
 	add_executable(
 		${PROJECT_NAME}
