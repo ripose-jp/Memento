@@ -41,4 +41,4 @@ windeployqt memento.exe
 rm -rf translations
 
 # Get the latest youtube-dl
-wget https://yt-dl.org/downloads/latest/youtube-dl.exe
+curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe -o youtube-dl.exe
