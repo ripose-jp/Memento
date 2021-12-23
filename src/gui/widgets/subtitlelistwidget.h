@@ -261,12 +261,12 @@ private:
 
     /**
      * Helper method for getting a context string from a subtitle list.
-     * @param table     The table to get selected rows from.
+     * @param list      The list to get selected rows from.
      * @param separator The separator to place between subtitles and replace
      *                  newlines with.
      * @return A string containing all the selected rows in the table.
      */
-    QString getContext(const QTableWidget *table,
+    QString getContext(const SubtitleList *list,
                        const QString      &separator) const;
 
     /**

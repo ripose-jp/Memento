@@ -602,10 +602,16 @@ void SubtitleListWidget::updateTimestamps(const double delay)
 /* End Adder Methods */
 /* Begin Context Methods */
 
-QString SubtitleListWidget::getContext(const QTableWidget *table,
+QString SubtitleListWidget::getContext(const SubtitleList *list,
                                        const QString      &separator) const
 {
-    QList<QTableWidgetItem *> items = table->selectedItems();
+    QList<QTableWidgetItem *> items = list->table->selectedItems();
+    std::sort(items.begin(), items.end(),
+        [=] (QTableWidgetItem *lhs, QTableWidgetItem *rhs)
+        {
+            return list->itemToSub[lhs]->start < list->itemToSub[rhs]->start;
+        }
+    );
     QString context;
     for (const QTableWidgetItem *item : items)
     {
@@ -616,12 +622,12 @@ QString SubtitleListWidget::getContext(const QTableWidget *table,
 
 QString SubtitleListWidget::getPrimaryContext(const QString &separator) const
 {
-    return getContext(m_ui->tablePrim, separator);
+    return getContext(&m_primary, separator);
 }
 
 QString SubtitleListWidget::getSecondaryContext(const QString &separator) const
 {
-    return getContext(m_ui->tableSec, separator);
+    return getContext(&m_secondary, separator);
 }
 
 inline QPair<double, double> SubtitleListWidget::getContextTime(
