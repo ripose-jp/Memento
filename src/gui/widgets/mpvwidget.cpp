@@ -438,7 +438,13 @@ void MpvWidget::initSubtitleRegex()
 
 void MpvWidget::initializeGL()
 {
-    mpv_opengl_init_params gl_init_params{get_proc_address, nullptr};
+    mpv_opengl_init_params gl_init_params{
+        .get_proc_address = get_proc_address,
+        .get_proc_address_ctx = nullptr,
+    #if MPV_CLIENT_API_VERSION < MPV_MAKE_VERSION(2, 0)
+        .extra_exts = nullptr,
+    #endif
+    };
     mpv_render_param params[]{
         {
             MPV_RENDER_PARAM_API_TYPE,
