@@ -152,7 +152,7 @@ void NetworkUtils::checkForUpdates()
             }
 
             /* Get the url and tag */
-            if (tag != VERSION)
+            if (tag != "v" + VERSION)
             {
                 Q_EMIT mediator->showInformation(
                     "Update Available",
