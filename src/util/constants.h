@@ -121,7 +121,7 @@ enum class Theme
 
 /* Subtitle Interface */
 #define SETTINGS_INTERFACE_SUB_FONT                         "sub-font"
-#define SETTINGS_INTERFACE_SUB_FONT_DEFAULT                 "Noto Sans CJK JP"
+#define SETTINGS_INTERFACE_SUB_FONT_DEFAULT                 "Noto Sans JP"
 
 #define SETTINGS_INTERFACE_SUB_FONT_BOLD                    "sub-font-bold"
 #define SETTINGS_INTERFACE_SUB_FONT_BOLD_DEFAULT            false
@@ -177,7 +177,7 @@ enum class Theme
     "QTableWidget {\n"\
     "    background: black;\n"\
     "    color: white;\n"\
-    "    font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
+    "    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"\
     "    font-size: 20pt;\n"\
     "}"
 #elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
@@ -205,7 +205,7 @@ enum class Theme
     "QTableWidget {\n"\
     "    background: black;\n"\
     "    color: white;\n"\
-    "    font-family: \"Meiryo\", \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
+    "    font-family: \"Meiryo\", \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"\
     "    font-size: 14pt;\n"\
     "}"
 #else
@@ -233,7 +233,7 @@ enum class Theme
     "QTableWidget {\n"\
     "    background: black;\n"\
     "    color: white;\n"\
-    "    font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
+    "    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"\
     "    font-size: 14pt;\n"\
     "}"
 #endif
@@ -252,19 +252,19 @@ enum class Theme
 #if __APPLE__
 #define SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT         \
     "QLabel {\n"\
-    "    font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
+    "    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"\
     "    font-size: 15pt;\n"\
     "}"
 #elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT         \
     "QLabel {\n"\
-    "    font-family: \"Meiryo\", \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
+    "    font-family: \"Meiryo\", \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"\
     "    font-size: 11pt;\n"\
     "}"
 #else
 #define SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT         \
     "QLabel {\n"\
-    "    font-family: \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;\n"\
+    "    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"\
     "    font-size: 11pt;\n"\
     "}"
 #endif

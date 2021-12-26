@@ -112,7 +112,7 @@ no workaround that can be implemented.
 * libzip
 * youtube-dl or yt-dlp (optional)
 
-For the best experience, install [Noto Sans CJK JP](https://www.google.com/get/noto/#sans-jpan)
+For the best experience, install [Noto Sans JP](https://fonts.google.com/noto/specimen/Noto+Sans+JP)
 and the [Kanji Stroke Order](https://drive.google.com/uc?export=download&id=1oyQoTB531tbhlYaOW7ugvutXZ7HSlJfW) fonts.
 
 ## Building

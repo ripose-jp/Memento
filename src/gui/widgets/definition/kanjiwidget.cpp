@@ -58,7 +58,7 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent)
     labelKanjiStroke->setText(kanji->character);
     labelKanjiStroke->setStyleSheet(
         "QLabel {"
-            "font-family: \"KanjiStrokeOrders\", \"Noto Sans\", \"Noto Sans CJK JP\", sans-serif;"
+            "font-family: \"KanjiStrokeOrders\", \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;"
         #if __APPLE__
             "font-size: 140pt;"
         #else
