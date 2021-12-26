@@ -515,6 +515,7 @@ void SubtitleListWidget::selectSubtitles(SubtitleList &list,
 
     list.table->clearSelection();
 
+    int earliestRow = -1;
     QStringList lines = subtitle.split('\n');
     for (const QString &line : lines)
     {
@@ -527,8 +528,18 @@ void SubtitleListWidget::selectSubtitles(SubtitleList &list,
             {
                 item->setSelected(true);
                 list.table->scrollToItem(item);
+
+                int row = list.table->row(item);
+                if (earliestRow == -1 || earliestRow > row)
+                {
+                    earliestRow = row;
+                }
             }
         }
+    }
+    if (earliestRow >= 0)
+    {
+        list.table->setCurrentCell(earliestRow, 1, QItemSelectionModel::Select);
     }
 }
 
