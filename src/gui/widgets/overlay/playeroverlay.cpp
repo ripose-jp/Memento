@@ -146,11 +146,11 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
         m_definition, &DefinitionWidget::hide
     );
     connect(
-        mediator, &GlobalMediator::subtitleListShown,
+        mediator, &GlobalMediator::requestSubtitleListVisibility,
         m_definition, &DefinitionWidget::hide
     );
     connect(
-        mediator, &GlobalMediator::subtitleListHidden,
+        mediator, &GlobalMediator::requestSearchVisibility,
         m_definition, &DefinitionWidget::hide
     );
     connect(
@@ -169,6 +169,15 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
                 m_definition->hide();
             }
         }
+    );
+
+    connect(
+        m_definition, &DefinitionWidget::widgetHidden,
+        mediator, &GlobalMediator::definitionsHidden
+    );
+    connect(
+        m_definition, &DefinitionWidget::widgetShown,
+        mediator, &GlobalMediator::definitionsShown
     );
 
     initSettings();

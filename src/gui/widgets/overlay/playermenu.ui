@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>355</width>
-    <height>24</height>
+    <width>429</width>
+    <height>34</height>
    </rect>
   </property>
   <property name="cursor">
@@ -108,10 +108,10 @@
      <widget class="QMenu" name="menuSettings">
       <property name="geometry">
        <rect>
-        <x>548</x>
-        <y>107</y>
-        <width>200</width>
-        <height>164</height>
+        <x>976</x>
+        <y>316</y>
+        <width>202</width>
+        <height>271</height>
        </rect>
       </property>
       <property name="minimumSize">
@@ -128,8 +128,8 @@
         <rect>
          <x>664</x>
          <y>189</y>
-         <width>120</width>
-         <height>44</height>
+         <width>142</width>
+         <height>60</height>
         </rect>
        </property>
        <property name="title">
@@ -148,6 +148,7 @@
       </widget>
       <addaction name="menuAnkiProfile"/>
       <addaction name="menuSubtitleSearch"/>
+      <addaction name="actionShowSearch"/>
       <addaction name="actionOptions"/>
       <addaction name="separator"/>
       <addaction name="actionAbout"/>
@@ -305,6 +306,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+0</string>
+   </property>
+  </action>
+  <action name="actionShowSearch">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Search</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
    </property>
   </action>
  </widget>

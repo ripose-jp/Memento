@@ -172,6 +172,12 @@ Q_SIGNALS:
      */
     void wheelMoved(const QWheelEvent *event) const;
 
+    /**
+     * Emitted when the window focus changes.
+     * @param inFocus true if the window is in focus, false otherwise.
+     */
+    void windowFocusChanged(bool inFocus) const;
+
     /* End Interrupts */
     /* Begin Player State Changes */
 
@@ -532,25 +538,6 @@ Q_SIGNALS:
     void dictionaryOrderChanged() const;
 
     /* End Dictionary Signals */
-    /* Begin Subtitle List Widget */
-
-    /**
-     * Emitted when the subtitle list is hidden.
-     */
-    void subtitleListHidden() const;
-
-    /**
-     * Emitted when the subtitle list is shown.
-     */
-    void subtitleListShown() const;
-
-    /**
-     * Emitted when the window focus changes.
-     * @param inFocus true if the window is in focus, false otherwise.
-     */
-    void windowFocusChanged(bool inFocus) const;
-
-    /* End Subtitle List Widget */
     /* Begin Request Changes */
 
     /**
@@ -558,6 +545,18 @@ Q_SIGNALS:
      * @param value true to show subtitles, false otherwise.
      */
     void requestSetSubtitleVisibility(const bool value) const;
+
+    /**
+     * Requests that the subtitle list visibility be chagned.
+     * @param value true to show the subtitle list, false to hide it.
+     */
+    void requestSubtitleListVisibility(const bool value) const;
+
+    /**
+     * Requests that the search widget visibility be changed.
+     * @param value true to show the search widget, false to hide.
+     */
+    void requestSearchVisibility(const bool value) const;
 
     /**
      * Requests that the definiton widget be deleted.

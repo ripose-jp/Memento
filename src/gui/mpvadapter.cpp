@@ -358,7 +358,7 @@ double MpvAdapter::getSubStart() const
     double start;
     if (mpv_get_property(m_handle, "sub-start", MPV_FORMAT_DOUBLE, &start) < 0)
     {
-        qDebug() << "Could not get sub-start property";
+        //qDebug() << "Could not get sub-start property";
         return 0;
     }
     return start;
@@ -369,7 +369,7 @@ double MpvAdapter::getSubEnd() const
     double end;
     if (mpv_get_property(m_handle, "sub-end", MPV_FORMAT_DOUBLE, &end) < 0)
     {
-        qDebug() << "Could not get sub-end property";
+        //qDebug() << "Could not get sub-end property";
         return 0;
     }
     return end;
@@ -384,6 +384,18 @@ double MpvAdapter::getSubDelay() const
         return 0;
     }
     return delay;
+}
+
+QString MpvAdapter::getSubtitle() const
+{
+    QString subtitle;
+    char *sub = mpv_get_property_string(m_handle, "sub-text");
+    if (sub)
+    {
+        subtitle = QString::fromUtf8(sub);
+    }
+    mpv_free(sub);
+    return subtitle;
 }
 
 QString MpvAdapter::getSecondarySubtitle() const

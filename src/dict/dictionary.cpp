@@ -297,6 +297,12 @@ QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
 
 #undef WORD_INDEX
 
+QList<Term *> *Dictionary::searchTerms(const QString query)
+{
+    int index = 0;
+    return searchTerms(query, query, index, &index);
+}
+
 /* The maximum number of queries one thread can be accountable for. */
 #define QUERIES_PER_THREAD  4
 

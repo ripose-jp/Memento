@@ -1,4 +1,7 @@
 add_subdirectory(common)
+add_subdirectory(settings)
+add_subdirectory(definition)
+add_subdirectory(overlay)
 
 # Add MpvWidget
 add_library(
@@ -41,6 +44,19 @@ target_link_libraries(
     Qt5::Core
 )
 
+# Add Search Widget
+add_library(
+    searchwidget
+    searchwidget.cpp
+)
+target_link_libraries(
+    searchwidget
+    definitionwidget
+    dictionary_db
+    Qt5::Core
+    Qt5::Widgets
+)
+
 # Add Subtitle List
 add_library(
     subtitlelist
@@ -53,7 +69,3 @@ target_link_libraries(
     mpvadapter
     subtitleparser
 )
-
-add_subdirectory(settings)
-add_subdirectory(definition)
-add_subdirectory(overlay)

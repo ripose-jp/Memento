@@ -433,15 +433,6 @@ void SubtitleWidget::findTerms()
             }
             else
             {
-                /* Populate the missing fields */
-                for (Term *term : *terms)
-                {
-                    term->title = title;
-                    term->startTime = startTime;
-                    term->endTime = endTime;
-                    term->sentence2 = sentence2;
-                }
-
                 Q_EMIT GlobalMediator::getGlobalMediator()->termsChanged(terms);
 
                 m_lastEmittedIndex = index;

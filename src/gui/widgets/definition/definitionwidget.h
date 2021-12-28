@@ -51,12 +51,29 @@ public:
     DefinitionWidget(QWidget *parent = nullptr);
     ~DefinitionWidget();
 
+Q_SIGNALS:
+    /**
+     * Emitted when the widget is hidden.
+     */
+    void widgetHidden() const;
+
+    /**
+     * Emitted when the widget is shown.
+     */
+    void widgetShown() const;
+
+public Q_SLOTS:
     /**
      * Shows the terms in the list.
      * @param terms Pointer to a list of terms. Takes ownership of the terms and
      *              list.
      */
     void setTerms(const QList<Term *> *terms);
+
+    /**
+     * Clears all terms.
+     */
+    void clearTerms();
 
 private Q_SLOTS:
     /**
@@ -78,11 +95,6 @@ private Q_SLOTS:
      * Initializes settings signals.
      */
     void initSignals();
-
-    /**
-     * Clears all terms and free used memory.
-     */
-    void clearTerms();
 
     /**
      * Shows more terms up to the limit.
@@ -165,6 +177,9 @@ private:
      * when looking at a kanji entry.
      */
     int m_savedScroll;
+
+    /* Current search ID. Used to prevent erronious signals */
+    int m_searchId = 0;
 };
 
 #endif // DEFINITIONWIDGET_H

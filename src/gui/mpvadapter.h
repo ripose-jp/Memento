@@ -48,6 +48,8 @@ public:
 
     double getSubDelay() const override;
 
+    QString getSubtitle() const override;
+
     QString getSecondarySubtitle() const override;
 
     bool getSubVisibility() const override;

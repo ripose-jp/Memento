@@ -128,6 +128,13 @@ public:
     virtual double getSubDelay() const = 0;
 
     /**
+     * Get the subtitle text.
+     * @return The text of the current subtitle. Empty if there is no subtitle
+     *         on screen.
+     */
+    virtual QString getSubtitle() const = 0;
+
+    /**
      * Get the secondary subtitle text if supported.
      * @return The secondary subtitle text. Empty string if no subtitle or
      *         unsupported operation.

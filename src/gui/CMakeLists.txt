@@ -32,6 +32,7 @@ set(
     mpvwidget
     optionswindow
     playeroverlay
+    searchwidget
     sliderjumpstyle
     subtitlelist
 )

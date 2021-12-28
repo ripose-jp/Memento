@@ -228,8 +228,14 @@ void KanjiWidget::addKanji()
     m_buttonAnkiAdd->setVisible(false);
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+    PlayerAdapter *player = mediator->getPlayerAdapter();
     SubtitleListWidget *subList = mediator->getSubtitleListWidget();
     Kanji *kanji = new Kanji(*m_kanji);
+    kanji->title = player->getTitle();
+    kanji->sentence = player->getSubtitle();
+    kanji->sentence2 = player->getSecondarySubtitle();
+    kanji->startTime = player->getSubStart();
+    kanji->endTime = player->getSubEnd();
     kanji->context = subList->getPrimaryContext("\n");
     kanji->context2 = subList->getSecondaryContext("\n");
     QPair<double, double> contextTimes = subList->getPrimaryContextTime();

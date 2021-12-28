@@ -130,6 +130,15 @@ protected:
 
 private Q_SLOTS:
     /**
+     * Updates the user interface Memento.
+     * MainWindow is responsible for
+     * - The global palette
+     * - The splitter between the player and subtitle list
+     * - The position of the subtitle search widget
+     */
+    void initTheme();
+
+    /**
      * Shows a critical QMessageBox. Used when an error has occurred.
      * This method is used to make sure that errors that occur on threads other
      * than the UI thread can show an error messages.
@@ -148,15 +157,6 @@ private Q_SLOTS:
     void showInfoMessage(const QString title, const QString error) const;
 
     /**
-     * Updates the user interface Memento.
-     * MainWindow is responsible for
-     * - The global palette
-     * - The splitter between the player and subtitle list
-     * - The position of the subtitle search widget
-     */
-    void initTheme();
-
-    /**
      * Automatically resizes the screen to the supplied width and height.
      * Will not exceed the dimensions of the screen and only happens if in
      * windowed mode and autofit is enabled.
@@ -164,6 +164,18 @@ private Q_SLOTS:
      * @param height The height of the video.
      */
     void autoFitMedia(int width, int height);
+
+    /**
+     * Toggles subtitle list visibility.
+     */
+    void toggleSubtitleListVisibility();
+
+    /**
+     * Updates the visibility of the subtitle list splitter.
+     * This is required to prevent the splitter between the subtitle list and
+     * player from being visibile when nothing else is.
+     */
+    void updateSearchSubListSplitter();
 
 private:
     /**

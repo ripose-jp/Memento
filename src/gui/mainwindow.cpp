@@ -57,9 +57,11 @@ MainWindow::MainWindow(QWidget *parent)
     /* Player Overlay */
     m_overlay = new PlayerOverlay(m_ui->player);
 
-    /* Subtitle List */
+    /* Utility Widgets */
     m_mediator->setSubtitleList(m_ui->subtitleList);
     m_ui->subtitleList->hide();
+    m_ui->searchWidget->hide();
+    m_ui->splitterSearchList->hide();
 
     /* Options */
     m_optionsWindow = new OptionsWindow;
@@ -116,19 +118,39 @@ void MainWindow::initWindow()
     /* Signals */
     connect(
         m_mediator, &GlobalMediator::playerFullscreenChanged,
-        this,       &MainWindow::setFullscreen
+        this, &MainWindow::setFullscreen
     );
-        connect(
+    connect(
+        m_mediator, &GlobalMediator::requestSearchVisibility,
+        m_ui->searchWidget, &SearchWidget::setVisible
+    );
+    connect(
+        m_mediator, &GlobalMediator::requestSubtitleListVisibility,
+        m_ui->subtitleList, &SubtitleListWidget::setVisible
+    );
+    connect(
         m_mediator, &GlobalMediator::playerFileLoaded,
-        this,       &MainWindow::autoFitMedia
+        this, &MainWindow::autoFitMedia
     );
     connect(
         m_mediator, &GlobalMediator::playerClosed,
-        this,       &MainWindow::close
+        this, &MainWindow::close
     );
     connect(
         m_mediator, &GlobalMediator::interfaceSettingsChanged,
-        this,       &MainWindow::initTheme
+        this, &MainWindow::initTheme
+    );
+    connect(
+        m_mediator, &GlobalMediator::controlsSubtitleListToggled,
+        this, &MainWindow::toggleSubtitleListVisibility
+    );
+    connect(
+        m_mediator, &GlobalMediator::requestSearchVisibility,
+        this, &MainWindow::updateSearchSubListSplitter
+    );
+    connect(
+        m_mediator, &GlobalMediator::requestSubtitleListVisibility,
+        this, &MainWindow::updateSearchSubListSplitter
     );
     connect(m_mediator, &GlobalMediator::playerTitleChanged, this,
         [=] (const QString name) { setWindowTitle(name + " - Memento"); }
@@ -137,11 +159,11 @@ void MainWindow::initWindow()
     /* Message boxes */
     connect(
         m_mediator, &GlobalMediator::showCritical,
-        this,       &MainWindow::showErrorMessage
+        this, &MainWindow::showErrorMessage
     );
     connect(
         m_mediator, &GlobalMediator::showInformation,
-        this,       &MainWindow::showInfoMessage
+        this, &MainWindow::showInfoMessage
     );
 }
 
@@ -547,6 +569,21 @@ void MainWindow::autoFitMedia(int width, int height)
 
     // finally set the geometry of the window
     window()->setGeometry(rect);
+}
+
+void MainWindow::toggleSubtitleListVisibility()
+{
+    bool vis = m_ui->subtitleList->isVisibleTo(m_ui->splitterSearchList);
+    Q_EMIT m_mediator->requestSubtitleListVisibility(!vis);
+}
+
+void MainWindow::updateSearchSubListSplitter()
+{
+    QApplication::processEvents();
+    m_ui->splitterSearchList->setVisible(
+        m_ui->subtitleList->isVisibleTo(m_ui->splitterSearchList) ||
+        m_ui->searchWidget->isVisibleTo(m_ui->splitterSearchList)
+    );
 }
 
 /* End Window Helpers */

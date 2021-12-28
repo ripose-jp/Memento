@@ -155,6 +155,10 @@ PlayerMenu::PlayerMenu(QWidget *parent)
         this, &PlayerMenu::applySubtitlePauseSetting
     );
     connect(
+        m_ui->actionShowSearch, &QAction::triggered,
+        this, &PlayerMenu::handleToggleSearch
+    );
+    connect(
         m_ui->actionOptions, &QAction::triggered,
         mediator, &GlobalMediator::menuShowOptions
     );
@@ -585,6 +589,7 @@ void PlayerMenu::openConfigFolder() const
 
 /* End Config Actions */
 /* Begin Playback Actions */
+
 void PlayerMenu::updateSubtitlePauseAction()
 {
     QSettings settings;
@@ -657,3 +662,12 @@ void PlayerMenu::updateAnkiProfileMenu()
 }
 
 /* End Anki Profile Handler */
+/* Begin Widget Handlers */
+
+void PlayerMenu::handleToggleSearch()
+{
+    Q_EMIT GlobalMediator::getGlobalMediator()->
+        requestSearchVisibility(m_ui->actionShowSearch->isChecked());
+}
+
+/* End Widget Handlers */

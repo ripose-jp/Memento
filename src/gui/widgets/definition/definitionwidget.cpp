@@ -60,9 +60,7 @@ DefinitionWidget::~DefinitionWidget()
 
 void DefinitionWidget::clearTerms()
 {
-    disconnect();
-    initSignals();
-
+    ++m_searchId;
     m_savedScroll = 0;
     m_addable.clear();
     m_termWidgets.clear();
@@ -199,9 +197,10 @@ void DefinitionWidget::setTerms(const QList<Term *> *terms)
     if (m_client->isEnabled())
     {
         AnkiReply *reply = m_client->notesAddable(m_terms);
+        int searchId = m_searchId;
         connect(reply, &AnkiReply::finishedBoolList, this,
             [=] (const QList<bool> &addable, const QString &error) {
-                if (error.isEmpty())
+                if (error.isEmpty() && searchId == m_searchId)
                 {
                     m_addable = addable;
                     setAddable(0, m_limit);
@@ -217,7 +216,7 @@ void DefinitionWidget::setTerms(const QList<Term *> *terms)
         }
     }
 
-    Q_EMIT GlobalMediator::getGlobalMediator()->definitionsShown();
+    Q_EMIT widgetShown();
 }
 
 /* End Initializers */
@@ -225,12 +224,14 @@ void DefinitionWidget::setTerms(const QList<Term *> *terms)
 
 void DefinitionWidget::hideEvent(QHideEvent *event)
 {
-    Q_EMIT GlobalMediator::getGlobalMediator()->definitionsHidden();
+    QWidget::hideEvent(event);
+    Q_EMIT widgetHidden();
 }
 
 void DefinitionWidget::showEvent(QShowEvent *event)
 {
-    Q_EMIT GlobalMediator::getGlobalMediator()->definitionsShown();
+    QWidget::showEvent(event);
+    Q_EMIT widgetShown();
 }
 
 void DefinitionWidget::showMoreTerms()

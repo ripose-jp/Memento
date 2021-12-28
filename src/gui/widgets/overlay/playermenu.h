@@ -152,6 +152,11 @@ private Q_SLOTS:
     void openConfigFolder() const;
 
     /**
+     * Toggles the visibility of the search widget.
+     */
+    void handleToggleSearch();
+
+    /**
      * Updates the menu checkbox for the option to pause on subtitle end.
      */
     void updateSubtitlePauseAction();

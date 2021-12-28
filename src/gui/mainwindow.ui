@@ -23,7 +23,7 @@
    <property name="acceptDrops">
     <bool>false</bool>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QHBoxLayout" name="horizontalLayout">
     <property name="spacing">
      <number>0</number>
     </property>
@@ -41,6 +41,11 @@
     </property>
     <item>
      <widget class="QSplitter" name="splitterPlayerSubtitles">
+      <property name="styleSheet">
+       <string notr="true">QSplitter::handle {
+    background: black;
+}</string>
+      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -67,13 +72,19 @@
         <bool>true</bool>
        </property>
       </widget>
-      <widget class="SubtitleListWidget" name="subtitleList" native="true">
-       <property name="minimumSize">
-        <size>
-         <width>300</width>
-         <height>0</height>
-        </size>
+      <widget class="QSplitter" name="splitterSearchList">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
        </property>
+       <widget class="SearchWidget" name="searchWidget" native="true"/>
+       <widget class="SubtitleListWidget" name="subtitleList" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>300</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
       </widget>
      </widget>
     </item>
@@ -216,6 +227,12 @@
    <class>SubtitleListWidget</class>
    <extends>QWidget</extends>
    <header>src/gui/widgets/subtitlelistwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SearchWidget</class>
+   <extends>QWidget</extends>
+   <header>src/gui/widgets/searchwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

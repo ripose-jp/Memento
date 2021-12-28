@@ -126,12 +126,6 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
         mediator, &GlobalMediator::playerTracksChanged,
         this,     &SubtitleListWidget::handleTracklistChange
     );
-
-    connect(mediator, &GlobalMediator::controlsSubtitleListToggled, this,
-        [=] {
-            setVisible(!isVisible());
-        }
-    );
 }
 
 SubtitleListWidget::~SubtitleListWidget()
@@ -213,8 +207,6 @@ void SubtitleListWidget::showEvent(QShowEvent *event)
     m_ui->tableSec->scrollToItem(m_ui->tableSec->currentItem());
     m_ui->tablePrim->resizeRowsToContents();
     m_ui->tableSec->resizeRowsToContents();
-
-    Q_EMIT GlobalMediator::getGlobalMediator()->subtitleListShown();
 }
 
 void SubtitleListWidget::hideEvent(QHideEvent *event)
@@ -234,8 +226,6 @@ void SubtitleListWidget::hideEvent(QHideEvent *event)
         QApplication::processEvents();
         m_ui->tableSec->scrollToItem(items.last());
     }
-
-    Q_EMIT GlobalMediator::getGlobalMediator()->subtitleListHidden();
 }
 
 void SubtitleListWidget::resizeEvent(QResizeEvent *event)

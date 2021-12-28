@@ -208,7 +208,13 @@ void TermWidget::addNote()
     }
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+    PlayerAdapter *player = mediator->getPlayerAdapter();
     SubtitleListWidget *subList = mediator->getSubtitleListWidget();
+    term->title = player->getTitle();
+    term->sentence = player->getSubtitle();
+    term->sentence2 = player->getSecondarySubtitle();
+    term->startTime = player->getSubStart();
+    term->startTime = player->getSubEnd();
     term->context = subList->getPrimaryContext("\n");
     term->context2 = subList->getSecondaryContext("\n");
     QPair<double, double> contextTimes = subList->getPrimaryContextTime();
