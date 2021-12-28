@@ -610,7 +610,7 @@ QString SubtitleListWidget::getContext(const SubtitleList *list,
     std::sort(items.begin(), items.end(),
         [=] (QTableWidgetItem *lhs, QTableWidgetItem *rhs)
         {
-            return list->itemToSub[lhs]->start < list->itemToSub[rhs]->start;
+            return list->table->row(lhs) < list->table->row(rhs);
         }
     );
     QString context;
