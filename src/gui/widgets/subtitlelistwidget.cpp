@@ -137,6 +137,7 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
 SubtitleListWidget::~SubtitleListWidget()
 {
     disconnect();
+    clearCachedSubtitles();
     delete m_ui;
 }
 
