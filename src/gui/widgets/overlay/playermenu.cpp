@@ -139,7 +139,14 @@ PlayerMenu::PlayerMenu(QWidget *parent)
 
     connect(
         mediator, &GlobalMediator::playerFileLoaded,
-        this, [=] { setTracks(m_player->getTracks()); }
+        this, [=] {
+            QList<const Track *> tracks = m_player->getTracks();
+            setTracks(tracks);
+            for (const Track *track : tracks)
+            {
+                delete track;
+            }
+        }
     );
 
     /* Option Signals */
