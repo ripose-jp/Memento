@@ -340,7 +340,7 @@ bool PlayerOverlay::underMouse() const
 
 void PlayerOverlay::hideOverlay()
 {
-    if (underMouse() || m_menu->menuOpen())
+    if (underMouse() || m_menu->menuOpen() || m_definition->isVisible())
     {
         return;
     }
