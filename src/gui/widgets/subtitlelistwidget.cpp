@@ -530,7 +530,9 @@ void SubtitleListWidget::selectSubtitles(SubtitleList &list,
     }
     if (earliestRow >= 0)
     {
-        list.table->setCurrentCell(earliestRow, 1, QItemSelectionModel::Select);
+        list.table->setCurrentCell(
+            earliestRow, 1, QItemSelectionModel::Current
+        );
     }
 }
 
