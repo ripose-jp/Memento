@@ -40,11 +40,10 @@ class KanjiWidget : public QWidget
 public:
     /**
      * Constructor for the Kanji Widget.
-     * @param kanji  The kanji to display. Widget takes ownership.
+     * @param kanji  The kanji to display.
      * @param parent The parent of the widget.
      */
-    KanjiWidget(const Kanji *kanji, QWidget *parent = nullptr);
-    ~KanjiWidget();
+    KanjiWidget(std::shared_ptr<const Kanji> kanji, QWidget *parent = nullptr);
 
 Q_SIGNALS:
     /**
@@ -113,7 +112,7 @@ private:
     QLayout *createKVLabel(const QString &key, const QString &value) const;
 
     /* The kanji that this widget is displaying. Has ownership. */
-    const Kanji *m_kanji;
+    std::shared_ptr<const Kanji> m_kanji;
 
     /* The button for adding the kanji to Anki. */
     QToolButton *m_buttonAnkiAdd;

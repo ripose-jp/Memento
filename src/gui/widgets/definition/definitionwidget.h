@@ -44,19 +44,50 @@ class DefinitionWidget : public QWidget
 
 public:
     /**
-     * Creates a DefinitionWidget with the included terms.
-     * @param terms  The list of terms display. Widget takes ownership.
+     * Creates a empty DefinitionWidget.
      * @param parent The parent of the widget. Widget will display over its
      *               parent or its own window if now parent.
      */
-    DefinitionWidget(const QList<Term *> *terms, QWidget *parent = nullptr);
+    DefinitionWidget(QWidget *parent = nullptr);
     ~DefinitionWidget();
+
+    /**
+     * Shows the terms in the list.
+     * @param terms Pointer to a list of terms. Takes ownership of the terms and
+     *              list.
+     */
+    void setTerms(const QList<Term *> *terms);
 
 private Q_SLOTS:
     /**
      * Intializes the theme of the Definition Widget and its children.
      */
     void initTheme();
+
+    /**
+     * Initializes term limits.
+     */
+    void initSearch();
+
+    /**
+     * Intializes audio sources.
+     */
+    void initAudioSources();
+
+    /**
+     * Initializes settings signals.
+     */
+    void initSignals();
+
+    /**
+     * Clears all terms and free used memory.
+     */
+    void clearTerms();
+
+    /**
+     * Shows more terms up to the limit.
+     */
+    void showMoreTerms();
 
     /**
      * Sets all terms in m_terms from start to end as addable to Anki based on
@@ -78,7 +109,7 @@ private Q_SLOTS:
      * Hides terms and shows a kanji entry.
      * @param kanji The kanji to show.
      */
-    void showKanji(const Kanji *kanji);
+    void showKanji(std::shared_ptr<const Kanji> kanji);
 
     /**
      * Hides the currently shown kanji entry and brings up current terms.
@@ -118,8 +149,11 @@ private:
     /* The list of audio sources */
     QList<AudioSource> m_sources;
 
+    /* The maximum number of terms that should be shown on one search */
+    size_t m_limit;
+
     /* List of terms. Owned by this widget. */
-    const QList<Term *> *m_terms;
+    QList<std::shared_ptr<const Term>> m_terms;
 
     /* List of booleans describing if a term can be added to Anki. */
     QList<bool> m_addable;

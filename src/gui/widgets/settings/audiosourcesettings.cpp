@@ -26,6 +26,7 @@
 #include <QSettings>
 
 #include "../../../util/constants.h"
+#include "../../../util/globalmediator.h"
 #include "../../../util/iconfactory.h"
 
 /* Column indices */
@@ -160,6 +161,8 @@ void AudioSourceSettings::applyChanges()
     {
         restoreSaved();
     }
+
+    Q_EMIT GlobalMediator::getGlobalMediator()->audioSourceSettingsChanged();
 }
 
 void AudioSourceSettings::restoreDefaults()

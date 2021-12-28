@@ -23,6 +23,8 @@
 
 #include <QVBoxLayout>
 
+#include <memory>
+
 class DefinitionWidget;
 class PlayerControls;
 class PlayerMenu;
@@ -104,11 +106,6 @@ private Q_SLOTS:
      * cursor.
      */
     void setDefinitionWidgetLocation();
-
-    /**
-     * Deletes the current DefinitionWidget if it exists.
-     */
-    void deleteDefinitionWidget();
 
 private:
     /**

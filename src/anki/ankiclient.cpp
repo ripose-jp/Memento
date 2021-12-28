@@ -124,6 +124,10 @@ AnkiClient::AnkiClient(QObject *parent)
         this, &AnkiClient::sendIntRequest,
         this, &AnkiClient::receiveIntRequest
     );
+    connect(
+        this, &AnkiClient::sendBoolListRequest,
+        this, &AnkiClient::receiveBoolListRequest
+    );
 
     GlobalMediator::getGlobalMediator()->setAnkiClient(this);
 }
@@ -587,103 +591,44 @@ AnkiReply *AnkiClient::getFieldNames(const QString &model)
     return requestStringList(ANKI_FIELD_NAMES, params);
 }
 
-AnkiReply *AnkiClient::notesAddable(const QList<Term *> &terms)
+AnkiReply *AnkiClient::notesAddable(QList<std::shared_ptr<const Term>> terms)
 {
-    QJsonArray notes;
-    for (const Term *term : terms)
-    {
-        notes.append(createAnkiNoteObject(*term));
-    }
-    QJsonObject params;
-    params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
-    QNetworkReply *reply = makeRequest(ANKI_CAN_ADD_NOTES, params);
     AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, this,
+
+    QThreadPool::globalInstance()->start(
         [=] {
-            QString error;
-            QJsonObject replyObj = processReply(reply, error);
-            if (replyObj.isEmpty())
+            QJsonArray notes;
+            for (std::shared_ptr<const Term> term : terms)
             {
-                Q_EMIT ankiReply->finishedBoolList(QList<bool>(), error);
+                notes.append(createAnkiNoteObject(*term));
             }
-            else if (!replyObj[ANKI_RESULT].isArray())
-            {
-                Q_EMIT ankiReply->finishedBoolList(
-                    QList<bool>(), "Result is not an array"
-                );
-            }
-            else
-            {
-                QList<bool> response;
-                QJsonArray resultArray = replyObj[ANKI_RESULT].toArray();
-                for (const QJsonValueRef &addable : resultArray)
-                {
-                    if (addable.isBool())
-                    {
-                        response.append(addable.toBool());
-                    }
-                    else
-                    {
-                        Q_EMIT ankiReply->finishedBoolList(
-                            QList<bool>(), "Response was not an array of bool"
-                        );
-                    }
-                }
-                Q_EMIT ankiReply->finishedBoolList(response, error);
-            }
-            ankiReply->deleteLater();
-            reply->deleteLater();
+            QJsonObject params;
+            params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
+            Q_EMIT sendBoolListRequest(ANKI_CAN_ADD_NOTES, params, ankiReply);
         }
     );
+
     return ankiReply;
 }
 
-AnkiReply *AnkiClient::notesAddable(const QList<const Kanji *> &kanjiList)
+AnkiReply *AnkiClient::notesAddable(
+    QList<std::shared_ptr<const Kanji>> kanjiList)
 {
-    QJsonArray notes;
-    for (const Kanji *kanji : kanjiList)
-        notes.append(createAnkiNoteObject(*kanji));
-    QJsonObject params;
-    params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
-    QNetworkReply *reply = makeRequest(ANKI_CAN_ADD_NOTES, params);
     AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, this,
+
+    QThreadPool::globalInstance()->start(
         [=] {
-            QString error;
-            QJsonObject replyObj = processReply(reply, error);
-            if (replyObj.isEmpty())
+            QJsonArray notes;
+            for (std::shared_ptr<const Kanji> kanji : kanjiList)
             {
-                Q_EMIT ankiReply->finishedBoolList(QList<bool>(), error);
+                notes.append(createAnkiNoteObject(*kanji));
             }
-            else if (!replyObj[ANKI_RESULT].isArray())
-            {
-                Q_EMIT ankiReply->finishedBoolList(
-                    QList<bool>(), "Result is not an array"
-                );
-            }
-            else
-            {
-                QList<bool> response;
-                QJsonArray resultArray = replyObj[ANKI_RESULT].toArray();
-                for (const QJsonValueRef &addable : resultArray)
-                {
-                    if (addable.isBool())
-                    {
-                        response.append(addable.toBool());
-                    }
-                    else
-                    {
-                        Q_EMIT ankiReply->finishedBoolList(
-                            QList<bool>(), "Response was not an array of bool"
-                        );
-                    }
-                }
-                Q_EMIT ankiReply->finishedBoolList(response, error);
-            }
-            ankiReply->deleteLater();
-            reply->deleteLater();
+            QJsonObject params;
+            params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
+            Q_EMIT sendBoolListRequest(ANKI_CAN_ADD_NOTES, params, ankiReply);
         }
     );
+
     return ankiReply;
 }
 
@@ -707,7 +652,6 @@ AnkiReply *AnkiClient::addNote(const Term *term)
 AnkiReply *AnkiClient::addNote(const Kanji *kanji)
 {
     AnkiReply *ankiReply = new AnkiReply;
-
 
     QThreadPool::globalInstance()->start(
         [=] {
@@ -873,6 +817,50 @@ void AnkiClient::receiveIntRequest(const QString     &action,
                 Q_EMIT ankiReply->finishedInt(
                     replyObj[ANKI_RESULT].toInt(), error
                 );
+            }
+            ankiReply->deleteLater();
+            reply->deleteLater();
+        }
+    );
+}
+
+void AnkiClient::receiveBoolListRequest(const QString     &action,
+                                        const QJsonObject &params,
+                                        AnkiReply         *ankiReply)
+{
+    QNetworkReply *reply = makeRequest(ANKI_CAN_ADD_NOTES, params);
+    connect(reply, &QNetworkReply::finished, this,
+        [=] {
+            QString error;
+            QJsonObject replyObj = processReply(reply, error);
+            if (replyObj.isEmpty())
+            {
+                Q_EMIT ankiReply->finishedBoolList(QList<bool>(), error);
+            }
+            else if (!replyObj[ANKI_RESULT].isArray())
+            {
+                Q_EMIT ankiReply->finishedBoolList(
+                    QList<bool>(), "Result is not an array"
+                );
+            }
+            else
+            {
+                QList<bool> response;
+                QJsonArray resultArray = replyObj[ANKI_RESULT].toArray();
+                for (const QJsonValueRef &addable : resultArray)
+                {
+                    if (addable.isBool())
+                    {
+                        response.append(addable.toBool());
+                    }
+                    else
+                    {
+                        Q_EMIT ankiReply->finishedBoolList(
+                            QList<bool>(), "Response was not an array of bool"
+                        );
+                    }
+                }
+                Q_EMIT ankiReply->finishedBoolList(response, error);
             }
             ankiReply->deleteLater();
             reply->deleteLater();

@@ -117,7 +117,7 @@ void updateSettings()
     settings.setValue(SETTINGS_VERSION, SETTINGS_VERSION_CURRENT);
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     /* Image Formats Windows */
@@ -135,6 +135,7 @@ int main(int argc, char *argv[])
     QApplication memento(argc, argv);
 
 #if __APPLE__
+    /* Change the OpenGL version to 4.1 on macOS */
     QSurfaceFormat qSurfaceFormat;
     qSurfaceFormat.setMajorVersion(4);
     qSurfaceFormat.setMinorVersion(1);

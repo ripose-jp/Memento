@@ -51,8 +51,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>480</width>
-        <height>380</height>
+        <width>484</width>
+        <height>384</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -61,7 +61,7 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2"/>
+      <layout class="QVBoxLayout" name="layoutScroll"/>
      </widget>
     </widget>
    </item>

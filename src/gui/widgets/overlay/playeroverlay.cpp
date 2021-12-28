@@ -37,8 +37,11 @@
 PlayerOverlay::PlayerOverlay(QWidget *parent)
     : QVBoxLayout(parent),
       m_player(parent),
-      m_definition(nullptr)
+      m_definition(new DefinitionWidget(m_player))
 {
+    /* Hide the definition widget */
+    m_definition->hide();
+
     /* Fix the margins */
     setSpacing(0);
     setContentsMargins(QMargins(0, 0, 0, 0));
@@ -128,37 +131,43 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
     );
     connect(
         mediator, &GlobalMediator::requestDefinitionDelete,
-        this, &PlayerOverlay::deleteDefinitionWidget
+        m_definition, &DefinitionWidget::hide
     );
     connect(
         mediator, &GlobalMediator::playerSubtitleChanged,
-        this, &PlayerOverlay::deleteDefinitionWidget
+        m_definition, &DefinitionWidget::hide
     );
     connect(
         mediator, &GlobalMediator::playerResized,
-        this, &PlayerOverlay::deleteDefinitionWidget
+        m_definition, &DefinitionWidget::hide
     );
     connect(
         mediator, &GlobalMediator::subtitleExpired,
-        this, &PlayerOverlay::deleteDefinitionWidget
+        m_definition, &DefinitionWidget::hide
     );
     connect(
         mediator, &GlobalMediator::subtitleListShown,
-        this, &PlayerOverlay::deleteDefinitionWidget
+        m_definition, &DefinitionWidget::hide
     );
     connect(
         mediator, &GlobalMediator::subtitleListHidden,
-        this, &PlayerOverlay::deleteDefinitionWidget
+        m_definition, &DefinitionWidget::hide
     );
     connect(
         mediator, &GlobalMediator::subtitleHidden,
-        this, &PlayerOverlay::deleteDefinitionWidget
+        m_definition, &DefinitionWidget::hide
+    );
+    connect(
+        mediator, &GlobalMediator::controlsHidden,
+        m_definition, &DefinitionWidget::hide
     );
     connect(
         mediator, &GlobalMediator::playerPauseStateChanged, this,
         [=] (const bool paused) {
             if (!paused)
-                deleteDefinitionWidget();
+            {
+                m_definition->hide();
+            }
         }
     );
 
@@ -167,7 +176,7 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
 
 PlayerOverlay::~PlayerOverlay()
 {
-    deleteDefinitionWidget();
+    m_definition->deleteLater();
 }
 
 /* End Constructor/Destructor */
@@ -193,14 +202,9 @@ void PlayerOverlay::initSettings()
 
 void PlayerOverlay::setTerms(const QList<Term *> *terms)
 {
-    deleteDefinitionWidget();
-
-    m_definition = new DefinitionWidget(terms, m_player);
+    m_definition->setTerms(terms);
     setDefinitionWidgetLocation();
-    if (m_definition)
-    {
-        m_definition->show();
-    }
+    m_definition->show();
 }
 
 void PlayerOverlay::setDefinitionWidgetLocation()
@@ -226,22 +230,12 @@ void PlayerOverlay::setDefinitionWidgetLocation()
 
     if (y + m_definition->height() > m_player->height())
     {
-        deleteDefinitionWidget();
+        m_definition->hide();
     }
     else
     {
         m_definition->move(x, y);
     }
-}
-
-void PlayerOverlay::deleteDefinitionWidget()
-{
-    if (m_definition)
-    {
-        m_definition->hide();
-        m_definition->deleteLater();
-    }
-    m_definition = nullptr;
 }
 
 /* End Definition Widget Helpers */
@@ -337,7 +331,7 @@ bool PlayerOverlay::underMouse() const
 
 void PlayerOverlay::hideOverlay()
 {
-    if (underMouse() || m_menu->menuOpen() || m_definition)
+    if (underMouse() || m_menu->menuOpen())
     {
         return;
     }

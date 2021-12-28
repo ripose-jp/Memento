@@ -32,136 +32,47 @@
 
 /* Begin Constructor/Destructor */
 
-DefinitionWidget::DefinitionWidget(const QList<Term *> *terms, QWidget *parent)
+DefinitionWidget::DefinitionWidget(QWidget *parent)
     : QWidget(parent),
       m_ui(new Ui::DefinitionWidget),
-      m_client(GlobalMediator::getGlobalMediator()->getAnkiClient()),
-      m_terms(terms)
+      m_client(GlobalMediator::getGlobalMediator()->getAnkiClient())
 {
     m_ui->setupUi(this);
-
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     /* Build the UI */
     setCursor(Qt::ArrowCursor);
     setAutoFillBackground(true);
+
+    /* Init Settings */
     initTheme();
-
-    /* Get the term limit */
-    QSettings settings;
-    settings.beginGroup(SETTINGS_SEARCH);
-    size_t limit = settings.value(
-            SETTINGS_SEARCH_LIMIT, DEFAULT_LIMIT
-        ).toUInt();
-    settings.endGroup();
-
-    /* Get audio sources */
-    size_t size = settings.beginReadArray(SETTINGS_AUDIO_SRC);
-    for (size_t i = 0; i < size; ++i)
-    {
-        settings.setArrayIndex(i);
-        m_sources.append(
-            AudioSource {
-                .name = settings.value(
-                        SETTINGS_AUDIO_SRC_NAME, SETTINGS_AUDIO_SRC_NAME_DEFAULT
-                    ).toString(),
-                .url = settings.value(
-                        SETTINGS_AUDIO_SRC_URL, SETTINGS_AUDIO_SRC_URL_DEFAULT
-                    ).toString(),
-                .md5 = settings.value(
-                        SETTINGS_AUDIO_SRC_MD5, SETTINGS_AUDIO_SRC_MD5_DEFAULT
-                    ).toString(),
-            }
-        );
-    }
-    settings.endArray();
-
-    /* Add the terms */
-    showTerms(0, limit);
-    m_ui->scrollArea->verticalScrollBar()->setValue(0);
-
-    QPushButton *buttonShowMore = nullptr;
-    /* Add the show more button */
-    if (limit < m_terms->size())
-    {
-        buttonShowMore = new QPushButton;
-        buttonShowMore->setSizePolicy(
-            QSizePolicy::Preferred, QSizePolicy::Fixed
-        );
-        buttonShowMore->setText("Show More");
-        buttonShowMore->setEnabled(!m_client->isEnabled());
-        m_ui->scrollAreaContents->layout()->addWidget(buttonShowMore);
-        connect(buttonShowMore, &QPushButton::clicked, this,
-            [=] {
-                QLayoutItem *showMoreItem =
-                    m_ui->scrollAreaContents->layout()->takeAt(
-                        m_ui->scrollAreaContents->layout()->count() - 1
-                    );
-
-                /* Add the terms */
-                int start = m_termWidgets.size();
-                int end   = start + limit;
-                showTerms(start, end);
-                setAddable(start, end);
-
-                if (end < m_terms->size())
-                {
-                    m_ui->scrollAreaContents->layout()->addItem(showMoreItem);
-                }
-                else
-                {
-                    QLayoutItem *lineItem =
-                        m_ui->scrollAreaContents->layout()->takeAt(
-                            m_ui->scrollAreaContents->layout()->count() - 1
-                        );
-                    delete lineItem->widget();
-                    delete lineItem;
-                    delete showMoreItem->widget();
-                    delete showMoreItem;
-                }
-            }
-        );
-    }
-    else
-    {
-        /* Delete the extra line at the end */
-        QLayoutItem *item = m_ui->scrollAreaContents->layout()->takeAt(
-            m_ui->scrollAreaContents->layout()->count() - 1
-        );
-        delete item->widget();
-        delete item;
-    }
-
-    /* Check if entries are addable to Anki */
-    if (m_client->isEnabled())
-    {
-        AnkiReply *reply = m_client->notesAddable(*terms);
-        connect(reply, &AnkiReply::finishedBoolList, this,
-            [=] (const QList<bool> &addable, const QString &error) {
-                if (error.isEmpty())
-                {
-                    m_addable = addable;
-                    setAddable(0, limit);
-                }
-                if (buttonShowMore)
-                {
-                    buttonShowMore->setEnabled(true);
-                }
-            }
-        );
-    }
+    initSearch();
+    initAudioSources();
+    initSignals();
 }
 
 DefinitionWidget::~DefinitionWidget()
 {
+    clearTerms();
     disconnect();
-    for (const Term *term : *m_terms)
-    {
-        delete term;
-    }
-    delete m_terms;
     delete m_ui;
     GlobalMediator::getGlobalMediator()->getAudioPlayer()->clearFiles();
+}
+
+void DefinitionWidget::clearTerms()
+{
+    disconnect();
+    initSignals();
+
+    m_savedScroll = 0;
+    m_addable.clear();
+    m_termWidgets.clear();
+    m_terms.clear();
+    QLayoutItem *item;
+    while ((item = m_ui->layoutScroll->takeAt(0)) != nullptr)
+    {
+        item->widget()->deleteLater();
+        delete item;
+    }
 }
 
 /* Begin Constructor/Destructor */
@@ -191,6 +102,124 @@ void DefinitionWidget::initTheme()
     settings.endGroup();
 }
 
+void DefinitionWidget::initSearch()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_SEARCH);
+    m_limit = settings.value(
+            SETTINGS_SEARCH_LIMIT, DEFAULT_LIMIT
+        ).toUInt();
+    settings.endGroup();
+}
+
+void DefinitionWidget::initAudioSources()
+{
+    QSettings settings;
+    m_sources.clear();
+    size_t size = settings.beginReadArray(SETTINGS_AUDIO_SRC);
+    for (size_t i = 0; i < size; ++i)
+    {
+        settings.setArrayIndex(i);
+        m_sources.append(
+            AudioSource {
+                .name = settings.value(
+                        SETTINGS_AUDIO_SRC_NAME, SETTINGS_AUDIO_SRC_NAME_DEFAULT
+                    ).toString(),
+                .url = settings.value(
+                        SETTINGS_AUDIO_SRC_URL, SETTINGS_AUDIO_SRC_URL_DEFAULT
+                    ).toString(),
+                .md5 = settings.value(
+                        SETTINGS_AUDIO_SRC_MD5, SETTINGS_AUDIO_SRC_MD5_DEFAULT
+                    ).toString(),
+            }
+        );
+    }
+    settings.endArray();
+}
+
+void DefinitionWidget::initSignals()
+{
+    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+    connect(
+        mediator, &GlobalMediator::interfaceSettingsChanged,
+        this, &DefinitionWidget::initTheme
+    );
+    connect(
+        mediator, &GlobalMediator::searchSettingsChanged,
+        this, &DefinitionWidget::initSearch
+    );
+    connect(
+        mediator, &GlobalMediator::audioSourceSettingsChanged,
+        this, &DefinitionWidget::initAudioSources
+    );
+}
+
+void DefinitionWidget::setTerms(const QList<Term *> *terms)
+{
+    clearTerms();
+
+    /* Save the terms in shared pointers */
+    for (Term *term : *terms)
+    {
+        m_terms << std::shared_ptr<const Term>(term);
+    }
+    delete terms;
+
+    /* Add the terms */
+    showTerms(0, m_limit);
+    m_ui->scrollArea->verticalScrollBar()->setValue(0);
+
+    QPushButton *buttonShowMore = nullptr;
+    /* Add the show more button */
+    if (m_limit < m_terms.size())
+    {
+        buttonShowMore = new QPushButton;
+        buttonShowMore->setSizePolicy(
+            QSizePolicy::Preferred, QSizePolicy::Fixed
+        );
+        buttonShowMore->setText("Show More");
+        buttonShowMore->setEnabled(!m_client->isEnabled());
+        m_ui->scrollAreaContents->layout()->addWidget(buttonShowMore);
+        connect(
+            buttonShowMore, &QPushButton::clicked,
+            this, &DefinitionWidget::showMoreTerms
+        );
+    }
+    else
+    {
+        /* Delete the extra line at the end */
+        QLayoutItem *item = m_ui->scrollAreaContents->layout()->takeAt(
+            m_ui->scrollAreaContents->layout()->count() - 1
+        );
+        delete item->widget();
+        delete item;
+    }
+
+    /* Check if entries are addable to Anki */
+    if (m_client->isEnabled())
+    {
+        AnkiReply *reply = m_client->notesAddable(m_terms);
+        connect(reply, &AnkiReply::finishedBoolList, this,
+            [=] (const QList<bool> &addable, const QString &error) {
+                if (error.isEmpty())
+                {
+                    m_addable = addable;
+                    setAddable(0, m_limit);
+                }
+            }
+        );
+        if (buttonShowMore)
+        {
+            connect(
+                reply, &AnkiReply::finishedBoolList,
+                buttonShowMore, [=] { buttonShowMore->setEnabled(true); }
+            );
+        }
+    }
+
+    Q_EMIT GlobalMediator::getGlobalMediator()->definitionsShown();
+}
+
 /* End Initializers */
 /* Begin Event Handlers */
 
@@ -204,16 +233,45 @@ void DefinitionWidget::showEvent(QShowEvent *event)
     Q_EMIT GlobalMediator::getGlobalMediator()->definitionsShown();
 }
 
+void DefinitionWidget::showMoreTerms()
+{
+    QLayoutItem *showMoreItem =
+        m_ui->scrollAreaContents->layout()->takeAt(
+            m_ui->scrollAreaContents->layout()->count() - 1
+        );
+
+    /* Add the terms */
+    int start = m_termWidgets.size();
+    int end   = start + m_limit;
+    showTerms(start, end);
+    setAddable(start, end);
+
+    if (end < m_terms.size())
+    {
+        m_ui->scrollAreaContents->layout()->addItem(showMoreItem);
+    }
+    else
+    {
+        QLayoutItem *lineItem =
+            m_ui->scrollAreaContents->layout()->takeAt(
+                m_ui->scrollAreaContents->layout()->count() - 1
+            );
+        delete lineItem->widget();
+        delete lineItem;
+        delete showMoreItem->widget();
+        delete showMoreItem;
+    }
+}
+
 /* End Event Handlers */
 /* Begin Term Helpers */
 
 void DefinitionWidget::showTerms(const size_t start, const size_t end)
 {
     setUpdatesEnabled(false);
-    for (size_t i = start; i < m_terms->size() && i < end; ++i)
+    for (size_t i = start; i < m_terms.size() && i < end; ++i)
     {
-        TermWidget *termWidget =
-            new TermWidget(m_terms->at(i), &m_sources, this);
+        TermWidget *termWidget = new TermWidget(m_terms[i], &m_sources, this);
         connect(
             termWidget, &TermWidget::kanjiSearched,
             this,       &DefinitionWidget::showKanji
@@ -233,7 +291,7 @@ void DefinitionWidget::showTerms(const size_t start, const size_t end)
 void DefinitionWidget::setAddable(const size_t start, const size_t end)
 {
     for (size_t i = start;
-         i < m_addable.size() && i < m_terms->size() && i < end;
+         i < m_addable.size() && i < m_terms.size() && i < end;
          ++i)
     {
         m_termWidgets[i]->setAddable(m_addable[i]);
@@ -243,7 +301,7 @@ void DefinitionWidget::setAddable(const size_t start, const size_t end)
 /* End Term Helpers */
 /* Begin Kanji Helpers */
 
-void DefinitionWidget::showKanji(const Kanji *kanji)
+void DefinitionWidget::showKanji(std::shared_ptr<const Kanji> kanji)
 {
     m_savedScroll = m_ui->scrollArea->verticalScrollBar()->value();
     for (size_t i = 0; i < m_ui->scrollAreaContents->layout()->count(); ++i)

@@ -63,9 +63,9 @@
 
 /* Begin Constructor/Destructor */
 
-TermWidget::TermWidget(const Term               *term,
-                       const QList<AudioSource> *sources,
-                       QWidget                  *parent)
+TermWidget::TermWidget(std::shared_ptr<const Term>  term,
+                       const QList<AudioSource>    *sources,
+                       QWidget                     *parent)
     : QWidget(parent),
       m_ui(new Ui::TermWidget),
       m_term(term),
@@ -306,7 +306,7 @@ void TermWidget::searchKanji(const QString &ch)
         kanji->clozePrefix = m_term->clozePrefix;
         kanji->clozeBody   = m_term->clozeBody;
         kanji->clozeSuffix = m_term->clozeSuffix;
-        Q_EMIT kanjiSearched(kanji);
+        Q_EMIT kanjiSearched(std::shared_ptr<const Kanji>(kanji));
     }
 }
 

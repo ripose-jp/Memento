@@ -46,9 +46,9 @@ public:
      * @param sources A list of audio sources. Does not take ownership.
      * @param parent  The parent of this widget.
      */
-    TermWidget(const Term               *term,
-               const QList<AudioSource> *sources,
-               QWidget                  *parent = nullptr);
+    TermWidget(std::shared_ptr<const Term>  term,
+               const QList<AudioSource>    *sources,
+               QWidget                     *parent = nullptr);
     ~TermWidget();
 
     /**
@@ -61,9 +61,9 @@ public:
 Q_SIGNALS:
     /**
      * Emitted when a kanji is searched by the user and found.
-     * @param kanji The found kanji. Recipient takes ownership.
+     * @param kanji The found kanji.
      */
-    void kanjiSearched(const Kanji *kanji);
+    void kanjiSearched(std::shared_ptr<const Kanji> kanji);
 
 private Q_SLOTS:
     /**
@@ -122,7 +122,7 @@ private:
     Ui::TermWidget *m_ui;
 
     /* The term this widget is displaying. */
-    const Term *m_term;
+    std::shared_ptr<const Term> m_term;
 
     /* Saved pointer to the global AnkiClient. */
     AnkiClient *m_client;

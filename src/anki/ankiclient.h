@@ -218,7 +218,7 @@ public:
      *         at the same index is addable if true, not addable otherwise.
      *         Caller does not have ownership.
      */
-    AnkiReply *notesAddable(const QList<Term *> &terms);
+    AnkiReply *notesAddable(QList<std::shared_ptr<const Term>> terms);
 
     /**
      * Gets if the list of kanji are addable given the current configuration.
@@ -227,7 +227,7 @@ public:
      *         at the same index is addable if true, not addable otherwise.
      *         Caller does not have ownership.
      */
-    AnkiReply *notesAddable(const QList<const Kanji *> &kanjiList);
+    AnkiReply *notesAddable(QList<std::shared_ptr<const Kanji>> kanjiList);
 
     /**
      * Adds a term note to Anki.
@@ -269,6 +269,19 @@ Q_SIGNALS:
                         const QJsonObject &params,
                         AnkiReply         *ankiReply);
 
+    /**
+     * Sends a request to issue a command to Anki that returns a list of
+     * booleans.
+     * This is a hack to make sure that the QNetworkAccessManager is used from
+     * the correct thread when multithreading.
+     * @param action    The AnkiConnect 'verb'.
+     * @param params    Parameters for the action.
+     * @param ankiReply The AnkiReply to emit the finishedBoolList() signal on.
+     */
+    void sendBoolListRequest(const QString     &action,
+                             const QJsonObject &params,
+                             AnkiReply         *ankiReply);
+
 private Q_SLOTS:
     /**
      * Issues a command to Anki that returns an integer.
@@ -281,6 +294,18 @@ private Q_SLOTS:
     void receiveIntRequest(const QString     &action,
                            const QJsonObject &params,
                            AnkiReply         *ankiReply);
+
+    /**
+     * Issues a command to Anki that returns a list of bools.
+     * This is a hack to make sure that the QNetworkAccessManager is used from
+     * the correct thread when multithreading.
+     * @param action    The AnkiConnect 'verb'.
+     * @param params    Parameters for the action.
+     * @param ankiReply The AnkiReply to emit the finishedBoolList() signal on.
+     */
+    void receiveBoolListRequest(const QString     &action,
+                                const QJsonObject &params,
+                                AnkiReply         *ankiReply);
 
 private:
     /**

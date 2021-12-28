@@ -35,7 +35,7 @@
 
 /* Begin Constructor/Destructor */
 
-KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent)
+KanjiWidget::KanjiWidget(std::shared_ptr<const Kanji> kanji, QWidget *parent)
     : QWidget(parent),
       m_kanji(kanji)
 {
@@ -101,7 +101,9 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent)
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     if (client->isEnabled())
     {
-        AnkiReply *reply = client->notesAddable(QList<const Kanji *>({kanji}));
+        AnkiReply *reply = client->notesAddable(
+            QList<std::shared_ptr<const Kanji>>({m_kanji})
+        );
         connect(reply, &AnkiReply::finishedBoolList, this,
             [=] (const QList<bool> &value, const QString &error) {
                 if (error.isEmpty())
@@ -112,7 +114,6 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent)
             }
         );
     }
-
 
     FlowLayout *frequencies = new FlowLayout(-1, 6);
     for (const Frequency &freq : kanji->frequencies)
@@ -133,11 +134,6 @@ KanjiWidget::KanjiWidget(const Kanji *kanji, QWidget *parent)
     delete line;
 
     layoutParent->addStretch();
-}
-
-KanjiWidget::~KanjiWidget()
-{
-    delete m_kanji;
 }
 
 /* Begin Constructor/Destructor */

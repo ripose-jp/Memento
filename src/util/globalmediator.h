@@ -360,6 +360,11 @@ Q_SIGNALS:
     void ankiSettingsChanged() const;
 
     /**
+     * Emitted when Audio source settings are changed.
+     */
+    void audioSourceSettingsChanged() const;
+
+    /**
      * Emitted when behavior settings are changed.
      */
     void behaviorSettingsChanged() const;
