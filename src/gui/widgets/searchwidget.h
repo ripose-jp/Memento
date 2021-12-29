@@ -23,6 +23,8 @@
 
 #include <QWidget>
 
+#include <QWheelEvent>
+
 class DefinitionWidget;
 class Dictionary;
 class QLineEdit;
@@ -64,7 +66,15 @@ protected:
      * Size hint to prevent the widget from being too large when shown.
      * @return The minimum size.
      */
-    QSize sizeHint() const override { return minimumSize(); };
+    QSize sizeHint() const override { return minimumSize(); }
+
+    /**
+     * Called when the mouse wheel is moves. Reimplemented to prevent wheel
+     * events from being passed to the player.
+     * @param event The wheel event.
+     */
+    void wheelEvent(QWheelEvent *event) override
+        { QWidget::wheelEvent(event); event->accept(); }
 
 private:
     /* The parent layout */
