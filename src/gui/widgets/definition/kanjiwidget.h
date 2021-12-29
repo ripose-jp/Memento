@@ -118,11 +118,8 @@ private:
     /* The kanji that this widget is displaying. Has ownership. */
     std::shared_ptr<const Kanji> m_kanji;
 
-    /* The button for adding the kanji to Anki. */
-    QToolButton *m_buttonAnkiAdd;
-
-    /* The button for owning the Anki browser to search for this kanji. */
-    QToolButton *m_buttonAnkiOpen;
+    /* The button for adding or opening the kanji in Anki. */
+    QToolButton *m_buttonAnkiAddOpen;
 };
 
 #endif // KANJIWIDGET_H

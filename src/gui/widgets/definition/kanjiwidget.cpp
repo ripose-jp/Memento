@@ -79,28 +79,11 @@ KanjiWidget::KanjiWidget(
     layoutTop->setAlignment(labelKanjiStroke, Qt::AlignTop | Qt::AlignCenter);
     layoutTop->addStretch();
 
-    QToolButton *buttonAnkiAdd = new QToolButton;
-    buttonAnkiAdd->setIcon(factory->getIcon(IconFactory::Icon::plus));
-    buttonAnkiAdd->setMinimumSize(QSize(30, 30));
-    buttonAnkiAdd->setToolTip("Add Anki note");
-    buttonAnkiAdd->setVisible(false);
-    layoutTop->addWidget(buttonAnkiAdd);
-    layoutTop->setAlignment(buttonAnkiAdd, Qt::AlignTop | Qt::AlignRight);
-    connect(buttonAnkiAdd, &QToolButton::clicked, this, &KanjiWidget::addKanji);
-    m_buttonAnkiAdd = buttonAnkiAdd;
-
-    QToolButton *buttonAnkiOpen = new QToolButton;
-    buttonAnkiOpen->setIcon(factory->getIcon(IconFactory::Icon::hamburger));
-    buttonAnkiOpen->setMinimumSize(QSize(30, 30));
-    buttonAnkiOpen->setToolTip("Show in Anki");
-    buttonAnkiOpen->setVisible(false);
-    layoutTop->addWidget(buttonAnkiOpen);
-    layoutTop->setAlignment(buttonAnkiOpen, Qt::AlignTop | Qt::AlignRight);
-    connect(
-        buttonAnkiOpen, &QToolButton::clicked,
-        this,           &KanjiWidget::openAnki
-    );
-    m_buttonAnkiOpen = buttonAnkiOpen;
+    m_buttonAnkiAddOpen = new QToolButton;
+    m_buttonAnkiAddOpen->setMinimumSize(QSize(30, 30));
+    m_buttonAnkiAddOpen->hide();
+    layoutTop->addWidget(m_buttonAnkiAddOpen);
+    layoutTop->setAlignment(m_buttonAnkiAddOpen, Qt::AlignTop | Qt::AlignRight);
 
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     if (client->isEnabled())
@@ -110,10 +93,36 @@ KanjiWidget::KanjiWidget(
         );
         connect(reply, &AnkiReply::finishedBoolList, this,
             [=] (const QList<bool> &value, const QString &error) {
-                if (error.isEmpty())
+                if (!error.isEmpty())
                 {
-                    m_buttonAnkiAdd->setVisible(value.first());
-                    m_buttonAnkiOpen->setVisible(!value.first());
+                    return;
+                }
+
+                /* Kanji Addable */
+                if (value.first())
+                {
+                    m_buttonAnkiAddOpen->setIcon(
+                        factory->getIcon(IconFactory::Icon::plus)
+                    );
+                    m_buttonAnkiAddOpen->setToolTip("Add Anki note");
+                    connect(
+                        m_buttonAnkiAddOpen, &QToolButton::clicked,
+                        this, &KanjiWidget::addKanji
+                    );
+                    m_buttonAnkiAddOpen->show();
+                }
+                /* Kanji Already Added */
+                else
+                {
+                    m_buttonAnkiAddOpen->setIcon(
+                        factory->getIcon(IconFactory::Icon::hamburger)
+                    );
+                    m_buttonAnkiAddOpen->setToolTip("Show in Anki");
+                    connect(
+                        m_buttonAnkiAddOpen, &QToolButton::clicked,
+                        this, &KanjiWidget::openAnki
+                    );
+                    m_buttonAnkiAddOpen->show();
                 }
             }
         );
@@ -229,7 +238,7 @@ void KanjiWidget::addKVSection(const QString &title,
 
 void KanjiWidget::addKanji()
 {
-    m_buttonAnkiAdd->setVisible(false);
+    m_buttonAnkiAddOpen->setEnabled(false);
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     PlayerAdapter *player = mediator->getPlayerAdapter();
@@ -258,8 +267,16 @@ void KanjiWidget::addKanji()
             }
             else
             {
-                m_buttonAnkiOpen->setVisible(true);
-                m_buttonAnkiAdd->setVisible(false);
+                m_buttonAnkiAddOpen->disconnect();
+                m_buttonAnkiAddOpen->setIcon(
+                    IconFactory::create()->getIcon(IconFactory::Icon::hamburger)
+                );
+                m_buttonAnkiAddOpen->setToolTip("Show in Anki");
+                connect(
+                    m_buttonAnkiAddOpen, &QToolButton::clicked,
+                    this, &KanjiWidget::openAnki
+                );
+                m_buttonAnkiAddOpen->setEnabled(true);
             }
         }
     );
