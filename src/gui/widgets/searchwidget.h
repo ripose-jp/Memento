@@ -30,6 +30,7 @@ class Dictionary;
 class QLineEdit;
 class QVBoxLayout;
 
+struct Kanji;
 struct Term;
 
 /**
@@ -46,13 +47,9 @@ Q_SIGNALS:
     /**
      * An internal signal for moving found terms onto the UI thread.
      * @param terms The list of updated terms. Belongs to the recipient.
+     * @param kanji The kanji if found. Belongs to the recipient.
      */
-    void termsUpdated(const QList<Term *> *terms) const;
-
-    /**
-     * An internal signal for clearing the contents of the definition widget.
-     */
-    void requestClear() const;
+    void searchUpdated(const QList<Term *> *terms, const Kanji *kanji) const;
 
 private Q_SLOTS:
     /**

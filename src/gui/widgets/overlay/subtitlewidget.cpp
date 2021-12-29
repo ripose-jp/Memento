@@ -401,46 +401,51 @@ void SubtitleWidget::findTerms()
         return;
     }
 
-    /* Get common fields. */
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-    QString title = mediator->getPlayerAdapter()->getTitle();
-
-    double delay =
-        mediator->getPlayerAdapter()->getSubDelay() -
-        mediator->getPlayerAdapter()->getAudioDelay();
-    double startTime = m_subtitle.startTime + delay;
-    double endTime = m_subtitle.endTime + delay;
-
-    QString sentence2 = mediator->getPlayerAdapter()->getSecondarySubtitle();
-
     QThreadPool::globalInstance()->start(
         [=] {
+            /* Look for Terms */
             QList<Term *> *terms = m_dictionary->searchTerms(
                     queryStr, m_subtitle.rawText, index, &m_currentIndex
                 );
-
             if (terms == nullptr)
             {
-                return;
+                /* noop */
             }
             else if (!m_paused || index != m_currentIndex)
             {
+                /* Early Exit */
                 deleteTerms(terms);
+                return;
             }
             else if (terms->isEmpty())
             {
+                /* No Terms */
                 delete terms;
+                terms = nullptr;
             }
             else
             {
-                Q_EMIT GlobalMediator::getGlobalMediator()->termsChanged(terms);
-
                 m_lastEmittedIndex = index;
                 m_lastEmittedSize  = terms->first()->clozeBody.size();
                 m_lastEmittedSize += getText()
                     .midRef(m_lastEmittedIndex, m_lastEmittedSize)
                     .count('\n');
             }
+
+            /* Look for Kanji */
+            Kanji *kanji = nullptr;
+            if (CharacterUtils::isKanji(queryStr[0]))
+            {
+                kanji = m_dictionary->searchKanji(queryStr[0]);
+                if (terms == nullptr)
+                {
+                    m_lastEmittedIndex = index;
+                    m_lastEmittedSize = 1;
+                }
+            }
+
+            Q_EMIT GlobalMediator::getGlobalMediator()
+                ->termsChanged(terms, kanji);
         }
     );
 }

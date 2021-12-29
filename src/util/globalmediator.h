@@ -33,6 +33,7 @@ class SubtitleListWidget;
 class QKeyEvent;
 class QWheelEvent;
 
+struct Kanji;
 struct Term;
 struct Track;
 
@@ -497,9 +498,12 @@ Q_SIGNALS:
 
     /**
      * Emitted when the list of terms changes.
-     * @param terms The list of terms. Belongs to the recipient.
+     * @param terms The list of terms if found, nullptr otherwise. Belongs to
+     *              the recipient.
+     * @param kanji The kanji if found, nullptr otherwise. Belongs to the
+     *              recipient.
      */
-    void termsChanged(const QList<Term *> *terms) const;
+    void termsChanged(const QList<Term *> *terms, const Kanji *kanji) const;
 
     /**
      * Emitted when the subtitle changes or passes its end time.

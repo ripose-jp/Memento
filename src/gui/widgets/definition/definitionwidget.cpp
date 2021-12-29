@@ -65,6 +65,7 @@ void DefinitionWidget::clearTerms()
     m_addable.clear();
     m_termWidgets.clear();
     m_terms.clear();
+    m_kanji = nullptr;
     QLayoutItem *item;
     while ((item = m_ui->layoutScroll->takeAt(0)) != nullptr)
     {
@@ -152,16 +153,31 @@ void DefinitionWidget::initSignals()
     );
 }
 
-void DefinitionWidget::setTerms(const QList<Term *> *terms)
+void DefinitionWidget::setTerms(const QList<Term *> *terms, const Kanji *kanji)
 {
     clearTerms();
 
     /* Save the terms in shared pointers */
-    for (Term *term : *terms)
+    if (terms)
     {
-        m_terms << std::shared_ptr<const Term>(term);
+        for (Term *term : *terms)
+        {
+            m_terms << std::shared_ptr<const Term>(term);
+        }
+        delete terms;
     }
-    delete terms;
+
+    /* Save kanji in a shared pointer */
+    if (kanji)
+    {
+        m_kanji = std::shared_ptr<const Kanji>(kanji);
+    }
+
+    /* Early exit if there is nothing to show */
+    if (m_terms.isEmpty() && m_kanji == nullptr)
+    {
+        return;
+    }
 
     /* Add the terms */
     showTerms(0, m_limit);
@@ -169,7 +185,7 @@ void DefinitionWidget::setTerms(const QList<Term *> *terms)
 
     QPushButton *buttonShowMore = nullptr;
     /* Add the show more button */
-    if (m_limit < m_terms.size())
+    if (m_limit < m_terms.size() + (m_kanji ? 1 : 0))
     {
         buttonShowMore = new QPushButton;
         buttonShowMore->setSizePolicy(
@@ -247,7 +263,7 @@ void DefinitionWidget::showMoreTerms()
     showTerms(start, end);
     setAddable(start, end);
 
-    if (end < m_terms.size())
+    if (end < m_terms.size() + (m_kanji ? 1 : 0))
     {
         m_ui->scrollAreaContents->layout()->addItem(showMoreItem);
     }
@@ -270,9 +286,10 @@ void DefinitionWidget::showMoreTerms()
 void DefinitionWidget::showTerms(const size_t start, const size_t end)
 {
     setUpdatesEnabled(false);
-    for (size_t i = start; i < m_terms.size() && i < end; ++i)
+    size_t i;
+    for (i = start; i < m_terms.size() && i < end; ++i)
     {
-        TermWidget *termWidget = new TermWidget(m_terms[i], &m_sources, this);
+        TermWidget *termWidget = new TermWidget(m_terms[i], &m_sources);
         connect(
             termWidget, &TermWidget::kanjiSearched,
             this,       &DefinitionWidget::showKanji
@@ -285,6 +302,13 @@ void DefinitionWidget::showTerms(const size_t start, const size_t end)
         line->setFrameShadow(QFrame::Sunken);
         line->setLineWidth(1);
         m_ui->scrollAreaContents->layout()->addWidget(line);
+    }
+    if (i < end && m_kanji != nullptr)
+    {
+        KanjiWidget *kanjiWidget = new KanjiWidget(m_kanji);
+        m_ui->scrollAreaContents->layout()->addWidget(kanjiWidget);
+        /* An extra line is expected here */
+        m_ui->scrollAreaContents->layout()->addWidget(new QFrame);
     }
     setUpdatesEnabled(true);
 }
@@ -309,7 +333,7 @@ void DefinitionWidget::showKanji(std::shared_ptr<const Kanji> kanji)
     {
         m_ui->scrollAreaContents->layout()->itemAt(i)->widget()->hide();
     }
-    KanjiWidget *kanjiWidget = new KanjiWidget(kanji);
+    KanjiWidget *kanjiWidget = new KanjiWidget(kanji, true);
     connect(
         kanjiWidget, &KanjiWidget::backPressed,
         this,        &DefinitionWidget::hideKanji

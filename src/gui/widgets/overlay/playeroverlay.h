@@ -29,6 +29,8 @@ class DefinitionWidget;
 class PlayerControls;
 class PlayerMenu;
 class SubtitleWidget;
+
+struct Kanji;
 struct Term;
 
 /**
@@ -72,8 +74,9 @@ private Q_SLOTS:
     /**
      * Opens a new DefinitionWidget populated with the terms in the list.
      * @param terms A list of terms to display.
+     * @param kanji A kanji if found.
      */
-    void setTerms(const QList<Term *> *terms);
+    void setTerms(const QList<Term *> *terms, const Kanji *kanji);
 
     /**
      * Repositions the subtitles over the player. Used for keeping the subtitle

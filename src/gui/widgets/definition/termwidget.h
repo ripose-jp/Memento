@@ -111,13 +111,6 @@ private:
      */
     inline QString generateJishoLink(const QString &exp);
 
-    /**
-     * Describes if a character is Kanji or not.
-     * @param ch The character to check.
-     * @return True if it is a kanji, false otherwise.
-     */
-    inline bool isKanji(const QString &ch);
-
     /* UI object containing all the widgets. */
     Ui::TermWidget *m_ui;
 

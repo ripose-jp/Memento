@@ -382,3 +382,23 @@ QString GraphicUtils::generatePitchGraph(const int     moraSize,
 #undef GRAPH_OFFSET
 
 /* End GraphicUtils */
+/* Begin CharacterUtils */
+
+#define KANJI_UNICODE_LOWER_COMMON  "\u4e00"
+#define KANJI_UNICODE_UPPER_COMMON  "\u9faf"
+#define KANJI_UNICODE_LOWER_RARE    "\u3400"
+#define KANJI_UNICODE_UPPER_RARE    "\u4dbf"
+
+bool CharacterUtils::isKanji(const QString &ch)
+{
+    return
+        ch >= KANJI_UNICODE_LOWER_COMMON && ch <= KANJI_UNICODE_UPPER_COMMON ||
+        ch >= KANJI_UNICODE_LOWER_RARE   && ch <= KANJI_UNICODE_UPPER_RARE;
+}
+
+#undef KANJI_UNICODE_LOWER_COMMON
+#undef KANJI_UNICODE_UPPER_COMMON
+#undef KANJI_UNICODE_LOWER_RARE
+#undef KANJI_UNICODE_UPPER_RARE
+
+/* End CharacterUtils */

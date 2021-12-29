@@ -27,6 +27,7 @@
 #include "../../../dict/dictionary.h"
 #include "../../../util/globalmediator.h"
 #include "../../../util/iconfactory.h"
+#include "../../../util/utils.h"
 #include "../subtitlelistwidget.h"
 #include "glossarywidget.h"
 #include "pitchwidget.h"
@@ -157,7 +158,8 @@ void TermWidget::initUi(const Term &term)
         );
     for (const QString &ch : term.expression)
     {
-        kanjiLabelText += isKanji(ch) ? KANJI_FORMAT_STRING.arg(ch) : ch;
+        kanjiLabelText += CharacterUtils::isKanji(ch) ?
+            KANJI_FORMAT_STRING.arg(ch) : ch;
     }
     m_ui->labelKanji->setText(kanjiLabelText);
     m_ui->labelJisho->setText(generateJishoLink(term.expression));
@@ -339,22 +341,5 @@ inline QString TermWidget::generateJishoLink(const QString &exp)
     return
         QString("<a href=\"https://jisho.org/search/%1\">Jisho</a>").arg(exp);
 }
-
-#define KANJI_UNICODE_LOWER_COMMON  "\u4e00"
-#define KANJI_UNICODE_UPPER_COMMON  "\u9faf"
-#define KANJI_UNICODE_LOWER_RARE    "\u3400"
-#define KANJI_UNICODE_UPPER_RARE    "\u4dbf"
-
-inline bool TermWidget::isKanji(const QString &ch)
-{
-    return
-        ch >= KANJI_UNICODE_LOWER_COMMON && ch <= KANJI_UNICODE_UPPER_COMMON ||
-        ch >= KANJI_UNICODE_LOWER_RARE   && ch <= KANJI_UNICODE_UPPER_RARE;
-}
-
-#undef KANJI_UNICODE_LOWER_COMMON
-#undef KANJI_UNICODE_UPPER_COMMON
-#undef KANJI_UNICODE_LOWER_RARE
-#undef KANJI_UNICODE_UPPER_RARE
 
 /* End Helpers */

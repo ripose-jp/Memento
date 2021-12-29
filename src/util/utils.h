@@ -141,4 +141,18 @@ private:
     GraphicUtils() {}
 };
 
+class CharacterUtils
+{
+public:
+    /**
+     * Determines if a character is kanji.
+     * @param ch The character to check.
+     * @return true if the character is kanji, false otherwise.
+     */
+    static bool isKanji(const QString &ch);
+
+private:
+    CharacterUtils() {}
+};
+
 #endif // UTILS_H

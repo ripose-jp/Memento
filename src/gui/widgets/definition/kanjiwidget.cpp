@@ -35,7 +35,10 @@
 
 /* Begin Constructor/Destructor */
 
-KanjiWidget::KanjiWidget(std::shared_ptr<const Kanji> kanji, QWidget *parent)
+KanjiWidget::KanjiWidget(
+    std::shared_ptr<const Kanji> kanji,
+    bool showBack,
+    QWidget *parent)
     : QWidget(parent),
       m_kanji(kanji)
 {
@@ -50,6 +53,7 @@ KanjiWidget::KanjiWidget(std::shared_ptr<const Kanji> kanji, QWidget *parent)
     buttonBack->setIcon(factory->getIcon(IconFactory::Icon::back));
     buttonBack->setMinimumSize(QSize(30, 30));
     buttonBack->setToolTip("Return to search results");
+    buttonBack->setVisible(showBack);
     connect(buttonBack, &QToolButton::clicked, this, &KanjiWidget::backPressed);
     layoutTop->addWidget(buttonBack);
     layoutTop->setAlignment(buttonBack, Qt::AlignTop | Qt::AlignLeft);

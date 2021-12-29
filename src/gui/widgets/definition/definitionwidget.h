@@ -66,9 +66,11 @@ public Q_SLOTS:
     /**
      * Shows the terms in the list.
      * @param terms Pointer to a list of terms. Takes ownership of the terms and
-     *              list.
+     *              list. Can be nullptr.
+     * @param kanji A pointer to the current kanji. Takes ownership. Can be
+     *              nullptr.
      */
-    void setTerms(const QList<Term *> *terms);
+    void setTerms(const QList<Term *> *terms, const Kanji *kanji);
 
     /**
      * Clears all terms.
@@ -166,6 +168,9 @@ private:
 
     /* List of terms. Owned by this widget. */
     QList<std::shared_ptr<const Term>> m_terms;
+
+    /* Pointer to the current kanji */
+    std::shared_ptr<const Kanji> m_kanji;
 
     /* List of booleans describing if a term can be added to Anki. */
     QList<bool> m_addable;

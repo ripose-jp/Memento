@@ -40,10 +40,14 @@ class KanjiWidget : public QWidget
 public:
     /**
      * Constructor for the Kanji Widget.
-     * @param kanji  The kanji to display.
-     * @param parent The parent of the widget.
+     * @param kanji    The kanji to display.
+     * @param showBack true if the back button should be shown.
+     * @param parent   The parent of the widget.
      */
-    KanjiWidget(std::shared_ptr<const Kanji> kanji, QWidget *parent = nullptr);
+    KanjiWidget(
+        std::shared_ptr<const Kanji> kanji,
+        bool showBack = false,
+        QWidget *parent = nullptr);
 
 Q_SIGNALS:
     /**

@@ -26,6 +26,7 @@
 
 #include "../../dict/dictionary.h"
 #include "../../util/globalmediator.h"
+#include "../../util/utils.h"
 #include "definition/definitionwidget.h"
 
 SearchWidget::SearchWidget(QWidget *parent)
@@ -56,12 +57,8 @@ SearchWidget::SearchWidget(QWidget *parent)
         this, &SearchWidget::updateSearch
     );
     connect(
-        this, &SearchWidget::termsUpdated,
+        this, &SearchWidget::searchUpdated,
         m_definition, &DefinitionWidget::setTerms
-    );
-    connect(
-        this, &SearchWidget::requestClear,
-        m_definition, &DefinitionWidget::clearTerms
     );
     connect(
         GlobalMediator::getGlobalMediator(),
@@ -79,19 +76,14 @@ void SearchWidget::updateSearch(const QString text)
         [=] {
             QList<Term *> *terms =
                 m_dictionary->searchTerms(text.left(MAX_SEARCH_SIZE));
-            if (terms == nullptr)
+
+            Kanji *kanji = nullptr;
+            if (!text.isEmpty() && CharacterUtils::isKanji(text[0]))
             {
-                Q_EMIT requestClear();
+                kanji = m_dictionary->searchKanji(text[0]);
             }
-            else if (terms->isEmpty())
-            {
-                delete terms;
-                Q_EMIT requestClear();
-            }
-            else
-            {
-                Q_EMIT termsUpdated(terms);
-            }
+
+            Q_EMIT searchUpdated(terms, kanji);
         }
     );
 }

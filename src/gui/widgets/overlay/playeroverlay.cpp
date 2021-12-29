@@ -209,11 +209,11 @@ void PlayerOverlay::initSettings()
 /* End Initializers */
 /* Begin Definition Widget Helpers */
 
-void PlayerOverlay::setTerms(const QList<Term *> *terms)
+void PlayerOverlay::setTerms(const QList<Term *> *terms, const Kanji *kanji)
 {
-    m_definition->setTerms(terms);
+    m_definition->setTerms(terms, kanji);
     setDefinitionWidgetLocation();
-    m_definition->show();
+    m_definition->setVisible(terms || kanji);
 }
 
 void PlayerOverlay::setDefinitionWidgetLocation()
