@@ -401,11 +401,12 @@ void SubtitleWidget::findTerms()
         return;
     }
 
+    QString rawText = m_subtitle.rawText;
     QThreadPool::globalInstance()->start(
         [=] {
             /* Look for Terms */
             QList<Term *> *terms = m_dictionary->searchTerms(
-                    queryStr, m_subtitle.rawText, index, &m_currentIndex
+                    queryStr, rawText, index, &m_currentIndex
                 );
             if (terms == nullptr)
             {
@@ -437,10 +438,17 @@ void SubtitleWidget::findTerms()
             if (CharacterUtils::isKanji(queryStr[0]))
             {
                 kanji = m_dictionary->searchKanji(queryStr[0]);
-                if (terms == nullptr)
+                if (kanji)
                 {
-                    m_lastEmittedIndex = index;
-                    m_lastEmittedSize = 1;
+                    kanji->sentence = rawText;
+                    kanji->clozePrefix = rawText.left(index);
+                    kanji->clozeBody = kanji->character;
+                    kanji->clozeSuffix = rawText.mid(index + 1);
+                    if (terms == nullptr)
+                    {
+                        m_lastEmittedIndex = index;
+                        m_lastEmittedSize = 1;
+                    }
                 }
             }
 
