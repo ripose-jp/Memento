@@ -219,7 +219,7 @@ void TermWidget::addNote()
     term->sentence = player->getSubtitle();
     term->sentence2 = player->getSecondarySubtitle();
     term->startTime = player->getSubStart() + delay;
-    term->startTime = player->getSubEnd() + delay;
+    term->endTime = player->getSubEnd() + delay;
     term->context = subList->getPrimaryContext("\n");
     term->context2 = subList->getSecondaryContext("\n");
     QPair<double, double> contextTimes = subList->getPrimaryContextTime();
