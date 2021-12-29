@@ -235,17 +235,17 @@ void KanjiWidget::addKanji()
     PlayerAdapter *player = mediator->getPlayerAdapter();
     SubtitleListWidget *subList = mediator->getSubtitleListWidget();
     Kanji *kanji = new Kanji(*m_kanji);
-    kanji->title = player->getTitle();
-    kanji->sentence = player->getSubtitle();
-    kanji->sentence2 = player->getSecondarySubtitle();
-    kanji->startTime = player->getSubStart();
-    kanji->endTime = player->getSubEnd();
-    kanji->context = subList->getPrimaryContext("\n");
-    kanji->context2 = subList->getSecondaryContext("\n");
-    QPair<double, double> contextTimes = subList->getPrimaryContextTime();
     double delay =
         mediator->getPlayerAdapter()->getSubDelay() -
         mediator->getPlayerAdapter()->getAudioDelay();
+    kanji->title = player->getTitle();
+    kanji->sentence = player->getSubtitle();
+    kanji->sentence2 = player->getSecondarySubtitle();
+    kanji->startTime = player->getSubStart() + delay;
+    kanji->endTime = player->getSubEnd() + delay;
+    kanji->context = subList->getPrimaryContext("\n");
+    kanji->context2 = subList->getSecondaryContext("\n");
+    QPair<double, double> contextTimes = subList->getPrimaryContextTime();
     kanji->startTimeContext = contextTimes.first + delay;
     kanji->endTimeContext = contextTimes.second + delay;
 

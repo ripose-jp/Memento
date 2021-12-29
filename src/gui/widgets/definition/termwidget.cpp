@@ -212,17 +212,17 @@ void TermWidget::addNote()
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     PlayerAdapter *player = mediator->getPlayerAdapter();
     SubtitleListWidget *subList = mediator->getSubtitleListWidget();
-    term->title = player->getTitle();
-    term->sentence = player->getSubtitle();
-    term->sentence2 = player->getSecondarySubtitle();
-    term->startTime = player->getSubStart();
-    term->startTime = player->getSubEnd();
-    term->context = subList->getPrimaryContext("\n");
-    term->context2 = subList->getSecondaryContext("\n");
-    QPair<double, double> contextTimes = subList->getPrimaryContextTime();
     double delay =
         mediator->getPlayerAdapter()->getSubDelay() -
         mediator->getPlayerAdapter()->getAudioDelay();
+    term->title = player->getTitle();
+    term->sentence = player->getSubtitle();
+    term->sentence2 = player->getSecondarySubtitle();
+    term->startTime = player->getSubStart() + delay;
+    term->startTime = player->getSubEnd() + delay;
+    term->context = subList->getPrimaryContext("\n");
+    term->context2 = subList->getSecondaryContext("\n");
+    QPair<double, double> contextTimes = subList->getPrimaryContextTime();
     term->startTimeContext = contextTimes.first + delay;
     term->endTimeContext = contextTimes.second + delay;
 
