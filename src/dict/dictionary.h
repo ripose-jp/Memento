@@ -120,6 +120,22 @@ private:
      */
     void sortTags(QList<Tag> &tags);
 
+    /* The DatabaseManager. */
+    DatabaseManager *m_db;
+
+    /* The object used for interacting with MeCab. */
+    MeCab::Tagger *m_tagger;
+
+    /* Contains dictionary priority information. */
+    struct DictOrder
+    {
+        /* Maps dictionary names to priorities. */
+        QHash<QString, QPair<int, bool>> map;
+
+        /* Used for locking for reading and writing. */
+        QReadWriteLock lock;
+    } m_dicOrder;
+
     /**
      * Worker thread for querying the term database for exact substrings of the
      * query.
@@ -140,22 +156,25 @@ private:
          * @param currentIndex A pointer to the current index. If this value is
          *                     no different from the index before this method is
          *                     done, the search is aborted.
+         * @param dictOrder    A pointer to the dictionary order map struct.
          * @param db           The database manager.
          * @param[out] terms   The list of terms to add results to.
          */
-        ExactWorker(const QString   &query,
-                    const int        endSize,
-                    const QString   &subtitle,
-                    const int        index,
-                    const int       *currentIndex,
-                    DatabaseManager *db,
-                    QList<Term *>   *terms)
+        ExactWorker(const QString    &query,
+                    const int         endSize,
+                    const QString    &subtitle,
+                    const int         index,
+                    const int        *currentIndex,
+                    DatabaseManager  *db,
+                    struct DictOrder *dictOrder,
+                    QList<Term *>    *terms)
                         : query(query),
                           endSize(endSize),
                           subtitle(subtitle),
                           index(index),
                           currentIndex(currentIndex),
                           db(db),
+                          dictOrder(dictOrder),
                           terms(terms) {}
 
         void run() override;
@@ -167,6 +186,7 @@ private:
         const int index;
         const int *currentIndex;
         QList<Term *> *terms;
+        struct DictOrder *dictOrder;
         DatabaseManager *db;
     };
 
@@ -189,6 +209,7 @@ private:
          * @param currentIndex A pointer to the current index. If this value is
          *                     no different from the index before this method is
          *                     done, the search is aborted.
+         * @param dictOrder    A pointer to the dictionary order map struct.
          * @param db           The database manager.
          * @param[out] terms   The list of terms to add results to.
          */
@@ -198,6 +219,7 @@ private:
                     const int        index,
                     const int       *currentIndex,
                     DatabaseManager *db,
+                    struct DictOrder *dictOrder,
                     QList<Term *>   *terms)
                         : begin(begin),
                           end(end),
@@ -205,6 +227,7 @@ private:
                           index(index),
                           currentIndex(currentIndex),
                           db(db),
+                          dictOrder(dictOrder),
                           terms(terms) {}
         void run() override;
 
@@ -213,25 +236,10 @@ private:
         const QString &subtitle;
         const int index;
         const int *currentIndex;
-        QList<Term *> *terms;
         DatabaseManager *db;
+        struct DictOrder *dictOrder;
+        QList<Term *> *terms;
     };
-
-    /* The DatabaseManager. */
-    DatabaseManager *m_db;
-
-    /* The object used for interacting with MeCab. */
-    MeCab::Tagger *m_tagger;
-
-    /* Contains dictionary priority information. */
-    struct m_dicOrder
-    {
-        /* Maps dictionary names to priorities. */
-        QHash<QString, uint32_t> map;
-
-        /* Used for locking for reading and writing. */
-        QReadWriteLock lock;
-    } m_dicOrder;
 };
 
 #endif // DICTIONARY_H

@@ -142,7 +142,7 @@ Dictionary::Dictionary(QObject *parent) : QObject(parent)
     GlobalMediator *med = GlobalMediator::getGlobalMediator();
     med->setDictionary(this);
     connect(
-        med,  &GlobalMediator::dictionaryOrderChanged,
+        med, &GlobalMediator::dictionaryOrderChanged,
         this, &Dictionary::initDictionaryOrder
     );
 }
@@ -153,15 +153,19 @@ void Dictionary::initDictionaryOrder()
 {
     m_dicOrder.lock.lockForWrite();
 
-    QSettings settings;
-    settings.beginGroup(SETTINGS_DICTIONARIES);
+    QSettings order, enabled;
+    order.beginGroup(SETTINGS_DICTIONARIES);
+    enabled.beginGroup(SETTINGS_DICTIONARY_ENABLED);
     QStringList dicts = m_db->getDictionaries();
     m_dicOrder.map.clear();
     for (const QString &dict : dicts)
     {
-        m_dicOrder.map[dict] = settings.value(dict).toUInt();
+        QPair<int, bool> &pair = m_dicOrder.map[dict];
+        pair.first = order.value(dict).toInt();
+        pair.second = enabled.value(dict, true).toBool();
     }
-    settings.endGroup();
+    order.endGroup();
+    enabled.endGroup();
 
     m_dicOrder.lock.unlock();
 }
@@ -174,6 +178,82 @@ Dictionary::~Dictionary()
 
 /* End Constructor/Destructor */
 /* Begin Term Searching Methods */
+
+/**
+ * Filters and add terms to the terms array.
+ * @param sentence    The sentence the term comes from.
+ * @param clozePrefix The part of the sentence before the matched term.
+ * @param clozeBody   The part of the sentence that was matched.
+ * @param clozeSuffix The part of the sentence that was after the matched term.
+ * @param results     The results of a search.
+ * @param dictMap     A mapping from dictionaries to priorities and enabled.
+ * @param[out] terms  The array to put terms into after being processed.
+ */
+static inline void addTerms(const QString &sentence,
+                            const QString &clozePrefix,
+                            const QString &clozeBody,
+                            const QString &clozeSuffix,
+                            const QList<Term *> &results,
+                            QHash<QString, QPair<int, bool>> &dictMap,
+                            QList<Term *> &terms)
+{
+    for (Term *term : results)
+    {
+        /* Remove definitions from disabled dictionaries */
+        for (int i = 0; i < term->definitions.size(); ++i)
+        {
+            const QString &dict = term->definitions[i].dictionary;
+            if (!dictMap[dict].second)
+            {
+                term->definitions.removeAt(i--);
+            }
+        }
+
+        /* If a term has no definitions left, throw it out */
+        if (term->definitions.isEmpty())
+        {
+            delete term;
+            continue;
+        }
+
+        /* Remove disabled tags */
+        for (int i = 0; i < term->tags.size(); ++i)
+        {
+            const QString &dict = term->tags[i].dictionary;
+            if (!dictMap[dict].second)
+            {
+                term->tags.removeAt(i--);
+            }
+        }
+
+        /* Remove disabled frequencies */
+        for (int i = 0; i < term->frequencies.size(); ++i)
+        {
+            const QString &dict = term->frequencies[i].dictionary;
+            if (!dictMap[dict].second)
+            {
+                term->frequencies.removeAt(i--);
+            }
+        }
+
+        /* Remove disabled pitches */
+        for (int i = 0; i < term->pitches.size(); ++i)
+        {
+            const QString &dict = term->pitches[i].dictionary;
+            if (!dictMap[dict].second)
+            {
+                term->pitches.removeAt(i--);
+            }
+        }
+
+        term->sentence = sentence;
+        term->clozePrefix = clozePrefix;
+        term->clozeBody = clozeBody;
+        term->clozeSuffix = clozeSuffix;
+
+        terms.append(term);
+    }
+}
 
 void Dictionary::ExactWorker::run()
 {
@@ -195,22 +275,25 @@ void Dictionary::ExactWorker::run()
                 );
         }
 
-        for (Term *term : results)
-        {
-            term->sentence    = subtitle;
-            term->clozePrefix = clozePrefix;
-            term->clozeBody   = clozeBody;
-            term->clozeSuffix = clozeSuffix;
-        }
+        dictOrder->lock.lockForRead();
+        addTerms(
+            subtitle,
+            clozePrefix,
+            clozeBody,
+            clozeSuffix,
+            results,
+            dictOrder->map,
+            *terms
+        );
+        dictOrder->lock.unlock();
 
-        terms->append(results);
         query.chop(1);
     }
 }
 
 void Dictionary::MeCabWorker::run()
 {
-    while(begin != end && index == *currentIndex)
+    while (begin != end && index == *currentIndex)
     {
         const QPair<QString, QString> &pair = *begin;
         QList<Term *> results;
@@ -229,20 +312,23 @@ void Dictionary::MeCabWorker::run()
                 );
         }
 
-        for (Term *term : results)
-        {
-            term->sentence    = subtitle;
-            term->clozePrefix = clozePrefix;
-            term->clozeBody   = clozeBody;
-            term->clozeSuffix = clozeSuffix;
-        }
+        dictOrder->lock.lockForRead();
+        addTerms(
+            subtitle,
+            clozePrefix,
+            clozeBody,
+            clozeSuffix,
+            results,
+            dictOrder->map,
+            *terms
+        );
+        dictOrder->lock.unlock();
 
-        terms->append(results);
         ++begin;
     }
 }
 
-#define WORD_INDEX  6
+#define WORD_INDEX 6
 
 QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
 {
@@ -304,7 +390,7 @@ QList<Term *> *Dictionary::searchTerms(const QString query)
 }
 
 /* The maximum number of queries one thread can be accountable for. */
-#define QUERIES_PER_THREAD  4
+#define QUERIES_PER_THREAD 4
 
 QList<Term *> *Dictionary::searchTerms(const QString query,
                                        const QString subtitle,
@@ -319,12 +405,20 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
     {
         int endSize = str.size() - QUERIES_PER_THREAD;
         if (endSize < 0)
+        {
             endSize = 0;
+        }
 
         QThread *worker =
             new ExactWorker(
-                str, endSize, subtitle, index, currentIndex, m_db, terms
-            );
+                str,
+                endSize,
+                subtitle,
+                index,
+                currentIndex,
+                m_db,
+                &m_dicOrder,
+                terms);
 
         worker->start();
         threads.append(worker);
@@ -350,8 +444,8 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
                     index,
                     currentIndex,
                     m_db,
-                    terms
-                );
+                    &m_dicOrder,
+                    terms);
 
             worker->start();
             threads.append(worker);
@@ -367,7 +461,9 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
 
     /* Sort the results by cloze length and score */
     if (index != *currentIndex)
+    {
         goto early_exit;
+    }
     std::sort(terms->begin(), terms->end(),
         [] (const Term *lhs, const Term *rhs) -> bool {
             return lhs->clozeBody.size() > rhs->clozeBody.size() ||
@@ -380,23 +476,25 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
 
     /* Sort internal term data */
     if (index != *currentIndex)
+    {
         goto early_exit;
+    }
 
     m_dicOrder.lock.lockForRead();
     for (Term *term : *terms)
     {
         std::sort(term->definitions.begin(), term->definitions.end(),
             [=] (const TermDefinition &lhs, const TermDefinition &rhs) -> bool {
-                uint32_t lhsPriority = m_dicOrder.map[lhs.dictionary];
-                uint32_t rhsPriority = m_dicOrder.map[rhs.dictionary];
+                uint32_t lhsPriority = m_dicOrder.map[lhs.dictionary].first;
+                uint32_t rhsPriority = m_dicOrder.map[rhs.dictionary].first;
                 return lhsPriority < rhsPriority ||
                        (lhsPriority == rhsPriority && lhs.score > rhs.score);
             }
         );
         std::sort(term->frequencies.begin(), term->frequencies.end(),
             [=] (const Frequency &lhs, const Frequency &rhs) -> bool {
-                return m_dicOrder.map[lhs.dictionary] <
-                       m_dicOrder.map[rhs.dictionary];
+                return m_dicOrder.map[lhs.dictionary].first <
+                       m_dicOrder.map[rhs.dictionary].first;
             }
         );
         sortTags(term->tags);
@@ -429,24 +527,47 @@ Kanji *Dictionary::searchKanji(const QString ch)
 {
     Kanji *kanji = new Kanji;
     m_db->queryKanji(ch, *kanji);
+
+    /* Remove disabled definitions */
+    m_dicOrder.lock.lockForRead();
+    for (int i = 0; i < kanji->definitions.size(); ++i)
+    {
+        const QString &dict = kanji->definitions[i].dictionary;
+        if (!m_dicOrder.map[dict].second)
+        {
+            kanji->definitions.removeAt(i--);
+        }
+    }
+
+    /* Delete the Kanji if there are no definitions left */
     if (kanji->definitions.isEmpty())
     {
         delete kanji;
+        m_dicOrder.lock.unlock();
         return nullptr;
     }
 
+    /* Remove disabled frequencies */
+    for (int i = 0; i < kanji->frequencies.size(); ++i)
+    {
+        const QString &dict = kanji->frequencies[i].dictionary;
+        if (!m_dicOrder.map[dict].second)
+        {
+            kanji->frequencies.removeAt(i--);
+        }
+    }
+
     /* Sort all the information */
-    m_dicOrder.lock.lockForRead();
     std::sort(kanji->frequencies.begin(), kanji->frequencies.end(),
         [=] (const Frequency &lhs, const Frequency &rhs) -> bool {
-            return m_dicOrder.map[lhs.dictionary] <
-                   m_dicOrder.map[rhs.dictionary];
+            return m_dicOrder.map[lhs.dictionary].first <
+                   m_dicOrder.map[rhs.dictionary].first;
         }
     );
     std::sort(kanji->definitions.begin(), kanji->definitions.end(),
         [=] (const KanjiDefinition &lhs, const KanjiDefinition &rhs) -> bool {
-            return m_dicOrder.map[lhs.dictionary] <
-                   m_dicOrder.map[rhs.dictionary];
+            return m_dicOrder.map[lhs.dictionary].first <
+                   m_dicOrder.map[rhs.dictionary].first;
         }
     );
     m_dicOrder.lock.unlock();
@@ -490,7 +611,7 @@ QStringList Dictionary::getDictionaries()
     m_dicOrder.lock.lockForRead();
     std::sort(dictionaries.begin(), dictionaries.end(),
         [=] (const QString &lhs, const QString &rhs) -> bool {
-            return m_dicOrder.map[lhs] < m_dicOrder.map[rhs];
+            return m_dicOrder.map[lhs].first < m_dicOrder.map[rhs].first;
         }
     );
     m_dicOrder.lock.unlock();

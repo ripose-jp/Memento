@@ -138,12 +138,14 @@ int DatabaseManager::initCache()
         uint64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
         QHash<QString, Tag> &tags = m_tagCache[id];
 
-        Tag tag;
-        tag.name     = (const char *)sqlite3_column_text(stmt, COLUMN_NAME);
-        tag.category = (const char *)sqlite3_column_text(stmt, COLUMN_CATEGORY);
-        tag.notes    = (const char *)sqlite3_column_text(stmt, COLUMN_NOTES);
-        tag.order    = sqlite3_column_int(stmt, COLUMN_ORDER);
-        tag.score    = sqlite3_column_int(stmt, COLUMN_SCORE);
+        Tag tag{
+            .dictionary = m_dictionaryCache[id],
+            .name = (const char *)sqlite3_column_text(stmt, COLUMN_NAME),
+            .category = (const char *)sqlite3_column_text(stmt, COLUMN_CATEGORY),
+            .notes = (const char *)sqlite3_column_text(stmt, COLUMN_NOTES),
+            .order = sqlite3_column_int(stmt, COLUMN_ORDER),
+            .score = sqlite3_column_int(stmt, COLUMN_SCORE),
+        };
         tags.insert(tag.name, tag);
 
         m_tagCache[id] = tags;
@@ -397,7 +399,7 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
              it != map.constKeyValueEnd();
              ++it)
         {
-            const Tag *tag  = &m_tagCache[id][it->first];
+            const Tag *tag = &m_tagCache[id][it->first];
             QList<QPair<Tag, QString>> *list = nullptr;
             if (tag->category == TAG_NAME_INDEX)
             {

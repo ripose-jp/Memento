@@ -30,6 +30,9 @@
  */
 struct Tag
 {
+    /* The dictionary the tag comes from */
+    QString dictionary;
+
     /* The name of the tag. */
     QString name;
 
@@ -94,7 +97,7 @@ struct TermDefinition
     QList<Tag> tags;
 
     /* A list of the rules associated with this entry. */
-    QList<Tag>  rules;
+    QList<Tag> rules;
 
     /* A list of glossary entries for this definition. */
     QStringList glossary;
@@ -237,7 +240,7 @@ struct Kanji : public CommonExpFields
     QList<KanjiDefinition> definitions;
 
     /* A list of frequencies corresponding to the kanji. */
-    QList<Frequency>       frequencies;
+    QList<Frequency> frequencies;
 } typedef Kanji;
 
 #endif // EXPRESSION_H

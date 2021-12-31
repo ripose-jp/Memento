@@ -129,18 +129,37 @@ void DictionarySettings::restoreSaved()
     m_ui->listDictionaries->addItems(
         GlobalMediator::getGlobalMediator()->getDictionary()->getDictionaries()
     );
+
+    QSettings settings;
+    settings.beginGroup(SETTINGS_DICTIONARY_ENABLED);
+    for (int i = 0; i < m_ui->listDictionaries->count(); ++i)
+    {
+        QListWidgetItem *item = m_ui->listDictionaries->item(i);
+        item->setFlags(item->flags() | Qt::ItemFlag::ItemIsUserCheckable);
+        item->setCheckState(
+            settings.value(
+                item->text(), true
+            ).toBool() ? Qt::Checked : Qt::Unchecked
+        );
+    }
 }
 
 void DictionarySettings::applySettings()
 {
-    QSettings settings;
-    settings.beginGroup(SETTINGS_DICTIONARIES);
-    settings.remove("");
+    QSettings order, enabled;
+    order.beginGroup(SETTINGS_DICTIONARIES);
+    order.remove("");
+    enabled.beginGroup(SETTINGS_DICTIONARY_ENABLED);
+    enabled.remove("");
     for (int i = 0; i < m_ui->listDictionaries->count(); ++i)
     {
-        settings.setValue(m_ui->listDictionaries->item(i)->text(), i);
+        QListWidgetItem *item = m_ui->listDictionaries->item(i);
+        order.setValue(item->text(), i);
+        enabled.setValue(item->text(), item->checkState() == Qt::Checked);
     }
-    settings.endGroup();
+    order.endGroup();
+    enabled.endGroup();
+
     Q_EMIT GlobalMediator::getGlobalMediator()->dictionaryOrderChanged();
 }
 
@@ -182,7 +201,9 @@ void DictionarySettings::addDictionary()
 {
     QString file = QFileDialog::getOpenFileName(0, "Open the dictionary");
     if (file.isEmpty())
+    {
         return;
+    }
 
     QThreadPool::globalInstance()->start(
         [=] {
@@ -204,7 +225,9 @@ void DictionarySettings::addDictionary()
 void DictionarySettings::deleteDictionary()
 {
     if (!m_ui->listDictionaries->count())
+    {
         return;
+    }
 
     QListWidgetItem *item = m_ui->listDictionaries->takeItem(
         m_ui->listDictionaries->currentRow()
