@@ -202,7 +202,6 @@ void SubtitleListWidget::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
 
-    QApplication::processEvents();
     m_ui->tablePrim->scrollToItem(m_ui->tablePrim->currentItem());
     m_ui->tableSec->scrollToItem(m_ui->tableSec->currentItem());
     m_ui->tablePrim->resizeRowsToContents();
@@ -216,14 +215,12 @@ void SubtitleListWidget::hideEvent(QHideEvent *event)
     QList<QTableWidgetItem *> items = m_ui->tablePrim->selectedItems();
     if (!items.isEmpty())
     {
-        QApplication::processEvents();
         m_ui->tablePrim->scrollToItem(items.last());
     }
 
     items = m_ui->tableSec->selectedItems();
     if (!items.isEmpty())
     {
-        QApplication::processEvents();
         m_ui->tableSec->scrollToItem(items.last());
     }
 }
