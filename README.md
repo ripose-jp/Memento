@@ -49,8 +49,8 @@ If you would like to use secondary subtitles, there are two methods to do so.
 
 #### Method 1
 
-Go to Settings → Options → Search, uncheck "Hide mpv subtitles when search bar
-is visible", and check "Hide search bar while playing media".
+Go to Settings → Options → Search, uncheck "Hide mpv subtitles when subtitle
+search is visible", and check "Hide subtitle search when playing media".
 
 If the searchable subtitles become harder to read, consider adding a background.
 This can be done in Interface settings.
