@@ -55,7 +55,6 @@ DefinitionWidget::~DefinitionWidget()
     clearTerms();
     disconnect();
     delete m_ui;
-    GlobalMediator::getGlobalMediator()->getAudioPlayer()->clearFiles();
 }
 
 void DefinitionWidget::clearTerms()
@@ -72,6 +71,7 @@ void DefinitionWidget::clearTerms()
         item->widget()->deleteLater();
         delete item;
     }
+    GlobalMediator::getGlobalMediator()->getAudioPlayer()->clearFiles();
 }
 
 /* Begin Constructor/Destructor */
