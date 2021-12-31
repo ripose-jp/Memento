@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>739</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Subtitle List</string>
   </property>
   <layout class="QVBoxLayout" name="layoutParent">
    <property name="spacing">

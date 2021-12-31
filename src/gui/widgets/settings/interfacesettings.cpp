@@ -134,8 +134,16 @@ void InterfaceSettings::restoreDefaults()
     setButtonColor(m_ui->buttonSubStroke, m_strokeColor);
 
     /* Sub List */
+    m_ui->checkSubListWindow->setChecked(
+        SETTINGS_INTERFACE_SUB_LIST_WINDOW_DEFAULT
+    );
     m_ui->checkSubListTimestamps->setChecked(
         SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS_DEFAULT
+    );
+
+    /* Aux Search */
+    m_ui->checkAuxSearchWindow->setChecked(
+        SETTINGS_INTERFACE_AUX_SEARCH_WINDOW_DEFAULT
     );
 
     /* Style Sheets */
@@ -225,10 +233,24 @@ void InterfaceSettings::restoreSaved()
     setButtonColor(m_ui->buttonSubStroke, m_strokeColor);
 
     /* Subtitle List */
+    m_ui->checkSubListWindow->setChecked(
+        settings.value(
+            SETTINGS_INTERFACE_SUB_LIST_WINDOW,
+            SETTINGS_INTERFACE_SUB_LIST_WINDOW_DEFAULT
+        ).toBool()
+    );
     m_ui->checkSubListTimestamps->setChecked(
         settings.value(
             SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS,
             SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS_DEFAULT
+        ).toBool()
+    );
+
+    /* Aux Search */
+    m_ui->checkAuxSearchWindow->setChecked(
+        settings.value(
+            SETTINGS_INTERFACE_AUX_SEARCH_WINDOW,
+            SETTINGS_INTERFACE_AUX_SEARCH_WINDOW_DEFAULT
         ).toBool()
     );
 
@@ -307,8 +329,18 @@ void InterfaceSettings::applyChanges()
 
     /* Subtitle List */
     settings.setValue(
+        SETTINGS_INTERFACE_SUB_LIST_WINDOW,
+        m_ui->checkSubListWindow->isChecked()
+    );
+    settings.setValue(
         SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS,
         m_ui->checkSubListTimestamps->isChecked()
+    );
+
+    /* Aux Search */
+    settings.setValue(
+        SETTINGS_INTERFACE_AUX_SEARCH_WINDOW,
+        m_ui->checkAuxSearchWindow->isChecked()
     );
 
     /* Style Sheets */

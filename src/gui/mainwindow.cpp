@@ -59,7 +59,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     /* Utility Widgets */
     m_mediator->setSubtitleList(m_ui->subtitleList);
+    m_ui->subtitleList->setWindowTitle(
+        "Memento - " + m_ui->subtitleList->windowTitle()
+    );
     m_ui->subtitleList->hide();
+    m_ui->searchWidget->setWindowTitle(
+        "Memento - " + m_ui->searchWidget->windowTitle()
+    );
     m_ui->searchWidget->hide();
     m_ui->splitterSearchList->hide();
 
@@ -83,6 +89,10 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     disconnect();
+
+    /* Reparent the widgets so they get deleted */
+    m_ui->subtitleList->setParent(this);
+    m_ui->searchWidget->setParent(this);
 
     /* Widgets */
     delete m_ui;
@@ -313,6 +323,33 @@ void MainWindow::initTheme()
             SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT
         );
     }
+
+    /* Reparent Search Widget */
+    bool vis = m_ui->searchWidget->isVisibleTo(m_ui->splitterSearchList);
+    m_ui->searchWidget->setParent(nullptr);
+    bool differentWindow = settings.value(
+        SETTINGS_INTERFACE_AUX_SEARCH_WINDOW,
+        SETTINGS_INTERFACE_AUX_SEARCH_WINDOW_DEFAULT
+    ).toBool();
+    if (!differentWindow)
+    {
+        m_ui->splitterSearchList->addWidget(m_ui->searchWidget);
+    }
+    m_ui->searchWidget->setVisible(vis);
+
+    /* Reparent Subtitle List Widget */
+    vis = m_ui->subtitleList->isVisibleTo(m_ui->splitterSearchList);
+    m_ui->subtitleList->setParent(nullptr);
+    differentWindow = settings.value(
+        SETTINGS_INTERFACE_SUB_LIST_WINDOW,
+        SETTINGS_INTERFACE_SUB_LIST_WINDOW_DEFAULT
+    ).toBool();
+    if (!differentWindow)
+    {
+        m_ui->splitterSearchList->addWidget(m_ui->subtitleList);
+    }
+    m_ui->subtitleList->setVisible(vis);
+    updateSearchSubListSplitter();
 
     settings.endGroup();
 }
@@ -581,7 +618,9 @@ void MainWindow::updateSearchSubListSplitter()
 {
     QApplication::processEvents();
     m_ui->splitterSearchList->setVisible(
+        m_ui->subtitleList->parent() != nullptr &&
         m_ui->subtitleList->isVisibleTo(m_ui->splitterSearchList) ||
+        m_ui->searchWidget->parent() != nullptr &&
         m_ui->searchWidget->isVisibleTo(m_ui->splitterSearchList)
     );
 }

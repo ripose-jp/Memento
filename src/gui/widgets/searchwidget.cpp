@@ -38,6 +38,7 @@ SearchWidget::SearchWidget(QWidget *parent)
         m_dictionary = new Dictionary;
     }
 
+    setWindowTitle("Term Search");
     setAutoFillBackground(true);
 
     m_layoutParent = new QVBoxLayout(this);

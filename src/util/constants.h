@@ -148,8 +148,14 @@ enum class Theme
 #define SETTINGS_INTERFACE_SUB_STROKE_COLOR                 "sub-stroke-color"
 #define SETTINGS_INTERFACE_SUB_STROKE_COLOR_DEFAULT         "#FF000000"
 
+#define SETTINGS_INTERFACE_SUB_LIST_WINDOW                  "sub-list-window"
+#define SETTINGS_INTERFACE_SUB_LIST_WINDOW_DEFAULT          false
+
 #define SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS              "sub-list-timestamps"
 #define SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS_DEFAULT      false
+
+#define SETTINGS_INTERFACE_AUX_SEARCH_WINDOW                "search-window"
+#define SETTINGS_INTERFACE_AUX_SEARCH_WINDOW_DEFAULT        false
 
 /* Stylesheets */
 #define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE              "sublist-style"

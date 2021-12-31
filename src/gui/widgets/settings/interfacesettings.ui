@@ -26,9 +26,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-1115</y>
         <width>728</width>
-        <height>779</height>
+        <height>2352</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -153,7 +153,7 @@
            </layout>
           </item>
           <item>
-           <layout class="QGridLayout" name="gridLayout">
+           <layout class="QGridLayout" name="layoutSubtitleSearch">
             <item row="1" column="8">
              <widget class="QToolButton" name="buttonSubStroke">
               <property name="minimumSize">
@@ -375,24 +375,61 @@ A value of 1 positions the subtitle at the top.</string>
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="labelSubList_2">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Subtitle List</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="checkSubListTimestamps">
-         <property name="text">
-          <string>Show timestamps</string>
-         </property>
-        </widget>
+        <layout class="QGridLayout" name="layoutSubSearch">
+         <item row="0" column="1">
+          <widget class="QLabel" name="labelAuxSearch">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Auxiliary Search</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="labelSubList_2">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Subtitle List</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="checkSubListTimestamps">
+           <property name="text">
+            <string>Show timestamps</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QCheckBox" name="checkSubListWindow">
+           <property name="toolTip">
+            <string>Opens the subtitle list in a separate window if enabled.</string>
+           </property>
+           <property name="text">
+            <string>Open in a new window</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QCheckBox" name="checkAuxSearchWindow">
+           <property name="toolTip">
+            <string>Opens the search in a separate window if enabled.</string>
+           </property>
+           <property name="text">
+            <string>Open in a new window</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QLabel" name="labelStylesheets">
@@ -444,7 +481,14 @@ Click the help button for documentation</string>
            </widget>
           </item>
           <item>
-           <widget class="QPlainTextEdit" name="editSubList"/>
+           <widget class="QPlainTextEdit" name="editSubList">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>600</height>
+             </size>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QLabel" name="labelSplitter">
@@ -460,7 +504,14 @@ Click the help button for documentation</string>
            </widget>
           </item>
           <item>
-           <widget class="QPlainTextEdit" name="editSplitter"/>
+           <widget class="QPlainTextEdit" name="editSplitter">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>600</height>
+             </size>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QLabel" name="labelDefinitions">
@@ -476,7 +527,14 @@ Click the help button for documentation</string>
            </widget>
           </item>
           <item>
-           <widget class="QPlainTextEdit" name="editDefinitions"/>
+           <widget class="QPlainTextEdit" name="editDefinitions">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>600</height>
+             </size>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
