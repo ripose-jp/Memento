@@ -199,8 +199,8 @@ void DictionarySettings::moveDown()
 
 void DictionarySettings::addDictionary()
 {
-    QString file = QFileDialog::getOpenFileName(0, "Open the dictionary");
-    if (file.isEmpty())
+    QStringList files = QFileDialog::getOpenFileNames(0, "Open Dictionaries");
+    if (files.isEmpty())
     {
         return;
     }
@@ -210,12 +210,15 @@ void DictionarySettings::addDictionary()
             setEnabled(false);
             Dictionary *dic =
                 GlobalMediator::getGlobalMediator()->getDictionary();
-            QString err = dic->addDictionary(file);
-            if (!err.isEmpty())
+            for (const QString &file : files)
             {
-                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
-                    "Error adding dictionary", err
-                );
+                QString err = dic->addDictionary(file);
+                if (!err.isEmpty())
+                {
+                    Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+                        "Error adding dictionary", err
+                    );
+                }
             }
             setEnabled(true);
         }
