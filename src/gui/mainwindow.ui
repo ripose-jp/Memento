@@ -76,6 +76,9 @@
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
+       <property name="childrenCollapsible">
+        <bool>false</bool>
+       </property>
        <widget class="SearchWidget" name="searchWidget" native="true"/>
        <widget class="SubtitleListWidget" name="subtitleList" native="true">
         <property name="minimumSize">
