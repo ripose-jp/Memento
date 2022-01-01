@@ -125,18 +125,30 @@ void MainWindow::initWindow()
 
     settings.endGroup();
 
-    /* Signals */
-    connect(
-        m_mediator, &GlobalMediator::playerFullscreenChanged,
-        this, &MainWindow::setFullscreen
-    );
+    /* Search Widget Signals */
     connect(
         m_mediator, &GlobalMediator::requestSearchVisibility,
         m_ui->searchWidget, &SearchWidget::setVisible
     );
     connect(
+        m_ui->searchWidget, &SearchWidget::widgetHidden,
+        m_mediator, &GlobalMediator::searchWidgetHidden
+    );
+    connect(
+        m_ui->searchWidget, &SearchWidget::widgetShown,
+        m_mediator, &GlobalMediator::searchWidgetShown
+    );
+
+    /* Subtitle List Signals */
+    connect(
         m_mediator, &GlobalMediator::requestSubtitleListVisibility,
         m_ui->subtitleList, &SubtitleListWidget::setVisible
+    );
+
+    /* MainWindow Signals */
+    connect(
+        m_mediator, &GlobalMediator::playerFullscreenChanged,
+        this, &MainWindow::setFullscreen
     );
     connect(
         m_mediator, &GlobalMediator::playerFileLoaded,

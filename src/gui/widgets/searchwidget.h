@@ -45,6 +45,16 @@ public:
 
 Q_SIGNALS:
     /**
+     * Emitted when the widget is hidden.
+     */
+    void widgetHidden() const;
+
+    /**
+     * Emitted when the widget is shown.
+     */
+    void widgetShown() const;
+
+    /**
      * An internal signal for moving found terms onto the UI thread.
      * @param terms The list of updated terms. Belongs to the recipient.
      * @param kanji The kanji if found. Belongs to the recipient.
@@ -59,6 +69,20 @@ private Q_SLOTS:
     void updateSearch(QString text);
 
 protected:
+    /**
+     * Scrolls to the last item in the subtitle list on hide.
+     * @param event The hide event, not used.
+     */
+    void hideEvent(QHideEvent *event) override
+        { QWidget::hideEvent(event); Q_EMIT widgetHidden(); }
+
+    /**
+     * Scrolls to the current selected row on show.
+     * @param event The show event, not used.
+     */
+    void showEvent(QShowEvent *event) override
+        { QWidget::showEvent(event); Q_EMIT widgetShown(); }
+
     /**
      * Size hint to prevent the widget from being too large when shown.
      * @return The minimum size.

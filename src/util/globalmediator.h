@@ -529,6 +529,19 @@ Q_SIGNALS:
     void definitionsShown() const;
 
     /* End Definition Signals */
+    /* Begin Search Widget Signals */
+
+    /**
+     * Emitted when the search widget is hidden.
+     */
+    void searchWidgetHidden() const;
+
+    /**
+     * Emitted when the search widget is shown.
+     */
+    void searchWidgetShown() const;
+
+    /* End Search Widget Signals */
     /* Begin Dictionary Signals */
 
     /**

@@ -198,6 +198,16 @@ PlayerMenu::PlayerMenu(QWidget *parent)
         m_ui->actionMoveDown, &QAction::triggered,
         mediator, &GlobalMediator::menuSubtitlesMoveDown
     );
+    connect(
+        mediator, &GlobalMediator::searchWidgetHidden,
+        m_ui->actionShowSearch,
+        [=] { m_ui->actionShowSearch->setChecked(false); }
+    );
+    connect(
+        mediator, &GlobalMediator::searchWidgetShown,
+        m_ui->actionShowSearch,
+        [=] { m_ui->actionShowSearch->setChecked(true); }
+    );
 
     /* aboutToHide Signals */
     QList<QMenu *> menus = m_ui->menubar->findChildren<QMenu *>();
