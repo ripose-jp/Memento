@@ -548,7 +548,7 @@ Q_SIGNALS:
      * Requests that player subtitle visibility change. May be ignored.
      * @param value true to show subtitles, false otherwise.
      */
-    void requestSetSubtitleVisibility(const bool value) const;
+    void requestSubtitleVisibility(const bool value) const;
 
     /**
      * Requests that the subtitle list visibility be chagned.

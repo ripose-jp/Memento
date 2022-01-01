@@ -208,7 +208,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     );
 
     connect(
-        mediator, &GlobalMediator::requestSetSubtitleVisibility,
+        mediator, &GlobalMediator::requestSubtitleVisibility,
         this,     &PlayerAdapter::setSubVisiblity
     );
 }

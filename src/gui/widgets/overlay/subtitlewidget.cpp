@@ -319,7 +319,7 @@ void SubtitleWidget::showEvent(QShowEvent *event)
     if (m_settings.hideSubsWhenVisible)
     {
         Q_EMIT GlobalMediator::getGlobalMediator()
-            ->requestSetSubtitleVisibility(false);
+            ->requestSubtitleVisibility(false);
     }
 }
 
@@ -330,7 +330,7 @@ void SubtitleWidget::hideEvent(QHideEvent *event)
     if (m_settings.hideSubsWhenVisible && m_settings.hideOnPlay)
     {
         Q_EMIT GlobalMediator::getGlobalMediator()
-            ->requestSetSubtitleVisibility(true);
+            ->requestSubtitleVisibility(true);
     }
     Q_EMIT GlobalMediator::getGlobalMediator()->subtitleHidden();
 }
