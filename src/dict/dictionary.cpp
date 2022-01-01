@@ -260,7 +260,7 @@ void Dictionary::ExactWorker::run()
     while (query.size() > endSize && index == *currentIndex)
     {
         QList<Term *> results;
-        db->queryTerms(query, results);
+        db.queryTerms(query, results);
 
         /* Generate cloze data in entries */
         QString clozePrefix;
@@ -275,17 +275,17 @@ void Dictionary::ExactWorker::run()
                 );
         }
 
-        dictOrder->lock.lockForRead();
+        dictOrder.lock.lockForRead();
         addTerms(
             subtitle,
             clozePrefix,
             clozeBody,
             clozeSuffix,
             results,
-            dictOrder->map,
-            *terms
+            dictOrder.map,
+            terms
         );
-        dictOrder->lock.unlock();
+        dictOrder.lock.unlock();
 
         query.chop(1);
     }
@@ -297,7 +297,7 @@ void Dictionary::MeCabWorker::run()
     {
         const QPair<QString, QString> &pair = *begin;
         QList<Term *> results;
-        db->queryTerms(pair.first, results);
+        db.queryTerms(pair.first, results);
 
         /* Generate cloze data in entries */
         QString clozePrefix;
@@ -308,21 +308,21 @@ void Dictionary::MeCabWorker::run()
             clozePrefix = subtitle.left(index);
             clozeBody   = subtitle.mid(index, pair.second.size());
             clozeSuffix = subtitle.right(
-                    subtitle.size() - (index + pair.second.size())
-                );
+                subtitle.size() - (index + pair.second.size())
+            );
         }
 
-        dictOrder->lock.lockForRead();
+        dictOrder.lock.lockForRead();
         addTerms(
             subtitle,
             clozePrefix,
             clozeBody,
             clozeSuffix,
             results,
-            dictOrder->map,
-            *terms
+            dictOrder.map,
+            terms
         );
-        dictOrder->lock.unlock();
+        dictOrder.lock.unlock();
 
         ++begin;
     }
@@ -400,7 +400,7 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
     QList<Term *> *terms = new QList<Term *>;
 
     /* Fork worker threads for exact queries */
-    QList<QThread *> threads;
+    QList<DictionaryWorker *> workers;
     for (QString str = query; !str.isEmpty(); str.chop(QUERIES_PER_THREAD))
     {
         int endSize = str.size() - QUERIES_PER_THREAD;
@@ -409,19 +409,18 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
             endSize = 0;
         }
 
-        QThread *worker =
-            new ExactWorker(
-                str,
-                endSize,
-                subtitle,
-                index,
-                currentIndex,
-                m_db,
-                &m_dicOrder,
-                terms);
+        DictionaryWorker *worker = new ExactWorker(
+            str,
+            endSize,
+            subtitle,
+            index,
+            currentIndex,
+            *m_db,
+            m_dicOrder
+        );
 
         worker->start();
-        threads.append(worker);
+        workers.append(worker);
     }
 
     /* Get lemmatized queries */
@@ -436,27 +435,27 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
             if (endIt > queries.constEnd())
                 endIt = queries.constEnd();
 
-            QThread *worker =
-                new MeCabWorker(
-                    queries.constBegin() + i,
-                    endIt,
-                    subtitle,
-                    index,
-                    currentIndex,
-                    m_db,
-                    &m_dicOrder,
-                    terms);
+            DictionaryWorker *worker = new MeCabWorker(
+                queries.constBegin() + i,
+                endIt,
+                subtitle,
+                index,
+                currentIndex,
+                *m_db,
+                m_dicOrder
+            );
 
             worker->start();
-            threads.append(worker);
+            workers.append(worker);
         }
     }
 
     /* Wait for the exact thread to finish */
-    for (QThread *thread : threads)
+    for (DictionaryWorker *worker : workers)
     {
-        thread->wait();
-        delete thread;
+        worker->wait();
+        terms->append(worker->terms);
+        delete worker;
     }
 
     /* Sort the results by cloze length and score */

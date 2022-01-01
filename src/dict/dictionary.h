@@ -137,10 +137,49 @@ private:
     } m_dicOrder;
 
     /**
+     * Parent class of dictionary worker threads. Used to cut down on duplicated
+     * terms.
+     */
+    class DictionaryWorker : public QThread
+    {
+    public:
+        DictionaryWorker(
+            const QString &subtitle,
+            const int index,
+            const int *currentIndex,
+            DatabaseManager &db,
+            struct DictOrder &dictOrder
+        ) : subtitle(subtitle),
+            index(index),
+            currentIndex(currentIndex),
+            db(db),
+            dictOrder(dictOrder) {}
+
+        /* Found terms will be in this list */
+        QList<Term *> terms;
+
+    protected:
+        /* The current subtitle */
+        const QString &subtitle;
+
+        /* The index into the subtitle */
+        const int index;
+
+        /* A reference to the current index */
+        const int *currentIndex;
+
+        /* A reference to the database */
+        DatabaseManager &db;
+
+        /* A reference to the dictionary ordering */
+        struct DictOrder &dictOrder;
+    };
+
+    /**
      * Worker thread for querying the term database for exact substrings of the
      * query.
      */
-    class ExactWorker : public QThread
+    class ExactWorker : public Dictionary::DictionaryWorker
     {
     public:
         /**
@@ -158,42 +197,40 @@ private:
          *                     done, the search is aborted.
          * @param dictOrder    A pointer to the dictionary order map struct.
          * @param db           The database manager.
-         * @param[out] terms   The list of terms to add results to.
          */
-        ExactWorker(const QString    &query,
-                    const int         endSize,
-                    const QString    &subtitle,
-                    const int         index,
-                    const int        *currentIndex,
-                    DatabaseManager  *db,
-                    struct DictOrder *dictOrder,
-                    QList<Term *>    *terms)
-                        : query(query),
-                          endSize(endSize),
-                          subtitle(subtitle),
-                          index(index),
-                          currentIndex(currentIndex),
-                          db(db),
-                          dictOrder(dictOrder),
-                          terms(terms) {}
+        ExactWorker(
+            const QString &query,
+            const int endSize,
+            const QString &subtitle,
+            const int index,
+            const int *currentIndex,
+            DatabaseManager &db,
+            struct DictOrder &dictOrder
+        ) : query(query),
+            endSize(endSize),
+            Dictionary::DictionaryWorker(
+                subtitle,
+                index,
+                currentIndex,
+                db,
+                dictOrder
+            ) {}
 
         void run() override;
 
     private:
+        /* The query string */
         QString query;
+
+        /* The final size of the query. When the query reaches this size, the
+         * thread terminates. */
         const int endSize;
-        const QString &subtitle;
-        const int index;
-        const int *currentIndex;
-        QList<Term *> *terms;
-        struct DictOrder *dictOrder;
-        DatabaseManager *db;
     };
 
     /**
      * Worker thread for querying the term database for MeCab generated queries.
      */
-    class MeCabWorker : public QThread
+    class MeCabWorker : public Dictionary::DictionaryWorker
     {
     public:
         /**
@@ -211,34 +248,30 @@ private:
          *                     done, the search is aborted.
          * @param dictOrder    A pointer to the dictionary order map struct.
          * @param db           The database manager.
-         * @param[out] terms   The list of terms to add results to.
          */
-        MeCabWorker(QList<QPair<QString, QString>>::const_iterator begin,
-                    QList<QPair<QString, QString>>::const_iterator end,
-                    const QString   &subtitle,
-                    const int        index,
-                    const int       *currentIndex,
-                    DatabaseManager *db,
-                    struct DictOrder *dictOrder,
-                    QList<Term *>   *terms)
-                        : begin(begin),
-                          end(end),
-                          subtitle(subtitle),
-                          index(index),
-                          currentIndex(currentIndex),
-                          db(db),
-                          dictOrder(dictOrder),
-                          terms(terms) {}
+        MeCabWorker(
+            QList<QPair<QString, QString>>::const_iterator begin,
+            QList<QPair<QString, QString>>::const_iterator end,
+            const QString &subtitle,
+            const int index,
+            const int *currentIndex,
+            DatabaseManager &db,
+            struct DictOrder &dictOrder
+        ) : begin(begin),
+            end(end),
+            Dictionary::DictionaryWorker(
+                subtitle,
+                index,
+                currentIndex,
+                db,
+                dictOrder
+            ) {}
+
         void run() override;
 
     private:
+        /* Start and end iterators to queries */
         QList<QPair<QString, QString>>::const_iterator begin, end;
-        const QString &subtitle;
-        const int index;
-        const int *currentIndex;
-        DatabaseManager *db;
-        struct DictOrder *dictOrder;
-        QList<Term *> *terms;
     };
 };
 
