@@ -146,14 +146,6 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
         m_definition, &DefinitionWidget::hide
     );
     connect(
-        mediator, &GlobalMediator::requestSubtitleListVisibility,
-        m_definition, &DefinitionWidget::hide
-    );
-    connect(
-        mediator, &GlobalMediator::requestSearchVisibility,
-        m_definition, &DefinitionWidget::hide
-    );
-    connect(
         mediator, &GlobalMediator::subtitleHidden,
         m_definition, &DefinitionWidget::hide
     );
