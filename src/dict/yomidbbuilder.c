@@ -81,6 +81,7 @@ static int begin_transaction(sqlite3 *db)
     if (errmsg)
     {
         fprintf(stderr, "Could not begin transaction\nError: %s\n", errmsg);
+        sqlite3_free(errmsg);
         return TRANSACTION_ERR;
     }
     return 0;
@@ -98,6 +99,25 @@ static int commit_transaction(sqlite3 *db)
     if (errmsg)
     {
         fprintf(stderr, "Could not commit transaction\nError: %s\n", errmsg);
+        sqlite3_free(errmsg);
+        return TRANSACTION_ERR;
+    }
+    return 0;
+}
+
+/**
+ * Rolls back the current transaction.
+ * @param db The database to rollback the transaction on.
+ * @return Error code
+ */
+static int rollback_transaction(sqlite3 *db)
+{
+    char *errmsg = NULL;
+    sqlite3_exec(db, "ROLLBACK;", NULL, NULL, &errmsg);
+    if (errmsg)
+    {
+        fprintf(stderr, "Could not commit transaction\nError: %s\n", errmsg);
+        sqlite3_free(errmsg);
         return TRANSACTION_ERR;
     }
     return 0;
@@ -174,12 +194,17 @@ static int create_db(sqlite3 *db)
         ");"
         "CREATE TRIGGER directory_remove AFTER DELETE ON directory "
         "BEGIN "
+            "DELETE FROM dict_disabled   WHERE dic_id = old.dic_id;"
             "DELETE FROM tag_bank        WHERE dic_id = old.dic_id;"
             "DELETE FROM term_bank       WHERE dic_id = old.dic_id;"
             "DELETE FROM term_meta_bank  WHERE dic_id = old.dic_id;"
             "DELETE FROM kanji_bank      WHERE dic_id = old.dic_id;"
             "DELETE FROM kanji_meta_bank WHERE dic_id = old.dic_id;"
         "END;"
+
+        "CREATE TABLE dict_disabled ("
+            "dic_id     INTEGER     PRIMARY KEY"
+        ");"
 
         "CREATE TABLE tag_bank ("
             "dic_id     INTEGER     NOT NULL,"
@@ -269,9 +294,10 @@ cleanup:
 
 static int update_v1_to_v2(sqlite3 *db)
 {
-    int   ret    = 0;
-    char *pragma = NULL;
-    char *errmsg = NULL;
+    int        ret     = 0;
+    const int  version = 2;
+    char      *pragma  = NULL;
+    char      *errmsg  = NULL;
 
     pragma = sqlite3_mprintf(
         "ALTER TABLE term_meta_bank  ADD type INTEGER NOT NULL DEFAULT 0;"
@@ -294,8 +320,61 @@ static int update_v1_to_v2(sqlite3 *db)
         "PRAGMA user_version = %d;",
         YOMI_BLOB_TYPE_OBJECT, YOMI_BLOB_TYPE_OBJECT,
         YOMI_BLOB_TYPE_INT,    YOMI_BLOB_TYPE_INT,
-        YOMI_DB_VERSION
+        version
     );
+    if (pragma == NULL)
+    {
+        fprintf(stderr, "Could not allocate memory for query\n");
+        ret = MALLOC_FAILURE_ERR;
+        goto cleanup;
+    }
+
+    if (sqlite3_exec(db, pragma, NULL, NULL, &errmsg) != SQLITE_OK)
+    {
+        fprintf(stderr,
+            "Failed to update database from version 2 to 3.\n"
+            "Error: %s\n"
+            "Query: %s\n",
+            errmsg, pragma
+        );
+        ret = DB_ALTER_TABLE_ERR;
+        goto cleanup;
+    }
+
+cleanup:
+    sqlite3_free(errmsg);
+    sqlite3_free(pragma);
+
+    return ret;
+}
+
+static int update_v2_to_v3(sqlite3 *db)
+{
+    int        ret     = 0;
+    const int  version = 3;
+    char      *pragma  = NULL;
+    char      *errmsg  = NULL;
+
+    pragma = sqlite3_mprintf(
+        "CREATE TABLE dict_disabled ("
+            "dic_id     INTEGER     PRIMARY KEY"
+        ");"
+
+        "DROP TRIGGER directory_remove;"
+        "CREATE TRIGGER directory_remove AFTER DELETE ON directory "
+        "BEGIN "
+            "DELETE FROM tag_bank        WHERE dic_id = old.dic_id;"
+            "DELETE FROM term_bank       WHERE dic_id = old.dic_id;"
+            "DELETE FROM term_meta_bank  WHERE dic_id = old.dic_id;"
+            "DELETE FROM kanji_bank      WHERE dic_id = old.dic_id;"
+            "DELETE FROM kanji_meta_bank WHERE dic_id = old.dic_id;"
+            "DELETE FROM dict_disabled   WHERE dic_id = old.dic_id;"
+        "END;"
+
+        "PRAGMA user_version = %d;",
+        version
+    );
+
     if (pragma == NULL)
     {
         fprintf(stderr, "Could not allocate memory for query\n");
@@ -368,10 +447,14 @@ static int prepare_db(sqlite3 *db)
     case 1:
         if ((ret = update_v1_to_v2(db)))
         {
-            fprintf(stderr, "Could not update the database from version 1 to 2.\n");
             goto cleanup;
         }
-        break;
+
+    case 2:
+        if ((ret = update_v2_to_v3(db)))
+        {
+            goto cleanup;
+        }
     }
 
     /* Set all PRAGMA value to their expected values */
@@ -1343,12 +1426,6 @@ cleanup:
     return ret;
 }
 
-/**
- * Prepare a dictionary database if one doesn't already exist
- * @param      db_file The location of the database file
- * @param[out] db      A pointer to the database to set. Safe if NULL.
- * @return Error code
- */
 int yomi_prepare_db(const char *db_file, sqlite3 **db)
 {
     int      ret          = 0;
@@ -1384,12 +1461,6 @@ cleanup:
     return ret;
 }
 
-/**
- * Process the archive in dict_file and add it the sqlite database in db_file
- * @param   dict_file   The zip archive containing the yomichan dictionary
- * @param   db_file     Path to the sqlite database
- * @return Error code
- */
 int yomi_process_dictionary(const char *dict_file, const char *db_file)
 {
     int            ret          = 0;
@@ -1403,79 +1474,86 @@ int yomi_process_dictionary(const char *dict_file, const char *db_file)
     if (err)
     {
         ret = YOMI_ERR_OPENING_DIC;
-        goto cleanup;
+        goto error;
     }
 
     /* Open or create the database */
     if ((ret = yomi_prepare_db(db_file, &db)))
     {
-        goto cleanup;
+        goto error;
     }
 
     /* Process the index file */
     if ((ret = begin_transaction(db)))
-        goto cleanup;
+    {
+        goto error;
+    }
     if (add_index(dict_archive, db, &id))
     {
         ret = YOMI_ERR_ADDING_INDEX;
-        goto cleanup;
+        goto error;
     }
 
     /* Process the tag banks */
     if (add_dic_files(dict_archive, db, id, tag_bank))
     {
         ret = YOMI_ERR_ADDING_TAGS;
-        goto cleanup;
+        goto error;
     }
 
     /* Process term banks */
     if (add_dic_files(dict_archive, db, id, term_bank))
     {
         ret = YOMI_ERR_ADDING_TERMS;
-        goto cleanup;
+        goto error;
     }
 
     /* Process term bank metadata */
     if (add_dic_files(dict_archive, db, id, term_meta_bank))
     {
         ret = YOMI_ERR_ADDING_TERMS_META;
-        goto cleanup;
+        goto error;
     }
 
     /* Process kanji banks */
     if (add_dic_files(dict_archive, db, id, kanji_bank))
     {
         ret = YOMI_ERR_ADDING_KANJI;
-        goto cleanup;
+        goto error;
     }
 
     /* Process kanji bank metadata */
     if (add_dic_files(dict_archive, db, id, kanji_meta_bank))
     {
         ret = YOMI_ERR_ADDING_KANJI_META;
-        goto cleanup;
+        goto error;
     }
 
-cleanup:
-    commit_transaction(db);
+    /* Commit the transaction */
+    if ((ret = commit_transaction(db)))
+    {
+        goto error;
+    }
+
+    zip_close(dict_archive);
+    sqlite3_close_v2(db);
+
+    return ret;
+
+error:
+    rollback_transaction(db);
     zip_close(dict_archive);
     sqlite3_close_v2(db);
 
     return ret;
 }
 
-/**
- * Remove a dictionary from a database if it exists
- * @param dict_name Name of the dictionary to remove
- * @param db_file   The location of the database file
- * @return Error code
- */
 int yomi_delete_dictionary(const char *dict_name, const char *db_file)
 {
-    int            ret          = 0;
-    sqlite3       *db           = NULL;
-    sqlite3_stmt  *stmt         = NULL;
-    int            step         = 0;
+    int            ret  = 0;
+    sqlite3       *db   = NULL;
+    sqlite3_stmt  *stmt = NULL;
+    int            step = 0;
 
     /* Open or create the database */
     if ((ret = yomi_prepare_db(db_file, &db)))
@@ -1501,6 +1579,84 @@ int yomi_delete_dictionary(const char *dict_name, const char *db_file)
     }
 
 cleanup:
+    sqlite3_finalize(stmt);
+    sqlite3_close_v2(db);
+
+    return ret;
+}
+
+#define QUERY   "INSERT INTO dict_disabled " \
+                    "SELECT dic_id FROM directory WHERE title = ?;"
+
+int yomi_disable_dictionaries(const char **dict_name, size_t len, const char *db_file)
+{
+    int           ret    = 0;
+    sqlite3      *db     = NULL;
+    sqlite3_stmt *stmt   = NULL;
+    char         *errmsg = NULL;
+    int           step   = 0;
+
+    /* Open or create the database */
+    if ((ret = yomi_prepare_db(db_file, &db)))
+    {
+        goto error;
+    }
+
+    /* Begin the transaction */
+    if ((ret = begin_transaction(db)))
+    {
+        goto error;
+    }
+
+    /* Drop all rows in the table */
+    sqlite3_exec(db, "DELETE FROM dict_disabled;", NULL, NULL, &errmsg);
+    if (errmsg)
+    {
+        fprintf(stderr, "Could not delete rows from dict_disabled table.\nError: %s", errmsg);
+        sqlite3_free(errmsg);
+        ret = YOMI_ERR_DELETE;
+        goto error;
+    }
+
+    /* Add all disabled dictionaries */
+    for (size_t i = 0; i < len; ++i)
+    {
+        if (sqlite3_prepare_v2(db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+        {
+            fprintf(stderr, "Could not prepare sqlite statement\n");
+            fprintf(stderr, "Query: %s\n", QUERY);
+            ret = STATEMENT_PREPARE_ERR;
+            goto error;
+        }
+
+        if (sqlite3_bind_text(stmt, 1, dict_name[i], -1, NULL) != SQLITE_OK)
+        {
+            fprintf(stderr, "Could not bind values to sqlite statement\n");
+            ret = STATEMENT_BIND_ERR;
+            goto error;
+        }
+
+        if ((step = sqlite3_step(stmt)) != SQLITE_DONE)
+        {
+            fprintf(stderr, "Could not commit to database, sqlite3 error code %d\n", step);
+            ret = STATEMENT_STEP_ERR;
+            goto error;
+        }
+    }
+
+    /* Commit the transaction */
+    if ((ret = commit_transaction(db)))
+    {
+        goto error;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close_v2(db);
+
+    return ret;
+
+error:
+    rollback_transaction(db);
     sqlite3_finalize(stmt);
     sqlite3_close_v2(db);
 

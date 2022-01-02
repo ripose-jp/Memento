@@ -125,40 +125,42 @@ void DictionarySettings::hideEvent(QHideEvent *event)
 
 void DictionarySettings::restoreSaved()
 {
+    Dictionary *dict = GlobalMediator::getGlobalMediator()->getDictionary();
     m_ui->listDictionaries->clear();
-    m_ui->listDictionaries->addItems(
-        GlobalMediator::getGlobalMediator()->getDictionary()->getDictionaries()
-    );
+    m_ui->listDictionaries->addItems(dict->getDictionaries());
 
-    QSettings settings;
-    settings.beginGroup(SETTINGS_DICTIONARY_ENABLED);
+    QStringList disabledNames = dict->getDisabledDictionaries();
+    QSet<QString> disabled(disabledNames.begin(), disabledNames.end());
     for (int i = 0; i < m_ui->listDictionaries->count(); ++i)
     {
         QListWidgetItem *item = m_ui->listDictionaries->item(i);
         item->setFlags(item->flags() | Qt::ItemFlag::ItemIsUserCheckable);
         item->setCheckState(
-            settings.value(
-                item->text(), true
-            ).toBool() ? Qt::Checked : Qt::Unchecked
+            disabled.contains(item->text()) ? Qt::Unchecked : Qt::Checked
         );
     }
 }
 
 void DictionarySettings::applySettings()
 {
-    QSettings order, enabled;
-    order.beginGroup(SETTINGS_DICTIONARIES);
-    order.remove("");
-    enabled.beginGroup(SETTINGS_DICTIONARY_ENABLED);
-    enabled.remove("");
+    QStringList dictionaries;
+
+    QSettings settings;
+    settings.beginGroup(SETTINGS_DICTIONARIES);
+    settings.remove("");
     for (int i = 0; i < m_ui->listDictionaries->count(); ++i)
     {
         QListWidgetItem *item = m_ui->listDictionaries->item(i);
-        order.setValue(item->text(), i);
-        enabled.setValue(item->text(), item->checkState() == Qt::Checked);
+        if (item->checkState() == Qt::Unchecked)
+        {
+            dictionaries << item->text();
+        }
+        settings.setValue(item->text(), i);
     }
-    order.endGroup();
-    enabled.endGroup();
+    settings.endGroup();
+
+    Dictionary *dict = GlobalMediator::getGlobalMediator()->getDictionary();
+    dict->disableDictionaries(dictionaries);
 
     Q_EMIT GlobalMediator::getGlobalMediator()->dictionaryOrderChanged();
 }

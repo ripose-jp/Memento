@@ -59,6 +59,14 @@ public:
     int deleteDictionary(const QString &name);
 
     /**
+     * Sets the disabled dictionaries.
+     * @param dictionaries A list of dictionary names to disable.
+     * @return Error code. Can be turned into a string with a call to
+     *         errorCodeToString().
+     */
+    int disableDictionaries(const QStringList &dictionaries);
+
+    /**
      * Translates an error code from add/deleteDictionary() to a human readable
      * string.
      * @param code The error code.
@@ -71,6 +79,12 @@ public:
      * @return A list of dictionary names.
      */
     QStringList getDictionaries();
+
+    /**
+     * Gets the list of disabled dictionaries.
+     * @return The names of all disabled dictionaries.
+     */
+    QStringList getDisabledDictionaries();
 
     /**
      * Searches for terms that exactly match the query. Does automatic

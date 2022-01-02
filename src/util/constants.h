@@ -64,7 +64,6 @@
 
 /* Dictionary Settings */
 #define SETTINGS_DICTIONARIES           "dictionaries"
-#define SETTINGS_DICTIONARY_ENABLED     "dict-enabled"
 
 /* Search Settings */
 #define SETTINGS_SEARCH                 "search"

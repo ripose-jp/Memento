@@ -25,11 +25,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMessageBox>
+#include <QVector>
 
-extern "C"
-{
 #include "yomidbbuilder.h"
-}
 
 /* Begin Constructor/Destructor */
 
@@ -88,7 +86,8 @@ DatabaseManager::~DatabaseManager()
 /* Begin Initializers */
 
 #define QUERY_DICTIONARY    "SELECT dic_id, title FROM directory;"
-#define QUERY_TAGS          "SELECT dic_id, category, name, ord, notes, score FROM tag_bank;"
+#define QUERY_TAGS          "SELECT dic_id, category, name, ord, notes, score " \
+                                "FROM tag_bank;"
 
 #define COLUMN_DIC_ID       0
 #define COLUMN_CATEGORY     1
@@ -195,6 +194,25 @@ int DatabaseManager::deleteDictionary(const QString &name)
     return ret;
 }
 
+int DatabaseManager::disableDictionaries(const QStringList &dicts)
+{
+    QVector<QByteArray> byteDicts;
+    for (const QString &dict : dicts)
+    {
+        byteDicts << dict.toUtf8();
+    }
+    QVector<const char *> cDicts;
+    for (const QByteArray &dict : byteDicts)
+    {
+        cDicts << dict.data();
+    }
+
+    m_dbLock.lockForWrite();
+    int ret = yomi_disable_dictionaries(cDicts.data(), cDicts.size(), m_dbpath);
+    m_dbLock.unlock();
+    return ret;
+}
+
 /* End Dictionary Database Modifiers */
 /* Begin Database Getters */
 
@@ -226,12 +244,43 @@ cleanup:
 
 #undef QUERY
 
+#define QUERY   "SELECT dic_id FROM dict_disabled;"
+
+QStringList DatabaseManager::getDisabledDictionaries()
+{
+    m_dbLock.lockForRead();
+
+    QStringList   dictionaries;
+    sqlite3_stmt *stmt  = NULL;
+    int           step  = 0;
+
+    if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+    {
+        goto cleanup;
+    }
+    while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
+    {
+        int64_t id = sqlite3_column_int64(stmt, 0);
+        dictionaries << getDictionary(id);
+    }
+
+cleanup:
+    sqlite3_finalize(stmt);
+    m_dbLock.unlock();
+
+    return dictionaries;
+}
+
+#undef QUERY
+
 #define QUERY               "SELECT DISTINCT expression, reading "\
                                 "FROM term_bank "\
-                                "WHERE (expression = ? OR reading = ?);"
+                                "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND " \
+                                    "(expression = ? OR reading = ?);"
 #define QUERY_WITH_KATAKANA "SELECT DISTINCT expression, reading "\
                                 "FROM term_bank "\
-                                "WHERE (expression = ? OR reading = ? OR reading = ?);"
+                                "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND " \
+                                    "(expression = ? OR reading = ? OR reading = ?);"
 
 #define QUERY_EXP_IDX           1
 #define QUERY_READING_HIRA_IDX  2
@@ -330,7 +379,7 @@ error:
 #undef COLUMN_READING
 
 #define QUERY   "SELECT dic_id, onyomi, kunyomi, tags, meanings, stats FROM kanji_bank "\
-                    "WHERE (char = ?);"
+                    "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND (char = ?);"
 
 #define COLUMN_DIC_ID       0
 #define COLUMN_ONYOMI       1
@@ -347,11 +396,15 @@ error:
 QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
 {
     if (m_db == nullptr)
+    {
         return "Database is invalid";
+    }
 
     /* Try to acquire the database lock, early return if we can't */
     if (!m_dbLock.tryLockForRead())
+    {
         return "";
+    }
 
     QString       ret;
     QByteArray    ch   = query.toUtf8();
@@ -458,7 +511,8 @@ cleanup:
 
 #define QUERY   "SELECT dic_id, score, def_tags, glossary, rules, term_tags "\
                     "FROM term_bank "\
-                    "WHERE (expression = ? AND reading = ?);"
+                    "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND " \
+                        "(expression = ? AND reading = ?);"
 
 #define QUERY_EXP_IDX       1
 #define QUERY_READING_IDX   2
@@ -575,7 +629,8 @@ void DatabaseManager::addTags(const uint64_t  id,
 
 #define QUERY   "SELECT dic_id, data, type "\
                     "FROM term_meta_bank "\
-                    "WHERE (expression = ? AND mode = 'freq');"
+                    "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND " \
+                        "(expression = ? AND mode = 'freq');"
 
 int DatabaseManager::addFrequencies(Term &term) const
 {
@@ -586,7 +641,8 @@ int DatabaseManager::addFrequencies(Term &term) const
 
 #define QUERY   "SELECT dic_id, data, type "\
                     "FROM kanji_meta_bank "\
-                    "WHERE (expression = ? AND mode = 'freq');"
+                    "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND " \
+                        "(expression = ? AND mode = 'freq');"
 
 int DatabaseManager::addFrequencies(Kanji &kanji) const
 {
@@ -654,7 +710,8 @@ cleanup:
 
 #define QUERY   "SELECT dic_id, data "\
                     "FROM term_meta_bank "\
-                    "WHERE (expression = ? AND mode = 'pitch');"
+                    "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND " \
+                        "(expression = ? AND mode = 'pitch');"
 
 #define OBJ_READING_KEY     "reading"
 #define OBJ_PITCHES_KEY     "pitches"

@@ -94,10 +94,23 @@ public:
     QString deleteDictionary(const QString &name);
 
     /**
+     * Sets the set of disabled dictionaries to the provided list.
+     * @param dictionaries The list of dictionaries.
+     * @return Empty string on success, error string on error.
+     */
+    QString disableDictionaries(const QStringList &dictionaries);
+
+    /**
      * Gets a list of dictionaries ordered by user preference.
      * @return A list of dictionaries ordered by user preference.
      */
     QStringList getDictionaries();
+
+    /**
+     * Gets the list of disabled dictionaries.
+     * @return The names of all disabled dictionaries.
+     */
+    QStringList getDisabledDictionaries();
 
 private Q_SLOTS:
     /**
@@ -130,7 +143,7 @@ private:
     struct DictOrder
     {
         /* Maps dictionary names to priorities. */
-        QHash<QString, QPair<int, bool>> map;
+        QHash<QString, int> map;
 
         /* Used for locking for reading and writing. */
         QReadWriteLock lock;
@@ -147,13 +160,11 @@ private:
             const QString &subtitle,
             const int index,
             const int *currentIndex,
-            DatabaseManager &db,
-            struct DictOrder &dictOrder
+            DatabaseManager &db
         ) : subtitle(subtitle),
             index(index),
             currentIndex(currentIndex),
-            db(db),
-            dictOrder(dictOrder) {}
+            db(db) {}
 
         /* Found terms will be in this list */
         QList<Term *> terms;
@@ -170,9 +181,6 @@ private:
 
         /* A reference to the database */
         DatabaseManager &db;
-
-        /* A reference to the dictionary ordering */
-        struct DictOrder &dictOrder;
     };
 
     /**
@@ -195,7 +203,6 @@ private:
          * @param currentIndex A pointer to the current index. If this value is
          *                     no different from the index before this method is
          *                     done, the search is aborted.
-         * @param dictOrder    A pointer to the dictionary order map struct.
          * @param db           The database manager.
          */
         ExactWorker(
@@ -204,16 +211,14 @@ private:
             const QString &subtitle,
             const int index,
             const int *currentIndex,
-            DatabaseManager &db,
-            struct DictOrder &dictOrder
+            DatabaseManager &db
         ) : query(query),
             endSize(endSize),
             Dictionary::DictionaryWorker(
                 subtitle,
                 index,
                 currentIndex,
-                db,
-                dictOrder
+                db
             ) {}
 
         void run() override;
@@ -246,7 +251,6 @@ private:
          * @param currentIndex A pointer to the current index. If this value is
          *                     no different from the index before this method is
          *                     done, the search is aborted.
-         * @param dictOrder    A pointer to the dictionary order map struct.
          * @param db           The database manager.
          */
         MeCabWorker(
@@ -255,16 +259,14 @@ private:
             const QString &subtitle,
             const int index,
             const int *currentIndex,
-            DatabaseManager &db,
-            struct DictOrder &dictOrder
+            DatabaseManager &db
         ) : begin(begin),
             end(end),
             Dictionary::DictionaryWorker(
                 subtitle,
                 index,
                 currentIndex,
-                db,
-                dictOrder
+                db
             ) {}
 
         void run() override;

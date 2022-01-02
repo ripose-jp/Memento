@@ -22,8 +22,13 @@
 #define YOMIDBBUILDER_H
 
 #include <sqlite3.h>
+#include <stddef.h>
 
-#define YOMI_DB_VERSION                 2
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define YOMI_DB_VERSION                 3
 #define YOMI_DB_FORMAT_VERSION          3
 
 #define YOMI_ERR_OPENING_DIC            1
@@ -71,5 +76,18 @@ int yomi_process_dictionary(const char *dict_file, const char *db_file);
  * @return Error code
  */
 int yomi_delete_dictionary(const char *dict_name, const char *db_file);
+
+/**
+ * Disables all the named dictionaries.
+ * @param dict_name An array of dictionary names
+ * @param len       The length of the dictionary array
+ * @param db_file   The location of the database file
+ * @return Error code
+ */
+int yomi_disable_dictionaries(const char **dict_name, size_t len, const char *db_file);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // YOMIDBBUILDER_H
