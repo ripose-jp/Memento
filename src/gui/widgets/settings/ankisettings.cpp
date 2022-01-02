@@ -241,6 +241,8 @@ void AnkiSettings::restoreDefaults()
     defaultConfig.audio.md5       = SETTINGS_AUDIO_SRC_MD5_DEFAULT;
     defaultConfig.audioPadStart   = DEFAULT_AUDIO_PAD_START;
     defaultConfig.audioPadStart   = DEFAULT_AUDIO_PAD_END;
+    defaultConfig.audioNormalize  = DEFAULT_AUDIO_NORMALIZE;
+    defaultConfig.audioDb         = DEFAULT_AUDIO_DB;
     defaultConfig.tags.append(DEFAULT_TAGS);
 
     defaultConfig.termDeck        = m_ui->termCardBuilder->getDeckText();
@@ -426,9 +428,14 @@ void AnkiSettings::populateFields(const QString    &profile,
     m_ui->spinAudioPadStart->setValue(config->audioPadStart);
     m_ui->spinAudioPadEnd->setValue(config->audioPadEnd);
 
+    m_ui->checkAudioNormalize->setChecked(config->audioNormalize);
+    m_ui->doubleAudioDb->setValue(config->audioDb);
+
     QString tags;
     for (const QJsonValue &tag : config->tags)
+    {
         tags += tag.toString() + ",";
+    }
     tags.chop(1);
     m_ui->lineEditTags->setText(tags);
 
@@ -574,6 +581,9 @@ void AnkiSettings::applyToConfig(const QString &profile)
 
     config->audioPadStart = m_ui->spinAudioPadStart->value();
     config->audioPadEnd   = m_ui->spinAudioPadEnd->value();
+
+    config->audioNormalize = m_ui->checkAudioNormalize->isChecked();
+    config->audioDb        = m_ui->doubleAudioDb->value();
 
     config->tags = QJsonArray();
     QStringList splitTags =

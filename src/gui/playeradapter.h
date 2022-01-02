@@ -356,14 +356,19 @@ public Q_SLOTS:
     /**
      * Creates an audio clip given a start and end time in the temporary
      * directory.
-     * @param start The start time of the audio clip in seconds.
-     * @param end The end time of the audio clip in seconds.
-     * @param ext The extension of the audio file. Determines what codec is
-     *            used. AAC is default.
+     * @param start     The start time of the audio clip in seconds.
+     * @param end       The end time of the audio clip in seconds.
+     * @param normalize true if audio should be normalized to db, false
+     *                  otherwise.
+     * @param db        The decibel level to normalize to.
+     * @param ext       The extension of the audio file. Determines what codec
+     *                  is used. AAC is default.
      * @return Path to the file.
      */
     virtual QString tempAudioClip(double start,
                                   double end,
+                                  bool normalize = false,
+                                  double db = -20.0,
                                   const QString &ext = ".aac") = 0;
 
     /**

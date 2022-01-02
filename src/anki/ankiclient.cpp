@@ -97,6 +97,8 @@
 #define CONFIG_AUDIO_HASH       "audio-skiphash"
 #define CONFIG_AUDIO_PAD_START  "audio-pad-start"
 #define CONFIG_AUDIO_PAD_END    "audio-pad-end"
+#define CONFIG_AUDIO_NORMALIZE  "audio-normalize"
+#define CONFIG_AUDIO_DB         "audio-db"
 #define CONFIG_TERM             "term"
 #define CONFIG_KANJI            "kanji"
 #define CONFIG_TAGS             "tags"
@@ -262,9 +264,21 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
             modified = true;
             profile[CONFIG_AUDIO_PAD_END] = DEFAULT_AUDIO_PAD_END;
         }
+        if (profile[CONFIG_AUDIO_NORMALIZE].isNull())
+        {
+            modified = true;
+            profile[CONFIG_AUDIO_NORMALIZE] = DEFAULT_AUDIO_NORMALIZE;
+        }
+        if (profile[CONFIG_AUDIO_DB].isNull())
+        {
+            modified = true;
+            profile[CONFIG_AUDIO_DB] = DEFAULT_AUDIO_DB;
+        }
 
         if (modified)
+        {
             profiles[i] = profile;
+        }
 
         /* Error check values */
         if (!profile[CONFIG_NAME].isString())
@@ -312,6 +326,14 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
             qDebug() << CONFIG_AUDIO_PAD_END << "is not a double";
             return false;
         }
+        else if (!profile[CONFIG_AUDIO_NORMALIZE].isBool())
+        {
+            qDebug() << CONFIG_AUDIO_NORMALIZE << "is not a bool";
+        }
+        else if (!profile[CONFIG_AUDIO_DB].isDouble())
+        {
+            qDebug() << CONFIG_AUDIO_DB << "is not a double";
+        }
         else if (!profile[CONFIG_TAGS].isArray())
         {
             qDebug() << CONFIG_TAGS << "is not an array";
@@ -348,6 +370,8 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         config->audio.md5       = profile[CONFIG_AUDIO_HASH].toString();
         config->audioPadStart   = profile[CONFIG_AUDIO_PAD_START].toDouble();
         config->audioPadEnd     = profile[CONFIG_AUDIO_PAD_END].toDouble();
+        config->audioNormalize  = profile[CONFIG_AUDIO_NORMALIZE].toBool();
+        config->audioDb         = profile[CONFIG_AUDIO_DB].toDouble();
         config->tags            = profile[CONFIG_TAGS].toArray();
 
         QJsonObject obj         = profile[CONFIG_TERM].toObject();
@@ -404,6 +428,8 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
         configObj[CONFIG_AUDIO_HASH]      = config->audio.md5;
         configObj[CONFIG_AUDIO_PAD_START] = config->audioPadStart;
         configObj[CONFIG_AUDIO_PAD_END]   = config->audioPadEnd;
+        configObj[CONFIG_AUDIO_NORMALIZE] = config->audioNormalize;
+        configObj[CONFIG_AUDIO_DB]        = config->audioDb;
         configObj[CONFIG_TAGS]            = config->tags;
 
         QJsonObject obj;
@@ -504,6 +530,8 @@ void AnkiClient::setDefaultConfig()
     config->audio.md5       = SETTINGS_AUDIO_SRC_MD5_DEFAULT;
     config->audioPadStart   = DEFAULT_AUDIO_PAD_START;
     config->audioPadEnd     = DEFAULT_AUDIO_PAD_END;
+    config->audioNormalize  = DEFAULT_AUDIO_NORMALIZE;
+    config->audioDb         = DEFAULT_AUDIO_DB;
     config->tags.append(DEFAULT_TAGS);
 
     delete m_configs->value(DEFAULT_PROFILE);
@@ -1247,7 +1275,12 @@ void AnkiClient::buildCommonNote(const QJsonObject     &configFields,
             QString path;
             if (startTime >= 0 && endTime >= 0 && startTime < endTime)
             {
-                path = player->tempAudioClip(startTime, endTime);
+                path = player->tempAudioClip(
+                    startTime,
+                    endTime,
+                    m_currentConfig->audioNormalize,
+                    m_currentConfig->audioDb
+                );
             }
             if (!path.isEmpty()) {
                 audObj[ANKI_NOTE_PATH] = path;
@@ -1272,7 +1305,12 @@ void AnkiClient::buildCommonNote(const QJsonObject     &configFields,
             QString path;
             if (startTime >= 0 && endTime >= 0 && startTime < endTime)
             {
-                path = player->tempAudioClip(startTime, endTime);
+                path = player->tempAudioClip(
+                    startTime,
+                    endTime,
+                    m_currentConfig->audioNormalize,
+                    m_currentConfig->audioDb
+                );
             }
             if (!path.isEmpty()) {
                 audObj[ANKI_NOTE_PATH] = path;

@@ -73,6 +73,8 @@
 #define DEFAULT_TAGS                    "memento"
 #define DEFAULT_AUDIO_PAD_START         0.0
 #define DEFAULT_AUDIO_PAD_END           0.0
+#define DEFAULT_AUDIO_NORMALIZE         false
+#define DEFAULT_AUDIO_DB                (-20.0)
 
 class QNetworkAccessManager;
 class QNetworkReply;

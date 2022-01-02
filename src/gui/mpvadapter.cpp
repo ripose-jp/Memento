@@ -822,7 +822,12 @@ QString MpvAdapter::tempScreenshot(const bool subtitles, const QString &ext)
     return filename;
 }
 
-QString MpvAdapter::tempAudioClip(double start, double end, const QString &ext)
+QString MpvAdapter::tempAudioClip(
+    double start,
+    double end,
+    bool normalize,
+    double db,
+    const QString &ext)
 {
     int64_t aid = getAudioTrack();
     if (aid == -1)
@@ -833,7 +838,9 @@ QString MpvAdapter::tempAudioClip(double start, double end, const QString &ext)
     // Get a temporary file name
     QTemporaryFile file;
     if (!file.open())
+    {
         return "";
+    }
     QByteArray filename = (file.fileName() + ext).toUtf8();
     file.close();
 
@@ -868,6 +875,13 @@ QString MpvAdapter::tempAudioClip(double start, double end, const QString &ext)
     mpv_set_option_string(enc_h, "ytdl", "yes");
     mpv_set_option_string(enc_h, "config", "no");
     mpv_set_option_string(enc_h, "o", filename);
+    if (normalize)
+    {
+        QByteArray audioFilter;
+        audioFilter = "loudnorm=I=";
+        audioFilter += QByteArray::number(db, 'f', 1);
+        mpv_set_option_string(enc_h, "af", audioFilter);
+    }
 
     /* This guarantees the correct version of youtube-dl is used. */
     script_opts = mpv_get_property_string(m_handle, "script-opts");

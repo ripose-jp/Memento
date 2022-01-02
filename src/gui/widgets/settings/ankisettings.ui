@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>507</width>
+    <width>478</width>
     <height>937</height>
    </rect>
   </property>
@@ -33,8 +33,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>474</width>
-        <height>1012</height>
+        <width>445</width>
+        <height>1056</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -357,6 +357,19 @@ Only change this if you know what you're doing.</string>
               </property>
              </widget>
             </item>
+            <item row="1" column="1">
+             <widget class="ScrollDoubleSpinBox" name="spinAudioPadEnd">
+              <property name="toolTip">
+               <string>Seconds of audio to clip after the end of the subtitle</string>
+              </property>
+              <property name="minimum">
+               <double>-100.000000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>100.000000000000000</double>
+              </property>
+             </widget>
+            </item>
             <item row="1" column="0">
              <widget class="ScrollDoubleSpinBox" name="spinAudioPadStart">
               <property name="toolTip">
@@ -386,18 +399,58 @@ Only change this if you know what you're doing.</string>
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
-             <widget class="ScrollDoubleSpinBox" name="spinAudioPadEnd">
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="layoutAudioNormalize">
+            <item>
+             <widget class="QCheckBox" name="checkAudioNormalize">
               <property name="toolTip">
-               <string>Seconds of audio to clip after the end of the subtitle</string>
+               <string>Normalizes {audio-media} and {audio-context} to the provided dB value.</string>
               </property>
-              <property name="minimum">
-               <double>-100.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>100.000000000000000</double>
+              <property name="text">
+               <string>Normalize media audio to </string>
               </property>
              </widget>
+            </item>
+            <item>
+             <widget class="ScrollDoubleSpinBox" name="doubleAudioDb">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="decimals">
+               <number>1</number>
+              </property>
+              <property name="minimum">
+               <double>-70.000000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>-5.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="labelAudioDb">
+              <property name="text">
+               <string>dB</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="spacerAudioNormalize">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>

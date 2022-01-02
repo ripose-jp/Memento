@@ -106,6 +106,12 @@ struct AnkiConfig
      */
     double audioPadEnd;
 
+    /* true if audio should be normalized, false otherwise */
+    bool audioNormalize;
+
+    /* The dB value audio should be normalized to */
+    double audioDb;
+
     /* A list of tags to add to Anki notes. */
     QJsonArray tags;
 
@@ -142,6 +148,8 @@ struct AnkiConfig
         audio           = rhs.audio;
         audioPadStart   = rhs.audioPadStart;
         audioPadEnd     = rhs.audioPadEnd;
+        audioNormalize  = rhs.audioNormalize;
+        audioDb         = rhs.audioDb;
         tags            = rhs.tags;
 
         termDeck        = rhs.termDeck;

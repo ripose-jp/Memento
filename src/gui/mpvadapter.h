@@ -113,6 +113,8 @@ public Q_SLOTS:
                            const QString &ext = ".jpg") override;
     QString tempAudioClip(double start,
                           double end,
+                          bool normalize = false,
+                          double db = -20.0,
                           const QString &ext = ".aac") override;
 
     void keyPressed(const QKeyEvent *event) override;
