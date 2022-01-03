@@ -20,7 +20,9 @@
 
 #include "kanjiwidget.h"
 
+#include <QClipboard>
 #include <QDebug>
+#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QToolButton>
@@ -247,6 +249,7 @@ void KanjiWidget::addKanji()
     double delay =
         mediator->getPlayerAdapter()->getSubDelay() -
         mediator->getPlayerAdapter()->getAudioDelay();
+    kanji->clipboard = QGuiApplication::clipboard()->text();
     kanji->title = player->getTitle();
     kanji->sentence = player->getSubtitle();
     kanji->sentence2 = player->getSecondarySubtitle();

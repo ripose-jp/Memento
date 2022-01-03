@@ -21,6 +21,7 @@
 #include "termwidget.h"
 #include "ui_termwidget.h"
 
+#include <QClipboard>
 #include <QMenu>
 
 #include "../../../audio/audioplayer.h"
@@ -215,6 +216,7 @@ void TermWidget::addNote()
     double delay =
         mediator->getPlayerAdapter()->getSubDelay() -
         mediator->getPlayerAdapter()->getAudioDelay();
+    term->clipboard = QGuiApplication::clipboard()->text();
     term->title = player->getTitle();
     term->sentence = player->getSubtitle();
     term->sentence2 = player->getSecondarySubtitle();

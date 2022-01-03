@@ -950,13 +950,6 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
     QString audioFile = AUDIO_FILENAME_FORMAT_STRING.arg(term.reading)
                                                     .arg(term.expression);
 
-    QString clozeBody   = QString(term.clozeBody).replace('\n', "<br>");
-    QString clozePrefix = QString(term.clozePrefix).replace('\n', "<br>");
-    QString clozeSuffix = QString(term.clozeSuffix).replace('\n', "<br>");
-    QString sentence    = QString(term.sentence).replace('\n', "<br>");
-
-    QString frequencies = buildFrequencies(term.frequencies);
-
     QString furigana;
     QString furiganaPlain;
     QString reading;
@@ -968,13 +961,14 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
     }
     else
     {
-        furigana      = FURIGANA_FORMAT_STRING.arg(term.expression)
-                                              .arg(term.reading);
+        furigana = FURIGANA_FORMAT_STRING
+            .arg(term.expression)
+            .arg(term.reading);
         furiganaPlain = term.expression + "[" + term.reading + "]";
-        reading       = term.reading;
+        reading = term.reading;
     }
 
-    QString glossary        = buildGlossary(term.definitions);
+    QString glossary = buildGlossary(term.definitions);
     QString glossaryCompact = "<ol>";
 
     QString pitch;
@@ -993,7 +987,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
         if (glossaryCompact.endsWith("<li></li>"))
             glossaryCompact.chop(9);
     }
-    glossaryCompact        += "</ol>";
+    glossaryCompact += "</ol>";
 
     QString tags = "<ul>";
     accumulateTags(term.tags, tags);
@@ -1014,11 +1008,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
         }
         value.replace(REPLACE_AUDIO, "");
 
-        value.replace(REPLACE_CLOZE_BODY,      clozeBody);
-        value.replace(REPLACE_CLOZE_PREFIX,    clozePrefix);
-        value.replace(REPLACE_CLOZE_SUFFIX,    clozeSuffix);
         value.replace(REPLACE_EXPRESSION,      term.expression);
-        value.replace(REPLACE_FREQUENCIES,     frequencies);
         value.replace(REPLACE_FURIGANA,        furigana);
         value.replace(REPLACE_FURIGANA_PLAIN,  furiganaPlain);
         value.replace(REPLACE_GLOSSARY,        glossary);
@@ -1027,7 +1017,6 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
         value.replace(REPLACE_PITCH_GRAPHS,    pitchGraph);
         value.replace(REPLACE_PITCH_POSITIONS, pitchPosition);
         value.replace(REPLACE_READING,         reading);
-        value.replace(REPLACE_SENTENCE,        sentence);
         value.replace(REPLACE_TAGS,            tags);
 
         fieldsObj[field] = value;
@@ -1075,13 +1064,6 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji,
     note[ANKI_NOTE_MODEL] = m_currentConfig->kanjiModel;
 
     /* Build Note Fields */
-    QString clozeBody   = QString(kanji.clozeBody).replace('\n', "<br>");
-    QString clozePrefix = QString(kanji.clozePrefix).replace('\n', "<br>");
-    QString clozeSuffix = QString(kanji.clozeSuffix).replace('\n', "<br>");
-    QString sentence    = QString(kanji.sentence).replace('\n', "<br>");
-
-    QString frequencies = buildFrequencies(kanji.frequencies);
-
     QString glossary;
     QString tags;
     QString strokeCount;
@@ -1090,7 +1072,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji,
     if (!kanji.definitions.isEmpty())
     {
         glossary += "<ol>";
-        tags     += "<ul>";
+        tags += "<ul>";
         for (const KanjiDefinition &def : kanji.definitions)
         {
             /* Build glossary */
@@ -1144,7 +1126,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji,
             }
         }
         glossary += "</ol>";
-        tags     += "</ul>";
+        tags += "</ul>";
         onyomi.chop(2);
         kunyomi.chop(2);
 
@@ -1167,13 +1149,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji,
         value.replace(REPLACE_KUNYOMI,      kunyomi);
         value.replace(REPLACE_ONYOMI,       onyomi);
         value.replace(REPLACE_STROKE_COUNT, strokeCount);
-
-        value.replace(REPLACE_CLOZE_BODY,   clozeBody);
-        value.replace(REPLACE_CLOZE_PREFIX, clozePrefix);
-        value.replace(REPLACE_CLOZE_SUFFIX, clozeSuffix);
-        value.replace(REPLACE_FREQUENCIES,  frequencies);
         value.replace(REPLACE_GLOSSARY,     glossary);
-        value.replace(REPLACE_SENTENCE,     sentence);
         value.replace(REPLACE_TAGS,         tags);
 
         fieldsObj[field] = value;
@@ -1215,9 +1191,17 @@ void AnkiClient::buildCommonNote(const QJsonObject     &configFields,
     note[ANKI_NOTE_TAGS] = m_currentConfig->tags;
 
     /* Find and replace markers with processed data */
-    QString context   = QString(exp.context).replace('\n', "<br>");
-    QString context2  = QString(exp.context2).replace('\n', "<br>");
-    QString sentence2 = QString(exp.sentence2).replace('\n', "<br>");
+    QString clipboard   = QString(exp.clipboard).replace('\n', "<br>");
+    QString clozeBody   = QString(exp.clozeBody).replace('\n', "<br>");
+    QString clozePrefix = QString(exp.clozePrefix).replace('\n', "<br>");
+    QString clozeSuffix = QString(exp.clozeSuffix).replace('\n', "<br>");
+    QString sentence    = QString(exp.sentence).replace('\n', "<br>");
+    QString sentence2   = QString(exp.sentence2).replace('\n', "<br>");
+    QString context     = QString(exp.context).replace('\n', "<br>");
+    QString context2    = QString(exp.context2).replace('\n', "<br>");
+
+    QString frequencies = buildFrequencies(exp.frequencies);
+
     QJsonArray fieldsWithAudioMedia;
     QJsonArray fieldsWithAudioContext;
     QJsonArray fieldsWithScreenshot;
@@ -1252,9 +1236,15 @@ void AnkiClient::buildCommonNote(const QJsonObject     &configFields,
         value.replace(REPLACE_SCREENSHOT_VIDEO, "");
 
         value.replace(REPLACE_TITLE,        exp.title);
+        value.replace(REPLACE_CLIPBOARD,    clipboard);
+        value.replace(REPLACE_CLOZE_BODY,   clozeBody);
+        value.replace(REPLACE_CLOZE_PREFIX, clozePrefix);
+        value.replace(REPLACE_CLOZE_SUFFIX, clozeSuffix);
+        value.replace(REPLACE_FREQUENCIES,  frequencies);
+        value.replace(REPLACE_SENTENCE,     sentence);
+        value.replace(REPLACE_SENTENCE_SEC, sentence2);
         value.replace(REPLACE_CONTEXT,      context);
         value.replace(REPLACE_CONTEXT_SEC,  context2);
-        value.replace(REPLACE_SENTENCE_SEC, sentence2);
 
         fieldObj[field] = value;
     }

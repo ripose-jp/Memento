@@ -33,6 +33,7 @@
 /* Shared Markers */
 #define REPLACE_AUDIO_MEDIA         "{audio-media}"
 #define REPLACE_AUDIO_CONTEXT       "{audio-context}"
+#define REPLACE_CLIPBOARD           "{clipboard}"
 #define REPLACE_CLOZE_BODY          "{cloze-body}"
 #define REPLACE_CLOZE_PREFIX        "{cloze-prefix}"
 #define REPLACE_CLOZE_SUFFIX        "{cloze-suffix}"

@@ -120,11 +120,14 @@ struct CommonExpFields
     /* The complete sentence this term was found in. */
     QString sentence;
 
-    /* The start time of the subtitle. */
+    /* The start time of the subtitle */
     double startTime;
 
-    /* The end time of the subtitle. */
+    /* The end time of the subtitle */
     double endTime;
+
+    /* The current secondary subtitle */
+    QString sentence2;
 
     /* The start time of the selected context */
     double startTimeContext;
@@ -132,23 +135,26 @@ struct CommonExpFields
     /* The end time of the selected context */
     double endTimeContext;
 
-    /* The currently selected context. */
+    /* The currently selected context */
     QString context;
 
-    /* The current secondary subtitle. */
-    QString sentence2;
-
-    /* The current secondary context. */
+    /* The current secondary context */
     QString context2;
+
+    /* The current text in the user's clipboard */
+    QString clipboard;
 
     /* The raw term as it was matched by Memento. */
     QString clozeBody;
 
-    /* Everything in the sentence before the cloze body. */
+    /* Everything in the sentence before the cloze body */
     QString clozePrefix;
 
-    /* Everything in the sentence after the cloze body. */
+    /* Everything in the sentence after the cloze body */
     QString clozeSuffix;
+
+    /* A list of frequencies */
+    QList<Frequency> frequencies;
 } typedef CommonExpFields;
 
 /**
@@ -166,9 +172,6 @@ struct Term : public CommonExpFields
 
     /* The list of tags applicable to this term. */
     QList<Tag> tags;
-
-    /* The list of frequencies for this term. */
-    QList<Frequency> frequencies;
 
     /* The list of pitches for this term. */
     QList<Pitch> pitches;
@@ -238,9 +241,6 @@ struct Kanji : public CommonExpFields
 
     /* A list of definitions belonging to the kanji. */
     QList<KanjiDefinition> definitions;
-
-    /* A list of frequencies corresponding to the kanji. */
-    QList<Frequency> frequencies;
 } typedef Kanji;
 
 #endif // EXPRESSION_H
