@@ -201,10 +201,9 @@ void Dictionary::ExactWorker::run()
             term->clozePrefix = clozePrefix;
             term->clozeBody = clozeBody;
             term->clozeSuffix = clozeSuffix;
-
-            terms.append(term);
         }
 
+        terms.append(results);
         query.chop(1);
     }
 }
@@ -236,10 +235,9 @@ void Dictionary::MeCabWorker::run()
             term->clozePrefix = clozePrefix;
             term->clozeBody = clozeBody;
             term->clozeSuffix = clozeSuffix;
-
-            terms.append(term);
         }
 
+        terms.append(results);
         ++begin;
     }
 }
