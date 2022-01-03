@@ -617,6 +617,9 @@ These will expand to larger expressions in the final card.</string>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
            </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
           </widget>
          </item>
          <item row="19" column="1">
@@ -635,6 +638,9 @@ These will expand to larger expressions in the final card.</string>
            </property>
            <property name="text">
             <string>{audio-context}</string>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
@@ -677,12 +683,14 @@ These will expand to larger expressions in the final card.</string>
           <widget class="QLabel" name="labelTermClipboard">
            <property name="font">
             <font>
-             <family>DejaVu Sans Mono</family>
              <bold>true</bold>
             </font>
            </property>
            <property name="text">
             <string>{clipboard}</string>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
@@ -868,6 +876,9 @@ These will expand to larger expressions in the final card.</string>
            </property>
            <property name="text">
             <string>{audio-context}</string>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
@@ -1073,7 +1084,7 @@ These will expand to larger expressions in the final card.</string>
             <set>Qt::AlignCenter</set>
            </property>
            <property name="textInteractionFlags">
-            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard</set>
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
@@ -1198,12 +1209,14 @@ These will expand to larger expressions in the final card.</string>
           <widget class="QLabel" name="labelKanjiClipboard">
            <property name="font">
             <font>
-             <family>DejaVu Sans Mono</family>
              <bold>true</bold>
             </font>
            </property>
            <property name="text">
             <string>{clipboard}</string>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>
