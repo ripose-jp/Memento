@@ -23,8 +23,11 @@
 
 #include <iterator>
 #include <QApplication>
+#include <QClipboard>
+#include <QGuiApplication>
 #include <QMultiMap>
 #include <QSettings>
+#include <QShortcut>
 #include <QThreadPool>
 
 #include "../../util/constants.h"
@@ -42,6 +45,8 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
 
     m_primary.table = m_ui->tablePrim;
     m_secondary.table = m_ui->tableSec;
+
+    m_copyShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), this);
 
     initTheme();
     initRegex();
@@ -125,6 +130,11 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     connect(
         mediator, &GlobalMediator::playerTracksChanged,
         this,     &SubtitleListWidget::handleTracklistChange
+    );
+
+    connect(
+        m_copyShortcut, &QShortcut::activated,
+        this, &SubtitleListWidget::copyContext
     );
 }
 
@@ -689,6 +699,22 @@ void SubtitleListWidget::seekToSecondarySubtitle(QTableWidgetItem *item) const
 }
 
 /* End Seek Methods */
+/* Begin Shortcut Handlers */
+
+void SubtitleListWidget::copyContext() const
+{
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    if (m_ui->tabWidget->currentWidget() == m_ui->tabPrimary)
+    {
+        clipboard->setText(getPrimaryContext("\n"));
+    }
+    else
+    {
+        clipboard->setText(getSecondaryContext("\n"));
+    }
+}
+
+/* End Shortcuts Handlers */
 /* Begin Clear Methods */
 
 void SubtitleListWidget::clearSubtitles(SubtitleList &list)

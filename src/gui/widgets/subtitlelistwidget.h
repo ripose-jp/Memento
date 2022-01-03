@@ -31,8 +31,10 @@
 
 #include "../playeradapter.h"
 
+class QShortcut;
 class QTableWidget;
 class QTableWidgetItem;
+
 struct SubtitleInfo;
 
 namespace Ui
@@ -211,6 +213,11 @@ private Q_SLOTS:
      */
     void seekToSecondarySubtitle(QTableWidgetItem *item) const;
 
+    /**
+     * Copys the currently selected context to clipboard.
+     */
+    void copyContext() const;
+
 private:
     /* Holds all structures relating to a subtitle list. */
     struct SubtitleList
@@ -355,6 +362,9 @@ private:
 
     /* The UI item containing the widgets. */
     Ui::SubtitleListWidget *m_ui;
+
+    /* The shortcut for copying the current context */
+    QShortcut *m_copyShortcut;
 
     /* Regular expression for filtering subtitles */
     QRegularExpression m_subRegex;
