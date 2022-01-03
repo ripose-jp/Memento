@@ -117,10 +117,15 @@ void MainWindow::initWindow()
     settings.beginGroup(SETTINGS_GROUP_WINDOW);
 
     restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
-    if (settings.value(SETTINGS_MAXIMIZE, false).toBool())
+    m_maximized = settings.value(SETTINGS_MAXIMIZE, false).toBool();
+    QApplication::processEvents();
+    if (m_maximized)
     {
-        QApplication::processEvents();
         showMaximized();
+    }
+    else
+    {
+        showNormal();
     }
 
     settings.endGroup();
