@@ -51,14 +51,18 @@ KanjiWidget::KanjiWidget(
 
     IconFactory *factory = IconFactory::create();
 
-    QToolButton *buttonBack = new QToolButton;
-    buttonBack->setIcon(factory->getIcon(IconFactory::Icon::back));
-    buttonBack->setMinimumSize(QSize(30, 30));
-    buttonBack->setToolTip("Return to search results");
-    buttonBack->setVisible(showBack);
-    connect(buttonBack, &QToolButton::clicked, this, &KanjiWidget::backPressed);
-    layoutTop->addWidget(buttonBack);
-    layoutTop->setAlignment(buttonBack, Qt::AlignTop | Qt::AlignLeft);
+    if (showBack)
+    {
+        QToolButton *buttonBack = new QToolButton;
+        buttonBack->setIcon(factory->getIcon(IconFactory::Icon::back));
+        buttonBack->setMinimumSize(QSize(30, 30));
+        buttonBack->setToolTip("Return to search results");
+        connect(
+            buttonBack, &QToolButton::clicked, this, &KanjiWidget::backPressed
+        );
+        layoutTop->addWidget(buttonBack);
+        layoutTop->setAlignment(buttonBack, Qt::AlignTop | Qt::AlignLeft);
+    }
 
     QLabel *labelKanjiStroke = new QLabel;
     labelKanjiStroke->setText(kanji->character);
