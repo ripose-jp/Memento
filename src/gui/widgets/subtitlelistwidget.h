@@ -393,6 +393,13 @@ private:
     void seekToSubtitle(QTableWidgetItem *item, const SubtitleList &list) const;
 
     /**
+     * Finds the text in the list without locking the list.
+     * @param list The list to find the text in.
+     * @param text The text to search for.
+     */
+    void findTextHelper(SubtitleList &list, const QString &text);
+
+    /**
      * Selects the row of the current table with the offset from the currently
      * currently found row.
      * @param offset The offset from the currently found row.

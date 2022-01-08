@@ -836,14 +836,8 @@ void SubtitleListWidget::fixTableDimensions(const int index)
 #define MATCH_NONE      "No Matches"
 #define MATCH_FORMAT    QString("%1 of %2 Rows")
 
-void SubtitleListWidget::findText(const QString &text)
+void SubtitleListWidget::findTextHelper(SubtitleList &list, const QString &text)
 {
-    SubtitleList &list =
-        m_ui->tabWidget->currentWidget() == m_ui->tabPrimary ?
-            m_primary : m_secondary;
-
-    QMutexLocker locker(&list.lock);
-
     list.modified = false;
     list.foundRows.clear();
     list.currentFind = 0;
@@ -877,6 +871,16 @@ void SubtitleListWidget::findText(const QString &text)
     }
 }
 
+void SubtitleListWidget::findText(const QString &text)
+{
+    SubtitleList &list =
+        m_ui->tabWidget->currentWidget() == m_ui->tabPrimary ?
+            m_primary : m_secondary;
+    list.lock.lock();
+    findTextHelper(list, text);
+    list.lock.unlock();
+}
+
 /**
  * A sanitary macro for doing mod. This is necessary because % in C++ can return
  * negative numbers.
@@ -899,9 +903,7 @@ void SubtitleListWidget::findRowHelper(int offset)
 
     if (list.modified)
     {
-        locker.unlock();
-        findText(m_ui->lineEditSearch->text());
-        locker.relock();
+        findTextHelper(list, m_ui->lineEditSearch->text());
     }
 
     if (list.foundRows.isEmpty())
