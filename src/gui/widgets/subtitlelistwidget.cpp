@@ -26,12 +26,14 @@
 #include <QClipboard>
 #include <QGuiApplication>
 #include <QMultiMap>
+#include <QMutexLocker>
 #include <QSettings>
 #include <QShortcut>
 #include <QThreadPool>
 
 #include "../../util/constants.h"
 #include "../../util/globalmediator.h"
+#include "../../util/iconfactory.h"
 #include "../../util/subtitleparser.h"
 #include "../../util/utils.h"
 
@@ -43,10 +45,13 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
 {
     m_ui->setupUi(this);
 
+    m_ui->widgetFind->hide();
+
     m_primary.table = m_ui->tablePrim;
     m_secondary.table = m_ui->tableSec;
 
     m_copyShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), this);
+    m_findShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_F), this);
 
     initTheme();
     initRegex();
@@ -69,7 +74,7 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     );
 
     connect(
-        mediator, &GlobalMediator::interfaceSettingsChanged,
+        mediator, &GlobalMediator::requestThemeRefresh,
         this,     &SubtitleListWidget::initTheme
     );
     connect(
@@ -136,6 +141,31 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
         m_copyShortcut, &QShortcut::activated,
         this, &SubtitleListWidget::copyContext
     );
+    connect(
+        m_findShortcut, &QShortcut::activated, this,
+        [=] { m_ui->widgetFind->setVisible(!m_ui->widgetFind->isVisible()); }
+    );
+
+    connect(
+        m_ui->lineEditSearch, &QLineEdit::textChanged,
+        this, &SubtitleListWidget::findText
+    );
+    connect(
+        m_ui->buttonSearchPrev, &QToolButton::clicked,
+        this, &SubtitleListWidget::findPrev
+    );
+    connect(
+        m_ui->buttonSearchNext, &QToolButton::clicked,
+        this, &SubtitleListWidget::findNext
+    );
+    connect(
+        m_ui->buttonSearchClose, &QToolButton::clicked,
+        m_ui->widgetFind, &QWidget::hide
+    );
+    connect(
+        m_ui->tabWidget, &QTabWidget::currentChanged,
+        this, &SubtitleListWidget::findTabChanged
+    );
 }
 
 SubtitleListWidget::~SubtitleListWidget()
@@ -176,6 +206,12 @@ void SubtitleListWidget::initTheme()
     m_ui->tablePrim->setColumnHidden(0, showTimestamps);
     m_ui->tableSec->setColumnHidden (0, showTimestamps);
     settings.endGroup();
+
+    /* Update the FindWidget icons */
+    IconFactory *icons = IconFactory::create();
+    m_ui->buttonSearchPrev->setIcon(icons->getIcon(IconFactory::Icon::up));
+    m_ui->buttonSearchNext->setIcon(icons->getIcon(IconFactory::Icon::down));
+    m_ui->buttonSearchClose->setIcon(icons->getIcon(IconFactory::Icon::close));
 }
 
 void SubtitleListWidget::initRegex()
@@ -396,6 +432,7 @@ QTableWidgetItem *SubtitleListWidget::addTableItem(
     list.table->setItem(i, 1, subtitleItem);
     list.table->setItem(i, 0, timecodeItem);
     list.table->resizeRowToContents(i);
+    list.modified = true;
 
     return subtitleItem;
 }
@@ -726,6 +763,9 @@ void SubtitleListWidget::clearSubtitles(SubtitleList &list)
     list.startToItem.clear();
     list.itemToSub.clear();
     list.lineToItem.clear();
+    list.modified = true;
+    list.foundRows.clear();
+    list.currentFind = 0;
 }
 
 void SubtitleListWidget::clearPrimarySubtitles()
@@ -791,3 +831,107 @@ void SubtitleListWidget::fixTableDimensions(const int index)
 }
 
 /* End Helper Slots */
+/* Begin Find Widget Slots */
+
+#define MATCH_NONE      "No Matches"
+#define MATCH_FORMAT    QString("%1 of %2 Rows")
+
+void SubtitleListWidget::findText(const QString &text)
+{
+    SubtitleList &list =
+        m_ui->tabWidget->currentWidget() == m_ui->tabPrimary ?
+            m_primary : m_secondary;
+
+    QMutexLocker locker(&list.lock);
+
+    list.modified = false;
+    list.foundRows.clear();
+    list.currentFind = 0;
+
+    if (text.isEmpty())
+    {
+        m_ui->labelSearchMatch->setText(MATCH_NONE);
+        return;
+    }
+
+    for (int i = 0; i < list.table->rowCount(); ++i)
+    {
+        QTableWidgetItem *item = list.table->item(i, 1);
+        if (item->text().contains(text, Qt::CaseInsensitive))
+        {
+            list.foundRows << i;
+        }
+    }
+
+    if (list.foundRows.isEmpty())
+    {
+        m_ui->labelSearchMatch->setText(MATCH_NONE);
+    }
+    else
+    {
+        list.currentFind = 0;
+        list.table->setCurrentCell(list.foundRows[0], 1);
+        m_ui->labelSearchMatch->setText(
+            MATCH_FORMAT.arg(1).arg(list.foundRows.size())
+        );
+    }
+}
+
+/**
+ * A sanitary macro for doing mod. This is necessary because % in C++ can return
+ * negative numbers.
+ * @param n       The number to mod.
+ * @param modulus The modulus of the operation.
+ * @return n mod modulus
+ */
+static inline int mod(int n, int modulus)
+{
+    return (n % modulus + modulus) % modulus;
+}
+
+void SubtitleListWidget::findRowHelper(int offset)
+{
+    SubtitleList &list =
+        m_ui->tabWidget->currentWidget() == m_ui->tabPrimary ?
+            m_primary : m_secondary;
+
+    QMutexLocker locker(&list.lock);
+
+    if (list.modified)
+    {
+        locker.unlock();
+        findText(m_ui->lineEditSearch->text());
+        locker.relock();
+    }
+
+    if (list.foundRows.isEmpty())
+    {
+        return;
+    }
+
+    list.currentFind = mod(list.currentFind + offset, list.foundRows.size());
+    list.table->setCurrentCell(list.foundRows[list.currentFind], 1);
+    m_ui->labelSearchMatch->setText(
+        MATCH_FORMAT.arg(list.currentFind + 1).arg(list.foundRows.size())
+    );
+}
+
+#undef MATCH_NONE
+#undef MATCH_FORMAT
+
+void SubtitleListWidget::findPrev()
+{
+    findRowHelper(-1);
+}
+
+void SubtitleListWidget::findNext()
+{
+    findRowHelper(1);
+}
+
+void SubtitleListWidget::findTabChanged()
+{
+    findText(m_ui->lineEditSearch->text());
+}
+
+/* End Find Widget Slots */

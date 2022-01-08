@@ -1,6 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file>memento.svg</file>
+    <file>images/close.svg</file>
     <file>images/fullscreen.svg</file>
     <file>images/restore.svg</file>
     <file>images/plus.svg</file>

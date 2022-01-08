@@ -27,10 +27,10 @@
 #include <QWidget>
 
 /* Size of the icon enum. Be sure to update when adding icons. */
-#define ICON_ENUM_SIZE  17
+#define ICON_ENUM_SIZE  18
 
 /* Number of XDG icons decided by linux standards. Likely won't change. */
-#define XDG_ICONS       9
+#define XDG_ICONS       10
 
 /**
  * Parent class of icon factories, needed for polymorphism.
@@ -41,6 +41,7 @@ public:
     /* Valid Icons. */
     enum Icon
     {
+        close,
         play,
         pause,
         stop,

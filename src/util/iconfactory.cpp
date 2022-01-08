@@ -35,6 +35,7 @@
     #error "OS not supported"
 #endif
 
+#define CLOSE_THEME         "window-close"
 #define PLAY_THEME          "media-playback-start"
 #define PAUSE_THEME         "media-playback-pause"
 #define STOP_THEME          "media-playback-stop"
@@ -85,6 +86,7 @@ StyleFactory::StyleFactory()
 
 void StyleFactory::buildIcons()
 {
+    icons[close]         = buildIcon(":/images/close.svg");
     icons[play]          = buildIcon(":images/play.svg");
     icons[pause]         = buildIcon(":images/pause.svg");
     icons[skip_backward] = buildIcon(":images/skipleft.svg");
@@ -131,7 +133,8 @@ ThemeFactory::ThemeFactory()
 
 void ThemeFactory::buildIcons()
 {
-    static const char *names[9] = {
+    static const char *names[] = {
+        CLOSE_THEME,
         PLAY_THEME,
         PAUSE_THEME,
         STOP_THEME,

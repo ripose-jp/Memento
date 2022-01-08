@@ -218,6 +218,27 @@ private Q_SLOTS:
      */
     void copyContext() const;
 
+    /**
+     * Find the text in the current subtitle list.
+     * @param text The text to search for.
+     */
+    void findText(const QString &text);
+
+    /**
+     * Seeks the the previous row of the current search.
+     */
+    void findPrev();
+
+    /**
+     * Seeks the the next row of the current search.
+     */
+    void findNext();
+
+    /**
+     * Handles the searching behavior when the current list is changed.
+     */
+    void findTabChanged();
+
 private:
     /* Holds all structures relating to a subtitle list. */
     struct SubtitleList
@@ -242,6 +263,17 @@ private:
 
         /* Maps subtitle lines to table widget items for parsed subtitles. */
         QMultiHash<QString, QTableWidgetItem *> lineToItem;
+
+        /* Begin Search Values */
+
+        /* true if the widget has been modified since the last search */
+        bool modified = true;
+
+        /* all the found rows */
+        QList<int> foundRows;
+
+        /* the currently found row */
+        int currentFind;
     } typedef SubtitleList;
 
     /**
@@ -360,11 +392,21 @@ private:
      */
     void seekToSubtitle(QTableWidgetItem *item, const SubtitleList &list) const;
 
+    /**
+     * Selects the row of the current table with the offset from the currently
+     * currently found row.
+     * @param offset The offset from the currently found row.
+     */
+    void findRowHelper(int offset);
+
     /* The UI item containing the widgets. */
     Ui::SubtitleListWidget *m_ui;
 
     /* The shortcut for copying the current context */
     QShortcut *m_copyShortcut;
+
+    /* The shortcut for opening the find widget */
+    QShortcut *m_findShortcut;
 
     /* Regular expression for filtering subtitles */
     QRegularExpression m_subRegex;
