@@ -98,6 +98,7 @@ MpvWidget::MpvWidget(QWidget *parent)
     mpv_set_option_string(mpv, "hwdec",                  "auto-safe");
     mpv_set_option_string(mpv, "config",                 "yes");
     mpv_set_option_string(mpv, "input-default-bindings", "yes");
+    mpv_set_option_string(mpv, "screenshot-directory",   "~~desktop/");
     mpv_set_option_string(mpv, "ytdl",                   "yes");
 
     QByteArray configDir = DirectoryUtils::getConfigDir().toUtf8();
