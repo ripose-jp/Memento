@@ -162,10 +162,6 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
         m_ui->buttonSearchClose, &QToolButton::clicked,
         m_ui->widgetFind, &QWidget::hide
     );
-    connect(
-        m_ui->tabWidget, &QTabWidget::currentChanged,
-        this, &SubtitleListWidget::findTabChanged
-    );
 }
 
 SubtitleListWidget::~SubtitleListWidget()
@@ -929,11 +925,6 @@ void SubtitleListWidget::findPrev()
 void SubtitleListWidget::findNext()
 {
     findRowHelper(1);
-}
-
-void SubtitleListWidget::findTabChanged()
-{
-    findText(m_ui->lineEditSearch->text());
 }
 
 /* End Find Widget Slots */

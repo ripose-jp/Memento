@@ -234,11 +234,6 @@ private Q_SLOTS:
      */
     void findNext();
 
-    /**
-     * Handles the searching behavior when the current list is changed.
-     */
-    void findTabChanged();
-
 private:
     /* Holds all structures relating to a subtitle list. */
     struct SubtitleList
