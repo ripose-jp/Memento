@@ -33,8 +33,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>445</width>
-        <height>1088</height>
+        <width>454</width>
+        <height>1061</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -51,27 +51,12 @@
           <bool>false</bool>
          </property>
          <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
+          <enum>QFrame::StyledPanel</enum>
          </property>
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_5">
-          <property name="spacing">
-           <number>6</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
           <item>
            <widget class="QCheckBox" name="checkboxAdvanced">
             <property name="text">
@@ -80,56 +65,20 @@
            </widget>
           </item>
           <item>
-           <layout class="QGridLayout" name="gridLayout">
-            <property name="horizontalSpacing">
-             <number>6</number>
+           <widget class="QLabel" name="labelProfile">
+            <property name="font">
+             <font>
+              <bold>true</bold>
+             </font>
             </property>
-            <item row="3" column="3">
-             <widget class="QToolButton" name="buttonAdd">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>30</width>
-                <height>30</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="toolTip">
-               <string>Add a profile with the current settings and name in &quot;Profile Name&quot;.</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="2">
-             <widget class="QToolButton" name="buttonDelete">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>30</width>
-                <height>30</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="toolTip">
-               <string>Remove the current profile.
-Profile Default cannot be removed.</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
+            <property name="text">
+             <string>Profiles</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="layoutProfiles">
+            <item>
              <widget class="ScrollComboBox" name="comboBoxProfile">
               <property name="toolTip">
                <string>The currently selected profile.</string>
@@ -147,16 +96,46 @@ Profile Default cannot be removed.</string>
               </item>
              </widget>
             </item>
-            <item row="1" column="1">
-             <widget class="QLabel" name="labelProfile">
+            <item>
+             <widget class="QToolButton" name="buttonDelete">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
               <property name="font">
                <font>
-                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
-              <property name="text">
-               <string>Profiles</string>
+              <property name="toolTip">
+               <string>Remove the current profile.
+Profile Default cannot be removed.</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="buttonAdd">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>Add a profile with the current settings and name in &quot;Profile Name&quot;.</string>
               </property>
              </widget>
             </item>
@@ -166,7 +145,6 @@ Profile Default cannot be removed.</string>
            <widget class="QLabel" name="labelProfileName">
             <property name="font">
              <font>
-              <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>
@@ -188,43 +166,7 @@ Becomes the name of a new profile when add is clicked.</string>
           </item>
           <item>
            <layout class="QGridLayout" name="layoutConnect">
-            <property name="horizontalSpacing">
-             <number>6</number>
-            </property>
-            <item row="2" column="1">
-             <widget class="QLineEdit" name="lineEditPort">
-              <property name="toolTip">
-               <string>Port Anki is listening on.
-Only change this if you know what you're doing.</string>
-              </property>
-              <property name="text">
-               <string>8765</string>
-              </property>
-              <property name="placeholderText">
-               <string>Port</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="labelHostName">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Anki Hostname</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
+            <item row="0" column="1">
              <widget class="QLabel" name="labelPort">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
@@ -234,7 +176,6 @@ Only change this if you know what you're doing.</string>
               </property>
               <property name="font">
                <font>
-                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -243,17 +184,25 @@ Only change this if you know what you're doing.</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="2">
-             <widget class="QPushButton" name="buttonConnect">
-              <property name="enabled">
-               <bool>false</bool>
+            <item row="0" column="0">
+             <widget class="QLabel" name="labelHostName">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <bold>true</bold>
+               </font>
               </property>
               <property name="text">
-               <string>Connect</string>
+               <string>Anki Hostname</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="0">
+            <item row="1" column="0">
              <widget class="QLineEdit" name="lineEditHost">
               <property name="toolTip">
                <string>Host name for Anki.
@@ -267,28 +216,77 @@ Only change this if you know what you're doing.</string>
               </property>
              </widget>
             </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="lineEditPort">
+              <property name="toolTip">
+               <string>Port Anki is listening on.
+Only change this if you know what you're doing.</string>
+              </property>
+              <property name="text">
+               <string>8765</string>
+              </property>
+              <property name="placeholderText">
+               <string>Port</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QPushButton" name="buttonConnect">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Connect</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>
-           <widget class="QWidget" name="widgetAdvanced" native="true">
+           <widget class="QLabel" name="labelTags">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Card Tags</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEditTags">
+            <property name="toolTip">
+             <string>Tags added to cards created by Memento.
+Comma or space separated list.</string>
+            </property>
+            <property name="text">
+             <string>memento</string>
+            </property>
+            <property name="placeholderText">
+             <string>Card Tags</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="frameAdvanced">
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
             <layout class="QVBoxLayout" name="verticalLayout_6">
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
              <item>
               <widget class="QLabel" name="labelDuplicates">
                <property name="font">
                 <font>
-                 <weight>75</weight>
                  <bold>true</bold>
                 </font>
                </property>
@@ -320,7 +318,6 @@ Only change this if you know what you're doing.</string>
               <widget class="QLabel" name="labelScreenshot">
                <property name="font">
                 <font>
-                 <weight>75</weight>
                  <bold>true</bold>
                 </font>
                </property>
@@ -352,7 +349,6 @@ Only change this if you know what you're doing.</string>
               <widget class="QLabel" name="labelAudioSource">
                <property name="font">
                 <font>
-                 <weight>75</weight>
                  <bold>true</bold>
                 </font>
                </property>
@@ -370,7 +366,6 @@ Only change this if you know what you're doing.</string>
                 <widget class="QLabel" name="labelAudioPadEnd">
                  <property name="font">
                   <font>
-                   <weight>75</weight>
                    <bold>true</bold>
                   </font>
                  </property>
@@ -412,7 +407,6 @@ Only change this if you know what you're doing.</string>
                 <widget class="QLabel" name="labelAudioPadStart">
                  <property name="font">
                   <font>
-                   <weight>75</weight>
                    <bold>true</bold>
                   </font>
                  </property>
@@ -477,39 +471,6 @@ Only change this if you know what you're doing.</string>
               </layout>
              </item>
             </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="labelTags">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Card Tags</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="lineEditTags">
-            <property name="toolTip">
-             <string>Tags added to cards created by Memento.
-Comma or space separated list.</string>
-            </property>
-            <property name="text">
-             <string>memento</string>
-            </property>
-            <property name="placeholderText">
-             <string>Card Tags</string>
-            </property>
            </widget>
           </item>
           <item>
