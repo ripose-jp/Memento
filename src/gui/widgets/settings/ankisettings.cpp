@@ -37,6 +37,7 @@ AnkiSettings::AnkiSettings(QWidget *parent)
       m_configs(nullptr)
 {
     m_ui->setupUi(this);
+    m_ui->widgetAdvanced->hide();
 
     initIcons();
 
@@ -51,6 +52,12 @@ AnkiSettings::AnkiSettings(QWidget *parent)
     connect(
         m_ui->buttonConnect, &QPushButton::clicked,
         this,                [=] { connectToClient(true); }
+    );
+    connect(
+        m_ui->checkboxAdvanced, &QCheckBox::stateChanged, this,
+        [=] (int state) {
+            m_ui->widgetAdvanced->setVisible(state == Qt::Checked);
+        }
     );
     connect(m_ui->termCardBuilder,  &CardBuilder::modelTextChanged, this,
         [=] (const QString &model) {
