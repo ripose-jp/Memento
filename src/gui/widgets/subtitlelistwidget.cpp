@@ -44,8 +44,9 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
       m_ui(new Ui::SubtitleListWidget)
 {
     m_ui->setupUi(this);
-
     m_ui->widgetFind->hide();
+    m_ui->tabWidget->tabBar()->setDocumentMode(true);
+    m_ui->tabWidget->tabBar()->setExpanding(true);
 
     m_primary.table = m_ui->tablePrim;
     m_secondary.table = m_ui->tableSec;
