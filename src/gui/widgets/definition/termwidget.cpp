@@ -182,11 +182,14 @@ void TermWidget::initUi(const Term &term)
         m_layoutTermTags->addWidget(tag);
     }
 
+    const AnkiConfig *config = m_client->getConfig();
     for (size_t i = 0; i < term.definitions.size(); ++i)
     {
-        m_layoutGlossary->addWidget(
-            new GlossaryWidget(i + 1, term.definitions[i])
+        GlossaryWidget *g = new GlossaryWidget(i + 1, term.definitions[i]);
+        g->setChecked(
+            !config->excludeGloss.contains(term.definitions[i].dictionary)
         );
+        m_layoutGlossary->addWidget(g);
     }
 }
 

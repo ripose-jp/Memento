@@ -86,6 +86,11 @@ void GlossaryWidget::setCheckable(const bool value)
     m_checkBoxAdd->setVisible(value);
 }
 
+void GlossaryWidget::setChecked(const bool value)
+{
+    m_checkBoxAdd->setChecked(value);
+}
+
 bool GlossaryWidget::isChecked() const
 {
     return m_checkBoxAdd->isChecked();

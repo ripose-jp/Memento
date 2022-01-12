@@ -54,6 +54,12 @@ public:
     void setCheckable(const bool value);
 
     /**
+     * Sets the the check value of the glossary.
+     * @param value true to check, false to uncheck.
+     */
+    void setChecked(const bool value);
+
+    /**
      * Returns if the checkbox is checked.
      * Undefined behavior if the checkbox is not visible.
      * @returns true if checked, false otherwise.

@@ -23,6 +23,7 @@
 
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QSet>
 #include <QString>
 #include <QStringList>
 
@@ -112,6 +113,9 @@ struct AnkiConfig
     /* The dB value audio should be normalized to */
     double audioDb;
 
+    /* The set of dictionaries that should not be added to Anki by default */
+    QSet<QString> excludeGloss;
+
     /* A list of tags to add to Anki notes. */
     QJsonArray tags;
 
@@ -151,6 +155,7 @@ struct AnkiConfig
         audioNormalize  = rhs.audioNormalize;
         audioDb         = rhs.audioDb;
         tags            = rhs.tags;
+        excludeGloss    = rhs.excludeGloss;
 
         termDeck        = rhs.termDeck;
         termModel       = rhs.termModel;

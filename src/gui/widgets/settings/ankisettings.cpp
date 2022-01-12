@@ -24,6 +24,7 @@
 #include <QSettings>
 #include <QTableWidgetItem>
 
+#include "../../../dict/dictionary.h"
 #include "../../../util/constants.h"
 #include "../../../util/globalmediator.h"
 #include "../../../util/iconfactory.h"
@@ -251,6 +252,7 @@ void AnkiSettings::restoreDefaults()
     defaultConfig.audioNormalize  = DEFAULT_AUDIO_NORMALIZE;
     defaultConfig.audioDb         = DEFAULT_AUDIO_DB;
     defaultConfig.tags.append(DEFAULT_TAGS);
+    defaultConfig.excludeGloss.clear();
 
     defaultConfig.termDeck        = m_ui->termCardBuilder->getDeckText();
     defaultConfig.termModel       = m_ui->termCardBuilder->getModelText();
@@ -438,6 +440,21 @@ void AnkiSettings::populateFields(const QString    &profile,
     m_ui->checkAudioNormalize->setChecked(config->audioNormalize);
     m_ui->doubleAudioDb->setValue(config->audioDb);
 
+    m_ui->listIncludeGlossary->clear();
+    Dictionary *dict = GlobalMediator::getGlobalMediator()->getDictionary();
+    QStringList dictionaries = dict->getDictionaries();
+    std::sort(dictionaries.begin(), dictionaries.end());
+    m_ui->listIncludeGlossary->addItems(dictionaries);
+    for (int i = 0; i < m_ui->listIncludeGlossary->count(); ++i)
+    {
+        QListWidgetItem *item = m_ui->listIncludeGlossary->item(i);
+        item->setFlags(item->flags() | Qt::ItemFlag::ItemIsUserCheckable);
+        item->setCheckState(
+            config->excludeGloss.contains(item->text()) ?
+                Qt::Unchecked : Qt::Checked
+        );
+    }
+
     QString tags;
     for (const QJsonValue &tag : config->tags)
     {
@@ -595,8 +612,20 @@ void AnkiSettings::applyToConfig(const QString &profile)
     config->tags = QJsonArray();
     QStringList splitTags =
         m_ui->lineEditTags->text().split(QRegExp(REGEX_REMOVE_SPACES_COMMAS));
-    for (auto it = splitTags.begin(); it != splitTags.end(); ++it)
-        config->tags.append(*it);
+    for (const QString &tag : splitTags)
+    {
+        config->tags.append(tag);
+    }
+
+    config->excludeGloss.clear();
+    for (int i = 0; i < m_ui->listIncludeGlossary->count(); ++i)
+    {
+        QListWidgetItem *item = m_ui->listIncludeGlossary->item(i);
+        if (item->checkState() == Qt::Unchecked)
+        {
+            config->excludeGloss << item->text();
+        }
+    }
 
     if (!m_ui->termCardBuilder->getDeckText().isEmpty())
     {

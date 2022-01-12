@@ -105,6 +105,7 @@
 #define CONFIG_DECK             "deck"
 #define CONFIG_MODEL            "model"
 #define CONFIG_FIELDS           "fields"
+#define CONFIG_EXCLUDE_GLOSSARY "ex-glos"
 
 /* Begin Constructor/Destructors */
 
@@ -274,6 +275,11 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
             modified = true;
             profile[CONFIG_AUDIO_DB] = DEFAULT_AUDIO_DB;
         }
+        if (profile[CONFIG_EXCLUDE_GLOSSARY].isNull())
+        {
+            modified = true;
+            profile[CONFIG_EXCLUDE_GLOSSARY] = QJsonArray();
+        }
 
         if (modified)
         {
@@ -349,6 +355,11 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
             qDebug() << CONFIG_KANJI << "is not an object";
             return false;
         }
+        else if (!profile[CONFIG_EXCLUDE_GLOSSARY].isArray())
+        {
+            qDebug() << CONFIG_EXCLUDE_GLOSSARY << "is not an array";
+            return false;
+        }
     }
 
     m_enabled = jsonObj[CONFIG_ENABLED].toBool();
@@ -373,6 +384,13 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         config->audioNormalize  = profile[CONFIG_AUDIO_NORMALIZE].toBool();
         config->audioDb         = profile[CONFIG_AUDIO_DB].toDouble();
         config->tags            = profile[CONFIG_TAGS].toArray();
+        for (const QJsonValue &val : profile[CONFIG_EXCLUDE_GLOSSARY].toArray())
+        {
+            if (val.isString())
+            {
+                config->excludeGloss.insert(val.toString());
+            }
+        }
 
         QJsonObject obj         = profile[CONFIG_TERM].toObject();
         config->termDeck        = obj[CONFIG_DECK].toString();
@@ -432,6 +450,13 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
         configObj[CONFIG_AUDIO_DB]        = config->audioDb;
         configObj[CONFIG_TAGS]            = config->tags;
 
+        QJsonArray excludeGloss;
+        for (const QString &dict : config->excludeGloss)
+        {
+            excludeGloss << dict;
+        }
+        configObj[CONFIG_EXCLUDE_GLOSSARY] = excludeGloss;
+
         QJsonObject obj;
         obj[CONFIG_DECK]       = config->termDeck;
         obj[CONFIG_MODEL]      = config->termModel;
@@ -470,10 +495,11 @@ QString AnkiClient::getProfile() const
 
 QStringList AnkiClient::getProfiles() const
 {
-    QList keys = m_configs->keys();
     QStringList result;
-    for (auto it = keys.begin(); it != keys.end(); ++it)
-        result.append(*it);
+    for (const QString &key : m_configs->keys())
+    {
+        result.append(key);
+    }
     return result;
 }
 
@@ -533,6 +559,7 @@ void AnkiClient::setDefaultConfig()
     config->audioNormalize  = DEFAULT_AUDIO_NORMALIZE;
     config->audioDb         = DEFAULT_AUDIO_DB;
     config->tags.append(DEFAULT_TAGS);
+    config->excludeGloss.clear();
 
     delete m_configs->value(DEFAULT_PROFILE);
     m_configs->insert(DEFAULT_PROFILE, config);
