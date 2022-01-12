@@ -34,14 +34,22 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     GlobalMediator::getGlobalMediator()->setPlayerAdapter(this);
 
-    m_subExts << "srt"
-              << "ass"
+    m_subExts << "utf"
+              << "utf8"
+              << "utf-8"
+              << "idx"
+              << "sub"
+              << "srt"
+              << "rt"
               << "ssa"
-              << "ttml"
-              << "sbv"
-              << "dfxp"
+              << "ass"
+              << "mks"
               << "vtt"
-              << "txt";
+              << "sup"
+              << "scc"
+              << "smi"
+              << "lrc"
+              << "pgs";
 
     /* Signals */
     connect(
