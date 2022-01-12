@@ -551,7 +551,7 @@ void PlayerMenu::updateSecondarySubtitleAction(const uint64_t id)
 
 void PlayerMenu::openFile()
 {
-    QList<QUrl> files = QFileDialog::getOpenFileUrls(0, "Open a video");
+    QList<QUrl> files = QFileDialog::getOpenFileUrls(0, "Open File");
     if (!files.isEmpty())
     {
         m_player->stop();
@@ -580,7 +580,11 @@ void PlayerMenu::openUrl()
 
 void PlayerMenu::openSubtitle()
 {
-    QString file = QFileDialog::getOpenFileName(0, "Open Subtitle");
+    QString file = QFileDialog::getOpenFileName(
+        0, "Open Subtitle", QString(),
+        "Subtitle Files (*.ass *.srt *.vtt *.utf *.utf8 *.utf-8 *.idx *.sub "
+        "*.rt *.ssa *.mks *.sup *.scc *.smi *.lrc *.pgs);;All Files (*)"
+    );
     if (!file.isEmpty())
     {
         m_player->addSubtitle(file);

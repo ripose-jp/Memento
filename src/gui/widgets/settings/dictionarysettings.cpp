@@ -201,7 +201,9 @@ void DictionarySettings::moveDown()
 
 void DictionarySettings::addDictionary()
 {
-    QStringList files = QFileDialog::getOpenFileNames(0, "Open Dictionaries");
+    QStringList files = QFileDialog::getOpenFileNames(
+        0, "Open Dictionaries", QString(), "Dictionaries (*.zip);;All Files (*)"
+    );
     if (files.isEmpty())
     {
         return;
