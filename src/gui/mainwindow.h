@@ -31,7 +31,7 @@
 #include "widgets/overlay/playeroverlay.h"
 #include "widgets/settings/optionswindow.h"
 
-#if __APPLE__
+#if defined(Q_OS_MACOS)
 #include "../util/cocoaeventhandler.h"
 #endif
 
@@ -43,7 +43,7 @@ namespace Ui
 /**
  * The MainWindow Memento.
  */
-#if __APPLE__
+#if defined(Q_OS_MACOS)
 class MainWindow : public QMainWindow, public CocoaEventHandlerCallback
 #else
 class MainWindow : public QMainWindow
@@ -55,7 +55,7 @@ public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-#if __APPLE__
+#if defined(Q_OS_MACOS)
     /**
      * Call back for the Cocoa event handler. Disables UI updates and pauses
      * the player.
@@ -225,7 +225,7 @@ private:
     /* true if the window has never been shown before, false otherwise */
     bool m_firstShow;
 
-#if __APPLE__
+#if defined(Q_OS_MACOS)
     /* The Cocoa event handler for preventing updates on screen transitions. */
     CocoaEventHandler *m_cocoaHandler;
 

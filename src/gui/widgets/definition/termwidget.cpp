@@ -55,12 +55,12 @@
  */
 #define KANJI_FORMAT_STRING     (QString("<a href=\"%1\">%1</a>"))
 
-#if __APPLE__
-    #define EXPRESSION_STYLE    (QString("QLabel { font-size: 30pt; }"))
-    #define READING_STYLE       (QString("QLabel { font-size: 18pt; }"))
+#if defined(Q_OS_MACOS)
+#define EXPRESSION_STYLE    (QString("QLabel { font-size: 30pt; }"))
+#define READING_STYLE       (QString("QLabel { font-size: 18pt; }"))
 #else
-    #define EXPRESSION_STYLE    (QString("QLabel { font-size: 20pt; }"))
-    #define READING_STYLE       (QString("QLabel { font-size: 12pt; }"))
+#define EXPRESSION_STYLE    (QString("QLabel { font-size: 20pt; }"))
+#define READING_STYLE       (QString("QLabel { font-size: 12pt; }"))
 #endif
 
 /* Begin Constructor/Destructor */

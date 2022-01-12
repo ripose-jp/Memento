@@ -33,7 +33,7 @@
 #include "databasemanager.h"
 
 /* Begin Static Helpers */
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(Q_OS_WIN)
 /**
  * This whole section is necessary on Windows because MeCab has a bug that
  * prevents it from loading dictionaries if there are spaces in the path on
@@ -93,15 +93,15 @@ static QByteArray genMecabArg()
 /* End Static Helpers */
 /* Begin Constructor/Destructor */
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    #define MECAB_ARG (genMecabArg())
-#elif APPIMAGE || APPBUNDLE
-    #define MECAB_ARG ( \
-        "-r " + DirectoryUtils::getDictionaryDir() + "ipadic" + SLASH + "dicrc " \
-        "-d " + DirectoryUtils::getDictionaryDir() + "ipadic" \
-    ).toUtf8()
+#if defined(Q_OS_WIN)
+#define MECAB_ARG (genMecabArg())
+#elif defined(APPIMAGE) || defined(APPBUNDLE)
+#define MECAB_ARG ( \
+    "-r " + DirectoryUtils::getDictionaryDir() + "ipadic" + SLASH + "dicrc " \
+    "-d " + DirectoryUtils::getDictionaryDir() + "ipadic" \
+).toUtf8()
 #else
-    #define MECAB_ARG ("")
+#define MECAB_ARG ("")
 #endif
 
 Dictionary::Dictionary(QObject *parent) : QObject(parent)
@@ -118,22 +118,21 @@ Dictionary::Dictionary(QObject *parent) : QObject(parent)
             "MeCab Error",
             "Could not initialize MeCab.\n"
             "Memento will still work, but search results will suffer.\n"
-        #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||\
-            defined(__NT__)
+#if defined(Q_OS_WIN)
             "Make sure that ipadic is present in\n" +
             DirectoryUtils::getDictionaryDir()
-        #elif APPIMAGE
+#elif defined(APPIMAGE)
             "Please report this bug at "
             "https://github.com/ripose-jp/Memento/issues"
-        #elif APPBUNDLE
+#elif defined(APPBUNDLE)
             "The current dictionary directory\n" +
             DirectoryUtils::getDictionaryDir() +
             "\nIf there are spaces in this path, please move Memento to a "
             "directory without spaces."
-        #else
+#else
             "Make sure you have a system dictionary installed by running "
             "'mecab -D' from the command line."
-        #endif
+#endif
         );
     }
 

@@ -37,7 +37,7 @@ InterfaceSettings::InterfaceSettings(QWidget *parent)
 {
     m_ui->setupUi(this);
 
-#if !__linux__
+#if !defined(Q_OS_UNIX) || defined(Q_OS_DARWIN)
     m_ui->checkSystemIcons->hide();
 #endif
 
@@ -108,7 +108,7 @@ void InterfaceSettings::showEvent(QShowEvent *event)
 void InterfaceSettings::restoreDefaults()
 {
     m_ui->comboTheme->setCurrentIndex((int)SETTINGS_INTERFACE_THEME_DEFAULT);
-#if __linux__
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     m_ui->checkSystemIcons->setChecked(SETTINGS_INTERFACE_SYSTEM_ICONS_DEFAULT);
 #endif
 
@@ -169,7 +169,7 @@ void InterfaceSettings::restoreSaved()
             (int)SETTINGS_INTERFACE_THEME_DEFAULT
         ).toInt()
     );
-#if __linux__
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     m_ui->checkSystemIcons->setChecked(
         settings.value(
             SETTINGS_INTERFACE_SYSTEM_ICONS,
@@ -290,7 +290,7 @@ void InterfaceSettings::applyChanges()
     settings.setValue(
         SETTINGS_INTERFACE_THEME, m_ui->comboTheme->currentIndex()
     );
-#if __linux__
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     settings.setValue(
         SETTINGS_INTERFACE_SYSTEM_ICONS, m_ui->checkSystemIcons->isChecked()
     );

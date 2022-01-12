@@ -25,13 +25,13 @@
 #include <QMessageBox>
 #include <QSettings>
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    #include <QStandardPaths>
+#if defined(Q_OS_WIN)
+#include <QStandardPaths>
 #endif
 
-#if __APPLE__
-    #include <locale.h>
-    #include <QSurfaceFormat>
+#if defined(Q_OS_MACOS)
+#include <locale.h>
+#include <QSurfaceFormat>
 #endif
 
 #include "audio/audioplayer.h"
@@ -41,6 +41,13 @@
 #include "util/globalmediator.h"
 #include "util/iconfactory.h"
 #include "util/utils.h"
+
+/**
+ * Makes sure nothing compiles on unsupported OSes
+ */
+#if !(defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)) && !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
+#error "OS not supported"
+#endif
 
 /**
  * Updates the QSettings before the MainWindow is created.
@@ -78,13 +85,13 @@ void updateSettings()
     {
         /* These paths are hardcoded because DirectoryUtils may change in the
          * future. */
-    #if __linux__
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
         QDir configDir(QString(getenv("HOME")) + "/.config/memento");
         configDir.rename("./dict/dictionaries.sqlite", "./dictionaries.sqlite");
 
         QDir dictDir(configDir.absolutePath() + "/dict");
         dictDir.removeRecursively();
-    #elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#elif defined(Q_OS_WIN)
         QDir programDir(DirectoryUtils::getProgramDirectory());
         programDir.rename(
             ".\\config\\dict\\dictionaries.sqlite",
@@ -104,7 +111,7 @@ void updateSettings()
         configDir.removeRecursively();
 
         programDir.rename(".\\config", configDir.absolutePath());
-    #endif
+#endif
     }
     }
 
@@ -119,7 +126,7 @@ void updateSettings()
 
 int main(int argc, char **argv)
 {
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(Q_OS_WIN)
     /* Image Formats Windows */
     QCoreApplication::addLibraryPath(DirectoryUtils::getProgramDirectory());
 #endif
@@ -134,7 +141,7 @@ int main(int argc, char **argv)
     /* Construct the application */
     QApplication memento(argc, argv);
 
-#if __APPLE__
+#if defined(Q_OS_MACOS)
     /* Change the OpenGL version to 4.1 on macOS */
     QSurfaceFormat qSurfaceFormat;
     qSurfaceFormat.setMajorVersion(4);
@@ -143,7 +150,7 @@ int main(int argc, char **argv)
     QSurfaceFormat::setDefaultFormat(qSurfaceFormat);
 #endif
 
-#if !__APPLE__
+#if !defined(Q_OS_MACOS)
     /* Set the window icon */
     QGuiApplication::setWindowIcon(QIcon(":memento.svg"));
 #endif

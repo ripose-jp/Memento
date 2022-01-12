@@ -45,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     m_ui->setupUi(this);
 
-#if __APPLE__
+#if defined(Q_OS_MACOS)
     m_oldUpdatesEnabled = updatesEnabled();
     m_cocoaHandler = new CocoaEventHandler(this);
 #endif
@@ -103,7 +103,7 @@ MainWindow::~MainWindow()
     /* Wrappers and Clients */
     m_player->deleteLater();
     m_ankiClient->deleteLater();
-#if __APPLE__
+#if defined(Q_OS_MACOS)
     delete m_cocoaHandler;
 #endif
 }
@@ -209,16 +209,21 @@ void MainWindow::initTheme()
     {
     case Theme::Light:
     {
-    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||\
-        defined(__NT__) || __APPLE__
+#if defined(Q_OS_WIN)
         QStyle *style = QStyleFactory::create("fusion");
         if (style)
+        {
             QApplication::setStyle(style);
-    #endif
-    #if __APPLE__
+        }
+#elif defined(Q_OS_MACOS)
+        QStyle *style = QStyleFactory::create("fusion");
+        if (style)
+        {
+            QApplication::setStyle(style);
+        }
         QApplication *app = (QApplication *)QApplication::instance();
         app->setStyleSheet("");
-    #endif
+#endif
         QColor lightColor(240, 240, 240);
         QColor disabledColor(178, 179, 180);
         QColor white(255, 255, 255);
@@ -245,16 +250,21 @@ void MainWindow::initTheme()
     }
     case Theme::Dark:
     {
-    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||\
-        defined(__NT__) || __APPLE__
+#if defined(Q_OS_WIN)
         QStyle *style = QStyleFactory::create("fusion");
         if (style)
+        {
             QApplication::setStyle(style);
-    #endif
-    #if __APPLE__
+        }
+#elif defined(Q_OS_MACOS)
+        QStyle *style = QStyleFactory::create("fusion");
+        if (style)
+        {
+            QApplication::setStyle(style);
+        }
         QApplication *app = (QApplication *)QApplication::instance();
         app->setStyleSheet("");
-    #endif
+#endif
         /* Modified from
          * https://forum.qt.io/topic/101391/windows-10-dark-theme/5
          */
@@ -283,15 +293,18 @@ void MainWindow::initTheme()
     }
     case Theme::System:
     default:
-    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||\
-        defined(__NT__)
+#if defined(Q_OS_WIN)
         QStyle *style = QStyleFactory::create("windowsvista");
         if (style)
+        {
             QApplication::setStyle(style);
-    #elif __APPLE__
+        }
+#elif defined(Q_OS_MACOS)
         QStyle *style = QStyleFactory::create("macintosh");
         if (style)
+        {
             QApplication::setStyle(style);
+        }
         QApplication *app = (QApplication *)QApplication::instance();
         app->setStyleSheet(
             "QToolButton {"
@@ -304,13 +317,13 @@ void MainWindow::initTheme()
                 "border: 1px solid palette(highlight);"
             "}"
         );
-    #endif
+#endif
         pal = QApplication::style()->standardPalette();
     }
     QApplication::setPalette(pal);
     QApplication::setStyle(new SliderJumpStyle(QApplication::style()));
 
-#if __linux__
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     IconFactory::recreate(
         settings.value(
             SETTINGS_INTERFACE_SYSTEM_ICONS,
@@ -400,12 +413,12 @@ void MainWindow::showEvent(QShowEvent *event)
                 "here"
             "</a>."
             "<br>"
-        #if __APPLE__
+#if defined(Q_OS_MACOS)
             "To install a dictionary, go to Memento → Preferences → "
             "Dictionaries."
-        #else
+#else
             "To install a dictionary, go to Settings → Options → Dictionaries."
-        #endif
+#endif
         );
     }
 
@@ -480,7 +493,7 @@ void MainWindow::changeEvent(QEvent *event)
     {
         Q_EMIT m_mediator->windowFocusChanged(isActiveWindow());
     }
-#if __APPLE__
+#if defined(Q_OS_MACOS)
     else if (event->type() == QEvent::WindowStateChange)
     {
         m_player->setFullscreen(isFullScreen());
@@ -502,7 +515,7 @@ void MainWindow::setFullscreen(bool value)
     }
     else
     {
-    #if __linux__
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
         showNormal();
         if (m_maximized)
         {
@@ -511,7 +524,7 @@ void MainWindow::setFullscreen(bool value)
              */
             showMaximized();
         }
-    #else
+#else
         if (m_maximized)
         {
             showMaximized();
@@ -520,7 +533,7 @@ void MainWindow::setFullscreen(bool value)
         {
             showNormal();
         }
-    #endif
+#endif
     }
 }
 
@@ -663,7 +676,7 @@ void MainWindow::showInfoMessage(const QString title,
 }
 
 /* End Dialog Methods */
-#if __APPLE__
+#if defined(Q_OS_MACOS)
 /* Begin Cocoa Handlers */
 
 void MainWindow::beforeTransition()

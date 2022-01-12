@@ -32,7 +32,7 @@
 
 #include "../../util/utils.h"
 
-#if __APPLE__
+#if defined(Q_OS_MACOS)
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #endif
 
@@ -358,12 +358,12 @@ private:
     /* Regular expression used to filter subtitles */
     QRegularExpression m_regex;
 
-#if __linux__
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     /* The DBus cookie. Used for allowing the screen to dim again. */
     uint32_t dbus_cookie;
 #endif
 
-#if __APPLE__
+#if defined(Q_OS_MACOS)
     /* Assertion ID for preventing sleep on macOS */
     IOPMAssertionID m_sleepAssertID;
 

@@ -47,7 +47,7 @@ OptionsWindow::OptionsWindow(QWidget *parent)
     m_ui->setupUi(this);
 
     QFont labelFont = m_ui->labelOption->font();
-#if __APPLE__
+#if defined(Q_OS_MACOS)
     labelFont.setPointSize(20);
 #else
     labelFont.setPointSize(14);

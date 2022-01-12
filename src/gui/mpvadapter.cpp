@@ -962,7 +962,7 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
     {
         key += "Meta+";
     }
-#if !__APPLE__
+#if !defined(Q_OS_MACOS)
     if (event->modifiers() & Qt::KeypadModifier)
     {
         key += "KP";

@@ -32,8 +32,8 @@
 #include <QStandardPaths>
 #include <QStringList>
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    #include <windows.h>
+#if defined(Q_OS_WIN)
+#include <windows.h>
 #endif
 
 #include "constants.h"
@@ -63,11 +63,11 @@ QString DirectoryUtils::getConfigDir()
 
 QString DirectoryUtils::getDictionaryDir()
 {
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(Q_OS_WIN)
     return getProgramDirectory() + "dic\\";
-#elif APPIMAGE
+#elif defined(APPIMAGE)
     return getProgramDirectory() + "/../lib/mecab/dic/";
-#elif APPBUNDLE
+#elif defined(APPBUNDLE)
     return getProgramDirectory() + "/../Frameworks/mecab/dic/";
 #else
     return "";

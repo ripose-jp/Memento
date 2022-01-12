@@ -24,15 +24,15 @@
 #include <QApplication>
 
 #ifdef APPIMAGE
-    #define FACTORY_CLASS(p) new StyleFactory(p)
-#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    #define FACTORY_CLASS(p) new StyleFactory(p)
-#elif __linux__
-    #define FACTORY_CLASS(p) new ThemeFactory(p)
-#elif __APPLE__
-    #define FACTORY_CLASS(p) new StyleFactory(p)
+#define FACTORY_CLASS(p) new StyleFactory(p)
+#elif defined(Q_OS_WIN)
+#define FACTORY_CLASS(p) new StyleFactory(p)
+#elif defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
+#define FACTORY_CLASS(p) new ThemeFactory(p)
+#elif defined(Q_OS_MACOS)
+#define FACTORY_CLASS(p) new StyleFactory(p)
 #else
-    #error "OS not supported"
+#error "OS not supported"
 #endif
 
 #define CLOSE_THEME         "window-close"
@@ -58,7 +58,7 @@ IconFactory *IconFactory::create()
 IconFactory *IconFactory::recreate(bool useTheme)
 {
     delete m_factory;
-#if __linux__
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     if (useTheme)
     {
         m_factory = new ThemeFactory;

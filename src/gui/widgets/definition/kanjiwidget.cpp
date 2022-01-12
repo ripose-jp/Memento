@@ -69,11 +69,11 @@ KanjiWidget::KanjiWidget(
     labelKanjiStroke->setStyleSheet(
         "QLabel {"
             "font-family: \"KanjiStrokeOrders\", \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;"
-        #if __APPLE__
+#if defined(Q_OS_MACOS)
             "font-size: 140pt;"
-        #else
+#else
             "font-size: 100pt;"
-        #endif
+#endif
         "}"
     );
     labelKanjiStroke->setAlignment(Qt::AlignHCenter);

@@ -27,9 +27,9 @@
 #include <QOpenGLContext>
 #include <QSettings>
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(Q_OS_WIN)
 #include <winbase.h>
-#elif __linux__
+#elif defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
 #include <qpa/qplatformnativeinterface.h>
 #include <QtDBus>
 #include <QX11Info>
@@ -73,7 +73,7 @@ MpvWidget::MpvWidget(QWidget *parent)
       m_width(width() * QApplication::desktop()->devicePixelRatioF())
 {
     /* Run initialization tasks */
-#if __APPLE__
+#if defined(Q_OS_MACOS)
     m_sleepAssertIDValid = false;
 #endif
     m_cursorTimer.setSingleShot(true);
@@ -456,7 +456,7 @@ void MpvWidget::initializeGL()
         {MPV_RENDER_PARAM_INVALID,            nullptr}
     };
 
-#if __linux__
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     if (QGuiApplication::platformName().contains("xcb"))
     {
         params[2].type = MPV_RENDER_PARAM_X11_DISPLAY;
@@ -665,14 +665,14 @@ void MpvWidget::hideCursor()
 
 void MpvWidget::allowScreenDimming()
 {
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(Q_OS_WIN)
     SetThreadExecutionState(ES_CONTINUOUS);
-#elif __linux__
+#elif defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     QDBusInterface screenSaver(
         "org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver"
     );
     screenSaver.call("UnInhibit", dbus_cookie);
-#elif __APPLE__
+#elif defined(Q_OS_MACOS)
     if (!m_sleepAssertIDValid)
     {
         return;
@@ -693,11 +693,11 @@ void MpvWidget::allowScreenDimming()
 
 void MpvWidget::preventScreenDimming()
 {
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(Q_OS_WIN)
     SetThreadExecutionState(
         ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED
     );
-#elif __linux__
+#elif defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     QDBusInterface screenSaver(
         "org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver"
     );
@@ -725,7 +725,7 @@ void MpvWidget::preventScreenDimming()
         qDebug() << "Unknown reply from org.freedesktop.ScreenSaver";
         break;
     }
-#elif __APPLE__
+#elif defined(Q_OS_MACOS)
     CFStringRef reasonForActivity =
         CFSTR("Memento: Media is playing, preventing sleep...");
 

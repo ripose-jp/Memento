@@ -24,14 +24,14 @@
 #include <QFile>
 #include <QString>
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    #define SLASH "\\"
-#elif __linux__
-    #define SLASH "/"
-#elif __APPLE__
-    #define SLASH "/"
+#if defined(Q_OS_WIN)
+#define SLASH "\\"
+#elif defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
+#define SLASH "/"
+#elif defined(Q_OS_MACOS)
+#define SLASH "/"
 #else
-    #error "OS not supported"
+#error "OS not supported"
 #endif
 
 /* Dictionary database file name. */

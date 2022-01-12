@@ -374,7 +374,7 @@ void PlayerOverlay::hideOverlay()
 
 void PlayerOverlay::showOverlay()
 {
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(Q_OS_WIN)
     if (!m_menu->menuVisible() && !m_menu->window()->isFullScreen())
 #else
     if (!m_menu->menuVisible())

@@ -55,7 +55,7 @@ GlossaryWidget::GlossaryWidget(const size_t          number,
     m_layoutHeader->addWidget(new TagWidget(m_def.dictionary));
 
     m_checkBoxAdd->setChecked(true);
-#if __APPLE__
+#if defined(Q_OS_MACOS)
     m_checkBoxAdd->setText(" ");
 #else
     m_checkBoxAdd->setText("");

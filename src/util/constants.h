@@ -21,6 +21,8 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <QtGlobal>
+
 #ifdef CMAKE_VERSION
 #define VERSION                         (QString(CMAKE_VERSION))
 #else
@@ -111,7 +113,7 @@ enum class Theme
 #ifdef APPIMAGE
 #define SETTINGS_INTERFACE_SYSTEM_ICONS                     "system-icons"
 #define SETTINGS_INTERFACE_SYSTEM_ICONS_DEFAULT             false
-#elif __linux__
+#elif defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
 #define SETTINGS_INTERFACE_SYSTEM_ICONS                     "system-icons"
 #define SETTINGS_INTERFACE_SYSTEM_ICONS_DEFAULT             true
 #endif
@@ -158,7 +160,7 @@ enum class Theme
 
 /* Stylesheets */
 #define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE              "sublist-style"
-#if __APPLE__
+#if defined(Q_OS_MACOS)
 #define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT      \
     "QTabWidget::pane {\n"\
     "    border-top: 0px;\n"\
@@ -186,7 +188,7 @@ enum class Theme
     "    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"\
     "    font-size: 20pt;\n"\
     "}"
-#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#elif defined(Q_OS_WIN)
 #define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT      \
     "QTabWidget::pane {\n"\
     "    border-top: 0px;\n"\
@@ -255,13 +257,13 @@ enum class Theme
     "}"
 
 #define SETTINGS_INTERFACE_DEFINITION_STYLE                 "definition-style"
-#if __APPLE__
+#if defined(Q_OS_MACOS)
 #define SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT         \
     "QLabel {\n"\
     "    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"\
     "    font-size: 15pt;\n"\
     "}"
-#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#elif defined(Q_OS_WIN)
 #define SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT         \
     "QLabel {\n"\
     "    font-family: \"Meiryo\", \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"\
