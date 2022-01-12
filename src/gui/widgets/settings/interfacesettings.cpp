@@ -41,6 +41,11 @@ InterfaceSettings::InterfaceSettings(QWidget *parent)
     m_ui->checkSystemIcons->hide();
 #endif
 
+#if !defined(Q_OS_WIN)
+    m_ui->labelMenuBar->hide();
+    m_ui->checkMenuFullscreen->hide();
+#endif
+
     /* Signals */
     connect(m_ui->buttonSubColor, &QToolButton::clicked, this,
         [=] { askButtonColor(m_ui->buttonSubColor, m_subColor); }
@@ -145,6 +150,13 @@ void InterfaceSettings::restoreDefaults()
     m_ui->checkAuxSearchWindow->setChecked(
         SETTINGS_INTERFACE_AUX_SEARCH_WINDOW_DEFAULT
     );
+
+    /* Menu Bar */
+#if defined(Q_OS_WIN)
+    m_ui->checkMenuFullscreen->setChecked(
+        SETTINGS_INTERFACE_MENUBAR_FULLSCREEN_DEFAULT
+    );
+#endif
 
     /* Style Sheets */
     m_ui->checkStyleSheets->setChecked(SETTINGS_INTERFACE_STYLESHEETS_DEFAULT);
@@ -254,6 +266,16 @@ void InterfaceSettings::restoreSaved()
         ).toBool()
     );
 
+    /* Menu Bar */
+#if defined(Q_OS_WIN)
+    m_ui->checkMenuFullscreen->setChecked(
+        settings.value(
+            SETTINGS_INTERFACE_MENUBAR_FULLSCREEN,
+            SETTINGS_INTERFACE_MENUBAR_FULLSCREEN_DEFAULT
+        ).toBool()
+    );
+#endif
+
     /* Style Sheets */
     m_ui->checkStyleSheets->setChecked(
         settings.value(
@@ -342,6 +364,14 @@ void InterfaceSettings::applyChanges()
         SETTINGS_INTERFACE_AUX_SEARCH_WINDOW,
         m_ui->checkAuxSearchWindow->isChecked()
     );
+
+    /* Menu Bar */
+#if defined(Q_OS_WIN)
+    settings.setValue(
+        SETTINGS_INTERFACE_MENUBAR_FULLSCREEN,
+        m_ui->checkMenuFullscreen->isChecked()
+    );
+#endif
 
     /* Style Sheets */
     settings.setValue(

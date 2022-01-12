@@ -27,6 +27,10 @@
 #include <QSettings>
 #include <QStyleFactory>
 
+#if defined(Q_OS_WIN)
+#include <QtPlatformHeaders/QWindowsWindowFunctions>
+#endif
+
 #include "../dict/dictionary.h"
 #include "../util/constants.h"
 #include "../util/iconfactory.h"
@@ -384,6 +388,20 @@ void MainWindow::initTheme()
     m_ui->subtitleList->setVisible(vis);
     updateSearchSubListSplitter();
 
+    /* Enable or disable the 1px border on Windows */
+#if defined(Q_OS_WIN)
+    if (window()->windowHandle())
+    {
+        QWindowsWindowFunctions::setHasBorderInFullScreen(
+            window()->windowHandle(),
+            settings.value(
+                SETTINGS_INTERFACE_MENUBAR_FULLSCREEN,
+                SETTINGS_INTERFACE_MENUBAR_FULLSCREEN_DEFAULT
+            ).toBool()
+        );
+    }
+#endif
+
     settings.endGroup();
 }
 
@@ -399,6 +417,11 @@ void MainWindow::showEvent(QShowEvent *event)
         return;
     }
     m_firstShow = false;
+
+#if defined(Q_OS_WIN)
+    /* This is needed because of the show menu bar option */
+    initTheme();
+#endif
 
     /* Check for installed dictionaries */
     if (m_mediator->getDictionary()->getDictionaries().isEmpty())

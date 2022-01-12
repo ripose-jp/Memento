@@ -26,9 +26,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-1115</y>
+        <y>0</y>
         <width>728</width>
-        <height>2352</height>
+        <height>2412</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -430,6 +430,33 @@ A value of 1 positions the subtitle at the top.</string>
           </widget>
          </item>
         </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelMenuBar">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Menu Bar</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkMenuFullscreen">
+         <property name="toolTip">
+          <string>Allows the menu bar to be used in fullscreen mode like in windowed mode.
+This feature is not recommended because it will create a one pixel border around the entire window in fullscreen mode.
+This is due to bugs between Qt, OpenGL, Windows, and some graphics card drivers.
+The one pixel border does fix some bugs such as popups not displaying in fullscreen with some graphics card drivers.
+Enable only if you don't mind the border.</string>
+         </property>
+         <property name="text">
+          <string>Enable in fullscreen (Not Recommended)</string>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QLabel" name="labelStylesheets">

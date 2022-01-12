@@ -146,6 +146,11 @@ private:
 
     /* Saved setting describing the subtitle offset from the bottom */
     double m_subOffset;
+
+#if defined(Q_OS_WIN)
+    /* true if the menubar should be shown in fullscreen on windows */
+    bool m_showMenuBar = false;
+#endif
 };
 
 #endif // PLAYEROVERLAY_H

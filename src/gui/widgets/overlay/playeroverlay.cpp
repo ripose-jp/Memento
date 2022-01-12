@@ -189,9 +189,16 @@ void PlayerOverlay::initSettings()
     settings.beginGroup(SETTINGS_INTERFACE);
 
     m_subOffset = settings.value(
-            SETTINGS_INTERFACE_SUB_OFFSET,
-            SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT
-        ).toDouble();
+        SETTINGS_INTERFACE_SUB_OFFSET,
+        SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT
+    ).toDouble();
+
+#if defined(Q_OS_WIN)
+    m_showMenuBar = settings.value(
+        SETTINGS_INTERFACE_MENUBAR_FULLSCREEN,
+        SETTINGS_INTERFACE_MENUBAR_FULLSCREEN_DEFAULT
+    ).toBool();
+#endif
 
     settings.endGroup();
 
@@ -375,7 +382,8 @@ void PlayerOverlay::hideOverlay()
 void PlayerOverlay::showOverlay()
 {
 #if defined(Q_OS_WIN)
-    if (!m_menu->menuVisible() && !m_menu->window()->isFullScreen())
+    if (!m_menu->menuVisible() &&
+        (m_showMenuBar || !m_menu->window()->isFullScreen()))
 #else
     if (!m_menu->menuVisible())
 #endif

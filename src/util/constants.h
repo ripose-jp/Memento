@@ -158,6 +158,11 @@ enum class Theme
 #define SETTINGS_INTERFACE_AUX_SEARCH_WINDOW                "search-window"
 #define SETTINGS_INTERFACE_AUX_SEARCH_WINDOW_DEFAULT        false
 
+#if defined(Q_OS_WIN)
+#define SETTINGS_INTERFACE_MENUBAR_FULLSCREEN               "menubar-fullscreen"
+#define SETTINGS_INTERFACE_MENUBAR_FULLSCREEN_DEFAULT       false
+#endif
+
 /* Stylesheets */
 #define SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE              "sublist-style"
 #if defined(Q_OS_MACOS)
