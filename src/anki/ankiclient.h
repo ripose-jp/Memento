@@ -147,23 +147,22 @@ public:
      * Gets the AnkiConfig corresponding to the profile.
      * @param profile The name of the profile.
      * @return The config corresponding to the profile, nullptr if it doesn't
-     *         exist. Caller does not have ownership.
+     *         exist.
      */
-    const AnkiConfig *getConfig(const QString &profile) const;
+    std::shared_ptr<const AnkiConfig> getConfig(const QString &profile) const;
 
     /**
      * Gets the current active AnkiConfig.
-     * @return The current AnkiConfig. Caller does not have ownership.
+     * @return The current AnkiConfig.
      */
-    const AnkiConfig *getConfig() const;
+    std::shared_ptr<const AnkiConfig> getConfig() const;
 
     /**
      * Gets a mapping of all the profiles to their corresponding configuration.
      * AnkiConfigs are deep copied.
-     * @return A map that maps profile names to their AnkiConfigs. Caller does
-     *         have ownership.
+     * @return A map that maps profile names to their AnkiConfigs.
      */
-    QHash<QString, AnkiConfig *> *getConfigs() const;
+    QHash<QString, std::shared_ptr<AnkiConfig>> getConfigs() const;
 
     /**
      * Gets if the AnkiClient is enabled.
@@ -447,10 +446,10 @@ private:
     bool m_enabled;
 
     /* A mapping of profile names to their configurations. */
-    QHash<QString, const AnkiConfig *> *m_configs;
+    QHash<QString, std::shared_ptr<const AnkiConfig>> m_configs;
 
     /* The reference to the active AnkiConfig. */
-    const AnkiConfig *m_currentConfig;
+    std::shared_ptr<const AnkiConfig> m_currentConfig;
 
     /* The name of the active profile. */
     QString m_currentProfile;

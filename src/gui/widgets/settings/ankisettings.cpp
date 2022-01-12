@@ -34,8 +34,7 @@
 AnkiSettings::AnkiSettings(QWidget *parent)
     : QWidget(parent),
       m_ui(new Ui::AnkiSettings),
-      m_ankiSettingsHelp(new AnkiSettingsHelp),
-      m_configs(nullptr)
+      m_ankiSettingsHelp(new AnkiSettingsHelp)
 {
     m_ui->setupUi(this);
     m_ui->frameAdvanced->hide();
@@ -126,20 +125,6 @@ AnkiSettings::~AnkiSettings()
     disconnect();
     delete m_ui;
     delete m_ankiSettingsHelp;
-    clearConfigs();
-}
-
-void AnkiSettings::clearConfigs()
-{
-    if (m_configs)
-    {
-        for (AnkiConfig *config : *m_configs)
-        {
-            delete config;
-        }
-        delete m_configs;
-        m_configs = nullptr;
-    }
 }
 
 /* End Constructor/Destructors */
@@ -188,7 +173,7 @@ void AnkiSettings::showEvent(QShowEvent *event)
     m_configs        = client->getConfigs();
     m_currentProfile = client->getProfile();
     populateFields(
-        client->getProfile(), m_configs->value(client->getProfile())
+        client->getProfile(), *m_configs[client->getProfile()]
     );
     connectToClient(false);
 }
@@ -199,9 +184,10 @@ void AnkiSettings::hideEvent(QHideEvent *event)
 
     AnkiClient *client =
         GlobalMediator::getGlobalMediator()->getAnkiClient();
-    const AnkiConfig *config = client->getConfig(client->getProfile());
+    std::shared_ptr<const AnkiConfig> config =
+        client->getConfig(client->getProfile());
     client->setServer(config->address, config->port);
-    clearConfigs();
+    m_configs.clear();
 }
 
 /* End Event Handlers */
@@ -225,8 +211,8 @@ void AnkiSettings::applyChanges()
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     client->setEnabled(m_ui->checkBoxEnabled->isChecked());
     client->clearProfiles();
-    for (auto it = m_configs->constKeyValueBegin();
-         it != m_configs->constKeyValueEnd();
+    for (auto it = m_configs.constKeyValueBegin();
+         it != m_configs.constKeyValueEnd();
          ++it)
     {
         client->addProfile(it->first, *it->second);
@@ -256,7 +242,7 @@ void AnkiSettings::restoreDefaults()
 
     defaultConfig.termDeck        = m_ui->termCardBuilder->getDeckText();
     defaultConfig.termModel       = m_ui->termCardBuilder->getModelText();
-    QStringList fields            = m_configs->value(
+    QStringList fields            = m_configs.value(
             m_ui->comboBoxProfile->currentText()
         )->termFields.keys();
     for (const QString &field : fields)
@@ -264,24 +250,25 @@ void AnkiSettings::restoreDefaults()
 
     defaultConfig.kanjiDeck       = m_ui->kanjiCardBuilder->getDeckText();
     defaultConfig.kanjiModel      = m_ui->kanjiCardBuilder->getModelText();
-    fields                        = m_configs->value(
+    fields                        = m_configs.value(
             m_ui->comboBoxProfile->currentText()
         )->kanjiFields.keys();
     for (const QString &field : fields)
         defaultConfig.kanjiFields[field] = "";
 
-    populateFields(m_ui->comboBoxProfile->currentText(), &defaultConfig);
+    populateFields(m_ui->comboBoxProfile->currentText(), defaultConfig);
 }
 
 void AnkiSettings::restoreSaved()
 {
-    clearConfigs();
+    m_configs.clear();
+
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     m_configs = client->getConfigs();
 
     m_ui->comboBoxProfile->blockSignals(true);
     m_ui->comboBoxProfile->clear();
-    for (auto it = m_configs->keyBegin(); it != m_configs->keyEnd(); ++it)
+    for (auto it = m_configs.keyBegin(); it != m_configs.keyEnd(); ++it)
     {
         m_ui->comboBoxProfile->addItem(*it);
     }
@@ -289,7 +276,7 @@ void AnkiSettings::restoreSaved()
     m_ui->comboBoxProfile->blockSignals(false);
 
     populateFields(
-        client->getProfile(), client->getConfig(client->getProfile())
+        client->getProfile(), *client->getConfig(client->getProfile())
     );
 
     m_currentProfile = client->getProfile();
@@ -403,42 +390,44 @@ void AnkiSettings::enabledStateChanged(int state)
 }
 
 void AnkiSettings::populateFields(const QString    &profile,
-                                  const AnkiConfig *config)
+                                  const AnkiConfig &config)
 {
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
 
     m_ui->comboBoxProfile->blockSignals(true);
     m_ui->comboBoxProfile->clear();
-    for (auto it = m_configs->keyBegin(); it != m_configs->keyEnd(); ++it)
+    for (auto it = m_configs.keyBegin(); it != m_configs.keyEnd(); ++it)
+    {
         m_ui->comboBoxProfile->addItem(*it);
+    }
     m_ui->comboBoxProfile->setCurrentText(profile);
     m_ui->comboBoxProfile->model()->sort(0);
     m_ui->comboBoxProfile->blockSignals(false);
 
     m_ui->lineEditProfileName->setText(profile);
 
-    m_ui->lineEditHost->setText(config->address);
-    m_ui->lineEditPort->setText(config->port);
+    m_ui->lineEditHost->setText(config.address);
+    m_ui->lineEditPort->setText(config.port);
 
-    client->setServer(config->address, config->port);
+    client->setServer(config.address, config.port);
 
     m_ui->comboBoxDuplicates->setCurrentText(
-        duplicatePolicyToString(config->duplicatePolicy)
+        duplicatePolicyToString(config.duplicatePolicy)
     );
 
     m_ui->comboBoxScreenshot->setCurrentText(
-        fileTypeToString(config->screenshotType)
+        fileTypeToString(config.screenshotType)
     );
 
     m_ui->comboBoxAudioSrc->clear();
     m_ui->comboBoxAudioSrc->addItems(m_audioSources.keys());
-    m_ui->comboBoxAudioSrc->setCurrentText(config->audio.name);
+    m_ui->comboBoxAudioSrc->setCurrentText(config.audio.name);
 
-    m_ui->spinAudioPadStart->setValue(config->audioPadStart);
-    m_ui->spinAudioPadEnd->setValue(config->audioPadEnd);
+    m_ui->spinAudioPadStart->setValue(config.audioPadStart);
+    m_ui->spinAudioPadEnd->setValue(config.audioPadEnd);
 
-    m_ui->checkAudioNormalize->setChecked(config->audioNormalize);
-    m_ui->doubleAudioDb->setValue(config->audioDb);
+    m_ui->checkAudioNormalize->setChecked(config.audioNormalize);
+    m_ui->doubleAudioDb->setValue(config.audioDb);
 
     m_ui->listIncludeGlossary->clear();
     Dictionary *dict = GlobalMediator::getGlobalMediator()->getDictionary();
@@ -450,13 +439,13 @@ void AnkiSettings::populateFields(const QString    &profile,
         QListWidgetItem *item = m_ui->listIncludeGlossary->item(i);
         item->setFlags(item->flags() | Qt::ItemFlag::ItemIsUserCheckable);
         item->setCheckState(
-            config->excludeGloss.contains(item->text()) ?
+            config.excludeGloss.contains(item->text()) ?
                 Qt::Unchecked : Qt::Checked
         );
     }
 
     QString tags;
-    for (const QJsonValue &tag : config->tags)
+    for (const QJsonValue &tag : config.tags)
     {
         tags += tag.toString() + ",";
     }
@@ -464,18 +453,18 @@ void AnkiSettings::populateFields(const QString    &profile,
     m_ui->lineEditTags->setText(tags);
 
     m_ui->termCardBuilder->blockSignals(true);
-    m_ui->termCardBuilder->setDeckCurrentText(config->termDeck);
-    m_ui->termCardBuilder->setModelCurrentText(config->termModel);
+    m_ui->termCardBuilder->setDeckCurrentText(config.termDeck);
+    m_ui->termCardBuilder->setModelCurrentText(config.termModel);
     m_ui->termCardBuilder->blockSignals(false);
 
-    m_ui->termCardBuilder->setFields(config->termFields);
+    m_ui->termCardBuilder->setFields(config.termFields);
 
     m_ui->kanjiCardBuilder->blockSignals(true);
-    m_ui->kanjiCardBuilder->setDeckCurrentText(config->kanjiDeck);
-    m_ui->kanjiCardBuilder->setModelCurrentText(config->kanjiModel);
+    m_ui->kanjiCardBuilder->setDeckCurrentText(config.kanjiDeck);
+    m_ui->kanjiCardBuilder->setModelCurrentText(config.kanjiModel);
     m_ui->kanjiCardBuilder->blockSignals(false);
 
-    m_ui->kanjiCardBuilder->setFields(config->kanjiFields);
+    m_ui->kanjiCardBuilder->setFields(config.kanjiFields);
 }
 
 void AnkiSettings::changeProfile(const QString &text)
@@ -485,7 +474,7 @@ void AnkiSettings::changeProfile(const QString &text)
     {
        renameProfile(m_currentProfile, m_ui->lineEditProfileName->text());
     }
-    populateFields(text, m_configs->value(text));
+    populateFields(text, *m_configs[text]);
     m_currentProfile = text;
 }
 
@@ -495,7 +484,7 @@ void AnkiSettings::changeProfile(const QString &text)
 void AnkiSettings::addProfile()
 {
     QString profileName = m_ui->lineEditProfileName->text();
-    if (m_configs->contains(profileName))
+    if (m_configs.contains(profileName))
     {
         Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
             "Failed",
@@ -504,11 +493,8 @@ void AnkiSettings::addProfile()
     }
     else
     {
-        m_configs->insert(
-            profileName,
-            new AnkiConfig(
-                *m_configs->value(m_ui->comboBoxProfile->currentText())
-            )
+        m_configs[profileName] = std::shared_ptr<AnkiConfig>(
+            new AnkiConfig(*m_configs[m_ui->comboBoxProfile->currentText()])
         );
 
         m_ui->comboBoxProfile->blockSignals(true);
@@ -533,15 +519,14 @@ void AnkiSettings::deleteProfile()
     }
     else
     {
-        delete m_configs->value(profile);
-        m_configs->remove(profile);
+        m_configs.remove(profile);
 
         m_ui->comboBoxProfile->blockSignals(true);
         m_ui->comboBoxProfile->removeItem(
             m_ui->comboBoxProfile->currentIndex());
         populateFields(
             m_ui->comboBoxProfile->currentText(),
-            m_configs->value(m_ui->comboBoxProfile->currentText())
+            *m_configs[m_ui->comboBoxProfile->currentText()]
         );
         m_ui->comboBoxProfile->blockSignals(false);
 
@@ -570,12 +555,12 @@ void AnkiSettings::renameProfile(const QString &oldName, const QString &newName)
     }
     else
     {
-        m_configs->insert(newName, m_configs->value(oldName));
-        m_configs->remove(oldName);
+        m_configs[newName] = m_configs[oldName];
+        m_configs.remove(oldName);
 
         m_ui->comboBoxProfile->blockSignals(true);
         m_ui->comboBoxProfile->clear();
-        for (auto it = m_configs->keyBegin(); it != m_configs->keyEnd(); ++it)
+        for (auto it = m_configs.keyBegin(); it != m_configs.keyEnd(); ++it)
         {
             m_ui->comboBoxProfile->addItem(*it);
         }
@@ -589,7 +574,7 @@ void AnkiSettings::renameProfile(const QString &oldName, const QString &newName)
 
 void AnkiSettings::applyToConfig(const QString &profile)
 {
-    AnkiConfig *config = m_configs->value(profile);
+    std::shared_ptr<AnkiConfig> config = m_configs[profile];
 
     config->address = m_ui->lineEditHost->text();
     config->port = m_ui->lineEditPort->text();

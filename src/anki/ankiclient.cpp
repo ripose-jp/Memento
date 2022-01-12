@@ -111,7 +111,6 @@
 
 AnkiClient::AnkiClient(QObject *parent)
     : QObject(parent),
-      m_configs(new QHash<QString, const AnkiConfig *>),
       m_currentConfig(0),
       m_enabled(false)
 {
@@ -141,16 +140,12 @@ AnkiClient::~AnkiClient()
     {
         QFile(path).remove();
     }
-    clearProfiles();
-    delete m_configs;
     delete m_manager;
 }
 
 void AnkiClient::clearProfiles()
 {
-    for (const AnkiConfig *config : *m_configs)
-        delete config;
-    m_configs->clear();
+    m_configs.clear();
 }
 
 /* End Constructor/Destructors */
@@ -366,8 +361,8 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
     m_currentProfile = jsonObj[CONFIG_SET_PROFILE].toString();
     for (const QJsonValue &val : profiles)
     {
+        std::shared_ptr<AnkiConfig> config(new AnkiConfig);
         QJsonObject profile     = val.toObject();
-        AnkiConfig *config      = new AnkiConfig;
         config->address         = profile[CONFIG_HOST].toString();
         config->port            = profile[CONFIG_PORT].toString();
         config->duplicatePolicy = (AnkiConfig::DuplicatePolicy)
@@ -403,7 +398,7 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         config->kanjiFields     = obj[CONFIG_FIELDS].toObject();
 
         QString profileName = profile[CONFIG_NAME].toString();
-        m_configs->insert(profileName, config);
+        m_configs.insert(profileName, config);
         if (profileName == m_currentProfile)
         {
             m_currentConfig = config;
@@ -431,11 +426,12 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
     jsonObj[CONFIG_ENABLED] = m_enabled;
     jsonObj[CONFIG_SET_PROFILE] = m_currentProfile;
     QJsonArray configArr;
-    QList<QString> profiles = m_configs->keys();
+    QList<QString> profiles = m_configs.keys();
     for (const QString &profile : profiles)
     {
+        std::shared_ptr<const AnkiConfig> config = m_configs.value(profile);
+
         QJsonObject configObj;
-        const AnkiConfig *config          = m_configs->value(profile);
         configObj[CONFIG_NAME]            = profile;
         configObj[CONFIG_HOST]            = config->address;
         configObj[CONFIG_PORT]            = config->port;
@@ -496,7 +492,7 @@ QString AnkiClient::getProfile() const
 QStringList AnkiClient::getProfiles() const
 {
     QStringList result;
-    for (const QString &key : m_configs->keys())
+    for (const QString &key : m_configs.keys())
     {
         result.append(key);
     }
@@ -505,7 +501,7 @@ QStringList AnkiClient::getProfiles() const
 
 bool AnkiClient::setProfile(const QString &profile)
 {
-    const AnkiConfig *config = m_configs->value(profile);
+    std::shared_ptr<const AnkiConfig> config = m_configs.value(profile);
     if (config)
     {
         m_currentConfig = config;
@@ -518,35 +514,39 @@ bool AnkiClient::setProfile(const QString &profile)
 
 void AnkiClient::addProfile(const QString &profile, const AnkiConfig &config)
 {
-    const AnkiConfig *oldConfig = m_configs->value(profile);
-    m_configs->insert(profile, new AnkiConfig(config));
-    delete oldConfig;
+    m_configs.insert(
+        profile, std::shared_ptr<const AnkiConfig>(new AnkiConfig(config))
+    );
 }
 
-const AnkiConfig *AnkiClient::getConfig(const QString &profile) const
+std::shared_ptr<const AnkiConfig> AnkiClient::getConfig(
+    const QString &profile) const
 {
-    return m_configs->value(profile);
+    return m_configs.value(profile);
 }
 
-const AnkiConfig *AnkiClient::getConfig() const
+std::shared_ptr<const AnkiConfig> AnkiClient::getConfig() const
 {
     return m_currentConfig;
 }
 
-QHash<QString, AnkiConfig *> *AnkiClient::getConfigs() const
+QHash<QString, std::shared_ptr<AnkiConfig>> AnkiClient::getConfigs() const
 {
-    QList<QString> keys = m_configs->keys();
-    QHash<QString, AnkiConfig *> *configs = new QHash<QString, AnkiConfig *>();
-    for (auto it = keys.begin(); it != keys.end(); ++it)
+    QHash<QString, std::shared_ptr<AnkiConfig>> configs;
+    for (auto it = m_configs.constKeyValueBegin();
+         it != m_configs.constKeyValueEnd();
+         ++it)
     {
-        configs->insert(*it, new AnkiConfig(*m_configs->value(*it)));
+        configs[it->first] =
+            std::shared_ptr<AnkiConfig>(new AnkiConfig(*it->second));
     }
     return configs;
 }
 
 void AnkiClient::setDefaultConfig()
 {
-    AnkiConfig *config = new AnkiConfig;
+    std::shared_ptr<AnkiConfig> config =
+        std::shared_ptr<AnkiConfig>(new AnkiConfig);
     config->address         = DEFAULT_HOST;
     config->port            = DEFAULT_PORT;
     config->duplicatePolicy = DEFAULT_DUPLICATE_POLICY;
@@ -561,9 +561,8 @@ void AnkiClient::setDefaultConfig()
     config->tags.append(DEFAULT_TAGS);
     config->excludeGloss.clear();
 
-    delete m_configs->value(DEFAULT_PROFILE);
-    m_configs->insert(DEFAULT_PROFILE, config);
-    m_currentConfig  = config;
+    m_configs[DEFAULT_PROFILE] = config;
+    m_currentConfig = config;
     m_currentProfile = DEFAULT_PROFILE;
 
     setServer(config->address, config->port);

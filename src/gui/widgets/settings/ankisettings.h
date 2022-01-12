@@ -123,17 +123,13 @@ private:
      */
 
     void initAudioSources();
-    /**
-     * Destructor for the cached configs.
-     */
-    void clearConfigs();
 
     /**
      * Loads the information from the config into the UI.
      * @param profile The name of the profile.
      * @param config  The struct containing the config information.
      */
-    void populateFields(const QString &profile, const AnkiConfig *config);
+    void populateFields(const QString &profile, const AnkiConfig &config);
 
     /**
      * Saves changes to cached config without applying them to the client.
@@ -177,22 +173,22 @@ private:
     AnkiConfig::FileType stringToFileType(const QString &str);
 
     /* The UI object that holds all the widgets. */
-    Ui::AnkiSettings             *m_ui;
+    Ui::AnkiSettings *m_ui;
 
     /* The help window that explains what the card markers are. */
-    AnkiSettingsHelp             *m_ankiSettingsHelp;
+    AnkiSettingsHelp *m_ankiSettingsHelp;
 
     /* A cached set of configs index by profile name. */
-    QHash<QString, AnkiConfig *> *m_configs;
+    QHash<QString, std::shared_ptr<AnkiConfig>> m_configs;
 
     /* A cached set of audio sources, indexed by name. */
-    QMap<QString, AudioSource>    m_audioSources;
+    QMap<QString, AudioSource> m_audioSources;
 
     /* The name of the current profile visible in the UI. */
-    QString                       m_currentProfile;
+    QString m_currentProfile;
 
     /* A mutex to prevent race conditions when updating CardBuilders. */
-    QMutex                        m_mutexUpdateModelFields;
+    QMutex m_mutexUpdateModelFields;
 };
 
 #endif // ANKISETTINGS_H
