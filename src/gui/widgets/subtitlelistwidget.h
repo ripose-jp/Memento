@@ -219,6 +219,11 @@ private Q_SLOTS:
     void copyContext() const;
 
     /**
+     * Copies the current audio context to clipboard.
+     */
+    void copyAudioContext() const;
+
+    /**
      * Find the text in the current subtitle list.
      * @param text The text to search for.
      */
@@ -404,10 +409,13 @@ private:
     /* The UI item containing the widgets. */
     Ui::SubtitleListWidget *m_ui;
 
-    /* The shortcut for copying the current context */
+    /* Shortcut for copying the current context */
     QShortcut *m_copyShortcut;
 
-    /* The shortcut for opening the find widget */
+    /* Shortcut for copying the current context's audio */
+    QShortcut *m_copyAudioShortcut;
+
+    /* Shortcut for opening the find widget */
     QShortcut *m_findShortcut;
 
     /* Regular expression for filtering subtitles */

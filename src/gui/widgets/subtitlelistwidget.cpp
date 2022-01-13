@@ -25,6 +25,7 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QGuiApplication>
+#include <QMimeData>
 #include <QMultiMap>
 #include <QMutexLocker>
 #include <QSettings>
@@ -37,6 +38,35 @@
 #include "../../util/subtitleparser.h"
 #include "../../util/utils.h"
 
+/* Begin Private Class */
+
+/**
+ * A class for managing a temporary file in a QMimeData.
+ */
+class TempMimeData : public QMimeData
+{
+public:
+    /**
+     * Constructs a new QMimeData from the given path.
+     * @param path The path copy to clipboard. The file here will be deleted
+     *             when this instance is deleted.
+     */
+    TempMimeData(const QString &path) : QMimeData(), m_path(path)
+    {
+        setUrls({QUrl::fromLocalFile(path)});
+    }
+
+    ~TempMimeData()
+    {
+        QFile(m_path).remove();
+    }
+
+private:
+    /* The saved file path */
+    const QString m_path;
+};
+
+/* End Private Class */
 /* Begin Constructor/Destructors */
 
 SubtitleListWidget::SubtitleListWidget(QWidget *parent)
@@ -52,6 +82,8 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     m_secondary.table = m_ui->tableSec;
 
     m_copyShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), this);
+    m_copyAudioShortcut =
+        new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_C), this);
     m_findShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_F), this);
 
     initTheme();
@@ -141,6 +173,10 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     connect(
         m_copyShortcut, &QShortcut::activated,
         this, &SubtitleListWidget::copyContext
+    );
+    connect(
+        m_copyAudioShortcut, &QShortcut::activated,
+        this, &SubtitleListWidget::copyAudioContext
     );
     connect(
         m_findShortcut, &QShortcut::activated, this,
@@ -748,6 +784,36 @@ void SubtitleListWidget::copyContext() const
     }
 }
 
+void SubtitleListWidget::copyAudioContext() const
+{
+    QPair<double, double> times = getContextTime(
+        m_ui->tabWidget->currentWidget() == m_ui->tabPrimary ?
+            m_primary : m_secondary
+    );
+    if (times.first >= times.second)
+    {
+        return;
+    }
+
+    PlayerAdapter *player =
+        GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+    double delay = player->getSubDelay() - player->getAudioDelay();
+    double start = times.first + delay;
+    double end = times.second + delay;
+
+    QThreadPool::globalInstance()->start(
+        [=] {
+            QString path = player->tempAudioClip(start, end);
+            if (!QFile(path).exists())
+            {
+                return;
+            }
+            QClipboard *clipboard = QGuiApplication::clipboard();
+            clipboard->setMimeData(new TempMimeData(path));
+        }
+    );
+}
+
 /* End Shortcuts Handlers */
 /* Begin Clear Methods */
 
@@ -892,9 +958,8 @@ static inline int mod(int n, int modulus)
 
 void SubtitleListWidget::findRowHelper(int offset)
 {
-    SubtitleList &list =
-        m_ui->tabWidget->currentWidget() == m_ui->tabPrimary ?
-            m_primary : m_secondary;
+    SubtitleList &list = m_ui->tabWidget->currentWidget() == m_ui->tabPrimary ?
+        m_primary : m_secondary;
 
     QMutexLocker locker(&list.lock);
 
