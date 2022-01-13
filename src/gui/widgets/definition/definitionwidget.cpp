@@ -108,6 +108,10 @@ void DefinitionWidget::initSearch()
     m_limit = settings.value(
             SETTINGS_SEARCH_LIMIT, DEFAULT_LIMIT
         ).toUInt();
+    m_listGlossary = settings.value(
+            SETTINGS_SEARCH_LIST_GLOSSARY,
+            DEFAULT_LIST_GLOSSARY
+        ).toBool();
     settings.endGroup();
 }
 
@@ -289,7 +293,9 @@ void DefinitionWidget::showTerms(const size_t start, const size_t end)
     size_t i;
     for (i = start; i < m_terms.size() && i < end; ++i)
     {
-        TermWidget *termWidget = new TermWidget(m_terms[i], &m_sources);
+        TermWidget *termWidget = new TermWidget(
+              m_terms[i], &m_sources, m_listGlossary
+        );
         connect(
             termWidget, &TermWidget::kanjiSearched,
             this,       &DefinitionWidget::showKanji

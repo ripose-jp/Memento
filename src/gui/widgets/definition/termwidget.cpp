@@ -67,6 +67,7 @@
 
 TermWidget::TermWidget(std::shared_ptr<const Term>  term,
                        const QList<AudioSource>    *sources,
+                       const bool                   list,
                        QWidget                     *parent)
     : QWidget(parent),
       m_ui(new Ui::TermWidget),
@@ -104,7 +105,7 @@ TermWidget::TermWidget(std::shared_ptr<const Term>  term,
     m_ui->buttonAudio->setIcon(factory->getIcon(IconFactory::Icon::audio));
     m_ui->buttonAudio->setVisible(!m_sources->isEmpty());
 
-    initUi(*term);
+    initUi(*term, list);
 
     connect(
         m_ui->labelKanji, &QLabel::linkActivated,
@@ -141,7 +142,7 @@ TermWidget::~TermWidget()
 /* End Constructor/Destructor */
 /* Begin Initializers */
 
-void TermWidget::initUi(const Term &term)
+void TermWidget::initUi(const Term &term, const bool list)
 {
     if (term.reading.isEmpty())
     {
@@ -185,7 +186,9 @@ void TermWidget::initUi(const Term &term)
     std::shared_ptr<const AnkiConfig> config = m_client->getConfig();
     for (size_t i = 0; i < term.definitions.size(); ++i)
     {
-        GlossaryWidget *g = new GlossaryWidget(i + 1, term.definitions[i]);
+        GlossaryWidget *g = new GlossaryWidget(
+              i + 1, term.definitions[i], list
+        );
         g->setChecked(
             !config->excludeGloss.contains(term.definitions[i].dictionary)
         );

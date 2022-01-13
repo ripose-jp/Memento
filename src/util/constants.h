@@ -78,6 +78,8 @@
 #define SETTINGS_SEARCH_REPLACE_LINES   "replace-lines"
 #define SETTINGS_SERACH_REPLACE_WITH    "replace-with"
 #define SETTINGS_SEARCH_REMOVE_REGEX    "remove-regex"
+#define SETTINGS_SEARCH_LIST_GLOSSARY   "list-result"
+#define DEFAULT_LIST_GLOSSARY           true
 
 #define MODIFIER_ALT                    "Alt"
 #define MODIFIER_CTRL                   "Control"

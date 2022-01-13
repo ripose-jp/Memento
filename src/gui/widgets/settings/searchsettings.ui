@@ -27,8 +27,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>579</width>
-        <height>464</height>
+        <width>594</width>
+        <height>469</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layoutScrollArea">
@@ -193,11 +193,28 @@ Changing this value from the default is not recommended.</string>
         </layout>
        </item>
        <item>
+        <layout class="QVBoxLayout" name="layoutNewLine">
+         <item>
+          <widget class="QCheckBox" name="checkGlossaryList">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>Use bullet points in term glossaries</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <layout class="QHBoxLayout" name="layoutReplace">
          <item>
           <widget class="QCheckBox" name="checkReplaceNewLines">
            <property name="text">
-            <string>Replace new lines with</string>
+            <string>Replace new lines in subtitles with</string>
            </property>
           </widget>
          </item>

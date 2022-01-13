@@ -41,10 +41,12 @@ public:
      * Constructor for the GlossaryWidget.
      * @param number The number to label the term.
      * @param def    The term definition to display.
+     * @param list   Whether newlines are displayed in an ordered list.
      * @param parent The parent of the GlossaryWidget.
      */
     GlossaryWidget(const size_t          number,
                    const TermDefinition &def,
+                   const bool            list,
                    QWidget              *parent = nullptr);
 
     /**
