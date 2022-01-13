@@ -128,8 +128,8 @@ public:
      * Generates a pitch graph SVG.
      * @param moraSize The number of mora.
      * @param pos      The pitch position number.
-     * @param fill     The fill color of the graph. Hex code formatted.
-     * @param stroke   The stroke color of the graph. Hex code formatted.
+     * @param fill     The fill color of the graph.
+     * @param stroke   The stroke color of the graph.
      * @return The string representation of the SVG.
      */
     static QString generatePitchGraph(const int      moraSize,

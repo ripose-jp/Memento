@@ -242,6 +242,10 @@ void NetworkUtils::checkForUpdates()
  */
 #define LINE_FORMAT         (QString("<path d=\"M%2 %3 L%4 %5\" style=\"stroke: %1; stroke-width: 5px;\"/>"))
 
+#define RADIUS          15
+/* Literally r * sin(pi / 4) */
+#define DIAGONAL_OFFSET 10
+
 #define GRAPH_TOP_Y     25
 #define GRAPH_BOTTOM_Y  75
 #define GRAPH_STEP      50
@@ -270,7 +274,11 @@ QString GraphicUtils::generatePitchGraph(const int     moraSize,
         int x2 = GRAPH_OFFSET + GRAPH_STEP;
         int y2 = GRAPH_TOP_Y;
 
-        lines.append(lineFormat.arg(x1).arg(y1).arg(x2).arg(y2));
+        lines.append(
+            lineFormat
+                .arg(x1 + DIAGONAL_OFFSET).arg(y1 - DIAGONAL_OFFSET)
+                .arg(x2 - DIAGONAL_OFFSET).arg(y2 + DIAGONAL_OFFSET)
+        );
         dots.append(BLACK_DOT_FORMAT.arg(x1).arg(y1));
 
         size_t i;
@@ -281,7 +289,9 @@ QString GraphicUtils::generatePitchGraph(const int     moraSize,
             x2 = GRAPH_OFFSET + GRAPH_STEP * (i + 1);
             y2 = GRAPH_TOP_Y;
 
-            lines.append(lineFormat.arg(x1).arg(y1).arg(x2).arg(y2));
+            lines.append(
+                lineFormat.arg(x1 + RADIUS).arg(y1).arg(x2 - RADIUS).arg(y2)
+            );
             dots.append(BLACK_DOT_FORMAT.arg(x1).arg(y1));
         }
 
@@ -295,7 +305,11 @@ QString GraphicUtils::generatePitchGraph(const int     moraSize,
         int x2 = GRAPH_OFFSET + GRAPH_STEP;
         int y2 = GRAPH_BOTTOM_Y;
 
-        lines.append(lineFormat.arg(x1).arg(y1).arg(x2).arg(y2));
+        lines.append(
+            lineFormat
+                .arg(x1 + DIAGONAL_OFFSET).arg(y1 + DIAGONAL_OFFSET)
+                .arg(x2 - DIAGONAL_OFFSET).arg(y2 - DIAGONAL_OFFSET)
+        );
         dots.append(CHANGE_DOT_FORMAT.arg(x1).arg(y1));
 
         size_t i;
@@ -306,7 +320,9 @@ QString GraphicUtils::generatePitchGraph(const int     moraSize,
             x2 = GRAPH_OFFSET + GRAPH_STEP * (i + 1);
             y2 = GRAPH_BOTTOM_Y;
 
-            lines.append(lineFormat.arg(x1).arg(y1).arg(x2).arg(y2));
+            lines.append(
+                lineFormat.arg(x1 + RADIUS).arg(y1).arg(x2 - RADIUS).arg(y2)
+            );
             dots.append(BLACK_DOT_FORMAT.arg(x1).arg(y1));
         }
 
@@ -320,7 +336,11 @@ QString GraphicUtils::generatePitchGraph(const int     moraSize,
         int x2 = GRAPH_OFFSET + GRAPH_STEP;
         int y2 = GRAPH_TOP_Y;
 
-        lines.append(lineFormat.arg(x1).arg(y1).arg(x2).arg(y2));
+        lines.append(
+            lineFormat
+                .arg(x1 + DIAGONAL_OFFSET).arg(y1 - DIAGONAL_OFFSET)
+                .arg(x2 - DIAGONAL_OFFSET).arg(y2 + DIAGONAL_OFFSET)
+        );
         dots.append(BLACK_DOT_FORMAT.arg(x1).arg(y1));
 
         size_t i;
@@ -331,7 +351,9 @@ QString GraphicUtils::generatePitchGraph(const int     moraSize,
             x2 = GRAPH_OFFSET + GRAPH_STEP * (i + 1);
             y2 = GRAPH_TOP_Y;
 
-            lines.append(lineFormat.arg(x1).arg(y1).arg(x2).arg(y2));
+            lines.append(
+                lineFormat.arg(x1 + RADIUS).arg(y1).arg(x2 - RADIUS).arg(y2)
+            );
             dots.append(BLACK_DOT_FORMAT.arg(x1).arg(y1));
         }
 
@@ -341,7 +363,11 @@ QString GraphicUtils::generatePitchGraph(const int     moraSize,
         x2 = GRAPH_OFFSET + GRAPH_STEP * (i + 1);
         y2 = GRAPH_BOTTOM_Y;
 
-        lines.append(lineFormat.arg(x1).arg(y1).arg(x2).arg(y2));
+        lines.append(
+            lineFormat
+                .arg(x1 + DIAGONAL_OFFSET).arg(y1 + DIAGONAL_OFFSET)
+                .arg(x2 - DIAGONAL_OFFSET).arg(y2 - DIAGONAL_OFFSET)
+        );
         dots.append(CHANGE_DOT_FORMAT.arg(x1).arg(y1));
 
         /* End dots */
@@ -352,7 +378,9 @@ QString GraphicUtils::generatePitchGraph(const int     moraSize,
             x2 = GRAPH_OFFSET + GRAPH_STEP * (i + 1);
             y2 = GRAPH_BOTTOM_Y;
 
-            lines.append(lineFormat.arg(x1).arg(y1).arg(x2).arg(y2));
+            lines.append(
+                lineFormat.arg(x1 + RADIUS).arg(y1).arg(x2 - RADIUS).arg(y2)
+            );
             dots.append(BLACK_DOT_FORMAT.arg(x1).arg(y1));
         }
 
@@ -375,6 +403,8 @@ QString GraphicUtils::generatePitchGraph(const int     moraSize,
 #undef WHITE_DOT_FORMAT
 #undef CHANGE_DOT_FORMAT
 #undef LINE_FORMAT
+
+#undef RADIUS
 
 #undef GRAPH_TOP_Y
 #undef GRAPH_BOTTOM_Y

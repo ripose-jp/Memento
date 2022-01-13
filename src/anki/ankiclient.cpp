@@ -1017,7 +1017,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
 
     QString tags = "<ul>";
     accumulateTags(term.tags, tags);
-    tags        += "</ul>";
+    tags += "</ul>";
     if (tags == "<ul></ul>")
         tags.clear();
 
@@ -1514,8 +1514,8 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
 
             /* Build {pitch-graph}s */
             pitchGraph = GraphicUtils::generatePitchGraph(
-                    p.mora.size(), pos, "white", "black"
-                );
+                p.mora.size(), pos, "rgba(0,0,0,0)", "currentColor"
+            );
 
             /* Build {pitch-posititon}s */
             pitchPosition += "[" + QString::number(pos) + "]";
