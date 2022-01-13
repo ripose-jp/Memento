@@ -185,6 +185,9 @@ private:
 
     /* Current search ID. Used to prevent erronious signals */
     int m_searchId = 0;
+
+    /* Whether newlines in glossary should be displayed in an unordered list */
+    bool m_listGlossary;
 };
 
 #endif // DEFINITIONWIDGET_H

@@ -44,10 +44,13 @@ public:
      * Constructor for TermWidget.
      * @param term    The term to display. Does not take ownership.
      * @param sources A list of audio sources. Does not take ownership.
+     * @param list    Whether GlossaryWidget displays newlines in an
+     *                ordered list.
      * @param parent  The parent of this widget.
      */
     TermWidget(std::shared_ptr<const Term>  term,
                const QList<AudioSource>    *sources,
+               const bool                   list,
                QWidget                     *parent = nullptr);
     ~TermWidget();
 
@@ -101,8 +104,9 @@ private:
     /**
      * Puts term information into the UI.
      * @param term The term to populate the UI with.
+     * @param list Whether GlossaryWidget displays newlines in an ordered list.
      */
-    void initUi(const Term &term);
+    void initUi(const Term &term, const bool list);
 
     /**
      * Creates a Jisho link from an expression.

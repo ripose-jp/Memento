@@ -24,6 +24,7 @@
 
 GlossaryWidget::GlossaryWidget(const size_t          number,
                                const TermDefinition &def,
+                               const bool           list,
                                QWidget              *parent)
     : QWidget(parent),
       m_def(def)
@@ -70,14 +71,24 @@ GlossaryWidget::GlossaryWidget(const size_t          number,
         Qt::TextInteractionFlag::TextSelectableByMouse
     );
     QString glos;
-    glos += "<ul>";
-    for (QString def : m_def.glossary)
+    if (list)
     {
-        glos += "<li>";
-        glos += def.replace('\n', "</li><li>");
-        glos += "</li>";
+        glos += "<ul>";
+        for (QString def : m_def.glossary)
+        {
+            glos += "<li>";
+            glos += def.replace('\n', "</li><li>");
+            glos += "</li>";
+        }
+        glos += "</ul>";
     }
-    glos += "</ul>";
+    else
+    {
+        for (QString def : m_def.glossary)
+        {
+            glos += def;
+        }
+    }
     m_labelGlossary->setText(glos);
 }
 
