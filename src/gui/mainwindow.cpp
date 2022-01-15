@@ -426,7 +426,7 @@ void MainWindow::showEvent(QShowEvent *event)
     /* Check for installed dictionaries */
     if (m_mediator->getDictionary()->getDictionaries().isEmpty())
     {
-        Q_EMIT m_mediator->showInformation(
+        QMessageBox::information(0,
             "No Dictionaries Installed",
             "No dictionaries are installed. For subtitle searching to work, "
             "please install a dictionary."
@@ -694,6 +694,7 @@ void MainWindow::showErrorMessage(const QString title,
 void MainWindow::showInfoMessage(const QString title,
                                  const QString error) const
 {
+    qDebug() << "Sneed";
     QMessageBox message;
     message.information(0, title, error);
 }
