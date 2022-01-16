@@ -129,10 +129,12 @@ public:
 
     /**
      * Get the subtitle text.
+     * @param filter true to filter the subtitle with the subtitle regex, false
+     *               otherwise.
      * @return The text of the current subtitle. Empty if there is no subtitle
      *         on screen.
      */
-    virtual QString getSubtitle() const = 0;
+    virtual QString getSubtitle(bool filter = false) const = 0;
 
     /**
      * Get the secondary subtitle text if supported.

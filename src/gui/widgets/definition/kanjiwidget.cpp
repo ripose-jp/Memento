@@ -255,7 +255,7 @@ void KanjiWidget::addKanji()
         mediator->getPlayerAdapter()->getAudioDelay();
     kanji->clipboard = QGuiApplication::clipboard()->text();
     kanji->title = player->getTitle();
-    kanji->sentence = player->getSubtitle();
+    kanji->sentence = player->getSubtitle(true);
     kanji->sentence2 = player->getSecondarySubtitle();
     kanji->startTime = player->getSubStart() + delay;
     kanji->endTime = player->getSubEnd() + delay;

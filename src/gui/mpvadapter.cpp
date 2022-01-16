@@ -22,8 +22,10 @@
 
 #include <QApplication>
 #include <QDebug>
+#include <QSettings>
 #include <QTemporaryFile>
 
+#include "../util/constants.h"
 #include "../util/globalmediator.h"
 
 MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
@@ -50,6 +52,8 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
               << "smi"
               << "lrc"
               << "pgs";
+
+    initRegex();
 
     /* Signals */
     connect(
@@ -170,6 +174,10 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
 
     /* Slots */
     connect(
+        mediator, &GlobalMediator::searchSettingsChanged,
+        this, &MpvAdapter::initRegex
+    );
+    connect(
         mediator, &GlobalMediator::controlsPlay,
         this,     &PlayerAdapter::play
     );
@@ -219,6 +227,16 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
         mediator, &GlobalMediator::requestSubtitleVisibility,
         this,     &PlayerAdapter::setSubVisiblity
     );
+}
+
+void MpvAdapter::initRegex()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_SEARCH);
+    m_subRegex.setPattern(
+        settings.value(SETTINGS_SEARCH_REMOVE_REGEX, "").toString()
+    );
+    settings.endGroup();
 }
 
 QString MpvAdapter::quoteArg(QString arg) const
@@ -394,7 +412,7 @@ double MpvAdapter::getSubDelay() const
     return delay;
 }
 
-QString MpvAdapter::getSubtitle() const
+QString MpvAdapter::getSubtitle(bool filter) const
 {
     QString subtitle;
     char *sub = mpv_get_property_string(m_handle, "sub-text");
@@ -403,6 +421,10 @@ QString MpvAdapter::getSubtitle() const
         subtitle = QString::fromUtf8(sub);
     }
     mpv_free(sub);
+    if (filter)
+    {
+        subtitle.remove(m_subRegex);
+    }
     return subtitle;
 }
 

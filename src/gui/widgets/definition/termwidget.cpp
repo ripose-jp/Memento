@@ -224,7 +224,7 @@ void TermWidget::addNote()
         mediator->getPlayerAdapter()->getAudioDelay();
     term->clipboard = QGuiApplication::clipboard()->text();
     term->title = player->getTitle();
-    term->sentence = player->getSubtitle();
+    term->sentence = player->getSubtitle(true);
     term->sentence2 = player->getSecondarySubtitle();
     term->startTime = player->getSubStart() + delay;
     term->endTime = player->getSubEnd() + delay;

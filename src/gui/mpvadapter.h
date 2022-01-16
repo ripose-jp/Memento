@@ -48,7 +48,7 @@ public:
 
     double getSubDelay() const override;
 
-    QString getSubtitle() const override;
+    QString getSubtitle(bool filter = false) const override;
 
     QString getSecondarySubtitle() const override;
 
@@ -122,6 +122,11 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     /**
+     * Initializes the subtitle regex.
+     */
+    void initRegex();
+
+    /**
      * Processes the mpv_node into a list of tracks.
      * @param node The mpv_node containing the raw track-list.
      * @return A list containing the tracks.
@@ -185,6 +190,9 @@ private:
 
     /* A set containing all subtitle filetype extensions. */
     QSet<QString> m_subExts;
+
+    /* The regular expression for filtering subtitles */
+    QRegularExpression m_subRegex;
 };
 
 #endif // MPVADAPTER
