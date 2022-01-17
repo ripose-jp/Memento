@@ -48,9 +48,10 @@ SubtitleParser::SubtitleParser()
       m_assNewLineReplacer(QRegularExpression("\\\\n|\\\\N")),
       m_srtFilter(
           QRegularExpression(
-              "<\\/?[biu]>|" // Removes <b></b> <i></i> <u></u>
-              "{\\/?[biu]}|" // Removes {b}{/b} {i}{/i} {u}{/u}
-              "{\\\\a\\d}"   // Removes {\a#}
+              "<\\/?[biu]>|"   // Removes <b></b> <i></i> <u></u>
+              "{\\/?[biu]}|"   // Removes {b}{/b} {i}{/i} {u}{/u}
+              "<\\/?font.*?>|" // Removes <font color=“white”> </font>
+              "{\\\\an?\\d}"   // Removes {\a#} {\an#}
           )
       ),
       m_angleBraceCleaner(QRegularExpression("<[^>]*>"))
