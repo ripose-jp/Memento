@@ -310,9 +310,19 @@ bool SubtitleParser::parseSRT(QFile &file, QList<SubtitleInfo> &out) const
     {
         SRTInfo info;
 
+        /* Skip all new lines */
+        QString currentLine = file.readLine();
+        while (!file.atEnd() && currentLine == "\n")
+        {
+            currentLine = file.readLine();
+        }
+        if (file.atEnd())
+        {
+            break;
+        }
+
         /* Get the position */
         bool ok = false;
-        QString currentLine = file.readLine();
         info.position = currentLine.trimmed().toUInt(&ok);
         if (!ok || info.position < 0)
         {
