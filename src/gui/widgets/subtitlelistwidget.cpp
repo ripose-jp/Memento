@@ -360,7 +360,8 @@ void SubtitleListWidget::handleTracklistChange(
             }
             *m_subtitleMap[extSids[i]] =
                 parser.parseSubtitles(extTracks[i], false);
-            *m_subtitleParsed[extSids[i]] = true;
+            *m_subtitleParsed[extSids[i]] =
+                !m_subtitleMap[extSids[i]]->isEmpty();
         }
 
         m_secondary.lock.unlock();
