@@ -440,6 +440,17 @@ QString MpvAdapter::getSecondarySubtitle() const
     return subtitle;
 }
 
+bool MpvAdapter::getSubVisibility() const
+{
+    int flag;
+    if (mpv_get_property(m_handle, "sub-visibility", MPV_FORMAT_FLAG, &flag) < 0)
+    {
+        qDebug() << "Could not get mpv sub-visibility property";
+        return 0;
+    }
+    return flag;
+}
+
 double MpvAdapter::getAudioDelay() const
 {
     double delay;
@@ -759,64 +770,14 @@ void MpvAdapter::disableSubtitleTwo()
     }
 }
 
-#define MPV_SUB_VIS_NO  "no"
-#define MPV_SUB_VIS_YES "yes"
-#define MPV_SUB_VIS_PRI "primary-only"
-#define MPV_SUB_VIS_SEC "secondary-only"
-
 void MpvAdapter::setSubVisiblity(const bool visible)
 {
-#if MPV_CLIENT_API_VERSION < MPV_MAKE_VERSION(2, 0)
-    const char *str = visible ? MPV_SUB_VIS_YES : MPV_SUB_VIS_NO;
-#else
-    const char *str = mpv_get_property_string(m_handle, "sub-visibility");
-    if (str == NULL)
+    int flag = visible ? 1 : 0;
+    if (mpv_set_property(m_handle, "sub-visibility", MPV_FORMAT_FLAG, &flag) < 0)
     {
-        qDebug() << "Could not get mpv property sub-visibility";
-        return;
-    }
-    QString subVis(str);
-    mpv_free((void *)str);
-    str = NULL;
-
-    if (subVis == MPV_SUB_VIS_NO || subVis == MPV_SUB_VIS_PRI)
-    {
-        str = visible ? MPV_SUB_VIS_PRI : MPV_SUB_VIS_NO;
-    }
-    else if (subVis == MPV_SUB_VIS_YES || subVis == MPV_SUB_VIS_SEC)
-    {
-        str = visible ? MPV_SUB_VIS_YES : MPV_SUB_VIS_SEC;
-    }
-    else
-    {
-        str = visible ? MPV_SUB_VIS_YES : MPV_SUB_VIS_NO;
-    }
-#endif
-    if (mpv_set_property_string(m_handle, "sub-visibility", str) < 0)
-    {
-        qDebug() << "Could not set mpv property sub-visibility to" << str;
+        qDebug() << "Could not set mpv property sub-visibility to" << flag;
     }
 }
-
-bool MpvAdapter::getSubVisibility() const
-{
-    const char *str = mpv_get_property_string(m_handle, "sub-visibility");
-    if (str == NULL)
-    {
-        qDebug() << "Could not get mpv sub-visibility property";
-        return false;
-    }
-    QString subVis(str);
-    mpv_free((void *)str);
-    str = NULL;
-
-    return subVis == MPV_SUB_VIS_YES || subVis == MPV_SUB_VIS_PRI;
-}
-
-#undef MPV_SUB_VIS_NO
-#undef MPV_SUB_VIS_YES
-#undef MPV_SUB_VIS_PRI
-#undef MPV_SUB_VIS_SEC
 
 void MpvAdapter::setAudioTrack(int64_t id)
 {

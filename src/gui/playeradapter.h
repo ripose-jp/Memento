@@ -144,7 +144,7 @@ public:
     virtual QString getSecondarySubtitle() const = 0;
 
     /**
-     * Get the primary subtitle visibility.
+     * Get the subtitle visibility.
      * @return true if subtitles are visible, false otherwise.
      */
     virtual bool getSubVisibility() const = 0;
@@ -303,7 +303,7 @@ public Q_SLOTS:
     virtual void disableSubtitleTwo() = 0;
 
     /**
-     * Sets the primary subtitle visibility.
+     * Sets the subtitle visibility.
      * @param visible true to make subtitle visible, false otherwise.
      */
     virtual void setSubVisiblity(const bool visible) = 0;
