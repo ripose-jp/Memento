@@ -558,7 +558,8 @@ Q_SIGNALS:
     /* Begin Request Changes */
 
     /**
-     * Requests that player subtitle visibility change. May be ignored.
+     * Requests that player's primary subtitle visibility change. May be
+     * ignored.
      * @param value true to show subtitles, false otherwise.
      */
     void requestSubtitleVisibility(const bool value) const;
