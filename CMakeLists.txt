@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1.0)
 
-set(MEMENTO_VERSION "0.5.4-beta")
-set(MEMENTO_SHORT_VERSION "0.5.4")
+set(MEMENTO_VERSION "0.5.4-1-beta")
+set(MEMENTO_SHORT_VERSION "0.5.4.1")
 if(APPLE)
 	project(Memento VERSION ${MEMENTO_SHORT_VERSION})
 else()
