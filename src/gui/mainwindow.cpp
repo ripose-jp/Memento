@@ -694,7 +694,6 @@ void MainWindow::showErrorMessage(const QString title,
 void MainWindow::showInfoMessage(const QString title,
                                  const QString error) const
 {
-    qDebug() << "Sneed";
     QMessageBox message;
     message.information(0, title, error);
 }
