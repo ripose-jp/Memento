@@ -1044,12 +1044,18 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
             if (event->modifiers() & Qt::ControlModifier)
             {
                 if (event->modifiers() & Qt::ShiftModifier)
+                {
                     key += QKeySequence(event->key()).toString();
+                }
                 else
+                {
                     key += QKeySequence(event->key()).toString().toLower();
+                }
             }
             else
-                key = event->text();
+            {
+                key += event->text();
+            }
         }
         }
     }
