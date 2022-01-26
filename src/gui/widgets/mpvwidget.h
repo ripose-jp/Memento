@@ -330,13 +330,6 @@ private:
      */
     void preventScreenDimming();
 
-    /**
-     * Converts the current mouse event to an mpv button command string.
-     * @param event The event containing the mouse button clicked.
-     */
-    QString mouseButtonStringToString(const Qt::MouseButton button,
-                                      const bool doubleClick = false) const;
-
     /* The mpv context */
     mpv_handle *mpv;
 

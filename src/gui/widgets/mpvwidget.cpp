@@ -606,12 +606,66 @@ void MpvWidget::mouseMoveEvent(QMouseEvent *event)
     Q_EMIT mouseMoved(event);
 }
 
+/**
+ * Converts the current mouse event to an mpv button command string.
+ * @param button      The mouse button clicked.
+ * @param doubleClick True if this is a double click.
+ */
+static inline QByteArray mouseButtonToString(
+    const Qt::MouseButton button,
+    const bool doubleClick)
+{
+    QByteArray str;
+    Qt::KeyboardModifiers mods = QGuiApplication::keyboardModifiers();
+    if (mods & Qt::ShiftModifier)
+    {
+        str += "Shift+";
+    }
+    if (mods & Qt::ControlModifier)
+    {
+        str += "Ctrl+";
+    }
+    if (mods & Qt::AltModifier)
+    {
+        str += "Alt+";
+    }
+    if (mods & Qt::MetaModifier)
+    {
+        str += "Meta+";
+    }
+
+    switch (button)
+    {
+    case Qt::LeftButton:
+        str += "MBTN_LEFT";
+        break;
+    case Qt::RightButton:
+        str += "MBTN_RIGHT";
+        break;
+    case Qt::BackButton:
+        str += "MBTN_BACK";
+        break;
+    case Qt::ForwardButton:
+        str += "MBTN_FORWARD";
+        break;
+    default:
+        return "";
+    }
+
+    if (doubleClick)
+    {
+        str += "_DBL";
+    }
+
+    return str;
+}
+
 void MpvWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     QOpenGLWidget::mouseReleaseEvent(event);
     event->ignore();
 
-    QByteArray release = mouseButtonStringToString(event->button()).toUtf8();
+    QByteArray release = mouseButtonToString(event->button(), false);
     const char *args[3] = {
         "keypress",
         release,
@@ -628,8 +682,7 @@ void MpvWidget::mouseDoubleClickEvent(QMouseEvent *event)
     QOpenGLWidget::mouseDoubleClickEvent(event);
     event->ignore();
 
-    QByteArray press =
-        (mouseButtonStringToString(event->button(), true)).toUtf8();
+    QByteArray press = mouseButtonToString(event->button(), true);
     const char *args[3] = {
         "keypress",
         press,
@@ -746,37 +799,6 @@ void MpvWidget::preventScreenDimming()
         qDebug() << "Error code:" << success;
     }
 #endif
-}
-
-QString MpvWidget::mouseButtonStringToString(const Qt::MouseButton button,
-                                             const bool doubleClick) const
-{
-    QString str;
-
-    switch (button)
-    {
-    case Qt::LeftButton:
-        str += "MBTN_LEFT";
-        break;
-    case Qt::RightButton:
-        str += "MBTN_RIGHT";
-        break;
-    case Qt::BackButton:
-        str += "MBTN_BACK";
-        break;
-    case Qt::ForwardButton:
-        str += "MBTN_FORWARD";
-        break;
-    default:
-        return "";
-    }
-
-    if (doubleClick)
-    {
-        str += "_DBL";
-    }
-
-    return str;
 }
 
 /* End Helper Functions */
