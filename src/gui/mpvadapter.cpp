@@ -1074,39 +1074,58 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
 
 void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
 {
-    QByteArray direction = "WHEEL_";
+    QByteArray input;
+    Qt::KeyboardModifiers mods = QGuiApplication::keyboardModifiers();
+    if (mods & Qt::ShiftModifier)
+    {
+        input += "Shift+";
+    }
+    if (mods & Qt::ControlModifier)
+    {
+        input += "Ctrl+";
+    }
+    if (mods & Qt::AltModifier)
+    {
+        input += "Alt+";
+    }
+    if (mods & Qt::MetaModifier)
+    {
+        input += "Meta+";
+    }
+
+    input += "WHEEL_";
     if (event->angleDelta().y() > 0)
     {
-        direction += "UP";
+        input += "UP";
     }
     else if (event->angleDelta().y() < 0)
     {
-        direction += "DOWN";
+        input += "DOWN";
     }
     else if (event->angleDelta().x() > 0)
     {
-        direction += "RIGHT";
+        input += "RIGHT";
     }
     else if (event->angleDelta().x() < 0)
     {
-        direction += "LEFT";
+        input += "LEFT";
     }
 
     /* Prevent bad input from being sent to mpv. */
-    if (direction == "WHEEL_")
+    if (input.endsWith("WHEEL_"))
     {
         return;
     }
 
     const char *args[3] = {
         "keypress",
-        direction,
+        input,
         NULL
     };
     if (mpv_command_async(m_handle, -1, args) < 0)
     {
         qDebug() << "Could not send keypress command for direction"
-                 << direction;
+                 << input;
     }
 }
 
