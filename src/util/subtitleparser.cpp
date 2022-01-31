@@ -211,19 +211,9 @@ bool SubtitleParser::parseASS(QFile &file, QList<SubtitleInfo> &out) const
     /* Get dialogue */
     while (!file.atEnd())
     {
-        currentLine = file.readLine();
-        if (currentLine == '\n')
-        {
-            continue;
-        }
-
-        /* End of the [Events] section */
-        if (currentLine.trimmed().isEmpty())
-        {
-            break;
-        }
         /* Skip non-dialogue lines */
-        else if (!currentLine.startsWith(DIALOGUE_PREFIX))
+        currentLine = file.readLine();
+        if (!currentLine.startsWith(DIALOGUE_PREFIX))
         {
             continue;
         }
