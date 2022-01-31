@@ -212,6 +212,10 @@ bool SubtitleParser::parseASS(QFile &file, QList<SubtitleInfo> &out) const
     while (!file.atEnd())
     {
         currentLine = file.readLine();
+        if (currentLine == '\n')
+        {
+            continue;
+        }
 
         /* End of the [Events] section */
         if (currentLine.trimmed().isEmpty())
