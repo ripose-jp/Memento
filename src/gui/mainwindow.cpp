@@ -137,27 +137,32 @@ void MainWindow::initWindow()
     /* Search Widget Signals */
     connect(
         m_mediator, &GlobalMediator::requestSearchVisibility,
-        m_ui->searchWidget, &SearchWidget::setVisible
+        m_ui->searchWidget, &SearchWidget::setVisible,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->searchWidget, &SearchWidget::widgetHidden,
-        m_mediator, &GlobalMediator::searchWidgetHidden
+        m_mediator, &GlobalMediator::searchWidgetHidden,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->searchWidget, &SearchWidget::widgetShown,
-        m_mediator, &GlobalMediator::searchWidgetShown
+        m_mediator, &GlobalMediator::searchWidgetShown,
+        Qt::QueuedConnection
     );
 
     /* Subtitle List Signals */
     connect(
         m_mediator, &GlobalMediator::requestSubtitleListVisibility,
-        m_ui->subtitleList, &SubtitleListWidget::setVisible
+        m_ui->subtitleList, &SubtitleListWidget::setVisible,
+        Qt::QueuedConnection
     );
 
     /* MainWindow Signals */
     connect(
         m_mediator, &GlobalMediator::playerFullscreenChanged,
-        this, &MainWindow::setFullscreen
+        this, &MainWindow::setFullscreen,
+        Qt::QueuedConnection
     );
     connect(
         m_mediator, &GlobalMediator::playerFileLoaded,
@@ -169,32 +174,39 @@ void MainWindow::initWindow()
     );
     connect(
         m_mediator, &GlobalMediator::interfaceSettingsChanged,
-        this, &MainWindow::initTheme
+        this, &MainWindow::initTheme,
+        Qt::QueuedConnection
     );
     connect(
         m_mediator, &GlobalMediator::controlsSubtitleListToggled,
-        this, &MainWindow::toggleSubtitleListVisibility
+        this, &MainWindow::toggleSubtitleListVisibility,
+        Qt::QueuedConnection
     );
     connect(
         m_mediator, &GlobalMediator::requestSearchVisibility,
-        this, &MainWindow::updateSearchSubListSplitter
+        this, &MainWindow::updateSearchSubListSplitter,
+        Qt::QueuedConnection
     );
     connect(
         m_mediator, &GlobalMediator::requestSubtitleListVisibility,
-        this, &MainWindow::updateSearchSubListSplitter
+        this, &MainWindow::updateSearchSubListSplitter,
+        Qt::QueuedConnection
     );
     connect(m_mediator, &GlobalMediator::playerTitleChanged, this,
-        [=] (const QString name) { setWindowTitle(name + " - Memento"); }
+        [=] (const QString name) { setWindowTitle(name + " - Memento"); },
+        Qt::QueuedConnection
     );
 
     /* Message boxes */
     connect(
         m_mediator, &GlobalMediator::showCritical,
-        this, &MainWindow::showErrorMessage
+        this, &MainWindow::showErrorMessage,
+        Qt::QueuedConnection
     );
     connect(
         m_mediator, &GlobalMediator::showInformation,
-        this, &MainWindow::showInfoMessage
+        this, &MainWindow::showInfoMessage,
+        Qt::QueuedConnection
     );
 }
 
