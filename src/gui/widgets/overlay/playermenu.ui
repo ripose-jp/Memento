@@ -99,8 +99,20 @@
        </property>
        <addaction name="actionSubtitleTwoNone"/>
       </widget>
-      <addaction name="actionAddSubtitle"/>
+      <widget class="QMenu" name="menuSizePosition">
+       <property name="title">
+        <string>Size and Position</string>
+       </property>
+       <addaction name="actionIncreaseSize"/>
+       <addaction name="actionDecreaseSize"/>
+       <addaction name="actionMoveUp"/>
+       <addaction name="actionMoveDown"/>
+      </widget>
+      <addaction name="actionSubVis"/>
+      <addaction name="menuSizePosition"/>
       <addaction name="actionSubtitlePause"/>
+      <addaction name="separator"/>
+      <addaction name="actionAddSubtitle"/>
       <addaction name="menuSubtitleTwo"/>
       <addaction name="separator"/>
       <addaction name="actionSubtitleNone"/>
@@ -108,10 +120,10 @@
      <widget class="QMenu" name="menuSettings">
       <property name="geometry">
        <rect>
-        <x>976</x>
-        <y>316</y>
+        <x>945</x>
+        <y>298</y>
         <width>202</width>
-        <height>271</height>
+        <height>241</height>
        </rect>
       </property>
       <property name="minimumSize">
@@ -136,18 +148,7 @@
         <string>Anki Profile</string>
        </property>
       </widget>
-      <widget class="QMenu" name="menuSubtitleSearch">
-       <property name="title">
-        <string>Subtitle Search</string>
-       </property>
-       <addaction name="actionSubVis"/>
-       <addaction name="actionIncreaseSize"/>
-       <addaction name="actionDecreaseSize"/>
-       <addaction name="actionMoveUp"/>
-       <addaction name="actionMoveDown"/>
-      </widget>
       <addaction name="menuAnkiProfile"/>
-      <addaction name="menuSubtitleSearch"/>
       <addaction name="actionShowSearch"/>
       <addaction name="actionOptions"/>
       <addaction name="separator"/>
@@ -317,6 +318,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actiontest">
+   <property name="text">
+    <string>test</string>
    </property>
   </action>
  </widget>
