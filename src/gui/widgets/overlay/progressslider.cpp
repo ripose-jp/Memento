@@ -60,12 +60,14 @@ ProgressSlider::ProgressSlider(QWidget *parent) : QSlider(parent)
     connect(
         GlobalMediator::getGlobalMediator(),
         &GlobalMediator::requestThemeRefresh,
-        this, &ProgressSlider::initTheme
+        this, &ProgressSlider::initTheme,
+        Qt::QueuedConnection
     );
     connect(
         GlobalMediator::getGlobalMediator(),
         &GlobalMediator::windowFocusChanged,
-        this, &ProgressSlider::initStylesheet
+        this, &ProgressSlider::initStylesheet,
+        Qt::QueuedConnection
     );
 
     initTheme();
