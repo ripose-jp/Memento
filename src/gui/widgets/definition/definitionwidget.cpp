@@ -145,15 +145,18 @@ void DefinitionWidget::initSignals()
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     connect(
         mediator, &GlobalMediator::interfaceSettingsChanged,
-        this, &DefinitionWidget::initTheme
+        this, &DefinitionWidget::initTheme,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::searchSettingsChanged,
-        this, &DefinitionWidget::initSearch
+        this, &DefinitionWidget::initSearch,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::audioSourceSettingsChanged,
-        this, &DefinitionWidget::initAudioSources
+        this, &DefinitionWidget::initAudioSources,
+        Qt::QueuedConnection
     );
 }
 
