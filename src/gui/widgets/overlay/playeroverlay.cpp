@@ -85,44 +85,54 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     connect(
         mediator, &GlobalMediator::interfaceSettingsChanged,
-        this, &PlayerOverlay::initSettings
+        this, &PlayerOverlay::initSettings,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerResized,
-        this, &PlayerOverlay::repositionSubtitles
+        this, &PlayerOverlay::repositionSubtitles,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerMouseMoved,
-        this, &PlayerOverlay::showOverlay
+        this, &PlayerOverlay::showOverlay,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerCursorHidden,
-        this, &PlayerOverlay::hideOverlay
+        this, &PlayerOverlay::hideOverlay,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerFullscreenChanged,
-        this, &PlayerOverlay::hideOverlay
+        this, &PlayerOverlay::hideOverlay,
+        Qt::QueuedConnection
     );
     connect(
         m_menu, &PlayerMenu::aboutToHide,
-        mediator, &GlobalMediator::requestPlayerTimerReset
+        mediator, &GlobalMediator::requestPlayerTimerReset,
+        Qt::QueuedConnection
     );
 
     connect(
         mediator, &GlobalMediator::menuSubtitleSizeIncrease,
-        this, &PlayerOverlay::increaseSubScale
+        this, &PlayerOverlay::increaseSubScale,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::menuSubtitleSizeDecrease,
-        this, &PlayerOverlay::decreaseSubScale
+        this, &PlayerOverlay::decreaseSubScale,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::menuSubtitlesMoveUp,
-        this, &PlayerOverlay::moveSubsUp
+        this, &PlayerOverlay::moveSubsUp,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::menuSubtitlesMoveDown,
-        this, &PlayerOverlay::moveSubsDown
+        this, &PlayerOverlay::moveSubsDown,
+        Qt::QueuedConnection
     );
 
     connect(
@@ -131,27 +141,33 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
     );
     connect(
         mediator, &GlobalMediator::requestDefinitionDelete,
-        m_definition, &DefinitionWidget::hide
+        m_definition, &DefinitionWidget::hide,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerSubtitleChanged,
-        m_definition, &DefinitionWidget::hide
+        m_definition, &DefinitionWidget::hide,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerResized,
-        m_definition, &DefinitionWidget::hide
+        m_definition, &DefinitionWidget::hide,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::subtitleExpired,
-        m_definition, &DefinitionWidget::hide
+        m_definition, &DefinitionWidget::hide,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::subtitleHidden,
-        m_definition, &DefinitionWidget::hide
+        m_definition, &DefinitionWidget::hide,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::controlsHidden,
-        m_definition, &DefinitionWidget::hide
+        m_definition, &DefinitionWidget::hide,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerPauseStateChanged, this,
@@ -160,16 +176,19 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
             {
                 m_definition->hide();
             }
-        }
+        },
+        Qt::QueuedConnection
     );
 
     connect(
         m_definition, &DefinitionWidget::widgetHidden,
-        mediator, &GlobalMediator::definitionsHidden
+        mediator, &GlobalMediator::definitionsHidden,
+        Qt::QueuedConnection
     );
     connect(
         m_definition, &DefinitionWidget::widgetShown,
-        mediator, &GlobalMediator::definitionsShown
+        mediator, &GlobalMediator::definitionsShown,
+        Qt::QueuedConnection
     );
 
     initSettings();
