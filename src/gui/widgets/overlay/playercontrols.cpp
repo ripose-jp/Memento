@@ -70,8 +70,7 @@ PlayerControls::PlayerControls(QWidget *parent)
     );
     connect(
         m_ui->sliderVolume, &QSlider::valueChanged,
-        mediator,           &GlobalMediator::controlsVolumeChanged,
-        Qt::QueuedConnection
+        mediator,           &GlobalMediator::controlsVolumeChanged
     );
 
     connect(
@@ -123,8 +122,7 @@ PlayerControls::PlayerControls(QWidget *parent)
     );
     connect(
         mediator, &GlobalMediator::playerVolumeChanged,
-        this,     &PlayerControls::setVolume,
-        Qt::QueuedConnection
+        this,     &PlayerControls::setVolume
     );
     connect(
         mediator, &GlobalMediator::playerMaxVolumeChanged,

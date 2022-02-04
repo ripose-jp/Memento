@@ -156,8 +156,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     );
     connect(
         m_mpv,    &MpvWidget::volumeChanged,
-        mediator, &GlobalMediator::playerVolumeChanged,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerVolumeChanged
     );
     connect(
         m_mpv,    &MpvWidget::volumeMaxChanged,
