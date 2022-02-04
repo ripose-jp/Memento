@@ -83,7 +83,7 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     /* Track Signals */
         connect(
         mediator, &GlobalMediator::playerTracksChanged,
-        this,       &PlayerMenu::setTracks
+        this, &PlayerMenu::setTracks
     );
 
     connect(
@@ -307,6 +307,8 @@ void PlayerMenu::clearTracks()
     );
 }
 
+#define MAX_LENGTH 45
+
 QAction *PlayerMenu::createTrackAction(const Track *track) const
 {
     QAction *action = new QAction;
@@ -321,10 +323,17 @@ QAction *PlayerMenu::createTrackAction(const Track *track) const
     {
         actionText += " - " + track->title;
     }
+    if (actionText.length() > MAX_LENGTH)
+    {
+        actionText = actionText.left(MAX_LENGTH);
+        actionText += "...";
+    }
     action->setText(actionText);
 
     return action;
 }
+
+#undef MAX_LENGTH
 
 void PlayerMenu::setTracks(const QList<const Track *> &tracks)
 {
