@@ -103,62 +103,76 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     );
     connect(
         m_ui->tabWidget, &QTabWidget::currentChanged,
-        this,            &SubtitleListWidget::fixTableDimensions
+        this,            &SubtitleListWidget::fixTableDimensions,
+        Qt::QueuedConnection
     );
 
     connect(
         mediator, &GlobalMediator::requestThemeRefresh,
-        this,     &SubtitleListWidget::initTheme
+        this,     &SubtitleListWidget::initTheme,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::searchSettingsChanged,
-        this,     &SubtitleListWidget::initRegex
+        this,     &SubtitleListWidget::initRegex,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerSubDelayChanged,
-        this,     &SubtitleListWidget::updateTimestamps
+        this,     &SubtitleListWidget::updateTimestamps,
+        Qt::QueuedConnection
     );
     connect(
         this, &SubtitleListWidget::requestRefresh,
-        this, &SubtitleListWidget::handleRefresh
+        this, &SubtitleListWidget::handleRefresh,
+        Qt::QueuedConnection
     );
 
     connect(
         mediator, &GlobalMediator::playerSubtitleChangedRaw,
-        this,     &SubtitleListWidget::updatePrimarySubtitle
+        this,     &SubtitleListWidget::updatePrimarySubtitle,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerSubtitleTrackChanged,
-        this,     &SubtitleListWidget::handlePrimaryTrackChange
+        this,     &SubtitleListWidget::handlePrimaryTrackChange,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerSubtitlesDisabled,
-        this,     &SubtitleListWidget::clearPrimarySubtitles
+        this,     &SubtitleListWidget::clearPrimarySubtitles,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::searchSettingsChanged,
-        this,     &SubtitleListWidget::clearPrimarySubtitles
+        this,     &SubtitleListWidget::clearPrimarySubtitles,
+        Qt::QueuedConnection
     );
 
     connect(
         mediator, &GlobalMediator::playerSecSubtitleChanged,
-        this,     &SubtitleListWidget::updateSecondarySubtitle
+        this,     &SubtitleListWidget::updateSecondarySubtitle,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerSecondSubtitleTrackChanged,
-        this,     &SubtitleListWidget::handleSecondaryTrackChange
+        this,     &SubtitleListWidget::handleSecondaryTrackChange,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerSecondSubtitlesDisabled,
-        this,     &SubtitleListWidget::clearSecondarySubtitles
+        this,     &SubtitleListWidget::clearSecondarySubtitles,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerSecondSubtitleTrackChanged,
-        this,     &SubtitleListWidget::showSecondarySubs
+        this,     &SubtitleListWidget::showSecondarySubs,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerSecondSubtitlesDisabled,
-        this,     &SubtitleListWidget::hideSecondarySubs
+        this,     &SubtitleListWidget::hideSecondarySubs,
+        Qt::QueuedConnection
     );
 
     connect(
@@ -172,28 +186,34 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
 
     connect(
         m_copyShortcut, &QShortcut::activated,
-        this, &SubtitleListWidget::copyContext
+        this, &SubtitleListWidget::copyContext,
+        Qt::QueuedConnection
     );
     connect(
         m_copyAudioShortcut, &QShortcut::activated,
-        this, &SubtitleListWidget::copyAudioContext
+        this, &SubtitleListWidget::copyAudioContext,
+        Qt::QueuedConnection
     );
     connect(
         m_findShortcut, &QShortcut::activated, this,
-        [=] { m_ui->widgetFind->setVisible(!m_ui->widgetFind->isVisible()); }
+        [=] { m_ui->widgetFind->setVisible(!m_ui->widgetFind->isVisible()); },
+        Qt::QueuedConnection
     );
 
     connect(
         m_ui->lineEditSearch, &QLineEdit::textChanged,
-        this, &SubtitleListWidget::findText
+        this, &SubtitleListWidget::findText,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->buttonSearchPrev, &QToolButton::clicked,
-        this, &SubtitleListWidget::findPrev
+        this, &SubtitleListWidget::findPrev,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->buttonSearchNext, &QToolButton::clicked,
-        this, &SubtitleListWidget::findNext
+        this, &SubtitleListWidget::findNext,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->buttonSearchClose, &QToolButton::clicked,
