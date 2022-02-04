@@ -42,7 +42,9 @@ AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
     QLabel *labelInfo = new QLabel;
     labelInfo->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     labelInfo->setOpenExternalLinks(true);
-    labelInfo->setTextInteractionFlags(Qt::LinksAccessibleByKeyboard | Qt::LinksAccessibleByMouse);
+    labelInfo->setTextInteractionFlags(
+        Qt::LinksAccessibleByKeyboard | Qt::LinksAccessibleByMouse
+    );
     labelInfo->setText(
         "<b>Version</b>: " + VERSION + "<br>"
         "<b>License</b>: GPLv2"
@@ -57,12 +59,13 @@ AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
                 "https://github.com/ripose-jp/memento"
             "</a>"
         "<br>"
-        "Copyright Ripose 2020-2021"
+        "Copyright Ripose 2020-2022"
     );
     parentLayout->addWidget(labelInfo);
 
     connect(
         GlobalMediator::getGlobalMediator(), &GlobalMediator::menuShowAbout,
-        this, &QDialog::show
+        this, &QDialog::show,
+        Qt::QueuedConnection
     );
 }
