@@ -148,18 +148,24 @@ MpvWidget::MpvWidget(QWidget *parent)
         this, &QOpenGLWidget::frameSwapped,
         this, &MpvWidget::reportFrameSwap
     );
-    connect(&m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor);
+    connect(
+        &m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor,
+        Qt::QueuedConnection
+    );
     connect(
         mediator, &GlobalMediator::definitionsHidden,
-        this, &MpvWidget::resetTimer
+        this, &MpvWidget::resetTimer,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::requestPlayerTimerReset,
-        this, &MpvWidget::resetTimer
+        this, &MpvWidget::resetTimer,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::searchSettingsChanged,
-        this, &MpvWidget::initSubtitleRegex
+        this, &MpvWidget::initSubtitleRegex,
+        Qt::QueuedConnection
     );
 }
 
