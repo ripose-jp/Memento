@@ -65,19 +65,23 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     /* Open Signals */
     connect(
         m_ui->actionOpen, &QAction::triggered,
-        this, &PlayerMenu::openFile
+        this, &PlayerMenu::openFile,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->actionOpenUrl, &QAction::triggered,
-        this, &PlayerMenu::openUrl
+        this, &PlayerMenu::openUrl,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->actionAddSubtitle, &QAction::triggered,
-        this, &PlayerMenu::openSubtitle
+        this, &PlayerMenu::openSubtitle,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->actionUpdate, &QAction::triggered,
-        this, &NetworkUtils::checkForUpdates
+        this, &NetworkUtils::checkForUpdates,
+        Qt::QueuedConnection
     );
 
     /* Track Signals */
@@ -152,68 +156,85 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     /* Option Signals */
     connect(
         m_ui->actionSubtitlePause, &QAction::toggled,
-        this, &PlayerMenu::applySubtitlePauseSetting
+        this, &PlayerMenu::applySubtitlePauseSetting,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->actionShowSearch, &QAction::triggered,
-        this, &PlayerMenu::handleToggleSearch
+        this, &PlayerMenu::handleToggleSearch,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->actionOptions, &QAction::triggered,
-        mediator, &GlobalMediator::menuShowOptions
+        mediator, &GlobalMediator::menuShowOptions,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->actionAbout, &QAction::triggered,
-        mediator, &GlobalMediator::menuShowAbout
+        mediator, &GlobalMediator::menuShowAbout,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->actionOpenConfig, &QAction::triggered,
-        this, &PlayerMenu::openConfigFolder
+        this, &PlayerMenu::openConfigFolder,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::behaviorSettingsChanged,
-        this, &PlayerMenu::updateSubtitlePauseAction
+        this, &PlayerMenu::updateSubtitlePauseAction,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::ankiSettingsChanged,
-        this, &PlayerMenu::updateAnkiProfileMenu
+        this, &PlayerMenu::updateAnkiProfileMenu,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->actionSubVis, &QAction::toggled,
-        mediator, &GlobalMediator::menuSubtitleVisibilityToggled
+        mediator, &GlobalMediator::menuSubtitleVisibilityToggled,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->actionIncreaseSize, &QAction::triggered,
-        mediator, &GlobalMediator::menuSubtitleSizeIncrease
+        mediator, &GlobalMediator::menuSubtitleSizeIncrease,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->actionDecreaseSize, &QAction::triggered,
-        mediator, &GlobalMediator::menuSubtitleSizeDecrease
+        mediator, &GlobalMediator::menuSubtitleSizeDecrease,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->actionMoveUp, &QAction::triggered,
-        mediator, &GlobalMediator::menuSubtitlesMoveUp
+        mediator, &GlobalMediator::menuSubtitlesMoveUp,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->actionMoveDown, &QAction::triggered,
-        mediator, &GlobalMediator::menuSubtitlesMoveDown
+        mediator, &GlobalMediator::menuSubtitlesMoveDown,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::searchWidgetHidden,
         m_ui->actionShowSearch,
-        [=] { m_ui->actionShowSearch->setChecked(false); }
+        [=] { m_ui->actionShowSearch->setChecked(false); },
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::searchWidgetShown,
         m_ui->actionShowSearch,
-        [=] { m_ui->actionShowSearch->setChecked(true); }
+        [=] { m_ui->actionShowSearch->setChecked(true); },
+        Qt::QueuedConnection
     );
 
     /* aboutToHide Signals */
     QList<QMenu *> menus = m_ui->menubar->findChildren<QMenu *>();
     for (const QMenu *menu : menus)
     {
-        connect(menu, &QMenu::aboutToHide, this, &PlayerMenu::aboutToHide);
+        connect(
+            menu, &QMenu::aboutToHide, this, &PlayerMenu::aboutToHide,
+            Qt::QueuedConnection
+        );
     }
 }
 
