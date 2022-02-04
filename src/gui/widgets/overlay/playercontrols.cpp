@@ -70,50 +70,61 @@ PlayerControls::PlayerControls(QWidget *parent)
     );
     connect(
         m_ui->sliderVolume, &QSlider::valueChanged,
-        mediator,           &GlobalMediator::controlsVolumeChanged
+        mediator,           &GlobalMediator::controlsVolumeChanged,
+        Qt::QueuedConnection
     );
 
     connect(
         m_ui->buttonPlay, &QToolButton::clicked,
-        this,             &PlayerControls::togglePause
+        this,             &PlayerControls::togglePause,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->buttonSeekForward, &QToolButton::clicked,
-        mediator,                &GlobalMediator::controlsSeekForward
+        mediator,                &GlobalMediator::controlsSeekForward,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->buttonSeekBackward, &QToolButton::clicked,
-        mediator,                 &GlobalMediator::controlsSeekBackward
+        mediator,                 &GlobalMediator::controlsSeekBackward,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->buttonSkipForward, &QToolButton::clicked,
-        mediator,                &GlobalMediator::controlsSkipForward
+        mediator,                &GlobalMediator::controlsSkipForward,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->buttonSkipBackward, &QToolButton::clicked,
-        mediator,                 &GlobalMediator::controlsSkipBackward
+        mediator,                 &GlobalMediator::controlsSkipBackward,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->buttonFullscreen, &QToolButton::clicked,
-        this,                   &PlayerControls::toggleFullscreen
+        this,                   &PlayerControls::toggleFullscreen,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->buttonToggleSubList, &QToolButton::clicked,
-        mediator,                  &GlobalMediator::controlsSubtitleListToggled
+        mediator,                  &GlobalMediator::controlsSubtitleListToggled,
+        Qt::QueuedConnection
     );
 
     /* Slots */
     connect(
         mediator, &GlobalMediator::playerPauseStateChanged,
-        this,     &PlayerControls::setPaused
+        this,     &PlayerControls::setPaused,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerFullscreenChanged,
-        this,     &PlayerControls::setFullscreen
+        this,     &PlayerControls::setFullscreen,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerVolumeChanged,
-        this,     &PlayerControls::setVolume
+        this,     &PlayerControls::setVolume,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerMaxVolumeChanged,
@@ -125,11 +136,13 @@ PlayerControls::PlayerControls(QWidget *parent)
     );
     connect(
         mediator, &GlobalMediator::playerPositionChanged,
-        this,     &PlayerControls::setPosition
+        this,     &PlayerControls::setPosition,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::requestThemeRefresh,
-        this,     &PlayerControls::initTheme
+        this,     &PlayerControls::initTheme,
+        Qt::QueuedConnection
     );
     connect(
         mediator,             &GlobalMediator::playerChaptersChanged,
