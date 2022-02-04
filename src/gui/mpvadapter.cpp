@@ -660,7 +660,7 @@ void MpvAdapter::addSubtitle(const QString &file)
         fileName,
         NULL
     };
-    if (mpv_command(m_handle, args) < 0)
+    if (mpv_command_async(m_handle, 0, args) < 0)
     {
         qDebug() << "Could not add subtitle file" << file;
     }
@@ -675,7 +675,7 @@ void MpvAdapter::seek(const double time)
         "absolute",
         NULL
     };
-    if (mpv_command_async(m_handle, -1, args) < 0)
+    if (mpv_command_async(m_handle, 0, args) < 0)
     {
         qDebug() << "Seeking failed";
     }
@@ -684,7 +684,7 @@ void MpvAdapter::seek(const double time)
 void MpvAdapter::play()
 {
     int flag = 0;
-    if (mpv_set_property(m_handle, "pause", MPV_FORMAT_FLAG, &flag) < 0)
+    if (mpv_set_property_async(m_handle, 0, "pause", MPV_FORMAT_FLAG, &flag) < 0)
     {
         qDebug() << "Could not set mpv property pause to false";
     }
@@ -693,7 +693,7 @@ void MpvAdapter::play()
 void MpvAdapter::pause()
 {
     int flag = 1;
-    if (mpv_set_property(m_handle, "pause", MPV_FORMAT_FLAG, &flag) < 0)
+    if (mpv_set_property_async(m_handle, 0, "pause", MPV_FORMAT_FLAG, &flag) < 0)
     {
         qDebug() << "Could not set mpv property pause to true";
     }
@@ -705,7 +705,7 @@ void MpvAdapter::stop()
         "stop",
         NULL
     };
-    if (mpv_command(m_handle, args) < 0)
+    if (mpv_command_async(m_handle, 0, args) < 0)
     {
         qDebug() << "Could not stop mpv";
     }
@@ -718,7 +718,7 @@ void MpvAdapter::seekForward()
         "1",
         NULL
     };
-    if (mpv_command(m_handle, args) < 0)
+    if (mpv_command_async(m_handle, 0, args) < 0)
     {
         qDebug() << "Could not seek the next subtitle";
     }
@@ -731,7 +731,7 @@ void MpvAdapter::seekBackward()
         "-1",
         NULL
     };
-    if (mpv_command(m_handle, args) < 0)
+    if (mpv_command_async(m_handle, 0, args) < 0)
     {
         qDebug() << "Could not seek the last subtitle";
     }
@@ -764,7 +764,7 @@ void MpvAdapter::skipBackward()
 void MpvAdapter::disableAudio()
 {
     const char *value = "no";
-    if (mpv_set_property(m_handle, "aid", MPV_FORMAT_STRING, &value) < 0)
+    if (mpv_set_property_async(m_handle, 0, "aid", MPV_FORMAT_STRING, &value) < 0)
     {
         qDebug() << "Could not set mpv property aid to no";
     }
@@ -773,7 +773,7 @@ void MpvAdapter::disableAudio()
 void MpvAdapter::disableVideo()
 {
     const char *value = "no";
-    if (mpv_set_property(m_handle, "vid", MPV_FORMAT_STRING, &value) < 0)
+    if (mpv_set_property_async(m_handle, 0, "vid", MPV_FORMAT_STRING, &value) < 0)
     {
         qDebug() << "Could not set mpv property vid to no";
     }
@@ -782,7 +782,7 @@ void MpvAdapter::disableVideo()
 void MpvAdapter::disableSubtitles()
 {
     const char *value = "no";
-    if (mpv_set_property(m_handle, "sid", MPV_FORMAT_STRING, &value) < 0)
+    if (mpv_set_property_async(m_handle, 0, "sid", MPV_FORMAT_STRING, &value) < 0)
     {
         qDebug() << "Could not set mpv property sid to no";
     }
@@ -791,7 +791,7 @@ void MpvAdapter::disableSubtitles()
 void MpvAdapter::disableSubtitleTwo()
 {
     const char *value = "no";
-    if (mpv_set_property(m_handle, "secondary-sid", MPV_FORMAT_STRING, &value) < 0)
+    if (mpv_set_property_async(m_handle, 0, "secondary-sid", MPV_FORMAT_STRING, &value) < 0)
     {
         qDebug() << "Could not set mpv property secondary-sid to no";
     }
@@ -800,7 +800,7 @@ void MpvAdapter::disableSubtitleTwo()
 void MpvAdapter::setSubVisiblity(const bool visible)
 {
     int flag = visible ? 1 : 0;
-    if (mpv_set_property(m_handle, "sub-visibility", MPV_FORMAT_FLAG, &flag) < 0)
+    if (mpv_set_property_async(m_handle, 0, "sub-visibility", MPV_FORMAT_FLAG, &flag) < 0)
     {
         qDebug() << "Could not set mpv property sub-visibility to" << flag;
     }
@@ -808,7 +808,7 @@ void MpvAdapter::setSubVisiblity(const bool visible)
 
 void MpvAdapter::setAudioTrack(int64_t id)
 {
-    if (mpv_set_property(m_handle, "aid", MPV_FORMAT_INT64, &id) < 0)
+    if (mpv_set_property_async(m_handle, 0, "aid", MPV_FORMAT_INT64, &id) < 0)
     {
         qDebug() << "Could not set mpv property aid";
     }
@@ -816,7 +816,7 @@ void MpvAdapter::setAudioTrack(int64_t id)
 
 void MpvAdapter::setVideoTrack(int64_t id)
 {
-    if (mpv_set_property(m_handle, "vid", MPV_FORMAT_INT64, &id) < 0)
+    if (mpv_set_property_async(m_handle, 0, "vid", MPV_FORMAT_INT64, &id) < 0)
     {
         qDebug() << "Could not set mpv property vid";
     }
@@ -824,7 +824,7 @@ void MpvAdapter::setVideoTrack(int64_t id)
 
 void MpvAdapter::setSubtitleTrack(int64_t id)
 {
-    if (mpv_set_property(m_handle, "sid", MPV_FORMAT_INT64, &id) < 0)
+    if (mpv_set_property_async(m_handle, 0, "sid", MPV_FORMAT_INT64, &id) < 0)
     {
         qDebug() << "Could not set mpv property sid";
     }
@@ -832,7 +832,7 @@ void MpvAdapter::setSubtitleTrack(int64_t id)
 
 void MpvAdapter::setSubtitleTwoTrack(int64_t id)
 {
-    if (mpv_set_property(m_handle, "secondary-sid", MPV_FORMAT_INT64, &id) < 0)
+    if (mpv_set_property_async(m_handle, 0, "secondary-sid", MPV_FORMAT_INT64, &id) < 0)
     {
         qDebug() << "Could not set mpv property secondary-sid";
     }
@@ -841,7 +841,7 @@ void MpvAdapter::setSubtitleTwoTrack(int64_t id)
 void MpvAdapter::setFullscreen(bool value)
 {
     int flag = value ? 1 : 0;
-    if (mpv_set_property(m_handle, "fullscreen", MPV_FORMAT_FLAG, &flag) < 0)
+    if (mpv_set_property_async(m_handle, 0, "fullscreen", MPV_FORMAT_FLAG, &flag) < 0)
     {
         qDebug() << "Could not set mpv property fullscreen";
     }
@@ -849,7 +849,7 @@ void MpvAdapter::setFullscreen(bool value)
 
 void MpvAdapter::setVolume(int64_t value)
 {
-    if (mpv_set_property(m_handle, "volume", MPV_FORMAT_INT64, &value) < 0)
+    if (mpv_set_property_async(m_handle, 0, "volume", MPV_FORMAT_INT64, &value) < 0)
     {
         qDebug() << "Could not set mpv property volume";
     }
@@ -1093,7 +1093,7 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
         keypress,
         NULL
     };
-    if (mpv_command_async(m_handle, -1, args) < 0)
+    if (mpv_command_async(m_handle, 0, args) < 0)
     {
         qDebug() << "Could not send keypress command for key" << key;
     }
@@ -1149,7 +1149,7 @@ void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
         input,
         NULL
     };
-    if (mpv_command_async(m_handle, -1, args) < 0)
+    if (mpv_command_async(m_handle, 0, args) < 0)
     {
         qDebug() << "Could not send keypress command for direction"
                  << input;
