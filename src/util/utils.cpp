@@ -182,7 +182,8 @@ void NetworkUtils::checkForUpdates()
             );
             reply->deleteLater();
             manager->deleteLater();
-        }
+        },
+        Qt::QueuedConnection
     );
 }
 
