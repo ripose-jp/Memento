@@ -71,27 +71,33 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
     connect(m_findDelay, &QTimer::timeout, this, &SubtitleWidget::findTerms);
     connect(
         mediator, &GlobalMediator::behaviorSettingsChanged,
-        this,     &SubtitleWidget::initSettings
+        this,     &SubtitleWidget::initSettings,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::searchSettingsChanged,
-        this,     &SubtitleWidget::initSettings
+        this,     &SubtitleWidget::initSettings,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerResized,
-        this,     &SubtitleWidget::initTheme
+        this,     &SubtitleWidget::initTheme,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::interfaceSettingsChanged,
-        this,     &SubtitleWidget::initTheme
+        this,     &SubtitleWidget::initTheme,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::definitionsHidden,
-        this,     &StrokeLabel::deselectText
+        this,     &StrokeLabel::deselectText,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::definitionsShown,
-        this,     &SubtitleWidget::selectText
+        this,     &SubtitleWidget::selectText,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerSubtitleChanged,
@@ -103,24 +109,28 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
     );
     connect(
         mediator, &GlobalMediator::playerSubtitlesDisabled,
-        this,     [=] { positionChanged(-1); }
+        this,     [=] { positionChanged(-1); },
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerSubtitleTrackChanged,
-        this,     [=] { positionChanged(-1); }
+        this,     [=] { positionChanged(-1); },
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::menuSubtitleVisibilityToggled, this,
         [=] (bool visible) {
             m_settings.showSubtitles = visible;
             adjustVisibility();
-        }
+        },
+        Qt::QueuedConnection
     );
     connect(mediator, &GlobalMediator::playerPauseStateChanged, this,
         [=] (const bool paused) {
             m_paused = paused;
             adjustVisibility();
-        }
+        },
+        Qt::QueuedConnection
     );
 }
 
@@ -140,7 +150,7 @@ void SubtitleWidget::deleteTerms(QList<Term *> *terms)
 }
 
 /* End Constructor/Destructor */
-/* Begin Intializers */
+/* Begin Initializers */
 
 void SubtitleWidget::initTheme()
 {
@@ -309,7 +319,7 @@ void SubtitleWidget::initSettings()
     settings.endGroup();
 }
 
-/* End Intializers */
+/* End Initializers */
 /* Begin Event Handlers */
 
 void SubtitleWidget::showEvent(QShowEvent *event)
