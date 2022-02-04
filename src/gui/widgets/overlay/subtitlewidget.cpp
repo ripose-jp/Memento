@@ -494,7 +494,7 @@ void SubtitleWidget::adjustVisibility()
 
 /* If pausing on subtitle end is enabled, prevents pausing on the next
  * subtitle. */
-#define PAUSE_DELTA 0.028
+#define PAUSE_DELTA 0.04
 
 void SubtitleWidget::positionChanged(const double value)
 {
