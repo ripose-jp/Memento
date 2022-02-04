@@ -55,16 +55,19 @@ SearchWidget::SearchWidget(QWidget *parent)
 
     connect(
         m_lineEditSearch, &QLineEdit::textEdited,
-        this, &SearchWidget::updateSearch
+        this, &SearchWidget::updateSearch,
+        Qt::QueuedConnection
     );
     connect(
         this, &SearchWidget::searchUpdated,
-        m_definition, &DefinitionWidget::setTerms
+        m_definition, &DefinitionWidget::setTerms,
+        Qt::QueuedConnection
     );
     connect(
         GlobalMediator::getGlobalMediator(),
         &GlobalMediator::interfaceSettingsChanged,
-        this, [=] { updateSearch(m_lineEditSearch->text()); }
+        this, [=] { updateSearch(m_lineEditSearch->text()); },
+        Qt::QueuedConnection
     );
 }
 
