@@ -137,7 +137,7 @@ enum class Theme
 #define SETTINGS_INTERFACE_SUB_SCALE_DEFAULT                0.05
 
 #define SETTINGS_INTERFACE_SUB_OFFSET                       "sub-offset"
-#define SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT               0.015
+#define SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT               0.045
 
 #define SETTINGS_INTERFACE_SUB_STROKE                       "sub-stroke"
 #define SETTINGS_INTERFACE_SUB_STROKE_DEFAULT               11.0
