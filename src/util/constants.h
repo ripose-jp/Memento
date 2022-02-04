@@ -76,7 +76,7 @@
 #define SETTINGS_SEARCH_HIDE_SUBS       "hide-subs"
 #define SETTINGS_SEARCH_HIDE_BAR        "hide-bar"
 #define SETTINGS_SEARCH_REPLACE_LINES   "replace-lines"
-#define SETTINGS_SERACH_REPLACE_WITH    "replace-with"
+#define SETTINGS_SEARCH_REPLACE_WITH    "replace-with"
 #define SETTINGS_SEARCH_REMOVE_REGEX    "remove-regex"
 #define SETTINGS_SEARCH_LIST_GLOSSARY   "list-result"
 #define DEFAULT_LIST_GLOSSARY           true

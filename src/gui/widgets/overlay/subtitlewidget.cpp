@@ -303,7 +303,7 @@ void SubtitleWidget::initSettings()
             DEFAULT_REPLACE_LINES
         ).toBool();
     m_settings.replaceStr = settings.value(
-            SETTINGS_SERACH_REPLACE_WITH,
+            SETTINGS_SEARCH_REPLACE_WITH,
             DEFAULT_REPLACE_WITH
         ).toString();
     setSubtitle(
