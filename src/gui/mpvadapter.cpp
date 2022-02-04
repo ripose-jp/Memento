@@ -74,44 +74,36 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
 
     connect(
         m_mpv,    &MpvWidget::audioTrackChanged,
-        mediator, &GlobalMediator::playerAudioTrackChanged,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerAudioTrackChanged
     );
     connect(
         m_mpv,    &MpvWidget::videoTrackChanged,
-        mediator, &GlobalMediator::playerVideoTrackChanged,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerVideoTrackChanged
     );
     connect(
         m_mpv,    &MpvWidget::subtitleTrackChanged,
-        mediator, &GlobalMediator::playerSubtitleTrackChanged,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerSubtitleTrackChanged
     );
     connect(
         m_mpv,    &MpvWidget::subtitleTwoTrackChanged,
-        mediator, &GlobalMediator::playerSecondSubtitleTrackChanged,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerSecondSubtitleTrackChanged
     );
 
     connect(
         m_mpv,    &MpvWidget::audioDisabled,
-        mediator, &GlobalMediator::playerAudioDisabled,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerAudioDisabled
     );
     connect(
         m_mpv,    &MpvWidget::videoDisabled,
-        mediator, &GlobalMediator::playerVideoDisabled,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerVideoDisabled
     );
     connect(
         m_mpv,    &MpvWidget::subtitleDisabled,
-        mediator, &GlobalMediator::playerSubtitlesDisabled,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerSubtitlesDisabled
     );
     connect(
         m_mpv,    &MpvWidget::subtitleTwoDisabled,
-        mediator, &GlobalMediator::playerSecondSubtitlesDisabled,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerSecondSubtitlesDisabled
     );
 
     connect(
@@ -124,33 +116,27 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     );
     connect(
         m_mpv,    &MpvWidget::subtitleChangedSecondary,
-        mediator, &GlobalMediator::playerSecSubtitleChanged,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerSecSubtitleChanged
     );
     connect(
         m_mpv,    &MpvWidget::subDelayChanged,
-        mediator, &GlobalMediator::playerSubDelayChanged,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerSubDelayChanged
     );
     connect(
         m_mpv,    &MpvWidget::durationChanged,
-        mediator, &GlobalMediator::playerDurationChanged,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerDurationChanged
     );
     connect(
         m_mpv,    &MpvWidget::positionChanged,
-        mediator, &GlobalMediator::playerPositionChanged,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerPositionChanged
     );
     connect(
         m_mpv,    &MpvWidget::pauseChanged,
-        mediator, &GlobalMediator::playerPauseStateChanged,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerPauseStateChanged
     );
     connect(
         m_mpv,    &MpvWidget::fullscreenChanged,
-        mediator, &GlobalMediator::playerFullscreenChanged,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerFullscreenChanged
     );
     connect(
         m_mpv,    &MpvWidget::volumeChanged,
@@ -158,8 +144,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     );
     connect(
         m_mpv,    &MpvWidget::volumeMaxChanged,
-        mediator, &GlobalMediator::playerMaxVolumeChanged,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerMaxVolumeChanged
     );
     connect(
         m_mpv,    &MpvWidget::titleChanged,
@@ -172,8 +157,7 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
 
     connect(
         m_mpv,    &MpvWidget::cursorHidden,
-        mediator, &GlobalMediator::playerCursorHidden,
-        Qt::QueuedConnection
+        mediator, &GlobalMediator::playerCursorHidden
     );
     connect(
         m_mpv,    &MpvWidget::mouseMoved,
@@ -684,7 +668,7 @@ void MpvAdapter::seek(const double time)
 void MpvAdapter::play()
 {
     int flag = 0;
-    if (mpv_set_property_async(m_handle, 0, "pause", MPV_FORMAT_FLAG, &flag) < 0)
+    if (mpv_set_property(m_handle, "pause", MPV_FORMAT_FLAG, &flag) < 0)
     {
         qDebug() << "Could not set mpv property pause to false";
     }
@@ -693,7 +677,7 @@ void MpvAdapter::play()
 void MpvAdapter::pause()
 {
     int flag = 1;
-    if (mpv_set_property_async(m_handle, 0, "pause", MPV_FORMAT_FLAG, &flag) < 0)
+    if (mpv_set_property(m_handle, "pause", MPV_FORMAT_FLAG, &flag) < 0)
     {
         qDebug() << "Could not set mpv property pause to true";
     }
@@ -705,7 +689,7 @@ void MpvAdapter::stop()
         "stop",
         NULL
     };
-    if (mpv_command_async(m_handle, 0, args) < 0)
+    if (mpv_command(m_handle, args) < 0)
     {
         qDebug() << "Could not stop mpv";
     }
