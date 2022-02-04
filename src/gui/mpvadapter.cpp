@@ -74,77 +74,95 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
 
     connect(
         m_mpv,    &MpvWidget::audioTrackChanged,
-        mediator, &GlobalMediator::playerAudioTrackChanged
+        mediator, &GlobalMediator::playerAudioTrackChanged,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::videoTrackChanged,
-        mediator, &GlobalMediator::playerVideoTrackChanged
+        mediator, &GlobalMediator::playerVideoTrackChanged,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::subtitleTrackChanged,
-        mediator, &GlobalMediator::playerSubtitleTrackChanged
+        mediator, &GlobalMediator::playerSubtitleTrackChanged,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::subtitleTwoTrackChanged,
-        mediator, &GlobalMediator::playerSecondSubtitleTrackChanged
+        mediator, &GlobalMediator::playerSecondSubtitleTrackChanged,
+        Qt::QueuedConnection
     );
 
     connect(
         m_mpv,    &MpvWidget::audioDisabled,
-        mediator, &GlobalMediator::playerAudioDisabled
+        mediator, &GlobalMediator::playerAudioDisabled,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::videoDisabled,
-        mediator, &GlobalMediator::playerVideoDisabled
+        mediator, &GlobalMediator::playerVideoDisabled,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::subtitleDisabled,
-        mediator, &GlobalMediator::playerSubtitlesDisabled
+        mediator, &GlobalMediator::playerSubtitlesDisabled,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::subtitleTwoDisabled,
-        mediator, &GlobalMediator::playerSecondSubtitlesDisabled
+        mediator, &GlobalMediator::playerSecondSubtitlesDisabled,
+        Qt::QueuedConnection
     );
 
     connect(
         m_mpv,    &MpvWidget::subtitleChanged,
-        mediator, &GlobalMediator::playerSubtitleChanged
+        mediator, &GlobalMediator::playerSubtitleChanged,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::subtitleChangedRaw,
-        mediator, &GlobalMediator::playerSubtitleChangedRaw
+        mediator, &GlobalMediator::playerSubtitleChangedRaw,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::subtitleChangedSecondary,
-        mediator, &GlobalMediator::playerSecSubtitleChanged
+        mediator, &GlobalMediator::playerSecSubtitleChanged,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::subDelayChanged,
-        mediator, &GlobalMediator::playerSubDelayChanged
+        mediator, &GlobalMediator::playerSubDelayChanged,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::durationChanged,
-        mediator, &GlobalMediator::playerDurationChanged
+        mediator, &GlobalMediator::playerDurationChanged,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::positionChanged,
-        mediator, &GlobalMediator::playerPositionChanged
+        mediator, &GlobalMediator::playerPositionChanged,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::pauseChanged,
-        mediator, &GlobalMediator::playerPauseStateChanged
+        mediator, &GlobalMediator::playerPauseStateChanged,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::fullscreenChanged,
-        mediator, &GlobalMediator::playerFullscreenChanged
+        mediator, &GlobalMediator::playerFullscreenChanged,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::volumeChanged,
-        mediator, &GlobalMediator::playerVolumeChanged
+        mediator, &GlobalMediator::playerVolumeChanged,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::volumeMaxChanged,
-        mediator, &GlobalMediator::playerMaxVolumeChanged
+        mediator, &GlobalMediator::playerMaxVolumeChanged,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::titleChanged,
@@ -157,7 +175,8 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
 
     connect(
         m_mpv,    &MpvWidget::cursorHidden,
-        mediator, &GlobalMediator::playerCursorHidden
+        mediator, &GlobalMediator::playerCursorHidden,
+        Qt::QueuedConnection
     );
     connect(
         m_mpv,    &MpvWidget::mouseMoved,
@@ -175,57 +194,68 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     /* Slots */
     connect(
         mediator, &GlobalMediator::searchSettingsChanged,
-        this, &MpvAdapter::initRegex
+        this, &MpvAdapter::initRegex,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::controlsPlay,
-        this,     &PlayerAdapter::play
+        this, &PlayerAdapter::play,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::controlsPause,
-        this,     &PlayerAdapter::pause
+        this, &PlayerAdapter::pause,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::controlsPositionChanged,
-        this,     &PlayerAdapter::seek
+        this, &PlayerAdapter::seek,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::controlsSkipForward,
-        this,     &PlayerAdapter::skipForward
+        this, &PlayerAdapter::skipForward,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::controlsSkipBackward,
-        this,     &PlayerAdapter::skipBackward
+        this, &PlayerAdapter::skipBackward,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::controlsSeekForward,
-        this,     &PlayerAdapter::seekForward
+        this, &PlayerAdapter::seekForward,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::controlsSeekBackward,
-        this,     &PlayerAdapter::seekBackward
+        this, &PlayerAdapter::seekBackward,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::controlsFullscreenChanged,
-        this,     &PlayerAdapter::setFullscreen
+        this, &PlayerAdapter::setFullscreen,
+        Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::controlsVolumeChanged,
-        this,     &PlayerAdapter::setVolume
+        this, &PlayerAdapter::setVolume,
+        Qt::QueuedConnection
     );
 
     connect(
         mediator, &GlobalMediator::keyPressed,
-        this,     &PlayerAdapter::keyPressed
+        this, &PlayerAdapter::keyPressed
     );
     connect(
         mediator, &GlobalMediator::wheelMoved,
-        this,     &PlayerAdapter::mouseWheelMoved
+        this, &PlayerAdapter::mouseWheelMoved
     );
 
     connect(
         mediator, &GlobalMediator::requestSubtitleVisibility,
-        this,     &PlayerAdapter::setSubVisiblity
+        this, &PlayerAdapter::setSubVisiblity,
+        Qt::QueuedConnection
     );
 }
 
