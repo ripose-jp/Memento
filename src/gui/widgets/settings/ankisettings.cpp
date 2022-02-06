@@ -39,6 +39,66 @@ AnkiSettings::AnkiSettings(QWidget *parent)
     m_ui->setupUi(this);
     m_ui->frameAdvanced->hide();
 
+    m_ui->termCardBuilder->setSuggestions(
+        {
+            /* Shared */
+            REPLACE_AUDIO_MEDIA,
+            REPLACE_AUDIO_CONTEXT,
+            REPLACE_CLIPBOARD,
+            REPLACE_CLOZE_BODY,
+            REPLACE_CLOZE_PREFIX,
+            REPLACE_CLOZE_SUFFIX,
+            REPLACE_CONTEXT,
+            REPLACE_CONTEXT_SEC,
+            REPLACE_FREQUENCIES,
+            REPLACE_GLOSSARY,
+            REPLACE_SCREENSHOT,
+            REPLACE_SCREENSHOT_VIDEO,
+            REPLACE_SENTENCE,
+            REPLACE_SENTENCE_SEC,
+            REPLACE_TAGS,
+            REPLACE_TITLE,
+
+            /* Term */
+            REPLACE_AUDIO,
+            REPLACE_EXPRESSION,
+            REPLACE_FURIGANA,
+            REPLACE_FURIGANA_PLAIN,
+            REPLACE_GLOSSARY_BRIEF,
+            REPLACE_PITCH,
+            REPLACE_PITCH_GRAPHS,
+            REPLACE_PITCH_POSITIONS,
+            REPLACE_READING,
+        }
+    );
+    m_ui->kanjiCardBuilder->setSuggestions(
+        {
+            /* Shared */
+            REPLACE_AUDIO_MEDIA,
+            REPLACE_AUDIO_CONTEXT,
+            REPLACE_CLIPBOARD,
+            REPLACE_CLOZE_BODY,
+            REPLACE_CLOZE_PREFIX,
+            REPLACE_CLOZE_SUFFIX,
+            REPLACE_CONTEXT,
+            REPLACE_CONTEXT_SEC,
+            REPLACE_FREQUENCIES,
+            REPLACE_GLOSSARY,
+            REPLACE_SCREENSHOT,
+            REPLACE_SCREENSHOT_VIDEO,
+            REPLACE_SENTENCE,
+            REPLACE_SENTENCE_SEC,
+            REPLACE_TAGS,
+            REPLACE_TITLE,
+
+            /* Kanji */
+            REPLACE_CHARACTER,
+            REPLACE_KUNYOMI,
+            REPLACE_ONYOMI,
+            REPLACE_STROKE_COUNT,
+        }
+    );
+
     initIcons();
 
     connect(

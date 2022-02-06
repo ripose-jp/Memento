@@ -25,6 +25,8 @@
 
 #include <QJsonObject>
 
+class QCompleter;
+
 namespace Ui
 {
     class CardBuilder;
@@ -40,6 +42,12 @@ class CardBuilder : public QWidget
 public:
     CardBuilder(QWidget *parent = nullptr);
     ~CardBuilder();
+
+    /**
+     * Sets tags that will be auto
+     * @param words  The words to add to the auto completion list.
+     */
+    void setSuggestions(const QStringList &words);
 
     /**
      * Populates the Decks spinbox.
@@ -113,6 +121,9 @@ Q_SIGNALS:
 private:
     /* The UI object containing all the widgets. */
     Ui::CardBuilder *m_ui;
+
+    /* The completer for this widget */
+    QCompleter *m_completer;
 };
 
 #endif // CARDBUILDER_H
