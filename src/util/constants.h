@@ -44,12 +44,20 @@
 /* Audio Source Settings */
 #define SETTINGS_AUDIO_SRC              "audio-srcs"
 
+enum class AudioSourceType
+{
+    File = 0,
+    JSON = 1,
+};
+
 #define SETTINGS_AUDIO_SRC_NAME         "name"
 #define SETTINGS_AUDIO_SRC_URL          "url"
+#define SETTINGS_AUDIO_SRC_TYPE         "type"
 #define SETTINGS_AUDIO_SRC_MD5          "md5"
 
 #define SETTINGS_AUDIO_SRC_NAME_DEFAULT (QString("JapanesePod101"))
 #define SETTINGS_AUDIO_SRC_URL_DEFAULT  (QString("http://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kanji={expression}&kana={reading}"))
+#define SETTINGS_AUDIO_SRC_TYPE_DEFAULT AudioSourceType::File
 #define SETTINGS_AUDIO_SRC_MD5_DEFAULT  (QString("7e2c2f954ef6051373ba916f000168dc"))
 
 /* Behavior Settings */

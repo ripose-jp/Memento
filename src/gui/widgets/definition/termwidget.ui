@@ -103,6 +103,9 @@
          <height>30</height>
         </size>
        </property>
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
+       </property>
        <property name="toolTip">
         <string>Add Anki note</string>
        </property>

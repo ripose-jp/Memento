@@ -46,6 +46,11 @@
        </column>
        <column>
         <property name="text">
+         <string>Type</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
          <string>MD5 Skip Hash</string>
         </property>
        </column>

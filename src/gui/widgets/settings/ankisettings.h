@@ -119,12 +119,6 @@ private Q_SLOTS:
 
 private:
     /**
-     * Populates the Audio Sources spin box with the saved audio sources.
-     */
-
-    void initAudioSources();
-
-    /**
      * Loads the information from the config into the UI.
      * @param profile The name of the profile.
      * @param config  The struct containing the config information.
@@ -180,9 +174,6 @@ private:
 
     /* A cached set of configs index by profile name. */
     QHash<QString, std::shared_ptr<AnkiConfig>> m_configs;
-
-    /* A cached set of audio sources, indexed by name. */
-    QMap<QString, AudioSource> m_audioSources;
 
     /* The name of the current profile visible in the UI. */
     QString m_currentProfile;

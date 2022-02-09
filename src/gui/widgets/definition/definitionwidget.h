@@ -30,6 +30,40 @@
 #include "kanjiwidget.h"
 #include "termwidget.h"
 
+enum class AudioSourceType;
+
+/**
+ * Internal representation of a user defined audio source.
+ */
+struct AudioSource
+{
+    /* The type of the audio source */
+    AudioSourceType type;
+
+    /* The name of the audio source. */
+    QString name;
+
+    /* The raw URL (may contain {expression}/{reading}) of the audio source. */
+    QString url;
+
+    /* The MD5 hash to skip if the audio from the source matches. */
+    QString md5;
+
+    /* A subarray of audio sources for this source. */
+    QList<AudioSource> audioSources;
+
+    AudioSource &operator=(const AudioSource &rhs)
+    {
+        type = rhs.type;
+        name = rhs.name;
+        url = rhs.url;
+        md5 = rhs.md5;
+        audioSources = rhs.audioSources;
+
+        return *this;
+    }
+};
+
 namespace Ui
 {
     class DefinitionWidget;
@@ -162,6 +196,9 @@ private:
 
     /* The list of audio sources */
     QList<AudioSource> m_sources;
+
+    /* the number of json sources */
+    int m_jsonSources = 0;
 
     /* The maximum number of terms that should be shown on one search */
     size_t m_limit;

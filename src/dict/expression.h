@@ -183,6 +183,12 @@ struct Term : public CommonExpFields
      * Larger values generally mean this term is more common.
      */
     int score;
+
+    /* The URL of the selected audio source */
+    QString audioURL;
+
+    /* The MD5 audio skip hash for the audio source */
+    QString audioSkipHash;
 } typedef Term;
 
 /**

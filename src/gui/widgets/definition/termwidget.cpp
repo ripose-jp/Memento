@@ -23,13 +23,18 @@
 
 #include <QClipboard>
 #include <QMenu>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 
 #include "../../../audio/audioplayer.h"
 #include "../../../dict/dictionary.h"
+#include "../../../util/constants.h"
 #include "../../../util/globalmediator.h"
 #include "../../../util/iconfactory.h"
 #include "../../../util/utils.h"
 #include "../subtitlelistwidget.h"
+#include "definitionwidget.h"
 #include "glossarywidget.h"
 #include "pitchwidget.h"
 #include "tagwidget.h"
@@ -65,17 +70,23 @@
 
 /* Begin Constructor/Destructor */
 
-TermWidget::TermWidget(std::shared_ptr<const Term>  term,
-                       const QList<AudioSource>    *sources,
-                       const bool                   list,
-                       QWidget                     *parent)
+TermWidget::TermWidget(
+    std::shared_ptr<const Term> term,
+    QList<AudioSource> &sources,
+    int jsonSources,
+    bool list,
+    QWidget *parent)
     : QWidget(parent),
       m_ui(new Ui::TermWidget),
       m_term(term),
       m_client(GlobalMediator::getGlobalMediator()->getAnkiClient()),
-      m_sources(sources)
+      m_sources(sources),
+      m_jsonSources(jsonSources)
 {
     m_ui->setupUi(this);
+
+    m_menuAdd = new QMenu("Play Audio Source", m_ui->buttonAddCard);
+    m_menuAudio = new QMenu("Add Audio Source", m_ui->buttonAudio);
 
     m_ui->labelKanji->setStyleSheet(EXPRESSION_STYLE);
     m_ui->labelKana->setStyleSheet(READING_STYLE);
@@ -103,34 +114,33 @@ TermWidget::TermWidget(std::shared_ptr<const Term>  term,
     m_ui->buttonAnkiOpen->setVisible(false);
 
     m_ui->buttonAudio->setIcon(factory->getIcon(IconFactory::Icon::audio));
-    m_ui->buttonAudio->setVisible(!m_sources->isEmpty());
+    m_ui->buttonAudio->setVisible(!m_sources.isEmpty());
 
     initUi(*term, list);
 
     connect(
         m_ui->labelKanji, &QLabel::linkActivated,
-        this,             &TermWidget::searchKanji
+        this, &TermWidget::searchKanji
     );
     connect(
         m_ui->buttonAddCard, &QToolButton::clicked,
-        this,                &TermWidget::addNote
+        this, QOverload<>::of(&TermWidget::addNote)
+    );
+    connect(
+        m_ui->buttonAddCard, &QToolButton::customContextMenuRequested,
+        this, &TermWidget::showAddableAudioSources
     );
     connect(
         m_ui->buttonAnkiOpen, &QToolButton::clicked,
-        this,                 &TermWidget::searchAnki
+        this, &TermWidget::searchAnki
     );
     connect(
         m_ui->buttonAudio, &QToolButton::customContextMenuRequested,
-        this,              &TermWidget::showAudioSources
+        this, &TermWidget::showPlayableAudioSources
     );
-    connect(m_ui->buttonAudio, &QToolButton::clicked, this,
-        [=] {
-            if (!m_sources->isEmpty())
-            {
-                const AudioSource &src = m_sources->first();
-                playAudio(src.url, src.md5);
-            }
-        }
+    connect(
+        m_ui->buttonAudio, &QToolButton::clicked,
+        this, QOverload<>::of(&TermWidget::playAudio)
     );
 }
 
@@ -203,6 +213,27 @@ void TermWidget::addNote()
 {
     m_ui->buttonAddCard->setEnabled(false);
 
+    m_lockJsonSources.lock();
+    if (m_jsonSources)
+    {
+        m_lockJsonSources.unlock();
+        loadAudioSources();
+        connect(
+            this, &TermWidget::audioSourcesLoaded,
+            this, QOverload<>::of(&TermWidget::addNote)
+        );
+        return;
+    }
+    m_lockJsonSources.unlock();
+
+    const AudioSource *src = getFirstAudioSource();
+    addNote(src ? *src : AudioSource());
+}
+
+void TermWidget::addNote(const AudioSource &src)
+{
+    m_ui->buttonAddCard->setEnabled(false);
+
     Term *term = new Term(*m_term);
     term->definitions.clear();
     for (size_t i = 0; i < m_layoutGlossary->count(); ++i)
@@ -233,6 +264,8 @@ void TermWidget::addNote()
     QPair<double, double> contextTimes = subList->getPrimaryContextTime();
     term->startTimeContext = contextTimes.first + delay;
     term->endTimeContext = contextTimes.second + delay;
+    term->audioURL = src.url;
+    term->audioSkipHash = src.md5;
 
     AnkiReply *reply = m_client->addNote(term);
     connect(reply, &AnkiReply::finishedInt, this,
@@ -266,14 +299,45 @@ void TermWidget::searchAnki()
     );
 }
 
-void TermWidget::playAudio(QString url, const QString &hash)
+void TermWidget::playAudio()
+{
+    m_ui->buttonAudio->setEnabled(false);
+
+    if (m_sources.isEmpty())
+    {
+        m_ui->buttonAudio->hide();
+        return;
+    }
+
+    m_lockJsonSources.lock();
+    if (m_jsonSources)
+    {
+        m_lockJsonSources.unlock();
+        loadAudioSources();
+        connect(
+            this, &TermWidget::audioSourcesLoaded,
+            this, QOverload<>::of(&TermWidget::playAudio)
+        );
+        return;
+    }
+    m_lockJsonSources.unlock();
+
+    const AudioSource *src = getFirstAudioSource();
+    if (src)
+    {
+        playAudio(*src);
+    }
+}
+
+void TermWidget::playAudio(const AudioSource &src)
 {
     m_ui->buttonAudio->setEnabled(false);
     AudioPlayerReply *reply =
         GlobalMediator::getGlobalMediator()->getAudioPlayer()->playAudio(
-            url.replace(REPLACE_EXPRESSION, m_term->expression)
-               .replace(REPLACE_READING, m_term->reading),
-            hash
+            QString(src.url)
+                .replace(REPLACE_EXPRESSION, m_term->expression)
+                .replace(REPLACE_READING, m_term->reading),
+            src.md5
         );
     m_ui->buttonAudio->setEnabled(reply == nullptr);
 
@@ -294,18 +358,42 @@ void TermWidget::playAudio(QString url, const QString &hash)
     }
 }
 
-void TermWidget::showAudioSources(const QPoint &pos)
+void TermWidget::showPlayableAudioSources(const QPoint &pos)
 {
-    QMenu contextMenu("Audio Sources", m_ui->buttonAudio);
-    for (const AudioSource &src : *m_sources)
+    m_lockJsonSources.lock();
+    if (m_jsonSources)
     {
-        contextMenu.addAction(src.name, this,
-            [=] {
-                playAudio(src.url, src.md5);
-            }
+        m_menuAudio->clear();
+        m_menuAudio->addAction("Loading...");
+        loadAudioSources();
+    }
+    else if (m_menuAudio->actions().isEmpty())
+    {
+        populateAudioSourceMenu(
+            m_menuAudio, [=] (const AudioSource &src) { playAudio(src); }
         );
     }
-    contextMenu.exec(m_ui->buttonAudio->mapToGlobal(pos));
+    m_lockJsonSources.unlock();
+    m_menuAudio->exec(m_ui->buttonAudio->mapToGlobal(pos));
+}
+
+void TermWidget::showAddableAudioSources(const QPoint &pos)
+{
+    m_lockJsonSources.lock();
+    if (m_jsonSources)
+    {
+        m_menuAdd->clear();
+        m_menuAdd->addAction("Loading...");
+        loadAudioSources();
+    }
+    else if (m_menuAdd->actions().isEmpty())
+    {
+        populateAudioSourceMenu(
+            m_menuAdd, [=] (const AudioSource &src) { addNote(src); }
+        );
+    }
+    m_lockJsonSources.unlock();
+    m_menuAdd->exec(m_ui->buttonAddCard->mapToGlobal(pos));
 }
 
 void TermWidget::searchKanji(const QString &ch)
@@ -348,6 +436,163 @@ inline QString TermWidget::generateJishoLink(const QString &exp)
 {
     return
         QString("<a href=\"https://jisho.org/search/%1\">Jisho</a>").arg(exp);
+}
+
+
+#define JSON_KEY_TYPE               "type"
+#define JSON_VALUE_TYPE             "audioSourceList"
+#define JSON_KEY_AUDIO_SOURCES      "audioSources"
+#define JSON_KEY_AUDIO_SOURCES_NAME "name"
+#define JSON_KEY_AUDIO_SOURCES_URL  "url"
+
+/**
+ * Processes raw JSON audio sources into a list of audio sources.
+ * @param      data The raw json.
+ * @param[out] src  The audio source these audio sources belong to.
+ */
+static inline void processAudioSourceJson(
+    const QByteArray &data, AudioSource &src)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    if (!doc.isObject())
+    {
+        return;
+    }
+    QJsonObject obj = doc.object();
+    if (obj[JSON_KEY_TYPE].toString() != JSON_VALUE_TYPE)
+    {
+        return;
+    }
+    if (!obj[JSON_KEY_AUDIO_SOURCES].isArray())
+    {
+        return;
+    }
+    for (const QJsonValue &val : obj[JSON_KEY_AUDIO_SOURCES].toArray())
+    {
+        if (!val.isObject())
+        {
+            continue;
+        }
+        QJsonObject srcObj = val.toObject();
+        if (!srcObj[JSON_KEY_AUDIO_SOURCES_NAME].isString() ||
+            !srcObj[JSON_KEY_AUDIO_SOURCES_URL].isString())
+        {
+            continue;
+        }
+
+        AudioSource childSrc;
+        childSrc.type = AudioSourceType::File;
+        childSrc.name = srcObj[JSON_KEY_AUDIO_SOURCES_NAME].toString();
+        childSrc.url = srcObj[JSON_KEY_AUDIO_SOURCES_URL].toString();
+        childSrc.md5 = src.md5;
+        src.audioSources.append(childSrc);
+    }
+}
+
+#undef JSON_KEY_TYPE
+#undef JSON_VALUE_TYPE
+#undef JSON_KEY_AUDIO_SOURCES
+#undef JSON_KEY_AUDIO_SOURCES_NAME
+#undef JSON_KEY_AUDIO_SOURCES_URL
+
+#define TRANSFER_TIMEOUT 5000
+
+void TermWidget::loadAudioSources()
+{
+    if (!m_lockSources.tryLock())
+    {
+        return;
+    }
+
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+    manager->setTransferTimeout(TRANSFER_TIMEOUT);
+    for (size_t i = 0; i < m_sources.size(); ++i)
+    {
+        const AudioSource &src = m_sources[i];
+        if (src.type != AudioSourceType::JSON)
+        {
+            continue;
+        }
+
+        QString url = src.url;
+        url.replace(REPLACE_EXPRESSION, m_term->expression)
+           .replace(REPLACE_READING, m_term->reading);
+        QNetworkReply *reply = manager->get(QNetworkRequest(QUrl(url)));
+        connect(reply, &QNetworkReply::finished, this, [=] {
+            if (reply->error() == QNetworkReply::NoError)
+            {
+                processAudioSourceJson(reply->readAll(), m_sources[i]);
+            }
+
+            m_lockJsonSources.lock();
+            if (--m_jsonSources == 0)
+            {
+                m_lockJsonSources.unlock();
+                populateAudioSourceMenu(
+                    m_menuAdd,
+                    [=] (const AudioSource &src) { addNote(src); }
+                );
+                populateAudioSourceMenu(
+                    m_menuAudio,
+                    [=] (const AudioSource &src) { playAudio(src); }
+                );
+                m_lockSources.unlock();
+                manager->deleteLater();
+
+                Q_EMIT audioSourcesLoaded();
+            }
+            else
+            {
+                m_lockJsonSources.unlock();
+            }
+        });
+        connect(reply, &QNetworkReply::finished, reply, &QObject::deleteLater);
+    }
+}
+
+#undef TRANSFER_TIMEOUT
+
+void TermWidget::populateAudioSourceMenu(
+    QMenu *menu,
+    std::function<void(const AudioSource &)> handler)
+{
+    menu->clear();
+    for (const AudioSource &src : m_sources)
+    {
+        if (src.type == AudioSourceType::File)
+        {
+            menu->addAction(src.name, this, [=] { handler(src); });
+        }
+        else if (src.type == AudioSourceType::JSON)
+        {
+            for (const AudioSource &childSrc : src.audioSources)
+            {
+                menu->addAction(
+                    childSrc.name, this, [=] { handler(childSrc); }
+                );
+            }
+        }
+    }
+}
+
+AudioSource *TermWidget::getFirstAudioSource()
+{
+    AudioSource *ret = nullptr;
+    for (AudioSource &src : m_sources)
+    {
+        if (src.type == AudioSourceType::File)
+        {
+            ret = &src;
+            break;
+        }
+        else if (src.type == AudioSourceType::JSON &&
+                 !src.audioSources.isEmpty())
+        {
+            ret = &src.audioSources.first();
+            break;
+        }
+    }
+    return ret;
 }
 
 /* End Helpers */

@@ -28,30 +28,6 @@
 #include <QStringList>
 
 /**
- * Internal representation of a user defined audio source.
- */
-struct AudioSource
-{
-    /* The name of the audio source. */
-    QString name;
-
-    /* The raw URL (may contain {expression}/{reading}) of the audio source. */
-    QString url;
-
-    /* The MD5 hash to skip if the audio from the source matches. */
-    QString md5;
-
-    AudioSource &operator=(const AudioSource &rhs)
-    {
-        name = rhs.name;
-        url  = rhs.url;
-        md5  = rhs.md5;
-
-        return *this;
-    }
-};
-
-/**
  * Representation of a single Anki Integration configuration profile.
  */
 struct AnkiConfig
@@ -93,9 +69,6 @@ struct AnkiConfig
 
     /* The file type to save screenshots as. */
     FileType screenshotType;
-
-    /* The audio source for {audio} markers. */
-    AudioSource audio;
 
     /* The amount of padding to add (in seconds) to the start of an audio clip.
      * Used for the {audio-media} marker.
@@ -149,7 +122,6 @@ struct AnkiConfig
         port            = rhs.port;
         duplicatePolicy = rhs.duplicatePolicy;
         screenshotType  = rhs.screenshotType;
-        audio           = rhs.audio;
         audioPadStart   = rhs.audioPadStart;
         audioPadEnd     = rhs.audioPadEnd;
         audioNormalize  = rhs.audioNormalize;

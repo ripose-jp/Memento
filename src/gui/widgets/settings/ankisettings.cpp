@@ -197,29 +197,6 @@ void AnkiSettings::initIcons()
     m_ui->buttonDelete->setIcon(factory->getIcon(IconFactory::Icon::minus));
 }
 
-void AnkiSettings::initAudioSources()
-{
-    m_audioSources.clear();
-
-    QSettings settings;
-
-    size_t size = settings.beginReadArray(SETTINGS_AUDIO_SRC);
-    for (size_t i = 0; i < size; ++i)
-    {
-        settings.setArrayIndex(i);
-
-        AudioSource src {
-            settings.value(SETTINGS_AUDIO_SRC_NAME).toString(),
-            settings.value(SETTINGS_AUDIO_SRC_URL).toString(),
-            settings.value(SETTINGS_AUDIO_SRC_MD5).toString()
-        };
-
-        m_audioSources.insert(src.name, src);
-    }
-
-    settings.endArray();
-}
-
 /* End Initializers */
 /* Begin Event Handlers */
 
@@ -227,7 +204,6 @@ void AnkiSettings::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
 
-    initAudioSources();
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     m_ui->checkBoxEnabled->setChecked(client->isEnabled());
     m_configs        = client->getConfigs();
@@ -290,9 +266,6 @@ void AnkiSettings::restoreDefaults()
     defaultConfig.port            = DEFAULT_PORT;
     defaultConfig.duplicatePolicy = DEFAULT_DUPLICATE_POLICY;
     defaultConfig.screenshotType  = DEFAULT_SCREENSHOT;
-    defaultConfig.audio.name      = SETTINGS_AUDIO_SRC_NAME_DEFAULT;
-    defaultConfig.audio.url       = SETTINGS_AUDIO_SRC_URL_DEFAULT;
-    defaultConfig.audio.md5       = SETTINGS_AUDIO_SRC_MD5_DEFAULT;
     defaultConfig.audioPadStart   = DEFAULT_AUDIO_PAD_START;
     defaultConfig.audioPadStart   = DEFAULT_AUDIO_PAD_END;
     defaultConfig.audioNormalize  = DEFAULT_AUDIO_NORMALIZE;
@@ -479,10 +452,6 @@ void AnkiSettings::populateFields(const QString    &profile,
         fileTypeToString(config.screenshotType)
     );
 
-    m_ui->comboBoxAudioSrc->clear();
-    m_ui->comboBoxAudioSrc->addItems(m_audioSources.keys());
-    m_ui->comboBoxAudioSrc->setCurrentText(config.audio.name);
-
     m_ui->spinAudioPadStart->setValue(config.audioPadStart);
     m_ui->spinAudioPadEnd->setValue(config.audioPadEnd);
 
@@ -645,8 +614,6 @@ void AnkiSettings::applyToConfig(const QString &profile)
     config->screenshotType =
         stringToFileType(m_ui->comboBoxScreenshot->currentText()
     );
-
-    config->audio = *m_audioSources.find(m_ui->comboBoxAudioSrc->currentText());
 
     config->audioPadStart = m_ui->spinAudioPadStart->value();
     config->audioPadEnd   = m_ui->spinAudioPadEnd->value();

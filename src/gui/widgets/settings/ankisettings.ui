@@ -34,7 +34,7 @@
         <x>0</x>
         <y>0</y>
         <width>445</width>
-        <height>1304</height>
+        <height>1234</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -353,22 +353,6 @@ Comma or space separated list.</string>
                 </property>
                </item>
               </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="labelAudioSource">
-               <property name="font">
-                <font>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>Audio Source</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="ScrollComboBox" name="comboBoxAudioSrc"/>
              </item>
              <item>
               <layout class="QGridLayout" name="layoutAudioPadding">

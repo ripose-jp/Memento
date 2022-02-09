@@ -21,6 +21,7 @@
 #include "audiosourcesettings.h"
 #include "ui_audiosourcesettings.h"
 
+#include <QComboBox>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSettings>
@@ -32,7 +33,12 @@
 /* Column indices */
 #define COL_NAME    0
 #define COL_URL     1
-#define COL_MD5     2
+#define COL_TYPE    2
+#define COL_MD5     3
+
+/* Combo Box Type Names */
+#define TYPE_COMBO_BOX_FILE "File"
+#define TYPE_COMBO_BOX_JSON "JSON"
 
 /* Begin Constructor/Destructors */
 
@@ -129,38 +135,42 @@ void AudioSourceSettings::applyChanges()
     QString error = verifyNames();
     if (!error.isEmpty())
     {
-        QMessageBox::critical(this, "Audio Source Error",
+        QMessageBox::critical(
+            this, "Audio Source Error",
             "Could not apply changes:\n" + error
         );
         return;
     }
 
+    QTableWidget *table = m_ui->table;
+    if (table->rowCount() == 1)
+    {
+        restoreDefaults();
+    }
+
     QSettings settings;
     settings.remove(SETTINGS_AUDIO_SRC);
     settings.beginWriteArray(SETTINGS_AUDIO_SRC);
-
-    QTableWidget *table = m_ui->table;
     for (size_t i = 0; i < table->rowCount() - 1; ++i)
     {
         settings.setArrayIndex(i);
 
         QString name =
             itemEmpty(i, COL_NAME) ? "" : table->item(i, COL_NAME)->text();
-        QString url  =
-            itemEmpty(i, COL_URL)  ? "" : table->item(i, COL_URL)->text();
-        QString md5  =
+        QString url =
+            itemEmpty(i, COL_URL) ? "" : table->item(i, COL_URL)->text();
+        QComboBox *comboType = ((QComboBox *)table->cellWidget(i, COL_TYPE));
+        int type = comboType ?
+            comboType->currentData().toInt() : (int)AudioSourceType::File;
+        QString md5 =
             itemEmpty(i, COL_MD5)  ? "" : table->item(i, COL_MD5)->text();
 
         settings.setValue(SETTINGS_AUDIO_SRC_NAME, name);
-        settings.setValue(SETTINGS_AUDIO_SRC_URL,  url);
-        settings.setValue(SETTINGS_AUDIO_SRC_MD5,  md5);
+        settings.setValue(SETTINGS_AUDIO_SRC_URL, url);
+        settings.setValue(SETTINGS_AUDIO_SRC_TYPE, (int)type);
+        settings.setValue(SETTINGS_AUDIO_SRC_MD5, md5);
     }
     settings.endArray();
-
-    if (table->rowCount() == 1)
-    {
-        restoreSaved();
-    }
 
     Q_EMIT GlobalMediator::getGlobalMediator()->audioSourceSettingsChanged();
 }
@@ -177,8 +187,15 @@ void AudioSourceSettings::restoreDefaults()
     table->setItem(
         0, COL_URL, new QTableWidgetItem(SETTINGS_AUDIO_SRC_URL_DEFAULT)
     );
+    table->setCellWidget(
+        0, COL_TYPE, createTypeComboBox(SETTINGS_AUDIO_SRC_TYPE_DEFAULT)
+    );
     table->setItem(
         0, COL_MD5, new QTableWidgetItem(SETTINGS_AUDIO_SRC_MD5_DEFAULT)
+    );
+
+    table->setCellWidget(
+        1, COL_TYPE, createTypeComboBox(SETTINGS_AUDIO_SRC_TYPE_DEFAULT)
     );
 }
 
@@ -199,23 +216,52 @@ void AudioSourceSettings::restoreSaved()
     {
         settings.setArrayIndex(i);
 
-        table->setItem(i, COL_NAME,
+        table->setItem(
+            i,
+            COL_NAME,
             new QTableWidgetItem(
-                settings.value(SETTINGS_AUDIO_SRC_NAME).toString()
+                settings.value(
+                    SETTINGS_AUDIO_SRC_NAME,
+                    SETTINGS_AUDIO_SRC_NAME_DEFAULT
+                ).toString()
             )
         );
-        table->setItem(i, COL_URL,
+        table->setItem(
+            i,
+            COL_URL,
             new QTableWidgetItem(
-                settings.value(SETTINGS_AUDIO_SRC_URL).toString()
+                settings.value(
+                    SETTINGS_AUDIO_SRC_URL,
+                    SETTINGS_AUDIO_SRC_URL_DEFAULT
+                ).toString()
             )
         );
-        table->setItem(i, COL_MD5,
+        table->setCellWidget(
+            i,
+            COL_TYPE,
+            createTypeComboBox(
+                (AudioSourceType)settings.value(
+                    SETTINGS_AUDIO_SRC_TYPE,
+                    (int)SETTINGS_AUDIO_SRC_TYPE_DEFAULT
+                ).toInt()
+            )
+        );
+        table->setItem(
+            i,
+            COL_MD5,
             new QTableWidgetItem(
-                settings.value(SETTINGS_AUDIO_SRC_MD5).toString()
+                settings.value(
+                    SETTINGS_AUDIO_SRC_MD5,
+                    SETTINGS_AUDIO_SRC_MD5_DEFAULT
+                ).toString()
             )
         );
     }
     settings.endArray();
+
+    table->setCellWidget(
+        size, COL_TYPE, createTypeComboBox(SETTINGS_AUDIO_SRC_TYPE_DEFAULT)
+    );
 }
 
 void AudioSourceSettings::showHelp()
@@ -242,21 +288,27 @@ void AudioSourceSettings::moveRow(const int row, const int step)
     table->blockSignals(true);
 
     QTableWidgetItem *name_1 = table->takeItem(row, COL_NAME);
-    QTableWidgetItem *url_1  = table->takeItem(row, COL_URL);
-    QTableWidgetItem *md5_1  = table->takeItem(row, COL_MD5);
+    QTableWidgetItem *url_1 = table->takeItem(row, COL_URL);
+    int type_1 =
+        ((QComboBox *)table->cellWidget(row, COL_TYPE))->currentIndex();
+    QTableWidgetItem *md5_1 = table->takeItem(row, COL_MD5);
 
     const int newRow = row + step;
     QTableWidgetItem *name_2 = table->takeItem(newRow, COL_NAME);
-    QTableWidgetItem *url_2  = table->takeItem(newRow, COL_URL);
-    QTableWidgetItem *md5_2  = table->takeItem(newRow, COL_MD5);
+    QTableWidgetItem *url_2 = table->takeItem(newRow, COL_URL);
+    int type_2 =
+        ((QComboBox *)table->cellWidget(newRow, COL_TYPE))->currentIndex();
+    QTableWidgetItem *md5_2 = table->takeItem(newRow, COL_MD5);
 
     table->setItem(newRow, COL_NAME, name_1);
-    table->setItem(newRow, COL_URL,  url_1);
-    table->setItem(newRow, COL_MD5,  md5_1);
+    table->setItem(newRow, COL_URL, url_1);
+    ((QComboBox *)table->cellWidget(newRow, COL_TYPE))->setCurrentIndex(type_1);
+    table->setItem(newRow, COL_MD5, md5_1);
 
     table->setItem(row, COL_NAME, name_2);
-    table->setItem(row, COL_URL,  url_2);
-    table->setItem(row, COL_MD5,  md5_2);
+    table->setItem(row, COL_URL, url_2);
+    ((QComboBox *)table->cellWidget(row, COL_TYPE))->setCurrentIndex(type_2);
+    table->setItem(row, COL_MD5, md5_2);
 
     table->blockSignals(signalsBlocked);
 }
@@ -279,7 +331,7 @@ void AudioSourceSettings::moveDown()
 void AudioSourceSettings::updateButtons()
 {
     const int currentRow = m_ui->table->currentRow();
-    const int rowCount   = m_ui->table->rowCount();
+    const int rowCount = m_ui->table->rowCount();
 
     m_ui->buttonUp->setEnabled(0 < currentRow && currentRow < rowCount - 1);
     m_ui->buttonDown->setEnabled(currentRow < rowCount - 2);
@@ -302,6 +354,9 @@ void AudioSourceSettings::updateRows()
     if (!rowEmpty(lastRow))
     {
         table->insertRow(lastRow + 1);
+        table->setCellWidget(
+            lastRow + 1, COL_TYPE, createTypeComboBox(AudioSourceType::File)
+        );
     }
 }
 
@@ -330,13 +385,13 @@ QString AudioSourceSettings::verifyNames() const
     return "";
 }
 
-bool inline AudioSourceSettings::itemEmpty(const int row, const int col) const
+inline bool AudioSourceSettings::itemEmpty(const int row, const int col) const
 {
     QTableWidgetItem *item = m_ui->table->item(row, col);
     return item == nullptr || item->text().isEmpty();
 }
 
-bool inline AudioSourceSettings::rowEmpty(const int row) const
+inline bool AudioSourceSettings::rowEmpty(const int row) const
 {
     for (size_t i = 0; i < m_ui->table->columnCount(); ++i)
     {
@@ -346,6 +401,29 @@ bool inline AudioSourceSettings::rowEmpty(const int row) const
         }
     }
     return true;
+}
+
+inline QComboBox *AudioSourceSettings::createTypeComboBox(
+    AudioSourceType type) const
+{
+    switch(type)
+    {
+    case AudioSourceType::File:
+        return createTypeComboBox(TYPE_COMBO_BOX_FILE);
+    case AudioSourceType::JSON:
+        return createTypeComboBox(TYPE_COMBO_BOX_JSON);
+    }
+    return createTypeComboBox(TYPE_COMBO_BOX_FILE);
+}
+
+inline QComboBox *AudioSourceSettings::createTypeComboBox(
+    const QString &setting) const
+{
+    QComboBox *box = new QComboBox;
+    box->addItem(TYPE_COMBO_BOX_FILE, QVariant((int)AudioSourceType::File));
+    box->addItem(TYPE_COMBO_BOX_JSON, QVariant((int)AudioSourceType::JSON));
+    box->setCurrentText(setting);
+    return box;
 }
 
 /* End Helper Methods */

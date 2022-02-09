@@ -23,6 +23,9 @@
 
 #include <QWidget>
 
+class QComboBox;
+enum class AudioSourceType;
+
 namespace Ui
 {
     class AudioSourceSettings;
@@ -107,13 +110,27 @@ private:
      * @param row The row of the item to check.
      * @param col The column of the item to check.
      */
-    bool inline itemEmpty(const int row, const int col) const;
+    inline bool itemEmpty(const int row, const int col) const;
 
     /**
      * Returns if the entire row is empty.
      * @param row The row to check.
      */
-    bool inline rowEmpty(const int row) const;
+    inline bool rowEmpty(const int row) const;
+
+    /**
+     * Creates a combo box for audio source type selection.
+     * @param type The type the combo box should be set to.
+     * @return A QComboBox with all possible options.
+     */
+    inline QComboBox *createTypeComboBox(AudioSourceType type) const;
+
+    /**
+     * Creates a combo box for audio source type selection.
+     * @param type The type the combo box should be set to.
+     * @return A QComboBox with all possible options.
+     */
+    inline QComboBox *createTypeComboBox(const QString &type) const;
 
     /* The UI object containing all the widgets. */
     Ui::AudioSourceSettings *m_ui;

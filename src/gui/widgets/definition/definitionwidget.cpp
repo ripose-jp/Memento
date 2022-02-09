@@ -119,23 +119,30 @@ void DefinitionWidget::initAudioSources()
 {
     QSettings settings;
     m_sources.clear();
+    m_jsonSources = 0;
     size_t size = settings.beginReadArray(SETTINGS_AUDIO_SRC);
     for (size_t i = 0; i < size; ++i)
     {
         settings.setArrayIndex(i);
-        m_sources.append(
-            AudioSource {
-                .name = settings.value(
-                        SETTINGS_AUDIO_SRC_NAME, SETTINGS_AUDIO_SRC_NAME_DEFAULT
-                    ).toString(),
-                .url = settings.value(
-                        SETTINGS_AUDIO_SRC_URL, SETTINGS_AUDIO_SRC_URL_DEFAULT
-                    ).toString(),
-                .md5 = settings.value(
-                        SETTINGS_AUDIO_SRC_MD5, SETTINGS_AUDIO_SRC_MD5_DEFAULT
-                    ).toString(),
-            }
-        );
+        AudioSource src;
+        src.type = (AudioSourceType)settings.value(
+                SETTINGS_AUDIO_SRC_TYPE,
+                (int)SETTINGS_AUDIO_SRC_TYPE_DEFAULT
+            ).toInt();
+        src.name = settings.value(
+                SETTINGS_AUDIO_SRC_NAME, SETTINGS_AUDIO_SRC_NAME_DEFAULT
+            ).toString();
+        src.url = settings.value(
+                SETTINGS_AUDIO_SRC_URL, SETTINGS_AUDIO_SRC_URL_DEFAULT
+            ).toString();
+        src.md5 = settings.value(
+                SETTINGS_AUDIO_SRC_MD5, SETTINGS_AUDIO_SRC_MD5_DEFAULT
+            ).toString();
+        if (src.type == AudioSourceType::JSON)
+        {
+            ++m_jsonSources;
+        }
+        m_sources.append(src);
     }
     settings.endArray();
 }
@@ -297,7 +304,7 @@ void DefinitionWidget::showTerms(const size_t start, const size_t end)
     for (i = start; i < m_terms.size() && i < end; ++i)
     {
         TermWidget *termWidget = new TermWidget(
-              m_terms[i], &m_sources, m_listGlossary
+              m_terms[i], m_sources, m_jsonSources, m_listGlossary
         );
         connect(
             termWidget, &TermWidget::kanjiSearched,
