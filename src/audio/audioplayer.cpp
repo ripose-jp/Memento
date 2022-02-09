@@ -115,7 +115,9 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
     if (file)
     {
         if (FileUtils::calculateMd5(file) != hash)
+        {
             playFile(file);
+        }
         m_fileLock.unlock();
         return nullptr;
     }
@@ -123,7 +125,7 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
 
     /* File does not exist so fetch it */
     AudioPlayerReply *audioReply = new AudioPlayerReply;
-    QNetworkReply    *reply      = m_manager->get(QNetworkRequest(QUrl(url)));
+    QNetworkReply *reply = m_manager->get(QNetworkRequest(QUrl(url)));
     connect(
         reply, &QNetworkReply::sslErrors,
         reply, qOverload<>(&QNetworkReply::ignoreSslErrors)
@@ -131,14 +133,13 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
     connect(reply, &QNetworkReply::finished,  this,
         [=] {
             QTemporaryFile *file = nullptr;
-            bool            res  = false;
+            bool res = false;
 
             if (reply->error() != QNetworkReply::NetworkError::NoError)
             {
                 qDebug() << reply->errorString();
                 goto cleanup;
             }
-
 
             if (!reply->open(QIODevice::ReadOnly))
             {
