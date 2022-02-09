@@ -192,12 +192,13 @@ void MainWindow::initWindow()
         this, &MainWindow::updateSearchSubListSplitter,
         Qt::QueuedConnection
     );
-    connect(m_mediator, &GlobalMediator::playerTitleChanged, this,
+    connect(
+        m_mediator, &GlobalMediator::playerTitleChanged, this,
         [=] (const QString name) { setWindowTitle(name + " - Memento"); },
         Qt::QueuedConnection
     );
 
-    /* Message boxes */
+    /* Show Windows */
     connect(
         m_mediator, &GlobalMediator::showCritical,
         this, &MainWindow::showErrorMessage,
@@ -206,6 +207,16 @@ void MainWindow::initWindow()
     connect(
         m_mediator, &GlobalMediator::showInformation,
         this, &MainWindow::showInfoMessage,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_mediator, &GlobalMediator::menuShowOptions,
+        this, &MainWindow::showOptions,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_mediator, &GlobalMediator::menuShowAbout,
+        this, &MainWindow::showAbout,
         Qt::QueuedConnection
     );
 }
@@ -694,7 +705,7 @@ void MainWindow::updateSearchSubListSplitter()
 }
 
 /* End Window Helpers */
-/* Begin Dialog Methods */
+/* Begin Show Methods */
 
 void MainWindow::showErrorMessage(const QString title,
                                   const QString error) const
@@ -710,7 +721,22 @@ void MainWindow::showInfoMessage(const QString title,
     message.information(0, title, error);
 }
 
-/* End Dialog Methods */
+
+void MainWindow::showOptions() const
+{
+    m_optionsWindow->show();
+    m_optionsWindow->activateWindow();
+    m_optionsWindow->raise();
+}
+
+void MainWindow::showAbout() const
+{
+    m_aboutWindow->show();
+    m_aboutWindow->activateWindow();
+    m_aboutWindow->raise();
+}
+
+/* End Show Methods */
 #if defined(Q_OS_MACOS)
 /* Begin Cocoa Handlers */
 

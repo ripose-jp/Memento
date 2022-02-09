@@ -157,6 +157,16 @@ private Q_SLOTS:
     void showInfoMessage(const QString title, const QString error) const;
 
     /**
+     * Shows the options window.
+     */
+    void showOptions() const;
+
+    /**
+     * Shows the about window.
+     */
+    void showAbout() const;
+
+    /**
      * Automatically resizes the screen to the supplied width and height.
      * Will not exceed the dimensions of the screen and only happens if in
      * windowed mode and autofit is enabled.

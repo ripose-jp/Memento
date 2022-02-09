@@ -62,10 +62,4 @@ AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
         "Copyright Ripose 2020-2022"
     );
     parentLayout->addWidget(labelInfo);
-
-    connect(
-        GlobalMediator::getGlobalMediator(), &GlobalMediator::menuShowAbout,
-        this, &QDialog::show,
-        Qt::QueuedConnection
-    );
 }

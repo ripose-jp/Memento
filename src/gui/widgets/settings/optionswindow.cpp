@@ -63,11 +63,7 @@ OptionsWindow::OptionsWindow(QWidget *parent)
 
     connect(
         m_ui->listOptions, &QListWidget::itemSelectionChanged,
-        this,              &OptionsWindow::showSelectedOption
-    );
-    connect(
-        GlobalMediator::getGlobalMediator(), &GlobalMediator::menuShowOptions,
-        this, &QDialog::show
+        this, &OptionsWindow::showSelectedOption
     );
 }
 

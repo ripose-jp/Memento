@@ -581,7 +581,7 @@ void PlayerMenu::updateSecondarySubtitleAction(const uint64_t id)
 
 void PlayerMenu::openFile()
 {
-    QList<QUrl> files = QFileDialog::getOpenFileUrls(0, "Open File");
+    QList<QUrl> files = QFileDialog::getOpenFileUrls(window(), "Open File");
     if (!files.isEmpty())
     {
         m_player->stop();
@@ -592,7 +592,7 @@ void PlayerMenu::openFile()
 
 void PlayerMenu::openUrl()
 {
-    QInputDialog dialog(this, Qt::Dialog);
+    QInputDialog dialog(window(), Qt::Dialog);
     dialog.setWindowTitle("Open Stream");
     dialog.setLabelText("Enter URL");
     dialog.setTextValue(QGuiApplication::clipboard()->text());
