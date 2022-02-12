@@ -34,7 +34,8 @@ StrokeLabel::StrokeLabel(QWidget *parent)
       m_textColor(palette().text().color()),
       m_strokeColor(palette().window().color()),
       m_strokeSize(4.0),
-      m_backgroundColor(TRANSPARENT_COLOR)
+      m_backgroundColor(TRANSPARENT_COLOR),
+      m_currentFont(m_backgroundText->font())
 {
     initTextEdit(m_backgroundText);
 
@@ -101,11 +102,19 @@ void StrokeLabel::fitToContents()
     m_backgroundText->updateGeometry();
     QWidget *pw = parentWidget();
     int width = m_backgroundText->document()->idealWidth() + 4;
-    int height = m_backgroundText->document()->size().toSize().height();
     if (pw && width > pw->width())
     {
+        QFont f = textFont();
+        int fontSizePx = f.pixelSize() * pw->width() / width;
+        f.setPixelSize(fontSizePx);
+        m_backgroundText->setFont(f);
+        m_foregroundText->setFont(f);
+        m_fontChanged = true;
+        m_backgroundText->updateGeometry();
+
         width = pw->width();
     }
+    int height = m_backgroundText->document()->size().toSize().height();
     setSize(width, height);
 }
 
@@ -143,11 +152,13 @@ void StrokeLabel::setBackgroundColor(const QColor &color)
 
 QFont StrokeLabel::textFont() const
 {
-    return m_foregroundText->font();
+    return m_currentFont;
 }
 
 void StrokeLabel::setTextFont(const QFont &f)
 {
+    m_currentFont = f;
+    m_fontChanged = false;
     m_foregroundText->setFont(f);
     m_backgroundText->setFont(f);
     fitToContents();
@@ -159,6 +170,11 @@ void StrokeLabel::setTextFont(const QFont &f)
 void StrokeLabel::setText(const QString &text)
 {
     clearText();
+    if (m_fontChanged)
+    {
+        setTextFont(m_currentFont);
+    }
+
     QStringList subList = text.split('\n');
     for (const QString &text : subList)
     {

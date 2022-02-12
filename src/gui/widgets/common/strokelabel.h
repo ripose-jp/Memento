@@ -147,6 +147,12 @@ private:
 
     /* The current background color */
     QColor m_backgroundColor;
+
+    /* Changed to true when font is changed for scaling purposes */
+    bool m_fontChanged = false;
+
+    /* The current saved font */
+    QFont m_currentFont;
 };
 
 #endif // STROKELABEL_H
