@@ -206,8 +206,9 @@ void AnkiSettings::showEvent(QShowEvent *event)
 
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     m_ui->checkBoxEnabled->setChecked(client->isEnabled());
-    m_configs        = client->getConfigs();
+    m_configs = client->getConfigs();
     m_currentProfile = client->getProfile();
+    m_ui->labelHelpMessage->setVisible(!client->configExists());
     populateFields(
         client->getProfile(), *m_configs[client->getProfile()]
     );

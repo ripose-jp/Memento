@@ -165,6 +165,12 @@ public:
     QHash<QString, std::shared_ptr<AnkiConfig>> getConfigs() const;
 
     /**
+     * Gets if a configuration exists.
+     * @return true if a config file exists, false otherwise.
+     */
+    bool configExists() const;
+
+    /**
      * Gets if the AnkiClient is enabled.
      * @return true if enabled, false otherwise.
      */
@@ -441,6 +447,9 @@ private:
      * @return tagstr
      */
     QString &accumulateTags(const QList<Tag> &tags, QString &tagStr);
+
+    /* true if a config exists, false otherwise */
+    bool m_configExists;
 
     /* The enabled state of the AnkiClient. */
     bool m_enabled;

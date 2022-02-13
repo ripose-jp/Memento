@@ -109,6 +109,7 @@
 AnkiClient::AnkiClient(QObject *parent)
     : QObject(parent),
       m_currentConfig(0),
+      m_configExists(false),
       m_enabled(false)
 {
     m_manager = new QNetworkAccessManager(this);
@@ -373,8 +374,11 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
     }
 
     if (m_currentConfig)
+    {
         setServer(m_currentConfig->address, m_currentConfig->port);
+    }
 
+    m_configExists = true;
     return true;
 }
 
@@ -436,6 +440,7 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
     configFile.write(jsonDoc.toJson());
     configFile.close();
 
+    m_configExists = true;
     return true;
 }
 
@@ -531,6 +536,11 @@ void AnkiClient::setDefaultConfig()
 
 /* End Config/Profile Methods */
 /* Begin Getter/Setters */
+
+bool AnkiClient::configExists() const
+{
+    return m_configExists;
+}
 
 bool AnkiClient::isEnabled() const
 {
