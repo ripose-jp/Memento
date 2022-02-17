@@ -147,6 +147,20 @@ TermWidget::TermWidget(
 TermWidget::~TermWidget()
 {
     delete m_ui;
+    delete m_ankiTerm;
+}
+
+void TermWidget::deleteWhenReady()
+{
+    hide();
+    if (m_ankiTerm)
+    {
+        connect(this, &TermWidget::safeToDelete, this, &QObject::deleteLater);
+    }
+    else
+    {
+        deleteLater();
+    }
 }
 
 /* End Constructor/Destructor */
@@ -206,34 +220,8 @@ void TermWidget::initUi(const Term &term, const bool list)
     }
 }
 
-/* End Initializers */
-/* Begin User Input Handlers */
-
-void TermWidget::addNote()
+Term *TermWidget::initAnkiTerm() const
 {
-    m_ui->buttonAddCard->setEnabled(false);
-
-    m_lockJsonSources.lock();
-    if (m_jsonSources)
-    {
-        m_lockJsonSources.unlock();
-        loadAudioSources();
-        connect(
-            this, &TermWidget::audioSourcesLoaded,
-            this, QOverload<>::of(&TermWidget::addNote)
-        );
-        return;
-    }
-    m_lockJsonSources.unlock();
-
-    const AudioSource *src = getFirstAudioSource();
-    addNote(src ? *src : AudioSource());
-}
-
-void TermWidget::addNote(const AudioSource &src)
-{
-    m_ui->buttonAddCard->setEnabled(false);
-
     Term *term = new Term(*m_term);
     term->definitions.clear();
     for (size_t i = 0; i < m_layoutGlossary->count(); ++i)
@@ -264,15 +252,57 @@ void TermWidget::addNote(const AudioSource &src)
     QPair<double, double> contextTimes = subList->getPrimaryContextTime();
     term->startTimeContext = contextTimes.first + delay;
     term->endTimeContext = contextTimes.second + delay;
-    term->audioURL = src.url;
-    term->audioSkipHash = src.md5;
 
-    AnkiReply *reply = m_client->addNote(term);
+    return term;
+}
+
+/* End Initializers */
+/* Begin User Input Handlers */
+
+void TermWidget::addNote()
+{
+    m_ui->buttonAddCard->setEnabled(false);
+    if (m_ankiTerm == nullptr)
+    {
+        m_ankiTerm = initAnkiTerm();
+    }
+
+    m_lockJsonSources.lock();
+    if (m_jsonSources)
+    {
+        m_lockJsonSources.unlock();
+        loadAudioSources();
+        connect(
+            this, &TermWidget::audioSourcesLoaded,
+            this, QOverload<>::of(&TermWidget::addNote)
+        );
+        return;
+    }
+    m_lockJsonSources.unlock();
+
+    const AudioSource *src = getFirstAudioSource();
+    addNote(src ? *src : AudioSource());
+}
+
+void TermWidget::addNote(const AudioSource &src)
+{
+    m_ui->buttonAddCard->setEnabled(false);
+    if (m_ankiTerm == nullptr)
+    {
+        m_ankiTerm = initAnkiTerm();
+    }
+    m_ankiTerm->audioURL = src.url;
+    m_ankiTerm->audioSkipHash = src.md5;
+
+    AnkiReply *reply = m_client->addNote(m_ankiTerm);
+    m_ankiTerm = nullptr;
+    Q_EMIT safeToDelete();
     connect(reply, &AnkiReply::finishedInt, this,
         [=] (const int id, const QString &error) {
             if (!error.isEmpty())
             {
-                Q_EMIT mediator->showCritical("Error Adding Note", error);
+                Q_EMIT GlobalMediator::getGlobalMediator()
+                    ->showCritical("Error Adding Note", error);
             }
             else
             {

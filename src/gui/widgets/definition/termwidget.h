@@ -69,6 +69,11 @@ public:
      */
     void setAddable(bool value);
 
+    /**
+     * Deletes this term once all outstanding network requests are finished.
+     */
+    void deleteWhenReady();
+
 Q_SIGNALS:
     /**
      * Emitted when a kanji is searched by the user and found.
@@ -80,6 +85,13 @@ Q_SIGNALS:
      * Emitted when all audio sources are finished loading.
      */
     void audioSourcesLoaded() const;
+
+    /**
+     * A signal emitted when this widget is safe to delete.
+     * This is used to prevent terms from not being added to Anki while network
+     * requests are pending.
+     */
+    void safeToDelete() const;
 
 private Q_SLOTS:
     /**
@@ -139,6 +151,12 @@ private:
     void initUi(const Term &term, const bool list);
 
     /**
+     * Initializes a new term to add to Anki without audio information.
+     * @return A term without audio source information. Belongs to the caller.
+     */
+    Term *initAnkiTerm() const;
+
+    /**
      * Creates a Jisho link from an expression.
      * @param exp The expression to create a Jisho link for.
      * @return An HTML formatted Jisho link for the expression.
@@ -172,6 +190,13 @@ private:
 
     /* The term this widget is displaying. */
     std::shared_ptr<const Term> m_term;
+
+    /* This term is a copy m_term that is eventually passed to Anki to add.
+     * If this term is not nullptr, TermWidget is not safe to delete without
+     * losing this term. This is necessary because of the asynchronous nature
+     * of JSON audio sources.
+     */
+    Term *m_ankiTerm = nullptr;
 
     /* Saved pointer to the global AnkiClient. */
     AnkiClient *m_client;
