@@ -5,12 +5,25 @@ add_library(
     yomidbbuilder.c
     expression.h
 )
-target_link_libraries(
-    dictionary_db
-    ${SQLITE}
-    ${JSONC}
-    ${LIBZIP}
-    ${MECAB}
-    Qt5::Core
-    Qt5::Widgets
-)
+if (WIN32)
+    target_link_libraries(
+        dictionary_db
+        ${SQLITE}
+        ${JSONC}
+        ${LIBZIP}
+        ${MECAB}
+        Qt5::Core
+        Qt5::Widgets
+        "-lregex"
+    )
+else()
+    target_link_libraries(
+        dictionary_db
+        ${SQLITE}
+        ${JSONC}
+        ${LIBZIP}
+        ${MECAB}
+        Qt5::Core
+        Qt5::Widgets
+    )
+endif()

@@ -41,6 +41,8 @@ extern "C" {
 #define YOMI_ERR_ADDING_KANJI           8
 #define YOMI_ERR_ADDING_KANJI_META      9
 #define YOMI_ERR_DELETE                 10
+#define YOMI_ERR_EXTRACTING_RESOURCES   11
+#define YOMI_ERR_REMOVING_RESOURCES     12
 
 enum yomi_blob_t
 {
@@ -63,19 +65,23 @@ int yomi_prepare_db(const char *db_file, sqlite3 **db);
 
 /**
  * Process the archive in dict_file and add it the sqlite database in db_file
- * @param   dict_file   The zip archive containing the yomichan dictionary
- * @param   db_file     Path to the sqlite database
+ * @param dict_file The zip archive containing the yomichan dictionary
+ * @param db_file   Path to the sqlite database
+ * @param res_dir   The directory additional dictionary resources should be
+ *                  stored in. Must already exist, will not be created.
  * @return Error code
  */
-int yomi_process_dictionary(const char *dict_file, const char *db_file);
+int yomi_process_dictionary(const char *dict_file, const char *db_file, const char *res_dir);
 
 /**
  * Remove a dictionary from a database if it exists
  * @param dict_name Name of the dictionary to remove
  * @param db_file   The location of the database file
+ * @param res_dir   The directory additional dictionary resources are stored in.
+ *                  Must already exist, will not be created.
  * @return Error code
  */
-int yomi_delete_dictionary(const char *dict_name, const char *db_file);
+int yomi_delete_dictionary(const char *dict_name, const char *db_file, const char *res_dir);
 
 /**
  * Disables all the named dictionaries.

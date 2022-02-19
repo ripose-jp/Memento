@@ -84,6 +84,15 @@ QString DirectoryUtils::getMpvInputConfig()
     return getConfigDir() + MPV_INPUT_CONF_FILE;
 }
 
+#define RESOURCE_DIR "res"
+
+QString DirectoryUtils::getDictionaryResourceDir()
+{
+    return getConfigDir() + RESOURCE_DIR + SLASH;
+}
+
+#undef RES
+
 /* End DirectoryUtils */
 /* Begin FileUtils */
 

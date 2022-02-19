@@ -975,14 +975,20 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
 
     for (const TermDefinition &def : term.definitions)
     {
-        for (QString glos : def.glossary)
+        for (const QJsonValue &val : def.glossary)
         {
+            if (!val.isString())
+            {
+                continue;
+            }
             glossaryCompact += "<li>";
-            glossaryCompact += glos.replace('\n', "</li><li>");
+            glossaryCompact += val.toString().replace('\n', "</li><li>");
             glossaryCompact += "</li>";
         }
         if (glossaryCompact.endsWith("<li></li>"))
+        {
             glossaryCompact.chop(9);
+        }
     }
     glossaryCompact += "</ol>";
 
@@ -1557,14 +1563,20 @@ QString AnkiClient::buildGlossary(const QList<TermDefinition> &definitions)
         glossary += ")</i>";
 
         glossary += "<ul>";
-        for (QString glos : def.glossary)
+        for (const QJsonValue &val : def.glossary)
         {
+            if (!val.isString())
+            {
+                continue;
+            }
             glossary += "<li>";
-            glossary += glos.replace('\n', "</li><li>");
+            glossary += val.toString().replace('\n', "</li><li>");
             glossary += "</li>";
         }
         if (glossary.endsWith("<li></li>"))
+        {
             glossary.chop(9);
+        }
         glossary += "</ul>";
 
         glossary += "</li>";

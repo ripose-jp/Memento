@@ -2,12 +2,13 @@ add_library(
     definitionwidget
     definitionwidget.cpp
     definitionwidget.ui
+    glossarylabel.cpp
+    glossarywidget.cpp
+    kanjiwidget.cpp
+    pitchwidget.cpp
+    tagwidget.cpp
     termwidget.cpp
     termwidget.ui
-    kanjiwidget.cpp
-    tagwidget.cpp
-    glossarywidget.cpp
-    pitchwidget.cpp
 )
 target_link_libraries(
     definitionwidget

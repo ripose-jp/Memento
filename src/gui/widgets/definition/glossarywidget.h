@@ -28,6 +28,7 @@
 
 #include "../../../dict/expression.h"
 #include "../common/flowlayout.h"
+#include "glossarylabel.h"
 
 /**
  * Widget for displaying a TermDefinition.
@@ -87,7 +88,7 @@ private:
     QLabel *m_labelNumber;
 
     /* The label showing the glossary entry of the term definition. */
-    QLabel *m_labelGlossary;
+    GlossaryLabel *m_glossaryLabel;
 };
 
 #endif // GLOSSARYWIDGET_H

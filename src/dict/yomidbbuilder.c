@@ -20,11 +20,28 @@
 
 #include "yomidbbuilder.h"
 
+#include <errno.h>
 #include <json-c/json.h>
+#include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <zip.h>
+
+#ifdef _WIN32
+#include <windows.h>
+
+#include <direct.h>
+#include <shellapi.h>
+#include <stringapiset.h>
+#include <tchar.h>
+#else
+#define __USE_XOPEN_EXTENDED 500
+
+#include <ftw.h>
+#endif
 
 #define INDEX_FILE              "index.json"
 #define TAG_BANK_FORMAT         "tag_bank_%u.json"
@@ -1426,6 +1443,415 @@ cleanup:
     return ret;
 }
 
+#ifdef _WIN32
+/**
+ * Converts a UTF-8 string to an LPWSTR.
+ * @param str The UTF-8 string to convert.
+ * @return An LPSTR. Must be freed with free(). NULL on error.
+ */
+static LPWSTR utf8_to_lpwstr(const char *str)
+{
+    int len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
+    if (len == 0)
+    {
+        return NULL;
+    }
+    LPWSTR lpwstr = malloc(sizeof(WCHAR) * len);
+    if (MultiByteToWideChar(CP_UTF8, 0, str, -1, lpwstr, len) == 0)
+    {
+        free(lpwstr);
+        return NULL;
+    }
+    return lpwstr;
+}
+
+/**
+ * Removes a path on Windows.
+ * @param path The path to remove in UTF-8 encoding.
+ * @return Error code.
+ */
+static int remove_path(const char *path)
+{
+    int    ret     = 0;
+    LPWSTR pszFrom = NULL;
+
+    int len = MultiByteToWideChar(CP_UTF8, 0, path, -1, NULL, 0);
+    if (len == 0)
+    {
+        ret = -1;
+        goto cleanup;
+    }
+    pszFrom = malloc(sizeof(WCHAR) * (len + 1));
+    len = MultiByteToWideChar(CP_UTF8, 0, path, -1, pszFrom, len);
+    if (len == 0)
+    {
+        ret = -2;
+        goto cleanup;
+    }
+    pszFrom[len] = '\0';
+    pszFrom[len + 1] = '\0';
+    if (pszFrom[len - 1] == '\\')
+    {
+        pszFrom[len - 1] = '\0';
+    }
+    for (LPWSTR ptr = pszFrom; *ptr; ++ptr)
+    {
+        if (*ptr == '/')
+        {
+            *ptr = '\\';
+        }
+    }
+
+    /* Delete the directory contents */
+    SHFILEOPSTRUCTW fileop = {
+        .hwnd = NULL, // no status display
+        .wFunc = FO_DELETE, // delete operation
+        .pFrom = pszFrom, // source file name as double null terminated string
+        .pTo = NULL, // no destination needed
+        .fFlags = FOF_NOCONFIRMATION | FOF_SILENT, // do not prompt the user
+        .fAnyOperationsAborted = FALSE,
+        .lpszProgressTitle = NULL,
+        .hNameMappings = NULL,
+    };
+    if ((ret = SHFileOperationW(&fileop)))
+    {
+        goto cleanup;
+    }
+
+cleanup:
+    free(pszFrom);
+
+    return ret;
+}
+
+/**
+ * Creates a path if it doesn't already exist.
+ * @param path The path to create.
+ * @return mkdir error code.
+ */
+static int make_path(const char *path)
+{
+    int    ret       = 0;
+    int    len       = 0;
+    LPWSTR path_copy = NULL;
+    LPWSTR ptr       = NULL;
+
+    /* Convert to LPSTR */
+    path_copy = utf8_to_lpwstr(path);
+    if (path_copy == NULL)
+    {
+        ret = -1;
+        goto cleanup;
+    }
+
+    /* Seek to the first seperator */
+    ptr = path_copy;
+    while (*ptr && *ptr != '/')
+    {
+        ++ptr;
+    }
+    if (*ptr == '\0')
+    {
+        goto cleanup;
+    }
+
+    /* Create the path */
+    for (ptr += 1; *ptr; ++ptr)
+    {
+        if (*ptr != '/')
+        {
+            continue;
+        }
+
+        *ptr = '\0';
+        if (_wmkdir(path_copy) && errno != EEXIST)
+        {
+            ret = errno;
+            goto cleanup;
+        }
+        *ptr = '/';
+    }
+    if (_wmkdir(path_copy) && errno != EEXIST)
+    {
+        ret = errno;
+        goto cleanup;
+    }
+
+cleanup:
+    free(path_copy);
+
+    return ret;
+}
+
+#else
+/**
+ * Deletes the files pass in the path argument.
+ * @param path The path of the file/folder to delete.
+ * @param sbuf Unused.
+ * @param type Unused.
+ * @param ftwb Unused.
+ * @return 0 on success, errno on failure.
+ */
+static int remove_path_callback(const char *path, const struct stat *sbuf, int type, struct FTW *ftwb)
+{
+    if (remove(path))
+    {
+        fprintf(stderr, "Could not remove file:\n%s\n", strerror(errno));
+        return errno;
+    }
+    return 0;
+}
+
+/**
+ * Recursively deletes a path.
+ * @param path The path to recursively delete.
+ * @return 0 on success, errno on failure.
+ */
+static int remove_path(const char *path)
+{
+    if (nftw(path, remove_path_callback, 10, FTW_DEPTH|FTW_MOUNT|FTW_PHYS))
+    {
+        return errno;
+    }
+    return 0;
+}
+
+/**
+ * Creates a path if it doesn't already exist.
+ * @param path The path to create.
+ * @return mkdir error code.
+ */
+static int make_path(const char *path)
+{
+    int   ret       = 0;
+    char *path_copy = strdup(path);
+    char *ptr       = strchr(path_copy, '/');
+
+    if (ptr == NULL)
+    {
+        goto cleanup;
+    }
+
+    for (ptr += 1; *ptr; ++ptr)
+    {
+        if (*ptr != '/')
+        {
+            continue;
+        }
+
+        *ptr = '\0';
+        if (mkdir(path_copy, 0755) && errno != EEXIST)
+        {
+            ret = errno;
+            goto cleanup;
+        }
+        *ptr = '/';
+    }
+    if (mkdir(path_copy, 0755) && errno != EEXIST)
+    {
+        ret = errno;
+        goto cleanup;
+    }
+
+cleanup:
+    free(path_copy);
+
+    return ret;
+}
+#endif
+
+/**
+ * Concatenates two paths and normalizes all seperators to use /.
+ * @param start The begining of the path.
+ * @param end   The ending of the path.
+ * @return The two paths concatinated. Must be freed with free().
+ */
+static char *concat_paths(const char *start, const char *end)
+{
+    size_t  start_len = strlen(start);
+    size_t  end_len   = strlen(end);
+    char   *path      = malloc(start_len + end_len + 2);
+    strcpy(path, start);
+
+    /* Make sure the start path ends in a seperator */
+#ifdef _WIN32
+    if (start[start_len - 1] != '/' || start[start_len - 1] != '\\')
+#else
+    if (start[start_len - 1] != '/')
+#endif
+    {
+        path[start_len++] = '/';
+    }
+
+    /* Copy the ending */
+    strcpy(&path[start_len], end);
+
+#ifdef _WIN32
+    /* Normalize path to use forward slashes on Windows */
+    for (char *ptr = path; *ptr; ++ptr)
+    {
+        if (*ptr == '\\')
+        {
+            *ptr = '/';
+        }
+    }
+#endif
+
+    return path;
+}
+
+#define TITLE_KEY "title"
+
+#define REGEX_SKIP_FILE \
+    "^index\\.json$|" \
+    "^tag_bank_[1-9][0-9\\(\\)]*\\.json$|" \
+    "^term_bank_[1-9][0-9\\(\\)]*\\.json$|" \
+    "^term_meta_bank_[1-9][0-9\\(\\)]*\\.json$|" \
+    "^kanji_bank_[1-9][0-9\\(\\)]*\\.json$|" \
+    "^kanji_meta_bank_[1-9][0-9\\(\\)]*\\.json$"
+
+/**
+ * Extracts resources also in the archive if they exist.
+ * @param dict_archive The dictionary archive to extract resources from.
+ * @param res_dir      Path to the resource directory.
+ * @return Error code.
+ */
+static int extract_resources(zip_t *dict_archive, const char *res_dir)
+{
+    int          ret        = 0;
+    regex_t      rt;
+    regex_t     *file_regex = NULL;
+    json_object *obj        = NULL;
+    json_object *ret_obj    = NULL;
+    const char  *dict_name  = NULL;
+    char        *base_path  = NULL;
+    const char *file_name   = NULL;
+
+    /* Get the name of the dictionary */
+    if ((ret = get_json_obj(dict_archive, INDEX_FILE, &obj)))
+    {
+        fprintf(stderr, "Failed to open index file\n");
+        goto cleanup;
+    }
+    if ((ret = get_obj_from_obj(obj, TITLE_KEY, json_type_string, &ret_obj)))
+    {
+        fprintf(stderr, "Failed to get title from index object\n");
+        goto cleanup;
+    }
+    dict_name = json_object_get_string(ret_obj);
+
+    /* Empty the base path if it already exists */
+    base_path = concat_paths(res_dir, dict_name);
+    ret = remove_path(base_path);
+#ifdef _WIN32
+    ret = ret && ret != ERROR_FILE_NOT_FOUND ? ret : 0;
+#else
+    ret = ret && ret != ENOENT ? ret : 0;
+#endif
+    if (ret)
+    {
+        fprintf(stderr, "Could not remove base path: %s\n", base_path);
+#ifdef _WIN32
+        fprintf(stderr, "Error Code: %x\n", ret);
+#else
+        fprintf(stderr, "%s\n", strerror(ret));
+#endif
+        goto cleanup;
+    }
+    if ((ret = make_path(base_path)))
+    {
+        fprintf(stderr, "Could not create path: %s\n%s\n", base_path, strerror(ret));
+        goto cleanup;
+    }
+
+    /* Initialize the file regex filter */
+    if ((ret = regcomp(&rt, REGEX_SKIP_FILE, REG_EXTENDED)))
+    {
+        fprintf(stderr, "Could not compile regex\nError: %d\n", ret);
+        goto cleanup;
+    }
+    file_regex = &rt; // if regcomp fails, regfree is UB if passed non-NULL
+
+    /* Iterate over files */
+    for (zip_int64_t i = 0; i < zip_get_num_files(dict_archive); ++i)
+    {
+        file_name = zip_get_name(dict_archive, i, 0);
+        /* Skip unwanted files */
+        switch (regexec(file_regex, file_name, 0, NULL, 0))
+        {
+        case REG_NOMATCH:
+            break;
+        case 0:
+            continue;
+        default:
+            fprintf(stderr, "Error occurring in matching file regex\n");
+            goto cleanup;
+        }
+
+        /* Check if the file is a directory */
+        size_t file_name_len = strlen(file_name);
+        if (file_name[file_name_len - 1] == '/')
+        {
+            char *path = concat_paths(base_path, file_name);
+            make_path(path);
+            free(path);
+            continue;
+        }
+
+        /* Open file that are actual files */
+        zip_file_t *zip_file = zip_fopen_index(dict_archive, i, 0);
+        if (zip_file == NULL)
+        {
+            fprintf(stderr, "Could not open resource file in archive\n");
+            goto cleanup;
+        }
+
+        /* Open the system file */
+        char *file_path = concat_paths(base_path, file_name);
+#ifdef _WIN32
+        LPWSTR wFilePath = utf8_to_lpwstr(file_path);
+        FILE *file = _wfopen(wFilePath, L"w");
+        free(wFilePath);
+        wFilePath = NULL;
+#else
+        FILE *file = fopen(file_path, "w");
+#endif
+        if (file == NULL)
+        {
+            fprintf(stderr, "Could not open file for writing\n%s\n", file_path);
+            free(file_path);
+            zip_fclose(zip_file);
+            goto cleanup;
+        }
+        free(file_path);
+        file_path = NULL;
+
+        /* Buffer and write the file */
+        char buf[BUFSIZ];
+        zip_int64_t bytes_read = 0;
+        while ((bytes_read = zip_fread(zip_file, buf, sizeof(buf))))
+        {
+            fwrite(buf, sizeof(char), bytes_read, file);
+        }
+        fclose(file);
+        zip_fclose(zip_file);
+    }
+
+cleanup:
+    if (file_regex)
+    {
+        regfree(file_regex);
+    }
+    json_object_put(obj);
+    free(base_path);
+
+    return ret;
+}
+
+#undef TITLE_KEY
+
+#undef REGEX_SKIP_FILE
+
 int yomi_prepare_db(const char *db_file, sqlite3 **db)
 {
     int      ret          = 0;
@@ -1461,7 +1887,7 @@ cleanup:
     return ret;
 }
 
-int yomi_process_dictionary(const char *dict_file, const char *db_file)
+int yomi_process_dictionary(const char *dict_file, const char *db_file, const char *res_dir)
 {
     int            ret          = 0;
     int            err          = 0;
@@ -1529,6 +1955,13 @@ int yomi_process_dictionary(const char *dict_file, const char *db_file)
         goto error;
     }
 
+    /* Extract any resources that also exist in the archive */
+    if (extract_resources(dict_archive, res_dir))
+    {
+        ret = YOMI_ERR_EXTRACTING_RESOURCES;
+        goto error;
+    }
+
     /* Commit the transaction */
     if ((ret = commit_transaction(db)))
     {
@@ -1548,12 +1981,13 @@ error:
     return ret;
 }
 
-int yomi_delete_dictionary(const char *dict_name, const char *db_file)
+int yomi_delete_dictionary(const char *dict_name, const char *db_file, const char *res_dir)
 {
     int            ret  = 0;
     sqlite3       *db   = NULL;
     sqlite3_stmt  *stmt = NULL;
     int            step = 0;
+    char          *path = NULL;
 
     /* Open or create the database */
     if ((ret = yomi_prepare_db(db_file, &db)))
@@ -1578,9 +2012,20 @@ int yomi_delete_dictionary(const char *dict_name, const char *db_file)
         goto cleanup;
     }
 
+    /* Remove any resources */
+    path = concat_paths(res_dir, dict_name);
+    ret = remove_path(path);
+    ret = ret && ret != ENOENT ? ret : 0;
+    if (ret)
+    {
+        ret = YOMI_ERR_REMOVING_RESOURCES;
+        goto cleanup;
+    }
+
 cleanup:
     sqlite3_finalize(stmt);
     sqlite3_close_v2(db);
+    free(path);
 
     return ret;
 }

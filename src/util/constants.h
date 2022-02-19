@@ -274,19 +274,19 @@ enum class Theme
 #define SETTINGS_INTERFACE_DEFINITION_STYLE                 "definition-style"
 #if defined(Q_OS_MACOS)
 #define SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT         \
-    "QLabel {\n"\
+    "QLabel, QTextEdit {\n"\
     "    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"\
     "    font-size: 15pt;\n"\
     "}"
 #elif defined(Q_OS_WIN)
 #define SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT         \
-    "QLabel {\n"\
+    "QLabel, QTextEdit {\n"\
     "    font-family: \"Meiryo\", \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"\
     "    font-size: 11pt;\n"\
     "}"
 #else
 #define SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT         \
-    "QLabel {\n"\
+    "QLabel, QTextEdit {\n"\
     "    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"\
     "    font-size: 11pt;\n"\
     "}"

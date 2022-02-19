@@ -77,6 +77,13 @@ public:
      */
     static QString getMpvInputConfig();
 
+    /**
+     * Gets the dictionary resource directory path. Creates it if it doesn't
+     * exist.
+     * @return The dictionary resource directory path.
+     */
+    static QString getDictionaryResourceDir();
+
 private:
     DirectoryUtils() {}
 };

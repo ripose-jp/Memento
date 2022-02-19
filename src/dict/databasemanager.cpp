@@ -27,6 +27,7 @@
 #include <QMessageBox>
 #include <QVector>
 
+#include "../util/utils.h"
 #include "yomidbbuilder.h"
 
 /* Begin Constructor/Destructor */
@@ -178,7 +179,8 @@ int DatabaseManager::addDictionary(const QString &path)
 {
     m_dbLock.lockForWrite();
     QByteArray cpath = path.toUtf8();
-    int ret = yomi_process_dictionary(cpath, m_dbpath);
+    QByteArray respath = DirectoryUtils::getDictionaryResourceDir().toUtf8();
+    int ret = yomi_process_dictionary(cpath, m_dbpath, respath);
     initCache();
     m_dbLock.unlock();
     return ret;
@@ -188,7 +190,8 @@ int DatabaseManager::deleteDictionary(const QString &name)
 {
     m_dbLock.lockForWrite();
     QByteArray cname = name.toUtf8();
-    int ret = yomi_delete_dictionary(cname, m_dbpath);
+    QByteArray respath = DirectoryUtils::getDictionaryResourceDir().toUtf8();
+    int ret = yomi_delete_dictionary(cname, m_dbpath, respath);
     initCache();
     m_dbLock.unlock();
     return ret;
@@ -562,9 +565,9 @@ int DatabaseManager::populateTerms(const QList<Term *> &terms) const
 
             TermDefinition def;
             def.dictionary = getDictionary(id);
-            def.glossary = jsonArrayToStringList(
-                    (const char *)sqlite3_column_text(stmt, COLUMN_GLOSSARY)
-                );
+            def.glossary = QJsonDocument::fromJson(
+                (const char *)sqlite3_column_text(stmt, COLUMN_GLOSSARY)
+            ).array();
             def.score = sqlite3_column_int(stmt, COLUMN_SCORE);
             addTags(
                 id,
@@ -821,6 +824,10 @@ QString DatabaseManager::errorCodeToString(const int code) const
         return "Could not open dictionary file";
     case YOMI_ERR_DELETE:
         return "Could not execute delete query on database";
+    case YOMI_ERR_EXTRACTING_RESOURCES:
+        return "Could not extract dictionary resources";
+    case YOMI_ERR_REMOVING_RESOURCES:
+        return "Could not remove dictionary resources";
     default:
         return "Unknown error";
     }
@@ -857,18 +864,19 @@ QString DatabaseManager::kataToHira(const QString &query) const
 QStringList DatabaseManager::jsonArrayToStringList(const char *jsonstr) const
 {
     QJsonDocument document = QJsonDocument::fromJson(jsonstr);
-    QJsonArray    array    = document.array();
-    QStringList   list;
+    QJsonArray array = document.array();
+    QStringList list;
 
     for (const QJsonValue &val : array)
     {
         if (val.isString())
+        {
             list.append(val.toString());
+        }
     }
 
     return list;
 }
-
 
 bool inline DatabaseManager::isStepError(const int step)
 {

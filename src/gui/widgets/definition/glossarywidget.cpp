@@ -20,12 +20,14 @@
 
 #include "glossarywidget.h"
 
+#include "../../../util/utils.h"
 #include "tagwidget.h"
 
-GlossaryWidget::GlossaryWidget(const size_t          number,
-                               const TermDefinition &def,
-                               const bool           list,
-                               QWidget              *parent)
+GlossaryWidget::GlossaryWidget(
+    const size_t number,
+    const TermDefinition &def,
+    const bool list,
+    QWidget *parent)
     : QWidget(parent),
       m_def(def)
 {
@@ -33,11 +35,11 @@ GlossaryWidget::GlossaryWidget(const size_t          number,
     m_layoutHeader  = new FlowLayout(-1, 6);
     m_checkBoxAdd   = new QCheckBox;
     m_labelNumber   = new QLabel;
-    m_labelGlossary = new QLabel;
+    m_glossaryLabel = new GlossaryLabel(list);
 
     m_parentLayout->setMargin(0);
     m_parentLayout->addLayout(m_layoutHeader);
-    m_parentLayout->addWidget(m_labelGlossary);
+    m_parentLayout->addWidget(m_glossaryLabel);
 
     m_layoutHeader->addWidget(m_checkBoxAdd);
     m_layoutHeader->addWidget(m_labelNumber);
@@ -66,30 +68,10 @@ GlossaryWidget::GlossaryWidget(const size_t          number,
 
     m_labelNumber->setText(QString::number(number) + ".");
 
-    m_labelGlossary->setWordWrap(true);
-    m_labelGlossary->setTextInteractionFlags(
-        Qt::TextInteractionFlag::TextSelectableByMouse
+    m_glossaryLabel->setContents(
+        m_def.glossary,
+        DirectoryUtils::getDictionaryResourceDir() + SLASH + m_def.dictionary
     );
-    QString glos;
-    if (list)
-    {
-        glos += "<ul>";
-        for (QString def : m_def.glossary)
-        {
-            glos += "<li>";
-            glos += def.replace('\n', "</li><li>");
-            glos += "</li>";
-        }
-        glos += "</ul>";
-    }
-    else
-    {
-        for (QString def : m_def.glossary)
-        {
-            glos += def;
-        }
-    }
-    m_labelGlossary->setText(glos);
 }
 
 void GlossaryWidget::setCheckable(const bool value)

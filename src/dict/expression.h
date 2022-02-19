@@ -21,6 +21,7 @@
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
 
+#include <QJsonArray>
 #include <QString>
 #include <QStringList>
 #include <QVariant>
@@ -100,7 +101,7 @@ struct TermDefinition
     QList<Tag> rules;
 
     /* A list of glossary entries for this definition. */
-    QStringList glossary;
+    QJsonArray glossary;
 
     /* Score of this definition.
      *  Used for ordering. More common entries have a larger score.
