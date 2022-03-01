@@ -43,6 +43,12 @@ Memento is a FOSS, mpv-based video player for studying Japanese.
 
 ## Troubleshooting
 
+### Can't Add Cards: Only the "Show in Anki" Button is Available
+
+This means there is a mistake in your card template.
+When this happens, AnkiConnect will report that all potential cards are not addable.
+Double check your card template to see if the front of the card is missing something.
+
 ### Secondary Subtitles Don't Work
 
 This is (unfortunately) intended behavior.
