@@ -97,6 +97,7 @@
 #define CONFIG_HOST             "host"
 #define CONFIG_PORT             "port"
 #define CONFIG_DUPLICATE        "duplicate"
+#define CONFIG_NEWLINE_REPLACER "newline-replace"
 #define CONFIG_SCREENSHOT       "screenshot"
 #define CONFIG_AUDIO_PAD_START  "audio-pad-start"
 #define CONFIG_AUDIO_PAD_END    "audio-pad-end"
@@ -225,13 +226,17 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         if (profile[CONFIG_DUPLICATE].isNull())
         {
             modified = true;
-            profile[CONFIG_DUPLICATE] =
-                AnkiConfig::DuplicatePolicy::DifferentDeck;
+            profile[CONFIG_DUPLICATE] = DEFAULT_DUPLICATE_POLICY;
+        }
+        if (profile[CONFIG_NEWLINE_REPLACER].isNull())
+        {
+            modified = true;
+            profile[CONFIG_NEWLINE_REPLACER] = DEFAULT_NEWLINE_REPLACER;
         }
         if (profile[CONFIG_SCREENSHOT].isNull())
         {
             modified = true;
-            profile[CONFIG_SCREENSHOT] = AnkiConfig::FileType::jpg;
+            profile[CONFIG_SCREENSHOT] = DEFAULT_SCREENSHOT;
         }
         if (profile[CONFIG_TERM].isNull())
         {
@@ -295,6 +300,11 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
             qDebug() << CONFIG_DUPLICATE << "is not a double";
             return false;
         }
+        else if (!profile[CONFIG_NEWLINE_REPLACER].isString())
+        {
+            qDebug() << CONFIG_NEWLINE_REPLACER << "is not a string";
+            return false;
+        }
         else if (!profile[CONFIG_SCREENSHOT].isDouble())
         {
             qDebug() << CONFIG_SCREENSHOT << "is not a double";
@@ -349,11 +359,12 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         config->address         = profile[CONFIG_HOST].toString();
         config->port            = profile[CONFIG_PORT].toString();
         config->duplicatePolicy = (AnkiConfig::DuplicatePolicy)
-            profile[CONFIG_DUPLICATE].toInt(
-                AnkiConfig::DuplicatePolicy::DifferentDeck
-            );
+            profile[CONFIG_DUPLICATE].toInt(DEFAULT_DUPLICATE_POLICY);
+        config->newlineReplacer =
+            profile[CONFIG_NEWLINE_REPLACER].toString(DEFAULT_NEWLINE_REPLACER);
+
         config->screenshotType  = (AnkiConfig::FileType)
-            profile[CONFIG_SCREENSHOT].toInt(AnkiConfig::FileType::jpg);
+            profile[CONFIG_SCREENSHOT].toInt(DEFAULT_SCREENSHOT);
         config->audioPadStart   = profile[CONFIG_AUDIO_PAD_START].toDouble();
         config->audioPadEnd     = profile[CONFIG_AUDIO_PAD_END].toDouble();
         config->audioNormalize  = profile[CONFIG_AUDIO_NORMALIZE].toBool();
@@ -415,16 +426,17 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
         std::shared_ptr<const AnkiConfig> config = m_configs.value(profile);
 
         QJsonObject configObj;
-        configObj[CONFIG_NAME]            = profile;
-        configObj[CONFIG_HOST]            = config->address;
-        configObj[CONFIG_PORT]            = config->port;
-        configObj[CONFIG_DUPLICATE]       = config->duplicatePolicy;
-        configObj[CONFIG_SCREENSHOT]      = config->screenshotType;
-        configObj[CONFIG_AUDIO_PAD_START] = config->audioPadStart;
-        configObj[CONFIG_AUDIO_PAD_END]   = config->audioPadEnd;
-        configObj[CONFIG_AUDIO_NORMALIZE] = config->audioNormalize;
-        configObj[CONFIG_AUDIO_DB]        = config->audioDb;
-        configObj[CONFIG_TAGS]            = config->tags;
+        configObj[CONFIG_NAME]             = profile;
+        configObj[CONFIG_HOST]             = config->address;
+        configObj[CONFIG_PORT]             = config->port;
+        configObj[CONFIG_DUPLICATE]        = config->duplicatePolicy;
+        configObj[CONFIG_NEWLINE_REPLACER] = config->newlineReplacer;
+        configObj[CONFIG_SCREENSHOT]       = config->screenshotType;
+        configObj[CONFIG_AUDIO_PAD_START]  = config->audioPadStart;
+        configObj[CONFIG_AUDIO_PAD_END]    = config->audioPadEnd;
+        configObj[CONFIG_AUDIO_NORMALIZE]  = config->audioNormalize;
+        configObj[CONFIG_AUDIO_DB]         = config->audioDb;
+        configObj[CONFIG_TAGS]             = config->tags;
 
         QJsonArray excludeGloss;
         for (const QString &dict : config->excludeGloss)
@@ -1254,11 +1266,12 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji, bool media)
     return note;
 }
 
-void AnkiClient::buildCommonNote(const QJsonObject     &configFields,
-                                 const CommonExpFields &exp,
-                                 const bool             media,
-                                 QJsonObject           &note,
-                                 QJsonObject           &fieldObj)
+void AnkiClient::buildCommonNote(
+    const QJsonObject &configFields,
+    const CommonExpFields &exp,
+    const bool media,
+    QJsonObject &note,
+    QJsonObject &fieldObj)
 {
     /* Set Duplicate Policy */
     switch (m_currentConfig->duplicatePolicy)
@@ -1284,14 +1297,22 @@ void AnkiClient::buildCommonNote(const QJsonObject     &configFields,
     note[ANKI_NOTE_TAGS] = m_currentConfig->tags;
 
     /* Find and replace markers with processed data */
-    QString clipboard   = QString(exp.clipboard).replace('\n', "<br>");
-    QString clozeBody   = QString(exp.clozeBody).replace('\n', "<br>");
-    QString clozePrefix = QString(exp.clozePrefix).replace('\n', "<br>");
-    QString clozeSuffix = QString(exp.clozeSuffix).replace('\n', "<br>");
-    QString sentence    = QString(exp.sentence).replace('\n', "<br>");
-    QString sentence2   = QString(exp.sentence2).replace('\n', "<br>");
-    QString context     = QString(exp.context).replace('\n', "<br>");
-    QString context2    = QString(exp.context2).replace('\n', "<br>");
+    QString clipboard =
+        QString(exp.clipboard).replace('\n', m_currentConfig->newlineReplacer);
+    QString clozeBody =
+        QString(exp.clozeBody).replace('\n', m_currentConfig->newlineReplacer);
+    QString clozePrefix =
+        QString(exp.clozePrefix).replace('\n', m_currentConfig->newlineReplacer);
+    QString clozeSuffix =
+        QString(exp.clozeSuffix).replace('\n', m_currentConfig->newlineReplacer);
+    QString sentence =
+        QString(exp.sentence).replace('\n', m_currentConfig->newlineReplacer);
+    QString sentence2 =
+        QString(exp.sentence2).replace('\n', m_currentConfig->newlineReplacer);
+    QString context =
+        QString(exp.context).replace('\n', m_currentConfig->newlineReplacer);
+    QString context2 =
+        QString(exp.context2).replace('\n', m_currentConfig->newlineReplacer);
 
     QString frequencies = buildFrequencies(exp.frequencies);
 

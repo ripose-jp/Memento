@@ -72,6 +72,7 @@
 #define DEFAULT_PORT                    "8765"
 #define DEFAULT_SCREENSHOT              AnkiConfig::FileType::jpg
 #define DEFAULT_DUPLICATE_POLICY        AnkiConfig::DuplicatePolicy::DifferentDeck
+#define DEFAULT_NEWLINE_REPLACER        "<br>"
 #define DEFAULT_TAGS                    "memento"
 #define DEFAULT_AUDIO_PAD_START         0.0
 #define DEFAULT_AUDIO_PAD_END           0.0

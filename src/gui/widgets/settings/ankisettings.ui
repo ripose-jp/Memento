@@ -34,7 +34,7 @@
         <x>0</x>
         <y>0</y>
         <width>497</width>
-        <height>1262</height>
+        <height>1332</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -320,6 +320,26 @@ Comma or space separated list.</string>
                  <string>Allowed in Same Deck</string>
                 </property>
                </item>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="labelNewlineReplacer">
+               <property name="font">
+                <font>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Replace Newlines With</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEditNewlineReplacer">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Replaces newlines with the value specified.&lt;/p&gt;&lt;p&gt;By default newlines are substituted with &amp;lt;br&amp;gt; because HTML does not render newlines as line breaks.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
               </widget>
              </item>
              <item>

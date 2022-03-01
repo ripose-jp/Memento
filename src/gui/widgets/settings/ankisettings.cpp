@@ -266,6 +266,7 @@ void AnkiSettings::restoreDefaults()
     defaultConfig.address         = DEFAULT_HOST;
     defaultConfig.port            = DEFAULT_PORT;
     defaultConfig.duplicatePolicy = DEFAULT_DUPLICATE_POLICY;
+    defaultConfig.newlineReplacer = DEFAULT_NEWLINE_REPLACER;
     defaultConfig.screenshotType  = DEFAULT_SCREENSHOT;
     defaultConfig.audioPadStart   = DEFAULT_AUDIO_PAD_START;
     defaultConfig.audioPadStart   = DEFAULT_AUDIO_PAD_END;
@@ -423,8 +424,9 @@ void AnkiSettings::enabledStateChanged(int state)
     m_ui->buttonConnect->setEnabled(enabled);
 }
 
-void AnkiSettings::populateFields(const QString    &profile,
-                                  const AnkiConfig &config)
+void AnkiSettings::populateFields(
+    const QString &profile,
+    const AnkiConfig &config)
 {
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
 
@@ -448,6 +450,8 @@ void AnkiSettings::populateFields(const QString    &profile,
     m_ui->comboBoxDuplicates->setCurrentText(
         duplicatePolicyToString(config.duplicatePolicy)
     );
+
+    m_ui->lineEditNewlineReplacer->setText(config.newlineReplacer);
 
     m_ui->comboBoxScreenshot->setCurrentText(
         fileTypeToString(config.screenshotType)
@@ -612,6 +616,7 @@ void AnkiSettings::applyToConfig(const QString &profile)
     config->duplicatePolicy =
         stringToDuplicatePolicy(m_ui->comboBoxDuplicates->currentText()
     );
+    config->newlineReplacer = m_ui->lineEditNewlineReplacer->text();
     config->screenshotType =
         stringToFileType(m_ui->comboBoxScreenshot->currentText()
     );

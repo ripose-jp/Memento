@@ -67,6 +67,9 @@ struct AnkiConfig
     /* The duplicate policy of this profile. */
     DuplicatePolicy duplicatePolicy;
 
+    /* The string to replace new lines with */
+    QString newlineReplacer;
+
     /* The file type to save screenshots as. */
     FileType screenshotType;
 
@@ -121,6 +124,7 @@ struct AnkiConfig
         address         = rhs.address;
         port            = rhs.port;
         duplicatePolicy = rhs.duplicatePolicy;
+        newlineReplacer = rhs.newlineReplacer;
         screenshotType  = rhs.screenshotType;
         audioPadStart   = rhs.audioPadStart;
         audioPadEnd     = rhs.audioPadEnd;
