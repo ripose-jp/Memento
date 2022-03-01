@@ -21,9 +21,10 @@
 #ifndef ANKICLIENT_H
 #define ANKICLIENT_H
 
+#include <QObject>
+
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QObject>
 #include <QString>
 #include <QStringList>
 
@@ -260,11 +261,27 @@ public:
      * @param deck  The name of the deck to search in.
      * @param query The query to search.
      * @return An AnkiReply that emits the finishedIntList() signal. Integer
-     *         values are
+     *         values are card IDs.
      */
     AnkiReply *openBrowse(const QString &deck, const QString &query);
 
+public Q_SLOTS:
+    /**
+     * Adds media file to Anki.
+     * @param files A mapping of file paths to file names.
+     * @return An AnkiReply that emits the finishedStringList() signal. Strings
+     *         are added filenames.
+     */
+    AnkiReply *addMedia(const QList<QPair<QString, QString>> &fileMap);
+
 Q_SIGNALS:
+    /**
+     * Sends an add media request.
+     * This is a hack to get the media request on the main thread.
+     * @param fileMap The filemap to add.
+     */
+    void requestAddMedia(const QList<QPair<QString, QString>> &fileMap) const;
+
     /**
      * Sends a request to issue a command to Anki that returns an integer.
      * This is a hack to make sure that the QNetworkAccessManager is used from
@@ -374,8 +391,22 @@ private:
      *              object, false otherwise.
      * @return A JSON object corresponding to the term.
      */
-    QJsonObject createAnkiNoteObject(const Term &term,
-                                     const bool  media = false);
+    QJsonObject createAnkiNoteObject(
+        const Term &term,
+        bool media);
+
+    /**
+     * Creates an AnkiConnect compatible note JSON object.
+     * @param      term    The term to make the object from.
+     * @param      media   true if screenshots and audio should be included in
+     *                     the object, false otherwise.
+     * @param[out] filemap A mapping of file paths to filenames.
+     * @return A JSON object corresponding to the term.
+     */
+    QJsonObject createAnkiNoteObject(
+        const Term &term,
+        bool media,
+        QList<QPair<QString, QString>> &filemap);
 
     /**
      * Creates an AnkiConnect compatible note JSON object.
@@ -384,8 +415,7 @@ private:
      *              object, false otherwise.
      * @return A JSON object corresponding to the term.
      */
-    QJsonObject createAnkiNoteObject(const Kanji &kanji,
-                                     const bool   media = false);
+    QJsonObject createAnkiNoteObject(const Kanji &kanji, bool media);
 
     /**
      * Helper method for processing the card markers shared by both term and
@@ -428,10 +458,15 @@ private:
 
     /**
      * Builds an HTML glossary from the TermDefinitions.
-     * @param definitions The definitions to build the glossary from.
-     * @return An HTML glossary.
+     * @param      definitions   The definitions to build the glossary from.
+     * @param[out] glossary      The glossary.
+     * @param[out] glossaryBrief The brief glossary.
+     * @return A mapping of file paths to filenames.
      */
-    QString buildGlossary(const QList<TermDefinition> &definitions);
+    QList<QPair<QString, QString>> buildGlossary(
+        const QList<TermDefinition> &definitions,
+        QString &glossary,
+        QString &glossaryBrief);
 
     /**
      * Builds an HTML glossary from the KanjiDefinitions.

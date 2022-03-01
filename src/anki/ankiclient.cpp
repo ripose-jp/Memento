@@ -23,6 +23,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QJsonArray>
+#include <QMetaType>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -34,6 +35,7 @@
 #include "../util/constants.h"
 #include "../util/globalmediator.h"
 #include "../util/utils.h"
+#include "glossarybuilder.h"
 
 /* Anki request fields */
 #define ANKI_ACTION                     "action"
@@ -45,18 +47,22 @@
 #define ANKI_VERSION                    "version"
 
 /* Anki actions */
-#define ANKI_DECK_NAMES                 "deckNames"
-#define ANKI_MODEL_NAMES                "modelNames"
-#define ANKI_FIELD_NAMES                "modelFieldNames"
+#define ANKI_ACTION_DECK_NAMES          "deckNames"
+#define ANKI_ACTION_MODEL_NAMES         "modelNames"
+#define ANKI_ACTION_FIELD_NAMES         "modelFieldNames"
 #define ANKI_ACTION_VERSION             "version"
-#define ANKI_CAN_ADD_NOTES              "canAddNotes"
-#define ANKI_ADD_NOTE                   "addNote"
-#define ANKI_ADD_NOTE_PARAM             "note"
-#define ANKI_GUI_BROWSE                 "guiBrowse"
+#define ANKI_ACTION_CAN_ADD_NOTES       "canAddNotes"
+#define ANKI_ACTION_ADD_NOTE            "addNote"
+
+#define ANKI_ACTION_GUI_BROWSE          "guiBrowse"
+#define ANKI_ACTION_STORE_MEDIA_FILE    "storeMediaFile"
+#define ANKI_ACTION_MULTI               "multi"
 
 /* Anki param fields */
 #define ANKI_PARAM_MODEL_NAME           "modelName"
 #define ANKI_PARAM_QUERY                "query"
+#define ANKI_PARAM_ADD_NOTE             "note"
+#define ANKI_PARAM_ACTIONS              "actions"
 
 /* Anki note fields */
 #define ANKI_CAN_ADD_NOTES_PARAM        "notes"
@@ -120,6 +126,12 @@ AnkiClient::AnkiClient(QObject *parent)
         setDefaultConfig();
     }
 
+    qRegisterMetaType<QList<QPair<QString, QString>>>("FileMap");
+
+    connect(
+        this, &AnkiClient::requestAddMedia,
+        this, &AnkiClient::addMedia
+    );
     connect(
         this, &AnkiClient::sendIntRequest,
         this, &AnkiClient::receiveIntRequest
@@ -601,19 +613,19 @@ AnkiReply *AnkiClient::testConnection()
 
 AnkiReply *AnkiClient::getDeckNames()
 {
-    return requestStringList(ANKI_DECK_NAMES);
+    return requestStringList(ANKI_ACTION_DECK_NAMES);
 }
 
 AnkiReply *AnkiClient::getModelNames()
 {
-    return requestStringList(ANKI_MODEL_NAMES);
+    return requestStringList(ANKI_ACTION_MODEL_NAMES);
 }
 
 AnkiReply *AnkiClient::getFieldNames(const QString &model)
 {
     QJsonObject params;
     params[ANKI_PARAM_MODEL_NAME] = model;
-    return requestStringList(ANKI_FIELD_NAMES, params);
+    return requestStringList(ANKI_ACTION_FIELD_NAMES, params);
 }
 
 AnkiReply *AnkiClient::notesAddable(QList<std::shared_ptr<const Term>> terms)
@@ -625,11 +637,13 @@ AnkiReply *AnkiClient::notesAddable(QList<std::shared_ptr<const Term>> terms)
             QJsonArray notes;
             for (std::shared_ptr<const Term> term : terms)
             {
-                notes.append(createAnkiNoteObject(*term));
+                notes.append(createAnkiNoteObject(*term, false));
             }
             QJsonObject params;
             params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
-            Q_EMIT sendBoolListRequest(ANKI_CAN_ADD_NOTES, params, ankiReply);
+            Q_EMIT sendBoolListRequest(
+                ANKI_ACTION_CAN_ADD_NOTES, params, ankiReply
+            );
         }
     );
 
@@ -646,11 +660,13 @@ AnkiReply *AnkiClient::notesAddable(
             QJsonArray notes;
             for (std::shared_ptr<const Kanji> kanji : kanjiList)
             {
-                notes.append(createAnkiNoteObject(*kanji));
+                notes.append(createAnkiNoteObject(*kanji, false));
             }
             QJsonObject params;
             params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
-            Q_EMIT sendBoolListRequest(ANKI_CAN_ADD_NOTES, params, ankiReply);
+            Q_EMIT sendBoolListRequest(
+                ANKI_ACTION_CAN_ADD_NOTES, params, ankiReply
+            );
         }
     );
 
@@ -664,10 +680,15 @@ AnkiReply *AnkiClient::addNote(const Term *term)
     QThreadPool::globalInstance()->start(
         [=] {
             QJsonObject params;
-            QJsonObject note = createAnkiNoteObject(*term, true);
+            QList<QPair<QString, QString>> filemap;
+            QJsonObject note = createAnkiNoteObject(*term, true, filemap);
+            if (!filemap.isEmpty())
+            {
+                Q_EMIT requestAddMedia(filemap);
+            }
             delete term;
-            params[ANKI_ADD_NOTE_PARAM] = note;
-            Q_EMIT sendIntRequest(ANKI_ADD_NOTE, params, ankiReply);
+            params[ANKI_PARAM_ADD_NOTE] = note;
+            Q_EMIT sendIntRequest(ANKI_ACTION_ADD_NOTE, params, ankiReply);
         }
     );
 
@@ -683,8 +704,8 @@ AnkiReply *AnkiClient::addNote(const Kanji *kanji)
             QJsonObject params;
             QJsonObject note = createAnkiNoteObject(*kanji, true);
             delete kanji;
-            params[ANKI_ADD_NOTE_PARAM] = note;
-            Q_EMIT sendIntRequest(ANKI_ADD_NOTE, params, ankiReply);
+            params[ANKI_PARAM_ADD_NOTE] = note;
+            Q_EMIT sendIntRequest(ANKI_ACTION_ADD_NOTE, params, ankiReply);
         }
     );
 
@@ -705,7 +726,7 @@ AnkiReply *AnkiClient::openBrowse(const QString &deck, const QString &query)
         queryStr += query;
     }
     params[ANKI_PARAM_QUERY] = queryStr;
-    QNetworkReply *reply = makeRequest(ANKI_GUI_BROWSE, params);
+    QNetworkReply *reply = makeRequest(ANKI_ACTION_GUI_BROWSE, params);
     AnkiReply *ankiReply = new AnkiReply;
     connect(reply, &QNetworkReply::finished, this,
         [=] {
@@ -742,6 +763,83 @@ AnkiReply *AnkiClient::openBrowse(const QString &deck, const QString &query)
         }
         ankiReply->deleteLater();
         reply->deleteLater();
+        }
+    );
+    return ankiReply;
+}
+
+AnkiReply *AnkiClient::addMedia(const QList<QPair<QString, QString>> &fileMap)
+{
+    QJsonObject params;
+    QJsonArray actions;
+    for (const QPair<QString, QString> &p : fileMap)
+    {
+        QJsonObject command;
+        command[ANKI_ACTION] = ANKI_ACTION_STORE_MEDIA_FILE;
+        QJsonObject fileParams;
+        fileParams[ANKI_NOTE_PATH] = p.first;
+        fileParams[ANKI_NOTE_FILENAME] = p.second;
+        command[ANKI_PARAMS] = fileParams;
+
+        actions << command;
+    }
+    params[ANKI_PARAM_ACTIONS] = actions;
+
+    QNetworkReply *reply = makeRequest(ANKI_ACTION_MULTI, params);
+    AnkiReply *ankiReply = new AnkiReply;
+    connect(reply, &QNetworkReply::finished, this,
+        [=] {
+            QString error;
+            QJsonObject replyObj = processReply(reply, error);
+            if (replyObj.isEmpty())
+            {
+                Q_EMIT ankiReply->finishedStringList(QStringList(), error);
+            }
+            else if (!replyObj[ANKI_RESULT].isArray())
+            {
+                Q_EMIT ankiReply->finishedStringList(
+                    QStringList(), "Result is not an array"
+                );
+            }
+            else
+            {
+                QStringList filenames;
+                QJsonArray resultObjects = replyObj[ANKI_RESULT].toArray();
+                for (const QJsonValueRef &result : resultObjects)
+                {
+                    QJsonObject obj;
+                    if (!result.isObject())
+                    {
+                        Q_EMIT ankiReply->finishedStringList(
+                            QStringList(), "Result is not an array of objects"
+                        );
+                        goto exit;
+                    }
+
+                    obj = result.toObject();
+                    if (!obj[ANKI_ERROR].isNull())
+                    {
+                        Q_EMIT ankiReply->finishedStringList(
+                            QStringList(), obj[ANKI_ERROR].toString()
+                        );
+                        goto exit;
+                    }
+
+                    if (!obj[ANKI_RESULT].isString())
+                    {
+                        Q_EMIT ankiReply->finishedStringList(
+                            QStringList(), "A result is not a string"
+                        );
+                        goto exit;
+                    }
+
+                    filenames << obj[ANKI_RESULT].toString();
+                }
+                Q_EMIT ankiReply->finishedStringList(filenames, error);
+            }
+        exit:
+            ankiReply->deleteLater();
+            reply->deleteLater();
         }
     );
     return ankiReply;
@@ -853,7 +951,7 @@ void AnkiClient::receiveBoolListRequest(const QString     &action,
                                         const QJsonObject &params,
                                         AnkiReply         *ankiReply)
 {
-    QNetworkReply *reply = makeRequest(ANKI_CAN_ADD_NOTES, params);
+    QNetworkReply *reply = makeRequest(ANKI_ACTION_CAN_ADD_NOTES, params);
     connect(reply, &QNetworkReply::finished, this,
         [=] {
             QString error;
@@ -930,7 +1028,16 @@ AnkiReply *AnkiClient::requestStringList(const QString     &action,
 /* End Network Helpers */
 /* Begin Note Helpers */
 
-QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
+QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, bool media)
+{
+    QList<QPair<QString, QString>> filemap;
+    return createAnkiNoteObject(term, media, filemap);
+}
+
+QJsonObject AnkiClient::createAnkiNoteObject(
+    const Term &term,
+    bool media,
+    QList<QPair<QString, QString>> &filemap)
 {
     /* Build common parts of a note */
     QJsonObject note;
@@ -965,32 +1072,13 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
         reading = term.reading;
     }
 
-    QString glossary = buildGlossary(term.definitions);
-    QString glossaryCompact = "<ol>";
+    QString glossary, glossaryCompact;
+    filemap = buildGlossary(term.definitions, glossary, glossaryCompact);
 
     QString pitch;
     QString pitchGraph;
     QString pitchPosition;
     buildPitchInfo(term.pitches, pitch, pitchGraph, pitchPosition);
-
-    for (const TermDefinition &def : term.definitions)
-    {
-        for (const QJsonValue &val : def.glossary)
-        {
-            if (!val.isString())
-            {
-                continue;
-            }
-            glossaryCompact += "<li>";
-            glossaryCompact += val.toString().replace('\n', "</li><li>");
-            glossaryCompact += "</li>";
-        }
-        if (glossaryCompact.endsWith("<li></li>"))
-        {
-            glossaryCompact.chop(9);
-        }
-    }
-    glossaryCompact += "</ol>";
 
     QString tags = "<ul>";
     accumulateTags(term.tags, tags);
@@ -1052,8 +1140,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Term &term, const bool media)
     return note;
 }
 
-QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji,
-                                             const bool   media)
+QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji, bool media)
 {
     /* Build common parts of a note */
     QJsonObject note;
@@ -1537,10 +1624,16 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
 
 #undef PITCH_FORMAT
 
-QString AnkiClient::buildGlossary(const QList<TermDefinition> &definitions)
+QList<QPair<QString, QString>> AnkiClient::buildGlossary(
+    const QList<TermDefinition> &definitions,
+    QString &glossary,
+    QString &glossaryBrief)
 {
-    QString glossary;
-    glossary.append("<div style=\"text-align: left;\"><ol>");
+    QString basepath = DirectoryUtils::getDictionaryResourceDir() + SLASH;
+
+    glossary += "<div style=\"text-align: left;\"><ol>";
+    glossaryBrief += "<ol>";
+    QList<QPair<QString, QString>> filemap;
 
     for (const TermDefinition &def : definitions)
     {
@@ -1563,28 +1656,27 @@ QString AnkiClient::buildGlossary(const QList<TermDefinition> &definitions)
         glossary += ")</i>";
 
         glossary += "<ul>";
-        for (const QJsonValue &val : def.glossary)
+        QStringList items = GlossaryBuilder::buildGlossary(
+            def.glossary, basepath + def.dictionary, filemap
+        );
+        for (const QString &item : items)
         {
-            if (!val.isString())
-            {
-                continue;
-            }
             glossary += "<li>";
-            glossary += val.toString().replace('\n', "</li><li>");
+            glossary += item;
             glossary += "</li>";
-        }
-        if (glossary.endsWith("<li></li>"))
-        {
-            glossary.chop(9);
+
+            glossaryBrief += "<li>";
+            glossaryBrief += item;
+            glossaryBrief += "</li>";
         }
         glossary += "</ul>";
 
         glossary += "</li>";
     }
 
-    glossary.append("</ol></div>");
-
-    return glossary;
+    glossary += "</ol></div>";
+    glossaryBrief += "</ol>";
+    return filemap;
 }
 
 QString AnkiClient::buildFrequencies(const QList<Frequency> &frequencies)

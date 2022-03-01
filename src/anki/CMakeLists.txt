@@ -2,6 +2,7 @@ set(
     ANKI_SRCS
     ankiclient.cpp
     ankiconfig.h
+    glossarybuilder.cpp
 )
 
 add_library(anki ${ANKI_SRCS})
