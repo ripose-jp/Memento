@@ -291,6 +291,7 @@ void TermWidget::addNote(const AudioSource &src)
     {
         m_ankiTerm = initAnkiTerm();
     }
+    m_ankiTerm->audioSrcName = src.name;
     m_ankiTerm->audioURL = src.url;
     m_ankiTerm->audioSkipHash = src.md5;
 

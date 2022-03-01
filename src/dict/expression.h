@@ -185,6 +185,9 @@ struct Term : public CommonExpFields
      */
     int score;
 
+    /* The name of the audio source */
+    QString audioSrcName;
+
     /* The URL of the selected audio source */
     QString audioURL;
 

@@ -87,7 +87,7 @@
 #define TIMEOUT                         5000
 #define CONFIG_FILE                     "anki_connect.json"
 #define FURIGANA_FORMAT_STRING          (QString("<ruby>%1<rt>%2</rt></ruby>"))
-#define AUDIO_FILENAME_FORMAT_STRING    (QString("memento_%1_%2.mp3"))
+#define AUDIO_FILENAME_FORMAT_STRING    (QString("memento_%1_%2_%3.mp3"))
 
 /* Config file fields */
 #define CONFIG_ENABLED          "enabled"
@@ -1051,8 +1051,11 @@ QJsonObject AnkiClient::createAnkiNoteObject(
     note[ANKI_NOTE_MODEL] = m_currentConfig->termModel;
 
     /* Process Fields */
-    QString audioFile = AUDIO_FILENAME_FORMAT_STRING.arg(term.reading)
-                                                    .arg(term.expression);
+    QString audioFile = AUDIO_FILENAME_FORMAT_STRING
+        .arg(term.audioSrcName)
+        .arg(term.reading)
+        .arg(term.expression)
+        .replace(' ', '_');
 
     QString furigana;
     QString furiganaPlain;
