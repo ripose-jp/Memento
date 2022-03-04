@@ -400,6 +400,8 @@ void GlossaryBuilder::addStructuredContent(
     case QJsonValue::Type::Object:
         addStructuredContentHelper(val.toObject(), basepath, out, fileMap);
         break;
+    default:
+        break;
     }
 }
 

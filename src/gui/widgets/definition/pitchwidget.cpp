@@ -146,7 +146,7 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
             }
 
             text.clear();
-            for (size_t i = pos; i < pitch.mora.size(); ++i)
+            for (int i = (int)pos; i < pitch.mora.size(); ++i)
             {
                 text += pitch.mora[i];
             }

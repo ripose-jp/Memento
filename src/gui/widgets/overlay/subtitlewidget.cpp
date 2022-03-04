@@ -45,8 +45,8 @@
 SubtitleWidget::SubtitleWidget(QWidget *parent)
     : StrokeLabel(parent),
       m_dictionary(GlobalMediator::getGlobalMediator()->getDictionary()),
-      m_currentIndex(-1),
       m_findDelay(new QTimer(this)),
+      m_currentIndex(-1),
       m_paused(true)
 {
     if (m_dictionary == nullptr)

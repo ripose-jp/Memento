@@ -123,7 +123,7 @@ private Q_SLOTS:
     void initSearch();
 
     /**
-     * Intializes audio sources.
+     * Initializes audio sources.
      */
     void initAudioSources();
 
@@ -143,7 +143,7 @@ private Q_SLOTS:
      * @param start The starting index in m_terms to set addable (inclusive).
      * @param end   The ending index in m_terms to set addable (exclusive).
      */
-    void setAddable(const size_t start, const size_t end);
+    void setAddable(const int start, const int end);
 
     /**
      * Adds the terms in m_terms from start to end to the end of the Definition
@@ -151,7 +151,7 @@ private Q_SLOTS:
      * @param start The starting index in m_terms of terms to add (inclusive).
      * @param end   The ending index in m_terms of terms to add (exclusive).
      */
-    void showTerms(const size_t start, const size_t end);
+    void showTerms(const int start, const int end);
 
     /**
      * Hides terms and shows a kanji entry.
@@ -201,7 +201,7 @@ private:
     int m_jsonSources = 0;
 
     /* The maximum number of terms that should be shown on one search */
-    size_t m_limit;
+    int m_limit;
 
     /* List of terms. Owned by this widget. */
     QList<std::shared_ptr<const Term>> m_terms;

@@ -480,7 +480,7 @@ void PlayerMenu::setTracks(const QList<const Track *> &tracks)
     m_actionGroups.subtitleTwo->blockSignals(false);
 }
 
-void PlayerMenu::setAudioTrack(const uint64_t id)
+void PlayerMenu::setAudioTrack(const int id)
 {
     if (id)
     {
@@ -492,7 +492,7 @@ void PlayerMenu::setAudioTrack(const uint64_t id)
     }
 }
 
-void PlayerMenu::setVideoTrack(const uint64_t id)
+void PlayerMenu::setVideoTrack(const int id)
 {
     if (id)
     {
@@ -504,7 +504,7 @@ void PlayerMenu::setVideoTrack(const uint64_t id)
     }
 }
 
-void PlayerMenu::setSubtitleTrack(const uint64_t id)
+void PlayerMenu::setSubtitleTrack(const int id)
 {
     if (id)
     {
@@ -516,7 +516,7 @@ void PlayerMenu::setSubtitleTrack(const uint64_t id)
     }
 }
 
-void PlayerMenu::setSecondarySubtitleTrack(const uint64_t id)
+void PlayerMenu::setSecondarySubtitleTrack(const int id)
 {
     if (id)
     {
@@ -528,49 +528,49 @@ void PlayerMenu::setSecondarySubtitleTrack(const uint64_t id)
     }
 }
 
-void PlayerMenu::updateAudioAction(const uint64_t id)
+void PlayerMenu::updateAudioAction(const int id)
 {
     if (!id)
     {
         m_ui->actionAudioNone->setChecked(true);
     }
-    else if(id <= m_actionGroups.audioActions.size())
+    else if (id <= m_actionGroups.audioActions.size())
     {
         m_actionGroups.audioActions[id - 1]->setChecked(true);
     }
 }
 
-void PlayerMenu::updateVideoAction(const uint64_t id)
+void PlayerMenu::updateVideoAction(const int id)
 {
     if (!id)
     {
         m_ui->actionVideoNone->setChecked(true);
     }
-    else if(id <= m_actionGroups.videoActions.size())
+    else if (id <= m_actionGroups.videoActions.size())
     {
         m_actionGroups.videoActions[id - 1]->setChecked(true);
     }
 }
 
-void PlayerMenu::updateSubtitleAction(const uint64_t id)
+void PlayerMenu::updateSubtitleAction(const int id)
 {
     if (!id)
     {
         m_ui->actionSubtitleNone->setChecked(true);
     }
-    else if(id <= m_actionGroups.subtitleActions.size())
+    else if (id <= m_actionGroups.subtitleActions.size())
     {
         m_actionGroups.subtitleActions[id - 1]->setChecked(true);
     }
 }
 
-void PlayerMenu::updateSecondarySubtitleAction(const uint64_t id)
+void PlayerMenu::updateSecondarySubtitleAction(const int id)
 {
     if (!id)
     {
         m_ui->actionSubtitleTwoNone->setChecked(true);
     }
-    else if(id <= m_actionGroups.subtitleTwoActions.size())
+    else if (id <= m_actionGroups.subtitleTwoActions.size())
     {
         m_actionGroups.subtitleTwoActions[id - 1]->setChecked(true);
     }

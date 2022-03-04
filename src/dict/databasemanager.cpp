@@ -800,7 +800,7 @@ int DatabaseManager::addPitches(Term &term) const
 
         /* Add mora */
         QString currentMora;
-        for (const QString &ch : reading)
+        for (const QChar &ch : reading)
         {
             if (!currentMora.isEmpty() && !m_moraSkipChar.contains(ch))
             {

@@ -182,7 +182,7 @@ void TermWidget::initUi(const Term &term, const bool list)
                 m_ui->labelKanji->foregroundRole()
             ).name()
         );
-    for (const QString &ch : term.expression)
+    for (const QChar &ch : term.expression)
     {
         kanjiLabelText += CharacterUtils::isKanji(ch) ?
             KANJI_FORMAT_STRING.arg(ch) : ch;
@@ -208,7 +208,7 @@ void TermWidget::initUi(const Term &term, const bool list)
     }
 
     std::shared_ptr<const AnkiConfig> config = m_client->getConfig();
-    for (size_t i = 0; i < term.definitions.size(); ++i)
+    for (int i = 0; i < term.definitions.size(); ++i)
     {
         GlossaryWidget *g = new GlossaryWidget(
               i + 1, term.definitions[i], list
@@ -224,7 +224,7 @@ Term *TermWidget::initAnkiTerm() const
 {
     Term *term = new Term(*m_term);
     term->definitions.clear();
-    for (size_t i = 0; i < m_layoutGlossary->count(); ++i)
+    for (int i = 0; i < m_layoutGlossary->count(); ++i)
     {
         GlossaryWidget *widget =
             (GlossaryWidget *)m_layoutGlossary->itemAt(i)->widget();
@@ -452,7 +452,7 @@ void TermWidget::setAddable(bool value)
 {
     m_ui->buttonAddCard->setVisible(value);
     m_ui->buttonAnkiOpen->setVisible(!value);
-    for (size_t i = 0; i < m_layoutGlossary->count(); ++i)
+    for (int i = 0; i < m_layoutGlossary->count(); ++i)
     {
         GlossaryWidget *widget =
             (GlossaryWidget *)m_layoutGlossary->itemAt(i)->widget();
@@ -537,7 +537,7 @@ void TermWidget::loadAudioSources()
 
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
     manager->setTransferTimeout(TRANSFER_TIMEOUT);
-    for (size_t i = 0; i < m_sources.size(); ++i)
+    for (int i = 0; i < m_sources.size(); ++i)
     {
         const AudioSource &src = m_sources[i];
         if (src.type != AudioSourceType::JSON)

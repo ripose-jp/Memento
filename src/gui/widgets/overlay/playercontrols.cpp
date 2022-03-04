@@ -30,8 +30,8 @@
 PlayerControls::PlayerControls(QWidget *parent)
     : QWidget(parent),
       m_ui(new Ui::PlayerControls),
-      m_ignorePause(false),
-      m_paused(true)
+      m_paused(true),
+      m_ignorePause(false)
 {
     m_ui->setupUi(this);
 

@@ -199,14 +199,14 @@ void MpvWidget::initPropertyMap()
             mpv_node_list *arr = node->u.list;
 
             QList<double> chapters;
-            for (size_t i = 0; i < arr->num; ++i)
+            for (int i = 0; i < arr->num; ++i)
             {
                 if (arr->values[i].format != MPV_FORMAT_NODE_MAP)
                 {
                     continue;
                 }
                 mpv_node_list *map = arr->values[i].u.list;
-                for (size_t j = 0; j < map->num; ++j)
+                for (int j = 0; j < map->num; ++j)
                 {
                     if (map->values[j].format == MPV_FORMAT_DOUBLE &&
                         strcmp(map->keys[j], "time") == 0)
@@ -706,7 +706,7 @@ void MpvWidget::resetTimer()
     {
         m_cursorTimer.start(CURSOR_TIMEOUT);
     }
-    catch (std::bad_alloc) {} // Find somebody else who cares
+    catch (std::bad_alloc &unused) {} // Find somebody else who cares
 }
 
 void MpvWidget::hideCursor()

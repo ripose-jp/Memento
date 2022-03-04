@@ -371,7 +371,7 @@ void SubtitleListWidget::handleTracklistChange(
         m_primary.lock.lock();
         m_secondary.lock.lock();
 
-        for (size_t i = 0; i < extTracks.size(); ++i)
+        for (int i = 0; i < extTracks.size(); ++i)
         {
             if (!m_subtitleMap.contains(extSids[i]))
             {
@@ -390,8 +390,6 @@ void SubtitleListWidget::handleTracklistChange(
         Q_EMIT requestRefresh();
     });
 
-    PlayerAdapter *player =
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter();
     if (primarySid != -1)
     {
         handlePrimaryTrackChange(primarySid);
@@ -624,7 +622,7 @@ void SubtitleListWidget::selectSubtitles(SubtitleList &list,
     if (!rows.isEmpty())
     {
         list.table->setCurrentCell(rows.first(), 1);
-        for (size_t i = 1; i < rows.size(); ++i)
+        for (int i = 1; i < rows.size(); ++i)
         {
             list.table->setCurrentCell(rows[i], 1, QItemSelectionModel::Select);
         }

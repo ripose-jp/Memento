@@ -151,7 +151,7 @@ void AudioSourceSettings::applyChanges()
     QSettings settings;
     settings.remove(SETTINGS_AUDIO_SRC);
     settings.beginWriteArray(SETTINGS_AUDIO_SRC);
-    for (size_t i = 0; i < table->rowCount() - 1; ++i)
+    for (int i = 0; i < table->rowCount() - 1; ++i)
     {
         settings.setArrayIndex(i);
 
@@ -341,7 +341,7 @@ void AudioSourceSettings::updateRows()
 {
     /* Remove empty rows */
     QTableWidget *table = m_ui->table;
-    for (size_t i = 0; i < table->rowCount() - 1; ++i)
+    for (int i = 0; i < table->rowCount() - 1; ++i)
     {
         if (rowEmpty(i))
         {
@@ -367,7 +367,7 @@ QString AudioSourceSettings::verifyNames() const
 {
     QSet<QString> names;
     QTableWidget *table = m_ui->table;
-    for (size_t i = 0; i < table->rowCount() - 1; ++i)
+    for (int i = 0; i < table->rowCount() - 1; ++i)
     {
         if (itemEmpty(i, COL_NAME))
         {
@@ -393,7 +393,7 @@ inline bool AudioSourceSettings::itemEmpty(const int row, const int col) const
 
 inline bool AudioSourceSettings::rowEmpty(const int row) const
 {
-    for (size_t i = 0; i < m_ui->table->columnCount(); ++i)
+    for (int i = 0; i < m_ui->table->columnCount(); ++i)
     {
         if (!itemEmpty(row, i))
         {

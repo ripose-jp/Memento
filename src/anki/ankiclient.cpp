@@ -113,11 +113,7 @@
 
 /* Begin Constructor/Destructors */
 
-AnkiClient::AnkiClient(QObject *parent)
-    : QObject(parent),
-      m_currentConfig(0),
-      m_configExists(false),
-      m_enabled(false)
+AnkiClient::AnkiClient(QObject *parent) : QObject(parent)
 {
     m_manager = new QNetworkAccessManager(this);
     m_manager->setTransferTimeout(TIMEOUT);
@@ -212,7 +208,7 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         return false;
     }
     QJsonArray profiles = jsonObj[CONFIG_PROFILES].toArray();
-    for (size_t i = 0; i < profiles.size(); ++i)
+    for (int i = 0; i < profiles.size(); ++i)
     {
         if (!profiles[i].isObject())
         {
@@ -1589,7 +1585,7 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
                 }
 
                 text.clear();
-                for (size_t i = pos; i < p.mora.size(); ++i)
+                for (int i = pos; i < p.mora.size(); ++i)
                 {
                     text += p.mora[i];
                 }

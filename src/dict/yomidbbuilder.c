@@ -615,7 +615,6 @@ static int add_index(zip_t *dict_archive, sqlite3 *db, sqlite3_int64 *id)
     json_object  *ret_obj   = NULL;
 
     const char   *title     = NULL;
-    size_t        title_len = 0;
     int32_t       format    = 0;
     const char   *revision  = NULL;
     json_bool     sequenced = 0;
@@ -638,8 +637,7 @@ static int add_index(zip_t *dict_archive, sqlite3 *db, sqlite3_int64 *id)
     /* Get the fields from the json object */
     if ((ret = get_obj_from_obj(index_obj, TITLE_KEY, json_type_string, &ret_obj)))
         goto cleanup;
-    title     = json_object_get_string(ret_obj);
-    title_len = json_object_get_string_len(ret_obj);
+    title = json_object_get_string(ret_obj);
 
     if ((ret = get_obj_from_obj(index_obj, FORMAT_KEY, json_type_int, &ret_obj)))
         goto cleanup;

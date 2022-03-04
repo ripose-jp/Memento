@@ -181,7 +181,7 @@ void KanjiWidget::buildDefinitionLabel(const KanjiDefinition &def,
 
     /* Add Glossary Entries */
     QString text;
-    for (size_t i = 0; i < def.glossary.size(); ++i)
+    for (int i = 0; i < def.glossary.size(); ++i)
     {
         text += QString::number(i + 1);
         text += ". ";

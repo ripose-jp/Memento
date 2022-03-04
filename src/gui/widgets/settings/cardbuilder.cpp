@@ -292,13 +292,13 @@ void CardBuilder::setModelCurrentText(const QString &text)
 void CardBuilder::setFields(const QStringList &fields)
 {
     m_ui->tableFields->setRowCount(fields.size());
-    for (size_t i = 0; i < fields.size(); ++i)
+    for (int i = 0; i < fields.size(); ++i)
     {
         QTableWidgetItem *item = new QTableWidgetItem(fields[i]);
         item->setFlags(item->flags() ^ Qt::ItemIsEditable);
         m_ui->tableFields->setItem(i, 0, item);
     }
-    for (size_t i = 0; i < fields.size(); ++i)
+    for (int i = 0; i < fields.size(); ++i)
     {
         CompleterEdit *edit = new CompleterEdit(m_completer);
         connect(
@@ -314,7 +314,7 @@ void CardBuilder::setFields(const QJsonObject &fields)
 {
     QStringList keys = fields.keys();
     setFields(keys);
-    for (size_t i = 0; i < fields.size(); ++i)
+    for (int i = 0; i < fields.size(); ++i)
     {
         const QJsonValue &val = fields[keys[i]];
         if (!val.isUndefined() && !val.isNull())
@@ -343,7 +343,7 @@ QString CardBuilder::getModelText() const
 QJsonObject CardBuilder::getFields() const
 {
     QJsonObject fields;
-    for (size_t i = 0; i < m_ui->tableFields->rowCount(); ++i)
+    for (int i = 0; i < m_ui->tableFields->rowCount(); ++i)
     {
         QTableWidgetItem *field = m_ui->tableFields->item(i, 0);
         CompleterEdit *value =

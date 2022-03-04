@@ -128,8 +128,8 @@ void DefinitionWidget::initAudioSources()
     QSettings settings;
     m_sources.clear();
     m_jsonSources = 0;
-    size_t size = settings.beginReadArray(SETTINGS_AUDIO_SRC);
-    for (size_t i = 0; i < size; ++i)
+    int size = settings.beginReadArray(SETTINGS_AUDIO_SRC);
+    for (int i = 0; i < size; ++i)
     {
         settings.setArrayIndex(i);
         AudioSource src;
@@ -305,10 +305,10 @@ void DefinitionWidget::showMoreTerms()
 /* End Event Handlers */
 /* Begin Term Helpers */
 
-void DefinitionWidget::showTerms(const size_t start, const size_t end)
+void DefinitionWidget::showTerms(const int start, const int end)
 {
     setUpdatesEnabled(false);
-    size_t i;
+    int i;
     for (i = start; i < m_terms.size() && i < end; ++i)
     {
         TermWidget *termWidget = new TermWidget(
@@ -337,9 +337,9 @@ void DefinitionWidget::showTerms(const size_t start, const size_t end)
     setUpdatesEnabled(true);
 }
 
-void DefinitionWidget::setAddable(const size_t start, const size_t end)
+void DefinitionWidget::setAddable(const int start, const int end)
 {
-    for (size_t i = start;
+    for (int i = start;
          i < m_addable.size() && i < m_terms.size() && i < end;
          ++i)
     {
@@ -353,7 +353,7 @@ void DefinitionWidget::setAddable(const size_t start, const size_t end)
 void DefinitionWidget::showKanji(std::shared_ptr<const Kanji> kanji)
 {
     m_savedScroll = m_ui->scrollArea->verticalScrollBar()->value();
-    for (size_t i = 0; i < m_ui->scrollAreaContents->layout()->count(); ++i)
+    for (int i = 0; i < m_ui->scrollAreaContents->layout()->count(); ++i)
     {
         m_ui->scrollAreaContents->layout()->itemAt(i)->widget()->hide();
     }
@@ -373,7 +373,7 @@ void DefinitionWidget::hideKanji()
     delete kanjiItem->widget();
     delete kanjiItem;
 
-    for (size_t i = 0; i < scrollLayout->count(); ++i)
+    for (int i = 0; i < scrollLayout->count(); ++i)
     {
         scrollLayout->itemAt(i)->widget()->show();
     }

@@ -212,14 +212,14 @@ private:
             const int index,
             const int *currentIndex,
             DatabaseManager &db
-        ) : query(query),
-            endSize(endSize),
-            Dictionary::DictionaryWorker(
+        ) : Dictionary::DictionaryWorker(
                 subtitle,
                 index,
                 currentIndex,
                 db
-            ) {}
+            ),
+            query(query),
+            endSize(endSize) {}
 
         void run() override;
 
@@ -260,14 +260,14 @@ private:
             const int index,
             const int *currentIndex,
             DatabaseManager &db
-        ) : begin(begin),
-            end(end),
-            Dictionary::DictionaryWorker(
+        ) : Dictionary::DictionaryWorker(
                 subtitle,
                 index,
                 currentIndex,
                 db
-            ) {}
+            ),
+            begin(begin),
+            end(end) {}
 
         void run() override;
 

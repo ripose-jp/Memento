@@ -41,11 +41,11 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
-      m_mediator(GlobalMediator::getGlobalMediator()),
       m_ui(new Ui::MainWindow),
+      m_mediator(GlobalMediator::getGlobalMediator()),
       m_ankiClient(new AnkiClient(this)),
-      m_firstShow(true),
-      m_maximized(false)
+      m_maximized(false),
+      m_firstShow(true)
 {
     m_ui->setupUi(this);
 
@@ -697,10 +697,10 @@ void MainWindow::updateSearchSubListSplitter()
 {
     QApplication::processEvents();
     m_ui->splitterSearchList->setVisible(
-        m_ui->subtitleList->parent() != nullptr &&
-        m_ui->subtitleList->isVisibleTo(m_ui->splitterSearchList) ||
-        m_ui->searchWidget->parent() != nullptr &&
-        m_ui->searchWidget->isVisibleTo(m_ui->splitterSearchList)
+        (m_ui->subtitleList->parent() != nullptr &&
+        m_ui->subtitleList->isVisibleTo(m_ui->splitterSearchList)) ||
+        (m_ui->searchWidget->parent() != nullptr &&
+        m_ui->searchWidget->isVisibleTo(m_ui->splitterSearchList))
     );
 }
 

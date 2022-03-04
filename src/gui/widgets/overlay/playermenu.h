@@ -87,49 +87,49 @@ private Q_SLOTS:
      * Changes audio track to the one specified.
      * @param id The id of the audio track.
      */
-    void setAudioTrack(const uint64_t id);
+    void setAudioTrack(const int id);
 
     /**
      * Changes video track to the one specified.
      * @param id The id of the video track.
      */
-    void setVideoTrack(const uint64_t id);
+    void setVideoTrack(const int id);
 
     /**
      * Changes subtitle track to the one specified.
      * @param id The id of the subtitle track.
      */
-    void setSubtitleTrack(const uint64_t id);
+    void setSubtitleTrack(const int id);
 
     /**
      * Changes secondary subtitle track to the one specified.
      * @param id The id of the secondary subtitle track.
      */
-    void setSecondarySubtitleTrack(const uint64_t id);
+    void setSecondarySubtitleTrack(const int id);
 
     /**
      * Checks the audio QAction corresponding to the id.
      * @param id The id of the audio track. 0 is none.
      */
-    void updateAudioAction(const uint64_t id = 0);
+    void updateAudioAction(const int id = 0);
 
      /**
      * Checks the video QAction corresponding to the id.
      * @param id The id of the video track. 0 is none.
      */
-    void updateVideoAction(const uint64_t id = 0);
+    void updateVideoAction(const int id = 0);
 
     /**
      * Checks the subtitle QAction corresponding to the id.
      * @param id The id of the subtitle track. 0 is none.
      */
-    void updateSubtitleAction(const uint64_t id = 0);
+    void updateSubtitleAction(const int id = 0);
 
     /**
      * Checks the secondary subtitle QAction corresponding to the id.
      * @param id The id of the secondary subtitle track. 0 is none.
      */
-    void updateSecondarySubtitleAction(const uint64_t id = 0);
+    void updateSecondarySubtitleAction(const int id = 0);
 
     /**
      * Opens a file picker plays the selected files.

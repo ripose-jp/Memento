@@ -29,9 +29,9 @@
 #include "../util/globalmediator.h"
 
 MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
-    : m_mpv(mpv),
-      m_handle(mpv->getHandle()),
-      PlayerAdapter(parent)
+    : PlayerAdapter(parent),
+      m_mpv(mpv),
+      m_handle(mpv->getHandle())
 {
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     GlobalMediator::getGlobalMediator()->setPlayerAdapter(this);
@@ -263,7 +263,7 @@ QString MpvAdapter::quoteArg(QString arg) const
 bool MpvAdapter::commandLineArgsValid(const QStringList &args) const
 {
     int count = 0;
-    for (size_t i = 1; i < args.size(); ++i)
+    for (int i = 1; i < args.size(); ++i)
     {
         if (args[i] == "--{")
         {
@@ -330,7 +330,7 @@ void MpvAdapter::loadFilesFromTree(const struct LoadFileNode &parent,
     int lastSize = options.size();
     options.append(parent.options);
 
-    size_t currentChild = 0;
+    int currentChild = 0;
     for (const QString &file : parent.files)
     {
         if (file == "--")
@@ -1147,12 +1147,12 @@ QList<const Track *> MpvAdapter::processTracks(const mpv_node *node)
     QList<const Track *> tracks;
     if (node->format == MPV_FORMAT_NODE_ARRAY)
     {
-        for (size_t i = 0; i < node->u.list->num; i++)
+        for (int i = 0; i < node->u.list->num; i++)
         {
             Track *track = new Track;
             if (node->u.list->values[i].format == MPV_FORMAT_NODE_MAP)
             {
-                for (size_t n = 0; n < node->u.list->values[i].u.list->num; n++)
+                for (int n = 0; n < node->u.list->values[i].u.list->num; n++)
                 {
                     if (QString(node->u.list->values[i].u.list->keys[n]) == "id")
                     {

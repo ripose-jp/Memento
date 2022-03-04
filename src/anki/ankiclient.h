@@ -485,16 +485,16 @@ private:
     QString &accumulateTags(const QList<Tag> &tags, QString &tagStr);
 
     /* true if a config exists, false otherwise */
-    bool m_configExists;
+    bool m_configExists = false;
 
     /* The enabled state of the AnkiClient. */
-    bool m_enabled;
+    bool m_enabled = false;
 
     /* A mapping of profile names to their configurations. */
     QHash<QString, std::shared_ptr<const AnkiConfig>> m_configs;
 
     /* The reference to the active AnkiConfig. */
-    std::shared_ptr<const AnkiConfig> m_currentConfig;
+    std::shared_ptr<const AnkiConfig> m_currentConfig = nullptr;
 
     /* The name of the active profile. */
     QString m_currentProfile;

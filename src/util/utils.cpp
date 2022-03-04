@@ -261,10 +261,11 @@ void NetworkUtils::checkForUpdates()
 #define GRAPH_STEP      50
 #define GRAPH_OFFSET    25
 
-QString GraphicUtils::generatePitchGraph(const int     moraSize,
-                                         const uint8_t pos,
-                                         const QString &fill,
-                                         const QString &stroke)
+QString GraphicUtils::generatePitchGraph(
+    const int moraSize,
+    const uint8_t pos,
+    const QString &fill,
+    const QString &stroke)
 {
     QString pitchGraph = PITCH_GRAPH_HEADER
         .arg(GRAPH_STEP * (moraSize + 1))
@@ -291,7 +292,7 @@ QString GraphicUtils::generatePitchGraph(const int     moraSize,
         );
         dots.append(BLACK_DOT_FORMAT.arg(x1).arg(y1));
 
-        size_t i;
+        int i;
         for (i = 1; i < moraSize; ++i)
         {
             x1 = x2;
@@ -322,7 +323,7 @@ QString GraphicUtils::generatePitchGraph(const int     moraSize,
         );
         dots.append(CHANGE_DOT_FORMAT.arg(x1).arg(y1));
 
-        size_t i;
+        int i;
         for (i = 1; i < moraSize; ++i)
         {
             x1 = x2;
@@ -353,7 +354,7 @@ QString GraphicUtils::generatePitchGraph(const int     moraSize,
         );
         dots.append(BLACK_DOT_FORMAT.arg(x1).arg(y1));
 
-        size_t i;
+        int i;
         for (i = 1; i < pos - 1; ++i)
         {
             x1 = x2;
@@ -432,8 +433,8 @@ QString GraphicUtils::generatePitchGraph(const int     moraSize,
 bool CharacterUtils::isKanji(const QString &ch)
 {
     return
-        ch >= KANJI_UNICODE_LOWER_COMMON && ch <= KANJI_UNICODE_UPPER_COMMON ||
-        ch >= KANJI_UNICODE_LOWER_RARE   && ch <= KANJI_UNICODE_UPPER_RARE;
+        (ch >= KANJI_UNICODE_LOWER_COMMON && ch <= KANJI_UNICODE_UPPER_COMMON) ||
+        (ch >= KANJI_UNICODE_LOWER_RARE   && ch <= KANJI_UNICODE_UPPER_RARE);
 }
 
 #undef KANJI_UNICODE_LOWER_COMMON
