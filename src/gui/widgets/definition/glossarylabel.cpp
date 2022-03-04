@@ -425,6 +425,8 @@ void GlossaryLabel::addStructuredContent(
     case QJsonValue::Type::Object:
         addStructuredContentHelper(val.toObject(), basepath, out);
         break;
+    default:
+        break;
     }
 }
 
