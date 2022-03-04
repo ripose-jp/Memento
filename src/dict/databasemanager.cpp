@@ -99,7 +99,7 @@ DatabaseManager::~DatabaseManager()
 
 int DatabaseManager::initCache()
 {
-    int           ret;
+    int           ret  = 0;
     sqlite3_stmt *stmt = NULL;
     int           step = 0;
 
