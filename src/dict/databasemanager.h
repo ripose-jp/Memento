@@ -170,11 +170,17 @@ private:
     int addPitches(Term &term) const;
 
     /**
+     * Converts half-width katakana to full-width katakana.
+     * @param query The query string to convert.
+     */
+    QString halfToFull(const QString &query) const;
+
+    /**
      * Converts all the katakana in a string to their equivalent hiragana.
      * @param query The string to convert.
      * @return Query with all the katakana replaced with hiragana.
      */
-    QString kataToHira(const QString &query) const;
+    QString kataToHira(QString query) const;
 
     /**
      * Converts a raw JSON array of strings to a QStringList.

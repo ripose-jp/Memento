@@ -283,11 +283,21 @@ cleanup:
 #define QUERY_WITH_KATAKANA "SELECT DISTINCT expression, reading "\
                                 "FROM term_bank "\
                                 "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND " \
-                                    "(expression = ? OR reading = ? OR reading = ?);"
+                                    "(expression = ? OR reading = ? OR " \
+                                     "expression = ? OR reading = ?);"
+#define QUERY_WITH_HALFWIDTH "SELECT DISTINCT expression, reading "\
+                                "FROM term_bank "\
+                                "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND " \
+                                    "(expression = ? OR reading = ? OR " \
+                                     "expression = ? OR reading = ? OR " \
+                                     "expression = ? OR reading = ?);"
 
-#define QUERY_EXP_IDX           1
-#define QUERY_READING_HIRA_IDX  2
-#define QUERY_READING_KATA_IDX  3
+#define QUERY_RAW_EXPRESSION_IDX    1
+#define QUERY_RAW_READING_IDX       2
+#define QUERY_KATA_EXPRESSION_IDX   3
+#define QUERY_KATA_READING_IDX      4
+#define QUERY_HALF_EXPRESSION_IDX   5
+#define QUERY_HALF_READING_IDX      6
 
 #define COLUMN_EXPRESSION       0
 #define COLUMN_READING          1
@@ -295,20 +305,39 @@ cleanup:
 QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
 {
     if (m_db == nullptr)
+    {
         return "Database is invalid";
+    }
 
     /* Try to acquire the database lock, early return if we can't */
     if (!m_dbLock.tryLockForRead())
+    {
         return "";
+    }
 
     QString       ret;
     QByteArray    exp          = query.toUtf8();
-    QByteArray    hiragana     = kataToHira(query).toUtf8();
-    bool          containsKata = hiragana != exp;
+    QByteArray    katakana     = halfToFull(query).toUtf8();
+    bool          containsHalf = katakana != exp;
+    QByteArray    hiragana     = kataToHira(katakana).toUtf8();
+    bool          containsKata = hiragana != katakana;
     sqlite3_stmt *stmt         = NULL;
-    const char   *sql_query    = containsKata ? QUERY_WITH_KATAKANA : QUERY;
+    const char   *sql_query    = NULL;
     int           step         = 0;
     QList<Term *> termList;
+
+    if (containsHalf)
+    {
+        sql_query = QUERY_WITH_HALFWIDTH;
+    }
+    else if (containsKata)
+    {
+        sql_query = QUERY_WITH_KATAKANA;
+    }
+    else
+    {
+        sql_query = QUERY;
+    }
 
     /* Query for all the different terms in the database */
     if (sqlite3_prepare_v2(m_db, sql_query, -1, &stmt, NULL) != SQLITE_OK)
@@ -316,14 +345,26 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
         ret = "Could not prepare database query";
         goto error;
     }
-    if (sqlite3_bind_text(stmt, QUERY_EXP_IDX,          exp,      -1, NULL) != SQLITE_OK ||
-        sqlite3_bind_text(stmt, QUERY_READING_HIRA_IDX, hiragana, -1, NULL) != SQLITE_OK)
+    if (sqlite3_bind_text(stmt, QUERY_RAW_EXPRESSION_IDX, exp, -1, NULL) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_RAW_READING_IDX,    exp, -1, NULL) != SQLITE_OK)
     {
         ret = "Could not bind values to statement";
         goto error;
     }
     if (containsKata &&
-        sqlite3_bind_text(stmt, QUERY_READING_KATA_IDX, exp, -1, NULL) != SQLITE_OK)
+        (
+            sqlite3_bind_text(stmt, QUERY_KATA_EXPRESSION_IDX, hiragana, -1, NULL) != SQLITE_OK ||
+            sqlite3_bind_text(stmt, QUERY_KATA_READING_IDX,    hiragana, -1, NULL) != SQLITE_OK
+        ))
+    {
+        ret = "Could not bind values to statement";
+        goto error;
+    }
+    if (containsHalf &&
+        (
+            sqlite3_bind_text(stmt, QUERY_HALF_EXPRESSION_IDX, katakana, -1, NULL) != SQLITE_OK ||
+            sqlite3_bind_text(stmt, QUERY_HALF_READING_IDX,    katakana, -1, NULL) != SQLITE_OK
+        ))
     {
         ret = "Could not bind values to statement";
         goto error;
@@ -373,10 +414,14 @@ error:
 
 #undef QUERY
 #undef QUERY_WITH_KATAKANA
+#undef QUERY_WITH_HALFWIDTH
 
-#undef QUERY_EXP_IDX
-#undef QUERY_READING_HIRA_IDX
-#undef QUERY_READING_KATA_IDX
+#undef QUERY_RAW_EXPRESSION_IDX
+#undef QUERY_RAW_READING_IDX
+#undef QUERY_KATA_EXPRESSION_IDX
+#undef QUERY_KATA_READING_IDX
+#undef QUERY_HALF_EXPRESSION_IDX
+#undef QUERY_HALF_READING_IDX
 
 #undef COLUMN_EXPRESSION
 #undef COLUMN_READING
@@ -833,27 +878,173 @@ QString DatabaseManager::errorCodeToString(const int code) const
     }
 }
 
-#define KATAKANA_LOW    0x30a1
-#define KATAKANA_HIGH   0x30f6
-#define HIRAGANA_LOW    0x3041
-#define HIRAGANA_HIGH   0x3096
+#define HALFWIDTH_LOW           0xFF61
+#define HALFWIDTH_HIGH          0xFF9F
+#define HALFWIDTH_VOICED        0xFF9E
+#define HALFWIDTH_SEMI_VOICED   0xFF9F
 
-QString DatabaseManager::kataToHira(const QString &query) const
+QString DatabaseManager::halfToFull(const QString &query) const
 {
+    /* While initializing a new map every time this conversion is done seems and
+     * is stupid, QMap is not thread safe. An older version of Memento used to
+     * disregarded this and it led to a horrible bug that caused CPU usage to
+     * spike to 100% until Memento was closed.
+     *
+     * While it might seem obvious that half-width should be easily mappable to
+     * full-width with offsets, this is not the case. Unicode in their infinite
+     * wisdom decided the ordering for half-width characters should be different
+     * from their full width counter parts and that half width characters should
+     * use two characters to represent something like ガ using two characters
+     * (ｶﾞ).
+     */
+    QMap<QString, QString> charMap{
+        {"｡", "。"},
+        {"｢", "「"},
+        {"｣", "」"},
+        {"､", "、"},
+        {"･", "・"},
+        {"ｦ", "ヲ"},
+        {"ｧ", "ァ"},
+        {"ｨ", "ィ"},
+        {"ｩ", "ゥ"},
+        {"ｪ", "ェ"},
+        {"ｫ", "ォ"},
+        {"ｬ", "ャ"},
+        {"ｭ", "ュ"},
+        {"ｮ", "ョ"},
+        {"ｯ", "ッ"},
+        {"ｰ", "ー"},
+        {"ｱ", "ア"},
+        {"ｲ", "イ"},
+        {"ｳ", "ウ"},
+        {"ｴ", "エ"},
+        {"ｵ", "オ"},
+        {"ｶ", "か"},
+        {"ｶﾞ", "が"},
+        {"ｷ", "キ"},
+        {"ｷﾞ", "ギ"},
+        {"ｸ", "ク"},
+        {"ｸﾞ", "グ"},
+        {"ｹ", "ケ"},
+        {"ｹﾞ", "ゲ"},
+        {"ｺ", "コ"},
+        {"ｺﾞ", "ゴ"},
+        {"ｻ", "サ"},
+        {"ｻﾞ", "ザ"},
+        {"ｼ", "シ"},
+        {"ｼﾞ", "ジ"},
+        {"ｽ", "ス"},
+        {"ｽﾞ", "ズ"},
+        {"ｾ", "セ"},
+        {"ｾﾞ", "ゼ"},
+        {"ｿ", "ソ"},
+        {"ｿﾞ", "ゾ"},
+        {"ﾀ", "タ"},
+        {"ﾀﾞ", "ダ"},
+        {"ﾁ", "チ"},
+        {"ﾁﾞ", "ヂ"},
+        {"ﾂ", "ツ"},
+        {"ﾂﾞ", "ヅ"},
+        {"ﾃ", "テ"},
+        {"ﾃﾞ", "デ"},
+        {"ﾄ", "ト"},
+        {"ﾄﾞ", "ド"},
+        {"ﾅ", "ナ"},
+        {"ﾆ", "ニ"},
+        {"ﾇ", "ヌ"},
+        {"ﾈ", "ネ"},
+        {"ﾉ", "ノ"},
+        {"ﾊ", "ハ"},
+        {"ﾊﾞ", "バ"},
+        {"ﾊﾟ", "パ"},
+        {"ﾋ", "ヒ"},
+        {"ﾋﾞ", "ビ"},
+        {"ﾋﾟ", "ピ"},
+        {"ﾌ", "フ"},
+        {"ﾌﾞ", "ブ"},
+        {"ﾌﾟ", "プ"},
+        {"ﾍ", "ヘ"},
+        {"ﾍﾞ", "ベ"},
+        {"ﾍﾟ", "ペ"},
+        {"ﾎ", "ホ"},
+        {"ﾎﾞ", "ボ"},
+        {"ﾎﾟ", "ポ"},
+        {"ﾏ", "マ"},
+        {"ﾐ", "ミ"},
+        {"ﾑ", "ム"},
+        {"ﾒ", "メ"},
+        {"ﾓ", "モ"},
+        {"ﾔ", "ヤ"},
+        {"ﾕ", "ユ"},
+        {"ﾖ", "ヨ"},
+        {"ﾗ", "ラ"},
+        {"ﾘ", "リ"},
+        {"ﾙ", "ル"},
+        {"ﾚ", "レ"},
+        {"ﾛ", "ロ"},
+        {"ﾜ", "ワ"},
+        {"ﾝ", "ン"},
+    };
+
     QString res;
-    for (const QChar &ch : query)
+    int i;
+    for (i = 0; i < query.size() - 1; ++i)
     {
-        uint32_t code = ch.unicode();
-        if (code >= KATAKANA_LOW && code <= KATAKANA_HIGH)
+        if (HALFWIDTH_LOW <= query[i] && query[i] <= HALFWIDTH_HIGH)
         {
-            res += QChar(HIRAGANA_LOW + (code - KATAKANA_LOW));
+            if ((query[i + 1] == HALFWIDTH_VOICED ||
+                 query[i + 1] == HALFWIDTH_SEMI_VOICED) &&
+                charMap.contains(query.mid(i, 2)))
+            {
+                res += charMap[query.mid(i, 2)];
+                ++i;
+            }
+            else
+            {
+                res += charMap[query[i]];
+            }
         }
         else
         {
-            res += ch;
+            res += query[i];
+        }
+    }
+    if (i < query.size())
+    {
+        if (HALFWIDTH_LOW <= query[i] && query[i] <= HALFWIDTH_HIGH &&
+            charMap.contains(query[i]))
+        {
+            res += charMap[query[i]];
+        }
+        else
+        {
+            res += query[i];
         }
     }
     return res;
+}
+
+#undef HALFWIDTH_LOW
+#undef HALFWIDTH_HIGH
+#undef HALFWIDTH_VOICED
+#undef HALFWIDTH_SEMI_VOICED
+
+#define KATAKANA_LOW    0x30A1
+#define KATAKANA_HIGH   0x30F6
+#define HIRAGANA_LOW    0x3041
+#define HIRAGANA_HIGH   0x3096
+
+QString DatabaseManager::kataToHira(QString query) const
+{
+    for (QChar &ch : query)
+    {
+        ushort code = ch.unicode();
+        if (code >= KATAKANA_LOW && code <= KATAKANA_HIGH)
+        {
+            ch = QChar(HIRAGANA_LOW + (code - KATAKANA_LOW));
+        }
+    }
+    return query;
 }
 
 #undef KATAKANA_LOW
