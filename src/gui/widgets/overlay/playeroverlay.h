@@ -23,8 +23,6 @@
 
 #include <QVBoxLayout>
 
-#include <memory>
-
 class DefinitionWidget;
 class PlayerControls;
 class PlayerMenu;

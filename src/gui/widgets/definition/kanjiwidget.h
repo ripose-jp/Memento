@@ -45,7 +45,7 @@ public:
      * @param parent   The parent of the widget.
      */
     KanjiWidget(
-        std::shared_ptr<const Kanji> kanji,
+        QSharedPointer<const Kanji> kanji,
         bool showBack = false,
         QWidget *parent = nullptr);
 
@@ -116,7 +116,7 @@ private:
     QLayout *createKVLabel(const QString &key, const QString &value) const;
 
     /* The kanji that this widget is displaying. Has ownership. */
-    std::shared_ptr<const Kanji> m_kanji;
+    QSharedPointer<const Kanji> m_kanji;
 
     /* The button for adding or opening the kanji in Anki. */
     QToolButton *m_buttonAnkiAddOpen;

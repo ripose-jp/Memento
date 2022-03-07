@@ -151,20 +151,20 @@ public:
      * @return The config corresponding to the profile, nullptr if it doesn't
      *         exist.
      */
-    std::shared_ptr<const AnkiConfig> getConfig(const QString &profile) const;
+    QSharedPointer<const AnkiConfig> getConfig(const QString &profile) const;
 
     /**
      * Gets the current active AnkiConfig.
      * @return The current AnkiConfig.
      */
-    std::shared_ptr<const AnkiConfig> getConfig() const;
+    QSharedPointer<const AnkiConfig> getConfig() const;
 
     /**
      * Gets a mapping of all the profiles to their corresponding configuration.
      * AnkiConfigs are deep copied.
      * @return A map that maps profile names to their AnkiConfigs.
      */
-    QHash<QString, std::shared_ptr<AnkiConfig>> getConfigs() const;
+    QHash<QString, QSharedPointer<AnkiConfig>> getConfigs() const;
 
     /**
      * Gets if a configuration exists.
@@ -228,7 +228,7 @@ public:
      *         at the same index is addable if true, not addable otherwise.
      *         Caller does not have ownership.
      */
-    AnkiReply *notesAddable(QList<std::shared_ptr<const Term>> terms);
+    AnkiReply *notesAddable(QList<QSharedPointer<const Term>> terms);
 
     /**
      * Gets if the list of kanji are addable given the current configuration.
@@ -237,7 +237,7 @@ public:
      *         at the same index is addable if true, not addable otherwise.
      *         Caller does not have ownership.
      */
-    AnkiReply *notesAddable(QList<std::shared_ptr<const Kanji>> kanjiList);
+    AnkiReply *notesAddable(QList<QSharedPointer<const Kanji>> kanjiList);
 
     /**
      * Adds a term note to Anki.
@@ -491,10 +491,10 @@ private:
     bool m_enabled = false;
 
     /* A mapping of profile names to their configurations. */
-    QHash<QString, std::shared_ptr<const AnkiConfig>> m_configs;
+    QHash<QString, QSharedPointer<const AnkiConfig>> m_configs;
 
     /* The reference to the active AnkiConfig. */
-    std::shared_ptr<const AnkiConfig> m_currentConfig = nullptr;
+    QSharedPointer<const AnkiConfig> m_currentConfig = nullptr;
 
     /* The name of the active profile. */
     QString m_currentProfile;

@@ -157,7 +157,7 @@ private Q_SLOTS:
      * Hides terms and shows a kanji entry.
      * @param kanji The kanji to show.
      */
-    void showKanji(std::shared_ptr<const Kanji> kanji);
+    void showKanji(QSharedPointer<const Kanji> kanji);
 
     /**
      * Hides the currently shown kanji entry and brings up current terms.
@@ -204,10 +204,10 @@ private:
     int m_limit;
 
     /* List of terms. Owned by this widget. */
-    QList<std::shared_ptr<const Term>> m_terms;
+    QList<QSharedPointer<const Term>> m_terms;
 
     /* Pointer to the current kanji */
-    std::shared_ptr<const Kanji> m_kanji;
+    QSharedPointer<const Kanji> m_kanji;
 
     /* List of booleans describing if a term can be added to Anki. */
     QList<bool> m_addable;

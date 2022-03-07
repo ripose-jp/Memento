@@ -71,7 +71,7 @@
 /* Begin Constructor/Destructor */
 
 TermWidget::TermWidget(
-    std::shared_ptr<const Term> term,
+    QSharedPointer<const Term> term,
     QList<AudioSource> &sources,
     int jsonSources,
     bool list,
@@ -207,7 +207,7 @@ void TermWidget::initUi(const Term &term, const bool list)
         m_layoutTermTags->addWidget(tag);
     }
 
-    std::shared_ptr<const AnkiConfig> config = m_client->getConfig();
+    QSharedPointer<const AnkiConfig> config = m_client->getConfig();
     for (int i = 0; i < term.definitions.size(); ++i)
     {
         GlossaryWidget *g = new GlossaryWidget(
@@ -441,7 +441,7 @@ void TermWidget::searchKanji(const QString &ch)
         kanji->clozePrefix = m_term->clozePrefix;
         kanji->clozeBody   = m_term->clozeBody;
         kanji->clozeSuffix = m_term->clozeSuffix;
-        Q_EMIT kanjiSearched(std::shared_ptr<const Kanji>(kanji));
+        Q_EMIT kanjiSearched(QSharedPointer<const Kanji>(kanji));
     }
 }
 

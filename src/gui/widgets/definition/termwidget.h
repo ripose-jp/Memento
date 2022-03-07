@@ -55,7 +55,7 @@ public:
      * @param parent      The parent of this widget.
      */
     TermWidget(
-        std::shared_ptr<const Term> term,
+        QSharedPointer<const Term> term,
         QList<AudioSource> &sources,
         int jsonSources,
         bool list,
@@ -79,7 +79,7 @@ Q_SIGNALS:
      * Emitted when a kanji is searched by the user and found.
      * @param kanji The found kanji.
      */
-    void kanjiSearched(std::shared_ptr<const Kanji> kanji);
+    void kanjiSearched(QSharedPointer<const Kanji> kanji);
 
     /**
      * Emitted when all audio sources are finished loading.
@@ -189,7 +189,7 @@ private:
     Ui::TermWidget *m_ui;
 
     /* The term this widget is displaying. */
-    std::shared_ptr<const Term> m_term;
+    QSharedPointer<const Term> m_term;
 
     /* This term is a copy m_term that is eventually passed to Anki to add.
      * If this term is not nullptr, TermWidget is not safe to delete without

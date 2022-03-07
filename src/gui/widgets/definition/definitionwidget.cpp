@@ -184,7 +184,7 @@ void DefinitionWidget::setTerms(const QList<Term *> *terms, const Kanji *kanji)
     {
         for (Term *term : *terms)
         {
-            m_terms << std::shared_ptr<const Term>(term);
+            m_terms << QSharedPointer<const Term>(term);
         }
         delete terms;
     }
@@ -192,7 +192,7 @@ void DefinitionWidget::setTerms(const QList<Term *> *terms, const Kanji *kanji)
     /* Save kanji in a shared pointer */
     if (kanji)
     {
-        m_kanji = std::shared_ptr<const Kanji>(kanji);
+        m_kanji = QSharedPointer<const Kanji>(kanji);
     }
 
     /* Early exit if there is nothing to show */
@@ -350,7 +350,7 @@ void DefinitionWidget::setAddable(const int start, const int end)
 /* End Term Helpers */
 /* Begin Kanji Helpers */
 
-void DefinitionWidget::showKanji(std::shared_ptr<const Kanji> kanji)
+void DefinitionWidget::showKanji(QSharedPointer<const Kanji> kanji)
 {
     m_savedScroll = m_ui->scrollArea->verticalScrollBar()->value();
     for (int i = 0; i < m_ui->scrollAreaContents->layout()->count(); ++i)

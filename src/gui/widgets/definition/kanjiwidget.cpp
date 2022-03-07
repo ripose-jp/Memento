@@ -38,7 +38,7 @@
 /* Begin Constructor/Destructor */
 
 KanjiWidget::KanjiWidget(
-    std::shared_ptr<const Kanji> kanji,
+    QSharedPointer<const Kanji> kanji,
     bool showBack,
     QWidget *parent)
     : QWidget(parent),
@@ -95,7 +95,7 @@ KanjiWidget::KanjiWidget(
     if (client->isEnabled())
     {
         AnkiReply *reply = client->notesAddable(
-            QList<std::shared_ptr<const Kanji>>({m_kanji})
+            QList<QSharedPointer<const Kanji>>({m_kanji})
         );
         connect(reply, &AnkiReply::finishedBoolList, this,
             [=] (const QList<bool> &value, const QString &error) {

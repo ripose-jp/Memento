@@ -350,7 +350,7 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
     m_currentProfile = jsonObj[CONFIG_SET_PROFILE].toString();
     for (const QJsonValue &val : profiles)
     {
-        std::shared_ptr<AnkiConfig> config(new AnkiConfig);
+        QSharedPointer<AnkiConfig> config(new AnkiConfig);
         QJsonObject profile     = val.toObject();
         config->address         = profile[CONFIG_HOST].toString();
         config->port            = profile[CONFIG_PORT].toString();
@@ -419,7 +419,7 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
     QList<QString> profiles = m_configs.keys();
     for (const QString &profile : profiles)
     {
-        std::shared_ptr<const AnkiConfig> config = m_configs.value(profile);
+        QSharedPointer<const AnkiConfig> config = m_configs.value(profile);
 
         QJsonObject configObj;
         configObj[CONFIG_NAME]             = profile;
@@ -490,7 +490,7 @@ QStringList AnkiClient::getProfiles() const
 
 bool AnkiClient::setProfile(const QString &profile)
 {
-    std::shared_ptr<const AnkiConfig> config = m_configs.value(profile);
+    QSharedPointer<const AnkiConfig> config = m_configs.value(profile);
     if (config)
     {
         m_currentConfig = config;
@@ -504,38 +504,38 @@ bool AnkiClient::setProfile(const QString &profile)
 void AnkiClient::addProfile(const QString &profile, const AnkiConfig &config)
 {
     m_configs.insert(
-        profile, std::shared_ptr<const AnkiConfig>(new AnkiConfig(config))
+        profile, QSharedPointer<const AnkiConfig>(new AnkiConfig(config))
     );
 }
 
-std::shared_ptr<const AnkiConfig> AnkiClient::getConfig(
+QSharedPointer<const AnkiConfig> AnkiClient::getConfig(
     const QString &profile) const
 {
     return m_configs.value(profile);
 }
 
-std::shared_ptr<const AnkiConfig> AnkiClient::getConfig() const
+QSharedPointer<const AnkiConfig> AnkiClient::getConfig() const
 {
     return m_currentConfig;
 }
 
-QHash<QString, std::shared_ptr<AnkiConfig>> AnkiClient::getConfigs() const
+QHash<QString, QSharedPointer<AnkiConfig>> AnkiClient::getConfigs() const
 {
-    QHash<QString, std::shared_ptr<AnkiConfig>> configs;
+    QHash<QString, QSharedPointer<AnkiConfig>> configs;
     for (auto it = m_configs.constKeyValueBegin();
          it != m_configs.constKeyValueEnd();
          ++it)
     {
         configs[it->first] =
-            std::shared_ptr<AnkiConfig>(new AnkiConfig(*it->second));
+            QSharedPointer<AnkiConfig>(new AnkiConfig(*it->second));
     }
     return configs;
 }
 
 void AnkiClient::setDefaultConfig()
 {
-    std::shared_ptr<AnkiConfig> config =
-        std::shared_ptr<AnkiConfig>(new AnkiConfig);
+    QSharedPointer<AnkiConfig> config =
+        QSharedPointer<AnkiConfig>(new AnkiConfig);
     config->address         = DEFAULT_HOST;
     config->port            = DEFAULT_PORT;
     config->duplicatePolicy = DEFAULT_DUPLICATE_POLICY;
@@ -636,14 +636,14 @@ AnkiReply *AnkiClient::getFieldNames(const QString &model)
     return requestStringList(ANKI_ACTION_FIELD_NAMES, params);
 }
 
-AnkiReply *AnkiClient::notesAddable(QList<std::shared_ptr<const Term>> terms)
+AnkiReply *AnkiClient::notesAddable(QList<QSharedPointer<const Term>> terms)
 {
     AnkiReply *ankiReply = new AnkiReply;
 
     QThreadPool::globalInstance()->start(
         [=] {
             QJsonArray notes;
-            for (std::shared_ptr<const Term> term : terms)
+            for (QSharedPointer<const Term> term : terms)
             {
                 notes.append(createAnkiNoteObject(*term, false));
             }
@@ -659,14 +659,14 @@ AnkiReply *AnkiClient::notesAddable(QList<std::shared_ptr<const Term>> terms)
 }
 
 AnkiReply *AnkiClient::notesAddable(
-    QList<std::shared_ptr<const Kanji>> kanjiList)
+    QList<QSharedPointer<const Kanji>> kanjiList)
 {
     AnkiReply *ankiReply = new AnkiReply;
 
     QThreadPool::globalInstance()->start(
         [=] {
             QJsonArray notes;
-            for (std::shared_ptr<const Kanji> kanji : kanjiList)
+            for (QSharedPointer<const Kanji> kanji : kanjiList)
             {
                 notes.append(createAnkiNoteObject(*kanji, false));
             }
