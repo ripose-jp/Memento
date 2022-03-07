@@ -54,7 +54,7 @@ public:
      * getGlobalMediator. This should only be called once, probably in main.
      * @return The created GlobalMediator.
      */
-    static GlobalMediator *createGlobalMedaitor();
+    static GlobalMediator *createGlobalMediator();
 
     /**
      * Gets the shared GlobalMediator.

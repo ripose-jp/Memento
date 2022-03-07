@@ -32,7 +32,7 @@ GlobalMediator::GlobalMediator(QObject *parent) : QObject(parent)
     m_audioPlayer  = nullptr;
 }
 
-GlobalMediator *GlobalMediator::createGlobalMedaitor()
+GlobalMediator *GlobalMediator::createGlobalMediator()
 {
     m_mediator = new GlobalMediator;
     return m_mediator;

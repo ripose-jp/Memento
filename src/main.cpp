@@ -173,7 +173,7 @@ int main(int argc, char **argv)
     /* General Setup */
     setlocale(LC_NUMERIC, "C"); // mpv requires this
 
-    GlobalMediator::createGlobalMedaitor();
+    GlobalMediator::createGlobalMediator();
     GlobalMediator::getGlobalMediator()->setAudioPlayer(new AudioPlayer);
 
     MainWindow *main_window = new MainWindow;
