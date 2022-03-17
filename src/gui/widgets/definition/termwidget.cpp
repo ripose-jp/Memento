@@ -97,14 +97,16 @@ TermWidget::TermWidget(
     m_layoutPitches  = new QVBoxLayout;
     m_layoutGlossary = new QVBoxLayout;
 
-    m_ui->verticalLayout->addLayout(m_layoutTermTags);
-    m_ui->verticalLayout->addLayout(m_layoutFreqTags);
-    m_ui->verticalLayout->addLayout(m_layoutPitches);
-    m_ui->verticalLayout->addLayout(m_layoutGlossary);
+    m_ui->layoutGlossaryContainer->addLayout(m_layoutTermTags);
+    m_ui->layoutGlossaryContainer->addLayout(m_layoutFreqTags);
+    m_ui->layoutGlossaryContainer->addLayout(m_layoutPitches);
+    m_ui->layoutGlossaryContainer->addLayout(m_layoutGlossary);
 
-    m_ui->verticalLayout->addStretch();
+    m_ui->layoutGlossaryContainer->addStretch();
 
     IconFactory *factory = IconFactory::create();
+
+    m_ui->buttonCollapse->setIcon(factory->getIcon(IconFactory::Icon::down));
 
     m_ui->buttonAddCard->setIcon(factory->getIcon(IconFactory::Icon::plus));
     m_ui->buttonAddCard->setVisible(false);
@@ -119,6 +121,10 @@ TermWidget::TermWidget(
 
     initUi(*term, modifier, list);
 
+    connect(
+        m_ui->buttonCollapse, &QToolButton::clicked,
+        this, &TermWidget::toggleGlossaryVisibility
+    );
     connect(
         m_ui->labelKanji, &QLabel::linkActivated,
         this, &TermWidget::searchKanji
@@ -265,6 +271,21 @@ Term *TermWidget::initAnkiTerm() const
 
 /* End Initializers */
 /* Begin User Input Handlers */
+
+void TermWidget::toggleGlossaryVisibility()
+{
+    IconFactory *icons = IconFactory::create();
+    if (m_ui->glossaryContainer->isVisible())
+    {
+        m_ui->buttonCollapse->setIcon(icons->getIcon(IconFactory::Icon::up));
+        m_ui->glossaryContainer->hide();
+    }
+    else
+    {
+        m_ui->buttonCollapse->setIcon(icons->getIcon(IconFactory::Icon::down));
+        m_ui->glossaryContainer->show();
+    }
+}
 
 void TermWidget::addNote()
 {

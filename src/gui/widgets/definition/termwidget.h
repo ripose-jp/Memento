@@ -104,6 +104,11 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     /**
+     * Toggles the visibility of the glossary.
+     */
+    void toggleGlossaryVisibility();
+
+    /**
      * Adds the term belonging to this widget to Anki.
      */
     void addNote();

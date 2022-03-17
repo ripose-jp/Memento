@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>76</height>
+    <height>68</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -109,9 +109,6 @@
        <property name="toolTip">
         <string>Add Anki note</string>
        </property>
-       <property name="text">
-        <string>+</string>
-       </property>
       </widget>
      </item>
      <item>
@@ -124,9 +121,6 @@
        </property>
        <property name="toolTip">
         <string>Show in Anki</string>
-       </property>
-       <property name="text">
-        <string>...</string>
        </property>
       </widget>
      </item>
@@ -144,12 +138,49 @@
        <property name="toolTip">
         <string>Play audio</string>
        </property>
-       <property name="text">
-        <string>...</string>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="buttonCollapse">
+       <property name="minimumSize">
+        <size>
+         <width>30</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Minimize/Maximize</string>
+       </property>
+       <property name="autoRaise">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QWidget" name="glossaryContainer" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QVBoxLayout" name="layoutGlossaryContainer">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+     </layout>
+    </widget>
    </item>
   </layout>
  </widget>
