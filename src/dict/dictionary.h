@@ -53,7 +53,7 @@ public:
      * @return A list of all the terms found, nullptr if the search was aborted.
      *         Belongs to the caller.
      */
-    QList<Term *> *searchTerms(const QString query);
+    SharedTermList searchTerms(const QString query);
 
     /**
      * Searches for all terms in the query.
@@ -67,17 +67,18 @@ public:
      * @return A list of all the terms found, nullptr if the search was aborted.
      *         Belongs to the caller.
      */
-    QList<Term *> *searchTerms(const QString query,
-                               const QString subtitle,
-                               const int index,
-                               const int *currentIndex);
+    SharedTermList searchTerms(
+        const QString query,
+        const QString subtitle,
+        const int index,
+        const int *currentIndex);
 
     /**
      * Searches for a single kanji.
      * @param character The kanji to search for. Should be a single character.
      * @return A kanji containing all the information that was found.
      */
-    Kanji *searchKanji(const QString character);
+    SharedKanji searchKanji(const QString character);
 
     /**
      * Adds a dictionary.
@@ -167,7 +168,7 @@ private:
             db(db) {}
 
         /* Found terms will be in this list */
-        QList<Term *> terms;
+        QList<SharedTerm> terms;
 
     protected:
         /* The current subtitle */

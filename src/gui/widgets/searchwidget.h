@@ -23,6 +23,7 @@
 
 #include <QWidget>
 
+#include <QSharedPointer>
 #include <QWheelEvent>
 
 class DefinitionWidget;
@@ -30,8 +31,12 @@ class Dictionary;
 class QLineEdit;
 class QVBoxLayout;
 
-struct Kanji;
 struct Term;
+typedef QSharedPointer<Term> SharedTerm;
+typedef QSharedPointer<QList<SharedTerm>> SharedTermList;
+
+struct Kanji;
+typedef QSharedPointer<Kanji> SharedKanji;
 
 /**
  * Widget for searching for terms.
@@ -59,7 +64,7 @@ Q_SIGNALS:
      * @param terms The list of updated terms. Belongs to the recipient.
      * @param kanji The kanji if found. Belongs to the recipient.
      */
-    void searchUpdated(const QList<Term *> *terms, const Kanji *kanji) const;
+    void searchUpdated(SharedTermList terms, SharedKanji kanji) const;
 
 private Q_SLOTS:
     /**

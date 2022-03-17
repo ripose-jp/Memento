@@ -23,6 +23,8 @@
 
 #include <QObject>
 
+#include <QSharedPointer>
+
 class AnkiClient;
 class AudioPlayer;
 class Dictionary;
@@ -33,8 +35,13 @@ class SubtitleListWidget;
 class QKeyEvent;
 class QWheelEvent;
 
-struct Kanji;
 struct Term;
+typedef QSharedPointer<Term> SharedTerm;
+typedef QSharedPointer<QList<SharedTerm>> SharedTermList;
+
+struct Kanji;
+typedef QSharedPointer<Kanji> SharedKanji;
+
 struct Track;
 
 /**
@@ -498,12 +505,10 @@ Q_SIGNALS:
 
     /**
      * Emitted when the list of terms changes.
-     * @param terms The list of terms if found, nullptr otherwise. Belongs to
-     *              the recipient.
-     * @param kanji The kanji if found, nullptr otherwise. Belongs to the
-     *              recipient.
+     * @param terms The list of terms if found, nullptr otherwise.
+     * @param kanji The kanji if found, nullptr otherwise.
      */
-    void termsChanged(const QList<Term *> *terms, const Kanji *kanji) const;
+    void termsChanged(SharedTermList terms, SharedKanji kanji) const;
 
     /**
      * Emitted when the subtitle changes or passes its end time.

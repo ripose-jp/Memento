@@ -37,7 +37,7 @@
 PlayerOverlay::PlayerOverlay(QWidget *parent)
     : QVBoxLayout(parent),
       m_player(parent),
-      m_definition(new DefinitionWidget(m_player))
+      m_definition(new DefinitionWidget(false, m_player))
 {
     /* Hide the definition widget */
     m_definition->hide();
@@ -227,7 +227,7 @@ void PlayerOverlay::initSettings()
 /* End Initializers */
 /* Begin Definition Widget Helpers */
 
-void PlayerOverlay::setTerms(const QList<Term *> *terms, const Kanji *kanji)
+void PlayerOverlay::setTerms(SharedTermList terms, SharedKanji kanji)
 {
     m_definition->setTerms(terms, kanji);
     setDefinitionWidgetLocation();
@@ -251,8 +251,7 @@ void PlayerOverlay::setDefinitionWidgetLocation()
     int y = m_subtitle->pos().y() - m_definition->height();
     if (y < 0)
     {
-        y = m_subtitle->pos().y() +
-            m_subtitle->height();
+        y = m_subtitle->pos().y() + m_subtitle->height();
     }
 
     if (y + m_definition->height() > m_player->height())

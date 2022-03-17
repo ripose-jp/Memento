@@ -93,7 +93,7 @@ public:
      * @param[out] terms A list of matching terms. Belongs to the caller.
      * @return Empty string on success, error string on error.
      */
-    QString queryTerms(const QString &query, QList<Term *> &terms);
+    QString queryTerms(const QString &query, QList<SharedTerm> &terms);
 
     /**
      * Searches for kanji that exactly match the query.
@@ -122,7 +122,7 @@ private:
      *                   fields populated.
      * @return An SQLite error code on failure.
      */
-    int populateTerms(const QList<Term *> &terms) const;
+    int populateTerms(const QList<SharedTerm> &terms) const;
 
     /**
      * Helper method for retrieving tag information.

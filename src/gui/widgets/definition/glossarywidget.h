@@ -69,6 +69,14 @@ public:
      */
     bool isChecked() const;
 
+Q_SIGNALS:
+    /**
+     * Emitted when a recursive search is performed.
+     * @param terms The list of terms that was searched. Can be nullptr.
+     * @param kanji The kanji that was searched. Can be nullptr.
+     */
+    void contentSearched(SharedTermList terms, SharedKanji kanji);
+
 private:
     /* The term definition this widget displays. */
     const TermDefinition &m_def;

@@ -23,6 +23,7 @@
 
 #include <QWidget>
 
+#include <QPointer>
 #include <QWheelEvent>
 
 #include "../../../anki/ankiclient.h"
@@ -79,10 +80,12 @@ class DefinitionWidget : public QWidget
 public:
     /**
      * Creates a empty DefinitionWidget.
-     * @param parent The parent of the widget. Widget will display over its
-     *               parent or its own window if now parent.
+     * @param showNavigation True if the navbar should be shown. False
+     *                       otherwise.
+     * @param parent         The parent of the widget. Widget will display over
+     *                       its parent or its own window if now parent.
      */
-    DefinitionWidget(QWidget *parent = nullptr);
+    DefinitionWidget(bool showNavigation = false, QWidget *parent = nullptr);
     ~DefinitionWidget();
 
 Q_SIGNALS:
@@ -104,7 +107,7 @@ public Q_SLOTS:
      * @param kanji A pointer to the current kanji. Takes ownership. Can be
      *              nullptr.
      */
-    void setTerms(const QList<Term *> *terms, const Kanji *kanji);
+    void setTerms(SharedTermList terms, SharedKanji kanji);
 
     /**
      * Clears all terms.
@@ -113,7 +116,7 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     /**
-     * Intializes the theme of the Definition Widget and its children.
+     * Initializes the theme of the Definition Widget and its children.
      */
     void initTheme();
 
@@ -164,6 +167,26 @@ private Q_SLOTS:
      */
     void hideKanji();
 
+    /**
+     * Shows a child search.
+     * @param terms The terms to show. Can be nullptr.
+     * @param kanji The kanji to show. Can be nullptr.
+     */
+    void showChild(SharedTermList terms, SharedKanji kanji);
+
+    /**
+     * Positions the child widget around the current cursor position.
+     * @return True if the child was successfully repositioned, false otherwise.
+     */
+    bool positionChild();
+
+    /**
+     * Positions the child search at the point below.
+     * @param pos The point the child search should be positioned relative to.
+     * @return True if the child was successfully repositioned, false otherwise.
+     */
+    bool positionChild(const QPoint &pos);
+
 protected:
     /**
      * Emits a signal that the Definition Widget has been hidden.
@@ -177,6 +200,18 @@ protected:
      */
     void showEvent(QShowEvent *event) override;
 
+    /**
+     * Destroys all children on resize.
+     * @param event The resize event.
+     */
+    void resizeEvent(QResizeEvent *event) override;
+
+    /**
+     * Hides children when clicked.
+     * @param event The click event, not used.
+     */
+    void mousePressEvent(QMouseEvent *event) override;
+
     /* Prevents these events from being sent to mpv when widget has focus. */
     void mouseMoveEvent(QMouseEvent *event) override
         { QWidget::mouseMoveEvent(event); event->accept(); }
@@ -184,8 +219,6 @@ protected:
         { QWidget::mouseReleaseEvent(event); event->accept(); }
     void mouseDoubleClickEvent(QMouseEvent *event) override
         { QWidget::mouseDoubleClickEvent(event); event->accept(); }
-    void mousePressEvent(QMouseEvent *event) override
-        { QWidget::mousePressEvent(event); event->accept(); }
 
 private:
     /* UI object containing all the widgets. */
@@ -220,11 +253,14 @@ private:
      */
     int m_savedScroll;
 
-    /* Current search ID. Used to prevent erronious signals */
+    /* Current search ID. Used to prevent erroneous signals */
     int m_searchId = 0;
 
     /* Whether newlines in glossary should be displayed in an unordered list */
     bool m_listGlossary;
+
+    /* The child definition widget */
+    QPointer<DefinitionWidget> m_child = nullptr;
 };
 
 #endif // DEFINITIONWIDGET_H

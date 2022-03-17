@@ -128,11 +128,6 @@ private Q_SLOTS:
     void selectText();
 
 private:
-    /**
-     * Destructor for the term list.
-     */
-    void deleteTerms(QList<Term *> *terms);
-
     /* The dictionary object, used for query for terms. */
     Dictionary *m_dictionary;
 

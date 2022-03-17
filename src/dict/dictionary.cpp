@@ -178,7 +178,7 @@ void Dictionary::ExactWorker::run()
 {
     while (query.size() > endSize && index == *currentIndex)
     {
-        QList<Term *> results;
+        QList<SharedTerm> results;
         db.queryTerms(query, results);
 
         /* Generate cloze data in entries */
@@ -194,7 +194,7 @@ void Dictionary::ExactWorker::run()
                 );
         }
 
-        for (Term *term : results)
+        for (SharedTerm term : results)
         {
             term->sentence = subtitle;
             term->clozePrefix = clozePrefix;
@@ -212,7 +212,7 @@ void Dictionary::MeCabWorker::run()
     while (begin != end && index == *currentIndex)
     {
         const QPair<QString, QString> &pair = *begin;
-        QList<Term *> results;
+        QList<SharedTerm> results;
         db.queryTerms(pair.first, results);
 
         /* Generate cloze data in entries */
@@ -228,7 +228,7 @@ void Dictionary::MeCabWorker::run()
             );
         }
 
-        for (Term *term : results)
+        for (SharedTerm term : results)
         {
             term->sentence = subtitle;
             term->clozePrefix = clozePrefix;
@@ -296,7 +296,7 @@ QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
 
 #undef WORD_INDEX
 
-QList<Term *> *Dictionary::searchTerms(const QString query)
+SharedTermList Dictionary::searchTerms(const QString query)
 {
     int index = 0;
     return searchTerms(query, query, index, &index);
@@ -305,12 +305,13 @@ QList<Term *> *Dictionary::searchTerms(const QString query)
 /* The maximum number of queries one thread can be accountable for. */
 #define QUERIES_PER_THREAD 4
 
-QList<Term *> *Dictionary::searchTerms(const QString query,
-                                       const QString subtitle,
-                                       const int index,
-                                       const int *currentIndex)
+SharedTermList Dictionary::searchTerms(
+    const QString query,
+    const QString subtitle,
+    const int index,
+    const int *currentIndex)
 {
-    QList<Term *> *terms = new QList<Term *>;
+    SharedTermList terms = SharedTermList(new QList<SharedTerm>);
 
     /* Fork worker threads for exact queries */
     QList<DictionaryWorker *> workers;
@@ -372,10 +373,10 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
     /* Sort the results by cloze length and score */
     if (index != *currentIndex)
     {
-        goto early_exit;
+        return nullptr;
     }
     std::sort(terms->begin(), terms->end(),
-        [] (const Term *lhs, const Term *rhs) -> bool {
+        [] (const SharedTerm lhs, const SharedTerm rhs) -> bool {
             return lhs->clozeBody.size() > rhs->clozeBody.size() ||
                 (
                     lhs->clozeBody.size() == rhs->clozeBody.size() &&
@@ -387,11 +388,11 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
     /* Sort internal term data */
     if (index != *currentIndex)
     {
-        goto early_exit;
+        return nullptr;
     }
 
     m_dicOrder.lock.lockForRead();
-    for (Term *term : *terms)
+    for (SharedTerm term : *terms)
     {
         std::sort(term->definitions.begin(), term->definitions.end(),
             [=] (const TermDefinition &lhs, const TermDefinition &rhs) -> bool {
@@ -417,15 +418,6 @@ QList<Term *> *Dictionary::searchTerms(const QString query,
     m_dicOrder.lock.unlock();
 
     return terms;
-
-early_exit:
-    for (Term *term : *terms)
-    {
-        delete term;
-    }
-    delete terms;
-
-    return nullptr;
 }
 
 #undef QUERIES_PER_THREAD
@@ -433,15 +425,14 @@ early_exit:
 /* End Term Searching Methods */
 /* Begin Kanji Searching Methods */
 
-Kanji *Dictionary::searchKanji(const QString ch)
+SharedKanji Dictionary::searchKanji(const QString ch)
 {
-    Kanji *kanji = new Kanji;
+    SharedKanji kanji = SharedKanji(new Kanji);
     m_db->queryKanji(ch, *kanji);
 
     /* Delete the Kanji if there are no definitions left */
     if (kanji->definitions.isEmpty())
     {
-        delete kanji;
         return nullptr;
     }
 

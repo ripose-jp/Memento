@@ -140,15 +140,6 @@ SubtitleWidget::~SubtitleWidget()
     delete m_findDelay;
 }
 
-void SubtitleWidget::deleteTerms(QList<Term *> *terms)
-{
-    for (Term *term : *terms)
-    {
-        delete term;
-    }
-    delete terms;
-}
-
 /* End Constructor/Destructor */
 /* Begin Initializers */
 
@@ -415,9 +406,9 @@ void SubtitleWidget::findTerms()
     QThreadPool::globalInstance()->start(
         [=] {
             /* Look for Terms */
-            QList<Term *> *terms = m_dictionary->searchTerms(
-                    queryStr, rawText, index, &m_currentIndex
-                );
+            SharedTermList terms = m_dictionary->searchTerms(
+                queryStr, rawText, index, &m_currentIndex
+            );
             if (terms == nullptr)
             {
                 /* noop */
@@ -425,13 +416,11 @@ void SubtitleWidget::findTerms()
             else if (!m_paused || index != m_currentIndex)
             {
                 /* Early Exit */
-                deleteTerms(terms);
                 return;
             }
             else if (terms->isEmpty())
             {
                 /* No Terms */
-                delete terms;
                 terms = nullptr;
             }
             else
@@ -444,7 +433,7 @@ void SubtitleWidget::findTerms()
             }
 
             /* Look for Kanji */
-            Kanji *kanji = nullptr;
+            SharedKanji kanji = nullptr;
             if (CharacterUtils::isKanji(queryStr[0]))
             {
                 kanji = m_dictionary->searchKanji(queryStr[0]);

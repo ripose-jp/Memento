@@ -21,7 +21,10 @@
 #ifndef GLOSSARYLABEL_H
 #define GLOSSARYLABEL_H
 
+#include <QRunnable>
 #include <QTextEdit>
+
+#include "../../../dict/expression.h"
 
 class GlossaryLabel : public QTextEdit
 {
@@ -43,6 +46,20 @@ public:
      */
     void setContents(const QJsonArray &definitions, QString basepath);
 
+public Q_SLOTS:
+    /**
+     * Deselects all text.
+     */
+    void deselectText();
+
+Q_SIGNALS:
+    /**
+     * Emitted when a search is started.
+     * @param terms A list of the terms found. Can be empty.
+     * @param kanji The kanji found. Can be nullptr.
+     */
+    void contentSearched(SharedTermList terms, SharedKanji kanji) const;
+
 protected:
     /**
      * Returns the ideal size for this widget.
@@ -62,11 +79,36 @@ protected:
      */
     void resizeEvent(QResizeEvent *event) override;
 
+    /**
+     * Used to search.
+     * @param event The mouse move event.
+     */
+    void mouseMoveEvent(QMouseEvent *event) override;
+
+    /**
+     * Ignores the click event.
+     * @param event The click event.
+     */
+    void mousePressEvent(QMouseEvent *event) override;
+
 private Q_SLOTS:
     /**
      * Adjust the size of the label.
      */
     void adjustSize();
+
+    /**
+     * Handles a finished search.
+     * @param terms    The list of found terms. Can be nullptr.
+     * @param kanji    The found kanji. Can be nullptr.
+     * @param position The index the search started at.
+     * @param length   The length of the matched text.
+     */
+    void handleSearch(
+        SharedTermList terms,
+        SharedKanji kanji,
+        int position,
+        int length);
 
 private:
     /**
@@ -130,8 +172,71 @@ private:
      */
     void addText(const QJsonObject &obj, QString &out) const;
 
-    /* if the label should display contents as a list */
+    /* If the label should display contents as a list */
     bool m_list;
+
+    /* The index that is currently being searched */
+    int m_currentIndex = -1;
+};
+
+/**
+ * A worker thread for searching for terms an kanji.
+ */
+class DictionaryWorker : public QObject, public QRunnable
+{
+    Q_OBJECT
+
+public:
+    /**
+     * Construct a new Dictionary Worker.
+     * @param query    The query to search for.
+     * @param sentence The sentence containing the query.
+     * @param index    The position of the query in the sentence.
+     * @param position The position of the query in the entire text.
+     */
+    DictionaryWorker(
+        const QString &query,
+        const QString &sentence,
+        int index,
+        int position
+    ) : QObject(nullptr),
+        query(query),
+        sentence(sentence),
+        index(index),
+        position(position) {}
+
+    /**
+     * Searches the dictionary and emits are signal when finished.
+     */
+    void run() override;
+
+Q_SIGNALS:
+    /**
+     * Emitted when a search has been completed.
+     * @param terms    A shared pointer to a list of shared terms. Can be
+     *                 nullptr.
+     * @param kanji    A shared pointer to the found kanji. Can be nullptr.
+     * @param position The position of the term in the entire text.
+     * @param length   The length of the match.
+     */
+    void searchDone(
+        SharedTermList terms,
+        SharedKanji kanji,
+        int position,
+        int length) const;
+
+private:
+    /* The query for this worker */
+    const QString query;
+
+    /* The sentence containing the query */
+    const QString sentence;
+
+    /* The index of the query in the sentence */
+    int index;
+
+    /* The position of the query in the entire text */
+    int position;
 };
 
 #endif // GLOSSARYLABEL_H

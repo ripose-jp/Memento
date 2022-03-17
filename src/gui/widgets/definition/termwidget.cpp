@@ -217,6 +217,11 @@ void TermWidget::initUi(const Term &term, const bool list)
             !config->excludeGloss.contains(term.definitions[i].dictionary)
         );
         m_layoutGlossary->addWidget(g);
+
+        connect(
+            g, &GlossaryWidget::contentSearched,
+            this, &TermWidget::contentSearched
+        );
     }
 }
 
@@ -429,8 +434,9 @@ void TermWidget::showAddableAudioSources(const QPoint &pos)
 
 void TermWidget::searchKanji(const QString &ch)
 {
-    Kanji *kanji =
-        GlobalMediator::getGlobalMediator()->getDictionary()->searchKanji(ch);
+    SharedKanji kanji(
+        GlobalMediator::getGlobalMediator()->getDictionary()->searchKanji(ch)
+    );
     if (kanji)
     {
         kanji->title       = m_term->title;

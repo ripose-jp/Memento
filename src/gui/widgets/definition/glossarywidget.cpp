@@ -72,6 +72,10 @@ GlossaryWidget::GlossaryWidget(
         m_def.glossary,
         DirectoryUtils::getDictionaryResourceDir() + SLASH + m_def.dictionary
     );
+    connect(
+        m_glossaryLabel, &GlossaryLabel::contentSearched,
+        this, &GlossaryWidget::contentSearched
+    );
 }
 
 void GlossaryWidget::setCheckable(const bool value)

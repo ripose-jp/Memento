@@ -82,6 +82,13 @@ Q_SIGNALS:
     void kanjiSearched(QSharedPointer<const Kanji> kanji);
 
     /**
+     * Emitted when a recursive search is performed.
+     * @param terms The list of terms that was searched. Can be nullptr.
+     * @param kanji The kanji that was searched. Can be nullptr.
+     */
+    void contentSearched(SharedTermList terms, SharedKanji kanji);
+
+    /**
      * Emitted when all audio sources are finished loading.
      */
     void audioSourcesLoaded() const;

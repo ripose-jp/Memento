@@ -22,6 +22,9 @@
 #define EXPRESSION_H
 
 #include <QJsonArray>
+#include <QList>
+#include <QMetaType>
+#include <QSharedPointer>
 #include <QString>
 #include <QStringList>
 #include <QVariant>
@@ -252,5 +255,14 @@ struct Kanji : public CommonExpFields
     /* A list of definitions belonging to the kanji. */
     QList<KanjiDefinition> definitions;
 } typedef Kanji;
+
+typedef QSharedPointer<Term> SharedTerm;
+Q_DECLARE_METATYPE(SharedTerm)
+
+typedef QSharedPointer<QList<SharedTerm>> SharedTermList;
+Q_DECLARE_METATYPE(SharedTermList)
+
+typedef QSharedPointer<Kanji> SharedKanji;
+Q_DECLARE_METATYPE(SharedKanji)
 
 #endif // EXPRESSION_H

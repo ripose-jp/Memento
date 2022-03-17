@@ -22,6 +22,7 @@
 #include "ui_definitionwidget.h"
 
 #include <QFrame>
+#include <QGraphicsDropShadowEffect>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QSettings>
@@ -29,15 +30,17 @@
 #include "../../../audio/audioplayer.h"
 #include "../../../util/constants.h"
 #include "../../../util/globalmediator.h"
+#include "../../../util/iconfactory.h"
 
 /* Begin Constructor/Destructor */
 
-DefinitionWidget::DefinitionWidget(QWidget *parent)
+DefinitionWidget::DefinitionWidget(bool showNavigation, QWidget *parent)
     : QWidget(parent),
       m_ui(new Ui::DefinitionWidget),
       m_client(GlobalMediator::getGlobalMediator()->getAnkiClient())
 {
     m_ui->setupUi(this);
+    m_ui->widgetNav->setVisible(showNavigation);
 
     /* Build the UI */
     setCursor(Qt::ArrowCursor);
@@ -54,6 +57,11 @@ DefinitionWidget::~DefinitionWidget()
 {
     clearTerms();
     disconnect();
+    if (m_child)
+    {
+        m_child->deleteLater();
+        m_child = nullptr;
+    }
     delete m_ui;
 }
 
@@ -65,6 +73,11 @@ void DefinitionWidget::clearTerms()
     m_termWidgets.clear();
     m_terms.clear();
     m_kanji = nullptr;
+    if (m_child)
+    {
+        m_child->deleteLater();
+        m_child = nullptr;
+    }
     QLayoutItem *item;
     while ((item = m_ui->layoutScroll->takeAt(0)) != nullptr)
     {
@@ -107,6 +120,9 @@ void DefinitionWidget::initTheme()
         setStyleSheet(SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT);
     }
     settings.endGroup();
+
+    IconFactory *icons = IconFactory::create();
+    m_ui->buttonClose->setIcon(icons->getIcon(IconFactory::Icon::close));
 }
 
 void DefinitionWidget::initSearch()
@@ -173,20 +189,24 @@ void DefinitionWidget::initSignals()
         this, &DefinitionWidget::initAudioSources,
         Qt::QueuedConnection
     );
+    connect(
+        m_ui->buttonClose, &QToolButton::clicked,
+        this, &DefinitionWidget::hide,
+        Qt::QueuedConnection
+    );
 }
 
-void DefinitionWidget::setTerms(const QList<Term *> *terms, const Kanji *kanji)
+void DefinitionWidget::setTerms(SharedTermList terms, SharedKanji kanji)
 {
     clearTerms();
 
     /* Save the terms in shared pointers */
     if (terms)
     {
-        for (Term *term : *terms)
+        for (SharedTerm term : *terms)
         {
             m_terms << QSharedPointer<const Term>(term);
         }
-        delete terms;
     }
 
     /* Save kanji in a shared pointer */
@@ -264,12 +284,38 @@ void DefinitionWidget::hideEvent(QHideEvent *event)
 {
     QWidget::hideEvent(event);
     Q_EMIT widgetHidden();
+    if (m_child)
+    {
+        m_child->deleteLater();
+        m_child = nullptr;
+    }
 }
 
 void DefinitionWidget::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
     Q_EMIT widgetShown();
+}
+
+void DefinitionWidget::resizeEvent(QResizeEvent *event)
+{
+    QWidget::resizeEvent(event);
+    if (m_child)
+    {
+        m_child->deleteLater();
+        m_child = nullptr;
+    }
+}
+
+void DefinitionWidget::mousePressEvent(QMouseEvent *event)
+{
+    QWidget::mousePressEvent(event);
+    event->accept();
+    if (m_child)
+    {
+        m_child->deleteLater();
+        m_child = nullptr;
+    }
 }
 
 void DefinitionWidget::showMoreTerms()
@@ -316,7 +362,11 @@ void DefinitionWidget::showTerms(const int start, const int end)
         );
         connect(
             termWidget, &TermWidget::kanjiSearched,
-            this,       &DefinitionWidget::showKanji
+            this, &DefinitionWidget::showKanji
+        );
+        connect(
+            termWidget, &TermWidget::contentSearched,
+            this, &DefinitionWidget::showChild
         );
         m_termWidgets.append(termWidget);
         m_ui->scrollAreaContents->layout()->addWidget(termWidget);
@@ -382,3 +432,83 @@ void DefinitionWidget::hideKanji()
 }
 
 /* End Kanji Helpers */
+/* Begin Child Handlers */
+
+#define SHADDOW_BLUR_RADIUS 100.0
+#define CHILD_HEIGHT        400
+
+void DefinitionWidget::showChild(SharedTermList terms, SharedKanji kanji)
+{
+    if (terms == nullptr && kanji == nullptr)
+    {
+        if (m_child)
+        {
+            m_child->deleteLater();
+            m_child = nullptr;
+        }
+        return;
+    }
+    else if (m_child == nullptr)
+    {
+        m_child = new DefinitionWidget(true, parentWidget());
+    }
+
+    QGraphicsDropShadowEffect *ge = new QGraphicsDropShadowEffect;
+    ge->setBlurRadius(SHADDOW_BLUR_RADIUS);
+    ge->setOffset(0);
+    m_child->setGraphicsEffect(ge);
+
+    m_child->setTerms(terms, kanji);
+    m_child->raise();
+    m_child->resize(size().width(), CHILD_HEIGHT);
+    if (!positionChild())
+    {
+        m_child->deleteLater();
+        m_child = nullptr;
+        return;
+    }
+    m_child->show();
+}
+
+#undef SHADDOW_BLUR_RADIUS
+#undef CHILD_HEIGHT
+
+bool DefinitionWidget::positionChild()
+{
+    return positionChild(QCursor::pos());
+}
+
+#define VERTICAL_OFFSET 22
+
+bool DefinitionWidget::positionChild(const QPoint &pos)
+{
+    const QPoint mousePos = parentWidget()->mapFromGlobal(QCursor::pos());
+
+    int x = mousePos.x() - (m_child->width() / 2);
+    if (x < 0)
+    {
+        x = 0;
+    }
+    else if (x > parentWidget()->width() - m_child->width())
+    {
+        x = parentWidget()->width() - m_child->width();
+    }
+
+    int y = mousePos.y() - m_child->height() - VERTICAL_OFFSET;
+    if (y < 0)
+    {
+        y = mousePos.y() + VERTICAL_OFFSET;
+    }
+
+    if (y + m_child->height() > parentWidget()->height())
+    {
+        return false;
+    }
+    m_child->move(x, y);
+
+    return true;
+}
+
+#undef VERTICAL_OFFSET
+
+/* End Child Handlers */

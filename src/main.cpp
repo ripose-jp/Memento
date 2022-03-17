@@ -36,6 +36,7 @@
 
 #include "audio/audioplayer.h"
 #include "dict/dictionary.h"
+#include "dict/expression.h"
 #include "gui/mainwindow.h"
 #include "util/constants.h"
 #include "util/globalmediator.h"
@@ -124,6 +125,16 @@ void updateSettings()
     settings.setValue(SETTINGS_VERSION, SETTINGS_VERSION_CURRENT);
 }
 
+/**
+ * Registers MetaTypes for use with signals and slots.
+ */
+static void registerMetaTypes()
+{
+    qRegisterMetaType<SharedTerm>("SharedTerm");
+    qRegisterMetaType<SharedTermList>("SharedTermList");
+    qRegisterMetaType<SharedKanji>("SharedKanji");
+}
+
 int main(int argc, char **argv)
 {
 #if defined(Q_OS_WIN)
@@ -171,6 +182,7 @@ int main(int argc, char **argv)
     }
 
     /* General Setup */
+    registerMetaTypes();
     setlocale(LC_NUMERIC, "C"); // mpv requires this
 
     GlobalMediator::createGlobalMediator();

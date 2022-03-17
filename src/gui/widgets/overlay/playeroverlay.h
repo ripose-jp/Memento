@@ -23,13 +23,19 @@
 
 #include <QVBoxLayout>
 
+#include <QSharedPointer>
+
 class DefinitionWidget;
 class PlayerControls;
 class PlayerMenu;
 class SubtitleWidget;
 
-struct Kanji;
 struct Term;
+typedef QSharedPointer<Term> SharedTerm;
+typedef QSharedPointer<QList<SharedTerm>> SharedTermList;
+
+struct Kanji;
+typedef QSharedPointer<Kanji> SharedKanji;
 
 /**
  * Widget for overlaying controls over the player.
@@ -74,7 +80,7 @@ private Q_SLOTS:
      * @param terms A list of terms to display.
      * @param kanji A kanji if found.
      */
-    void setTerms(const QList<Term *> *terms, const Kanji *kanji);
+    void setTerms(SharedTermList terms, SharedKanji kanji);
 
     /**
      * Repositions the subtitles over the player. Used for keeping the subtitle

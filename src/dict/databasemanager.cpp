@@ -302,7 +302,7 @@ cleanup:
 #define COLUMN_EXPRESSION       0
 #define COLUMN_READING          1
 
-QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
+QString DatabaseManager::queryTerms(const QString &query, QList<SharedTerm> &terms)
 {
     if (m_db == nullptr)
     {
@@ -324,7 +324,7 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
     sqlite3_stmt *stmt         = NULL;
     const char   *sql_query    = NULL;
     int           step         = 0;
-    QList<Term *> termList;
+    QList<SharedTerm> termList;
 
     if (containsHalf)
     {
@@ -373,7 +373,7 @@ QString DatabaseManager::queryTerms(const QString &query, QList<Term *> &terms)
     /* Create a term for each entry */
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
-        Term *term       = new Term;
+        SharedTerm term(new Term);
         term->expression = (const char *)sqlite3_column_text(stmt, COLUMN_EXPRESSION);
         term->reading    = (const char *)sqlite3_column_text(stmt, COLUMN_READING);
         if (addFrequencies(*term))
@@ -406,8 +406,6 @@ error:
     /* Free up memory on failure */
     m_dbLock.unlock();
     sqlite3_finalize(stmt);
-    for (Term *term : termList)
-        delete term;
 
     return ret;
 }
@@ -572,7 +570,7 @@ cleanup:
 #define COLUMN_RULES        4
 #define COLUMN_TERM_TAGS    5
 
-int DatabaseManager::populateTerms(const QList<Term *> &terms) const
+int DatabaseManager::populateTerms(const QList<SharedTerm> &terms) const
 {
     int           ret     = 0;
     sqlite3_stmt *stmt    = NULL;
@@ -580,7 +578,7 @@ int DatabaseManager::populateTerms(const QList<Term *> &terms) const
     QByteArray    exp;
     QByteArray    reading;
 
-    for (Term *term : terms)
+    for (SharedTerm term : terms)
     {
         exp     = term->expression.toUtf8();
         reading = term->reading.toUtf8();
