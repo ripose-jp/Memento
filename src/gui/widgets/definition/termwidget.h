@@ -50,6 +50,7 @@ public:
      * @param term        The term to display. Does not take ownership.
      * @param sources     A list of audio sources.
      * @param jsonSources True if there are json audio sources.
+     * @param modifier    The modifier key for triggering searches.
      * @param list        True if GlossaryWidget should display newlines as a
      *                    bulletted list, false otherwise.
      * @param parent      The parent of this widget.
@@ -58,6 +59,7 @@ public:
         QSharedPointer<const Term> term,
         QList<AudioSource> &sources,
         int jsonSources,
+        Qt::KeyboardModifier modifier,
         bool list,
         QWidget *parent = nullptr);
     ~TermWidget();
@@ -155,7 +157,7 @@ private:
      * @param term The term to populate the UI with.
      * @param list Whether GlossaryWidget displays newlines in an ordered list.
      */
-    void initUi(const Term &term, const bool list);
+    void initUi(const Term &term, Qt::KeyboardModifier modifier, bool list);
 
     /**
      * Initializes a new term to add to Anki without audio information.

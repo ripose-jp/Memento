@@ -77,35 +77,47 @@ enum class AudioSourceType
 
 /* Search Settings */
 #define SETTINGS_SEARCH                 "search"
-#define SETTINGS_SEARCH_LIMIT           "limit"
-#define SETTINGS_SEARCH_METHOD          "method"
-#define SETTINGS_SEARCH_DELAY           "delay"
-#define SETTINGS_SEARCH_MODIFIER        "modifier"
-#define SETTINGS_SEARCH_HIDE_SUBS       "hide-subs"
-#define SETTINGS_SEARCH_HIDE_BAR        "hide-bar"
-#define SETTINGS_SEARCH_REPLACE_LINES   "replace-lines"
-#define SETTINGS_SEARCH_REPLACE_WITH    "replace-with"
-#define SETTINGS_SEARCH_REMOVE_REGEX    "remove-regex"
-#define SETTINGS_SEARCH_LIST_GLOSSARY   "list-result"
-#define DEFAULT_LIST_GLOSSARY           true
-
-#define MODIFIER_ALT                    "Alt"
-#define MODIFIER_CTRL                   "Control"
-#define MODIFIER_SHIFT                  "Shift"
-#define MODIFIER_SUPER                  "Super"
 
 #define SEARCH_METHOD_HOVER             "Hover"
 #define SEARCH_METHOD_MODIFIER          "Modifier"
 
-#define DEFAULT_LIMIT                   10
-#define DEFAULT_METHOD                  SEARCH_METHOD_HOVER
-#define DEFAULT_DELAY                   250
-#define DEFAULT_MODIFIER                MODIFIER_SHIFT
-#define DEFAULT_HIDE_SUBS               true
-#define DEFAULT_HIDE_BAR                false
-#define DEFAULT_REPLACE_LINES           false
-#define DEFAULT_REPLACE_WITH            ""
-#define DEFAULT_REMOVE_REGEX            ""
+#define SEARCH_MODIFIER_ALT             "Alt"
+#define SEARCH_MODIFIER_CTRL            "Control"
+#define SEARCH_MODIFIER_SHIFT           "Shift"
+#define SEARCH_MODIFIER_SUPER           "Super"
+
+#define SETTINGS_SEARCH_LIMIT                       "limit"
+#define SETTINGS_SEARCH_LIMIT_DEFAULT               10
+
+#define SETTINGS_SEARCH_METHOD                      "method"
+#define SETTINGS_SEARCH_METHOD_DEFAULT              SEARCH_METHOD_HOVER
+
+#define SETTINGS_SEARCH_DELAY                       "delay"
+#define SETTINGS_SEARCH_DELAY_DEFAULT               250
+
+#define SETTINGS_SEARCH_MODIFIER                    "modifier"
+#define SETTINGS_SEARCH_MODIFIER_DEFAULT            SEARCH_MODIFIER_SHIFT
+
+#define SETTINGS_SEARCH_RECURSIVE_MODIFIER          "r-modifier"
+#define SETTINGS_SEARCH_RECURSIVE_MODIFIER_DEFAULT  SEARCH_MODIFIER_SHIFT
+
+#define SETTINGS_SEARCH_HIDE_SUBS                   "hide-subs"
+#define SETTINGS_SEARCH_HIDE_SUBS_DEFAULT           true
+
+#define SETTINGS_SEARCH_HIDE_BAR                    "hide-bar"
+#define SETTINGS_SEARCH_HIDE_BAR_DEFAULT            false
+
+#define SETTINGS_SEARCH_REPLACE_LINES               "replace-lines"
+#define SETTINGS_SEARCH_REPLACE_LINES_DEFAULT       false
+
+#define SETTINGS_SEARCH_REPLACE_WITH                "replace-with"
+#define SETTINGS_SEARCH_REPLACE_WITH_DEFAULT        ""
+
+#define SETTINGS_SEARCH_REMOVE_REGEX                "remove-regex"
+#define SETTINGS_SEARCH_REMOVE_REGEX_DEFAULT        ""
+
+#define SETTINGS_SEARCH_LIST_GLOSSARY               "list-result"
+#define SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT       true
 
 /* Interface Settings */
 enum class Theme

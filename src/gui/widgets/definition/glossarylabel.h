@@ -33,10 +33,15 @@ class GlossaryLabel : public QTextEdit
 public:
     /**
      * Creates a new glossary label.
-     * @param list   True to display content in bulleted list, false otherwise.
-     * @param parent The parent of this label.
+     * @param modifier The modifier that triggers recursive searches.
+     * @param list     True to display content in bulleted list, false
+     *                 otherwise.
+     * @param parent   The parent of this label.
      */
-    GlossaryLabel(bool list = true, QWidget *parent = nullptr);
+    GlossaryLabel(
+        Qt::KeyboardModifier modifier = Qt::KeyboardModifier::ShiftModifier,
+        bool list = true,
+        QWidget *parent = nullptr);
     virtual ~GlossaryLabel();
 
     /**
@@ -171,6 +176,9 @@ private:
      * @param[out] out The string the formatted text will be appended to.
      */
     void addText(const QJsonObject &obj, QString &out) const;
+
+    /* The modifier that triggers searches */
+    Qt::KeyboardModifier m_searchModifier = Qt::KeyboardModifier::ShiftModifier;
 
     /* If the label should display contents as a list */
     bool m_list;

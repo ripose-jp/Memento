@@ -74,6 +74,7 @@ TermWidget::TermWidget(
     QSharedPointer<const Term> term,
     QList<AudioSource> &sources,
     int jsonSources,
+    Qt::KeyboardModifier modifier,
     bool list,
     QWidget *parent)
     : QWidget(parent),
@@ -116,7 +117,7 @@ TermWidget::TermWidget(
     m_ui->buttonAudio->setIcon(factory->getIcon(IconFactory::Icon::audio));
     m_ui->buttonAudio->setVisible(!m_sources.isEmpty());
 
-    initUi(*term, list);
+    initUi(*term, modifier, list);
 
     connect(
         m_ui->labelKanji, &QLabel::linkActivated,
@@ -166,7 +167,8 @@ void TermWidget::deleteWhenReady()
 /* End Constructor/Destructor */
 /* Begin Initializers */
 
-void TermWidget::initUi(const Term &term, const bool list)
+void TermWidget::initUi(
+    const Term &term, Qt::KeyboardModifier modifier, bool list)
 {
     if (term.reading.isEmpty())
     {
@@ -211,7 +213,7 @@ void TermWidget::initUi(const Term &term, const bool list)
     for (int i = 0; i < term.definitions.size(); ++i)
     {
         GlossaryWidget *g = new GlossaryWidget(
-              i + 1, term.definitions[i], list
+              i + 1, term.definitions[i], modifier, list
         );
         g->setChecked(
             !config->excludeGloss.contains(term.definitions[i].dictionary)

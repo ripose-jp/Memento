@@ -24,10 +24,12 @@
 #include <QGuiApplication>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QSettings>
 #include <QTextBlock>
 #include <QThreadPool>
 
 #include "../../../dict/dictionary.h"
+#include "../../../util/constants.h"
 #include "../../../util/globalmediator.h"
 #include "../../../util/utils.h"
 
@@ -37,8 +39,12 @@
 
 /* Begin Constructor/Destructor */
 
-GlossaryLabel::GlossaryLabel(bool list, QWidget *parent)
+GlossaryLabel::GlossaryLabel(
+    Qt::KeyboardModifier modifier,
+    bool list,
+    QWidget *parent)
     : QTextEdit(parent),
+      m_searchModifier(modifier),
       m_list(list)
 {
     setFrameStyle(QFrame::NoFrame);
@@ -566,8 +572,7 @@ void GlossaryLabel::mouseMoveEvent(QMouseEvent *event)
 {
     QTextEdit::mouseMoveEvent(event);
 
-    if (!(QGuiApplication::keyboardModifiers() &
-          Qt::KeyboardModifier::ShiftModifier))
+    if (!(QGuiApplication::keyboardModifiers() & m_searchModifier))
     {
         return;
     }

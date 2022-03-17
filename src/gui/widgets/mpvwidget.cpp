@@ -434,7 +434,7 @@ void MpvWidget::initSubtitleRegex()
     m_regex.setPattern(
         settings.value(
             SETTINGS_SEARCH_REMOVE_REGEX,
-            DEFAULT_REMOVE_REGEX
+            SETTINGS_SEARCH_REMOVE_REGEX_DEFAULT
         ).toString()
     );
     settings.endGroup();

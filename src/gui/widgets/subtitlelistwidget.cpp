@@ -275,7 +275,7 @@ void SubtitleListWidget::initRegex()
     m_subRegex.setPattern(
         settings.value(
             SETTINGS_SEARCH_REMOVE_REGEX,
-            DEFAULT_REMOVE_REGEX
+            SETTINGS_SEARCH_REMOVE_REGEX_DEFAULT
         ).toString()
     );
     m_subRegexLock.unlock();

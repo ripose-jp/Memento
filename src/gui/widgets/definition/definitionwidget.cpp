@@ -130,12 +130,37 @@ void DefinitionWidget::initSearch()
     QSettings settings;
     settings.beginGroup(SETTINGS_SEARCH);
     m_limit = settings.value(
-            SETTINGS_SEARCH_LIMIT, DEFAULT_LIMIT
+            SETTINGS_SEARCH_LIMIT, SETTINGS_SEARCH_LIMIT_DEFAULT
         ).toUInt();
     m_listGlossary = settings.value(
             SETTINGS_SEARCH_LIST_GLOSSARY,
-            DEFAULT_LIST_GLOSSARY
+            SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT
         ).toBool();
+
+    QString modifier = settings.value(
+            SETTINGS_SEARCH_RECURSIVE_MODIFIER,
+            SETTINGS_SEARCH_RECURSIVE_MODIFIER_DEFAULT
+        ).toString();
+    if (modifier == SEARCH_MODIFIER_SHIFT)
+    {
+        m_searchModifier = Qt::KeyboardModifier::ShiftModifier;
+    }
+    else if (modifier == SEARCH_MODIFIER_ALT)
+    {
+        m_searchModifier = Qt::KeyboardModifier::AltModifier;
+    }
+    else if (modifier == SEARCH_MODIFIER_CTRL)
+    {
+        m_searchModifier = Qt::KeyboardModifier::ControlModifier;
+    }
+    else if (modifier == SEARCH_MODIFIER_SUPER)
+    {
+        m_searchModifier = Qt::KeyboardModifier::MetaModifier;
+    }
+    else
+    {
+        m_searchModifier = Qt::KeyboardModifier::ShiftModifier;
+    }
     settings.endGroup();
 }
 
@@ -358,7 +383,11 @@ void DefinitionWidget::showTerms(const int start, const int end)
     for (i = start; i < m_terms.size() && i < end; ++i)
     {
         TermWidget *termWidget = new TermWidget(
-              m_terms[i], m_sources, m_jsonSources, m_listGlossary
+              m_terms[i],
+              m_sources,
+              m_jsonSources,
+              m_searchModifier,
+              m_listGlossary
         );
         connect(
             termWidget, &TermWidget::kanjiSearched,

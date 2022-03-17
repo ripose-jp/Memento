@@ -27,8 +27,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>588</width>
-        <height>453</height>
+        <width>579</width>
+        <height>566</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layoutScrollArea">
@@ -48,6 +48,7 @@
         <widget class="QLabel" name="labelLimit">
          <property name="font">
           <font>
+           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -72,6 +73,7 @@ Zero is equivalent to no limit.</string>
         <widget class="QLabel" name="labelMethod">
          <property name="font">
           <font>
+           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -108,6 +110,7 @@ Zero is equivalent to no limit.</string>
             </property>
             <property name="font">
              <font>
+              <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>
@@ -156,6 +159,7 @@ Changing this value from the default is not recommended.</string>
            <widget class="QLabel" name="labelModifier">
             <property name="font">
              <font>
+              <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>
@@ -169,6 +173,22 @@ Changing this value from the default is not recommended.</string>
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelRecursiveModifier">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Recursive Search Modifier</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboBoxRModifier"/>
        </item>
        <item>
         <layout class="QVBoxLayout" name="layoutCheckHide">
@@ -219,6 +239,7 @@ Changing this value from the default is not recommended.</string>
         <widget class="QLabel" name="labelRemoveRegex">
          <property name="font">
           <font>
+           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>

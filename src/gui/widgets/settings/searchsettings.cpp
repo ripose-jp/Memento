@@ -43,13 +43,18 @@ SearchSettings::SearchSettings(QWidget *parent)
 
     connect(
         m_ui->comboBoxMethod, &QComboBox::currentTextChanged,
-        this,                 &SearchSettings::methodTextChanged
+        this, &SearchSettings::methodTextChanged
     );
 
-    m_ui->comboBoxModifier->addItem(MODIFIER_ALT);
-    m_ui->comboBoxModifier->addItem(MODIFIER_CTRL);
-    m_ui->comboBoxModifier->addItem(MODIFIER_SHIFT);
-    m_ui->comboBoxModifier->addItem(MODIFIER_SUPER);
+    m_ui->comboBoxModifier->addItem(SEARCH_MODIFIER_ALT);
+    m_ui->comboBoxModifier->addItem(SEARCH_MODIFIER_CTRL);
+    m_ui->comboBoxModifier->addItem(SEARCH_MODIFIER_SHIFT);
+    m_ui->comboBoxModifier->addItem(SEARCH_MODIFIER_SUPER);
+
+    m_ui->comboBoxRModifier->addItem(SEARCH_MODIFIER_ALT);
+    m_ui->comboBoxRModifier->addItem(SEARCH_MODIFIER_CTRL);
+    m_ui->comboBoxRModifier->addItem(SEARCH_MODIFIER_SHIFT);
+    m_ui->comboBoxRModifier->addItem(SEARCH_MODIFIER_SUPER);
 
     connect(
         m_ui->buttonBox->button(QDialogButtonBox::Reset),
@@ -94,41 +99,59 @@ void SearchSettings::restoreSaved()
     QSettings settings;
     settings.beginGroup(SETTINGS_SEARCH);
     m_ui->spinLimitResults->setValue(
-        settings.value(SETTINGS_SEARCH_LIMIT, DEFAULT_LIMIT).toInt()
+        settings.value(
+            SETTINGS_SEARCH_LIMIT, SETTINGS_SEARCH_LIMIT_DEFAULT
+        ).toInt()
     );
     m_ui->comboBoxMethod->setCurrentText(
-        settings.value(SETTINGS_SEARCH_METHOD, DEFAULT_METHOD).toString()
+        settings.value(
+            SETTINGS_SEARCH_METHOD, SETTINGS_SEARCH_METHOD_DEFAULT
+        ).toString()
     );
     m_ui->spinBoxDelay->setValue(
-        settings.value(SETTINGS_SEARCH_DELAY, DEFAULT_DELAY).toInt()
+        settings.value(
+            SETTINGS_SEARCH_DELAY, SETTINGS_SEARCH_DELAY_DEFAULT
+        ).toInt()
     );
     m_ui->comboBoxModifier->setCurrentText(
-        settings.value(SETTINGS_SEARCH_MODIFIER, DEFAULT_MODIFIER).toString()
+        settings.value(
+            SETTINGS_SEARCH_MODIFIER, SETTINGS_SEARCH_MODIFIER_DEFAULT
+        ).toString()
+    );
+    m_ui->comboBoxRModifier->setCurrentText(
+        settings.value(
+            SETTINGS_SEARCH_RECURSIVE_MODIFIER,
+            SETTINGS_SEARCH_RECURSIVE_MODIFIER_DEFAULT
+        ).toString()
     );
     m_ui->checkHideSubs->setChecked(
-        settings.value(SETTINGS_SEARCH_HIDE_SUBS, DEFAULT_HIDE_SUBS).toBool()
+        settings.value(
+            SETTINGS_SEARCH_HIDE_SUBS, SETTINGS_SEARCH_HIDE_SUBS_DEFAULT
+        ).toBool()
     );
     m_ui->checkHideSearch->setChecked(
-        settings.value(SETTINGS_SEARCH_HIDE_BAR, DEFAULT_HIDE_BAR).toBool()
+        settings.value(
+            SETTINGS_SEARCH_HIDE_BAR, SETTINGS_SEARCH_HIDE_BAR_DEFAULT
+        ).toBool()
     );
     m_ui->checkGlossaryList->setChecked(
         settings.value(
-            SETTINGS_SEARCH_LIST_GLOSSARY, DEFAULT_LIST_GLOSSARY
+            SETTINGS_SEARCH_LIST_GLOSSARY, SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT
         ).toBool()
     );
     m_ui->checkReplaceNewLines->setChecked(
         settings.value(
-            SETTINGS_SEARCH_REPLACE_LINES, DEFAULT_REPLACE_LINES
+            SETTINGS_SEARCH_REPLACE_LINES, SETTINGS_SEARCH_REPLACE_LINES_DEFAULT
         ).toBool()
     );
     m_ui->lineEditReplace->setText(
         settings.value(
-            SETTINGS_SEARCH_REPLACE_WITH, DEFAULT_REPLACE_WITH
+            SETTINGS_SEARCH_REPLACE_WITH, SETTINGS_SEARCH_REPLACE_WITH_DEFAULT
         ).toString()
     );
     m_ui->lineRemoveRegex->setText(
         settings.value(
-            SETTINGS_SEARCH_REMOVE_REGEX, DEFAULT_REMOVE_REGEX
+            SETTINGS_SEARCH_REMOVE_REGEX, SETTINGS_SEARCH_REMOVE_REGEX_DEFAULT
         ).toString()
     );
     settings.endGroup();
@@ -136,16 +159,21 @@ void SearchSettings::restoreSaved()
 
 void SearchSettings::restoreDefaults()
 {
-    m_ui->spinLimitResults    ->setValue      (DEFAULT_LIMIT);
-    m_ui->comboBoxMethod      ->setCurrentText(DEFAULT_METHOD);
-    m_ui->spinBoxDelay        ->setValue      (DEFAULT_DELAY);
-    m_ui->comboBoxModifier    ->setCurrentText(DEFAULT_MODIFIER);
-    m_ui->checkHideSubs       ->setChecked    (DEFAULT_HIDE_SUBS);
-    m_ui->checkHideSearch     ->setChecked    (DEFAULT_HIDE_BAR);
-    m_ui->checkGlossaryList   ->setChecked    (DEFAULT_LIST_GLOSSARY);
-    m_ui->checkReplaceNewLines->setChecked    (DEFAULT_REPLACE_LINES);
-    m_ui->lineEditReplace     ->setText       (DEFAULT_REPLACE_WITH);
-    m_ui->lineRemoveRegex     ->setText       (DEFAULT_REMOVE_REGEX);
+    m_ui->spinLimitResults->setValue(SETTINGS_SEARCH_LIMIT_DEFAULT);
+    m_ui->comboBoxMethod->setCurrentText(SETTINGS_SEARCH_METHOD_DEFAULT);
+    m_ui->spinBoxDelay->setValue(SETTINGS_SEARCH_DELAY_DEFAULT);
+    m_ui->comboBoxModifier->setCurrentText(SETTINGS_SEARCH_MODIFIER_DEFAULT);
+    m_ui->comboBoxRModifier->setCurrentText(
+        SETTINGS_SEARCH_RECURSIVE_MODIFIER_DEFAULT
+    );
+    m_ui->checkHideSubs->setChecked(SETTINGS_SEARCH_HIDE_SUBS_DEFAULT);
+    m_ui->checkHideSearch->setChecked(SETTINGS_SEARCH_HIDE_BAR_DEFAULT);
+    m_ui->checkGlossaryList->setChecked(SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT);
+    m_ui->checkReplaceNewLines->setChecked(
+        SETTINGS_SEARCH_REPLACE_LINES_DEFAULT
+    );
+    m_ui->lineEditReplace->setText(SETTINGS_SEARCH_REPLACE_WITH_DEFAULT);
+    m_ui->lineRemoveRegex->setText(SETTINGS_SEARCH_REMOVE_REGEX_DEFAULT);
 }
 
 void SearchSettings::applySettings()
@@ -163,6 +191,10 @@ void SearchSettings::applySettings()
     );
     settings.setValue(
         SETTINGS_SEARCH_MODIFIER, m_ui->comboBoxModifier->currentText()
+    );
+    settings.setValue(
+        SETTINGS_SEARCH_RECURSIVE_MODIFIER,
+        m_ui->comboBoxRModifier->currentText()
     );
     settings.setValue(
         SETTINGS_SEARCH_HIDE_SUBS, m_ui->checkHideSubs->isChecked()

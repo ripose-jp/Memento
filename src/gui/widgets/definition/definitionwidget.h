@@ -256,6 +256,9 @@ private:
     /* Current search ID. Used to prevent erroneous signals */
     int m_searchId = 0;
 
+    /* The keyboard modifier to use for recursive searches */
+    Qt::KeyboardModifier m_searchModifier;
+
     /* Whether newlines in glossary should be displayed in an unordered list */
     bool m_listGlossary;
 

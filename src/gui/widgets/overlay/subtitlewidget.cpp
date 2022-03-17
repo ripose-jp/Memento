@@ -219,30 +219,30 @@ void SubtitleWidget::initSettings()
     settings.beginGroup(SETTINGS_SEARCH);
     m_settings.delay = settings.value(
             SETTINGS_SEARCH_DELAY,
-            DEFAULT_DELAY
+            SETTINGS_SEARCH_DELAY_DEFAULT
         ).toInt();
     if (m_settings.delay < 0)
     {
-        m_settings.delay = DEFAULT_DELAY;
+        m_settings.delay = SETTINGS_SEARCH_DELAY_DEFAULT;
     }
 
     QString modifier = settings.value(
             SETTINGS_SEARCH_MODIFIER,
-            DEFAULT_MODIFIER
+            SETTINGS_SEARCH_MODIFIER_DEFAULT
         ).toString();
-    if (modifier == MODIFIER_ALT)
+    if (modifier == SEARCH_MODIFIER_ALT)
     {
         m_settings.modifier = Qt::Modifier::ALT;
     }
-    else if (modifier == MODIFIER_CTRL)
+    else if (modifier == SEARCH_MODIFIER_CTRL)
     {
         m_settings.modifier = Qt::Modifier::CTRL;
     }
-    else if (modifier == MODIFIER_SHIFT)
+    else if (modifier == SEARCH_MODIFIER_SHIFT)
     {
         m_settings.modifier = Qt::Modifier::SHIFT;
     }
-    else if (modifier == MODIFIER_SUPER)
+    else if (modifier == SEARCH_MODIFIER_SUPER)
     {
         m_settings.modifier = Qt::Modifier::META;
     }
@@ -253,7 +253,7 @@ void SubtitleWidget::initSettings()
 
     QString method = settings.value(
             SETTINGS_SEARCH_METHOD,
-            DEFAULT_METHOD
+            SETTINGS_SEARCH_METHOD_DEFAULT
         ).toString();
     if (method == SEARCH_METHOD_HOVER)
     {
@@ -270,7 +270,7 @@ void SubtitleWidget::initSettings()
 
     m_settings.hideSubsWhenVisible = settings.value(
             SETTINGS_SEARCH_HIDE_SUBS,
-            DEFAULT_HIDE_SUBS
+            SETTINGS_SEARCH_HIDE_SUBS_DEFAULT
         ).toBool();
     if (m_settings.hideSubsWhenVisible)
     {
@@ -285,17 +285,17 @@ void SubtitleWidget::initSettings()
 
     m_settings.hideOnPlay = settings.value(
             SETTINGS_SEARCH_HIDE_BAR,
-            DEFAULT_HIDE_BAR
+            SETTINGS_SEARCH_HIDE_BAR_DEFAULT
         ).toBool();
     adjustVisibility();
 
     m_settings.replaceNewLines = settings.value(
             SETTINGS_SEARCH_REPLACE_LINES,
-            DEFAULT_REPLACE_LINES
+            SETTINGS_SEARCH_REPLACE_LINES_DEFAULT
         ).toBool();
     m_settings.replaceStr = settings.value(
             SETTINGS_SEARCH_REPLACE_WITH,
-            DEFAULT_REPLACE_WITH
+            SETTINGS_SEARCH_REPLACE_WITH_DEFAULT
         ).toString();
     setSubtitle(
         m_subtitle.rawText, m_subtitle.startTime, m_subtitle.endTime, 0
