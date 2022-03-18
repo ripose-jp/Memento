@@ -275,6 +275,7 @@ void DefinitionWidget::setTerms(SharedTermList terms, SharedKanji kanji)
         delete item->widget();
         delete item;
     }
+    m_ui->layoutScroll->addStretch();
 
     /* Check if entries are addable to Anki */
     if (m_client->isEnabled())
@@ -345,10 +346,12 @@ void DefinitionWidget::mousePressEvent(QMouseEvent *event)
 
 void DefinitionWidget::showMoreTerms()
 {
-    QLayoutItem *showMoreItem =
-        m_ui->scrollAreaContents->layout()->takeAt(
-            m_ui->scrollAreaContents->layout()->count() - 1
-        );
+    QLayoutItem *spacer = m_ui->scrollAreaContents->layout()->takeAt(
+        m_ui->scrollAreaContents->layout()->count() - 1
+    );
+    QLayoutItem *showMoreItem = m_ui->scrollAreaContents->layout()->takeAt(
+        m_ui->scrollAreaContents->layout()->count() - 1
+    );
 
     /* Add the terms */
     int start = m_termWidgets.size();
@@ -371,6 +374,7 @@ void DefinitionWidget::showMoreTerms()
         delete showMoreItem->widget();
         delete showMoreItem;
     }
+    m_ui->layoutScroll->addItem(spacer);
 }
 
 /* End Event Handlers */
@@ -411,7 +415,11 @@ void DefinitionWidget::showTerms(const int start, const int end)
         KanjiWidget *kanjiWidget = new KanjiWidget(m_kanji);
         m_ui->scrollAreaContents->layout()->addWidget(kanjiWidget);
         /* An extra line is expected here */
-        m_ui->scrollAreaContents->layout()->addWidget(new QFrame);
+        QFrame *line = new QFrame;
+        line->setFrameShape(QFrame::HLine);
+        line->setFrameShadow(QFrame::Sunken);
+        line->setLineWidth(1);
+        m_ui->scrollAreaContents->layout()->addWidget(line);
     }
     setUpdatesEnabled(true);
 }
