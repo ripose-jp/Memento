@@ -24,6 +24,7 @@
 #include <QGuiApplication>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QScrollBar>
 #include <QSettings>
 #include <QTextBlock>
 #include <QThreadPool>
@@ -47,6 +48,12 @@ GlossaryLabel::GlossaryLabel(
       m_searchModifier(modifier),
       m_list(list)
 {
+    setTextInteractionFlags(
+        Qt::TextSelectableByKeyboard |
+        Qt::TextSelectableByMouse |
+        Qt::LinksAccessibleByKeyboard |
+        Qt::LinksAccessibleByMouse
+    );
     setFrameStyle(QFrame::NoFrame);
     setStyleSheet("QTextEdit { background: rgba(0, 0, 0, 0); }");
     setReadOnly(true);
@@ -67,6 +74,15 @@ GlossaryLabel::GlossaryLabel(
     connect(
         this, &GlossaryLabel::textChanged,
         this, &GlossaryLabel::adjustSize
+    );
+    connect(
+        verticalScrollBar(), &QScrollBar::valueChanged,
+        this, [=] (int value) {
+            if (value != 0)
+            {
+                verticalScrollBar()->setValue(0);
+            }
+        }
     );
 }
 
