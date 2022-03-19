@@ -442,7 +442,12 @@ void DefinitionWidget::showKanji(QSharedPointer<const Kanji> kanji)
     m_savedScroll = m_ui->scrollArea->verticalScrollBar()->value();
     for (int i = 0; i < m_ui->scrollAreaContents->layout()->count(); ++i)
     {
-        m_ui->scrollAreaContents->layout()->itemAt(i)->widget()->hide();
+        QWidget *widget =
+            m_ui->scrollAreaContents->layout()->itemAt(i)->widget();
+        if (widget)
+        {
+            widget->hide();
+        }
     }
     KanjiWidget *kanjiWidget = new KanjiWidget(kanji, true);
     connect(
@@ -462,7 +467,11 @@ void DefinitionWidget::hideKanji()
 
     for (int i = 0; i < scrollLayout->count(); ++i)
     {
-        scrollLayout->itemAt(i)->widget()->show();
+        QWidget *widget = scrollLayout->itemAt(i)->widget();
+        if (widget)
+        {
+            widget->show();
+        }
     }
     QApplication::processEvents();
     m_ui->scrollArea->verticalScrollBar()->setValue(m_savedScroll);
