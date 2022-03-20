@@ -64,14 +64,9 @@ public:
      * Parses the subtitles at the given path if possible and returns text,
      * start, and end times for each subtitle.
      * @param path     The path to the subtitle.
-     * @param compress If true, subtitles are merged if they overlap in time.
-     *                 This option mimics how mpv's 'sub-text' property handles
-     *                 subtitles whose timecodes overlap.
      * @return A list of SubtitleInfos extracted from the subtitle file.
      */
-    QList<SubtitleInfo> parseSubtitles(
-        const QString &path,
-        bool compress = false) const;
+    QList<SubtitleInfo> parseSubtitles(const QString &path) const;
 
 private:
     /**
@@ -105,14 +100,6 @@ private:
      * @return The timecode in seconds.
      */
     double timecodeToDouble(const QString &timecode, bool *ok = nullptr) const;
-
-    /**
-     * Takes a list of SubtitleInfos and merges subtitles that overlap in time.
-     * @param subtitles The list of subtitles to compress.
-     * @return The compressed list of subtitles.
-     */
-    QList<SubtitleInfo> compressSubtitles(
-        const QList<SubtitleInfo> &subtitles) const;
 
     /* The regular expression for splitting timecodes */
     QRegularExpression m_timecodeSplitter;

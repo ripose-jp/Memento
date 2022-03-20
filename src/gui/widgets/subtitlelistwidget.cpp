@@ -379,7 +379,7 @@ void SubtitleListWidget::handleTracklistChange(
                 m_subtitleParsed[extSids[i]] = new bool;
             }
             *m_subtitleMap[extSids[i]] =
-                parser.parseSubtitles(extTracks[i], false);
+                parser.parseSubtitles(extTracks[i]);
             *m_subtitleParsed[extSids[i]] =
                 !m_subtitleMap[extSids[i]]->isEmpty();
         }

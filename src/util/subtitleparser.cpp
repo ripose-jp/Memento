@@ -59,9 +59,7 @@ SubtitleParser::SubtitleParser()
     m_vttSections << "NOTE" << "STYLE" << "REGION";
 }
 
-QList<SubtitleInfo> SubtitleParser::parseSubtitles(
-    const QString &path,
-    const bool compress) const
+QList<SubtitleInfo> SubtitleParser::parseSubtitles(const QString &path) const
 {
     QList<SubtitleInfo> subtitles;
 
@@ -94,10 +92,6 @@ QList<SubtitleInfo> SubtitleParser::parseSubtitles(
         }
     }
 
-    if (compress)
-    {
-        return compressSubtitles(subtitles);
-    }
     return subtitles;
 }
 
@@ -624,106 +618,3 @@ error:
 #undef SECONDS_IN_MINUTE
 #undef SECONDS_IN_MILLISECOND
 #undef SECONDS_IN_HUNDREDTH
-
-QList<SubtitleInfo> SubtitleParser::compressSubtitles(
-    const QList<SubtitleInfo> &subtitles) const
-{
-    QList<SubtitleInfo> compressed;
-
-    QList<const SubtitleInfo *> currentSubInfos;
-    double earliestEnd;
-    double latestEnd;
-    for (const SubtitleInfo &info : subtitles)
-    {
-        /* Add all the subtitles that ended before this one started */
-        while (!currentSubInfos.isEmpty() &&
-               currentSubInfos.first()->start != info.start &&
-               earliestEnd <= info.start)
-        {
-            /* Add all the current subtitles */
-            QString text;
-            for (const SubtitleInfo *curr : currentSubInfos)
-            {
-                text += curr->text + '\n';
-            }
-            text.chop(1);
-            compressed << SubtitleInfo{
-                .text = text,
-                .start = currentSubInfos.first()->start,
-                .end = latestEnd
-            };
-
-            /* Remove elements that already ended and find the new earliest
-             * end.
-             */
-            double tmp = std::numeric_limits<double>::infinity();
-            for (int i = 0; i < currentSubInfos.size(); ++i) // This should be int because -1 is valid
-            {
-                if (currentSubInfos[i]->end == earliestEnd)
-                {
-                    currentSubInfos.removeAt(i--);
-                }
-                else
-                {
-                    if (currentSubInfos[i]->end < tmp)
-                    {
-                        tmp = currentSubInfos[i]->end;
-                    }
-                    if (currentSubInfos[i]->end > latestEnd)
-                    {
-                        latestEnd = currentSubInfos[i]->end;
-                    }
-                }
-            }
-            if (tmp != std::numeric_limits<double>::infinity())
-            {
-                earliestEnd = tmp;
-            }
-        }
-
-        if (currentSubInfos.isEmpty())
-        {
-            earliestEnd = info.end;
-            latestEnd = info.end;
-        }
-        else
-        {
-            earliestEnd = earliestEnd >= info.end ? info.end : earliestEnd;
-            latestEnd = latestEnd <= info.end ? info.end : latestEnd;
-        }
-        currentSubInfos << &info;
-    }
-
-    while (!currentSubInfos.isEmpty())
-    {
-        /* Add all the current subtitles */
-        QString text;
-        for (const SubtitleInfo *curr : currentSubInfos)
-        {
-            text += curr->text + '\n';
-        }
-        text.chop(1);
-        compressed << SubtitleInfo{
-            .text = text,
-            .start = currentSubInfos.first()->start,
-            .end = latestEnd
-        };
-
-        /* Remove elements that already ended and find the new earliest end */
-        double tmp = std::numeric_limits<double>::infinity();
-        for (int i = 0; i < currentSubInfos.size(); ++i) // This should be int because -1 is valid
-        {
-            if (currentSubInfos[i]->end == earliestEnd)
-            {
-                currentSubInfos.removeAt(i--);
-            }
-            else if (currentSubInfos[i]->end < tmp)
-            {
-                tmp = currentSubInfos[i]->end;
-            }
-        }
-        earliestEnd = tmp;
-    }
-
-    return compressed;
-}
