@@ -160,6 +160,7 @@ TermWidget::~TermWidget()
 void TermWidget::deleteWhenReady()
 {
     hide();
+    setParent(nullptr);
     if (m_ankiTerm)
     {
         connect(this, &TermWidget::safeToDelete, this, &QObject::deleteLater);
