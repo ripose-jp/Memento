@@ -556,7 +556,10 @@ static int get_json_obj(zip_t *archive, const char *filename, json_object **obj)
 
 cleanup:
     free(contents);
-    zip_fclose(file);
+    if (file)
+    {
+        zip_fclose(file);
+    }
 
     return ret;
 }
@@ -1817,7 +1820,10 @@ static int extract_resources(zip_t *dict_archive, const char *res_dir)
         {
             fprintf(stderr, "Could not open file for writing\n%s\n", file_path);
             free(file_path);
-            zip_fclose(zip_file);
+            if (zip_file)
+            {
+                zip_fclose(zip_file);
+            }
             goto cleanup;
         }
         free(file_path);
@@ -1831,7 +1837,10 @@ static int extract_resources(zip_t *dict_archive, const char *res_dir)
             fwrite(buf, sizeof(char), bytes_read, file);
         }
         fclose(file);
-        zip_fclose(zip_file);
+        if (zip_file)
+        {
+            zip_fclose(zip_file);
+        }
     }
 
 cleanup:
