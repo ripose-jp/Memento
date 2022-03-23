@@ -243,6 +243,47 @@ void Dictionary::MeCabWorker::run()
 
 #define WORD_INDEX 6
 
+/**
+ * Recursively generates queries and surface strings from a node.
+ * @param node The node to start at. Usually the next node after the BOS
+ *             node. Is nullptr safe.
+ * @return A list of conjugated string and surface (raw) strings. Belongs to
+ *         the caller.
+ */
+static QList<QPair<QString, QString>> *generateQueriesHelper(
+    const MeCab::Node *node)
+{
+    QList<QPair<QString, QString>> *queries =
+        new QList<QPair<QString, QString>>;
+    while (node)
+    {
+        QString conj = QString::fromUtf8(node->feature).split(',')[WORD_INDEX];
+        QString surface = QString::fromUtf8(node->surface, node->length);
+        if (conj != "*")
+        {
+            queries->push_back(QPair<QString, QString>(conj, surface));
+        }
+
+        if (node->next)
+        {
+            QList<QPair<QString, QString>> *subQueries =
+                generateQueriesHelper(node->next);
+            for (QPair<QString, QString> &p : *subQueries)
+            {
+                p.first.prepend(surface);
+                p.second.prepend(surface);
+                queries->push_back(p);
+            }
+            delete subQueries;
+        }
+
+        node = node->bnext;
+    }
+    return queries;
+}
+
+#undef WORD_INDEX
+
 QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
 {
     QList<QPair<QString, QString>> queries;
@@ -263,38 +304,23 @@ QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
     }
 
     /* Generate queries */
+    QList<QPair<QString, QString>> *unfiltered =
+        generateQueriesHelper(lattice->bos_node()->next);
     QSet<QString> duplicates;
-    for (const MeCab::Node *basenode = lattice->bos_node()->next;
-         basenode;
-         basenode = basenode->bnext)
+    for (const QPair<QString, QString> &p : *unfiltered)
     {
-        QString acc = "";
-        for (const MeCab::Node *node = basenode; node; node = node->next)
+        if (query.startsWith(p.first) || duplicates.contains(p.first))
         {
-            QString conj =
-                acc + QString::fromUtf8(node->feature).split(',')[WORD_INDEX];
-            if (duplicates.contains(conj))
-            {
-                break;
-            }
-            QString surface = QString::fromUtf8(node->surface, node->length);
-
-            if (conj[conj.size() - 1] != '*' && !query.startsWith(conj))
-            {
-                queries.push_back(QPair<QString, QString>(conj, acc + surface));
-                duplicates.insert(conj);
-            }
-
-            acc += surface;
+            continue;
         }
+        queries << p;
+        duplicates << p.first;
     }
-
+    delete unfiltered;
     delete lattice;
 
     return queries;
 }
-
-#undef WORD_INDEX
 
 SharedTermList Dictionary::searchTerms(const QString query)
 {
