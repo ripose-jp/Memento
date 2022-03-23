@@ -181,6 +181,19 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
+    /* Create the resource directory if it doesn't exist */
+    if (!QDir(DirectoryUtils::getDictionaryResourceDir()).exists() &&
+        !QDir().mkdir(DirectoryUtils::getDictionaryResourceDir()))
+    {
+        QMessageBox message;
+        message.critical(
+            0, "Error Creating Resource Directory",
+            "Could not make resource directory at " +
+            DirectoryUtils::getDictionaryResourceDir()
+        );
+        return EXIT_FAILURE;
+    }
+
     /* General Setup */
     registerMetaTypes();
     setlocale(LC_NUMERIC, "C"); // mpv requires this
