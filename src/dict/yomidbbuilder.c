@@ -1530,7 +1530,6 @@ cleanup:
 static int make_path(const char *path)
 {
     int    ret       = 0;
-    int    len       = 0;
     LPWSTR path_copy = NULL;
     LPWSTR ptr       = NULL;
 
