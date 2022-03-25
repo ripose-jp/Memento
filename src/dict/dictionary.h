@@ -35,6 +35,7 @@ namespace MeCab
 }
 
 class DatabaseManager;
+struct SearchPair;
 
 /**
  * The intended API for interacting with the database.
@@ -123,10 +124,9 @@ private:
     /**
      * Uses MeCab to generate a list of non-exact queries.
      * @param query The raw query.
-     * @return A list of pairs where the first element is the unconjugated form
-     *         and the second element is the conjugated form.
+     * @return A list of search pairs.
      */
-    QList<QPair<QString, QString>> generateQueries(const QString &query);
+    QList<SearchPair> generateQueries(const QString &query);
 
     /**
      * Sorts tag by descending order, breaking ties on ascending score.
@@ -255,8 +255,8 @@ private:
          * @param db           The database manager.
          */
         MeCabWorker(
-            QList<QPair<QString, QString>>::const_iterator begin,
-            QList<QPair<QString, QString>>::const_iterator end,
+            QList<SearchPair>::const_iterator begin,
+            QList<SearchPair>::const_iterator end,
             const QString &subtitle,
             const int index,
             const int *currentIndex,
@@ -274,7 +274,7 @@ private:
 
     private:
         /* Start and end iterators to queries */
-        QList<QPair<QString, QString>>::const_iterator begin, end;
+        QList<SearchPair>::const_iterator begin, end;
     };
 };
 

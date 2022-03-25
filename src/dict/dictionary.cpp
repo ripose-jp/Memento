@@ -32,6 +32,19 @@
 #include "../util/utils.h"
 #include "databasemanager.h"
 
+/**
+ * A pair to search for. The deconjugated string is used for querying the
+ * database and the surface string is used for cloze generation.
+ */
+struct SearchPair
+{
+    /* The deconjugated string */
+    QString deconj;
+
+    /* The raw conjugated string */
+    QString surface;
+};
+
 /* Begin Static Helpers */
 #if defined(Q_OS_WIN)
 /**
@@ -211,9 +224,9 @@ void Dictionary::MeCabWorker::run()
 {
     while (begin != end && index == *currentIndex)
     {
-        const QPair<QString, QString> &pair = *begin;
+        const SearchPair &pair = *begin;
         QList<SharedTerm> results;
-        db.queryTerms(pair.first, results);
+        db.queryTerms(pair.deconj, results);
 
         /* Generate cloze data in entries */
         QString clozePrefix;
@@ -222,9 +235,9 @@ void Dictionary::MeCabWorker::run()
         if (!results.isEmpty())
         {
             clozePrefix = subtitle.left(index);
-            clozeBody   = subtitle.mid(index, pair.second.size());
+            clozeBody   = subtitle.mid(index, pair.surface.size());
             clozeSuffix = subtitle.right(
-                subtitle.size() - (index + pair.second.size())
+                subtitle.size() - (index + pair.surface.size())
             );
         }
 
@@ -250,28 +263,30 @@ void Dictionary::MeCabWorker::run()
  * @return A list of conjugated string and surface (raw) strings. Belongs to
  *         the caller.
  */
-static QList<QPair<QString, QString>> *generateQueriesHelper(
+static QList<SearchPair> *generateQueriesHelper(
     const MeCab::Node *node)
 {
-    QList<QPair<QString, QString>> *queries =
-        new QList<QPair<QString, QString>>;
+    QList<SearchPair> *queries = new QList<SearchPair>;
     while (node)
     {
-        QString conj = QString::fromUtf8(node->feature).split(',')[WORD_INDEX];
+        QString deconj =
+            QString::fromUtf8(node->feature).split(',')[WORD_INDEX];
         QString surface = QString::fromUtf8(node->surface, node->length);
-        if (conj != "*")
+        if (deconj != "*")
         {
-            queries->push_back(QPair<QString, QString>(conj, surface));
+            queries->push_back(SearchPair{
+                .deconj = deconj,
+                .surface = surface
+            });
         }
 
         if (node->next)
         {
-            QList<QPair<QString, QString>> *subQueries =
-                generateQueriesHelper(node->next);
-            for (QPair<QString, QString> &p : *subQueries)
+            QList<SearchPair> *subQueries = generateQueriesHelper(node->next);
+            for (SearchPair &p : *subQueries)
             {
-                p.first.prepend(surface);
-                p.second.prepend(surface);
+                p.deconj.prepend(surface);
+                p.surface.prepend(surface);
                 queries->push_back(p);
             }
             delete subQueries;
@@ -284,9 +299,9 @@ static QList<QPair<QString, QString>> *generateQueriesHelper(
 
 #undef WORD_INDEX
 
-QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
+QList<SearchPair> Dictionary::generateQueries(const QString &query)
 {
-    QList<QPair<QString, QString>> queries;
+    QList<SearchPair> queries;
     if (query.isEmpty() || m_tagger == nullptr)
     {
         return queries;
@@ -304,17 +319,17 @@ QList<QPair<QString, QString>> Dictionary::generateQueries(const QString &query)
     }
 
     /* Generate queries */
-    QList<QPair<QString, QString>> *unfiltered =
+    QList<SearchPair> *unfiltered =
         generateQueriesHelper(lattice->bos_node()->next);
     QSet<QString> duplicates;
-    for (const QPair<QString, QString> &p : *unfiltered)
+    for (const SearchPair &p : *unfiltered)
     {
-        if (query.startsWith(p.first) || duplicates.contains(p.first))
+        if (query.startsWith(p.deconj) || duplicates.contains(p.deconj))
         {
             continue;
         }
         queries << p;
-        duplicates << p.first;
+        duplicates << p.deconj;
     }
     delete unfiltered;
     delete lattice;
@@ -363,7 +378,7 @@ SharedTermList Dictionary::searchTerms(
     }
 
     /* Get lemmatized queries */
-    QList<QPair<QString, QString>> queries = generateQueries(query);
+    QList<SearchPair> queries = generateQueries(query);
     if (!queries.isEmpty())
     {
         for (size_t i = 0;
