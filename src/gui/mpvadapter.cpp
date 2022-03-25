@@ -1041,14 +1041,29 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
         case Qt::Key::Key_Escape:
             key += "ESC";
             break;
+        case Qt::Key::Key_Backspace:
+            key += "BS";
+            break;
+        case Qt::Key::Key_Pause:
+            key += "PAUSE";
+            break;
+        case Qt::Key::Key_Delete:
+            key += "DEL";
+            break;
+        case Qt::Key::Key_Insert:
+            key += "INS";
+            break;
+        case Qt::Key::Key_Home:
+            key += "HOME";
+            break;
+        case Qt::Key::Key_End:
+            key += "END";
+            break;
         case Qt::Key::Key_PageUp:
             key += "PGUP";
             break;
         case Qt::Key::Key_PageDown:
             key += "PGDWN";
-            break;
-        case Qt::Key::Key_Backspace:
-            key += "BS";
             break;
         default:
         {
