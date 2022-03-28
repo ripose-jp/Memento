@@ -345,6 +345,12 @@ public Q_SLOTS:
     virtual void setVolume(const int64_t value) = 0;
 
     /**
+     * Shows the current text on the screen.
+     * @param text The text to show.
+     */
+    virtual void showText(const QString &text) = 0;
+
+    /**
      * Takes a screenshot of the player contents and stores the files in the
      * temp directory.
      * @param subtitles true to include the subtitles in the images, false

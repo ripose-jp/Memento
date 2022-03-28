@@ -109,6 +109,8 @@ public Q_SLOTS:
     void setFullscreen(const bool value) override;
     void setVolume(const int64_t value)  override;
 
+    void showText(const QString &text) override;
+
     QString tempScreenshot(const bool subtitles,
                            const QString &ext = ".jpg") override;
     QString tempAudioClip(double start,

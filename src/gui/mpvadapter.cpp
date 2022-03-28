@@ -839,6 +839,20 @@ void MpvAdapter::setVolume(int64_t value)
     }
 }
 
+void MpvAdapter::showText(const QString &text)
+{
+    QByteArray utf8Text = text.toUtf8();
+    const char *command[] = {
+        "show-text",
+        utf8Text.data(),
+        NULL
+    };
+    if (mpv_command(m_handle, command))
+    {
+        qDebug() << "Could not show text" << text;
+    }
+}
+
 QString MpvAdapter::tempScreenshot(const bool subtitles, const QString &ext)
 {
     // Get a temporary file name
