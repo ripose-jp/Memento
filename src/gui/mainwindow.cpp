@@ -490,7 +490,15 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    Q_EMIT m_mediator->keyPressed(event);
+    switch (event->key())
+    {
+    case Qt::Key::Key_Delete:
+        Q_EMIT m_mediator->windowOSCStateCycled();
+        break;
+    default:
+        Q_EMIT m_mediator->keyPressed(event);
+        break;
+    }
 
     QMainWindow::keyPressEvent(event);
 }

@@ -71,9 +71,14 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     /**
-     * Intializes the settings relevant to the overlay.
+     * Initializes the settings relevant to the overlay.
      */
     void initSettings();
+
+    /**
+     * Cycles the OSC visibility.
+     */
+    void cycleOSCVisibility();
 
     /**
      * Opens a new DefinitionWidget populated with the terms in the list.
@@ -147,6 +152,21 @@ private:
 
     /* The widget containing the player controls */
     PlayerControls *m_controls;
+
+    enum class OSCVisibility
+    {
+        /* Automatically hide and show the OSC */
+        Auto,
+
+        /* Keep the OSC hidden */
+        Hidden,
+
+        /* Keep the OSC visible */
+        Visible
+    };
+
+    /* The current OSC visibility */
+    OSCVisibility m_visibility = OSCVisibility::Auto;
 
     /* Saved setting describing the subtitle offset from the bottom */
     double m_subOffset;

@@ -501,6 +501,14 @@ Q_SIGNALS:
     void controlsFullscreenChanged(const bool value) const;
 
     /* End Player Control Signals */
+    /* Begin Window Signals */
+
+    /**
+     * Emitted when the OSC state is cycled.
+     */
+    void windowOSCStateCycled() const;
+
+    /* End Window Signals */
     /* Begin Subtitle Widget Signals */
 
     /**

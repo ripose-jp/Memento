@@ -89,6 +89,11 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
         Qt::QueuedConnection
     );
     connect(
+        mediator, &GlobalMediator::windowOSCStateCycled,
+        this, &PlayerOverlay::cycleOSCVisibility,
+        Qt::QueuedConnection
+    );
+    connect(
         mediator, &GlobalMediator::playerResized,
         this, &PlayerOverlay::repositionSubtitles,
         Qt::QueuedConnection
@@ -217,6 +222,10 @@ void PlayerOverlay::initSettings()
         SETTINGS_INTERFACE_MENUBAR_FULLSCREEN,
         SETTINGS_INTERFACE_MENUBAR_FULLSCREEN_DEFAULT
     ).toBool();
+    if (m_visibility == OSCVisibility::Visible)
+    {
+        showOverlay();
+    }
 #endif
 
     settings.endGroup();
@@ -225,6 +234,35 @@ void PlayerOverlay::initSettings()
 }
 
 /* End Initializers */
+/* Begin Handlers */
+
+void PlayerOverlay::cycleOSCVisibility()
+{
+    m_definition->hide();
+
+    QString msg = "OSC Visibility: ";
+    switch (m_visibility)
+    {
+    case OSCVisibility::Auto:
+        m_visibility = OSCVisibility::Visible;
+        msg += "visible";
+        showOverlay();
+        break;
+    case OSCVisibility::Visible:
+        m_visibility = OSCVisibility::Hidden;
+        msg += "hidden";
+        hideOverlay();
+        break;
+    case OSCVisibility::Hidden:
+        m_visibility = OSCVisibility::Auto;
+        msg += "auto";
+        hideOverlay();
+        break;
+    }
+    GlobalMediator::getGlobalMediator()->getPlayerAdapter()->showText(msg);
+}
+
+/* End Handlers */
 /* Begin Definition Widget Helpers */
 
 void PlayerOverlay::setTerms(SharedTermList terms, SharedKanji kanji)
@@ -357,6 +395,16 @@ bool PlayerOverlay::underMouse() const
 
 void PlayerOverlay::hideOverlay()
 {
+    /* Determine how this method should work by checking OSC visibility */
+    switch (m_visibility)
+    {
+    case OSCVisibility::Auto:
+    case OSCVisibility::Hidden:
+        break;
+    case OSCVisibility::Visible:
+        return;
+    }
+
     if (underMouse() || m_menu->menuOpen() || m_definition->isVisible())
     {
         return;
@@ -399,6 +447,16 @@ void PlayerOverlay::hideOverlay()
 
 void PlayerOverlay::showOverlay()
 {
+    /* Determine how this method should work by checking OSC visibility */
+    switch (m_visibility)
+    {
+    case OSCVisibility::Auto:
+    case OSCVisibility::Visible:
+        break;
+    case OSCVisibility::Hidden:
+        return;
+    }
+
 #if defined(Q_OS_WIN)
     if (!m_menu->menuVisible() &&
         (m_showMenuBar || !m_menu->window()->isFullScreen()))
