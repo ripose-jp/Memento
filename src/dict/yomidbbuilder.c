@@ -543,6 +543,8 @@ static int get_json_obj(zip_t *archive, const char *filename, json_object **obj)
         fprintf(stderr, "Did not read expected number of bytes in %s\n", filename);
 #ifdef __APPLE__
         fprintf(stderr, "Expected bytes: %llu\tActual bytes read %llu\n", st.size, bytes_read);
+#elif defined(_WIN32)
+        fprintf(stderr, "Expected bytes: %lld\tActual bytes read %lld\n", st.size, bytes_read);
 #else
         fprintf(stderr, "Expected bytes: %ld\tActual bytes read %ld\n", st.size, bytes_read);
 #endif
@@ -730,8 +732,13 @@ static int get_obj_from_array(json_object *arr, size_t idx, json_type type, json
     *ret_obj = json_object_array_get_idx(arr, idx);
     if (!json_object_is_type(*ret_obj, type))
     {
+#ifdef _WIN32
+        fprintf(stderr, "Expected index %llu to be of type %s\n%s\n", idx, json_type_to_name(type),
+                        json_object_to_json_string_ext(arr, JSON_C_TO_STRING_PRETTY));
+#else
         fprintf(stderr, "Expected index %lu to be of type %s\n%s\n", idx, json_type_to_name(type),
                 json_object_to_json_string_ext(arr, JSON_C_TO_STRING_PRETTY));
+#endif
         *ret_obj = NULL;
         return JSON_WRONG_TYPE_ERR;
     }
@@ -782,8 +789,13 @@ static int add_tag(sqlite3 *db, json_object *tag, const sqlite3_int64 id)
     /* Make sure the length of the tag array is correct */
     if (json_object_array_length(tag) != TAG_ARRAY_SIZE)
     {
+#ifdef _WIN32
+        fprintf(stderr, "Expected tag array of size %u, got %llu\n",
+                TAG_ARRAY_SIZE, json_object_array_length(tag));
+#else
         fprintf(stderr, "Expected tag array of size %u, got %lu\n",
                 TAG_ARRAY_SIZE, json_object_array_length(tag));
+#endif
         ret = TAG_WRONG_SIZE_ERR;
         goto cleanup;
     }
@@ -913,8 +925,13 @@ static int add_term(sqlite3 *db, json_object *term, const sqlite3_int64 id)
     /* Make sure the length of the term array is correct */
     if (json_object_array_length(term) != TERM_ARRAY_SIZE)
     {
+#ifdef _WIN32
+        fprintf(stderr, "Expected term array of size %u, got %llu\n",
+                TERM_ARRAY_SIZE, json_object_array_length(term));
+#else
         fprintf(stderr, "Expected term array of size %u, got %lu\n",
                 TERM_ARRAY_SIZE, json_object_array_length(term));
+#endif
         ret = TERM_WRONG_SIZE_ERR;
         goto cleanup;
     }
@@ -1059,8 +1076,13 @@ static int add_kanji(sqlite3 *db, json_object *kanji, const sqlite3_int64 id)
     /* Make sure the length of the term array is correct */
     if (json_object_array_length(kanji) != KANJI_ARRAY_SIZE)
     {
+#ifdef _WIN32
+        fprintf(stderr, "Expected kanji array of size %u, got %llu\n",
+                KANJI_ARRAY_SIZE, json_object_array_length(kanji));
+#else
         fprintf(stderr, "Expected kanji array of size %u, got %lu\n",
                 KANJI_ARRAY_SIZE, json_object_array_length(kanji));
+#endif
         ret = KANJI_WRONG_SIZE_ERR;
         goto cleanup;
     }
@@ -1186,8 +1208,13 @@ static int add_meta(sqlite3 *db, json_object *meta, const sqlite3_int64 id, cons
     /* Make sure the length of the metadata array is correct */
     if (json_object_array_length(meta) != META_ARRAY_SIZE)
     {
+#ifdef _WIN32
+        fprintf(stderr, "Expected metadata array of size %u, got %llu\n",
+                META_ARRAY_SIZE, json_object_array_length(meta));
+#else
         fprintf(stderr, "Expected metadata array of size %u, got %lu\n",
                 META_ARRAY_SIZE, json_object_array_length(meta));
+#endif
         ret = META_WRONG_SIZE_ERR;
         goto cleanup;
     }
