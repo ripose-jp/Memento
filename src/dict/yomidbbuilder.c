@@ -1737,6 +1737,11 @@ static char *concat_paths(const char *start, const char *end)
     "^kanji_bank_[1-9][0-9\\(\\)]*\\.json$|" \
     "^kanji_meta_bank_[1-9][0-9\\(\\)]*\\.json$"
 
+#ifdef _WIN32
+/* This is returned from SHFileOperationW when folders in the path don't exist */
+#define DE_INVALIDFILES 0x7C
+#endif
+
 /**
  * Extracts resources also in the archive if they exist.
  * @param dict_archive The dictionary archive to extract resources from.
@@ -1771,7 +1776,7 @@ static int extract_resources(zip_t *dict_archive, const char *res_dir)
     base_path = concat_paths(res_dir, dict_name);
     ret = remove_path(base_path);
 #ifdef _WIN32
-    ret = ret && ret != ERROR_FILE_NOT_FOUND ? ret : 0;
+    ret = ret && ret != DE_INVALIDFILES ? ret : 0;
 #else
     ret = ret && ret != ENOENT ? ret : 0;
 #endif
