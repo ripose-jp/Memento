@@ -23,6 +23,8 @@
 
 #include <QVBoxLayout>
 
+#include <QPointer>
+#include <QPropertyAnimation>
 #include <QSharedPointer>
 
 class DefinitionWidget;
@@ -175,6 +177,13 @@ private:
     /* true if the menubar should be shown in fullscreen on windows */
     bool m_showMenuBar = false;
 #endif
+
+    /* A reference to the currently active property animation for the menu */
+    QPointer<QPropertyAnimation> m_menuFade = nullptr;
+
+    /* A reference to the currently active property animation for the
+     * controls */
+    QPointer<QPropertyAnimation> m_controlFade = nullptr;
 };
 
 #endif // PLAYEROVERLAY_H

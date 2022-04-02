@@ -398,8 +398,17 @@ void PlayerOverlay::hideOverlay()
     /* Determine how this method should work by checking OSC visibility */
     switch (m_visibility)
     {
-    case OSCVisibility::Auto:
     case OSCVisibility::Hidden:
+        /* See showOverlay() */
+        if (m_menuFade)
+        {
+            m_menu->showMenu();
+        }
+        if (m_controlFade)
+        {
+            m_controls->show();
+        }
+    case OSCVisibility::Auto:
         break;
     case OSCVisibility::Visible:
         return;
@@ -423,6 +432,7 @@ void PlayerOverlay::hideOverlay()
             m_menu, &PlayerMenu::hideMenu
         );
         menuFade->start(QPropertyAnimation::DeleteWhenStopped);
+        m_menuFade = menuFade;
     }
 
     if (m_controls->isVisible())
@@ -442,6 +452,7 @@ void PlayerOverlay::hideOverlay()
             this, &PlayerOverlay::repositionSubtitles
         );
         controlFade->start(QPropertyAnimation::DeleteWhenStopped);
+        m_controlFade = controlFade;
     }
 }
 
@@ -450,8 +461,20 @@ void PlayerOverlay::showOverlay()
     /* Determine how this method should work by checking OSC visibility */
     switch (m_visibility)
     {
-    case OSCVisibility::Auto:
     case OSCVisibility::Visible:
+        /* This is a little hack to prevent a race condition where hideOverlay
+         * was called, but widgets have yet to be hidden because they are
+         * currently fading out.
+         */
+        if (m_menuFade)
+        {
+            m_menu->hideMenu();
+        }
+        if (m_controlFade)
+        {
+            m_controls->hide();
+        }
+    case OSCVisibility::Auto:
         break;
     case OSCVisibility::Hidden:
         return;
