@@ -1810,11 +1810,11 @@ static int extract_resources(zip_t *dict_archive, const char *res_dir)
         char *file_path = concat_paths(base_path, file_name);
 #ifdef _WIN32
         LPWSTR wFilePath = utf8_to_lpwstr(file_path);
-        FILE *file = _wfopen(wFilePath, L"w");
+        FILE *file = _wfopen(wFilePath, L"wb+");
         free(wFilePath);
         wFilePath = NULL;
 #else
-        FILE *file = fopen(file_path, "w");
+        FILE *file = fopen(file_path, "wb+");
 #endif
         if (file == NULL)
         {
