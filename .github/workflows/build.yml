@@ -1,0 +1,80 @@
+name: Build CI
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+  pull_request:
+    branches:
+      - master
+      - dev
+
+jobs:
+  linux:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Dependencies
+      run: |
+        sudo add-apt-repository ppa:beineri/opt-qt-5.15.2-focal
+        sudo apt-get update
+        sudo apt-get install qt515base qt515x11extras qt515svg libmpv-dev libsqlite3-dev libmecab-dev mecab-ipadic libjson-c-dev libzip-dev mesa-common-dev
+        /opt/qt515/bin/qt515-env.sh
+
+    - name: CMake Build
+      run:
+        make
+
+  windows:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: true
+        install: >-
+          make
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-sqlite3
+          mingw-w64-x86_64-qt5
+          mingw-w64-x86_64-mpv
+          mingw-w64-x86_64-mecab
+          mingw-w64-x86_64-json-c
+          mingw-w64-x86_64-libzip
+          mingw-w64-x86_64-nsis
+
+    - uses: actions/checkout@v3
+
+    - name: CMake Build
+      run: |
+        ./windows/windows-build.sh x86_64
+
+    - name: Installer Build
+      run: |
+        make clean
+        ./windows/build-installer.sh x86_64
+
+  macos:
+    runs-on: macos-10.15
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Dependencies
+      run: |
+        brew update
+        brew upgrade
+        brew install git cmake sqlite3 qt5 mpv mecab mecab-ipadic json-c libzip
+
+    - name: CMake Build
+      run:
+        make
