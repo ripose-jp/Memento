@@ -25,7 +25,9 @@
 #include <QDesktopWidget>
 #include <QMessageBox>
 #include <QOpenGLContext>
+#include <QScreen>
 #include <QSettings>
+#include <QWindow>
 
 #if defined(Q_OS_WIN)
 #include <winbase.h>
@@ -180,6 +182,15 @@ MpvWidget::~MpvWidget()
 
 /* End Constructor/Destructor */
 /* Begin Initialization Functions */
+
+void MpvWidget::initScreenSignals()
+{
+    connect(
+        window()->windowHandle(), &QWindow::screenChanged,
+        this, &MpvWidget::screenChanged
+    );
+    screenChanged(screen());
+}
 
 void MpvWidget::initPropertyMap()
 {
@@ -512,10 +523,15 @@ void MpvWidget::paintGL()
 
 void MpvWidget::resizeGL(int width, int height)
 {
-    qreal ratio = QApplication::desktop()->devicePixelRatioF();
-    m_width = width * ratio;
-    m_height = height * ratio;
+    m_width = width * m_devicePixelRatio;
+    m_height = height * m_devicePixelRatio;
     Q_EMIT GlobalMediator::getGlobalMediator()->playerResized();
+}
+
+void MpvWidget::screenChanged(QScreen *screen)
+{
+    m_devicePixelRatio = screen ? screen->devicePixelRatio() : 1.0;
+    resizeGL(width(), height());
 }
 
 void MpvWidget::reportFrameSwap()
@@ -553,6 +569,17 @@ void MpvWidget::maybeUpdate()
 
 /* End OpenGL Functions */
 /* Begin Event Handlers */
+
+void MpvWidget::showEvent(QShowEvent *event)
+{
+    QOpenGLWidget::showEvent(event);
+    if (!m_firstShow)
+    {
+        return;
+    }
+    m_firstShow = false;
+    initScreenSignals();
+}
 
 void MpvWidget::handleMpvEvent(mpv_event *event)
 {

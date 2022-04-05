@@ -256,6 +256,12 @@ protected:
     void resizeGL(int width, int height) override;
 
     /**
+     * Handles events that can only done on first show.
+     * @param event The show event.
+     */
+    void showEvent(QShowEvent *event) override;
+
+    /**
      * Called when the mouse is moved.
      * @param event The mouse move event.
      */
@@ -276,6 +282,12 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent *event) override;
 
 private Q_SLOTS:
+    /**
+     * Handles updates that come about due to a screen change.
+     * @param screen The new screen.
+     */
+    void screenChanged(QScreen *screen);
+
     /**
      * Processes all the events in the event queue.
      */
@@ -308,6 +320,12 @@ private Q_SLOTS:
 
 private:
     /**
+     * Initializes screen signals. This needs to be called after the widget is
+     * shown.
+     */
+    void initScreenSignals();
+
+    /**
      * Initializes m_propertyMap with all the event handling functions.
      */
     void initPropertyMap();
@@ -335,6 +353,12 @@ private:
 
     /* The mpv render context */
     mpv_render_context *mpv_gl;
+
+    /* Keeps track if this widget has already been shown once before or not */
+    bool m_firstShow = true;
+
+    /* The DPI ratio. */
+    qreal m_devicePixelRatio = 1.0;
 
     /* The height of the player adjusted for DPI. */
     int m_height;
