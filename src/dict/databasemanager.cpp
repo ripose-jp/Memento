@@ -680,7 +680,9 @@ void DatabaseManager::addTags(const uint64_t  id,
 
 int DatabaseManager::addFrequencies(Term &term) const
 {
-    return addFrequencies(QUERY, term.expression, term.frequencies);
+    return addFrequencies(
+        QUERY, term.expression, term.frequencies, term.reading
+    );
 }
 
 #undef QUERY
@@ -697,9 +699,16 @@ int DatabaseManager::addFrequencies(Kanji &kanji) const
 
 #undef QUERY
 
-int DatabaseManager::addFrequencies(const char       *query,
-                                    const QString    &expression,
-                                    QList<Frequency> &freq) const
+#define OBJ_READING_KEY     "reading"
+#define OBJ_FREQ_KEY        "frequency"
+#define OBJ_VALUE_KEY       "value"
+#define OBJ_DISPLAY_KEY     "displayValue"
+
+int DatabaseManager::addFrequencies(
+    const char *query,
+    const QString &expression,
+    QList<Frequency> &freq,
+    const QString &reading) const
 {
     int           ret  = 0;
     sqlite3_stmt *stmt = NULL;
@@ -732,7 +741,37 @@ int DatabaseManager::addFrequencies(const char       *query,
                 *(const uint64_t *)sqlite3_column_blob(stmt, 1)
             );
             break;
+        case YOMI_BLOB_TYPE_OBJECT:
+        {
+            QJsonObject obj = QJsonDocument::fromJson(
+                (const char *)sqlite3_column_blob(stmt, 1)
+            ).object();
 
+            /* Check if this frequency is dependant on reading */
+            if (obj[OBJ_READING_KEY].isString())
+            {
+                if (obj[OBJ_READING_KEY].toString() != reading)
+                {
+                    continue;
+                }
+                obj = obj[OBJ_FREQ_KEY].toObject();
+            }
+
+            /* Check for the type that should be shown */
+            if (obj[OBJ_DISPLAY_KEY].isString())
+            {
+                freqStr = obj[OBJ_DISPLAY_KEY].toString();
+            }
+            else if (obj[OBJ_VALUE_KEY].isDouble())
+            {
+                freqStr = QString::number(obj[OBJ_VALUE_KEY].toInt());
+            }
+            else
+            {
+                continue;
+            }
+            break;
+        }
         default:
             continue;
         }
@@ -753,6 +792,11 @@ cleanup:
 
     return ret;
 }
+
+#undef OBJ_READING_KEY
+#undef OBJ_FREQ_KEY
+#undef OBJ_VALUE_KEY
+#undef OBJ_DISPLAY_KEY
 
 #define QUERY   "SELECT dic_id, data "\
                     "FROM term_meta_bank "\

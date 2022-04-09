@@ -155,11 +155,14 @@ private:
      *                        one bind.
      * @param      expression The first sql bind.
      * @param[out] freq       The list to add frequencies to.
+     * @param      reading    The reading of the term if available.
      * @return An SQLite error code on failure.
      */
-    int addFrequencies(const char       *query,
-                       const QString    &expression,
-                       QList<Frequency> &freq) const;
+    int addFrequencies(
+        const char *query,
+        const QString &expression,
+        QList<Frequency> &freq,
+        const QString &reading = QString()) const;
 
     /**
      * Helper method for adding pitch accents to a Term.
