@@ -72,8 +72,7 @@ jobs:
     - name: Install Dependencies
       run: |
         brew update
-        brew upgrade
-        brew install git cmake sqlite3 qt5 mpv mecab mecab-ipadic json-c libzip
+        brew install cmake sqlite3 qt5 mpv mecab mecab-ipadic json-c libzip
 
     - name: CMake Build
       run:
