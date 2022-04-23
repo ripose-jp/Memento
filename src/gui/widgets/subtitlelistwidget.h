@@ -30,6 +30,7 @@
 #include <QRegularExpression>
 
 #include "../playeradapter.h"
+#include "../../anki/ankiclient.h"
 
 class QShortcut;
 class QTableWidget;
@@ -435,6 +436,9 @@ private:
 
     /* The secondary subtitle list */
     SubtitleList m_secondary;
+
+    /* Saved pointer to the global AnkiClient. */
+    AnkiClient *m_client;
 };
 
 #endif // SUBTITLELISTWIDGET_H

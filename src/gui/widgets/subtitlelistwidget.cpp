@@ -71,7 +71,8 @@ private:
 
 SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     : QWidget(parent),
-      m_ui(new Ui::SubtitleListWidget)
+      m_ui(new Ui::SubtitleListWidget),
+      m_client(GlobalMediator::getGlobalMediator()->getAnkiClient())
 {
     m_ui->setupUi(this);
     m_ui->widgetFind->hide();
@@ -819,10 +820,21 @@ void SubtitleListWidget::copyAudioContext() const
     double delay = player->getSubDelay() - player->getAudioDelay();
     double start = times.first + delay;
     double end = times.second + delay;
+    bool normalize = false;
+    double dbLevel = -20.0;
+
+    if (m_client->isEnabled())
+    {
+        QSharedPointer<const AnkiConfig> config = m_client->getConfig();
+        start -= config->audioPadStart;
+        end += config->audioPadEnd;
+        normalize = config->audioNormalize;
+        dbLevel = config->audioDb;
+    }
 
     QThreadPool::globalInstance()->start(
         [=] {
-            QString path = player->tempAudioClip(start, end);
+            QString path = player->tempAudioClip(start, end, normalize, dbLevel);
             if (!QFile(path).exists())
             {
                 return;
