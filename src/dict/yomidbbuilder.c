@@ -151,7 +151,7 @@ static int drop_all_tables_callback(void *db, int argc, char **argv, char **unus
 {
     for (char **ptr = argv; ptr < &argv[argc]; ++ptr)
     {
-        if (strncmp(*ptr, "sqlite_", 8) == 0)
+        if (strncmp(*ptr, "sqlite_", 7) == 0)
         {
             continue;
         }
