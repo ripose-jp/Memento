@@ -109,11 +109,6 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerCursorHidden,
-        this, &PlayerOverlay::hideOverlay,
-        Qt::QueuedConnection
-    );
-    connect(
         mediator, &GlobalMediator::playerFullscreenChanged,
         this, &PlayerOverlay::hideOverlay,
         Qt::QueuedConnection
@@ -201,6 +196,11 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
         Qt::QueuedConnection
     );
 
+    connect(
+        &m_hideTimer, &QTimer::timeout, this, &PlayerOverlay::hideOverlay,
+        Qt::DirectConnection
+    );
+
     initSettings();
 }
 
@@ -234,6 +234,13 @@ void PlayerOverlay::initSettings()
     settings.endGroup();
 
     settings.beginGroup(SETTINGS_BEHAVIOR);
+    m_hideTimer.setSingleShot(true);
+    m_hideTimer.setInterval(
+        settings.value(
+            SETTINGS_BEHAVIOR_OSC_DURATION,
+            SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT
+        ).toInt()
+    );
     m_settings.fadeDuration = settings.value(
         SETTINGS_BEHAVIOR_OSC_FADE,
         SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT
@@ -487,6 +494,9 @@ void PlayerOverlay::showOverlay()
     case OSCVisibility::Hidden:
         return;
     }
+
+    /* Restart the timer */
+    m_hideTimer.start();
 
 #if defined(Q_OS_WIN)
     if (!m_menu->menuVisible() &&

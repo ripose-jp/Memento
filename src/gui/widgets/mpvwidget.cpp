@@ -151,7 +151,7 @@ MpvWidget::MpvWidget(QWidget *parent)
     );
     connect(
         &m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor,
-        Qt::QueuedConnection
+        Qt::DirectConnection
     );
     connect(
         mediator, &GlobalMediator::definitionsHidden,
@@ -462,12 +462,15 @@ void MpvWidget::initTimer()
     m_cursorTimer.setSingleShot(true);
     QSettings settings;
     settings.beginGroup(SETTINGS_BEHAVIOR);
-    m_cursorTimer.setInterval(
-        settings.value(
-            SETTINGS_BEHAVIOR_OSC_DURATION,
-            SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT
-        ).toInt()
-    );
+    int cursorTimeout = settings.value(
+        SETTINGS_BEHAVIOR_OSC_DURATION,
+        SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT
+    ).toInt();
+    cursorTimeout += settings.value(
+        SETTINGS_BEHAVIOR_OSC_FADE,
+        SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT
+    ).toInt();
+    m_cursorTimer.setInterval(cursorTimeout);
     settings.endGroup();
 }
 

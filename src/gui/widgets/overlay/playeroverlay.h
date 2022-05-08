@@ -26,6 +26,7 @@
 #include <QPointer>
 #include <QPropertyAnimation>
 #include <QSharedPointer>
+#include <QTimer>
 
 class DefinitionWidget;
 class PlayerControls;
@@ -154,6 +155,9 @@ private:
 
     /* The widget containing the player controls */
     PlayerControls *m_controls;
+
+    /* The amount of time before the OSC should be hidden */
+    QTimer m_hideTimer;
 
     enum class OSCVisibility
     {

@@ -339,11 +339,6 @@ Q_SIGNALS:
     void playerFileChanged(QString path) const;
 
     /**
-     * Emitted when the player widget hides the mouse cursor.
-     */
-    void playerCursorHidden() const;
-
-    /**
      * Emitted when the mouse is moved over the player.
      */
     void playerMouseMoved() const;

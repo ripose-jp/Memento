@@ -156,10 +156,6 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     );
 
     connect(
-        m_mpv,    &MpvWidget::cursorHidden,
-        mediator, &GlobalMediator::playerCursorHidden
-    );
-    connect(
         m_mpv,    &MpvWidget::mouseMoved,
         mediator, &GlobalMediator::playerMouseMoved
     );
