@@ -88,6 +88,12 @@ void BehaviorSettings::restoreSaved()
             SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT
         ).toInt()
     );
+    m_ui->checkSubtitlePause->setChecked(
+        settings.value(
+            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE,
+            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
+        ).toBool()
+    );
     m_ui->spinOSCDuration->setValue(
         settings.value(
             SETTINGS_BEHAVIOR_OSC_DURATION,
@@ -100,11 +106,11 @@ void BehaviorSettings::restoreSaved()
             SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT
         ).toInt()
     );
-    m_ui->checkSubtitlePause->setChecked(
+    m_ui->spinOSCMinMove->setValue(
         settings.value(
-            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE,
-            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
-        ).toBool()
+            SETTINGS_BEHAVIOR_OSC_MIN_MOVE,
+            SETTINGS_BEHAVIOR_OSC_MIN_MOVE_DEFAULT
+        ).toInt()
     );
     settings.endGroup();
 }
@@ -113,11 +119,12 @@ void BehaviorSettings::restoreDefaults()
 {
     m_ui->checkAutofit->setChecked(SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT);
     m_ui->spinAutofit->setValue(SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT);
-    m_ui->spinOSCDuration->setValue(SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT);
-    m_ui->spinOSCFade->setValue(SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT);
     m_ui->checkSubtitlePause->setChecked(
         SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
     );
+    m_ui->spinOSCDuration->setValue(SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT);
+    m_ui->spinOSCFade->setValue(SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT);
+    m_ui->spinOSCMinMove->setValue(SETTINGS_BEHAVIOR_OSC_MIN_MOVE_DEFAULT);
 }
 
 void BehaviorSettings::applySettings()
@@ -131,13 +138,16 @@ void BehaviorSettings::applySettings()
         SETTINGS_BEHAVIOR_AUTOFIT_PERCENT, m_ui->spinAutofit->value()
     );
     settings.setValue(
+        SETTINGS_BEHAVIOR_SUBTITLE_PAUSE, m_ui->checkSubtitlePause->isChecked()
+    );
+    settings.setValue(
         SETTINGS_BEHAVIOR_OSC_DURATION, m_ui->spinOSCDuration->value()
     );
     settings.setValue(
         SETTINGS_BEHAVIOR_OSC_FADE, m_ui->spinOSCFade->value()
     );
     settings.setValue(
-        SETTINGS_BEHAVIOR_SUBTITLE_PAUSE, m_ui->checkSubtitlePause->isChecked()
+        SETTINGS_BEHAVIOR_OSC_MIN_MOVE, m_ui->spinOSCMinMove->value()
     );
     settings.endGroup();
 

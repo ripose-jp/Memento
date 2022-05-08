@@ -21,6 +21,7 @@
 #include "playeroverlay.h"
 
 #include <QGraphicsOpacityEffect>
+#include <QMouseEvent>
 #include <QPropertyAnimation>
 #include <QSettings>
 
@@ -105,7 +106,7 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
     );
     connect(
         mediator, &GlobalMediator::playerMouseMoved,
-        this, &PlayerOverlay::showOverlay,
+        this, &PlayerOverlay::handleMouseMovement,
         Qt::QueuedConnection
     );
     connect(
@@ -200,6 +201,18 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
         &m_hideTimer, &QTimer::timeout, this, &PlayerOverlay::hideOverlay,
         Qt::DirectConnection
     );
+    connect(
+        &m_mouseMovement.tickTimer, &QTimer::timeout,
+        this, &PlayerOverlay::handleTickTimeout,
+        Qt::DirectConnection
+    );
+
+    /* Initialize the tick timer */
+    m_mouseMovement.lastPoint = QCursor::pos();
+    m_mouseMovement.lastTickPoint = m_mouseMovement.lastPoint;
+    m_mouseMovement.tickTimer.setSingleShot(false);
+    m_mouseMovement.tickTimer.setInterval(100);
+    m_mouseMovement.tickTimer.start();
 
     initSettings();
 }
@@ -245,6 +258,10 @@ void PlayerOverlay::initSettings()
         SETTINGS_BEHAVIOR_OSC_FADE,
         SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT
     ).toInt();
+    m_settings.cursorMinMove = settings.value(
+        SETTINGS_BEHAVIOR_OSC_MIN_MOVE,
+        SETTINGS_BEHAVIOR_OSC_MIN_MOVE_DEFAULT
+    ).toInt();
     settings.endGroup();
 
     repositionSubtitles();
@@ -277,6 +294,21 @@ void PlayerOverlay::cycleOSCVisibility()
         break;
     }
     GlobalMediator::getGlobalMediator()->getPlayerAdapter()->showText(msg);
+}
+
+void PlayerOverlay::handleMouseMovement()
+{
+    m_mouseMovement.lastPoint = QCursor::pos();
+}
+
+void PlayerOverlay::handleTickTimeout()
+{
+    QPoint diff = m_mouseMovement.lastPoint - m_mouseMovement.lastTickPoint;
+    if (diff.manhattanLength() > m_settings.cursorMinMove)
+    {
+        showOverlay();
+    }
+    m_mouseMovement.lastTickPoint = m_mouseMovement.lastPoint;
 }
 
 /* End Handlers */

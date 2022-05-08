@@ -84,6 +84,17 @@ private Q_SLOTS:
     void cycleOSCVisibility();
 
     /**
+     * Handles mouse movement events from the player.
+     */
+    void handleMouseMovement();
+
+    /**
+     * Handles updating the mouse movement information when the tick timer
+     * fires.
+     */
+    void handleTickTimeout();
+
+    /**
      * Opens a new DefinitionWidget populated with the terms in the list.
      * @param terms A list of terms to display.
      * @param kanji A kanji if found.
@@ -159,6 +170,20 @@ private:
     /* The amount of time before the OSC should be hidden */
     QTimer m_hideTimer;
 
+    /* Holds all information relating to handling mouse ticks */
+    struct MouseMovement
+    {
+        /* Fires once every tick */
+        QTimer tickTimer;
+
+        /* The last point the mouse was moved at */
+        QPoint lastPoint;
+
+        /* The point at the last tick */
+        QPoint lastTickPoint;
+    }
+    m_mouseMovement;
+
     enum class OSCVisibility
     {
         /* Automatically hide and show the OSC */
@@ -187,6 +212,10 @@ private:
 
         /* The saved OSC fade duration */
         int fadeDuration = 250;
+
+        /* The minimum number of pixels the cursor needs to move before the OSC
+         * is shown */
+        int cursorMinMove = 0;
     }
     m_settings;
 

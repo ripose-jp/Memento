@@ -75,6 +75,9 @@ enum class AudioSourceType
 #define SETTINGS_BEHAVIOR_OSC_FADE                  "osc-fade"
 #define SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT          250
 
+#define SETTINGS_BEHAVIOR_OSC_MIN_MOVE              "osc-min-move"
+#define SETTINGS_BEHAVIOR_OSC_MIN_MOVE_DEFAULT      0
+
 #define SETTINGS_BEHAVIOR_SUBTITLE_PAUSE            "subtitle-pause"
 #define SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT    false
 

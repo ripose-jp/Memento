@@ -84,89 +84,159 @@ A value of 0% will fit to media to the window size instead.</string>
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="layoutOSCDuration">
-         <item>
-          <widget class="QLabel" name="labelOSCDuration">
-           <property name="text">
-            <string>On screen controller visbility duration:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QSpinBox" name="spinOSCDuration">
-           <property name="minimum">
-            <number>50</number>
-           </property>
-           <property name="maximum">
-            <number>100000</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="labelOSCDurationUnits">
-           <property name="text">
-            <string>ms</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="spacerOSCDuration">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="layoutOSCFade">
-         <item>
-          <widget class="QLabel" name="labelOSCFade">
-           <property name="text">
-            <string>On screen controller fade duration:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QSpinBox" name="spinOSCFade">
-           <property name="maximum">
-            <number>10000</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="labelOSCFadeUnits">
-           <property name="text">
-            <string>ms</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="spacerOSCFade">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item>
         <widget class="QCheckBox" name="checkSubtitlePause">
          <property name="text">
           <string>Automatically pause at the end of subtitles</string>
          </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelOSC">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>On Screen Controller</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frameOSC">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="layoutOSC">
+          <item>
+           <layout class="QHBoxLayout" name="layoutOSCDuration">
+            <item>
+             <widget class="QLabel" name="labelOSCDuration">
+              <property name="text">
+               <string>Visbility duration:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spinOSCDuration">
+              <property name="toolTip">
+               <string>How long the OSC should stay visible without mouse movement.
+The fade in duration is included in this time.</string>
+              </property>
+              <property name="minimum">
+               <number>50</number>
+              </property>
+              <property name="maximum">
+               <number>100000</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="labelOSCDurationUnits">
+              <property name="text">
+               <string>ms</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="spacerOSCDuration">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="layoutOSCFade">
+            <item>
+             <widget class="QLabel" name="labelOSCFade">
+              <property name="text">
+               <string>Fade duration:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spinOSCFade">
+              <property name="toolTip">
+               <string>How long it takes for the OSC to fade in and out</string>
+              </property>
+              <property name="maximum">
+               <number>10000</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="labelOSCFadeUnits">
+              <property name="text">
+               <string>ms</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="spacerOSCFade">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="layoutOSCMinMove">
+            <item>
+             <widget class="QLabel" name="labelOSCMinMove">
+              <property name="text">
+               <string>Minimum mouse movement:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spinOSCMinMove">
+              <property name="toolTip">
+               <string>The number of pixels that need to be moved before the OSC is shown</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="labelOSCMinMoveUnits">
+              <property name="text">
+               <string>pixels</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="spacerOSCMinMove">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
