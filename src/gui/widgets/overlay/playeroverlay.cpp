@@ -89,6 +89,11 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
         Qt::QueuedConnection
     );
     connect(
+        mediator, &GlobalMediator::behaviorSettingsChanged,
+        this, &PlayerOverlay::initSettings,
+        Qt::QueuedConnection
+    );
+    connect(
         mediator, &GlobalMediator::windowOSCStateCycled,
         this, &PlayerOverlay::cycleOSCVisibility,
         Qt::QueuedConnection
@@ -210,15 +215,14 @@ PlayerOverlay::~PlayerOverlay()
 void PlayerOverlay::initSettings()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_INTERFACE);
 
-    m_subOffset = settings.value(
+    settings.beginGroup(SETTINGS_INTERFACE);
+    m_settings.subOffset = settings.value(
         SETTINGS_INTERFACE_SUB_OFFSET,
         SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT
     ).toDouble();
-
 #if defined(Q_OS_WIN)
-    m_showMenuBar = settings.value(
+    m_settings.showMenuBar = settings.value(
         SETTINGS_INTERFACE_MENUBAR_FULLSCREEN,
         SETTINGS_INTERFACE_MENUBAR_FULLSCREEN_DEFAULT
     ).toBool();
@@ -227,7 +231,13 @@ void PlayerOverlay::initSettings()
         showOverlay();
     }
 #endif
+    settings.endGroup();
 
+    settings.beginGroup(SETTINGS_BEHAVIOR);
+    m_settings.fadeDuration = settings.value(
+        SETTINGS_BEHAVIOR_OSC_FADE,
+        SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT
+    ).toInt();
     settings.endGroup();
 
     repositionSubtitles();
@@ -241,20 +251,20 @@ void PlayerOverlay::cycleOSCVisibility()
     m_definition->hide();
 
     QString msg = "OSC Visibility: ";
-    switch (m_visibility)
+    switch (m_settings.visibility)
     {
     case OSCVisibility::Auto:
-        m_visibility = OSCVisibility::Visible;
+        m_settings.visibility = OSCVisibility::Visible;
         msg += "visible";
         showOverlay();
         break;
     case OSCVisibility::Visible:
-        m_visibility = OSCVisibility::Hidden;
+        m_settings.visibility = OSCVisibility::Hidden;
         msg += "hidden";
         hideOverlay();
         break;
     case OSCVisibility::Hidden:
-        m_visibility = OSCVisibility::Auto;
+        m_settings.visibility = OSCVisibility::Auto;
         msg += "auto";
         hideOverlay();
         break;
@@ -307,7 +317,7 @@ void PlayerOverlay::setDefinitionWidgetLocation()
 
 void PlayerOverlay::repositionSubtitles()
 {
-    int height = m_player->height() * m_subOffset;
+    int height = m_player->height() * m_settings.subOffset;
     if (m_controls->isVisible())
     {
         height -= m_controls->height();
@@ -391,12 +401,10 @@ bool PlayerOverlay::underMouse() const
     );
 }
 
-#define FADE_TIME 250
-
 void PlayerOverlay::hideOverlay()
 {
     /* Determine how this method should work by checking OSC visibility */
-    switch (m_visibility)
+    switch (m_settings.visibility)
     {
     case OSCVisibility::Hidden:
         /* See showOverlay() */
@@ -423,7 +431,7 @@ void PlayerOverlay::hideOverlay()
     {
         QPropertyAnimation *menuFade =
             new QPropertyAnimation(m_menu->graphicsEffect(), "opacity");
-        menuFade->setDuration(FADE_TIME);
+        menuFade->setDuration(m_settings.fadeDuration);
         menuFade->setStartValue(1);
         menuFade->setEndValue(0);
         menuFade->setEasingCurve(QEasingCurve::InBack);
@@ -439,7 +447,7 @@ void PlayerOverlay::hideOverlay()
     {
         QPropertyAnimation *controlFade =
             new QPropertyAnimation(m_controls->graphicsEffect(), "opacity");
-        controlFade->setDuration(FADE_TIME);
+        controlFade->setDuration(m_settings.fadeDuration);
         controlFade->setStartValue(1);
         controlFade->setEndValue(0);
         controlFade->setEasingCurve(QEasingCurve::InBack);
@@ -459,7 +467,7 @@ void PlayerOverlay::hideOverlay()
 void PlayerOverlay::showOverlay()
 {
     /* Determine how this method should work by checking OSC visibility */
-    switch (m_visibility)
+    switch (m_settings.visibility)
     {
     case OSCVisibility::Visible:
         /* This is a little hack to prevent a race condition where hideOverlay
@@ -482,7 +490,7 @@ void PlayerOverlay::showOverlay()
 
 #if defined(Q_OS_WIN)
     if (!m_menu->menuVisible() &&
-        (m_showMenuBar || !m_menu->window()->isFullScreen()))
+        (m_settings.showMenuBar || !m_menu->window()->isFullScreen()))
 #else
     if (!m_menu->menuVisible())
 #endif
@@ -490,7 +498,7 @@ void PlayerOverlay::showOverlay()
         m_menu->showMenu();
         QPropertyAnimation *menuFade =
             new QPropertyAnimation(m_menu->graphicsEffect(), "opacity");
-        menuFade->setDuration(FADE_TIME);
+        menuFade->setDuration(m_settings.fadeDuration);
         menuFade->setStartValue(0);
         menuFade->setEndValue(1);
         menuFade->setEasingCurve(QEasingCurve::InBack);
@@ -502,7 +510,7 @@ void PlayerOverlay::showOverlay()
         m_controls->show();
         QPropertyAnimation *controlFade =
             new QPropertyAnimation(m_controls->graphicsEffect(), "opacity");
-        controlFade->setDuration(FADE_TIME);
+        controlFade->setDuration(m_settings.fadeDuration);
         controlFade->setStartValue(0);
         controlFade->setEndValue(1);
         controlFade->setEasingCurve(QEasingCurve::InBack);
@@ -511,7 +519,5 @@ void PlayerOverlay::showOverlay()
         repositionSubtitles();
     }
 }
-
-#undef FADE_TIME
 
 /* End General Widget Properties */

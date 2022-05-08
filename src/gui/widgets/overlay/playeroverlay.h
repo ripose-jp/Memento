@@ -167,16 +167,24 @@ private:
         Visible
     };
 
-    /* The current OSC visibility */
-    OSCVisibility m_visibility = OSCVisibility::Auto;
+    /* Settings saved to avoid querying QSettings */
+    struct SavedSettings
+    {
+        /* The current OSC visibility */
+        OSCVisibility visibility = OSCVisibility::Auto;
 
-    /* Saved setting describing the subtitle offset from the bottom */
-    double m_subOffset;
+        /* Saved setting describing the subtitle offset from the bottom */
+        double subOffset;
 
 #if defined(Q_OS_WIN)
-    /* true if the menubar should be shown in fullscreen on windows */
-    bool m_showMenuBar = false;
+        /* true if the menubar should be shown in fullscreen on windows */
+        bool showMenuBar = false;
 #endif
+
+        /* The saved OSC fade duration */
+        int fadeDuration = 250;
+    }
+    m_settings;
 
     /* A reference to the currently active property animation for the menu */
     QPointer<QPropertyAnimation> m_menuFade = nullptr;

@@ -94,6 +94,12 @@ void BehaviorSettings::restoreSaved()
             SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT
         ).toInt()
     );
+    m_ui->spinOSCFade->setValue(
+        settings.value(
+            SETTINGS_BEHAVIOR_OSC_FADE,
+            SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT
+        ).toInt()
+    );
     m_ui->checkSubtitlePause->setChecked(
         settings.value(
             SETTINGS_BEHAVIOR_SUBTITLE_PAUSE,
@@ -108,6 +114,7 @@ void BehaviorSettings::restoreDefaults()
     m_ui->checkAutofit->setChecked(SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT);
     m_ui->spinAutofit->setValue(SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT);
     m_ui->spinOSCDuration->setValue(SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT);
+    m_ui->spinOSCFade->setValue(SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT);
     m_ui->checkSubtitlePause->setChecked(
         SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
     );
@@ -125,6 +132,9 @@ void BehaviorSettings::applySettings()
     );
     settings.setValue(
         SETTINGS_BEHAVIOR_OSC_DURATION, m_ui->spinOSCDuration->value()
+    );
+    settings.setValue(
+        SETTINGS_BEHAVIOR_OSC_FADE, m_ui->spinOSCFade->value()
     );
     settings.setValue(
         SETTINGS_BEHAVIOR_SUBTITLE_PAUSE, m_ui->checkSubtitlePause->isChecked()

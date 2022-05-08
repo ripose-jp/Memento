@@ -125,6 +125,44 @@ A value of 0% will fit to media to the window size instead.</string>
         </layout>
        </item>
        <item>
+        <layout class="QHBoxLayout" name="layoutOSCFade">
+         <item>
+          <widget class="QLabel" name="labelOSCFade">
+           <property name="text">
+            <string>On screen controller fade duration:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spinOSCFade">
+           <property name="maximum">
+            <number>10000</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="labelOSCFadeUnits">
+           <property name="text">
+            <string>ms</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="spacerOSCFade">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
         <widget class="QCheckBox" name="checkSubtitlePause">
          <property name="text">
           <string>Automatically pause at the end of subtitles</string>
