@@ -40,9 +40,6 @@
 #include "../../util/constants.h"
 #include "../../util/globalmediator.h"
 
-/* Timeout before the cursor disappears */
-#define CURSOR_TIMEOUT 700
-
 /* Begin C functions */
 
 static void wakeup(void *ctx)
@@ -57,7 +54,9 @@ static void *get_proc_address(void *ctx, const char *name)
     Q_UNUSED(ctx);
     QOpenGLContext *glctx = QOpenGLContext::currentContext();
     if (!glctx)
+    {
         return nullptr;
+    }
     return reinterpret_cast<void *>(glctx->getProcAddress(QByteArray(name)));
 }
 
@@ -78,9 +77,9 @@ MpvWidget::MpvWidget(QWidget *parent)
 #if defined(Q_OS_MACOS)
     m_sleepAssertIDValid = false;
 #endif
-    m_cursorTimer.setSingleShot(true);
     initPropertyMap();
     initSubtitleRegex();
+    initTimer();
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     mediator->setPlayerWidget(this);
 
@@ -156,17 +155,22 @@ MpvWidget::MpvWidget(QWidget *parent)
     );
     connect(
         mediator, &GlobalMediator::definitionsHidden,
-        this, &MpvWidget::resetTimer,
+        &m_cursorTimer, qOverload<>(&QTimer::start),
         Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::requestPlayerTimerReset,
-        this, &MpvWidget::resetTimer,
+        &m_cursorTimer, qOverload<>(&QTimer::start),
         Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::searchSettingsChanged,
         this, &MpvWidget::initSubtitleRegex,
+        Qt::QueuedConnection
+    );
+    connect(
+        mediator, &GlobalMediator::behaviorSettingsChanged,
+        this, &MpvWidget::initTimer,
         Qt::QueuedConnection
     );
 }
@@ -176,7 +180,9 @@ MpvWidget::~MpvWidget()
     disconnect();
     makeCurrent();
     if (mpv_gl)
+    {
         mpv_render_context_free(mpv_gl);
+    }
     mpv_terminate_destroy(mpv);
 }
 
@@ -451,6 +457,20 @@ void MpvWidget::initSubtitleRegex()
     settings.endGroup();
 }
 
+void MpvWidget::initTimer()
+{
+    m_cursorTimer.setSingleShot(true);
+    QSettings settings;
+    settings.beginGroup(SETTINGS_BEHAVIOR);
+    m_cursorTimer.setInterval(
+        settings.value(
+            SETTINGS_BEHAVIOR_OSC_DURATION,
+            SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT
+        ).toInt()
+    );
+    settings.endGroup();
+}
+
 /* End Initialization Functions */
 /* Begin OpenGL Functions */
 
@@ -635,7 +655,7 @@ void MpvWidget::mouseMoveEvent(QMouseEvent *event)
     {
         setCursor(Qt::ArrowCursor);
     }
-    m_cursorTimer.start(CURSOR_TIMEOUT);
+    m_cursorTimer.start();
     Q_EMIT mouseMoved(event);
 }
 
@@ -725,15 +745,6 @@ void MpvWidget::mouseDoubleClickEvent(QMouseEvent *event)
     {
         qDebug() << "Could not send double click event to mpv";
     }
-}
-
-void MpvWidget::resetTimer()
-{
-    try
-    {
-        m_cursorTimer.start(CURSOR_TIMEOUT);
-    }
-    catch (std::bad_alloc &unused) {} // Find somebody else who cares
 }
 
 void MpvWidget::hideCursor()

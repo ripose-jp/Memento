@@ -309,9 +309,9 @@ private Q_SLOTS:
     void initSubtitleRegex();
 
     /**
-     * Restarts the player timer.
+     * Initializes the cursor timer.
      */
-    void resetTimer();
+    void initTimer();
 
     /**
      * Hides the cursor over this widget.

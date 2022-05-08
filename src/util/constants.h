@@ -69,6 +69,9 @@ enum class AudioSourceType
 #define SETTINGS_BEHAVIOR_AUTOFIT_PERCENT           "autofit-percent"
 #define SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT   100
 
+#define SETTINGS_BEHAVIOR_OSC_DURATION              "osc-duration"
+#define SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT      700
+
 #define SETTINGS_BEHAVIOR_SUBTITLE_PAUSE            "subtitle-pause"
 #define SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT    false
 
