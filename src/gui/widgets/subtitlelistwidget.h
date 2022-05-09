@@ -110,6 +110,16 @@ Q_SIGNALS:
      */
     void requestRefresh();
 
+    /**
+     * Emitted when this widget is shown.
+     */
+    void widgetShown() const;
+
+    /**
+     * Emitted when the widget is hidden.
+     */
+    void widgetHidden() const;
+
 private Q_SLOTS:
     /**
      * Initializes the style sheets for the widget.

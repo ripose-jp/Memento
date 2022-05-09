@@ -165,6 +165,11 @@ PlayerMenu::PlayerMenu(QWidget *parent)
         Qt::QueuedConnection
     );
     connect(
+        m_ui->actionShowSubtitleList, &QAction::triggered,
+        this, &PlayerMenu::handleToggleSubtitleList,
+        Qt::QueuedConnection
+    );
+    connect(
         m_ui->actionOptions, &QAction::triggered,
         mediator, &GlobalMediator::menuShowOptions,
         Qt::QueuedConnection
@@ -224,6 +229,18 @@ PlayerMenu::PlayerMenu(QWidget *parent)
         mediator, &GlobalMediator::searchWidgetShown,
         m_ui->actionShowSearch,
         [=] { m_ui->actionShowSearch->setChecked(true); },
+        Qt::QueuedConnection
+    );
+    connect(
+        mediator, &GlobalMediator::subtitleListHidden,
+        m_ui->actionShowSearch,
+        [=] { m_ui->actionShowSubtitleList->setChecked(false); },
+        Qt::QueuedConnection
+    );
+    connect(
+        mediator, &GlobalMediator::subtitleListShown,
+        m_ui->actionShowSearch,
+        [=] { m_ui->actionShowSubtitleList->setChecked(true); },
         Qt::QueuedConnection
     );
 
@@ -710,8 +727,16 @@ void PlayerMenu::updateAnkiProfileMenu()
 
 void PlayerMenu::handleToggleSearch()
 {
-    Q_EMIT GlobalMediator::getGlobalMediator()->
-        requestSearchVisibility(m_ui->actionShowSearch->isChecked());
+    Q_EMIT GlobalMediator::getGlobalMediator()->requestSearchVisibility(
+        m_ui->actionShowSearch->isChecked()
+    );
+}
+
+void PlayerMenu::handleToggleSubtitleList()
+{
+    Q_EMIT GlobalMediator::getGlobalMediator()->requestSubtitleListVisibility(
+        m_ui->actionShowSubtitleList->isChecked()
+    );
 }
 
 /* End Widget Handlers */

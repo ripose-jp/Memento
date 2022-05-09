@@ -157,6 +157,16 @@ void MainWindow::initWindow()
         m_ui->subtitleList, &SubtitleListWidget::setVisible,
         Qt::QueuedConnection
     );
+    connect(
+        m_ui->subtitleList, &SubtitleListWidget::widgetShown,
+        m_mediator, &GlobalMediator::subtitleListShown,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_ui->subtitleList, &SubtitleListWidget::widgetHidden,
+        m_mediator, &GlobalMediator::subtitleListHidden,
+        Qt::QueuedConnection
+    );
 
     /* MainWindow Signals */
     connect(

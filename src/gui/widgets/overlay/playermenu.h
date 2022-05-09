@@ -157,6 +157,11 @@ private Q_SLOTS:
     void handleToggleSearch();
 
     /**
+     * Toggles the visibility of the subtitle list widget.
+     */
+    void handleToggleSubtitleList();
+
+    /**
      * Updates the menu checkbox for the option to pause on subtitle end.
      */
     void updateSubtitlePauseAction();

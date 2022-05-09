@@ -306,6 +306,8 @@ void SubtitleListWidget::showEvent(QShowEvent *event)
     m_ui->tableSec->scrollToItem(m_ui->tableSec->currentItem());
     m_ui->tablePrim->resizeRowsToContents();
     m_ui->tableSec->resizeRowsToContents();
+
+    Q_EMIT widgetShown();
 }
 
 void SubtitleListWidget::hideEvent(QHideEvent *event)
@@ -323,6 +325,8 @@ void SubtitleListWidget::hideEvent(QHideEvent *event)
     {
         m_ui->tableSec->scrollToItem(items.last());
     }
+
+    Q_EMIT widgetHidden();
 }
 
 void SubtitleListWidget::resizeEvent(QResizeEvent *event)

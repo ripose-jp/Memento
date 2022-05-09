@@ -537,6 +537,19 @@ Q_SIGNALS:
     void definitionsShown() const;
 
     /* End Definition Signals */
+    /* Begin Subtitle List Signals */
+
+    /**
+     * Emitted when the subtitle list is hidden.
+     */
+    void subtitleListHidden() const;
+
+    /**
+     * Emitted when the subtitle list is shown.
+     */
+    void subtitleListShown() const;
+
+    /* End Subtitle List Signals */
     /* Begin Search Widget Signals */
 
     /**
@@ -572,7 +585,7 @@ Q_SIGNALS:
     void requestSubtitleVisibility(const bool value) const;
 
     /**
-     * Requests that the subtitle list visibility be chagned.
+     * Requests that the subtitle list visibility be changed.
      * @param value true to show the subtitle list, false to hide it.
      */
     void requestSubtitleListVisibility(const bool value) const;

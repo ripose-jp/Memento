@@ -111,6 +111,7 @@
       <addaction name="actionSubVis"/>
       <addaction name="menuSizePosition"/>
       <addaction name="actionSubtitlePause"/>
+      <addaction name="actionShowSubtitleList"/>
       <addaction name="separator"/>
       <addaction name="actionAddSubtitle"/>
       <addaction name="menuSubtitleTwo"/>
@@ -120,10 +121,10 @@
      <widget class="QMenu" name="menuSettings">
       <property name="geometry">
        <rect>
-        <x>945</x>
-        <y>298</y>
-        <width>202</width>
-        <height>241</height>
+        <x>1255</x>
+        <y>303</y>
+        <width>200</width>
+        <height>231</height>
        </rect>
       </property>
       <property name="minimumSize">
@@ -140,8 +141,8 @@
         <rect>
          <x>664</x>
          <y>189</y>
-         <width>142</width>
-         <height>60</height>
+         <width>136</width>
+         <height>56</height>
         </rect>
        </property>
        <property name="title">
@@ -303,7 +304,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Subtitles Visible</string>
+    <string>Show Subtitles</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+0</string>
@@ -323,6 +324,17 @@
   <action name="actiontest">
    <property name="text">
     <string>test</string>
+   </property>
+  </action>
+  <action name="actionShowSubtitleList">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Subtitle List</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
    </property>
   </action>
  </widget>
