@@ -116,7 +116,7 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
     );
     connect(
         m_menu, &PlayerMenu::aboutToHide,
-        mediator, &GlobalMediator::requestPlayerTimerReset,
+        &m_hideTimer, qOverload<>(&QTimer::start),
         Qt::QueuedConnection
     );
 
@@ -194,6 +194,11 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
     connect(
         m_definition, &DefinitionWidget::widgetShown,
         mediator, &GlobalMediator::definitionsShown,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_definition, &DefinitionWidget::widgetHidden,
+        &m_hideTimer, qOverload<>(&QTimer::start),
         Qt::QueuedConnection
     );
 

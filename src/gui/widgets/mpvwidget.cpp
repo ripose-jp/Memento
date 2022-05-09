@@ -159,11 +159,6 @@ MpvWidget::MpvWidget(QWidget *parent)
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::requestPlayerTimerReset,
-        &m_cursorTimer, qOverload<>(&QTimer::start),
-        Qt::QueuedConnection
-    );
-    connect(
         mediator, &GlobalMediator::searchSettingsChanged,
         this, &MpvWidget::initSubtitleRegex,
         Qt::QueuedConnection
