@@ -1,7 +1,6 @@
 # Memento
 
 [![AUR](https://img.shields.io/aur/version/memento)](https://aur.archlinux.org/packages/memento/)
-*Banning entire countries from GitHub is contrary to the ideals of free software.*
 
 Memento is a FOSS, mpv-based video player for studying Japanese.
 
