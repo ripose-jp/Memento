@@ -21,6 +21,7 @@
 #ifndef SEARCHWIDGET_H
 #define SEARCHWIDGET_H
 
+#include <QLineEdit>
 #include <QWidget>
 
 #include <QSharedPointer>
@@ -28,7 +29,6 @@
 
 class DefinitionWidget;
 class Dictionary;
-class QLineEdit;
 class QVBoxLayout;
 
 struct Term;
@@ -37,6 +37,52 @@ typedef QSharedPointer<QList<SharedTerm>> SharedTermList;
 
 struct Kanji;
 typedef QSharedPointer<Kanji> SharedKanji;
+
+/**
+ * Widget for doing keyboard searches.
+ */
+class SearchEdit : public QLineEdit
+{
+    Q_OBJECT
+
+public:
+    /**
+     * Constructs a SearchEdit.
+     * @param modifier The modifier this SearchEdit uses to trigger searches.
+     * @param parent   The parent of this SearchEdit.
+     */
+    SearchEdit(
+        Qt::KeyboardModifier modifier = Qt::KeyboardModifier::ShiftModifier,
+        QWidget *parent = nullptr);
+
+    /**
+     * Sets the modifier used to trigger searches.
+     * @param modifier The modifier to use.
+     */
+    void setModifier(Qt::KeyboardModifier modifier);
+
+Q_SIGNALS:
+    /**
+     * Emitted when a user search is triggered.
+     * @param text The text of the search.
+     * @param i    The index into the text to start the search.
+     */
+    void searchTriggered(const QString &text, int i) const;
+
+protected:
+    /**
+     * Handles the triggering of searches.
+     * @param event The mouse move event.
+     */
+    void mouseMoveEvent(QMouseEvent *event) override;
+
+private:
+    /* The modifier used to trigger searches */
+    Qt::KeyboardModifier m_modifier;
+
+    /* The last index that caused searchTriggered to fire */
+    int m_lastIndex = -1;
+};
 
 /**
  * Widget for searching for terms.
@@ -68,8 +114,20 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     /**
+     * Initializes search settings.
+     */
+    void initSettings();
+
+    /**
      * Handler for updating the search widget when new text is entered.
-     * @param text
+     * @param text The text to search.
+     * @param index The index into the text where the search should begin.
+     */
+    void updateSearch(QString text, int index);
+
+    /**
+     * Handler for updating the search widget when new text is entered.
+     * @param text The text to search.
      */
     void updateSearch(QString text);
 
@@ -107,7 +165,7 @@ private:
     QVBoxLayout *m_layoutParent;
 
     /* The search box */
-    QLineEdit *m_lineEditSearch;
+    SearchEdit *m_searchEdit;
 
     /* The definition widget */
     DefinitionWidget *m_definition;

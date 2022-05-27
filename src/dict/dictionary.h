@@ -50,14 +50,6 @@ public:
 
     /**
      * Searches for all terms in the query.
-     * @param query The query to look for terms in.
-     * @return A list of all the terms found, nullptr if the search was aborted.
-     *         Belongs to the caller.
-     */
-    SharedTermList searchTerms(const QString query);
-
-    /**
-     * Searches for all terms in the query.
      * @param query        The query to look for terms in. Only matches terms
      *                     that start from the beginning of the query.
      * @param subtitle     The subtitle the query appears in.

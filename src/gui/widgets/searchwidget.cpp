@@ -20,14 +20,53 @@
 
 #include "searchwidget.h"
 
-#include <QLineEdit>
+#include <QGuiApplication>
+#include <QSettings>
 #include <QThreadPool>
 #include <QVBoxLayout>
 
 #include "../../dict/dictionary.h"
+#include "../../util/constants.h"
 #include "../../util/globalmediator.h"
 #include "../../util/utils.h"
 #include "definition/definitionwidget.h"
+
+/* Prevents large searches from being executed and freezing everything up */
+#define MAX_SEARCH_SIZE 40
+
+/* Begin SearchEdit Class */
+
+SearchEdit::SearchEdit(Qt::KeyboardModifier modifier, QWidget *parent)
+    : QLineEdit(parent), m_modifier(modifier)
+{
+    connect(this, &QLineEdit::textChanged, this, [this] { m_lastIndex = -1; });
+}
+
+void SearchEdit::setModifier(Qt::KeyboardModifier modifier)
+{
+    m_modifier = modifier;
+}
+
+void SearchEdit::mouseMoveEvent(QMouseEvent *event)
+{
+    QLineEdit::mouseMoveEvent(event);
+    if (!(QGuiApplication::keyboardModifiers() & m_modifier))
+    {
+        return;
+    }
+
+    int i = cursorPositionAt(event->pos());
+    if (i == m_lastIndex)
+    {
+        return;
+    }
+
+    m_lastIndex = i;
+    Q_EMIT searchTriggered(text(), m_lastIndex);
+}
+
+/* End SearchEdit Class */
+/* Begin SearchWidget */
 
 SearchWidget::SearchWidget(QWidget *parent)
     : QWidget(parent),
@@ -43,9 +82,9 @@ SearchWidget::SearchWidget(QWidget *parent)
 
     m_layoutParent = new QVBoxLayout(this);
 
-    m_lineEditSearch = new QLineEdit;
-    m_lineEditSearch->setPlaceholderText("Search");
-    m_layoutParent->addWidget(m_lineEditSearch);
+    m_searchEdit = new SearchEdit;
+    m_searchEdit->setPlaceholderText("Search");
+    m_layoutParent->addWidget(m_searchEdit);
 
     m_definition = new DefinitionWidget;
     m_definition->layout()->setMargin(0);
@@ -54,8 +93,13 @@ SearchWidget::SearchWidget(QWidget *parent)
     m_layoutParent->addWidget(m_definition);
 
     connect(
-        m_lineEditSearch, &QLineEdit::textEdited,
-        this, &SearchWidget::updateSearch,
+        m_searchEdit, &QLineEdit::textEdited,
+        this, qOverload<const QString>(&SearchWidget::updateSearch),
+        Qt::QueuedConnection
+    );
+    connect(
+        m_searchEdit, &SearchEdit::searchTriggered,
+        this, qOverload<const QString, int>(&SearchWidget::updateSearch),
         Qt::QueuedConnection
     );
     connect(
@@ -63,23 +107,67 @@ SearchWidget::SearchWidget(QWidget *parent)
         m_definition, &DefinitionWidget::setTerms,
         Qt::QueuedConnection
     );
+
+    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     connect(
-        GlobalMediator::getGlobalMediator(),
-        &GlobalMediator::interfaceSettingsChanged,
-        this, [=] { updateSearch(m_lineEditSearch->text()); },
+        mediator, &GlobalMediator::interfaceSettingsChanged,
+        this, [this] { updateSearch(m_searchEdit->text()); },
         Qt::QueuedConnection
     );
+    connect(
+        mediator, &GlobalMediator::searchSettingsChanged,
+        this, &SearchWidget::initSettings,
+        Qt::QueuedConnection
+    );
+
+    initSettings();
 }
 
-/* Prevents large searches from being executed and freezing everything up */
-#define MAX_SEARCH_SIZE 40
+void SearchWidget::initSettings()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_SEARCH);
+
+    QString modifier = settings.value(
+            SETTINGS_SEARCH_MODIFIER,
+            SETTINGS_SEARCH_MODIFIER_DEFAULT
+        ).toString();
+    if (modifier == SEARCH_MODIFIER_ALT)
+    {
+        m_searchEdit->setModifier(Qt::KeyboardModifier::AltModifier);
+    }
+    else if (modifier == SEARCH_MODIFIER_CTRL)
+    {
+        m_searchEdit->setModifier(Qt::KeyboardModifier::ControlModifier);
+    }
+    else if (modifier == SEARCH_MODIFIER_SHIFT)
+    {
+        m_searchEdit->setModifier(Qt::KeyboardModifier::ShiftModifier);
+    }
+    else if (modifier == SEARCH_MODIFIER_SUPER)
+    {
+        m_searchEdit->setModifier(Qt::KeyboardModifier::MetaModifier);
+    }
+    else
+    {
+        m_searchEdit->setModifier(Qt::KeyboardModifier::ShiftModifier);
+    }
+
+    settings.endGroup();
+}
 
 void SearchWidget::updateSearch(const QString text)
 {
+    updateSearch(text, 0);
+}
+
+void SearchWidget::updateSearch(const QString text, const int index)
+{
     QThreadPool::globalInstance()->start(
         [=] {
+            QString query = text.mid(index, MAX_SEARCH_SIZE);
             SharedTermList terms =
-                m_dictionary->searchTerms(text.left(MAX_SEARCH_SIZE));
+                m_dictionary->searchTerms(query, text, index, &index);
 
             SharedKanji kanji = nullptr;
             if (!text.isEmpty() && CharacterUtils::isKanji(text[0]))
@@ -92,4 +180,4 @@ void SearchWidget::updateSearch(const QString text)
     );
 }
 
-#undef MAX_SEARCH_SIZE
+/* End SearchWidget */
