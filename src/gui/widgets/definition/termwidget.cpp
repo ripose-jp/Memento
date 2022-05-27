@@ -396,7 +396,11 @@ void TermWidget::playAudio(const AudioSource &src)
         GlobalMediator::getGlobalMediator()->getAudioPlayer()->playAudio(
             QString(src.url)
                 .replace(REPLACE_EXPRESSION, m_term->expression)
-                .replace(REPLACE_READING, m_term->reading),
+                .replace(
+                    REPLACE_READING,
+                    m_term->reading.isEmpty() ?
+                        m_term->expression : m_term->reading
+                ),
             src.md5
         );
     m_ui->buttonAudio->setEnabled(reply == nullptr);
@@ -577,7 +581,10 @@ void TermWidget::loadAudioSources()
 
         QString url = src.url;
         url.replace(REPLACE_EXPRESSION, m_term->expression)
-           .replace(REPLACE_READING, m_term->reading);
+           .replace(
+               REPLACE_READING,
+               m_term->reading.isEmpty() ? m_term->expression : m_term->reading
+            );
         QNetworkReply *reply = manager->get(QNetworkRequest(QUrl(url)));
         connect(reply, &QNetworkReply::finished, this, [=] {
             if (reply->error() == QNetworkReply::NoError)
