@@ -480,7 +480,7 @@ void DefinitionWidget::hideKanji()
 /* End Kanji Helpers */
 /* Begin Child Handlers */
 
-#define SHADDOW_BLUR_RADIUS 100.0
+#define SHADOW_BLUR_RADIUS 100.0
 #define CHILD_HEIGHT        400
 
 void DefinitionWidget::showChild(SharedTermList terms, SharedKanji kanji)
@@ -500,7 +500,7 @@ void DefinitionWidget::showChild(SharedTermList terms, SharedKanji kanji)
     }
 
     QGraphicsDropShadowEffect *ge = new QGraphicsDropShadowEffect;
-    ge->setBlurRadius(SHADDOW_BLUR_RADIUS);
+    ge->setBlurRadius(SHADOW_BLUR_RADIUS);
     ge->setOffset(0);
     m_child->setGraphicsEffect(ge);
 
@@ -516,7 +516,7 @@ void DefinitionWidget::showChild(SharedTermList terms, SharedKanji kanji)
     m_child->show();
 }
 
-#undef SHADDOW_BLUR_RADIUS
+#undef SHADOW_BLUR_RADIUS
 #undef CHILD_HEIGHT
 
 bool DefinitionWidget::positionChild()
