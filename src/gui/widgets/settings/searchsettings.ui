@@ -28,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>579</width>
-        <height>566</height>
+        <height>480</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layoutScrollArea">
@@ -147,35 +147,7 @@ Changing this value from the default is not recommended.</string>
         </widget>
        </item>
        <item>
-        <widget class="QFrame" name="frameModifier">
-         <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <item>
-           <widget class="QLabel" name="labelModifier">
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Modifier</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="comboBoxModifier"/>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="labelRecursiveModifier">
+        <widget class="QLabel" name="labelModifier">
          <property name="font">
           <font>
            <weight>75</weight>
@@ -183,12 +155,16 @@ Changing this value from the default is not recommended.</string>
           </font>
          </property>
          <property name="text">
-          <string>Recursive Search Modifier</string>
+          <string>Search Modifier</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="comboBoxRModifier"/>
+        <widget class="QComboBox" name="comboBoxModifier">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The modifier key that will be used to trigger searches.&lt;/p&gt;&lt;p&gt;This applies to subtitle searches if the search method is set to &lt;span style=&quot; font-weight:600;&quot;&gt;Modifier&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
        </item>
        <item>
         <layout class="QVBoxLayout" name="layoutCheckHide">

@@ -138,8 +138,8 @@ void DefinitionWidget::initSearch()
         ).toBool();
 
     QString modifier = settings.value(
-            SETTINGS_SEARCH_RECURSIVE_MODIFIER,
-            SETTINGS_SEARCH_RECURSIVE_MODIFIER_DEFAULT
+            SETTINGS_SEARCH_MODIFIER,
+            SETTINGS_SEARCH_MODIFIER_DEFAULT
         ).toString();
     if (modifier == SEARCH_MODIFIER_SHIFT)
     {

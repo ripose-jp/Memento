@@ -107,9 +107,6 @@ enum class AudioSourceType
 #define SETTINGS_SEARCH_MODIFIER                    "modifier"
 #define SETTINGS_SEARCH_MODIFIER_DEFAULT            SEARCH_MODIFIER_SHIFT
 
-#define SETTINGS_SEARCH_RECURSIVE_MODIFIER          "r-modifier"
-#define SETTINGS_SEARCH_RECURSIVE_MODIFIER_DEFAULT  SEARCH_MODIFIER_SHIFT
-
 #define SETTINGS_SEARCH_HIDE_SUBS                   "hide-subs"
 #define SETTINGS_SEARCH_HIDE_SUBS_DEFAULT           true
 

@@ -36,7 +36,6 @@ SearchSettings::SearchSettings(QWidget *parent)
     m_ui->setupUi(this);
 
     m_ui->frameHover->setVisible(false);
-    m_ui->frameModifier->setVisible(false);
 
     m_ui->comboBoxMethod->addItem(SEARCH_METHOD_HOVER);
     m_ui->comboBoxMethod->addItem(SEARCH_METHOD_MODIFIER);
@@ -50,11 +49,6 @@ SearchSettings::SearchSettings(QWidget *parent)
     m_ui->comboBoxModifier->addItem(SEARCH_MODIFIER_CTRL);
     m_ui->comboBoxModifier->addItem(SEARCH_MODIFIER_SHIFT);
     m_ui->comboBoxModifier->addItem(SEARCH_MODIFIER_SUPER);
-
-    m_ui->comboBoxRModifier->addItem(SEARCH_MODIFIER_ALT);
-    m_ui->comboBoxRModifier->addItem(SEARCH_MODIFIER_CTRL);
-    m_ui->comboBoxRModifier->addItem(SEARCH_MODIFIER_SHIFT);
-    m_ui->comboBoxRModifier->addItem(SEARCH_MODIFIER_SUPER);
 
     connect(
         m_ui->buttonBox->button(QDialogButtonBox::Reset),
@@ -118,12 +112,6 @@ void SearchSettings::restoreSaved()
             SETTINGS_SEARCH_MODIFIER, SETTINGS_SEARCH_MODIFIER_DEFAULT
         ).toString()
     );
-    m_ui->comboBoxRModifier->setCurrentText(
-        settings.value(
-            SETTINGS_SEARCH_RECURSIVE_MODIFIER,
-            SETTINGS_SEARCH_RECURSIVE_MODIFIER_DEFAULT
-        ).toString()
-    );
     m_ui->checkHideSubs->setChecked(
         settings.value(
             SETTINGS_SEARCH_HIDE_SUBS, SETTINGS_SEARCH_HIDE_SUBS_DEFAULT
@@ -163,9 +151,6 @@ void SearchSettings::restoreDefaults()
     m_ui->comboBoxMethod->setCurrentText(SETTINGS_SEARCH_METHOD_DEFAULT);
     m_ui->spinBoxDelay->setValue(SETTINGS_SEARCH_DELAY_DEFAULT);
     m_ui->comboBoxModifier->setCurrentText(SETTINGS_SEARCH_MODIFIER_DEFAULT);
-    m_ui->comboBoxRModifier->setCurrentText(
-        SETTINGS_SEARCH_RECURSIVE_MODIFIER_DEFAULT
-    );
     m_ui->checkHideSubs->setChecked(SETTINGS_SEARCH_HIDE_SUBS_DEFAULT);
     m_ui->checkHideSearch->setChecked(SETTINGS_SEARCH_HIDE_BAR_DEFAULT);
     m_ui->checkGlossaryList->setChecked(SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT);
@@ -191,10 +176,6 @@ void SearchSettings::applySettings()
     );
     settings.setValue(
         SETTINGS_SEARCH_MODIFIER, m_ui->comboBoxModifier->currentText()
-    );
-    settings.setValue(
-        SETTINGS_SEARCH_RECURSIVE_MODIFIER,
-        m_ui->comboBoxRModifier->currentText()
     );
     settings.setValue(
         SETTINGS_SEARCH_HIDE_SUBS, m_ui->checkHideSubs->isChecked()
@@ -224,16 +205,7 @@ void SearchSettings::applySettings()
 
 void SearchSettings::methodTextChanged(const QString &text)
 {
-    if (text == SEARCH_METHOD_HOVER)
-    {
-        m_ui->frameHover->setVisible(true);
-        m_ui->frameModifier->setVisible(false);
-    }
-    else if (text == SEARCH_METHOD_MODIFIER)
-    {
-        m_ui->frameHover->setVisible(false);
-        m_ui->frameModifier->setVisible(true);
-    }
+    m_ui->frameHover->setVisible(text == SEARCH_METHOD_HOVER);
 }
 
 /* End Combo Box Handlers */
