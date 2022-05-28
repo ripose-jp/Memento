@@ -349,7 +349,7 @@ static int update_v1_to_v2(sqlite3 *db)
     if (sqlite3_exec(db, pragma, NULL, NULL, &errmsg) != SQLITE_OK)
     {
         fprintf(stderr,
-            "Failed to update database from version 2 to 3.\n"
+            "Failed to update database from version 1 to 2.\n"
             "Error: %s\n"
             "Query: %s\n",
             errmsg, pragma
@@ -402,7 +402,7 @@ static int update_v2_to_v3(sqlite3 *db)
     if (sqlite3_exec(db, pragma, NULL, NULL, &errmsg) != SQLITE_OK)
     {
         fprintf(stderr,
-            "Failed to update database from version 1 to 2.\n"
+            "Failed to update database from version 2 to 3.\n"
             "Error: %s\n"
             "Query: %s\n",
             errmsg, pragma
