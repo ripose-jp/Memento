@@ -418,6 +418,45 @@ cleanup:
     return ret;
 }
 
+static int update_v3_to_v4(sqlite3 *db)
+{
+    int        ret     = 0;
+    const int  version = 4;
+    char      *pragma  = NULL;
+    char      *errmsg  = NULL;
+
+    pragma = sqlite3_mprintf(
+        "UPDATE term_bank SET reading = '' WHERE expression = reading;"
+        "PRAGMA user_version = %d;",
+        version
+    );
+
+    if (pragma == NULL)
+    {
+        fprintf(stderr, "Could not allocate memory for query\n");
+        ret = MALLOC_FAILURE_ERR;
+        goto cleanup;
+    }
+
+    if (sqlite3_exec(db, pragma, NULL, NULL, &errmsg) != SQLITE_OK)
+    {
+        fprintf(stderr,
+            "Failed to update database from version 3 to 4.\n"
+            "Error: %s\n"
+            "Query: %s\n",
+            errmsg, pragma
+        );
+        ret = DB_ALTER_TABLE_ERR;
+        goto cleanup;
+    }
+
+cleanup:
+    sqlite3_free(errmsg);
+    sqlite3_free(pragma);
+
+    return ret;
+}
+
 /**
  * Create the tables in the database if they do not already exist
  * @param   db The database to add tables to
@@ -456,7 +495,11 @@ static int prepare_db(sqlite3 *db)
     case 0:
         if ((ret = create_db(db)))
         {
-            fprintf(stderr, "Could not update the database, reported version %d\n", user_version);
+            fprintf(
+                stderr,
+                "Could not update the database, reported version %d\n",
+                user_version
+            );
             goto cleanup;
         }
         break;
@@ -469,6 +512,12 @@ static int prepare_db(sqlite3 *db)
 
     case 2:
         if ((ret = update_v2_to_v3(db)))
+        {
+            goto cleanup;
+        }
+
+    case 3:
+        if ((ret = update_v3_to_v4(db)))
         {
             goto cleanup;
         }
@@ -968,6 +1017,12 @@ static int add_term(sqlite3 *db, json_object *term, const sqlite3_int64 id)
     if ((ret = get_obj_from_array(term, TERM_TAGS_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
     term_tags = json_object_get_string(ret_obj);
+
+    /* Make sure that expression and reading aren't the same */
+    if (!strcmp(exp, reading))
+    {
+        reading = "";
+    }
 
     /* Add term to the database */
     if (sqlite3_prepare_v2(db, QUERY, -1, &stmt, NULL) != SQLITE_OK)

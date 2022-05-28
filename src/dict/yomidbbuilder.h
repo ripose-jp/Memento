@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-#define YOMI_DB_VERSION                 3
+#define YOMI_DB_VERSION                 4
 #define YOMI_DB_FORMAT_VERSION          3
 
 #define YOMI_ERR_OPENING_DIC            1
