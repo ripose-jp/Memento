@@ -2,12 +2,12 @@
 
 release: setup
 	cd build; \
-	cmake -DCMAKE_BUILD_TYPE=Release ..; \
+	cmake -DCMAKE_BUILD_TYPE=Release ${CMAKE_ARGS} ..; \
 	make -j$(nproc)
 
 debug: setup
 	cd build; \
-	cmake -DCMAKE_BUILD_TYPE=Debug ..; \
+	cmake -DCMAKE_BUILD_TYPE=Debug ${CMAKE_ARGS} ..; \
 	make -j$(nproc)
 
 install:
@@ -27,7 +27,7 @@ uninstall:
 
 appimage: setup
 	cd build; \
-	cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DAPPIMAGE=ON ..; \
+	cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DAPPIMAGE=ON ${CMAKE_ARGS} ..; \
 	make -j$(nproc); \
 	make install DESTDIR=AppDir; \
 	mkdir -p ./AppDir/usr/lib/mecab; \
@@ -44,7 +44,7 @@ appimage: setup
 
 appbundle: setup
 	cd build; \
-	cmake -DAPPBUNDLE=ON -DCERT=${CERT_NAME} -DCMAKE_BUILD_TYPE=Release ..; \
+	cmake -DAPPBUNDLE=ON -DCERT=${CERT_NAME} -DCMAKE_BUILD_TYPE=Release ${CMAKE_ARGS} ..; \
 	make -j$(nproc); \
 	mkdir -p ./src/Memento.app/Contents/Frameworks/mecab; \
 	cp -r ../dic ./src/Memento.app/Contents/Frameworks/mecab

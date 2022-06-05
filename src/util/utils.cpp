@@ -38,6 +38,7 @@
 
 #include "constants.h"
 #include "globalmediator.h"
+#include "version.h"
 
 /* Begin Directory Utils */
 

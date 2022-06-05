@@ -23,8 +23,8 @@
 #include <QVBoxLayout>
 #include <QLabel>
 
-#include "util/constants.h"
 #include "util/globalmediator.h"
+#include "util/version.h"
 
 AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
 {
@@ -45,8 +45,14 @@ AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
     labelInfo->setTextInteractionFlags(
         Qt::LinksAccessibleByKeyboard | Qt::LinksAccessibleByMouse
     );
+    QString version = VERSION;
+    if (!VERSION_HASH.isEmpty())
+    {
+        version += '-';
+        version += VERSION_HASH;
+    }
     labelInfo->setText(
-        "<b>Version</b>: " + VERSION + "<br>"
+        "<b>Version</b>: " + version + "<br>"
         "<b>License</b>: GPLv2"
         "<br>"
         "<b>Website</b>: "

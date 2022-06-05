@@ -23,12 +23,6 @@
 
 #include <QtGlobal>
 
-#ifdef CMAKE_VERSION
-#define VERSION                         (QString(CMAKE_VERSION))
-#else
-#define VERSION                         (QString("Version Missing"))
-#endif
-
 #define GITHUB_API_LINK                 (QString("https://api.github.com/repos/ripose-jp/memento/releases/latest"))
 #define GITHUB_RELEASES                 (QString("https://github.com/ripose-jp/memento/releases"))
 
