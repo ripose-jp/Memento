@@ -245,7 +245,7 @@ void PlayerOverlay::initSettings()
         SETTINGS_INTERFACE_MENUBAR_FULLSCREEN,
         SETTINGS_INTERFACE_MENUBAR_FULLSCREEN_DEFAULT
     ).toBool();
-    if (m_visibility == OSCVisibility::Visible)
+    if (m_settings.visibility == OSCVisibility::Visible)
     {
         showOverlay();
     }
