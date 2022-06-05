@@ -1831,7 +1831,15 @@ static int extract_resources(zip_t *dict_archive, const char *res_dir)
     base_path = concat_paths(res_dir, dict_name);
     ret = remove_path(base_path);
 #ifdef _WIN32
-    ret = ret && ret != DE_INVALIDFILES ? ret : 0;
+    switch (ret)
+    {
+    case DE_INVALIDFILES:
+    case ERROR_FILE_NOT_FOUND:
+        ret = 0;
+        break;
+    default:
+        break;
+    }
 #else
     ret = ret && ret != ENOENT ? ret : 0;
 #endif
