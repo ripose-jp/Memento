@@ -262,34 +262,19 @@ https://github.com/animebook/animebook.github.io
 
 ## Acknowledgements
 
-MpvWidget code is based off of libmpv example code by w4m.
-
-https://github.com/mpv-player/mpv-examples/tree/master/libmpv/qt_opengl
-
-Some code based off of Baka-MPlayer.
-
-https://github.com/u8sand/Baka-MPlayer
-
-Hardware acceleration achieved on Linux using mpc-qt code.
-
-https://github.com/mpc-qt/mpc-qt
-
-UI inspired by and dictionaries provided by Yomichan.
-
-https://foosoft.net/projects/yomichan/
-
-Fullscreen icons sourced from here.
-
-https://www.iconfinder.com/iconsets/material-core
-
-Various icons sourced from here.
-
-https://www.iconfinder.com/iconsets/ionicons
-
-Pause, play, skip, and seek icons sourced from here and used under the [CC 3.0 License](https://creativecommons.org/licenses/by/3.0/)
-
-https://www.iconfinder.com/iconsets/play-rounded
-
-window_build.sh depends on this script with a slightly expanded blacklist
-
-https://github.com/mpreisler/mingw-bundledlls
+* MpvWidget code is based off of libmpv example code by w4m.
+  * https://github.com/mpv-player/mpv-examples/tree/master/libmpv/qt_opengl
+* Some code based off of Baka-MPlayer.
+  * https://github.com/u8sand/Baka-MPlayer
+* Hardware acceleration achieved on Linux using mpc-qt code.
+  * https://github.com/mpc-qt/mpc-qt
+* UI inspired by and dictionaries provided by Yomichan.
+  * https://foosoft.net/projects/yomichan/
+* Fullscreen icons sourced from here.
+  * https://www.iconfinder.com/iconsets/material-core
+* Various icons sourced from here.
+  * https://www.iconfinder.com/iconsets/ionicons
+* Pause, play, skip, and seek icons sourced from here and used under the [CC 3.0 License](https://creativecommons.org/licenses/by/3.0/)
+  * https://www.iconfinder.com/iconsets/play-rounded
+* window_build.sh depends on this script with a slightly expanded blacklist
+  * https://github.com/mpreisler/mingw-bundledlls
