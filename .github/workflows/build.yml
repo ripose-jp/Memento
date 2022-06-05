@@ -56,12 +56,15 @@ jobs:
 
     - name: CMake Build
       run: |
-        ./windows/windows-build.sh x86_64
+        mkdir build
+        cd build
+        cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+        make -j4
 
     - name: Installer Build
       run: |
         make clean
-        ./windows/build-installer.sh x86_64
+        ./windows/build-installer.sh
 
   macos:
     runs-on: macos-10.15
