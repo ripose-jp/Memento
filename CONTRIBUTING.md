@@ -170,7 +170,9 @@
   * Header file/superclass
   * Qt includes
   * Other library includes
-  * Local includes
+  * Same-directory includes (e.g. `foo.h` is in the same directory as `bar.c`)
+  * Project-wide includes (e.g. `foo.h` is in `src/foobar/foo.h` and is included
+    in `car.c` which is in `src/barcar/car.c`)
   * Conditional includes wrapped `#if` or `#ifdef`
   * Forward declarations
 * For C++, header files use `.h` and code uses `.cpp`.
