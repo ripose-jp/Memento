@@ -26,8 +26,8 @@
 #include <QPushButton>
 #include <QSettings>
 
-#include "../../../util/constants.h"
-#include "../../../util/globalmediator.h"
+#include "util/constants.h"
+#include "util/globalmediator.h"
 
 /* Begin Constructor/Destructor */
 

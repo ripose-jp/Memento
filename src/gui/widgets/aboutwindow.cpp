@@ -23,8 +23,8 @@
 #include <QVBoxLayout>
 #include <QLabel>
 
-#include "../../util/constants.h"
-#include "../../util/globalmediator.h"
+#include "util/constants.h"
+#include "util/globalmediator.h"
 
 AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
 {

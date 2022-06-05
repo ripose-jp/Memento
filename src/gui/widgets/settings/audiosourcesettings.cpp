@@ -26,9 +26,9 @@
 #include <QPushButton>
 #include <QSettings>
 
-#include "../../../util/constants.h"
-#include "../../../util/globalmediator.h"
-#include "../../../util/iconfactory.h"
+#include "util/constants.h"
+#include "util/globalmediator.h"
+#include "util/iconfactory.h"
 
 /* Column indices */
 #define COL_NAME    0

@@ -25,13 +25,14 @@
 #include <QPropertyAnimation>
 #include <QSettings>
 
-#include "../../../util/constants.h"
-#include "../../../util/globalmediator.h"
-#include "../../playeradapter.h"
-#include "../definition/definitionwidget.h"
 #include "playercontrols.h"
 #include "playermenu.h"
 #include "subtitlewidget.h"
+
+#include "gui/playeradapter.h"
+#include "gui/widgets/definition/definitionwidget.h"
+#include "util/constants.h"
+#include "util/globalmediator.h"
 
 /* Begin Constructor/Destructor */
 

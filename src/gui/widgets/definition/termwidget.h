@@ -25,9 +25,9 @@
 
 #include <QMutex>
 
-#include "../../../anki/ankiclient.h"
-#include "../../../dict/expression.h"
-#include "../common/flowlayout.h"
+#include "anki/ankiclient.h"
+#include "dict/expression.h"
+#include "gui/widgets/common/flowlayout.h"
 
 struct AudioSource;
 class QMenu;

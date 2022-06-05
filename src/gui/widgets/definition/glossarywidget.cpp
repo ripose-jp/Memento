@@ -20,8 +20,9 @@
 
 #include "glossarywidget.h"
 
-#include "../../../util/utils.h"
 #include "tagwidget.h"
+
+#include "util/utils.h"
 
 GlossaryWidget::GlossaryWidget(
     const size_t number,

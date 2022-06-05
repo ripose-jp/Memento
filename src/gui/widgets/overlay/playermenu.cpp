@@ -29,11 +29,11 @@
 #include <QList>
 #include <QSettings>
 
-#include "../../../anki/ankiclient.h"
-#include "../../../util/constants.h"
-#include "../../../util/globalmediator.h"
-#include "../../../util/utils.h"
-#include "../../playeradapter.h"
+#include "anki/ankiclient.h"
+#include "gui/playeradapter.h"
+#include "util/constants.h"
+#include "util/globalmediator.h"
+#include "util/utils.h"
 
 /* Begin Constructor/Destructor */
 

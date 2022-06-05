@@ -27,10 +27,11 @@
 #include <QMessageBox>
 #include <QSettings>
 
-#include "../util/constants.h"
-#include "../util/globalmediator.h"
-#include "../util/utils.h"
 #include "databasemanager.h"
+
+#include "util/constants.h"
+#include "util/globalmediator.h"
+#include "util/utils.h"
 
 /**
  * A pair to search for. The deconjugated string is used for querying the

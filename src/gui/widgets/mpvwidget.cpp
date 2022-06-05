@@ -37,8 +37,8 @@
 #include <QX11Info>
 #endif
 
-#include "../../util/constants.h"
-#include "../../util/globalmediator.h"
+#include "util/constants.h"
+#include "util/globalmediator.h"
 
 /* Begin C functions */
 

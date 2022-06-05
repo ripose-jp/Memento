@@ -26,10 +26,11 @@
 #include <QPointer>
 #include <QWheelEvent>
 
-#include "../../../anki/ankiclient.h"
-#include "../../../dict/expression.h"
 #include "kanjiwidget.h"
 #include "termwidget.h"
+
+#include "anki/ankiclient.h"
+#include "dict/expression.h"
 
 enum class AudioSourceType;
 

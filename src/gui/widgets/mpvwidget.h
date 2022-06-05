@@ -30,7 +30,7 @@
 #include <mpv/client.h>
 #include <mpv/render_gl.h>
 
-#include "../../util/utils.h"
+#include "util/utils.h"
 
 #if defined(Q_OS_MACOS)
 #include <IOKit/pwr_mgt/IOPMLib.h>

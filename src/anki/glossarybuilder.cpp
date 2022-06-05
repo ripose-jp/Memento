@@ -24,7 +24,7 @@
 #include <QJsonObject>
 #include <QTextBlock>
 
-#include "../util/utils.h"
+#include "util/utils.h"
 
 /* Begin Public Methods */
 

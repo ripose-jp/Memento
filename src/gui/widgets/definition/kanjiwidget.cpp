@@ -28,12 +28,13 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-#include "../../../anki/ankiclient.h"
-#include "../../../util/globalmediator.h"
-#include "../../../util/iconfactory.h"
-#include "../common/flowlayout.h"
-#include "../subtitlelistwidget.h"
 #include "tagwidget.h"
+
+#include "anki/ankiclient.h"
+#include "gui/widgets/common/flowlayout.h"
+#include "gui/widgets/subtitlelistwidget.h"
+#include "util/globalmediator.h"
+#include "util/iconfactory.h"
 
 /* Begin Constructor/Destructor */
 

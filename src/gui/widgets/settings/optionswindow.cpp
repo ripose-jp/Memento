@@ -28,7 +28,7 @@
 #include "interfacesettings.h"
 #include "searchsettings.h"
 
-#include "../../../util/globalmediator.h"
+#include "util/globalmediator.h"
 
 /* Begin Constructor/Destructor */
 

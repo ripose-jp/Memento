@@ -28,8 +28,8 @@
 #include <QStyle>
 #include <QTextEdit>
 
-#include "../../../util/globalmediator.h"
-#include "../common/strokelabel.h"
+#include "gui/widgets/common/strokelabel.h"
+#include "util/globalmediator.h"
 
 /* Begin Constructor/Destructor */
 

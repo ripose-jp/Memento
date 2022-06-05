@@ -27,10 +27,10 @@
 #include <QScrollBar>
 #include <QSettings>
 
-#include "../../../audio/audioplayer.h"
-#include "../../../util/constants.h"
-#include "../../../util/globalmediator.h"
-#include "../../../util/iconfactory.h"
+#include "audio/audioplayer.h"
+#include "util/constants.h"
+#include "util/globalmediator.h"
+#include "util/iconfactory.h"
 
 /* Begin Constructor/Destructor */
 

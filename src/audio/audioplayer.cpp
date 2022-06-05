@@ -29,8 +29,8 @@
 #include <QThreadPool>
 #include <stdlib.h>
 
-#include "../util/globalmediator.h"
-#include "../util/utils.h"
+#include "util/globalmediator.h"
+#include "util/utils.h"
 
 /* Begin Constructor/Destructor */
 

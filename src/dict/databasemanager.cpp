@@ -27,8 +27,9 @@
 #include <QMessageBox>
 #include <QVector>
 
-#include "../util/utils.h"
 #include "yomidbbuilder.h"
+
+#include "util/utils.h"
 
 /* Begin Constructor/Destructor */
 

@@ -32,11 +32,11 @@
 #include <QShortcut>
 #include <QThreadPool>
 
-#include "../../util/constants.h"
-#include "../../util/globalmediator.h"
-#include "../../util/iconfactory.h"
-#include "../../util/subtitleparser.h"
-#include "../../util/utils.h"
+#include "util/constants.h"
+#include "util/globalmediator.h"
+#include "util/iconfactory.h"
+#include "util/subtitleparser.h"
+#include "util/utils.h"
 
 /* Begin Private Class */
 

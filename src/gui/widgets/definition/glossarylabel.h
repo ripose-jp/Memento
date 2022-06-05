@@ -24,7 +24,7 @@
 #include <QRunnable>
 #include <QTextEdit>
 
-#include "../../../dict/expression.h"
+#include "dict/expression.h"
 
 class GlossaryLabel : public QTextEdit
 {

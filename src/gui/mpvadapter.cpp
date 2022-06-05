@@ -25,8 +25,8 @@
 #include <QSettings>
 #include <QTemporaryFile>
 
-#include "../util/constants.h"
-#include "../util/globalmediator.h"
+#include "util/constants.h"
+#include "util/globalmediator.h"
 
 MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     : PlayerAdapter(parent),

@@ -31,11 +31,12 @@
 #include <QtPlatformHeaders/QWindowsWindowFunctions>
 #endif
 
-#include "../dict/dictionary.h"
-#include "../util/constants.h"
-#include "../util/iconfactory.h"
 #include "mpvadapter.h"
-#include "widgets/common/sliderjumpstyle.h"
+
+#include "dict/dictionary.h"
+#include "gui/widgets/common/sliderjumpstyle.h"
+#include "util/constants.h"
+#include "util/iconfactory.h"
 
 /* Begin Constructor/Destructor */
 

@@ -23,7 +23,7 @@
 
 #include <QLabel>
 
-#include "../../../dict/expression.h"
+#include "dict/expression.h"
 
 /**
  * Creates a tag with a hoverable tool tip.

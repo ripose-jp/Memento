@@ -26,9 +26,10 @@
 #include <QCheckBox>
 #include <QLabel>
 
-#include "../../../dict/expression.h"
-#include "../common/flowlayout.h"
 #include "glossarylabel.h"
+
+#include "dict/expression.h"
+#include "gui/widgets/common/flowlayout.h"
 
 /**
  * Widget for displaying a TermDefinition.

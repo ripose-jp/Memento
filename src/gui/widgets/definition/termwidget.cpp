@@ -27,17 +27,18 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 
-#include "../../../audio/audioplayer.h"
-#include "../../../dict/dictionary.h"
-#include "../../../util/constants.h"
-#include "../../../util/globalmediator.h"
-#include "../../../util/iconfactory.h"
-#include "../../../util/utils.h"
-#include "../subtitlelistwidget.h"
 #include "definitionwidget.h"
 #include "glossarywidget.h"
 #include "pitchwidget.h"
 #include "tagwidget.h"
+
+#include "audio/audioplayer.h"
+#include "dict/dictionary.h"
+#include "gui/widgets/subtitlelistwidget.h"
+#include "util/constants.h"
+#include "util/globalmediator.h"
+#include "util/iconfactory.h"
+#include "util/utils.h"
 
 /**
  * Kanji stylesheet format string.

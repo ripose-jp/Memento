@@ -29,10 +29,10 @@
 #include <QTextBlock>
 #include <QThreadPool>
 
-#include "../../../dict/dictionary.h"
-#include "../../../util/constants.h"
-#include "../../../util/globalmediator.h"
-#include "../../../util/utils.h"
+#include "dict/dictionary.h"
+#include "util/constants.h"
+#include "util/globalmediator.h"
+#include "util/utils.h"
 
 /* The maximum allowed width of images. This is chosen with consideration of
  * DefinitionWidget's default 500px width. */

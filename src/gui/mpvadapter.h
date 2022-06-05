@@ -25,7 +25,7 @@
 
 #include <QSet>
 
-#include "widgets/mpvwidget.h"
+#include "gui/widgets/mpvwidget.h"
 
 /**
  * Implements the features described in PlayerAdapter for mpv and MpvWidget.

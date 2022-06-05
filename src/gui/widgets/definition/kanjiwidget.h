@@ -23,7 +23,7 @@
 
 #include <QWidget>
 
-#include "../../../dict/expression.h"
+#include "dict/expression.h"
 
 class QFrame;
 class QLabel;

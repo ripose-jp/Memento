@@ -29,8 +29,8 @@
 #include <QMutex>
 #include <QRegularExpression>
 
-#include "../playeradapter.h"
-#include "../../anki/ankiclient.h"
+#include "anki/ankiclient.h"
+#include "gui/playeradapter.h"
 
 class QShortcut;
 class QTableWidget;

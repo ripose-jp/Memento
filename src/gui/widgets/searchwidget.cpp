@@ -25,11 +25,11 @@
 #include <QThreadPool>
 #include <QVBoxLayout>
 
-#include "../../dict/dictionary.h"
-#include "../../util/constants.h"
-#include "../../util/globalmediator.h"
-#include "../../util/utils.h"
-#include "definition/definitionwidget.h"
+#include "dict/dictionary.h"
+#include "gui/widgets/definition/definitionwidget.h"
+#include "util/constants.h"
+#include "util/globalmediator.h"
+#include "util/utils.h"
 
 /* Prevents large searches from being executed and freezing everything up */
 #define MAX_SEARCH_SIZE 40

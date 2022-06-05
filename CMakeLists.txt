@@ -26,6 +26,12 @@ if(APPBUNDLE)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAPPBUNDLE=1")
 endif()
 
+# Sets the include directories to src
+# This isn't best CMake practice, but it produces the desired behavior of
+# setting include directories for all targets
+set(INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src")
+include_directories(${INCLUDE_DIRECTORY})
+
 if(APPLE AND NOT MAC_X86)
 	# This makes sure Memento builds on whatever arch is native
 	# The order of directories MATTERS because M1 users may crosscompile but

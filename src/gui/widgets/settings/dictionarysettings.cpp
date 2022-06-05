@@ -26,10 +26,10 @@
 #include <QSettings>
 #include <QThreadPool>
 
-#include "../../../dict/dictionary.h"
-#include "../../../util/constants.h"
-#include "../../../util/globalmediator.h"
-#include "../../../util/iconfactory.h"
+#include "dict/dictionary.h"
+#include "util/constants.h"
+#include "util/globalmediator.h"
+#include "util/iconfactory.h"
 
 /* Begin Constructor/Destructor */
 

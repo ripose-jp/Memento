@@ -25,9 +25,10 @@
 
 #include <QMutex>
 
-#include "../../../anki/ankiclient.h"
-#include "../../../anki/ankiconfig.h"
 #include "ankisettingshelp.h"
+
+#include "anki/ankiclient.h"
+#include "anki/ankiconfig.h"
 
 namespace Ui
 {

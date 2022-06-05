@@ -30,12 +30,13 @@
 #include <QTemporaryFile>
 #include <QThreadPool>
 
-#include "../gui/playeradapter.h"
-#include "../gui/widgets/subtitlelistwidget.h"
-#include "../util/constants.h"
-#include "../util/globalmediator.h"
-#include "../util/utils.h"
 #include "glossarybuilder.h"
+
+#include "gui/playeradapter.h"
+#include "gui/widgets/subtitlelistwidget.h"
+#include "util/constants.h"
+#include "util/globalmediator.h"
+#include "util/utils.h"
 
 /* Anki request fields */
 #define ANKI_ACTION                     "action"

@@ -28,8 +28,9 @@
 #include <QString>
 #include <QStringList>
 
-#include "../dict/expression.h"
 #include "ankiconfig.h"
+
+#include "dict/expression.h"
 
 /* Shared Markers */
 #define REPLACE_AUDIO_MEDIA         "{audio-media}"
