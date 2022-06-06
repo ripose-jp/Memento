@@ -1564,7 +1564,7 @@ static int remove_path(const char *path)
         ret = -1;
         goto cleanup;
     }
-    pszFrom = malloc(sizeof(WCHAR) * (len + 1));
+    pszFrom = malloc(sizeof(WCHAR) * (len + 2));
     len = MultiByteToWideChar(CP_UTF8, 0, path, -1, pszFrom, len);
     if (len == 0)
     {
