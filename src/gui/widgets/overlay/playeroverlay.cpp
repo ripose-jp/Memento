@@ -467,7 +467,8 @@ void PlayerOverlay::hideOverlay()
         return;
     }
 
-    if (underMouse() || m_menu->menuOpen() || m_definition->isVisible())
+    if (m_settings.visibility != OSCVisibility::Hidden &&
+        (underMouse() || m_menu->menuOpen() || m_definition->isVisible()))
     {
         return;
     }
