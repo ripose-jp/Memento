@@ -509,6 +509,25 @@ QString Dictionary::addDictionary(const QString &path)
     return "";
 }
 
+QString Dictionary::addDictionary(const QStringList &paths)
+{
+    for (int i = 0; i < paths.size(); ++i)
+    {
+        int err = m_db->addDictionary(paths[i]);
+        if (err)
+        {
+            if (i > 0)
+            {
+                Q_EMIT GlobalMediator::getGlobalMediator()
+                    ->dictionariesChanged();
+            }
+            return m_db->errorCodeToString(err);
+        }
+    }
+    Q_EMIT GlobalMediator::getGlobalMediator()->dictionariesChanged();
+    return "";
+}
+
 QString Dictionary::deleteDictionary(const QString &name)
 {
     int err = m_db->deleteDictionary(name);

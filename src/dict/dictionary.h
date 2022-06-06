@@ -81,6 +81,13 @@ public:
     QString addDictionary(const QString &path);
 
     /**
+     * Adds multiple dictionaries.
+     * @param paths The paths to the dictionaries.
+     * @return Empty string on success, error string on error.
+     */
+    QString addDictionary(const QStringList &paths);
+
+    /**
      * Deletes a dictionary.
      * @param name The name of the dictionary.
      * @return Empty string on success, error string on error.

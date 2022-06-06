@@ -23,6 +23,8 @@
 
 #include <QWidget>
 
+#include <QMutex>
+
 namespace Ui
 {
     class DictionarySettings;
@@ -52,6 +54,16 @@ protected:
      */
     void hideEvent(QHideEvent *event) override;
 
+Q_SIGNALS:
+    /**
+     * Emitted when the dictionary grabbing thread completes.
+     * @param dicts    The list of dictionaries.
+     * @param disabled The list of disabled dictionaries.
+     */
+    void restoreSavedReady(
+        const QStringList &dicts,
+        const QStringList &disabled) const;
+
 private Q_SLOTS:
     /**
      * Initializes button icons.
@@ -64,14 +76,19 @@ private Q_SLOTS:
     void restoreSaved();
 
     /**
+     * Handles updating the UI when dictionaries are returned from the worker
+     * thread.
+     * @param dicts    The list of dictionaries.
+     * @param disabled The list of disabled dictionaries.
+     */
+    void restoreSavedHelper(
+        const QStringList &dicts,
+        const QStringList &disabled);
+
+    /**
      * Saves the dictionary priorities.
      */
     void applySettings();
-
-    /**
-     * Restores settings then applies them.
-     */
-    void restoreApply();
 
     /**
      * Moves the selected dictionary up in the list.
@@ -105,6 +122,9 @@ private Q_SLOTS:
 private:
     /* The UI object containing all the widgets. */
     Ui::DictionarySettings *m_ui;
+
+    /* Condition to prevent multiple restoreSaved thread from being fired */
+    QMutex m_restoreSavedActive;
 };
 
 #endif // DICTIONARYSETTINGS_H

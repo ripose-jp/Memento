@@ -76,10 +76,15 @@ DictionarySettings::DictionarySettings(QWidget *parent)
         this,               &DictionarySettings::deleteDictionary
     );
 
+    connect(
+        this, &DictionarySettings::restoreSavedReady,
+        this, &DictionarySettings::restoreSavedHelper
+    );
+
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     connect(
         mediator, &GlobalMediator::dictionariesChanged,
-        this,     &DictionarySettings::restoreApply
+        this,     &DictionarySettings::restoreSaved
     );
     connect(
         mediator, &GlobalMediator::requestThemeRefresh,
@@ -125,11 +130,32 @@ void DictionarySettings::hideEvent(QHideEvent *event)
 
 void DictionarySettings::restoreSaved()
 {
-    Dictionary *dict = GlobalMediator::getGlobalMediator()->getDictionary();
-    m_ui->listDictionaries->clear();
-    m_ui->listDictionaries->addItems(dict->getDictionaries());
+    if (!m_restoreSavedActive.tryLock())
+    {
+        return;
+    }
 
-    QStringList disabledNames = dict->getDisabledDictionaries();
+    setEnabled(false);
+
+    QThreadPool::globalInstance()->start(
+        [this] {
+            Dictionary *dict =
+                GlobalMediator::getGlobalMediator()->getDictionary();
+            QStringList dicts = dict->getDictionaries();
+            QStringList disabledNames = dict->getDisabledDictionaries();
+
+            Q_EMIT restoreSavedReady(dicts, disabledNames);
+        }
+    );
+}
+
+void DictionarySettings::restoreSavedHelper(
+    const QStringList &dicts,
+    const QStringList &disabledNames)
+{
+    m_ui->listDictionaries->clear();
+    m_ui->listDictionaries->addItems(dicts);
+
     QSet<QString> disabled(disabledNames.begin(), disabledNames.end());
     for (int i = 0; i < m_ui->listDictionaries->count(); ++i)
     {
@@ -139,6 +165,9 @@ void DictionarySettings::restoreSaved()
             disabled.contains(item->text()) ? Qt::Unchecked : Qt::Checked
         );
     }
+
+    setEnabled(true);
+    m_restoreSavedActive.unlock();
 }
 
 void DictionarySettings::applySettings()
@@ -163,12 +192,6 @@ void DictionarySettings::applySettings()
     dict->disableDictionaries(dictionaries);
 
     Q_EMIT GlobalMediator::getGlobalMediator()->dictionaryOrderChanged();
-}
-
-void DictionarySettings::restoreApply()
-{
-    restoreSaved();
-    applySettings();
 }
 
 /* End Button Box Handlers */
@@ -210,19 +233,16 @@ void DictionarySettings::addDictionary()
     }
 
     QThreadPool::globalInstance()->start(
-        [=] {
+        [this, files] {
             setEnabled(false);
             Dictionary *dic =
                 GlobalMediator::getGlobalMediator()->getDictionary();
-            for (const QString &file : files)
+            QString err = dic->addDictionary(files);
+            if (!err.isEmpty())
             {
-                QString err = dic->addDictionary(file);
-                if (!err.isEmpty())
-                {
-                    Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
-                        "Error adding dictionary", err
-                    );
-                }
+                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+                    "Error adding dictionary", err
+                );
             }
             setEnabled(true);
         }
