@@ -133,6 +133,14 @@ private Q_SLOTS:
      */
     void setDefinitionWidgetLocation();
 
+#if defined(Q_OS_WIN)
+    /**
+     * Handles fullscreen and settings changes for the menu bar
+     * @param fullscreen true if fullscreen false otherwise
+     */
+    void menuBarHandleStateChange(bool fullscreen);
+#endif
+
 private:
     /**
      * Changes the subtitle scale. Saved in settings.

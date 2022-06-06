@@ -115,6 +115,13 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
         this, &PlayerOverlay::hideOverlay,
         Qt::QueuedConnection
     );
+#if defined(Q_OS_WIN)
+    connect(
+        mediator, &GlobalMediator::playerFullscreenChanged,
+        this, &PlayerOverlay::menuBarHandleStateChange,
+        Qt::QueuedConnection
+    );
+#endif
     connect(
         m_menu, &PlayerMenu::aboutToHide,
         &m_hideTimer, qOverload<>(&QTimer::start),
@@ -245,10 +252,7 @@ void PlayerOverlay::initSettings()
         SETTINGS_INTERFACE_MENUBAR_FULLSCREEN,
         SETTINGS_INTERFACE_MENUBAR_FULLSCREEN_DEFAULT
     ).toBool();
-    if (m_settings.visibility == OSCVisibility::Visible)
-    {
-        showOverlay();
-    }
+    menuBarHandleStateChange(m_menu->window()->isFullScreen());
 #endif
     settings.endGroup();
 
@@ -445,6 +449,32 @@ bool PlayerOverlay::underMouse() const
         m_player->mapFromGlobal(QCursor::pos())
     );
 }
+
+#if defined(Q_OS_WIN)
+void PlayerOverlay::menuBarHandleStateChange(bool fullscreen)
+{
+    switch (m_settings.visibility)
+    {
+    case OSCVisibility::Visible:
+        if (m_settings.showMenuBar)
+        {
+            showOverlay();
+        }
+        else if (fullscreen)
+        {
+            m_menu->hideMenu();
+        }
+        else
+        {
+            m_menu->showMenu();
+        }
+        break;
+    case OSCVisibility::Hidden:
+    case OSCVisibility::Auto:
+        return;
+    }
+}
+#endif
 
 void PlayerOverlay::hideOverlay()
 {
