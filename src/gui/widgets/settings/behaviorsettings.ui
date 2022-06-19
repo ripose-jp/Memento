@@ -240,6 +240,43 @@ The fade in duration is included in this time.</string>
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="labelOpenFileDir">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The directory the file picker will start at when opening media.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Current&lt;/span&gt; sets the directory to the last directory that was open.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Custom&lt;/span&gt; allows a custom directory to be set.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Open File Directory</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboFileOpenDir">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The directory the file picker will open to.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Current&lt;/span&gt; lets the operating system choose. This is usually the last directory that was opened.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="layoutFileOpenCustom">
+         <item>
+          <widget class="QLineEdit" name="lineEditFileOpenCustom"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonFileOpenCustom">
+           <property name="text">
+            <string>Browse</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

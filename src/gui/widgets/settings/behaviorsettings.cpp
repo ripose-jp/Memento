@@ -21,6 +21,7 @@
 #include "behaviorsettings.h"
 #include "ui_behaviorsettings.h"
 
+#include <QFileDialog>
 #include <QPushButton>
 #include <QSettings>
 
@@ -35,6 +36,27 @@ BehaviorSettings::BehaviorSettings(QWidget *parent)
 {
     m_ui->setupUi(this);
 
+    /* Add the items to the File Open combo box */
+    m_fileOpenMap = QMap<QString, FileOpenDirectory>({
+        {"Current", FileOpenDirectory::Current},
+        {"Home", FileOpenDirectory::Home},
+        {"Movies", FileOpenDirectory::Movies},
+        {"Documents", FileOpenDirectory::Documents},
+        {"Custom", FileOpenDirectory::Custom}
+    });
+    m_ui->comboFileOpenDir->addItems(QStringList(m_fileOpenMap.keys()));
+
+    /* File Open Signals */
+    connect(
+        m_ui->comboFileOpenDir, &QComboBox::currentTextChanged,
+        this, &BehaviorSettings::handleFileOpenChange
+    );
+    connect(
+        m_ui->buttonFileOpenCustom, &QPushButton::clicked,
+        this, &BehaviorSettings::setCustomDirectory
+    );
+
+    /* Button Box Signals */
     connect(
         m_ui->buttonBox->button(QDialogButtonBox::Reset),
         &QPushButton::clicked,
@@ -68,6 +90,7 @@ void BehaviorSettings::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
     restoreSaved();
+    handleFileOpenChange(m_ui->comboFileOpenDir->currentText());
 }
 
 /* End Event Handlers */
@@ -112,6 +135,20 @@ void BehaviorSettings::restoreSaved()
             SETTINGS_BEHAVIOR_OSC_MIN_MOVE_DEFAULT
         ).toInt()
     );
+    m_ui->comboFileOpenDir->setCurrentText(
+        m_fileOpenMap.key(
+            (FileOpenDirectory)settings.value(
+                SETTINGS_BEHAVIOR_FILE_OPEN_DIR,
+                (int)SETTINGS_BEHAVIOR_FILE_OPEN_DIR_DEFAULT
+            ).toInt()
+        )
+    );
+    m_ui->lineEditFileOpenCustom->setText(
+        settings.value(
+            SETTINGS_BEHAVIOR_FILE_OPEN_CUSTOM,
+            SETTINGS_BEHAVIOR_FILE_OPEN_CUSTOM_DEFAULT
+        ).toString()
+    );
     settings.endGroup();
 }
 
@@ -125,6 +162,12 @@ void BehaviorSettings::restoreDefaults()
     m_ui->spinOSCDuration->setValue(SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT);
     m_ui->spinOSCFade->setValue(SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT);
     m_ui->spinOSCMinMove->setValue(SETTINGS_BEHAVIOR_OSC_MIN_MOVE_DEFAULT);
+    m_ui->comboFileOpenDir->setCurrentText(
+        m_fileOpenMap.key(SETTINGS_BEHAVIOR_FILE_OPEN_DIR_DEFAULT)
+    );
+    m_ui->lineEditFileOpenCustom->setText(
+        SETTINGS_BEHAVIOR_FILE_OPEN_CUSTOM_DEFAULT
+    );
 }
 
 void BehaviorSettings::applySettings()
@@ -149,9 +192,42 @@ void BehaviorSettings::applySettings()
     settings.setValue(
         SETTINGS_BEHAVIOR_OSC_MIN_MOVE, m_ui->spinOSCMinMove->value()
     );
+    settings.setValue(
+        SETTINGS_BEHAVIOR_FILE_OPEN_DIR,
+        (int)m_fileOpenMap[m_ui->comboFileOpenDir->currentText()]
+    );
+    if (m_ui->comboFileOpenDir->isVisibleTo(this))
+    {
+        settings.setValue(
+            SETTINGS_BEHAVIOR_FILE_OPEN_CUSTOM,
+            m_ui->lineEditFileOpenCustom->text()
+        );
+    }
     settings.endGroup();
 
     Q_EMIT GlobalMediator::getGlobalMediator()->behaviorSettingsChanged();
 }
 
-/* Begin Button Box Handlers */
+/* End Button Box Handlers */
+/* Begin Open File Handlers */
+
+void BehaviorSettings::handleFileOpenChange(const QString &text)
+{
+    bool vis = m_fileOpenMap[text] == FileOpenDirectory::Custom;
+    m_ui->lineEditFileOpenCustom->setVisible(vis);
+    m_ui->buttonFileOpenCustom->setVisible(vis);
+}
+
+void BehaviorSettings::setCustomDirectory()
+{
+    QString dir = QFileDialog::getExistingDirectory(
+        this, "Choose a directory", m_ui->lineEditFileOpenCustom->text()
+    );
+    if (dir.isEmpty())
+    {
+        return;
+    }
+    m_ui->lineEditFileOpenCustom->setText(dir);
+}
+
+/* End Open File Handlers */

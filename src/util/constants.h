@@ -23,6 +23,8 @@
 
 #include <QtGlobal>
 
+#include "utils.h"
+
 #define GITHUB_API_LINK                 (QString("https://api.github.com/repos/ripose-jp/memento/releases/latest"))
 #define GITHUB_RELEASES                 (QString("https://github.com/ripose-jp/memento/releases"))
 
@@ -74,6 +76,21 @@ enum class AudioSourceType
 
 #define SETTINGS_BEHAVIOR_SUBTITLE_PAUSE            "subtitle-pause"
 #define SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT    false
+
+enum class FileOpenDirectory
+{
+    Current = 0,
+    Home = 1,
+    Movies = 2,
+    Documents = 3,
+    Custom = 4
+};
+
+#define SETTINGS_BEHAVIOR_FILE_OPEN_DIR             "file-open-dir"
+#define SETTINGS_BEHAVIOR_FILE_OPEN_DIR_DEFAULT     (FileOpenDirectory::Current)
+
+#define SETTINGS_BEHAVIOR_FILE_OPEN_CUSTOM          "file-open-custom"
+#define SETTINGS_BEHAVIOR_FILE_OPEN_CUSTOM_DEFAULT  (DirectoryUtils::getFileOpenDirectory(FileOpenDirectory::Home))
 
 /* Dictionary Settings */
 #define SETTINGS_DICTIONARIES           "dictionaries"

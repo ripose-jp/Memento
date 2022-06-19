@@ -202,6 +202,12 @@ private:
      */
     void applySubtitlePauseSetting();
 
+    /**
+     * Gets the saved Open File path.
+     * @return The Open File path.
+     */
+    QString getOpenFilePath() const;
+
     Ui::PlayerMenu *m_ui;
 
     /* Contains all the information about menu items corresponding to tracks */

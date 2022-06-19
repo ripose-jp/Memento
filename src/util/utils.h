@@ -24,6 +24,8 @@
 #include <QFile>
 #include <QString>
 
+enum class FileOpenDirectory;
+
 #if defined(Q_OS_WIN)
 #define SLASH "\\"
 #elif defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
@@ -83,6 +85,13 @@ public:
      * @return The dictionary resource directory path.
      */
     static QString getDictionaryResourceDir();
+
+    /**
+     * Gets a directory file a FileOpenDirectory enum.
+     * @param type The type of directory to fetch.
+     * @return The path to the directory, empty if custom.
+     */
+    static QString getFileOpenDirectory(FileOpenDirectory type);
 
 private:
     DirectoryUtils() {}

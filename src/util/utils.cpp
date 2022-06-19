@@ -45,15 +45,15 @@
 QString DirectoryUtils::getProgramDirectory()
 {
     return QDir::toNativeSeparators(
-            QCoreApplication::applicationDirPath()
-        ) + SLASH;
+        QCoreApplication::applicationDirPath()
+    ) + SLASH;
 }
 
 QString DirectoryUtils::getConfigDir()
 {
     QString path = QDir::toNativeSeparators(
-            QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
-        );
+        QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
+    );
     path.chop(sizeof("memento") - 1);
     if (path.isEmpty() || !path.endsWith(SLASH))
     {
@@ -93,6 +93,32 @@ QString DirectoryUtils::getDictionaryResourceDir()
 }
 
 #undef RES
+
+QString DirectoryUtils::getFileOpenDirectory(FileOpenDirectory type)
+{
+    QString path;
+    switch (type)
+    {
+    case FileOpenDirectory::Current:
+        return "";
+    case FileOpenDirectory::Home:
+        path = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+        break;
+    case FileOpenDirectory::Movies:
+        path = QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
+        break;
+    case FileOpenDirectory::Documents:
+        path = QStandardPaths::writableLocation(
+            QStandardPaths::DocumentsLocation
+        );
+        break;
+    case FileOpenDirectory::Custom:
+    default:
+        break;
+    }
+    path = QDir::toNativeSeparators(path);
+    return path;
+}
 
 /* End DirectoryUtils */
 /* Begin FileUtils */

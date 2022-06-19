@@ -596,9 +596,30 @@ void PlayerMenu::updateSecondarySubtitleAction(const int id)
 /* End Track Methods */
 /* Begin Media Openers */
 
+QString PlayerMenu::getOpenFilePath() const
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_BEHAVIOR);
+
+    FileOpenDirectory type = (FileOpenDirectory)settings.value(
+        SETTINGS_BEHAVIOR_FILE_OPEN_DIR,
+        (int)SETTINGS_BEHAVIOR_FILE_OPEN_DIR_DEFAULT
+    ).toInt();
+    if (type == FileOpenDirectory::Custom)
+    {
+        return settings.value(
+            SETTINGS_BEHAVIOR_FILE_OPEN_CUSTOM,
+            SETTINGS_BEHAVIOR_FILE_OPEN_CUSTOM_DEFAULT
+        ).toString();
+    }
+    return DirectoryUtils::getFileOpenDirectory(type);
+}
+
 void PlayerMenu::openFile()
 {
-    QStringList files = QFileDialog::getOpenFileNames(window(), "Open File(s)");
+    QStringList files = QFileDialog::getOpenFileNames(
+        window(), "Open File(s)", getOpenFilePath()
+    );
     if (!files.isEmpty())
     {
         m_player->stop();
@@ -628,7 +649,7 @@ void PlayerMenu::openUrl()
 void PlayerMenu::openSubtitle()
 {
     QString file = QFileDialog::getOpenFileName(
-        window(), "Open Subtitle", QString(),
+        window(), "Open Subtitle", getOpenFilePath(),
         "Subtitle Files (*.ass *.srt *.vtt *.utf *.utf8 *.utf-8 *.idx *.sub "
         "*.rt *.ssa *.mks *.sup *.scc *.smi *.lrc *.pgs);;All Files (*)"
     );

@@ -23,6 +23,10 @@
 
 #include <QWidget>
 
+#include <QMap>
+
+enum class FileOpenDirectory;
+
 namespace Ui
 {
     class BehaviorSettings;
@@ -62,9 +66,23 @@ private Q_SLOTS:
      */
     void applySettings();
 
+    /**
+     * Handles a change in the File Open option to hide/show the custom input.
+     * @param text The text from the File Open combo box.
+     */
+    void handleFileOpenChange(const QString &text);
+
+    /**
+     * Sets the custom Open File directory.
+     */
+    void setCustomDirectory();
+
 private:
     /* The UI object containing all the widgets. */
     Ui::BehaviorSettings *m_ui;
+
+    /* Maps ComboBox options to their corresponding enum values */
+    QMap<QString, FileOpenDirectory> m_fileOpenMap;
 };
 
 #endif // BEHAVIORSETTINGS_H
