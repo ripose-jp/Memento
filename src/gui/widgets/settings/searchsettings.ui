@@ -28,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>579</width>
-        <height>480</height>
+        <height>512</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layoutScrollArea">
@@ -179,6 +179,16 @@ Changing this value from the default is not recommended.</string>
           <widget class="QCheckBox" name="checkHideSearch">
            <property name="text">
             <string>Hide subtitle search when playing media</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkHoverPause">
+           <property name="toolTip">
+            <string>Pauses the player when the mouse is moved over the subtitle search</string>
+           </property>
+           <property name="text">
+            <string>Pause on subtitle search hover</string>
            </property>
           </widget>
          </item>

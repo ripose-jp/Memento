@@ -288,6 +288,10 @@ void SubtitleWidget::initSettings()
             SETTINGS_SEARCH_HIDE_BAR_DEFAULT
         ).toBool();
     adjustVisibility();
+    m_settings.pauseOnHover = settings.value(
+            SETTINGS_SEARCH_HOVER_PAUSE,
+            SETTINGS_SEARCH_HOVER_PAUSE_DEFAULT
+        ).toBool();
 
     m_settings.replaceNewLines = settings.value(
             SETTINGS_SEARCH_REPLACE_LINES,
@@ -339,6 +343,11 @@ void SubtitleWidget::hideEvent(QHideEvent *event)
 void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
 {
     StrokeLabel::mouseMoveEvent(event);
+
+    if (m_settings.pauseOnHover && !m_paused)
+    {
+        GlobalMediator::getGlobalMediator()->getPlayerAdapter()->pause();
+    }
 
     int position = getPosition(event->pos());
     if (!m_paused || position == m_currentIndex || position == -1)

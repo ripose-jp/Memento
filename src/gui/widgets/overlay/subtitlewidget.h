@@ -195,6 +195,10 @@ private:
          */
         bool hideOnPlay;
 
+        /* true if playback should pause when the mouse moves over the
+         * subtitle false otherwise */
+        bool pauseOnHover;
+
         /* True if newlines should be replaced before being displayed, false
          * otherwise.
          */
@@ -206,9 +210,9 @@ private:
         /* true if subtitles should be shown when needed, false otherwise. */
         bool showSubtitles;
 
-	/* True if playback should be paused for the current subtitle, false
-	 * otherwise. */
-	bool pauseOnSubtitleEnd;
+        /* True if playback should be paused for the current subtitle, false
+         * otherwise. */
+        bool pauseOnSubtitleEnd;
     } m_settings;
 };
 

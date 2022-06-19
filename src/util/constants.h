@@ -124,6 +124,12 @@ enum class FileOpenDirectory
 #define SETTINGS_SEARCH_HIDE_BAR                    "hide-bar"
 #define SETTINGS_SEARCH_HIDE_BAR_DEFAULT            false
 
+#define SETTINGS_SEARCH_HOVER_PAUSE                 "hover-pause"
+#define SETTINGS_SEARCH_HOVER_PAUSE_DEFAULT         false
+
+#define SETTINGS_SEARCH_LIST_GLOSSARY               "list-result"
+#define SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT       true
+
 #define SETTINGS_SEARCH_REPLACE_LINES               "replace-lines"
 #define SETTINGS_SEARCH_REPLACE_LINES_DEFAULT       false
 
@@ -132,9 +138,6 @@ enum class FileOpenDirectory
 
 #define SETTINGS_SEARCH_REMOVE_REGEX                "remove-regex"
 #define SETTINGS_SEARCH_REMOVE_REGEX_DEFAULT        ""
-
-#define SETTINGS_SEARCH_LIST_GLOSSARY               "list-result"
-#define SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT       true
 
 /* Interface Settings */
 enum class Theme

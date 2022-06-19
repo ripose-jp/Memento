@@ -122,6 +122,11 @@ void SearchSettings::restoreSaved()
             SETTINGS_SEARCH_HIDE_BAR, SETTINGS_SEARCH_HIDE_BAR_DEFAULT
         ).toBool()
     );
+    m_ui->checkHoverPause->setChecked(
+        settings.value(
+            SETTINGS_SEARCH_HOVER_PAUSE, SETTINGS_SEARCH_HOVER_PAUSE_DEFAULT
+        ).toBool()
+    );
     m_ui->checkGlossaryList->setChecked(
         settings.value(
             SETTINGS_SEARCH_LIST_GLOSSARY, SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT
@@ -153,6 +158,7 @@ void SearchSettings::restoreDefaults()
     m_ui->comboBoxModifier->setCurrentText(SETTINGS_SEARCH_MODIFIER_DEFAULT);
     m_ui->checkHideSubs->setChecked(SETTINGS_SEARCH_HIDE_SUBS_DEFAULT);
     m_ui->checkHideSearch->setChecked(SETTINGS_SEARCH_HIDE_BAR_DEFAULT);
+    m_ui->checkHoverPause->setChecked(SETTINGS_SEARCH_HOVER_PAUSE_DEFAULT);
     m_ui->checkGlossaryList->setChecked(SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT);
     m_ui->checkReplaceNewLines->setChecked(
         SETTINGS_SEARCH_REPLACE_LINES_DEFAULT
@@ -182,6 +188,9 @@ void SearchSettings::applySettings()
     );
     settings.setValue(
         SETTINGS_SEARCH_HIDE_BAR, m_ui->checkHideSearch->isChecked()
+    );
+    settings.setValue(
+        SETTINGS_SEARCH_HOVER_PAUSE, m_ui->checkHoverPause->isChecked()
     );
     settings.setValue(
         SETTINGS_SEARCH_LIST_GLOSSARY, m_ui->checkGlossaryList->isChecked()
