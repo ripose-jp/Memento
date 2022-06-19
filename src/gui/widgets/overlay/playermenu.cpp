@@ -628,7 +628,7 @@ void PlayerMenu::openUrl()
 void PlayerMenu::openSubtitle()
 {
     QString file = QFileDialog::getOpenFileName(
-        0, "Open Subtitle", QString(),
+        window(), "Open Subtitle", QString(),
         "Subtitle Files (*.ass *.srt *.vtt *.utf *.utf8 *.utf-8 *.idx *.sub "
         "*.rt *.ssa *.mks *.sup *.scc *.smi *.lrc *.pgs);;All Files (*)"
     );
