@@ -598,7 +598,7 @@ void PlayerMenu::updateSecondarySubtitleAction(const int id)
 
 void PlayerMenu::openFile()
 {
-    QList<QUrl> files = QFileDialog::getOpenFileUrls(window(), "Open File");
+    QStringList files = QFileDialog::getOpenFileNames(window(), "Open File(s)");
     if (!files.isEmpty())
     {
         m_player->stop();

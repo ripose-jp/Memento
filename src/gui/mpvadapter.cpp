@@ -596,7 +596,7 @@ void MpvAdapter::open(const QString     &file,
     }
 }
 
-bool MpvAdapter::open(const QList<QUrl> &files)
+bool MpvAdapter::open(const QStringList &files)
 {
     if (files.isEmpty())
     {
@@ -605,9 +605,8 @@ bool MpvAdapter::open(const QList<QUrl> &files)
 
     bool firstFile = true;
 
-    for (const auto &file : files)
+    for (const QString &path : files)
     {
-        const QString &path = file.toLocalFile();
         QString ext =
             path.right(path.size() - path.lastIndexOf('.') - 1).toLower();
         if (m_subExts.contains(ext))

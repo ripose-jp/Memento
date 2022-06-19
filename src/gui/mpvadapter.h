@@ -78,7 +78,7 @@ public Q_SLOTS:
     void open(const QString     &file,
               const bool         append = false,
               const QStringList &options = QStringList()) override;
-    bool open(const QList<QUrl> &files) override;
+    bool open(const QStringList &files) override;
 
     void addSubtitle(const QString &file) override;
 
