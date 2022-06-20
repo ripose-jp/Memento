@@ -24,6 +24,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QSet>
+#include <QUrl>
 
 /**
  * Information about an SRT subtitle.
@@ -63,9 +64,12 @@ QList<SubtitleInfo> SubtitleParser::parseSubtitles(const QString &path) const
 {
     QList<SubtitleInfo> subtitles;
 
-    QFile file(path);
+    QFile file(QUrl(path).toLocalFile());
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
+        qDebug() << "Subtitle Parser: Could not open file";
+        qDebug() << path;
+        qDebug() << file.errorString();
         return subtitles;
     }
 
