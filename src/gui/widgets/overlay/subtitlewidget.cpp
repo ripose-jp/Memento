@@ -376,7 +376,7 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
 
 void SubtitleWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    QApplication::clipboard()->setText(m_subtitle.rawText);
+    QApplication::clipboard()->setText(getText());
 }
 
 void SubtitleWidget::leaveEvent(QEvent *event)
