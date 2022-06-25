@@ -46,6 +46,15 @@ struct SearchPair
     QString surface;
 };
 
+/**
+ * A special SearchPair that contains additional information needed by MeCab.
+ */
+struct MeCabPair : public SearchPair
+{
+    /* The surface string without whitespace */
+    QString surfaceClean;
+};
+
 /* Begin Static Helpers */
 #if defined(Q_OS_WIN)
 /**
@@ -258,37 +267,75 @@ void Dictionary::MeCabWorker::run()
 #define WORD_INDEX 6
 
 /**
+ * Gets the deconjugated word from a MeCab node.
+ * @param node The node to get the deconjugation from.
+ * @return The deconjugated word, * if there was an error.
+ */
+static inline QString extractDeconjugation(const MeCab::Node *node)
+{
+    return QString::fromUtf8(node->feature).split(',')[WORD_INDEX];
+}
+
+#undef WORD_INDEX
+
+/**
+ * Gets the surface string including whitespace from a MeCab node.
+ * @param node The MeCab node to get the surface from.
+ * @return The surface string including whitespace.
+ */
+static inline QString extractSurface(const MeCab::Node *node)
+{
+    const char *rawText = node->surface;
+    rawText -= node->rlength - node->length;
+    return QString::fromUtf8(rawText, node->rlength);
+}
+
+/**
+ * Gets the surface string without whitespace from a MeCab node.
+ * @param node The MeCab node to get the surface from.
+ * @return The surface string without whitespace.
+ */
+static inline QString extractCleanSurface(const MeCab::Node *node)
+{
+    return QString::fromUtf8(node->surface, node->length);
+}
+
+/**
  * Recursively generates queries and surface strings from a node.
  * @param node The node to start at. Usually the next node after the BOS
  *             node. Is nullptr safe.
  * @return A list of conjugated string and surface (raw) strings. Belongs to
  *         the caller.
  */
-static QList<SearchPair> *generateQueriesHelper(
+static QList<MeCabPair> *generateQueriesHelper(
     const MeCab::Node *node)
 {
-    QList<SearchPair> *queries = new QList<SearchPair>;
+    QList<MeCabPair> *queries = new QList<MeCabPair>;
     while (node)
     {
-        QString deconj =
-            QString::fromUtf8(node->feature).split(',')[WORD_INDEX];
-        QString surface = QString::fromUtf8(node->surface, node->length);
+        QString deconj = extractDeconjugation(node);
+        QString surface = extractSurface(node);
+        QString surfaceClean = extractCleanSurface(node);
         if (deconj != "*")
         {
-            queries->push_back(SearchPair{
-                .deconj = deconj,
-                .surface = surface
+            queries->append(MeCabPair{
+                {
+                    .deconj = deconj,
+                    .surface = surface
+                },
+                .surfaceClean = surfaceClean
             });
         }
 
         if (node->next)
         {
-            QList<SearchPair> *subQueries = generateQueriesHelper(node->next);
-            for (SearchPair &p : *subQueries)
+            QList<MeCabPair> *subQueries = generateQueriesHelper(node->next);
+            for (MeCabPair &p : *subQueries)
             {
-                p.deconj.prepend(surface);
+                p.deconj.prepend(surfaceClean);
                 p.surface.prepend(surface);
-                queries->push_back(p);
+                p.surfaceClean.prepend(surfaceClean);
+                queries->append(p);
             }
             delete subQueries;
         }
@@ -297,8 +344,6 @@ static QList<SearchPair> *generateQueriesHelper(
     }
     return queries;
 }
-
-#undef WORD_INDEX
 
 QList<SearchPair> Dictionary::generateQueries(const QString &query)
 {
@@ -320,10 +365,10 @@ QList<SearchPair> Dictionary::generateQueries(const QString &query)
     }
 
     /* Generate queries */
-    QList<SearchPair> *unfiltered =
+    QList<MeCabPair> *unfiltered =
         generateQueriesHelper(lattice->bos_node()->next);
     QSet<QString> duplicates;
-    for (const SearchPair &p : *unfiltered)
+    for (const MeCabPair &p : *unfiltered)
     {
         if (query.startsWith(p.deconj) || duplicates.contains(p.deconj))
         {

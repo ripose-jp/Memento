@@ -400,7 +400,9 @@ void SubtitleWidget::resizeEvent(QResizeEvent *event)
 void SubtitleWidget::findTerms()
 {
     if (!m_paused)
+    {
         return;
+    }
 
     int index = m_currentIndex;
     QString queryStr = getText();
@@ -411,12 +413,12 @@ void SubtitleWidget::findTerms()
         return;
     }
 
-    QString rawText = m_subtitle.rawText;
+    QString subtitleText = getText();
     QThreadPool::globalInstance()->start(
         [=] {
             /* Look for Terms */
             SharedTermList terms = m_dictionary->searchTerms(
-                queryStr, rawText, index, &m_currentIndex
+                queryStr, subtitleText, index, &m_currentIndex
             );
             if (terms == nullptr)
             {
@@ -435,10 +437,7 @@ void SubtitleWidget::findTerms()
             else
             {
                 m_lastEmittedIndex = index;
-                m_lastEmittedSize  = terms->first()->clozeBody.size();
-                m_lastEmittedSize += getText()
-                    .midRef(m_lastEmittedIndex, m_lastEmittedSize)
-                    .count('\n');
+                m_lastEmittedSize = terms->first()->clozeBody.size();
             }
 
             /* Look for Kanji */
@@ -448,10 +447,10 @@ void SubtitleWidget::findTerms()
                 kanji = m_dictionary->searchKanji(queryStr[0]);
                 if (kanji)
                 {
-                    kanji->sentence = rawText;
-                    kanji->clozePrefix = rawText.left(index);
+                    kanji->sentence = subtitleText;
+                    kanji->clozePrefix = subtitleText.left(index);
                     kanji->clozeBody = kanji->character;
-                    kanji->clozeSuffix = rawText.mid(index + 1);
+                    kanji->clozeSuffix = subtitleText.mid(index + 1);
                     if (terms == nullptr)
                     {
                         m_lastEmittedIndex = index;
