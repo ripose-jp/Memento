@@ -693,6 +693,9 @@ static inline QByteArray mouseButtonToString(
     case Qt::RightButton:
         str += "MBTN_RIGHT";
         break;
+    case Qt::MiddleButton:
+        str += "MBTN_MID";
+        break;
     case Qt::BackButton:
         str += "MBTN_BACK";
         break;
