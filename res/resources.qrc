@@ -19,5 +19,7 @@
     <file>images/seekright.svg</file>
     <file>images/audio.svg</file>
     <file>images/noaudio.svg</file>
+    <file>images/kana.svg</file>
+    <file>images/kanji.svg</file>
 </qresource>
 </RCC>

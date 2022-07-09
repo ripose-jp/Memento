@@ -1066,22 +1066,22 @@ QJsonObject AnkiClient::createAnkiNoteObject(
         .arg(term.expression)
         .replace(' ', '_');
 
+    QString expression = term.readingAsExpression
+        ? term.reading : term.expression;
+    QString reading;
     QString furigana;
     QString furiganaPlain;
-    QString reading;
-    if (term.reading.isEmpty())
+    if (term.reading.isEmpty() || term.readingAsExpression)
     {
-        furigana      = term.expression;
-        furiganaPlain = term.expression;
-        reading       = term.expression;
+        reading       = expression;
+        furigana      = expression;
+        furiganaPlain = expression;
     }
     else
     {
-        furigana = FURIGANA_FORMAT_STRING
-            .arg(term.expression)
-            .arg(term.reading);
-        furiganaPlain = term.expression + "[" + term.reading + "]";
         reading = term.reading;
+        furigana = FURIGANA_FORMAT_STRING.arg(expression).arg(reading);
+        furiganaPlain = expression + "[" + reading + "]";
     }
 
     QString glossary, glossaryCompact;
@@ -1111,7 +1111,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(
         }
         value.replace(REPLACE_AUDIO, "");
 
-        value.replace(REPLACE_EXPRESSION,      term.expression);
+        value.replace(REPLACE_EXPRESSION,      expression);
         value.replace(REPLACE_FURIGANA,        furigana);
         value.replace(REPLACE_FURIGANA_PLAIN,  furiganaPlain);
         value.replace(REPLACE_GLOSSARY,        glossary);

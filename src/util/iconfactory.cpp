@@ -103,6 +103,8 @@ void StyleFactory::buildIcons()
     icons[hamburger]     = buildIcon(":/images/hamburger.svg");
     icons[audio]         = buildIcon(":/images/audio.svg");
     icons[noaudio]       = buildIcon(":/images/noaudio.svg");
+    icons[kana]          = buildIcon(":/images/kana.svg");
+    icons[kanji]         = buildIcon(":/images/kanji.svg");
 }
 
 const QIcon &StyleFactory::getIcon(IconFactory::Icon icon) const

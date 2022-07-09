@@ -109,6 +109,11 @@ private Q_SLOTS:
     void toggleGlossaryVisibility();
 
     /**
+     * Toggles whether a word is added with kanji or kana.
+     */
+    void toggleExpressionKanji();
+
+    /**
      * Adds the term belonging to this widget to Anki.
      */
     void addNote();
@@ -244,6 +249,9 @@ private:
 
     /* The context menu for the sound button */
     QMenu *m_menuAudio;
+
+    /* true if the {expression} marker should use kana, false for kanji */
+    bool m_readingAsExp = false;
 };
 
 #endif // TERMWIDGET_H

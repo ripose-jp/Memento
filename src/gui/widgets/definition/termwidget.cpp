@@ -112,6 +112,9 @@ TermWidget::TermWidget(
     m_ui->buttonAddCard->setIcon(factory->getIcon(IconFactory::Icon::plus));
     m_ui->buttonAddCard->setVisible(false);
 
+    m_ui->buttonKanaKanji->setIcon(factory->getIcon(IconFactory::Icon::kanji));
+    m_ui->buttonKanaKanji->setVisible(false);
+
     m_ui->buttonAnkiOpen->setIcon(
         factory->getIcon(IconFactory::Icon::hamburger)
     );
@@ -137,6 +140,10 @@ TermWidget::TermWidget(
     connect(
         m_ui->buttonAddCard, &QToolButton::customContextMenuRequested,
         this, &TermWidget::showAddableAudioSources
+    );
+    connect(
+        m_ui->buttonKanaKanji, &QToolButton::clicked,
+        this, &TermWidget::toggleExpressionKanji
     );
     connect(
         m_ui->buttonAnkiOpen, &QToolButton::clicked,
@@ -289,9 +296,19 @@ void TermWidget::toggleGlossaryVisibility()
     }
 }
 
+void TermWidget::toggleExpressionKanji()
+{
+    m_readingAsExp = !m_readingAsExp;
+    IconFactory *icons = IconFactory::create();
+    m_ui->buttonKanaKanji->setIcon(icons->getIcon(
+        m_readingAsExp ? IconFactory::Icon::kana : IconFactory::Icon::kanji
+    ));
+}
+
 void TermWidget::addNote()
 {
     m_ui->buttonAddCard->setEnabled(false);
+    m_ui->buttonKanaKanji->setEnabled(false);
     if (m_ankiTerm == nullptr)
     {
         m_ankiTerm = initAnkiTerm();
@@ -317,10 +334,12 @@ void TermWidget::addNote()
 void TermWidget::addNote(const AudioSource &src)
 {
     m_ui->buttonAddCard->setEnabled(false);
+    m_ui->buttonKanaKanji->setEnabled(false);
     if (m_ankiTerm == nullptr)
     {
         m_ankiTerm = initAnkiTerm();
     }
+    m_ankiTerm->readingAsExpression = m_readingAsExp;
     m_ankiTerm->audioSrcName = src.name;
     m_ankiTerm->audioURL = src.url;
     m_ankiTerm->audioSkipHash = src.md5;
@@ -337,8 +356,9 @@ void TermWidget::addNote(const AudioSource &src)
             }
             else
             {
-                m_ui->buttonAnkiOpen->setVisible(true);
-                m_ui->buttonAddCard->setVisible(false);
+                m_ui->buttonAnkiOpen->show();
+                m_ui->buttonAddCard->hide();
+                m_ui->buttonKanaKanji->hide();
             }
         }
     );
@@ -486,6 +506,7 @@ void TermWidget::searchKanji(const QString &ch)
 void TermWidget::setAddable(bool value)
 {
     m_ui->buttonAddCard->setVisible(value);
+    m_ui->buttonKanaKanji->setVisible(value && !m_term->reading.isEmpty());
     m_ui->buttonAnkiOpen->setVisible(!value);
     for (int i = 0; i < m_layoutGlossary->count(); ++i)
     {

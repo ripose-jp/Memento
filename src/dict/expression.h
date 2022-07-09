@@ -166,13 +166,14 @@ struct CommonExpFields
  */
 struct Term : public CommonExpFields
 {
-    Term() : score(0) {}
-
     /* The expression of the term (includes kanji if it exists). */
     QString expression;
 
     /* The reading of a term. Usually empty if the term includes no kanji. */
     QString reading;
+
+    /* true if the reading should be used as the expression, false otherwise */
+    bool readingAsExpression = false;
 
     /* The list of tags applicable to this term. */
     QList<Tag> tags;
@@ -186,7 +187,7 @@ struct Term : public CommonExpFields
     /* The score of this term.
      * Larger values generally mean this term is more common.
      */
-    int score;
+    int score = 0;
 
     /* The name of the audio source */
     QString audioSrcName;
