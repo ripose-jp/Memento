@@ -205,7 +205,6 @@ void TermWidget::initUi(
             KANJI_FORMAT_STRING.arg(ch) : ch;
     }
     m_ui->labelKanji->setText(kanjiLabelText);
-    m_ui->labelJisho->setText(generateJishoLink(term.expression));
 
     for (const Frequency &freq : term.frequencies)
     {
@@ -518,13 +517,6 @@ void TermWidget::setAddable(bool value)
 
 /* End Setters */
 /* Begin Helpers */
-
-inline QString TermWidget::generateJishoLink(const QString &exp)
-{
-    return
-        QString("<a href=\"https://jisho.org/search/%1\">Jisho</a>").arg(exp);
-}
-
 
 #define JSON_KEY_TYPE               "type"
 #define JSON_VALUE_TYPE             "audioSourceList"

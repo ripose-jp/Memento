@@ -81,27 +81,6 @@
       </spacer>
      </item>
      <item>
-      <widget class="QLabel" name="labelJisho">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>&lt;a href=&quot;https://jisho.org/&quot;&gt;Jisho&lt;/a&gt;</string>
-       </property>
-       <property name="openExternalLinks">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QToolButton" name="buttonKanaKanji">
        <property name="minimumSize">
         <size>

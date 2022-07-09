@@ -176,13 +176,6 @@ private:
     Term *initAnkiTerm() const;
 
     /**
-     * Creates a Jisho link from an expression.
-     * @param exp The expression to create a Jisho link for.
-     * @return An HTML formatted Jisho link for the expression.
-     */
-    inline QString generateJishoLink(const QString &exp);
-
-    /**
      * Loads all remote audio sources.
      */
     void loadAudioSources();
