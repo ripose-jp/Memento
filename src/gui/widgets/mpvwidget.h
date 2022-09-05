@@ -36,6 +36,8 @@
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #endif
 
+class CursorTimer;
+
 /**
  * Widget that displays the video output from mpv.
  */
@@ -314,6 +316,11 @@ private Q_SLOTS:
     void initTimer();
 
     /**
+     * Shows the cursor over this widget.
+     */
+    void showCursor();
+
+    /**
      * Hides the cursor over this widget.
      */
     void hideCursor();
@@ -370,7 +377,7 @@ private:
     QHash<QString, std::function<void(mpv_event_property *)>> m_propertyMap;
 
     /* Timer responsible for showing and hiding the cursor */
-    QTimer m_cursorTimer;
+    CursorTimer *m_cursorTimer = nullptr;
 
     /* Regular expression used to filter subtitles */
     QRegularExpression m_regex;

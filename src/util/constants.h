@@ -77,6 +77,9 @@ enum class AudioSourceType
 #define SETTINGS_BEHAVIOR_SUBTITLE_PAUSE            "subtitle-pause"
 #define SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT    false
 
+#define SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC          "cursor-hide-osc"
+#define SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC_DEFAULT   true
+
 enum class FileOpenDirectory
 {
     Current = 0,

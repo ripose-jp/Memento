@@ -91,6 +91,17 @@ A value of 0% will fit to media to the window size instead.</string>
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="checkCursorOSC">
+         <property name="toolTip">
+          <string>Hides the cursor with the OSC.
+If unset, Memento will let mpv control cursor visibility.</string>
+         </property>
+         <property name="text">
+          <string>Hide cursor with OSC</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="labelOSC">
          <property name="font">
           <font>

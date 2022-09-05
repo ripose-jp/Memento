@@ -111,6 +111,12 @@ void BehaviorSettings::restoreSaved()
             SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT
         ).toInt()
     );
+    m_ui->checkCursorOSC->setChecked(
+        settings.value(
+            SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC,
+            SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC_DEFAULT
+        ).toBool()
+    );
     m_ui->checkSubtitlePause->setChecked(
         settings.value(
             SETTINGS_BEHAVIOR_SUBTITLE_PAUSE,
@@ -156,6 +162,7 @@ void BehaviorSettings::restoreDefaults()
 {
     m_ui->checkAutofit->setChecked(SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT);
     m_ui->spinAutofit->setValue(SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT);
+    m_ui->checkAutofit->setChecked(SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC_DEFAULT);
     m_ui->checkSubtitlePause->setChecked(
         SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
     );
@@ -179,6 +186,9 @@ void BehaviorSettings::applySettings()
     );
     settings.setValue(
         SETTINGS_BEHAVIOR_AUTOFIT_PERCENT, m_ui->spinAutofit->value()
+    );
+    settings.setValue(
+        SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC, m_ui->checkCursorOSC->isChecked()
     );
     settings.setValue(
         SETTINGS_BEHAVIOR_SUBTITLE_PAUSE, m_ui->checkSubtitlePause->isChecked()

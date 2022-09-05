@@ -39,6 +39,7 @@
 
 #include "util/constants.h"
 #include "util/globalmediator.h"
+#include "util/timer/cursortimer.h"
 
 /* Begin C functions */
 
@@ -73,13 +74,7 @@ MpvWidget::MpvWidget(QWidget *parent)
       m_height(height() * QApplication::desktop()->devicePixelRatioF()),
       m_width(width() * QApplication::desktop()->devicePixelRatioF())
 {
-    /* Run initialization tasks */
-#if defined(Q_OS_MACOS)
-    m_sleepAssertIDValid = false;
-#endif
-    initPropertyMap();
-    initSubtitleRegex();
-    initTimer();
+    /* Set the mediator player widget */
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     mediator->setPlayerWidget(this);
 
@@ -150,15 +145,6 @@ MpvWidget::MpvWidget(QWidget *parent)
         this, &MpvWidget::reportFrameSwap
     );
     connect(
-        &m_cursorTimer, &QTimer::timeout, this, &MpvWidget::hideCursor,
-        Qt::DirectConnection
-    );
-    connect(
-        mediator, &GlobalMediator::definitionsHidden,
-        &m_cursorTimer, qOverload<>(&QTimer::start),
-        Qt::QueuedConnection
-    );
-    connect(
         mediator, &GlobalMediator::searchSettingsChanged,
         this, &MpvWidget::initSubtitleRegex,
         Qt::QueuedConnection
@@ -168,12 +154,21 @@ MpvWidget::MpvWidget(QWidget *parent)
         this, &MpvWidget::initTimer,
         Qt::QueuedConnection
     );
+
+    /* Run initialization tasks */
+#if defined(Q_OS_MACOS)
+    m_sleepAssertIDValid = false;
+#endif
+    initPropertyMap();
+    initSubtitleRegex();
+    initTimer();
 }
 
 MpvWidget::~MpvWidget()
 {
     disconnect();
     makeCurrent();
+    delete m_cursorTimer;
     if (mpv_gl)
     {
         mpv_render_context_free(mpv_gl);
@@ -244,7 +239,7 @@ void MpvWidget::initPropertyMap()
         [=] (mpv_event_property *prop) {
             if (prop->format == MPV_FORMAT_FLAG)
             {
-                setCursor(Qt::BlankCursor);
+                m_cursorTimer->forceTimeout();
                 bool full = *(int *)prop->data;
                 Q_EMIT fullscreenChanged(full);
             }
@@ -454,19 +449,44 @@ void MpvWidget::initSubtitleRegex()
 
 void MpvWidget::initTimer()
 {
-    m_cursorTimer.setSingleShot(true);
-    QSettings settings;
-    settings.beginGroup(SETTINGS_BEHAVIOR);
-    int cursorTimeout = settings.value(
-        SETTINGS_BEHAVIOR_OSC_DURATION,
-        SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT
-    ).toInt();
-    cursorTimeout += settings.value(
-        SETTINGS_BEHAVIOR_OSC_FADE,
-        SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT
-    ).toInt();
-    m_cursorTimer.setInterval(cursorTimeout);
-    settings.endGroup();
+    {
+        QSettings settings;
+        settings.beginGroup(SETTINGS_BEHAVIOR);
+        bool useOSCTimer = settings.value(
+            SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC,
+            SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC_DEFAULT
+        ).toBool();
+        settings.endGroup();
+
+
+        delete m_cursorTimer;
+        if (useOSCTimer)
+        {
+            m_cursorTimer = new OSCTimer(this);
+        }
+        else
+        {
+            m_cursorTimer = new MpvTimer(mpv, this);
+        }
+    }
+
+    connect(
+        m_cursorTimer, &CursorTimer::showCursor,
+        this, &MpvWidget::showCursor,
+        Qt::DirectConnection
+    );
+    connect(
+        m_cursorTimer, &CursorTimer::hideCursor,
+        this, &MpvWidget::hideCursor,
+        Qt::DirectConnection
+    );
+    connect(
+        GlobalMediator::getGlobalMediator(), &GlobalMediator::definitionsHidden,
+        m_cursorTimer, &CursorTimer::start,
+        Qt::QueuedConnection
+    );
+
+    m_cursorTimer->forceTimeout();
 }
 
 /* End Initialization Functions */
@@ -649,11 +669,7 @@ void MpvWidget::mouseMoveEvent(QMouseEvent *event)
     QOpenGLWidget::mouseMoveEvent(event);
     event->ignore();
 
-    if (cursor().shape() == Qt::BlankCursor)
-    {
-        setCursor(Qt::ArrowCursor);
-    }
-    m_cursorTimer.start();
+    m_cursorTimer->start();
     Q_EMIT mouseMoved(event);
 }
 
@@ -756,6 +772,11 @@ void MpvWidget::hideCursor()
      */
     update();
     Q_EMIT cursorHidden();
+}
+
+void MpvWidget::showCursor()
+{
+    setCursor(Qt::CursorShape::ArrowCursor);
 }
 
 /* End Event Handlers */

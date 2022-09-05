@@ -48,3 +48,5 @@ if (APPLE)
         "-framework cocoa"
     )
 endif()
+
+add_subdirectory(timer)

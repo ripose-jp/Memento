@@ -10,6 +10,7 @@ add_library(
 )
 set(
     MPV_WIDGET_LIBS
+    cursortimer
     ${MPV_LIB}
     utils
     Qt5::Widgets

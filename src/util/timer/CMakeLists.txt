@@ -1,0 +1,11 @@
+add_library(
+    cursortimer
+    cursortimer.h
+    osctimer.cpp
+    mpvtimer.cpp
+)
+target_link_libraries(
+    cursortimer
+    Qt5::Core
+    ${MPV_LIB}
+)
