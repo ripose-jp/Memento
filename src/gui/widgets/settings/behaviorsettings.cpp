@@ -162,7 +162,7 @@ void BehaviorSettings::restoreDefaults()
 {
     m_ui->checkAutofit->setChecked(SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT);
     m_ui->spinAutofit->setValue(SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT);
-    m_ui->checkAutofit->setChecked(SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC_DEFAULT);
+    m_ui->checkCursorOSC->setChecked(SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC_DEFAULT);
     m_ui->checkSubtitlePause->setChecked(
         SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
     );
