@@ -20,11 +20,12 @@
 
 #include "subtitleparser.h"
 
-#include <limits>
 #include <QDebug>
 #include <QFile>
 #include <QSet>
 #include <QUrl>
+
+#include <limits>
 
 /**
  * Information about an SRT subtitle.
@@ -32,7 +33,7 @@
 struct SRTInfo : public SubtitleInfo
 {
     /* The position of this subtitle. */
-    QString position;
+    uint32_t position;
 
     SRTInfo &operator=(const SRTInfo &rhs)
     {
