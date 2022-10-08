@@ -65,6 +65,7 @@ AnkiSettings::AnkiSettings(QWidget *parent)
             REPLACE_FURIGANA,
             REPLACE_FURIGANA_PLAIN,
             REPLACE_GLOSSARY_BRIEF,
+            REPLACE_GLOSSARY_COMPACT,
             REPLACE_PITCH,
             REPLACE_PITCH_GRAPHS,
             REPLACE_PITCH_POSITIONS,

@@ -56,6 +56,7 @@
 #define REPLACE_FURIGANA            "{furigana}"
 #define REPLACE_FURIGANA_PLAIN      "{furigana-plain}"
 #define REPLACE_GLOSSARY_BRIEF      "{glossary-brief}"
+#define REPLACE_GLOSSARY_COMPACT    "{glossary-compact}"
 #define REPLACE_PITCH               "{pitch}"
 #define REPLACE_PITCH_GRAPHS        "{pitch-graph}"
 #define REPLACE_PITCH_POSITIONS     "{pitch-position}"
@@ -460,15 +461,17 @@ private:
 
     /**
      * Builds an HTML glossary from the TermDefinitions.
-     * @param      definitions   The definitions to build the glossary from.
-     * @param[out] glossary      The glossary.
-     * @param[out] glossaryBrief The brief glossary.
+     * @param      definitions     The definitions to build the glossary from.
+     * @param[out] glossary        The glossary.
+     * @param[out] glossaryBrief   The brief glossary.
+     * @param[out] glossaryCompact The compact glossary.
      * @return A mapping of file paths to filenames.
      */
     QList<QPair<QString, QString>> buildGlossary(
         const QList<TermDefinition> &definitions,
         QString &glossary,
-        QString &glossaryBrief);
+        QString &glossaryBrief,
+        QString &glossaryCompact);
 
     /**
      * Builds an HTML glossary from the KanjiDefinitions.

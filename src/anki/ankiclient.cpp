@@ -1084,8 +1084,10 @@ QJsonObject AnkiClient::createAnkiNoteObject(
         furiganaPlain = expression + "[" + reading + "]";
     }
 
-    QString glossary, glossaryCompact;
-    filemap = buildGlossary(term.definitions, glossary, glossaryCompact);
+    QString glossary, glossaryBrief, glossaryCompact;
+    filemap = buildGlossary(
+        term.definitions, glossary, glossaryBrief, glossaryCompact
+    );
 
     QString pitch;
     QString pitchGraph;
@@ -1111,16 +1113,17 @@ QJsonObject AnkiClient::createAnkiNoteObject(
         }
         value.replace(REPLACE_AUDIO, "");
 
-        value.replace(REPLACE_EXPRESSION,      expression);
-        value.replace(REPLACE_FURIGANA,        furigana);
-        value.replace(REPLACE_FURIGANA_PLAIN,  furiganaPlain);
-        value.replace(REPLACE_GLOSSARY,        glossary);
-        value.replace(REPLACE_GLOSSARY_BRIEF,  glossaryCompact);
-        value.replace(REPLACE_PITCH,           pitch);
-        value.replace(REPLACE_PITCH_GRAPHS,    pitchGraph);
-        value.replace(REPLACE_PITCH_POSITIONS, pitchPosition);
-        value.replace(REPLACE_READING,         reading);
-        value.replace(REPLACE_TAGS,            tags);
+        value.replace(REPLACE_EXPRESSION,       expression);
+        value.replace(REPLACE_FURIGANA,         furigana);
+        value.replace(REPLACE_FURIGANA_PLAIN,   furiganaPlain);
+        value.replace(REPLACE_GLOSSARY,         glossary);
+        value.replace(REPLACE_GLOSSARY_BRIEF,   glossaryBrief);
+        value.replace(REPLACE_GLOSSARY_COMPACT, glossaryCompact);
+        value.replace(REPLACE_PITCH,            pitch);
+        value.replace(REPLACE_PITCH_GRAPHS,     pitchGraph);
+        value.replace(REPLACE_PITCH_POSITIONS,  pitchPosition);
+        value.replace(REPLACE_READING,          reading);
+        value.replace(REPLACE_TAGS,             tags);
 
         fieldsObj[field] = value;
     }
@@ -1648,22 +1651,27 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
 QList<QPair<QString, QString>> AnkiClient::buildGlossary(
     const QList<TermDefinition> &definitions,
     QString &glossary,
-    QString &glossaryBrief)
+    QString &glossaryBrief,
+    QString &glossaryCompact)
 {
     QString basepath = DirectoryUtils::getDictionaryResourceDir() + SLASH;
 
     glossary += "<div style=\"text-align: left;\"><ol>";
     glossaryBrief += "<div style=\"text-align: left;\"><ol>";
+    glossaryCompact += "<div style=\"text-align: left;\"><ol>";
     QList<QPair<QString, QString>> filemap;
 
     for (const TermDefinition &def : definitions)
     {
         glossary += "<li>";
+        glossaryCompact += "<li>";
 
         glossary += "<i>(";
+        glossaryCompact += "<i>(";
         for (const Tag &tag : def.tags)
         {
             glossary += tag.name + ", ";
+            glossaryCompact += tag.name + ", ";
         }
         for (const Tag &rule : def.rules)
         {
@@ -1672,11 +1680,16 @@ QList<QPair<QString, QString>> AnkiClient::buildGlossary(
                 continue;
             }
             glossary += rule.name + ", ";
+            glossaryCompact += rule.name + ", ";
         }
         glossary += def.dictionary;
         glossary += ")</i>";
+        glossaryCompact += def.dictionary;
+        glossaryCompact += ")</i>";
 
         glossary += "<ul>";
+        glossaryCompact += ' ';
+
         QStringList items = GlossaryBuilder::buildGlossary(
             def.glossary, basepath + def.dictionary, filemap
         );
@@ -1690,13 +1703,15 @@ QList<QPair<QString, QString>> AnkiClient::buildGlossary(
             glossaryBrief += item;
             glossaryBrief += "</li>";
         }
-        glossary += "</ul>";
+        glossaryCompact += items.join(" | ");
 
-        glossary += "</li>";
+        glossary += "</ul></li>";
+        glossaryCompact += "</li>";
     }
 
     glossary += "</ol></div>";
     glossaryBrief += "</ol></div>";
+    glossaryCompact += "</ol></div>";
     return filemap;
 }
 
