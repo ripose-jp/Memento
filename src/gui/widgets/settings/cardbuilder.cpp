@@ -200,6 +200,23 @@ void CompleterEdit::insertCompletion(const QString &completion)
     int extra = completion.length() - m_completer->completionPrefix().length();
     tc.insertText(completion.right(extra));
     setTextCursor(tc);
+
+    /* Truncates everything up to the next } character if found before a newline
+     * or { */
+    QString text = toPlainText();
+    for (int i = tc.position(); i < text.length(); ++i)
+    {
+        if (text[i] == '\n' || text[i] == '{')
+        {
+            return;
+        }
+        else if (text[i] == '}')
+        {
+            tc.setPosition(i + 1, QTextCursor::MoveMode::KeepAnchor);
+            tc.removeSelectedText();
+            return;
+        }
+    }
 }
 
 QString CompleterEdit::firstPrefixUnderCursor() const
