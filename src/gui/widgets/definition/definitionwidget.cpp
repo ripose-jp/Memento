@@ -132,10 +132,10 @@ void DefinitionWidget::initSearch()
     m_limit = settings.value(
             SETTINGS_SEARCH_LIMIT, SETTINGS_SEARCH_LIMIT_DEFAULT
         ).toUInt();
-    m_listGlossary = settings.value(
+    m_glossaryStyle = static_cast<GlossaryStyle>(settings.value(
             SETTINGS_SEARCH_LIST_GLOSSARY,
-            SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT
-        ).toBool();
+            static_cast<int>(SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT)
+        ).toInt());
 
     QString modifier = settings.value(
             SETTINGS_SEARCH_MODIFIER,
@@ -391,7 +391,7 @@ void DefinitionWidget::showTerms(const int start, const int end)
               m_sources,
               m_jsonSources,
               m_searchModifier,
-              m_listGlossary
+              m_glossaryStyle
         );
         connect(
             termWidget, &TermWidget::kanjiSearched,

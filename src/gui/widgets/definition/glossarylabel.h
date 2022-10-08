@@ -25,6 +25,7 @@
 #include <QTextEdit>
 
 #include "dict/expression.h"
+#include "util/constants.h"
 
 class GlossaryLabel : public QTextEdit
 {
@@ -34,13 +35,12 @@ public:
     /**
      * Creates a new glossary label.
      * @param modifier The modifier that triggers recursive searches.
-     * @param list     True to display content in bulleted list, false
-     *                 otherwise.
+     * @param style    The style to display different definitions in.
      * @param parent   The parent of this label.
      */
     GlossaryLabel(
         Qt::KeyboardModifier modifier = Qt::KeyboardModifier::ShiftModifier,
-        bool list = true,
+        GlossaryStyle style = GlossaryStyle::Bullet,
         QWidget *parent = nullptr);
     virtual ~GlossaryLabel();
 
@@ -180,8 +180,8 @@ private:
     /* The modifier that triggers searches */
     Qt::KeyboardModifier m_searchModifier = Qt::KeyboardModifier::ShiftModifier;
 
-    /* If the label should display contents as a list */
-    bool m_list;
+    /* The style of this label */
+    GlossaryStyle m_style;
 
     /* The index that is currently being searched */
     int m_currentIndex = -1;

@@ -44,14 +44,14 @@ public:
      * @param number   The number to label the term.
      * @param def      The term definition to display.
      * @param modifier The modifier key for triggering searches.
-     * @param list     Whether newlines are displayed in an ordered list.
+     * @param style    The style of the GlossaryLabel.
      * @param parent   The parent of the GlossaryWidget.
      */
     GlossaryWidget(
         size_t number,
         const TermDefinition &def,
-        Qt::KeyboardModifier modifer,
-        bool list,
+        Qt::KeyboardModifier modifier,
+        GlossaryStyle style,
         QWidget *parent = nullptr);
 
     /**

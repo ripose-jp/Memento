@@ -114,6 +114,21 @@ void updateSettings()
         programDir.rename(".\\config", configDir.absolutePath());
 #endif
     }
+    case 2:
+    {
+        settings.beginGroup(SETTINGS_SEARCH);
+        bool list = settings.value(
+                SETTINGS_SEARCH_LIST_GLOSSARY,
+                true
+            ).toBool();
+        settings.setValue(
+            SETTINGS_SEARCH_LIST_GLOSSARY,
+            static_cast<int>(
+                list ? GlossaryStyle::Bullet : GlossaryStyle::LineBreak
+            )
+        );
+        settings.endGroup();
+    }
     }
 
     /* Remove saved window configurations just to be safe */

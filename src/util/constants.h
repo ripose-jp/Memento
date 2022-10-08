@@ -30,7 +30,7 @@
 
 /* Versioning */
 #define SETTINGS_VERSION                "version"
-#define SETTINGS_VERSION_CURRENT        2
+#define SETTINGS_VERSION_CURRENT        3
 
 /* Window Sizes */
 #define SETTINGS_GROUP_WINDOW           "main-window"
@@ -130,8 +130,15 @@ enum class FileOpenDirectory
 #define SETTINGS_SEARCH_HOVER_PAUSE                 "hover-pause"
 #define SETTINGS_SEARCH_HOVER_PAUSE_DEFAULT         false
 
+enum class GlossaryStyle
+{
+    Bullet = 0,
+    LineBreak = 1,
+    Pipe = 2,
+};
+
 #define SETTINGS_SEARCH_LIST_GLOSSARY               "list-result"
-#define SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT       true
+#define SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT       (GlossaryStyle::Bullet)
 
 #define SETTINGS_SEARCH_REPLACE_LINES               "replace-lines"
 #define SETTINGS_SEARCH_REPLACE_LINES_DEFAULT       false

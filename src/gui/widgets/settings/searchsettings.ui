@@ -28,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>579</width>
-        <height>512</height>
+        <height>524</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layoutScrollArea">
@@ -192,19 +192,6 @@ Changing this value from the default is not recommended.</string>
            </property>
           </widget>
          </item>
-         <item>
-          <widget class="QCheckBox" name="checkGlossaryList">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="text">
-            <string>Use bullet points in term glossaries</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
         </layout>
        </item>
        <item>
@@ -218,6 +205,48 @@ Changing this value from the default is not recommended.</string>
          </item>
          <item>
           <widget class="QLineEdit" name="lineEditReplace"/>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="layoutGlossaryStyle">
+         <item>
+          <widget class="QLabel" name="labelGlossaryStyle">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Separate glossary entries with</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboGlossaryStyle">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <item>
+            <property name="text">
+             <string>Bullet Points</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Line Breaks</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Vertical Bars</string>
+            </property>
+           </item>
+          </widget>
          </item>
         </layout>
        </item>

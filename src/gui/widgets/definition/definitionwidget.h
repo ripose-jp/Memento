@@ -260,8 +260,8 @@ private:
     /* The keyboard modifier to use for recursive searches */
     Qt::KeyboardModifier m_searchModifier;
 
-    /* Whether newlines in glossary should be displayed in an unordered list */
-    bool m_listGlossary;
+    /* The style of glossaries */
+    GlossaryStyle m_glossaryStyle;
 
     /* The child definition widget */
     QPointer<DefinitionWidget> m_child = nullptr;

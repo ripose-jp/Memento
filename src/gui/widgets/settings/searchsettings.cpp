@@ -127,11 +127,6 @@ void SearchSettings::restoreSaved()
             SETTINGS_SEARCH_HOVER_PAUSE, SETTINGS_SEARCH_HOVER_PAUSE_DEFAULT
         ).toBool()
     );
-    m_ui->checkGlossaryList->setChecked(
-        settings.value(
-            SETTINGS_SEARCH_LIST_GLOSSARY, SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT
-        ).toBool()
-    );
     m_ui->checkReplaceNewLines->setChecked(
         settings.value(
             SETTINGS_SEARCH_REPLACE_LINES, SETTINGS_SEARCH_REPLACE_LINES_DEFAULT
@@ -141,6 +136,12 @@ void SearchSettings::restoreSaved()
         settings.value(
             SETTINGS_SEARCH_REPLACE_WITH, SETTINGS_SEARCH_REPLACE_WITH_DEFAULT
         ).toString()
+    );
+    m_ui->comboGlossaryStyle->setCurrentIndex(
+        settings.value(
+            SETTINGS_SEARCH_LIST_GLOSSARY,
+            static_cast<int>(SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT)
+        ).toInt()
     );
     m_ui->lineRemoveRegex->setText(
         settings.value(
@@ -159,11 +160,13 @@ void SearchSettings::restoreDefaults()
     m_ui->checkHideSubs->setChecked(SETTINGS_SEARCH_HIDE_SUBS_DEFAULT);
     m_ui->checkHideSearch->setChecked(SETTINGS_SEARCH_HIDE_BAR_DEFAULT);
     m_ui->checkHoverPause->setChecked(SETTINGS_SEARCH_HOVER_PAUSE_DEFAULT);
-    m_ui->checkGlossaryList->setChecked(SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT);
     m_ui->checkReplaceNewLines->setChecked(
         SETTINGS_SEARCH_REPLACE_LINES_DEFAULT
     );
     m_ui->lineEditReplace->setText(SETTINGS_SEARCH_REPLACE_WITH_DEFAULT);
+    m_ui->comboGlossaryStyle->setCurrentIndex(
+        static_cast<int>(SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT)
+    );
     m_ui->lineRemoveRegex->setText(SETTINGS_SEARCH_REMOVE_REGEX_DEFAULT);
 }
 
@@ -193,13 +196,14 @@ void SearchSettings::applySettings()
         SETTINGS_SEARCH_HOVER_PAUSE, m_ui->checkHoverPause->isChecked()
     );
     settings.setValue(
-        SETTINGS_SEARCH_LIST_GLOSSARY, m_ui->checkGlossaryList->isChecked()
-    );
-    settings.setValue(
         SETTINGS_SEARCH_REPLACE_LINES, m_ui->checkReplaceNewLines->isChecked()
     );
     settings.setValue(
         SETTINGS_SEARCH_REPLACE_WITH, m_ui->lineEditReplace->text()
+    );
+    settings.setValue(
+        SETTINGS_SEARCH_LIST_GLOSSARY,
+        m_ui->comboGlossaryStyle->currentIndex()
     );
     settings.setValue(
         SETTINGS_SEARCH_REMOVE_REGEX, m_ui->lineRemoveRegex->text()

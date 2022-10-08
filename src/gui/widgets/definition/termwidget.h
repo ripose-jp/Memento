@@ -28,6 +28,7 @@
 #include "anki/ankiclient.h"
 #include "dict/expression.h"
 #include "gui/widgets/common/flowlayout.h"
+#include "util/constants.h"
 
 struct AudioSource;
 class QMenu;
@@ -51,8 +52,7 @@ public:
      * @param sources     A list of audio sources.
      * @param jsonSources True if there are json audio sources.
      * @param modifier    The modifier key for triggering searches.
-     * @param list        True if GlossaryWidget should display newlines as a
-     *                    bulletted list, false otherwise.
+     * @param style       Determines the style of GlossaryWidget.
      * @param parent      The parent of this widget.
      */
     TermWidget(
@@ -60,7 +60,7 @@ public:
         QList<AudioSource> &sources,
         int jsonSources,
         Qt::KeyboardModifier modifier,
-        bool list,
+        GlossaryStyle style,
         QWidget *parent = nullptr);
     ~TermWidget();
 
@@ -164,10 +164,12 @@ private Q_SLOTS:
 private:
     /**
      * Puts term information into the UI.
-     * @param term The term to populate the UI with.
-     * @param list Whether GlossaryWidget displays newlines in an ordered list.
+     * @param term     The term to populate the UI with.
+     * @param modifier The modifier key for triggering recursive search.
+     * @param style    The style of the GlossaryWidget.
      */
-    void initUi(const Term &term, Qt::KeyboardModifier modifier, bool list);
+    void initUi(
+        const Term &term, Qt::KeyboardModifier modifier, GlossaryStyle style);
 
     /**
      * Initializes a new term to add to Anki without audio information.

@@ -28,7 +28,7 @@ GlossaryWidget::GlossaryWidget(
     const size_t number,
     const TermDefinition &def,
     const Qt::KeyboardModifier modifier,
-    const bool list,
+    const GlossaryStyle style,
     QWidget *parent)
     : QWidget(parent),
       m_def(def)
@@ -37,7 +37,7 @@ GlossaryWidget::GlossaryWidget(
     m_layoutHeader  = new FlowLayout(-1, 6);
     m_checkBoxAdd   = new QCheckBox;
     m_labelNumber   = new QLabel;
-    m_glossaryLabel = new GlossaryLabel(modifier, list);
+    m_glossaryLabel = new GlossaryLabel(modifier, style);
 
     m_parentLayout->setMargin(0);
     m_parentLayout->addLayout(m_layoutHeader);
