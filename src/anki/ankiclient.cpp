@@ -1653,7 +1653,7 @@ QList<QPair<QString, QString>> AnkiClient::buildGlossary(
     QString basepath = DirectoryUtils::getDictionaryResourceDir() + SLASH;
 
     glossary += "<div style=\"text-align: left;\"><ol>";
-    glossaryBrief += "<ol>";
+    glossaryBrief += "<div style=\"text-align: left;\"><ol>";
     QList<QPair<QString, QString>> filemap;
 
     for (const TermDefinition &def : definitions)
@@ -1696,7 +1696,7 @@ QList<QPair<QString, QString>> AnkiClient::buildGlossary(
     }
 
     glossary += "</ol></div>";
-    glossaryBrief += "</ol>";
+    glossaryBrief += "</ol></div>";
     return filemap;
 }
 
