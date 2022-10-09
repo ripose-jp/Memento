@@ -65,7 +65,8 @@ QList<SubtitleInfo> SubtitleParser::parseSubtitles(const QString &path) const
 {
     QList<SubtitleInfo> subtitles;
 
-    QFile file(path);
+    QUrl url(path);
+    QFile file(url.isLocalFile() ? url.toLocalFile() : path);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         qDebug() << "Subtitle Parser: Could not open file";
