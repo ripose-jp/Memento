@@ -285,6 +285,11 @@ bool PlayerMenu::menuVisible() const
 void PlayerMenu::hideMenu()
 {
     setFixedHeight(0);
+    QList<QMenu *> menus = m_ui->menubar->findChildren<QMenu *>();
+    for (QMenu *menu : menus)
+    {
+        menu->close();
+    }
 }
 
 void PlayerMenu::showMenu()
