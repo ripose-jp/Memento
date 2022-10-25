@@ -366,7 +366,12 @@ void TermWidget::addNote(const AudioSource &src)
 void TermWidget::searchAnki()
 {
     QString deck = m_client->getConfig()->termDeck;
-    AnkiReply *reply = m_client->openBrowse(deck, m_term->expression);
+    AnkiReply *reply = m_client->openBrowse(
+        deck,
+        m_term->reading.isEmpty() ?
+            m_term->expression :
+            QString("%1 or %2").arg(m_term->expression).arg(m_term->reading)
+    );
     connect(reply, &AnkiReply::finishedIntList, this,
         [=] (const QList<int> &value, const QString &error) {
             if (!error.isEmpty())
