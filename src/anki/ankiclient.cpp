@@ -646,12 +646,34 @@ AnkiReply *AnkiClient::notesAddable(QList<QSharedPointer<const Term>> terms)
             QJsonArray notes;
             for (QSharedPointer<const Term> term : terms)
             {
-                notes.append(createAnkiNoteObject(*term, false));
+                /* Make sure to check for both reading as expression and not */
+                Term termCopy(*term);
+                termCopy.readingAsExpression = false;
+                notes.append(createAnkiNoteObject(termCopy, false));
+                termCopy.readingAsExpression = true;
+                notes.append(createAnkiNoteObject(termCopy, false));
             }
             QJsonObject params;
             params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
+
+            AnkiReply *proxyReply = new AnkiReply;
+            connect(proxyReply, &AnkiReply::finishedBoolList, this,
+                [ankiReply] (const QList<bool> &value, const QString &error)
+                {
+                    QList<bool> result;
+                    /* Aggregate readingAsExpression true and false into one
+                     * value */
+                    for (int i = 0; i < value.size(); i += 2)
+                    {
+                        result.append(value[i] && value[i + 1]);
+                    }
+                    Q_EMIT ankiReply->finishedBoolList(result, error);
+                    ankiReply->deleteLater();
+                }
+            );
+
             Q_EMIT sendBoolListRequest(
-                ANKI_ACTION_CAN_ADD_NOTES, params, ankiReply
+                ANKI_ACTION_CAN_ADD_NOTES, params, proxyReply
             );
         }
     );
