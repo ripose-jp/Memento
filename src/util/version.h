@@ -21,14 +21,17 @@
 #ifndef VERSION_H
 #define VERSION_H
 
+#define DEFINE_TO_STRING_HELPER(x)  (#x)
+#define DEFINE_TO_STRING(x)         (DEFINE_TO_STRING_HELPER(x))
+
 #ifdef CMAKE_VERSION
-#define VERSION                         (QString(CMAKE_VERSION))
+#define VERSION                         (QString(DEFINE_TO_STRING(CMAKE_VERSION)))
 #else
 #define VERSION                         (QString("Version Missing"))
 #endif
 
 #ifdef CMAKE_HASH
-#define VERSION_HASH                    (QString(CMAKE_HASH))
+#define VERSION_HASH                    (QString(DEFINE_TO_STRING(CMAKE_HASH)))
 #else
 #define VERSION_HASH                    (QString(""))
 #endif
