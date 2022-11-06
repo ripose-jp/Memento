@@ -8,6 +8,7 @@ target_link_libraries(
     Qt5::Widgets
     Qt5::Core
 )
+list(APPEND PLAYER_OVERLAY_LIBS progressslider)
 
 add_library(
     playermenu
@@ -18,6 +19,7 @@ target_link_libraries(
     playermenu
     Qt5::Widgets
 )
+list(APPEND PLAYER_OVERLAY_LIBS playermenu)
 
 add_library(
     subtitlewidget
@@ -31,6 +33,7 @@ target_link_libraries(
     dictionary_db
     mpvadapter
 )
+list(APPEND PLAYER_OVERLAY_LIBS subtitlewidget)
 
 add_library(
     playercontrols
@@ -44,6 +47,20 @@ target_link_libraries(
     subtitlewidget
     progressslider
 )
+list(APPEND PLAYER_OVERLAY_LIBS playercontrols)
+
+if(OCR_SUPPORT)
+    add_library(
+        ocroverlay
+        ocroverlay.cpp
+    )
+    target_link_libraries(
+        ocroverlay
+        ocrmodel
+        Qt5::Widgets
+    )
+    list(APPEND PLAYER_OVERLAY_LIBS ocroverlay)
+endif()
 
 add_library(
     playeroverlay
@@ -51,8 +68,5 @@ add_library(
 )
 target_link_libraries(
     playeroverlay
-    playermenu
-    subtitlewidget
-    playercontrols
-    definitionwidget
+    ${PLAYER_OVERLAY_LIBS}
 )

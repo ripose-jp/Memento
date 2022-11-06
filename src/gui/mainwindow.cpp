@@ -151,6 +151,11 @@ void MainWindow::initWindow()
         m_mediator, &GlobalMediator::searchWidgetShown,
         Qt::QueuedConnection
     );
+    connect(
+        m_mediator, &GlobalMediator::searchWidgetRequest,
+        m_ui->searchWidget, &SearchWidget::setSearch,
+        Qt::QueuedConnection
+    );
 
     /* Subtitle List Signals */
     connect(
@@ -205,7 +210,7 @@ void MainWindow::initWindow()
     );
     connect(
         m_mediator, &GlobalMediator::playerTitleChanged, this,
-        [=] (const QString name) { setWindowTitle(name + " - Memento"); },
+        [this] (const QString &name) { setWindowTitle(name + " - Memento"); },
         Qt::QueuedConnection
     );
 
@@ -501,14 +506,23 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
+    event->ignore();
     switch (event->key())
     {
     case Qt::Key::Key_Delete:
         Q_EMIT m_mediator->windowOSCStateCycled();
+        event->accept();
         break;
     default:
         Q_EMIT m_mediator->keyPressed(event);
         break;
+    }
+
+    /* If nothing in the application wanted the keypress, send it to the
+     * player */
+    if (!event->isAccepted())
+    {
+        m_player->keyPressed(event);
     }
 
     QMainWindow::keyPressEvent(event);

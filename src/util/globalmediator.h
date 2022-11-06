@@ -172,7 +172,7 @@ Q_SIGNALS:
      * Emitted when MainWindow detects a keypress.
      * @param event The key press event.
      */
-    void keyPressed(const QKeyEvent *event) const;
+    void keyPressed(QKeyEvent *event) const;
 
     /**
      * Emitted when MainWindow detects a mouse wheel movement.
@@ -478,6 +478,11 @@ Q_SIGNALS:
     void controlsSubtitleListToggled() const;
 
     /**
+     * Emitted when the OCR button is pressed.
+     */
+    void controlsOCRToggled() const;
+
+    /**
      * Emitted when the position of the control slider is changed.
      * @param value The position, in seconds, of the slider.
      */
@@ -561,6 +566,12 @@ Q_SIGNALS:
      * Emitted when the search widget is shown.
      */
     void searchWidgetShown() const;
+
+    /**
+     * Emitted when it is requested for the search widget to execute a query.
+     * @param query The text to search.
+     */
+    void searchWidgetRequest(const QString &query) const;
 
     /* End Search Widget Signals */
     /* Begin Dictionary Signals */

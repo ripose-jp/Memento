@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.14)
 
 set(MEMENTO_VERSION "0.5.6-beta")
 set(MEMENTO_SHORT_VERSION "0.5.6")
@@ -7,6 +7,12 @@ execute_process(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     OUTPUT_VARIABLE MEMENTO_VERSION_HASH
 )
+
+# Options
+option(RELEASE_BUILD OFF)
+option(APPIMAGE OFF)
+option(APPBUNDLE OFF)
+option(OCR_SUPPORT OFF)
 
 if(APPLE)
 	project(Memento VERSION ${MEMENTO_SHORT_VERSION})
@@ -39,6 +45,11 @@ endif()
 if(APPBUNDLE)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAPPBUNDLE=1")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAPPBUNDLE=1")
+endif()
+
+if(OCR_SUPPORT)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DOCR_SUPPORT=1")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DOCR_SUPPORT=1")
 endif()
 
 # Sets the include directories to src
@@ -94,12 +105,12 @@ endif()
 
 # Find Qt
 if(UNIX AND NOT APPLE)
-	find_package(Qt5 COMPONENTS Widgets Network DBus X11Extras Svg REQUIRED)
+	find_package(Qt5 COMPONENTS Widgets Network DBus X11Extras Svg Concurrent REQUIRED)
 	include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
 elseif(APPLE)
-	find_package(Qt5 COMPONENTS Widgets Network Svg REQUIRED)
+	find_package(Qt5 COMPONENTS Widgets Network Svg Concurrent REQUIRED)
 elseif(WIN32)
-	find_package(Qt5 COMPONENTS Widgets Network Svg REQUIRED)
+	find_package(Qt5 COMPONENTS Widgets Network Svg Concurrent REQUIRED)
 endif()
 
 # Other dependencies

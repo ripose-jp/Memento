@@ -27,7 +27,7 @@
 #include <QWidget>
 
 /* Size of the icon enum. Be sure to update when adding icons. */
-#define ICON_ENUM_SIZE  20
+#define ICON_ENUM_SIZE  21
 
 /* Number of XDG icons decided by linux standards. Likely won't change. */
 #define XDG_ICONS       10
@@ -66,7 +66,8 @@ public:
         audio,
         noaudio,
         kana,
-        kanji
+        kanji,
+        eye
     };
 
     /**

@@ -25,6 +25,9 @@
 #include <QPropertyAnimation>
 #include <QSettings>
 
+#ifdef OCR_SUPPORT
+#include "ocroverlay.h"
+#endif // OCR_SUPPORT
 #include "playercontrols.h"
 #include "playermenu.h"
 #include "subtitlewidget.h"
@@ -36,18 +39,26 @@
 
 /* Begin Constructor/Destructor */
 
-PlayerOverlay::PlayerOverlay(QWidget *parent)
-    : QVBoxLayout(parent),
-      m_player(parent),
-      m_definition(new DefinitionWidget(false, m_player))
+PlayerOverlay::PlayerOverlay(QWidget *parent) : QVBoxLayout(parent)
 {
-    /* Hide the definition widget */
-    m_definition->hide();
-
     /* Fix the margins */
     setSpacing(0);
     setContentsMargins(QMargins(0, 0, 0, 0));
     setMargin(0);
+
+    /* Create the container */
+    QVBoxLayout *layoutContainer = new QVBoxLayout;
+    layoutContainer->setSpacing(0);
+    layoutContainer->setContentsMargins(QMargins(0, 0, 0, 0));
+    layoutContainer->setMargin(0);
+    m_container = new QWidget;
+    m_container->setMouseTracking(true);
+    m_container->setLayout(layoutContainer);
+    addWidget(m_container);
+
+    /* Set up the definition widget */
+    m_definition = new DefinitionWidget(false, m_container);
+    m_definition->hide();
 
     /* Add the menubar */
     m_menu = new PlayerMenu;
@@ -55,21 +66,21 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
     QGraphicsOpacityEffect *menuEffect = new QGraphicsOpacityEffect;
     menuEffect->setOpacity(0);
     m_menu->setGraphicsEffect(menuEffect);
-    addWidget(m_menu);
+    layoutContainer->addWidget(m_menu);
 
     /* Add space between the menu and subtitle */
-    addStretch();
+    layoutContainer->addStretch();
 
     /* Add the subtitle */
     m_subtitle = new SubtitleWidget;
-    addWidget(m_subtitle, 0, Qt::AlignmentFlag::AlignCenter);
+    layoutContainer->addWidget(m_subtitle, 0, Qt::AlignmentFlag::AlignCenter);
 
     /* Add the generic widget spacer */
     m_spacer = new QWidget;
     m_spacer->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_spacer->setFixedWidth(0);
     m_spacer->setMouseTracking(true);
-    addWidget(m_spacer);
+    layoutContainer->addWidget(m_spacer);
 
     /* Add the player controls */
     m_controls = new PlayerControls;
@@ -78,11 +89,18 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
     m_controls->setVolumeLimit(
         GlobalMediator::getGlobalMediator()->getPlayerAdapter()->getMaxVolume()
     );
-    m_player->setMinimumWidth(m_controls->minimumWidth());
+    parentWidget()->setMinimumWidth(m_controls->minimumWidth());
     QGraphicsOpacityEffect *controlsEffect = new QGraphicsOpacityEffect;
     controlsEffect->setOpacity(0);
     m_controls->setGraphicsEffect(controlsEffect);
-    addWidget(m_controls);
+    layoutContainer->addWidget(m_controls);
+
+#ifdef OCR_SUPPORT
+    /* Add the OCR Overlay */
+    m_ocrOverlay = new OCROverlay;
+    m_ocrOverlay->hide();
+    addWidget(m_ocrOverlay);
+#endif // OCR_SUPPORT
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     connect(
@@ -220,6 +238,29 @@ PlayerOverlay::PlayerOverlay(QWidget *parent)
         Qt::DirectConnection
     );
 
+#ifdef OCR_SUPPORT
+    connect(
+        mediator, &GlobalMediator::controlsOCRToggled,
+        this, &PlayerOverlay::startOCR,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_ocrOverlay, &OCROverlay::widgetHidden, this, &PlayerOverlay::stopOCR,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_ocrOverlay, &OCROverlay::finished,
+        mediator, &GlobalMediator::searchWidgetRequest,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_ocrOverlay, &OCROverlay::finished,
+        mediator,
+        [mediator] { Q_EMIT mediator->requestSearchVisibility(true); },
+        Qt::QueuedConnection
+    );
+#endif // OCR_SUPPORT
+
     /* Initialize the tick timer */
     m_mouseMovement.lastPoint = QCursor::pos();
     m_mouseMovement.lastTickPoint = m_mouseMovement.lastPoint;
@@ -333,16 +374,16 @@ void PlayerOverlay::setTerms(SharedTermList terms, SharedKanji kanji)
 
 void PlayerOverlay::setDefinitionWidgetLocation()
 {
-    const QPoint mousePos = m_player->mapFromGlobal(QCursor::pos());
+    const QPoint mousePos = parentWidget()->mapFromGlobal(QCursor::pos());
 
     int x = mousePos.x() - (m_definition->width() / 2);
     if (x < 0)
     {
         x = 0;
     }
-    else if (x > m_player->width() - m_definition->width())
+    else if (x > parentWidget()->width() - m_definition->width())
     {
-        x = m_player->width() - m_definition->width();
+        x = parentWidget()->width() - m_definition->width();
     }
 
     int y = m_subtitle->pos().y() - m_definition->height();
@@ -351,7 +392,7 @@ void PlayerOverlay::setDefinitionWidgetLocation()
         y = m_subtitle->pos().y() + m_subtitle->height();
     }
 
-    if (y + m_definition->height() > m_player->height())
+    if (y + m_definition->height() > parentWidget()->height())
     {
         m_definition->hide();
     }
@@ -366,7 +407,7 @@ void PlayerOverlay::setDefinitionWidgetLocation()
 
 void PlayerOverlay::repositionSubtitles()
 {
-    int height = m_player->height() * m_settings.subOffset;
+    int height = parentWidget()->height() * m_settings.subOffset;
     if (m_controls->isVisible())
     {
         height -= m_controls->height();
@@ -445,8 +486,8 @@ void PlayerOverlay::moveSubsDown()
 
 bool PlayerOverlay::underMouse() const
 {
-    return m_player->childrenRegion().contains(
-        m_player->mapFromGlobal(QCursor::pos())
+    return m_container->childrenRegion().contains(
+        parentWidget()->mapFromGlobal(QCursor::pos())
     );
 }
 
@@ -564,6 +605,13 @@ void PlayerOverlay::showOverlay()
         return;
     }
 
+#ifdef OCR_SUPPORT
+    if (m_ocrOverlay->isVisible())
+    {
+        return;
+    }
+#endif // OCR_SUPPORT
+
     /* Restart the timer */
     m_hideTimer.start();
 
@@ -600,3 +648,26 @@ void PlayerOverlay::showOverlay()
 }
 
 /* End General Widget Properties */
+#ifdef OCR_SUPPORT
+/* Begin OCR Handlers */
+
+void PlayerOverlay::startOCR()
+{
+    m_definition->hide();
+    m_container->hide();
+    m_menu->hideMenu();
+    m_controls->hide();
+    m_ocrOverlay->show();
+}
+
+void PlayerOverlay::stopOCR()
+{
+    m_container->show();
+    if (m_settings.visibility == OSCVisibility::Visible)
+    {
+        showOverlay();
+    }
+}
+
+/* End OCR Handlers */
+#endif // OCR_SUPPORT

@@ -45,6 +45,10 @@ PlayerControls::PlayerControls(QWidget *parent)
     initTheme();
     setCursor(Qt::ArrowCursor);
 
+#if !defined(OCR_SUPPORT)
+    m_ui->buttonToggleOCR->hide();
+#endif
+
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     /* Signals */
@@ -106,6 +110,11 @@ PlayerControls::PlayerControls(QWidget *parent)
     connect(
         m_ui->buttonToggleSubList, &QToolButton::clicked,
         mediator,                  &GlobalMediator::controlsSubtitleListToggled,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_ui->buttonToggleOCR,     &QToolButton::clicked,
+        mediator,                  &GlobalMediator::controlsOCRToggled,
         Qt::QueuedConnection
     );
 
@@ -196,6 +205,11 @@ void PlayerControls::initTheme()
         factory->getIcon(IconFactory::Icon::hamburger)
     );
     m_ui->buttonToggleSubList->setAutoRaise(true);
+
+    m_ui->buttonToggleOCR->setIcon(
+        factory->getIcon(IconFactory::Icon::eye)
+    );
+    m_ui->buttonToggleOCR->setAutoRaise(true);
 }
 
 /* End Initializers */

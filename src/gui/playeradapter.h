@@ -383,7 +383,7 @@ public Q_SLOTS:
      * Passes a keypress event to the player.
      * @param event The key press event.
      */
-    virtual void keyPressed(const QKeyEvent *event) = 0;
+    virtual void keyPressed(QKeyEvent *event) = 0;
 
     /**
      * Passes a mouse wheel event to the player.

@@ -219,11 +219,12 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
         this, &PlayerAdapter::setVolume,
         Qt::QueuedConnection
     );
-
     connect(
-        mediator, &GlobalMediator::keyPressed,
-        this, &PlayerAdapter::keyPressed
+        mediator, &GlobalMediator::controlsOCRToggled,
+        this, &PlayerAdapter::pause,
+        Qt::DirectConnection
     );
+
     connect(
         mediator, &GlobalMediator::wheelMoved,
         this, &PlayerAdapter::mouseWheelMoved
@@ -993,7 +994,7 @@ cleanup:
     return filename;
 }
 
-void MpvAdapter::keyPressed(const QKeyEvent *event)
+void MpvAdapter::keyPressed(QKeyEvent *event)
 {
     QString key = "";
     if (event->modifiers() & Qt::ShiftModifier)
@@ -1104,6 +1105,10 @@ void MpvAdapter::keyPressed(const QKeyEvent *event)
     if (mpv_command_async(m_handle, 0, args) < 0)
     {
         qDebug() << "Could not send keypress command for key" << key;
+    }
+    else
+    {
+        event->accept();
     }
 }
 

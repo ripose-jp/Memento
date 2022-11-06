@@ -250,6 +250,22 @@
     </widget>
    </item>
    <item>
+    <widget class="QToolButton" name="buttonToggleOCR">
+     <property name="minimumSize">
+      <size>
+       <width>30</width>
+       <height>30</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>Enter OCR mode</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QToolButton" name="buttonToggleSubList">
      <property name="minimumSize">
       <size>

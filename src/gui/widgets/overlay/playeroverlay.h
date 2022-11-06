@@ -29,6 +29,7 @@
 #include <QTimer>
 
 class DefinitionWidget;
+class OCROverlay;
 class PlayerControls;
 class PlayerMenu;
 class SubtitleWidget;
@@ -53,7 +54,7 @@ public:
      * @param parent The player widget.
      */
     PlayerOverlay(QWidget *parent);
-    ~PlayerOverlay();
+    virtual ~PlayerOverlay() override;
 
 public Q_SLOTS:
     /**
@@ -141,6 +142,18 @@ private Q_SLOTS:
     void menuBarHandleStateChange(bool fullscreen);
 #endif
 
+#ifdef OCR_SUPPORT
+    /**
+     * Starts OCR.
+     */
+    void startOCR();
+
+    /**
+     * Called when OCR is stopped.
+     */
+    void stopOCR();
+#endif // OCR_SUPPORT
+
 private:
     /**
      * Changes the subtitle scale. Saved in settings.
@@ -157,11 +170,21 @@ private:
      */
     void moveSubtitles(const double inc);
 
-    /* Saved pointer to the player. Does not have ownership. */
-    QWidget *m_player;
-
     /* Saved pointer to the current definition widget. Has ownership. */
     DefinitionWidget *m_definition;
+
+#ifdef OCR_SUPPORT
+    /* Saved pointer to the OCROverlay */
+    OCROverlay *m_ocrOverlay;
+#endif // OCR_SUPPORT
+
+    /* The container widget that holds:
+     * * m_menu
+     * * m_subtitle
+     * * m_spacer
+     * * m_controls
+     */
+    QWidget *m_container;
 
     /* The menu widget */
     PlayerMenu *m_menu;

@@ -112,24 +112,31 @@ Q_SIGNALS:
      */
     void searchUpdated(SharedTermList terms, SharedKanji kanji) const;
 
-private Q_SLOTS:
+public Q_SLOTS:
     /**
-     * Initializes search settings.
+     * Sets the current search.
+     * @param text The text of the search to set.
      */
-    void initSettings();
+    void setSearch(const QString &text);
 
-    /**
+private Q_SLOTS:
+   /**
      * Handler for updating the search widget when new text is entered.
      * @param text The text to search.
      * @param index The index into the text where the search should begin.
      */
-    void updateSearch(QString text, int index);
+    void updateSearch(const QString &text, int index);
 
     /**
      * Handler for updating the search widget when new text is entered.
      * @param text The text to search.
      */
-    void updateSearch(QString text);
+    void updateSearch(const QString &text);
+
+    /**
+     * Initializes search settings.
+     */
+    void initSettings();
 
 protected:
     /**

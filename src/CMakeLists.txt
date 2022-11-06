@@ -1,4 +1,7 @@
 add_subdirectory(util)
+if(OCR_SUPPORT)
+	add_subdirectory(ocr)
+endif()
 add_subdirectory(audio)
 add_subdirectory(dict)
 add_subdirectory(gui)

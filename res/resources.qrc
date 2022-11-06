@@ -1,25 +1,26 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file>memento.svg</file>
-    <file>images/close.svg</file>
-    <file>images/fullscreen.svg</file>
-    <file>images/restore.svg</file>
-    <file>images/plus.svg</file>
-    <file>images/minus.svg</file>
-    <file>images/hamburger.svg</file>
-    <file>images/back.svg</file>
-    <file>images/uparrow.svg</file>
-    <file>images/downarrow.svg</file>
 
-    <file>images/play.svg</file>
-    <file>images/pause.svg</file>
-    <file>images/skipleft.svg</file>
-    <file>images/skipright.svg</file>
-    <file>images/seekleft.svg</file>
-    <file>images/seekright.svg</file>
     <file>images/audio.svg</file>
-    <file>images/noaudio.svg</file>
+    <file>images/back.svg</file>
+    <file>images/close.svg</file>
+    <file>images/downarrow.svg</file>
+    <file>images/eye.svg</file>
+    <file>images/fullscreen.svg</file>
+    <file>images/hamburger.svg</file>
     <file>images/kana.svg</file>
     <file>images/kanji.svg</file>
+    <file>images/minus.svg</file>
+    <file>images/noaudio.svg</file>
+    <file>images/pause.svg</file>
+    <file>images/play.svg</file>
+    <file>images/plus.svg</file>
+    <file>images/restore.svg</file>
+    <file>images/seekleft.svg</file>
+    <file>images/seekright.svg</file>
+    <file>images/skipleft.svg</file>
+    <file>images/skipright.svg</file>
+    <file>images/uparrow.svg</file>
 </qresource>
 </RCC>

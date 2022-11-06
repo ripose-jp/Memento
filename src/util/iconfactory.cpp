@@ -105,6 +105,7 @@ void StyleFactory::buildIcons()
     icons[noaudio]       = buildIcon(":/images/noaudio.svg");
     icons[kana]          = buildIcon(":/images/kana.svg");
     icons[kanji]         = buildIcon(":/images/kanji.svg");
+    icons[eye]           = buildIcon(":/images/eye.svg");
 }
 
 const QIcon &StyleFactory::getIcon(IconFactory::Icon icon) const

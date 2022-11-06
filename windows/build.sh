@@ -11,6 +11,9 @@ echo "Please specify either x86_64 or i686 architecture."
 exit;
 fi
 
+# Exit on error
+set -e
+
 if [[ $arch == 'x86_64' ]]; then
 PREFIX=/mingw64
 LIBGCC=libgcc_s_seh-1.dll
@@ -20,18 +23,23 @@ LIBGCC=libgcc_s_dw2-1.dll
 fi
 
 # build Memento
-mkdir build
+mkdir -p build
 cd build
-$PREFIX/bin/cmake -G "MSYS Makefiles" $2 -DCMAKE_BUILD_TYPE=Release ..
-$PREFIX/bin/cmake --build . -- -j4
+$PREFIX/bin/cmake -DCMAKE_BUILD_TYPE=Release ${CMAKE_ARGS} ..
+$PREFIX/bin/cmake --build . -- -j$(nproc)
 
 # move DLLs and exe to a new directory
-mkdir Memento_$arch
+mkdir -p Memento_$arch
 rm -rf Memento_$arch/memento.exe
 cp src/memento.exe Memento_$arch
 rm -rf Memento_$arch/memento_debug.exe
 cp src/memento_debug.exe Memento_$arch
 cp -r ../dic Memento_$arch
+if [[ "${CMAKE_ARGS}" == *'-DOCR_SUPPORT=ON'*  ]]
+then
+    cp _deps/libmocr-src/build/libmocr.dll Memento_$arch
+    cp _deps/libmocr-src/build/libmocr++.dll Memento_$arch
+fi
 
 python3 ../windows/mingw-bundledlls.py --copy ./Memento_$arch/memento.exe
 cp $PREFIX/bin/libssl-1_1-x64.dll ./Memento_$arch

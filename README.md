@@ -117,6 +117,7 @@ no workaround that can be implemented.
 * Json-C
 * libzip
 * youtube-dl or yt-dlp (optional)
+* Python (optional)
 
 For the best experience, install [Noto Sans JP](https://fonts.google.com/noto/specimen/Noto+Sans+JP)
 and the [Kanji Stroke Order](https://drive.google.com/uc?export=download&id=1oyQoTB531tbhlYaOW7ugvutXZ7HSlJfW) fonts.
@@ -145,7 +146,7 @@ sudo make install
     ```
 1. Install the necessary tools and dependencies:
     ```
-    pacman -S git make mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-mecab mingw-w64-x86_64-json-c mingw-w64-x86_64-libzip
+    pacman -S git make mingw-w64-x86_64-gcc mingw-w64-x86_64-ninja mingw-w64-x86_64-cmake mingw-w64-x86_64-python mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-mecab mingw-w64-x86_64-json-c mingw-w64-x86_64-libzip
     ```
 1. Clone the repository:
     ```
@@ -154,7 +155,7 @@ sudo make install
 1. Build Memento:
     ```
     cd Memento
-    ./windows/windows-build.sh x86_64
+    ./windows/build.sh x86_64
     ```
 1. The resulting file will be in
     ```
@@ -215,6 +216,25 @@ brew install dylibbundler
     Memento/build/src/Memento.app
     ```
 
+### Adding OCR Support
+
+To build with OCR support, make sure that Python is installed and run:
+```
+pip install manga-ocr
+```
+*Any problems you may have getting `manga-ocr` installed using `pip` is beyond the scope of this project. I wish you the best of luck.*
+
+Add `-DOCR_SUPPORT=ON` to the `CMAKE_ARGS` environment variable:
+```
+export CMAKE_ARGS='-DOCR_SUPPORT=ON'
+```
+From here follow normal build instructions for your platform.
+
+**Note**:
+Theoretically OCR is supported on Windows.
+Assuming Memento was built against msys2's version of Python, you will have to
+set the environment variable `PYTHONHOME` to `C:\msys64\mingw64`.
+
 ## Configuration
 
 Most mpv shaders, plugins, and configuration files will work without modification.
@@ -262,19 +282,21 @@ https://github.com/animebook/animebook.github.io
 
 ## Acknowledgements
 
-* MpvWidget code is based off of libmpv example code by w4m.
+* MpvWidget code is based off of libmpv example code by w4m
   * https://github.com/mpv-player/mpv-examples/tree/master/libmpv/qt_opengl
-* Some code based off of Baka-MPlayer.
+* Some code based off of Baka-MPlayer
   * https://github.com/u8sand/Baka-MPlayer
-* Hardware acceleration achieved on Linux using mpc-qt code.
+* Hardware acceleration achieved on Linux using mpc-qt code
   * https://github.com/mpc-qt/mpc-qt
 * UI inspired by and dictionaries provided by Yomichan.
   * https://foosoft.net/projects/yomichan/
-* Fullscreen icons sourced from here.
+* OCR backend written kha-white and contributors
+  * https://github.com/kha-white/manga-ocr
+* Fullscreen icons sourced from here
   * https://www.iconfinder.com/iconsets/material-core
-* Various icons sourced from here.
+* Various icons sourced from here
   * https://www.iconfinder.com/iconsets/ionicons
 * Pause, play, skip, and seek icons sourced from here and used under the [CC 3.0 License](https://creativecommons.org/licenses/by/3.0/)
   * https://www.iconfinder.com/iconsets/play-rounded
-* window_build.sh depends on this script with a slightly expanded blacklist
+* `mingw-bundledlls.py` based on this script with a slightly expanded blacklist
   * https://github.com/mpreisler/mingw-bundledlls

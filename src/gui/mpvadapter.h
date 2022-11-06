@@ -119,7 +119,7 @@ public Q_SLOTS:
                           double db = -20.0,
                           const QString &ext = ".aac") override;
 
-    void keyPressed(const QKeyEvent *event) override;
+    void keyPressed(QKeyEvent *event) override;
     void mouseWheelMoved(const QWheelEvent *event) override;
 
 private Q_SLOTS:

@@ -21,12 +21,12 @@ jobs:
       run: |
         sudo add-apt-repository ppa:beineri/opt-qt-5.15.2-focal
         sudo apt-get update
-        sudo apt-get install qt515base qt515x11extras qt515svg libmpv-dev libsqlite3-dev libmecab-dev mecab-ipadic libjson-c-dev libzip-dev mesa-common-dev
+        sudo apt-get install qt515base qt515x11extras qt515svg libmpv-dev libsqlite3-dev libmecab-dev mecab-ipadic libjson-c-dev libzip-dev mesa-common-dev python3-dev
         /opt/qt515/bin/qt515-env.sh
 
     - name: CMake Build
       run:
-        make
+        CMAKE_ARGS='-DOCR_SUPPORT=ON' make
 
   windows:
     runs-on: windows-latest
@@ -50,7 +50,7 @@ jobs:
           mingw-w64-x86_64-mecab
           mingw-w64-x86_64-json-c
           mingw-w64-x86_64-libzip
-          mingw-w64-x86_64-nsis
+          mingw-w64-x86_64-python
 
     - uses: actions/checkout@v3
 
@@ -58,16 +58,11 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
-        make -j4
-
-    - name: Installer Build
-      run: |
-        make clean
-        ./windows/build-installer.sh
+        cmake -DCMAKE_BUILD_TYPE=Release -DOCR_SUPPORT=ON ..
+        cmake --build . -- -j$(nproc)
 
   macos:
-    runs-on: macos-10.15
+    runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v3
@@ -75,8 +70,8 @@ jobs:
     - name: Install Dependencies
       run: |
         brew update
-        brew install cmake sqlite3 qt5 mpv mecab mecab-ipadic json-c libzip
+        brew install cmake sqlite3 qt5 mpv mecab mecab-ipadic json-c libzip python
 
     - name: CMake Build
       run:
-        make
+        CMAKE_ARGS='-DOCR_SUPPORT=ON' make

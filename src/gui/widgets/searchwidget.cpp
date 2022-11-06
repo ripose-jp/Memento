@@ -94,12 +94,12 @@ SearchWidget::SearchWidget(QWidget *parent)
 
     connect(
         m_searchEdit, &QLineEdit::textEdited,
-        this, qOverload<const QString>(&SearchWidget::updateSearch),
+        this, qOverload<const QString &>(&SearchWidget::updateSearch),
         Qt::QueuedConnection
     );
     connect(
         m_searchEdit, &SearchEdit::searchTriggered,
-        this, qOverload<const QString, int>(&SearchWidget::updateSearch),
+        this, qOverload<const QString &, int>(&SearchWidget::updateSearch),
         Qt::QueuedConnection
     );
     connect(
@@ -156,12 +156,18 @@ void SearchWidget::initSettings()
     settings.endGroup();
 }
 
-void SearchWidget::updateSearch(const QString text)
+void SearchWidget::setSearch(const QString &text)
+{
+    m_searchEdit->setText(text);
+    updateSearch(text);
+}
+
+void SearchWidget::updateSearch(const QString &text)
 {
     updateSearch(text, 0);
 }
 
-void SearchWidget::updateSearch(const QString text, const int index)
+void SearchWidget::updateSearch(const QString &text, const int index)
 {
     QThreadPool::globalInstance()->start(
         [=] {
