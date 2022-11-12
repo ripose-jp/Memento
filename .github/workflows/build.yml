@@ -69,8 +69,8 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        brew update
-        brew install cmake sqlite3 qt5 mpv mecab mecab-ipadic json-c libzip python
+        brew update || true
+        brew install cmake sqlite3 qt5 mpv mecab mecab-ipadic json-c libzip python || true
 
     - name: CMake Build
       run:
