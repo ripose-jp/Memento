@@ -234,12 +234,12 @@ public:
 
     /**
      * Gets if the list of kanji are addable given the current configuration.
-     * @param kanjiList The list of kanji to check if are addable.
+     * @param kanji The list of kanji to check if are addable.
      * @return An AnkiReply that emits the finishedBoolList() signal. The term
      *         at the same index is addable if true, not addable otherwise.
      *         Caller does not have ownership.
      */
-    AnkiReply *notesAddable(QList<QSharedPointer<const Kanji>> kanjiList);
+    AnkiReply *notesAddable(QList<QSharedPointer<const Kanji>> kanji);
 
     /**
      * Adds a term note to Anki.

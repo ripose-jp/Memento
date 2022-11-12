@@ -642,54 +642,67 @@ AnkiReply *AnkiClient::notesAddable(QList<QSharedPointer<const Term>> terms)
     AnkiReply *ankiReply = new AnkiReply;
 
     QThreadPool::globalInstance()->start(
-        [=] {
-            QJsonArray notes;
-            for (QSharedPointer<const Term> term : terms)
+    [this, terms, ankiReply]
+    {
+        QJsonArray notes;
+        for (QSharedPointer<const Term> term : terms)
+        {
+            /* Make sure to check for both reading as expression and not */
+            Term termCopy(*term);
+            termCopy.readingAsExpression = false;
+            notes.append(createAnkiNoteObject(termCopy, false));
+            if (!term->reading.isEmpty())
             {
-                /* Make sure to check for both reading as expression and not */
-                Term termCopy(*term);
-                termCopy.readingAsExpression = false;
-                notes.append(createAnkiNoteObject(termCopy, false));
                 termCopy.readingAsExpression = true;
                 notes.append(createAnkiNoteObject(termCopy, false));
             }
-            QJsonObject params;
-            params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
-
-            AnkiReply *proxyReply = new AnkiReply;
-            connect(proxyReply, &AnkiReply::finishedBoolList, this,
-                [ankiReply] (const QList<bool> &value, const QString &error)
-                {
-                    QList<bool> result;
-                    /* Aggregate readingAsExpression true and false into one
-                     * value */
-                    for (int i = 0; i < value.size(); i += 2)
-                    {
-                        result.append(value[i] && value[i + 1]);
-                    }
-                    Q_EMIT ankiReply->finishedBoolList(result, error);
-                    ankiReply->deleteLater();
-                }
-            );
-
-            Q_EMIT sendBoolListRequest(
-                ANKI_ACTION_CAN_ADD_NOTES, params, proxyReply
-            );
         }
+        QJsonObject params;
+        params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
+
+        AnkiReply *proxyReply = new AnkiReply;
+        connect(proxyReply, &AnkiReply::finishedBoolList, this,
+        [ankiReply, terms] (const QList<bool> &value, const QString &error)
+        {
+            QList<bool> result;
+            /* Aggregate readingAsExpression true and false into one value */
+            for (int termsIdx = 0, valueIdx = 0;
+                 termsIdx < terms.size() && valueIdx < value.size();
+                 ++termsIdx)
+            {
+                if (terms[termsIdx]->reading.isEmpty())
+                {
+                    result << value[valueIdx];
+                    ++valueIdx;
+                }
+                else
+                {
+                    result << (value[valueIdx] && value[valueIdx + 1]);
+                    valueIdx += 2;
+                }
+            }
+            Q_EMIT ankiReply->finishedBoolList(result, error);
+            ankiReply->deleteLater();
+        }
+        );
+
+        Q_EMIT sendBoolListRequest(
+            ANKI_ACTION_CAN_ADD_NOTES, params, proxyReply
+        );
+    }
     );
 
     return ankiReply;
 }
 
-AnkiReply *AnkiClient::notesAddable(
-    QList<QSharedPointer<const Kanji>> kanjiList)
+AnkiReply *AnkiClient::notesAddable(QList<QSharedPointer<const Kanji>> kanji)
 {
     AnkiReply *ankiReply = new AnkiReply;
 
     QThreadPool::globalInstance()->start(
-        [=] {
+        [this, kanji, ankiReply] {
             QJsonArray notes;
-            for (QSharedPointer<const Kanji> kanji : kanjiList)
+            for (QSharedPointer<const Kanji> kanji : kanji)
             {
                 notes.append(createAnkiNoteObject(*kanji, false));
             }
