@@ -3,7 +3,7 @@ include(FetchContent)
 FetchContent_Declare(
     libmocr
     GIT_REPOSITORY https://github.com/ripose-jp/libmocr.git
-    GIT_TAG 10c1d18e09341849ce8c1bf9872382dc06339fe5
+    GIT_TAG 6b01c9c753fa4b9e44a71ef5fcdbef66f21d77b2
 )
 FetchContent_MakeAvailable(libmocr)
 
