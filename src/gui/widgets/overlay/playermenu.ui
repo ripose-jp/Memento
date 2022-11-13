@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>429</width>
+    <width>486</width>
     <height>34</height>
    </rect>
   </property>
@@ -121,10 +121,10 @@
      <widget class="QMenu" name="menuSettings">
       <property name="geometry">
        <rect>
-        <x>1255</x>
-        <y>303</y>
+        <x>1033</x>
+        <y>270</y>
         <width>200</width>
-        <height>231</height>
+        <height>211</height>
        </rect>
       </property>
       <property name="minimumSize">
@@ -139,10 +139,10 @@
       <widget class="QMenu" name="menuAnkiProfile">
        <property name="geometry">
         <rect>
-         <x>664</x>
-         <y>189</y>
-         <width>136</width>
-         <height>56</height>
+         <x>1228</x>
+         <y>274</y>
+         <width>144</width>
+         <height>64</height>
         </rect>
        </property>
        <property name="title">
@@ -150,17 +150,24 @@
        </property>
       </widget>
       <addaction name="menuAnkiProfile"/>
-      <addaction name="actionShowSearch"/>
       <addaction name="actionOptions"/>
       <addaction name="separator"/>
       <addaction name="actionAbout"/>
       <addaction name="actionOpenConfig"/>
       <addaction name="actionUpdate"/>
      </widget>
+     <widget class="QMenu" name="menuTools">
+      <property name="title">
+       <string>Tools</string>
+      </property>
+      <addaction name="actionShowSearch"/>
+      <addaction name="actionOCRMode"/>
+     </widget>
      <addaction name="menuMedia"/>
      <addaction name="menuAudio"/>
      <addaction name="menuVideo"/>
      <addaction name="menuSubtitle"/>
+     <addaction name="menuTools"/>
      <addaction name="menuSettings"/>
     </widget>
    </item>
@@ -335,6 +342,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="actionOCRMode">
+   <property name="text">
+    <string>Enter OCR Mode</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
    </property>
   </action>
  </widget>

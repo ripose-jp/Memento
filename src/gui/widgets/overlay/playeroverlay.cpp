@@ -245,6 +245,11 @@ PlayerOverlay::PlayerOverlay(QWidget *parent) : QVBoxLayout(parent)
         Qt::QueuedConnection
     );
     connect(
+        mediator, &GlobalMediator::menuEnterOCRMode,
+        this, &PlayerOverlay::startOCR,
+        Qt::QueuedConnection
+    );
+    connect(
         m_ocrOverlay, &OCROverlay::widgetHidden, this, &PlayerOverlay::stopOCR,
         Qt::QueuedConnection
     );

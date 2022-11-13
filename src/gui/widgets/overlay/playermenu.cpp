@@ -60,6 +60,10 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     m_ui->actionSubtitleNone->setActionGroup(m_actionGroups.subtitle);
     m_ui->actionSubtitleTwoNone->setActionGroup(m_actionGroups.subtitleTwo);
 
+#ifndef OCR_SUPPORT
+    m_ui->actionOCRMode->setVisible(false);
+#endif
+
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     /* Open Signals */
@@ -85,7 +89,7 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     );
 
     /* Track Signals */
-        connect(
+    connect(
         mediator, &GlobalMediator::playerTracksChanged,
         this, &PlayerMenu::setTracks
     );
@@ -162,6 +166,11 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     connect(
         m_ui->actionShowSearch, &QAction::triggered,
         this, &PlayerMenu::handleToggleSearch,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_ui->actionOCRMode, &QAction::triggered,
+        mediator, &GlobalMediator::menuEnterOCRMode,
         Qt::QueuedConnection
     );
     connect(

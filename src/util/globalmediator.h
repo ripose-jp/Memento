@@ -420,6 +420,11 @@ Q_SIGNALS:
     void menuSubtitlesMoveDown() const;
 
     /**
+     * Emitted when the action for entering OCR mode is triggered.
+     */
+    void menuEnterOCRMode() const;
+
+    /**
      * Emitted when the menu action for showing options is triggered.
      */
     void menuShowOptions() const;

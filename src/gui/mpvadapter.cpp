@@ -224,6 +224,11 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
         this, &PlayerAdapter::pause,
         Qt::DirectConnection
     );
+    connect(
+        mediator, &GlobalMediator::menuEnterOCRMode,
+        this, &PlayerAdapter::pause,
+        Qt::DirectConnection
+    );
 
     connect(
         mediator, &GlobalMediator::wheelMoved,
