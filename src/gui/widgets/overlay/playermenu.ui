@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>486</width>
+    <width>426</width>
     <height>34</height>
    </rect>
   </property>
@@ -70,18 +70,6 @@
        <string>Audio</string>
       </property>
       <addaction name="actionAudioNone"/>
-     </widget>
-     <widget class="QMenu" name="menuVideo">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="title">
-       <string>Video</string>
-      </property>
-      <addaction name="actionVideoNone"/>
      </widget>
      <widget class="QMenu" name="menuSubtitle">
       <property name="minimumSize">
@@ -165,7 +153,6 @@
      </widget>
      <addaction name="menuMedia"/>
      <addaction name="menuAudio"/>
-     <addaction name="menuVideo"/>
      <addaction name="menuSubtitle"/>
      <addaction name="menuTools"/>
      <addaction name="menuSettings"/>

@@ -51,12 +51,10 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     updateAnkiProfileMenu();
 
     m_actionGroups.audio       = new QActionGroup(this);
-    m_actionGroups.video       = new QActionGroup(this);
     m_actionGroups.subtitle    = new QActionGroup(this);
     m_actionGroups.subtitleTwo = new QActionGroup(this);
 
     m_ui->actionAudioNone->setActionGroup(m_actionGroups.audio);
-    m_ui->actionVideoNone->setActionGroup(m_actionGroups.video);
     m_ui->actionSubtitleNone->setActionGroup(m_actionGroups.subtitle);
     m_ui->actionSubtitleTwoNone->setActionGroup(m_actionGroups.subtitleTwo);
 
@@ -99,10 +97,6 @@ PlayerMenu::PlayerMenu(QWidget *parent)
         [=] (bool checked) { if (checked) setAudioTrack(0); }
     );
     connect(
-        m_ui->actionVideoNone, &QAction::toggled, this,
-        [=] (bool checked) { if (checked) setVideoTrack(0); }
-    );
-    connect(
         m_ui->actionSubtitleNone, &QAction::toggled, this,
         [=] (bool checked) { if (checked) setSubtitleTrack(0); }
     );
@@ -116,10 +110,6 @@ PlayerMenu::PlayerMenu(QWidget *parent)
         this, &PlayerMenu::updateAudioAction
     );
     connect(
-        mediator, &GlobalMediator::playerVideoTrackChanged,
-        this, &PlayerMenu::updateVideoAction
-    );
-    connect(
         mediator, &GlobalMediator::playerSubtitleTrackChanged,
         this, &PlayerMenu::updateSubtitleAction
     );
@@ -131,10 +121,6 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     connect(
         mediator, &GlobalMediator::playerAudioDisabled,
         this, [=] { updateAudioAction(); }
-    );
-    connect(
-        mediator, &GlobalMediator::playerVideoDisabled,
-        this, [=] { updateVideoAction(); }
     );
     connect(
         mediator, &GlobalMediator::playerSubtitlesDisabled,
@@ -340,12 +326,6 @@ void PlayerMenu::clearTracks()
         m_ui->actionAudioNone
     );
     clearTrack(
-        m_actionGroups.videoActions,
-        m_ui->menuVideo,
-        m_actionGroups.video,
-        m_ui->actionVideoNone
-    );
-    clearTrack(
         m_actionGroups.subtitleActions,
         m_ui->menuSubtitle,
         m_actionGroups.subtitle,
@@ -392,7 +372,6 @@ void PlayerMenu::setTracks(const QList<const Track *> &tracks)
     clearTracks();
 
     m_actionGroups.audio->blockSignals(true);
-    m_actionGroups.video->blockSignals(true);
     m_actionGroups.subtitle->blockSignals(true);
     m_actionGroups.subtitleTwo->blockSignals(true);
 
@@ -418,27 +397,6 @@ void PlayerMenu::setTracks(const QList<const Track *> &tracks)
                     if (checked)
                     {
                         setAudioTrack(id);
-                    }
-                }
-            );
-            break;
-
-        case Track::Type::video:
-            m_ui->menuVideo->addAction(action);
-            action->setActionGroup(m_actionGroups.video);
-            m_actionGroups.videoActions.append(action);
-
-            if (track->selected)
-            {
-                action->setChecked(true);
-                m_ui->actionVideoNone->setChecked(false);
-            }
-
-            connect(action, &QAction::toggled, action,
-                [=] (bool checked) {
-                    if (checked)
-                    {
-                        setVideoTrack(id);
                     }
                 }
             );
@@ -502,11 +460,13 @@ void PlayerMenu::setTracks(const QList<const Track *> &tracks)
             );
             break;
         }
+
+        case Track::Type::video:
+            break;
         }
     }
 
     m_actionGroups.audio->blockSignals(false);
-    m_actionGroups.video->blockSignals(false);
     m_actionGroups.subtitle->blockSignals(false);
     m_actionGroups.subtitleTwo->blockSignals(false);
 }
@@ -520,18 +480,6 @@ void PlayerMenu::setAudioTrack(const int id)
     else
     {
         m_player->disableAudio();
-    }
-}
-
-void PlayerMenu::setVideoTrack(const int id)
-{
-    if (id)
-    {
-        m_player->setVideoTrack(id);
-    }
-    else
-    {
-        m_player->disableVideo();
     }
 }
 
@@ -568,18 +516,6 @@ void PlayerMenu::updateAudioAction(const int id)
     else if (id <= m_actionGroups.audioActions.size())
     {
         m_actionGroups.audioActions[id - 1]->setChecked(true);
-    }
-}
-
-void PlayerMenu::updateVideoAction(const int id)
-{
-    if (!id)
-    {
-        m_ui->actionVideoNone->setChecked(true);
-    }
-    else if (id <= m_actionGroups.videoActions.size())
-    {
-        m_actionGroups.videoActions[id - 1]->setChecked(true);
     }
 }
 

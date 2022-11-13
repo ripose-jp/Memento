@@ -90,12 +90,6 @@ private Q_SLOTS:
     void setAudioTrack(const int id);
 
     /**
-     * Changes video track to the one specified.
-     * @param id The id of the video track.
-     */
-    void setVideoTrack(const int id);
-
-    /**
      * Changes subtitle track to the one specified.
      * @param id The id of the subtitle track.
      */
@@ -112,12 +106,6 @@ private Q_SLOTS:
      * @param id The id of the audio track. 0 is none.
      */
     void updateAudioAction(const int id = 0);
-
-     /**
-     * Checks the video QAction corresponding to the id.
-     * @param id The id of the video track. 0 is none.
-     */
-    void updateVideoAction(const int id = 0);
 
     /**
      * Checks the subtitle QAction corresponding to the id.
@@ -174,7 +162,7 @@ private Q_SLOTS:
 
 private:
     /**
-     * Clears all the tracks in the Audio, Video, and Subtitle menus.
+     * Clears all the tracks in the Audio and Subtitle menus.
      */
     void clearTracks();
 
@@ -216,9 +204,6 @@ private:
         /* Action group for the tracks in the "Audio" menu */
         QActionGroup *audio;
 
-        /* Action group for the tracks in the "Video" menu */
-        QActionGroup *video;
-
         /* Action group for the tracks in the "Subtitle" menu */
         QActionGroup *subtitle;
 
@@ -227,9 +212,6 @@ private:
 
         /* List of audio QActions (excluding "None") */
         QList<QAction *> audioActions;
-
-        /* List of video QActions (excluding "None") */
-        QList<QAction *> videoActions;
 
         /* List of subtitle QActions (excluding "None") */
         QList<QAction *> subtitleActions;
