@@ -43,6 +43,14 @@ public:
      */
     OCROverlay(QWidget *parent = nullptr);
 
+    virtual ~OCROverlay();
+
+private Q_SLOTS:
+    /**
+     * Initializes settings with respect to settings.
+     */
+    void initOCRSettings();
+
 Q_SIGNALS:
     /**
      * Emitted when an OCR search completes.
@@ -103,7 +111,7 @@ private:
     static QRect span(const QPoint &p1, const QPoint &p2);
 
     /* The OCR model */
-    OCRModel m_model;
+    OCRModel *m_model = nullptr;
 
     /* Watches the last QFuture returned from OCRModel */
     QFutureWatcher<QString> m_resultWatcher;

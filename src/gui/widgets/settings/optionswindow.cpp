@@ -26,6 +26,9 @@
 #include "behaviorsettings.h"
 #include "dictionarysettings.h"
 #include "interfacesettings.h"
+#ifdef OCR_SUPPORT
+#include "ocrsettings.h"
+#endif // OCR_SUPPORT
 #include "searchsettings.h"
 
 #include "util/globalmediator.h"
@@ -37,6 +40,7 @@
 #define NAME_BEHAVIOR       "Behavior"
 #define NAME_DICTIONARIES   "Dictionaries"
 #define NAME_INTERFACE      "Interface"
+#define NAME_OCR            "OCR"
 #define NAME_SEARCH         "Search"
 
 OptionsWindow::OptionsWindow(QWidget *parent)
@@ -60,6 +64,9 @@ OptionsWindow::OptionsWindow(QWidget *parent)
     addOption(NAME_DICTIONARIES, new DictionarySettings);
     addOption(NAME_SEARCH,       new SearchSettings);
     addOption(NAME_INTERFACE,    new InterfaceSettings);
+#ifdef OCR_SUPPORT
+    addOption(NAME_OCR,          new OCRSettings);
+#endif // OCR_SUPPORT
 
     connect(
         m_ui->listOptions, &QListWidget::itemSelectionChanged,

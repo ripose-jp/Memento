@@ -21,8 +21,11 @@
 #include "playercontrols.h"
 #include "ui_playercontrols.h"
 
+#include <QSettings>
+
 #include "gui/playeradapter.h"
 #include "gui/widgets/common/sliderjumpstyle.h"
+#include "util/constants.h"
 #include "util/globalmediator.h"
 
 /* Begin Constructor/Destructor */
@@ -45,7 +48,9 @@ PlayerControls::PlayerControls(QWidget *parent)
     initTheme();
     setCursor(Qt::ArrowCursor);
 
-#if !defined(OCR_SUPPORT)
+#ifdef OCR_SUPPORT
+    initOCRSettings();
+#else
     m_ui->buttonToggleOCR->hide();
 #endif
 
@@ -155,6 +160,13 @@ PlayerControls::PlayerControls(QWidget *parent)
         mediator,             &GlobalMediator::playerChaptersChanged,
         m_ui->sliderProgress, &ProgressSlider::setChapters
     );
+
+#ifdef OCR_SUPPORT
+    connect(
+        mediator, &GlobalMediator::ocrSettingsChanged,
+        this,     &PlayerControls::initOCRSettings
+    );
+#endif // OCR_SUPPORT
 }
 
 PlayerControls::~PlayerControls()
@@ -211,6 +223,21 @@ void PlayerControls::initTheme()
     );
     m_ui->buttonToggleOCR->setAutoRaise(true);
 }
+
+#ifdef OCR_SUPPORT
+void PlayerControls::initOCRSettings()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_OCR);
+
+    bool enabled = settings.value(
+            SETTINGS_OCR_ENABLE, SETTINGS_OCR_ENABLE_DEFAULT
+        ).toBool();
+    m_ui->buttonToggleOCR->setVisible(enabled);
+
+    settings.endGroup();
+}
+#endif // OCR_SUPPORT
 
 /* End Initializers */
 /* Begin Event Handlers */

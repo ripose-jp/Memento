@@ -334,4 +334,16 @@ enum class Theme
     "}"
 #endif
 
+/* OCR Settings */
+#define SETTINGS_OCR                    "ocr"
+
+#define SETTINGS_OCR_ENABLE             "enable"
+#define SETTINGS_OCR_ENABLE_DEFAULT     true
+
+#define SETTINGS_OCR_ENABLE_GPU         "use-gpu"
+#define SETTINGS_OCR_ENABLE_GPU_DEFAULT true
+
+#define SETTINGS_OCR_MODEL              "model"
+#define SETTINGS_OCR_MODEL_DEFAULT      "kha-white/manga-ocr-base"
+
 #endif // CONSTANTS_H

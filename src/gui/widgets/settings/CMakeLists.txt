@@ -15,6 +15,7 @@ target_link_libraries(
     scrollcombobox
     scrolldoublespinbox
 )
+list(APPEND OPTION_WINDOW_LIBS ankisettings)
 
 add_library(
     audiosourcesettings
@@ -26,6 +27,7 @@ target_link_libraries(
     globalmediator
     Qt5::Widgets
 )
+list(APPEND OPTION_WINDOW_LIBS audiosourcesettings)
 
 add_library(
     behaviorsettings
@@ -37,6 +39,7 @@ target_link_libraries(
     globalmediator
     Qt5::Widgets
 )
+list(APPEND OPTION_WINDOW_LIBS behaviorsettings)
 
 add_library(
     dictionarysettings
@@ -49,6 +52,7 @@ target_link_libraries(
     Qt5::Widgets
     dictionary_db
 )
+list(APPEND OPTION_WINDOW_LIBS dictionarysettings)
 
 add_library(
     searchsettings
@@ -60,6 +64,7 @@ target_link_libraries(
     Qt5::Widgets
     Qt5::Core
 )
+list(APPEND OPTION_WINDOW_LIBS searchsettings)
 
 add_library(
     interfacesettings
@@ -71,6 +76,21 @@ target_link_libraries(
     Qt5::Widgets
     Qt5::Core
 )
+list(APPEND OPTION_WINDOW_LIBS interfacesettings)
+
+if(OCR_SUPPORT)
+    add_library(
+        ocrsettings
+        ocrsettings.cpp
+        ocrsettings.ui
+    )
+    target_link_libraries(
+        ocrsettings
+        Qt5::Widgets
+        Qt5::Core
+    )
+    list(APPEND OPTION_WINDOW_LIBS ocrsettings)
+endif()
 
 add_library(
     optionswindow
@@ -79,10 +99,5 @@ add_library(
 )
 target_link_libraries(
     optionswindow
-    ankisettings
-    audiosourcesettings
-    behaviorsettings
-    dictionarysettings
-    interfacesettings
-    searchsettings
+    ${OPTION_WINDOW_LIBS}
 )

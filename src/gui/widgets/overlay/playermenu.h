@@ -77,6 +77,13 @@ Q_SIGNALS:
     void aboutToHide() const;
 
 private Q_SLOTS:
+#ifdef OCR_SUPPORT
+    /**
+     * Initializes menus with regards to OCR Settings.
+     */
+    void initOCRSettings();
+#endif // OCR_SUPPORT
+
     /**
      * Updates the menu with the currently available tracks.
      * @param tracks A list of the currently available tracks.

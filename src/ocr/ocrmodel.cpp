@@ -33,30 +33,49 @@
 
 #ifdef Q_OS_DARWIN
 /**
+ * Struct passed to init_mocr_model_worker to be used as constructor args for
+ * creating an mocr model.
+ */
+struct init_model_args
+{
+    /* The model to use */
+    QString model;
+
+    /* True to use the GPU, false otherwise */
+    bool useGPU;
+};
+
+/**
  * Initializes an libmocr model. This is a pthread method.
  * This is necessary because the default thread size on macOS is too small to
  * initialize libmocr. There is also no way to change the stack size of
  * std::thread or QtConcurrent::run().
  * @return A pointer to the initialized model.
  */
-static void *init_mocr_model_worker(void *)
+static void *init_mocr_model_worker(void *void_args)
 {
-    return new mocr::model;
+    init_model_args *args = reinterpret_cast<init_model_args *>(void_args);
+    return new mocr::model(args->model.toStdString(), !args->useGPU);
 }
 #endif // Q_OS_DARWIN
 
-OCRModel::OCRModel()
+OCRModel::OCRModel(const QString &model, bool useGPU)
 {
+    QWriteLocker locker(&m_modelLock);
 #ifdef Q_OS_DARWIN
     m_model = QtConcurrent::run(
-        [] () -> mocr::model *
+        [model, useGPU] () -> mocr::model *
         {
             pthread_attr_t attrs;
             pthread_attr_init(&attrs);
             pthread_attr_setstacksize(&attrs, APPLE_STACK_SIZE);
 
             pthread_t worker;
-            pthread_create(&worker, &attrs, init_mocr_model_worker, NULL);
+            init_model_args args{
+                .model = model,
+                .useGPU = useGPU
+            };
+            pthread_create(&worker, &attrs, init_mocr_model_worker, &args);
             pthread_attr_destroy(&attrs);
 
             mocr::model *model = nullptr;
@@ -66,9 +85,9 @@ OCRModel::OCRModel()
     );
 #else
     m_model = QtConcurrent::run(
-        [] () -> mocr::model *
+        [model, useGPU] () -> mocr::model *
         {
-            return new mocr::model;
+            return new mocr::model(model.toStdString(), !useGPU);
         }
     );
 #endif
@@ -76,6 +95,7 @@ OCRModel::OCRModel()
 
 OCRModel::~OCRModel()
 {
+    QWriteLocker locker(&m_modelLock);
     delete getModel();
 }
 
@@ -84,6 +104,8 @@ QFuture<QString> OCRModel::getText(const QImage &image)
     return QtConcurrent::run(
         [this, image] () -> QString
         {
+            QReadLocker locker(&m_modelLock);
+
             mocr::model *model = getModel();
             if (!model->valid())
             {

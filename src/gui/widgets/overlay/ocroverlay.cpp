@@ -25,7 +25,10 @@
 #include <QOpenGLWidget>
 #include <QRubberBand>
 #include <QScreen>
+#include <QSettings>
+#include <QtConcurrent>
 
+#include "util/constants.h"
 #include "util/globalmediator.h"
 
 /* Begin Constructor/Destructor */
@@ -39,19 +42,67 @@ OCROverlay::OCROverlay(QWidget *parent)
 
     m_rubberBand->hide();
 
+    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+
     connect(
         &m_resultWatcher, &QFutureWatcher<QString>::finished,
         this, [this] () { Q_EMIT finished(m_resultWatcher.result()); },
         Qt::QueuedConnection
     );
     connect(
-        GlobalMediator::getGlobalMediator(), &GlobalMediator::keyPressed,
+        mediator, &GlobalMediator::ocrSettingsChanged,
+        this, &OCROverlay::initOCRSettings,
+        Qt::DirectConnection
+    );
+    connect(
+        mediator, &GlobalMediator::keyPressed,
         this, &OCROverlay::handleKeyPress,
         Qt::DirectConnection
     );
+
+    initOCRSettings();
 }
 
+OCROverlay::~OCROverlay()
+{
+    delete m_model;
+    m_model = nullptr;
+}
 /* End Constructor/Destructor */
+/* Begin Initializers */
+
+void OCROverlay::initOCRSettings()
+{
+    if (m_model)
+    {
+        OCRModel *model = m_model;
+        m_model = nullptr;
+        QtConcurrent::run([model] { delete model; });
+    }
+
+    QSettings settings;
+    settings.beginGroup(SETTINGS_OCR);
+
+    bool enabled = settings.value(
+            SETTINGS_OCR_ENABLE, SETTINGS_OCR_ENABLE_DEFAULT
+        ).toBool();
+    if (!enabled)
+    {
+        return;
+    }
+
+    QString model = settings.value(
+            SETTINGS_OCR_MODEL, SETTINGS_OCR_MODEL_DEFAULT
+        ).toString();
+    bool useGPU = settings.value(
+            SETTINGS_OCR_ENABLE_GPU, SETTINGS_OCR_ENABLE_GPU_DEFAULT
+        ).toBool();
+    m_model = new OCRModel(model, useGPU);
+
+    settings.endGroup();
+}
+
+/* End Initializers */
 /* Begin Event Handlers */
 
 void OCROverlay::mousePressEvent(QMouseEvent *event)
@@ -108,6 +159,11 @@ void OCROverlay::handleKeyPress(QKeyEvent *event)
 
 void OCROverlay::getText(QRect rect)
 {
+    if (m_model == nullptr)
+    {
+        return;
+    }
+
     QOpenGLWidget *glWidget = dynamic_cast<QOpenGLWidget *>(parentWidget());
     if (glWidget == nullptr)
     {
@@ -122,7 +178,7 @@ void OCROverlay::getText(QRect rect)
             static_cast<int>(rect.height() * ratio)
         ))
     };
-    m_resultWatcher.setFuture(m_model.getText(image));
+    m_resultWatcher.setFuture(m_model->getText(image));
 }
 
 QRect OCROverlay::span(const QPoint &p1, const QPoint &p2)

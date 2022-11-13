@@ -99,6 +99,13 @@ private Q_SLOTS:
      */
     void initTheme();
 
+#ifdef OCR_SUPPORT
+    /**
+     * Initializes OCR related controls.
+     */
+    void initOCRSettings();
+#endif // OCR_SUPPORT
+
     /**
      * Handles the clicking of the pause/play button.
      */

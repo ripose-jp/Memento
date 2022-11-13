@@ -58,7 +58,9 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     m_ui->actionSubtitleNone->setActionGroup(m_actionGroups.subtitle);
     m_ui->actionSubtitleTwoNone->setActionGroup(m_actionGroups.subtitleTwo);
 
-#ifndef OCR_SUPPORT
+#ifdef OCR_SUPPORT
+    initOCRSettings();
+#else
     m_ui->actionOCRMode->setVisible(false);
 #endif
 
@@ -248,6 +250,13 @@ PlayerMenu::PlayerMenu(QWidget *parent)
             Qt::QueuedConnection
         );
     }
+
+#ifdef OCR_SUPPORT
+    connect(
+        mediator, &GlobalMediator::ocrSettingsChanged,
+        this,     &PlayerMenu::initOCRSettings
+    );
+#endif // OCR_SUPPORT
 }
 
 PlayerMenu::~PlayerMenu()
@@ -257,6 +266,24 @@ PlayerMenu::~PlayerMenu()
 }
 
 /* End Constructor/Destructor */
+#ifdef OCR_SUPPORT
+/* Begin Initializers */
+
+void PlayerMenu::initOCRSettings()
+{
+    QSettings settings;
+    settings.beginGroup(SETTINGS_OCR);
+
+    bool enabled = settings.value(
+            SETTINGS_OCR_ENABLE, SETTINGS_OCR_ENABLE_DEFAULT
+        ).toBool();
+    m_ui->actionOCRMode->setVisible(enabled);
+
+    settings.endGroup();
+}
+
+/* End Initializers */
+#endif // OCR_SUPPORT
 /* Begin Status Methods */
 
 bool PlayerMenu::menuOpen() const

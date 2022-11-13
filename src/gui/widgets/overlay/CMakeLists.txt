@@ -58,6 +58,7 @@ if(OCR_SUPPORT)
         ocroverlay
         ocrmodel
         Qt5::Widgets
+        Qt5::Concurrent
     )
     list(APPEND PLAYER_OVERLAY_LIBS ocroverlay)
 endif()

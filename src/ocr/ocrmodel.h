@@ -24,6 +24,7 @@
 #ifdef OCR_SUPPORT
 
 #include <QFuture>
+#include <QReadWriteLock>
 #include <QtGlobal>
 
 namespace mocr
@@ -37,7 +38,14 @@ namespace mocr
 class OCRModel
 {
 public:
-    OCRModel();
+    /**
+     * Initializes an OCRModel object.
+     * @param model  The model to load. This can be a local file, HuggingFace
+     *               repo, or URL.
+     * @param useGPU True to use the GPU is available, false otherwise.
+     */
+    OCRModel(const QString &model, bool useGPU);
+
     virtual ~OCRModel();
 
     /**
@@ -58,6 +66,11 @@ private:
      * model takes a long time, so multithreading its construction prevents
      * the UI from being blocked. */
     QFuture<mocr::model *> m_model;
+
+    /**
+     * A lock to prevent the model from being deleted while it is in use.
+     */
+    QReadWriteLock m_modelLock;
 };
 
 #endif // OCR_SUPPORT

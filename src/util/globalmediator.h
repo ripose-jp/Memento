@@ -388,6 +388,11 @@ Q_SIGNALS:
      */
     void interfaceSettingsChanged() const;
 
+    /**
+     * Emitted when OCR settings are changed.
+     */
+    void ocrSettingsChanged() const;
+
     /* End Settings Signals */
     /* Begin Menu Signals */
 
