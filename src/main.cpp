@@ -18,6 +18,9 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <cstring>
+#include <iostream>
+
 #include <QApplication>
 #include <QDir>
 #include <QFile>
@@ -150,8 +153,37 @@ static void registerMetaTypes()
     qRegisterMetaType<SharedKanji>("SharedKanji");
 }
 
+/**
+ * Checks if the --help command line arg was passed in
+ * @param argc The number of command line arguments
+ * @param argv The values of the command line arguments
+ * @return true if the help message should be shown
+ * @return false otherwise
+ */
+static inline bool showHelpMessage(int argc, char **argv)
+{
+    for (int i = 1; i < argc; ++i)
+    {
+        if (std::strcmp(argv[i], "-h") == 0 ||
+            std::strcmp(argv[i], "--help") == 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 int main(int argc, char **argv)
 {
+    if (showHelpMessage(argc, argv))
+    {
+        std::cout << "Usage:\t memento [options] [url|path/]filename\n"
+            << "\n"
+            << "For more information about command line arguments, see "
+               "https://mpv.io/manual/\n";
+        return 0;
+    }
+
 #if defined(Q_OS_WIN)
     /* Image Formats Windows */
     QCoreApplication::addLibraryPath(DirectoryUtils::getProgramDirectory());
