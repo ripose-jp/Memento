@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
-set(MEMENTO_VERSION "0.5.6-beta")
-set(MEMENTO_SHORT_VERSION "0.5.6")
+set(MEMENTO_VERSION "1.0.0")
+set(MEMENTO_SHORT_VERSION "1.0.0")
 execute_process(
     COMMAND git log --pretty=format:%h -n 1
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
