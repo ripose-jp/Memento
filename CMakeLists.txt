@@ -20,6 +20,7 @@ else()
 	project(memento VERSION ${MEMENTO_SHORT_VERSION})
 endif()
 
+set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
