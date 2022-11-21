@@ -1,6 +1,6 @@
 # Maintainer: Ripose <ripose@protonmail.com>
 pkgname=memento
-pkgver=0.5.6
+pkgver=1.0.0
 pkgrel=0
 pkgdesc="An mpv-based video player for studying Japanese."
 arch=('x86_64')
@@ -23,8 +23,8 @@ optdepends=(
     'mpv-git: additional secondary subtitle support'
     'noto-fonts-cjk: optimal font support'
 )
-source=("${pkgname}-${pkgver}-${pkgrel}.tar.gz::https://github.com/ripose-jp/Memento/archive/refs/tags/v${pkgver}-beta.tar.gz")
-sha256sums=('b0e6db090e965d9c1b295579bb6cd0faf2f64538b2ee229b7a199d4dd37b9364')
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/ripose-jp/Memento/archive/refs/tags/v${pkgver}.tar.gz")
+sha256sums=('7cc9a338899ed4f0a87fb43c1dd25183220570225801f2d1e50083a91359f74c')
 
 prepare() {
     mkdir -p ${srcdir}/build
@@ -35,7 +35,7 @@ build() {
     cmake -DCMAKE_INSTALL_PREFIX:PATH=${pkgdir}/usr \
           -DRELEASE_BUILD=ON \
           -DCMAKE_BUILD_TYPE=Release \
-          "${srcdir}/Memento-${pkgver}-beta"
+          "${srcdir}/Memento-${pkgver}"
     make -j $(grep -c ^processor /proc/cpuinfo)
 }
 
