@@ -50,8 +50,10 @@ Double check your card template to see if the front of the card is missing somet
 
 ### Secondary Subtitles Don't Work
 
-This is (unfortunately) intended behavior.
-If you would like to use secondary subtitles, there are two methods to do so.
+Prior to mpv v0.35.0, it was impossible to set the visibility of primary and
+secondary subtitles independent of one another.
+If you haven't compiled Memento yourself and are using the provided binaries for
+v1.0.0 or later, this section doesn't apply to you.
 
 #### Method 1
 
