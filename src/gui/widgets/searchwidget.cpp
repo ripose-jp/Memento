@@ -171,14 +171,14 @@ void SearchWidget::updateSearch(const QString &text, const int index)
 {
     QThreadPool::globalInstance()->start(
         [=] {
-            QString query = text.mid(index, MAX_SEARCH_SIZE);
+            const QString query = text.mid(index, MAX_SEARCH_SIZE);
             SharedTermList terms =
                 m_dictionary->searchTerms(query, text, index, &index);
 
             SharedKanji kanji = nullptr;
-            if (!text.isEmpty() && CharacterUtils::isKanji(text[0]))
+            if (!query.isEmpty() && CharacterUtils::isKanji(query[0]))
             {
-                kanji = SharedKanji(m_dictionary->searchKanji(text[0]));
+                kanji = SharedKanji(m_dictionary->searchKanji(query[0]));
             }
 
             Q_EMIT searchUpdated(terms, kanji);
