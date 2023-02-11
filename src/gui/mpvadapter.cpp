@@ -521,7 +521,7 @@ int64_t MpvAdapter::getSecondarySubtitleTrack() const
 QString MpvAdapter::getPath() const
 {
     char *path = NULL;
-    if (mpv_get_property(m_handle, "path", MPV_FORMAT_STRING, &path) < 0)
+    if (mpv_get_property(m_handle, "stream-open-filename", MPV_FORMAT_STRING, &path) < 0)
     {
         qDebug() << "Could not get mpv path property";
         return "";
