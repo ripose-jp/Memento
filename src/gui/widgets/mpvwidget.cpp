@@ -78,9 +78,9 @@ MpvWidget::MpvWidget(QWidget *parent)
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     mediator->setPlayerWidget(this);
 
-    /* Setup mpv */
-    mpv = mpv_create();
-    if (!mpv)
+    /* Initialize mpv */
+    m_mpv = mpv_create();
+    if (!m_mpv)
     {
         Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
             "Could not start mpv",
@@ -88,56 +88,6 @@ MpvWidget::MpvWidget(QWidget *parent)
         );
         QCoreApplication::exit(EXIT_FAILURE);
     }
-
-    mpv_set_option_string(mpv, "terminal",               "yes");
-    mpv_set_option_string(mpv, "keep-open",              "yes");
-    mpv_set_option_string(mpv, "hwdec",                  "auto-safe");
-    mpv_set_option_string(mpv, "config",                 "yes");
-    mpv_set_option_string(mpv, "input-default-bindings", "yes");
-    mpv_set_option_string(mpv, "screenshot-directory",   "~~desktop/");
-    mpv_set_option_string(mpv, "ytdl",                   "yes");
-
-    QByteArray configDir = DirectoryUtils::getConfigDir().toUtf8();
-    mpv_set_option_string(mpv, "config-dir", configDir);
-
-    QByteArray inputFile = DirectoryUtils::getMpvInputConfig().toUtf8();
-    mpv_set_option_string(mpv, "input-conf", inputFile);
-
-    if (mpv_initialize(mpv) < 0)
-    {
-        QMessageBox::critical(
-            nullptr,
-            "Could not start mpv",
-            "MpvWidget: Failed to initialize mpv context"
-        );
-        QCoreApplication::exit(EXIT_FAILURE);
-    }
-
-    mpv_observe_property(mpv, 0, "chapter-list",       MPV_FORMAT_NODE);
-    mpv_observe_property(mpv, 0, "duration",           MPV_FORMAT_DOUBLE);
-    mpv_observe_property(mpv, 0, "fullscreen",         MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "media-title",        MPV_FORMAT_STRING);
-    mpv_observe_property(mpv, 0, "path",               MPV_FORMAT_STRING);
-    mpv_observe_property(mpv, 0, "pause",              MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "time-pos",           MPV_FORMAT_DOUBLE);
-    mpv_observe_property(mpv, 0, "track-list/count",   MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "volume",             MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "volume-max",         MPV_FORMAT_INT64);
-
-    mpv_observe_property(mpv, 0, "aid",                MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "aid",                MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "secondary-sid",      MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "secondary-sid",      MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "sid",                MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "sid",                MPV_FORMAT_INT64);
-    mpv_observe_property(mpv, 0, "vid",                MPV_FORMAT_FLAG);
-    mpv_observe_property(mpv, 0, "vid",                MPV_FORMAT_INT64);
-
-    mpv_observe_property(mpv, 0, "secondary-sub-text", MPV_FORMAT_STRING);
-    mpv_observe_property(mpv, 0, "sub-delay",          MPV_FORMAT_DOUBLE);
-    mpv_observe_property(mpv, 0, "sub-text",           MPV_FORMAT_STRING);
-
-    mpv_set_wakeup_callback(mpv, wakeup, this);
 
     /* Signals */
     connect(
@@ -173,7 +123,7 @@ MpvWidget::~MpvWidget()
     {
         mpv_render_context_free(mpv_gl);
     }
-    mpv_terminate_destroy(mpv);
+    mpv_terminate_destroy(m_mpv);
 }
 
 /* End Constructor/Destructor */
@@ -292,7 +242,7 @@ void MpvWidget::initPropertyMap()
     m_propertyMap["track-list/count"] =
         [=] (mpv_event_property *prop) {
             mpv_node node;
-            mpv_get_property(mpv, "track-list", MPV_FORMAT_NODE, &node);
+            mpv_get_property(m_mpv, "track-list", MPV_FORMAT_NODE, &node);
             Q_EMIT tracklistChanged(&node);
             mpv_free_node_contents(&node);
         };
@@ -390,13 +340,13 @@ void MpvWidget::initPropertyMap()
                     double delay, start, end;
 
                     mpv_get_property(
-                        mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
+                        m_mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
                     );
                     mpv_get_property(
-                        mpv, "sub-start", MPV_FORMAT_DOUBLE, &start
+                        m_mpv, "sub-start", MPV_FORMAT_DOUBLE, &start
                     );
                     mpv_get_property(
-                        mpv, "sub-end",   MPV_FORMAT_DOUBLE, &end
+                        m_mpv, "sub-end",   MPV_FORMAT_DOUBLE, &end
                     );
 
                     Q_EMIT subtitleChanged(subtitle, start, end, delay);
@@ -417,13 +367,13 @@ void MpvWidget::initPropertyMap()
                     double start, end, delay;
 
                     mpv_get_property(
-                        mpv, "secondary-sub-start", MPV_FORMAT_DOUBLE, &start
+                        m_mpv, "secondary-sub-start", MPV_FORMAT_DOUBLE, &start
                     );
                     mpv_get_property(
-                        mpv, "secondary-sub-end", MPV_FORMAT_DOUBLE, &end
+                        m_mpv, "secondary-sub-end", MPV_FORMAT_DOUBLE, &end
                     );
                     mpv_get_property(
-                        mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
+                        m_mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
                     );
 
                     Q_EMIT subtitleChangedSecondary(
@@ -466,7 +416,7 @@ void MpvWidget::initTimer()
         }
         else
         {
-            m_cursorTimer = new MpvTimer(mpv, this);
+            m_cursorTimer = new MpvTimer(m_mpv, this);
         }
     }
 
@@ -494,6 +444,7 @@ void MpvWidget::initTimer()
 
 void MpvWidget::initializeGL()
 {
+    /* Initialize the mpv render context */
     mpv_opengl_init_params gl_init_params{
         .get_proc_address = get_proc_address,
         .get_proc_address_ctx = nullptr,
@@ -526,7 +477,7 @@ void MpvWidget::initializeGL()
     }
 #endif
 
-    if (mpv_render_context_create(&mpv_gl, mpv, params) < 0)
+    if (mpv_render_context_create(&mpv_gl, m_mpv, params) < 0)
     {
         Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
             "Could not start mpv",
@@ -537,6 +488,57 @@ void MpvWidget::initializeGL()
     mpv_render_context_set_update_callback(
         mpv_gl, onUpdate, reinterpret_cast<void *>(this)
     );
+
+    /* Initialize the mpv context */
+    mpv_set_option_string(m_mpv, "terminal",               "yes");
+    mpv_set_option_string(m_mpv, "keep-open",              "yes");
+    mpv_set_option_string(m_mpv, "hwdec",                  "auto-safe");
+    mpv_set_option_string(m_mpv, "config",                 "yes");
+    mpv_set_option_string(m_mpv, "input-default-bindings", "yes");
+    mpv_set_option_string(m_mpv, "screenshot-directory",   "~~desktop/");
+    mpv_set_option_string(m_mpv, "ytdl",                   "yes");
+
+    QByteArray configDir = DirectoryUtils::getConfigDir().toUtf8();
+    mpv_set_option_string(m_mpv, "config-dir", configDir);
+
+    QByteArray inputFile = DirectoryUtils::getMpvInputConfig().toUtf8();
+    mpv_set_option_string(m_mpv, "input-conf", inputFile);
+
+    if (mpv_initialize(m_mpv) < 0)
+    {
+        QMessageBox::critical(
+            nullptr,
+            "Could not start mpv",
+            "MpvWidget: Failed to initialize mpv context"
+        );
+        QCoreApplication::exit(EXIT_FAILURE);
+    }
+
+    mpv_observe_property(m_mpv, 0, "chapter-list",       MPV_FORMAT_NODE);
+    mpv_observe_property(m_mpv, 0, "duration",           MPV_FORMAT_DOUBLE);
+    mpv_observe_property(m_mpv, 0, "fullscreen",         MPV_FORMAT_FLAG);
+    mpv_observe_property(m_mpv, 0, "media-title",        MPV_FORMAT_STRING);
+    mpv_observe_property(m_mpv, 0, "path",               MPV_FORMAT_STRING);
+    mpv_observe_property(m_mpv, 0, "pause",              MPV_FORMAT_FLAG);
+    mpv_observe_property(m_mpv, 0, "time-pos",           MPV_FORMAT_DOUBLE);
+    mpv_observe_property(m_mpv, 0, "track-list/count",   MPV_FORMAT_INT64);
+    mpv_observe_property(m_mpv, 0, "volume",             MPV_FORMAT_INT64);
+    mpv_observe_property(m_mpv, 0, "volume-max",         MPV_FORMAT_INT64);
+
+    mpv_observe_property(m_mpv, 0, "aid",                MPV_FORMAT_FLAG);
+    mpv_observe_property(m_mpv, 0, "aid",                MPV_FORMAT_INT64);
+    mpv_observe_property(m_mpv, 0, "secondary-sid",      MPV_FORMAT_FLAG);
+    mpv_observe_property(m_mpv, 0, "secondary-sid",      MPV_FORMAT_INT64);
+    mpv_observe_property(m_mpv, 0, "sid",                MPV_FORMAT_FLAG);
+    mpv_observe_property(m_mpv, 0, "sid",                MPV_FORMAT_INT64);
+    mpv_observe_property(m_mpv, 0, "vid",                MPV_FORMAT_FLAG);
+    mpv_observe_property(m_mpv, 0, "vid",                MPV_FORMAT_INT64);
+
+    mpv_observe_property(m_mpv, 0, "secondary-sub-text", MPV_FORMAT_STRING);
+    mpv_observe_property(m_mpv, 0, "sub-delay",          MPV_FORMAT_DOUBLE);
+    mpv_observe_property(m_mpv, 0, "sub-text",           MPV_FORMAT_STRING);
+
+    mpv_set_wakeup_callback(m_mpv, wakeup, this);
 }
 
 void MpvWidget::paintGL()
@@ -636,9 +638,9 @@ void MpvWidget::handleMpvEvent(mpv_event *event)
     case MPV_EVENT_FILE_LOADED:
     {
         int64_t w = 0;
-        mpv_get_property(mpv, "video-params/w", MPV_FORMAT_INT64, &w);
+        mpv_get_property(m_mpv, "video-params/w", MPV_FORMAT_INT64, &w);
         int64_t h = 0;
-        mpv_get_property(mpv, "video-params/h", MPV_FORMAT_INT64, &h);
+        mpv_get_property(m_mpv, "video-params/h", MPV_FORMAT_INT64, &h);
         Q_EMIT newFileLoaded(w, h);
         break;
     }
@@ -653,9 +655,9 @@ void MpvWidget::handleMpvEvent(mpv_event *event)
 void MpvWidget::onMpvEvents()
 {
     // Process all events, until the event queue is empty.
-    while (mpv)
+    while (m_mpv)
     {
-        mpv_event *event = mpv_wait_event(mpv, 0);
+        mpv_event *event = mpv_wait_event(m_mpv, 0);
         if (event->event_id == MPV_EVENT_NONE)
         {
             break;
@@ -741,7 +743,7 @@ void MpvWidget::mouseReleaseEvent(QMouseEvent *event)
         release,
         NULL
     };
-    if (mpv_command_async(mpv, -1, args) < 0)
+    if (mpv_command_async(m_mpv, -1, args) < 0)
     {
         qDebug() << "Could not send click event to mpv";
     }
@@ -758,7 +760,7 @@ void MpvWidget::mouseDoubleClickEvent(QMouseEvent *event)
         press,
         NULL
     };
-    if (mpv_command_async(mpv, -1, args) < 0)
+    if (mpv_command_async(m_mpv, -1, args) < 0)
     {
         qDebug() << "Could not send double click event to mpv";
     }

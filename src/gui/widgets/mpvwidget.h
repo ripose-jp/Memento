@@ -53,7 +53,7 @@ public:
      * Get the mpv client context
      * @return mpv_handle for the MpvWidget
      */
-    mpv_handle *getHandle() const { return mpv; }
+    mpv_handle *getHandle() const { return m_mpv; }
 
     /**
      * Returns the recommend size of the widget.
@@ -356,7 +356,7 @@ private:
     void preventScreenDimming();
 
     /* The mpv context */
-    mpv_handle *mpv;
+    mpv_handle *m_mpv{nullptr};
 
     /* The mpv render context */
     mpv_render_context *mpv_gl;
