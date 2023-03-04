@@ -2,6 +2,9 @@
 
 # Based off of https://github.com/amazingfate/baka-build/blob/master/bakamplayer.sh
 
+# Exit on error
+set -e
+
 if [[ $1 == 'x86_64' ]]; then
 arch=x86_64
 elif [[ $1 == 'i686' ]]; then
@@ -42,7 +45,7 @@ then
 fi
 
 python3 ../windows/mingw-bundledlls.py --copy ./Memento_$arch/memento.exe
-cp $PREFIX/bin/libssl-1_1-x64.dll ./Memento_$arch
+cp $PREFIX/bin/libssl-*.dll ./Memento_$arch
 
 cd Memento_$arch
 windeployqt memento.exe
