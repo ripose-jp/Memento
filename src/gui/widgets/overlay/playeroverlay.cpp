@@ -86,9 +86,6 @@ PlayerOverlay::PlayerOverlay(QWidget *parent) : QVBoxLayout(parent)
     m_controls = new PlayerControls;
     m_controls->hide();
     m_controls->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    m_controls->setVolumeLimit(
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter()->getMaxVolume()
-    );
     parentWidget()->setMinimumWidth(m_controls->minimumWidth());
     QGraphicsOpacityEffect *controlsEffect = new QGraphicsOpacityEffect;
     controlsEffect->setOpacity(0);
