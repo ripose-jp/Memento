@@ -272,17 +272,6 @@ void SubtitleWidget::initSettings()
             SETTINGS_SEARCH_HIDE_SUBS,
             SETTINGS_SEARCH_HIDE_SUBS_DEFAULT
         ).toBool();
-    if (m_settings.hideSubsWhenVisible)
-    {
-        GlobalMediator::getGlobalMediator()
-            ->getPlayerAdapter()->setSubVisiblity(!isVisible());
-    }
-    else
-    {
-        GlobalMediator::getGlobalMediator()
-            ->getPlayerAdapter()->setSubVisiblity(true);
-    }
-
     m_settings.hideOnPlay = settings.value(
             SETTINGS_SEARCH_HIDE_BAR,
             SETTINGS_SEARCH_HIDE_BAR_DEFAULT
