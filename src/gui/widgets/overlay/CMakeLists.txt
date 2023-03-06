@@ -1,73 +1,30 @@
 add_library(
-    progressslider
-    progressslider.cpp
-)
-target_link_libraries(
-    progressslider
-    strokelabel
-    Qt5::Widgets
-    Qt5::Core
-)
-list(APPEND PLAYER_OVERLAY_LIBS progressslider)
-
-add_library(
-    playermenu
-    playermenu.cpp
-    playermenu.ui
-)
-target_link_libraries(
-    playermenu
-    Qt5::Widgets
-)
-list(APPEND PLAYER_OVERLAY_LIBS playermenu)
-
-add_library(
-    subtitlewidget
-    subtitlewidget.cpp
-)
-target_link_libraries(
-    subtitlewidget
-    strokelabel
-    Qt5::Widgets
-    globalmediator
-    dictionary_db
-    mpvadapter
-)
-list(APPEND PLAYER_OVERLAY_LIBS subtitlewidget)
-
-add_library(
-    playercontrols
-    playercontrols.ui
+    playeroverlay STATIC
+    "$<$<BOOL:${OCR_SUPPORT}>:ocroverlay.cpp>"
+    "$<$<BOOL:${OCR_SUPPORT}>:ocroverlay.h>"
     playercontrols.cpp
-)
-target_link_libraries(
-    playercontrols
-    Qt5::Widgets
-    iconfactory
-    subtitlewidget
-    progressslider
-)
-list(APPEND PLAYER_OVERLAY_LIBS playercontrols)
-
-if(OCR_SUPPORT)
-    add_library(
-        ocroverlay
-        ocroverlay.cpp
-    )
-    target_link_libraries(
-        ocroverlay
-        ocrmodel
-        Qt5::Widgets
-        Qt5::Concurrent
-    )
-    list(APPEND PLAYER_OVERLAY_LIBS ocroverlay)
-endif()
-
-add_library(
-    playeroverlay
+    playercontrols.h
+    playercontrols.ui
+    playermenu.cpp
+    playermenu.h
+    playermenu.ui
     playeroverlay.cpp
+    playeroverlay.h
+    progressslider.cpp
+    progressslider.h
+    subtitlewidget.cpp
+    subtitlewidget.h
 )
+target_compile_features(playeroverlay PUBLIC cxx_std_17)
+target_compile_options(playeroverlay PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_include_directories(playeroverlay PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     playeroverlay
-    ${PLAYER_OVERLAY_LIBS}
+    PRIVATE "$<$<BOOL:${OCR_SUPPORT}>:ocrmodel>"
+    PRIVATE dictionary_db
+    PRIVATE iconfactory
+    PRIVATE playeradapter
+    PRIVATE Qt5::Concurrent
+    PRIVATE strokelabel
+    PUBLIC Qt5::Widgets
 )

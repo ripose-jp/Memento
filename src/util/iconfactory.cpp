@@ -20,8 +20,9 @@
 
 #include "iconfactory.h"
 
-#include <QPainter>
 #include <QApplication>
+#include <QPainter>
+#include <QPalette>
 
 #ifdef APPIMAGE
 #define FACTORY_CLASS(p) new StyleFactory(p)
@@ -55,7 +56,11 @@ IconFactory *IconFactory::create()
     return m_factory;
 }
 
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
 IconFactory *IconFactory::recreate(bool useTheme)
+#else
+IconFactory *IconFactory::recreate(bool)
+#endif
 {
     delete m_factory;
 #if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)

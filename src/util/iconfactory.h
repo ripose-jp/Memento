@@ -23,8 +23,6 @@
 
 #include <QIcon>
 #include <QString>
-#include <QStyle>
-#include <QWidget>
 
 /* Size of the icon enum. Be sure to update when adding icons. */
 #define ICON_ENUM_SIZE  21

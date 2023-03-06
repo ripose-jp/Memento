@@ -23,9 +23,12 @@
 
 #include "playeradapter.h"
 
+#include <QRegularExpression>
 #include <QSet>
 
-#include "gui/widgets/mpvwidget.h"
+#include <mpv/client.h>
+
+class MpvWidget;
 
 /**
  * Implements the features described in PlayerAdapter for mpv and MpvWidget.

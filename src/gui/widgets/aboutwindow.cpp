@@ -24,7 +24,7 @@
 #include <QLabel>
 
 #include "util/globalmediator.h"
-#include "util/version.h"
+#include "version.h"
 
 AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
 {
@@ -45,11 +45,12 @@ AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
     labelInfo->setTextInteractionFlags(
         Qt::LinksAccessibleByKeyboard | Qt::LinksAccessibleByMouse
     );
-    QString version = VERSION;
-    if (!VERSION_HASH.isEmpty())
+    QString version{Memento::VERSION};
+    QString versionHash{Memento::VERSION_HASH};
+    if (!versionHash.isEmpty())
     {
         version += '-';
-        version += VERSION_HASH;
+        version += versionHash;
     }
     labelInfo->setText(
         "<b>Version</b>: " + version + "<br>"

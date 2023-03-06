@@ -1,23 +1,91 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.15...3.25)
 
-set(MEMENTO_VERSION "1.0.0")
-set(MEMENTO_SHORT_VERSION "1.0.0")
-execute_process(
-    COMMAND git log --pretty=format:%h -n 1
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    OUTPUT_VARIABLE MEMENTO_VERSION_HASH
+if(${CMAKE_VERSION} VERSION_LESS 3.12)
+    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
+endif()
+
+project(
+	Memento
+	VERSION 1.0.0
+	DESCRIPTION "An mpv-based video player for studying Japanese"
+	HOMEPAGE_URL "https://ripose-jp.github.io/Memento"
+	LANGUAGES CXX C
 )
 
-# Options
-option(RELEASE_BUILD OFF)
-option(APPIMAGE OFF)
-option(APPBUNDLE OFF)
-option(OCR_SUPPORT OFF)
+# Set the default build type
+set(default_build_type "RelWithDebInfo")
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+	message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+	set(
+		CMAKE_BUILD_TYPE "${default_build_type}" CACHE
+    	STRING "Choose the type of build." FORCE
+	)
+  	# Set the possible values of build type for cmake-gui
+  	set_property(
+		CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+    	"Debug" "Release" "MinSizeRel" "RelWithDebInfo"
+	)
+endif()
 
+# Require out-of-source builds
+file(TO_CMAKE_PATH "${PROJECT_BINARY_DIR}/CMakeLists.txt" LOC_PATH)
+if(EXISTS "${LOC_PATH}")
+    message(FATAL_ERROR "You cannot build in a source directory (or any directory with a CMakeLists.txt file). Please make a build subdirectory. Feel free to remove CMakeCache.txt and CMakeFiles.")
+endif()
+
+# Options
 if(APPLE)
-	project(Memento VERSION ${MEMENTO_SHORT_VERSION})
-else()
-	project(memento VERSION ${MEMENTO_SHORT_VERSION})
+	option(APPBUNDLE "Toggle when building macOS AppBundles" OFF)
+endif()
+if(UNIX AND NOT APPLE)
+	option(APPIMAGE "Toggle when building for AppImages" OFF)
+endif()
+option(MAC_CROSSCOMPILE_X86 "Enables ARM machines to cross compile for x86" OFF)
+option(OCR_SUPPORT "Support for OCR through MangaOCR" OFF)
+option(RELEASE_BUILD "Toggle to build with release settings" OFF)
+
+# Check that dangerous options have no been toggled
+if(NOT APPLE AND APPBUNDLE)
+	message(FATAL_ERROR "You cannot set the APPBUNDLE option to ON on non-Apple platforms.")
+endif()
+if(UNIX AND NOT APPLE AND APPIMAGE)
+	message(FATAL_ERROR "You cannot set the APPIMAGE option to ON on non-Unix or Apple platforms.")
+endif()
+
+# Set the module path
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+
+# Make IDEs understand the code better
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+# Set Compiler Flags
+set(
+	MEMENTO_COMPILER_FLAGS
+	"-Wall"
+	"-Wextra"
+	"-Werror"
+	"-Wpedantic"
+	"$<$<BOOL:${APPIMAGE}>:-DAPPIMAGE=1>"
+	"$<$<BOOL:${APPBUNDLE}>:-DAPPBUNDLE=1>"
+	"$<$<BOOL:${OCR_SUPPORT}>:-DOCR_SUPPORT=1>"
+)
+
+# Set Qt preprocessor settings
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+# Get the Git version hash
+if(NOT RELEASE_BUILD)
+	find_package(Git QUIET)
+
+	if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+		execute_process(
+			COMMAND ${GIT_EXECUTABLE} log --pretty=format:%h -n 1
+			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+			OUTPUT_VARIABLE MEMENTO_VERSION_HASH
+		)
+	endif()
 endif()
 
 # Set macOS deployment target
@@ -25,105 +93,73 @@ if(RELEASE_BUILD AND APPLE)
 	set(MACOSX_DEPLOYMENT_TARGET "11.0")
 endif()
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-
-# Set compiler flags
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DCMAKE_VERSION=${MEMENTO_VERSION}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCMAKE_VERSION=${MEMENTO_VERSION}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-
-# Add the hash to the version if the RELEASE_BUILD flag isn't set
-if(NOT RELEASE_BUILD)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCMAKE_HASH=${MEMENTO_VERSION_HASH}")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DCMAKE_HASH=${MEMENTO_VERSION_HASH}")
+# Set the proper variables for macOS cross compilation
+if(MAC_CROSSCOMPILE_X86)
+	set(CMAKE_OSX_ARCHITECTURES "x86_64")
 endif()
 
-if(APPIMAGE)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAPPIMAGE=1")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAPPIMAGE=1")
-endif()
-
-if(APPBUNDLE)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAPPBUNDLE=1")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAPPBUNDLE=1")
-endif()
-
-if(OCR_SUPPORT)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DOCR_SUPPORT=1")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DOCR_SUPPORT=1")
-endif()
-
-# Sets the include directories to src
-# This isn't best CMake practice, but it produces the desired behavior of
-# setting include directories for all targets
-set(INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src")
-include_directories(${INCLUDE_DIRECTORY})
-
-if(APPLE AND NOT MAC_X86)
+# Generate include directories
+if(APPLE AND NOT MAC_CROSSCOMPILE_X86)
 	# This makes sure Memento builds on whatever arch is native
 	# The order of directories MATTERS because M1 users may crosscompile but
 	# x86_64 users will not
-	include_directories(
-		${CMAKE_INCLUDE_PATH}
-		${CMAKE_CURRENT_SOURCE_DIR}
-		${CMAKE_CURRENT_BINARY_DIR}
+	set(
+		MEMENTO_INCLUDE_DIRS
 
 		# arm64 locations
-		/opt/homebrew/include
-		/opt/homebrew/opt/qt5/include
+		"/opt/homebrew/include"
+		"/opt/homebrew/opt/qt5/include"
 
 		# x86_64 locations
-		/usr/local/include
-		/usr/local/opt/qt5/include/
+		"/usr/local/include"
+		"/usr/local/opt/qt5/include/"
 	)
-
-	# x86_64 locations
-	list(PREPEND CMAKE_PREFIX_PATH /usr/local/opt)
-	list(PREPEND CMAKE_PREFIX_PATH /usr/local/)
-
-	# arm64 locations
-	list(PREPEND CMAKE_PREFIX_PATH /opt/homebrew/opt)
-	list(PREPEND CMAKE_PREFIX_PATH /opt/homebrew)
-elseif(APPLE AND MAC_X86)
+elseif(APPLE AND MAC_CROSSCOMPILE_X86)
 	# This is a crosscomile target, x86_64 users shouldn't need to use this
-	include_directories(
-		${CMAKE_INCLUDE_PATH}
-		${CMAKE_CURRENT_SOURCE_DIR}
-		${CMAKE_CURRENT_BINARY_DIR}
-		/usr/local/include
-		/usr/local/opt/qt5/include/
-	)
-
-	list(PREPEND CMAKE_PREFIX_PATH /usr/local/opt)
-	list(PREPEND CMAKE_PREFIX_PATH /usr/local/)
-else()
-	include_directories(
-		${CMAKE_INCLUDE_PATH}
-		${CMAKE_CURRENT_SOURCE_DIR}
-		${CMAKE_CURRENT_BINARY_DIR}
+	set(
+		MEMENTO_INCLUDE_DIRS
+		"/usr/local/include"
+		"/usr/local/opt/qt5/include/"
 	)
 endif()
+list(PREPEND MEMENTO_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src")
 
-# Find Qt
+# Set prefix path for macOS
+if(APPLE AND NOT MAC_CROSSCOMPILE_X86)
+	# x86_64 locations
+	list(PREPEND CMAKE_PREFIX_PATH "/usr/local/opt")
+	list(PREPEND CMAKE_PREFIX_PATH "/usr/local/")
+
+	# arm64 locations
+	list(PREPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt")
+	list(PREPEND CMAKE_PREFIX_PATH "/opt/homebrew")
+elseif(APPLE AND MAC_CROSSCOMPILE_X86)
+	# x86_64 locations
+	list(PREPEND CMAKE_PREFIX_PATH "/usr/local/opt")
+	list(PREPEND CMAKE_PREFIX_PATH "/usr/local/")
+endif()
+
+# Dependencies
+find_package(JsonC REQUIRED)
+find_package(libzip REQUIRED)
+find_package(MeCab REQUIRED)
+find_package(mpv REQUIRED)
 if(UNIX AND NOT APPLE)
-	find_package(Qt5 COMPONENTS Widgets Network DBus X11Extras Svg Concurrent REQUIRED)
-	include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
+	find_package(
+		Qt5
+		COMPONENTS Widgets Network DBus X11Extras Svg Concurrent REQUIRED
+	)
+	list(APPEND MEMENTO_INCLUDE_DIRS ${Qt5Gui_PRIVATE_INCLUDE_DIRS})
 elseif(APPLE)
 	find_package(Qt5 COMPONENTS Widgets Network Svg Concurrent REQUIRED)
 elseif(WIN32)
 	find_package(Qt5 COMPONENTS Widgets Network Svg Concurrent REQUIRED)
 endif()
+find_package(SQLite3 REQUIRED)
 
-# Other dependencies
-find_library(MECAB mecab)
-find_library(SQLITE sqlite3)
-find_library(MPV_LIB mpv)
-find_library(JSONC json-c)
-find_library(LIBZIP zip)
+# Include CMake Modules
+include(FetchContent)
 
+# Subdirectories
+add_subdirectory(extern)
 add_subdirectory(src)

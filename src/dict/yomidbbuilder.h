@@ -44,7 +44,7 @@ extern "C" {
 #define YOMI_ERR_EXTRACTING_RESOURCES   11
 #define YOMI_ERR_REMOVING_RESOURCES     12
 
-enum yomi_blob_t
+typedef enum yomi_blob_t
 {
     YOMI_BLOB_TYPE_NULL     = 0,
     YOMI_BLOB_TYPE_INT      = 1,
@@ -53,7 +53,7 @@ enum yomi_blob_t
     YOMI_BLOB_TYPE_OBJECT   = 4,
     YOMI_BLOB_TYPE_ARRAY    = 5,
     YOMI_BLOB_TYPE_BOOLEAN  = 6,
-} typedef yomi_blob_t;
+} yomi_blob_t;
 
 /**
  * Prepare a dictionary database if one doesn't already exist

@@ -30,7 +30,7 @@
 #include <QRegularExpression>
 
 #include "anki/ankiclient.h"
-#include "gui/playeradapter.h"
+#include "player/playeradapter.h"
 
 class QShortcut;
 class QTableWidget;
@@ -285,7 +285,7 @@ private:
 
         /* the currently found row */
         int currentFind;
-    } typedef SubtitleList;
+    };
 
     /**
      * Hides the secondary subtitle list and tabs.

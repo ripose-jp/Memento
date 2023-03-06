@@ -35,4 +35,4 @@ public:
     virtual ~AboutWindow() {}
 };
 
-#endif
+#endif // ABOUTWINDOW_H

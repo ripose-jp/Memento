@@ -347,7 +347,7 @@ void TermWidget::addNote(const AudioSource &src)
     m_ankiTerm = nullptr;
     Q_EMIT safeToDelete();
     connect(reply, &AnkiReply::finishedInt, this,
-        [=] (const int id, const QString &error) {
+        [=] (const int, const QString &error) {
             if (!error.isEmpty())
             {
                 Q_EMIT GlobalMediator::getGlobalMediator()
@@ -373,7 +373,7 @@ void TermWidget::searchAnki()
             QString("%1 or %2").arg(m_term->expression).arg(m_term->reading)
     );
     connect(reply, &AnkiReply::finishedIntList, this,
-        [=] (const QList<int> &value, const QString &error) {
+        [=] (const QList<int> &, const QString &error) {
             if (!error.isEmpty())
             {
                 Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(

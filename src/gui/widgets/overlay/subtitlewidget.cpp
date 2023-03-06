@@ -29,7 +29,7 @@
 #include <QTextEdit>
 #include <QThreadPool>
 
-#include "gui/playeradapter.h"
+#include "player/playeradapter.h"
 #include "util/constants.h"
 #include "util/globalmediator.h"
 #include "util/utils.h"
@@ -365,6 +365,7 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
 
 void SubtitleWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
+    StrokeLabel::mouseDoubleClickEvent(event);
     QApplication::clipboard()->setText(getText());
 }
 

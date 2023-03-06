@@ -60,7 +60,7 @@ struct Tag
                order == lhs.order &&
                score == lhs.score;
     }
-} typedef Tag;
+};
 
 /**
  * Struct containing all the information of a frequency tag.
@@ -72,7 +72,7 @@ struct Frequency
 
     /* Frequency of the expression/kanji/etc. */
     QString freq;
-} typedef Frequency;
+};
 
 /**
  * Struct containing all the information of a pitch accent entry.
@@ -87,7 +87,7 @@ struct Pitch
 
     /* The pitch "position". See https://i.imgur.com/oEjxhWU.png */
     QList<uint8_t> position;
-} typedef Pitch;
+};
 
 /**
  * Struct containing all the information making up a single definition.
@@ -110,7 +110,7 @@ struct TermDefinition
      *  Used for ordering. More common entries have a larger score.
      */
     int score;
-} typedef TermDefinition;
+};
 
 /**
  * A parent struct of Term and Kanji that contains fields common between the
@@ -159,7 +159,7 @@ struct CommonExpFields
 
     /* A list of frequencies */
     QList<Frequency> frequencies;
-} typedef CommonExpFields;
+};
 
 /**
  * A struct containing all the information that makes up one term.
@@ -197,7 +197,7 @@ struct Term : public CommonExpFields
 
     /* The MD5 audio skip hash for the audio source */
     QString audioSkipHash;
-} typedef Term;
+};
 
 /**
  * Struct containing all the information that makes up a single kanji
@@ -243,7 +243,7 @@ struct KanjiDefinition
      * The string is the corresponding value.
      */
     QList<QPair<Tag, QString>> index;
-} typedef KanjiDefinition;
+};
 
 /**
  * A struct containing everything that makes up a kanji entry.
@@ -255,7 +255,7 @@ struct Kanji : public CommonExpFields
 
     /* A list of definitions belonging to the kanji. */
     QList<KanjiDefinition> definitions;
-} typedef Kanji;
+};
 
 typedef QSharedPointer<Term> SharedTerm;
 Q_DECLARE_METATYPE(SharedTerm)

@@ -77,14 +77,14 @@
 #define TRANSACTION_ERR             -23
 #define DB_ALTER_TABLE_ERR          -24
 
-enum bank_type
+typedef enum bank_type
 {
     tag_bank,
     term_bank,
     term_meta_bank,
     kanji_bank,
     kanji_meta_bank
-} typedef bank_type;
+} bank_type;
 
 /**
  * Begins an database transaction
@@ -147,7 +147,7 @@ static int rollback_transaction(sqlite3 *db)
  * @param   argv The array of table names to drop
  * @return Error code
  */
-static int drop_all_tables_callback(void *db, int argc, char **argv, char **unused)
+static int drop_all_tables_callback(void *db, int argc, char **argv, char **unused __attribute__((unused)))
 {
     for (char **ptr = argv; ptr < &argv[argc]; ++ptr)
     {
@@ -509,12 +509,14 @@ static int prepare_db(sqlite3 *db)
         {
             goto cleanup;
         }
+        __attribute__((fallthrough));
 
     case 2:
         if ((ret = update_v2_to_v3(db)))
         {
             goto cleanup;
         }
+        __attribute__((fallthrough));
 
     case 3:
         if ((ret = update_v3_to_v4(db)))
@@ -587,7 +589,7 @@ static int get_json_obj(zip_t *archive, const char *filename, json_object **obj)
         goto cleanup;
     }
     bytes_read = zip_fread(file, contents, st.size);
-    if (bytes_read == -1 || bytes_read != st.size)
+    if (bytes_read == -1 || (zip_uint64_t)bytes_read != st.size)
     {
         fprintf(stderr, "Did not read expected number of bytes in %s\n", filename);
 #ifdef __APPLE__
@@ -1291,6 +1293,7 @@ static int add_meta(sqlite3 *db, json_object *meta, const sqlite3_int64 id, cons
         data = json_object_to_json_string_length(ret_obj, JSON_C_TO_STRING_SPACED, &data_len);
         ++data_len;
         type = YOMI_BLOB_TYPE_ARRAY;
+        break;
     case json_type_object:
         data = json_object_to_json_string_length(ret_obj, JSON_C_TO_STRING_SPACED, &data_len);
         ++data_len;
@@ -1674,7 +1677,11 @@ cleanup:
  * @param ftwb Unused.
  * @return 0 on success, errno on failure.
  */
-static int remove_path_callback(const char *path, const struct stat *sbuf, int type, struct FTW *ftwb)
+static int remove_path_callback(
+    const char *path,
+    const struct stat *sbuf __attribute__((unused)),
+    int type __attribute__((unused)),
+    struct FTW *ftwb __attribute__((unused)))
 {
     if (remove(path))
     {

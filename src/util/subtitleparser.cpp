@@ -32,8 +32,15 @@
  */
 struct SRTInfo : public SubtitleInfo
 {
+    SRTInfo() = default;
+
+    SRTInfo(const SRTInfo &info) : SubtitleInfo()
+    {
+        *this = info;
+    }
+
     /* The position of this subtitle. */
-    uint32_t position;
+    int32_t position;
 
     SRTInfo &operator=(const SRTInfo &rhs)
     {
@@ -42,7 +49,7 @@ struct SRTInfo : public SubtitleInfo
 
         return *this;
     }
-} typedef SRTInfo;
+};
 
 SubtitleParser::SubtitleParser()
     : m_timecodeSplitter(QRegularExpression("[:\\.,]")),
@@ -267,7 +274,7 @@ bool SubtitleParser::parseASS(QFile &file, QList<SubtitleInfo> &out) const
         }
 
         /* Add the subtitle */
-        out << info;
+        out.append(info);
     }
 
     std::sort(out.begin(), out.end(),

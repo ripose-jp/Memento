@@ -25,6 +25,7 @@
 #include <QSettings>
 #include <QTemporaryFile>
 
+#include "gui/widgets/mpv/mpvwidget.h"
 #include "util/constants.h"
 #include "util/globalmediator.h"
 

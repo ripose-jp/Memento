@@ -528,7 +528,7 @@ bool DefinitionWidget::positionChild()
 
 bool DefinitionWidget::positionChild(const QPoint &pos)
 {
-    const QPoint mousePos = parentWidget()->mapFromGlobal(QCursor::pos());
+    const QPoint mousePos = parentWidget()->mapFromGlobal(pos);
 
     int x = mousePos.x() - (m_child->width() / 2);
     if (x < 0)

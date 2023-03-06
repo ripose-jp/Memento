@@ -139,14 +139,13 @@ int DatabaseManager::initCache()
         uint64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
         QHash<QString, Tag> &tags = m_tagCache[id];
 
-        Tag tag{
-            .dictionary = m_dictionaryCache[id],
-            .name = (const char *)sqlite3_column_text(stmt, COLUMN_NAME),
-            .category = (const char *)sqlite3_column_text(stmt, COLUMN_CATEGORY),
-            .notes = (const char *)sqlite3_column_text(stmt, COLUMN_NOTES),
-            .order = sqlite3_column_int(stmt, COLUMN_ORDER),
-            .score = sqlite3_column_int(stmt, COLUMN_SCORE),
-        };
+        Tag tag;
+        tag.dictionary = m_dictionaryCache[id],
+        tag.name = (const char *)sqlite3_column_text(stmt, COLUMN_NAME),
+        tag.category = (const char *)sqlite3_column_text(stmt, COLUMN_CATEGORY),
+        tag.notes = (const char *)sqlite3_column_text(stmt, COLUMN_NOTES),
+        tag.order = sqlite3_column_int(stmt, COLUMN_ORDER),
+        tag.score = sqlite3_column_int(stmt, COLUMN_SCORE),
         tags.insert(tag.name, tag);
 
         m_tagCache[id] = tags;
@@ -476,18 +475,17 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
     {
         uint64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
 
-        KanjiDefinition def {
-            .dictionary = getDictionary(id),
-            .onyomi = QString(
-                    (const char *)sqlite3_column_text(stmt, COLUMN_ONYOMI)
-                ).split(' '),
-            .kunyomi = QString(
-                    (const char *)sqlite3_column_text(stmt, COLUMN_KUNYOMI)
-                ).split(' '),
-            .glossary = jsonArrayToStringList(
-                    (const char *)sqlite3_column_text(stmt, COLUMN_MEANINGS)
-                ),
-        };
+        KanjiDefinition def;
+        def.dictionary = getDictionary(id),
+        def.onyomi = QString(
+                (const char *)sqlite3_column_text(stmt, COLUMN_ONYOMI)
+            ).split(' '),
+        def.kunyomi = QString(
+                (const char *)sqlite3_column_text(stmt, COLUMN_KUNYOMI)
+            ).split(' '),
+        def.glossary = jsonArrayToStringList(
+                (const char *)sqlite3_column_text(stmt, COLUMN_MEANINGS)
+            );
         addTags(
             id, (const char *)sqlite3_column_text(stmt, COLUMN_TAGS), def.tags
         );

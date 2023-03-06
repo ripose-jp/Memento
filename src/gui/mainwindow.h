@@ -23,17 +23,16 @@
 
 #include <QMainWindow>
 
-#include "playeradapter.h"
-
 #include "anki/ankiclient.h"
-#include "util/globalmediator.h"
 #include "gui/widgets/aboutwindow.h"
 #include "gui/widgets/definition/definitionwidget.h"
 #include "gui/widgets/overlay/playeroverlay.h"
 #include "gui/widgets/settings/optionswindow.h"
+#include "player/playeradapter.h"
+#include "util/globalmediator.h"
 
 #if defined(Q_OS_MACOS)
-#include "util/cocoaeventhandler.h"
+#include "macos/cocoaeventhandler.h"
 #endif
 
 namespace Ui

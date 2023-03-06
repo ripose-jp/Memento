@@ -224,18 +224,18 @@
   <customwidget>
    <class>MpvWidget</class>
    <extends>QOpenGLWidget</extends>
-   <header>src/gui/widgets/mpvwidget.h</header>
+   <header>gui/widgets/mpv/mpvwidget.h</header>
   </customwidget>
   <customwidget>
    <class>SubtitleListWidget</class>
    <extends>QWidget</extends>
-   <header>src/gui/widgets/subtitlelistwidget.h</header>
+   <header>gui/widgets/subtitlelistwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>SearchWidget</class>
    <extends>QWidget</extends>
-   <header>src/gui/widgets/searchwidget.h</header>
+   <header>gui/widgets/searchwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

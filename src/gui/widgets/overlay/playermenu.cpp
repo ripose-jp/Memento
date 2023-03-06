@@ -30,7 +30,7 @@
 #include <QSettings>
 
 #include "anki/ankiclient.h"
-#include "gui/playeradapter.h"
+#include "player/playeradapter.h"
 #include "util/constants.h"
 #include "util/globalmediator.h"
 #include "util/utils.h"

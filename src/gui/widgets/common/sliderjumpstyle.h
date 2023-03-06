@@ -30,9 +30,19 @@ class SliderJumpStyle : public QProxyStyle
 {
 public:
     using QProxyStyle::QProxyStyle;
-    int styleHint(QStyle::StyleHint hint, const QStyleOption *option = nullptr,
-                  const QWidget *widget = nullptr,
-                  QStyleHintReturn *returnData = nullptr) const override;
+
+    int styleHint(
+        QStyle::StyleHint hint,
+        const QStyleOption *option = nullptr,
+        const QWidget *widget = nullptr,
+        QStyleHintReturn *returnData = nullptr) const override
+    {
+        if (hint == QStyle::SH_Slider_AbsoluteSetButtons)
+        {
+            return (Qt::LeftButton | Qt::MiddleButton | Qt::RightButton);
+        }
+        return QProxyStyle::styleHint(hint, option, widget, returnData);
+    }
 };
 
 #endif // SLIDERJUMPSTYLE_H

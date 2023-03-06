@@ -37,9 +37,10 @@
 #include <QX11Info>
 #endif
 
+#include "cursortimer.h"
+
 #include "util/constants.h"
 #include "util/globalmediator.h"
-#include "util/timer/cursortimer.h"
 
 /* Begin C functions */
 
@@ -240,7 +241,7 @@ void MpvWidget::initPropertyMap()
         };
 
     m_propertyMap["track-list/count"] =
-        [=] (mpv_event_property *prop) {
+        [=] (mpv_event_property *) {
             mpv_node node;
             mpv_get_property(m_mpv, "track-list", MPV_FORMAT_NODE, &node);
             Q_EMIT tracklistChanged(&node);
@@ -445,13 +446,12 @@ void MpvWidget::initTimer()
 void MpvWidget::initializeGL()
 {
     /* Initialize the mpv render context */
-    mpv_opengl_init_params gl_init_params{
-        .get_proc_address = get_proc_address,
-        .get_proc_address_ctx = nullptr,
+    mpv_opengl_init_params gl_init_params;
+    gl_init_params.get_proc_address = get_proc_address;
+    gl_init_params.get_proc_address_ctx = nullptr;
 #if MPV_CLIENT_API_VERSION < MPV_MAKE_VERSION(2, 0)
-        .extra_exts = nullptr,
+    gl_init_params.extra_exts = nullptr;
 #endif
-    };
     mpv_render_param params[]{
         {
             MPV_RENDER_PARAM_API_TYPE,

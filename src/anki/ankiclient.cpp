@@ -32,8 +32,8 @@
 
 #include "glossarybuilder.h"
 
-#include "gui/playeradapter.h"
 #include "gui/widgets/subtitlelistwidget.h"
+#include "player/playeradapter.h"
 #include "util/constants.h"
 #include "util/globalmediator.h"
 #include "util/utils.h"
@@ -765,6 +765,7 @@ AnkiReply *AnkiClient::openBrowse(const QString &deck, const QString &query)
     case AnkiConfig::DifferentDeck:
     case AnkiConfig::SameDeck:
         queryStr += "\"deck:" + deck + "\" ";
+        __attribute__((fallthrough));
     case AnkiConfig::None:
     default:
         queryStr += query;
@@ -991,7 +992,7 @@ void AnkiClient::receiveIntRequest(const QString     &action,
     );
 }
 
-void AnkiClient::receiveBoolListRequest(const QString     &action,
+void AnkiClient::receiveBoolListRequest(const QString     &,
                                         const QJsonObject &params,
                                         AnkiReply         *ankiReply)
 {

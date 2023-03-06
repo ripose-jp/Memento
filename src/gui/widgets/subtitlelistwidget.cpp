@@ -518,11 +518,11 @@ void SubtitleListWidget::addSubtitle(
     QTableWidgetItem *subtitleItem = nullptr;
     if (it == list.startToItem.end() || it.key() - start > TIME_DELTA)
     {
-        list.subList->append(SubtitleInfo{
-            .text = subtitle,
-            .start = start,
-            .end = end
-        });
+        SubtitleInfo info;
+        info.text = subtitle;
+        info.start = start;
+        info.end = end;
+        list.subList->append(info);
 
         if (regex)
         {

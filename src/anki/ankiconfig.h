@@ -32,6 +32,13 @@
  */
 struct AnkiConfig
 {
+    AnkiConfig() = default;
+
+    AnkiConfig(const AnkiConfig &config)
+    {
+        *this = config;
+    }
+
     /**
      * The duplicate different duplicate policies available.
      */
@@ -116,8 +123,6 @@ struct AnkiConfig
      * for kanji cards.
      */
     QJsonObject kanjiFields;
-
-    AnkiConfig() {}
 
     AnkiConfig &operator=(const AnkiConfig &rhs)
     {

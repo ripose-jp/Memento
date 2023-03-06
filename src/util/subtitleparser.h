@@ -33,6 +33,13 @@ class QFile;
  */
 struct SubtitleInfo
 {
+    SubtitleInfo() = default;
+
+    SubtitleInfo(const SubtitleInfo &info)
+    {
+        *this = info;
+    }
+
     /* The text of the subtitle */
     QString text;
 
@@ -50,7 +57,7 @@ struct SubtitleInfo
 
         return *this;
     }
-} typedef SubtitleInfo;
+};
 
 /**
  * Object for parsing subtitles of various formats.

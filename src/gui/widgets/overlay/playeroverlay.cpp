@@ -32,8 +32,8 @@
 #include "playermenu.h"
 #include "subtitlewidget.h"
 
-#include "gui/playeradapter.h"
 #include "gui/widgets/definition/definitionwidget.h"
+#include "player/playeradapter.h"
 #include "util/constants.h"
 #include "util/globalmediator.h"
 

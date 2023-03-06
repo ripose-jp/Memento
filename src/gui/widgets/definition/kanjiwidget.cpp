@@ -268,7 +268,7 @@ void KanjiWidget::addKanji()
 
     AnkiReply *reply = mediator->getAnkiClient()->addNote(kanji);
     connect(reply, &AnkiReply::finishedInt, this,
-        [=] (const int id, const QString &error) {
+        [=] (const int, const QString &error) {
             if (!error.isEmpty())
             {
                 Q_EMIT mediator->showCritical("Error Adding Note", error);
@@ -296,7 +296,7 @@ void KanjiWidget::openAnki()
     QString deck = client->getConfig()->kanjiDeck;
     AnkiReply *reply = client->openBrowse(deck, m_kanji->character);
     connect(reply, &AnkiReply::finishedIntList, this,
-        [=] (const QList<int> &value, const QString &error) {
+        [=] (const QList<int> &, const QString &error) {
             if (!error.isEmpty())
             {
                 Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(

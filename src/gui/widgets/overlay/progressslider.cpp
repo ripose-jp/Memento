@@ -99,6 +99,7 @@ void ProgressSlider::initStylesheet()
 
 void ProgressSlider::showEvent(QShowEvent *event)
 {
+    QSlider::showEvent(event);
     QFont font = m_labelTimecode->textFont();
     font.setPixelSize(height());
     m_labelTimecode->setTextFont(font);
@@ -183,6 +184,7 @@ void ProgressSlider::setChapters(QList<double> chapters)
 
 void ProgressSlider::leaveEvent(QEvent *event)
 {
+    QSlider::leaveEvent(event);
     m_labelTimecode->hide();
 }
 

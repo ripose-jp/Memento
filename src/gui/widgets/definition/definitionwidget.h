@@ -39,6 +39,13 @@ enum class AudioSourceType;
  */
 struct AudioSource
 {
+    AudioSource() = default;
+
+    AudioSource(const AudioSource &src)
+    {
+        *this = src;
+    }
+
     /* The type of the audio source */
     AudioSourceType type;
 

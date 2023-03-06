@@ -21,19 +21,25 @@
 #ifndef VERSION_H
 #define VERSION_H
 
-#define DEFINE_TO_STRING_HELPER(x)  (#x)
-#define DEFINE_TO_STRING(x)         (DEFINE_TO_STRING_HELPER(x))
+namespace Memento
+{
+    /* Major version number */
+    constexpr unsigned int VERSION_MAJOR{@PROJECT_VERSION_MAJOR@};
 
-#ifdef CMAKE_VERSION
-#define VERSION                         (QString(DEFINE_TO_STRING(CMAKE_VERSION)))
-#else
-#define VERSION                         (QString("Version Missing"))
-#endif
+    /* Minor version number */
+    constexpr unsigned int VERSION_MINOR{@PROJECT_VERSION_MINOR@};
 
-#ifdef CMAKE_HASH
-#define VERSION_HASH                    (QString(DEFINE_TO_STRING(CMAKE_HASH)))
-#else
-#define VERSION_HASH                    (QString(""))
-#endif
+    /* Patch version number */
+    constexpr unsigned int VERSION_PATCH{@PROJECT_VERSION_PATCH@};
+
+    /* Tweak version number */
+    constexpr unsigned int VERSION_TWEAK{@PROJECT_VERSION_TWEAK@};
+
+    /* Complete version string. Does not contain v */
+    constexpr const char *VERSION{"@PROJECT_VERSION@"};
+
+    /* Git version hash. Empty if RELEASE_BUILD=ON. */
+    constexpr const char *VERSION_HASH{"@MEMENTO_VERSION_HASH@"};
+}
 
 #endif // VERSION_H

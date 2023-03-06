@@ -79,7 +79,7 @@ struct Track
      * rare cases.
      */
     QString codec;
-} typedef Track;
+};
 
 /**
  * Adapter for interacting with a media player backend.

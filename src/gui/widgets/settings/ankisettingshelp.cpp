@@ -21,7 +21,7 @@
 #include "ankisettingshelp.h"
 #include "ui_ankisettingshelp.h"
 
-#include "gui/playeradapter.h"
+#include "player/playeradapter.h"
 #include "util/globalmediator.h"
 
 AnkiSettingsHelp::AnkiSettingsHelp(QWidget *parent)

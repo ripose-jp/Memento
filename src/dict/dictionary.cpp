@@ -318,13 +318,11 @@ static QList<MeCabPair> *generateQueriesHelper(
         QString surfaceClean = extractCleanSurface(node);
         if (deconj != "*")
         {
-            queries->append(MeCabPair{
-                {
-                    .deconj = deconj,
-                    .surface = surface
-                },
-                .surfaceClean = surfaceClean
-            });
+            MeCabPair pair;
+            pair.deconj = deconj;
+            pair.surface = surface;
+            pair.surfaceClean = surfaceClean;
+            queries->append(pair);
         }
 
         if (node->next)

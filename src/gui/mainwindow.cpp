@@ -31,10 +31,9 @@
 #include <QtPlatformHeaders/QWindowsWindowFunctions>
 #endif
 
-#include "mpvadapter.h"
-
 #include "dict/dictionary.h"
 #include "gui/widgets/common/sliderjumpstyle.h"
+#include "player/mpvadapter.h"
 #include "util/constants.h"
 #include "util/iconfactory.h"
 

@@ -188,7 +188,7 @@ void NetworkUtils::checkForUpdates()
             }
 
             /* Get the url and tag */
-            if (tag != "v" + VERSION)
+            if (tag != QString("v") + Memento::VERSION)
             {
                 Q_EMIT mediator->showInformation(
                     "Update Available",

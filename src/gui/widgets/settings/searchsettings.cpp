@@ -81,6 +81,7 @@ SearchSettings::~SearchSettings()
 
 void SearchSettings::showEvent(QShowEvent *event)
 {
+    QWidget::showEvent(event);
     restoreSaved();
     methodTextChanged(m_ui->comboBoxMethod->currentText());
 }

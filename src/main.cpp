@@ -84,6 +84,7 @@ void updateSettings()
         settings.beginGroup(SETTINGS_INTERFACE);
         settings.remove(SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE);
         settings.endGroup();
+        __attribute__((fallthrough));
     }
     case 1:
     {
@@ -116,6 +117,7 @@ void updateSettings()
 
         programDir.rename(".\\config", configDir.absolutePath());
 #endif
+        __attribute__((fallthrough));
     }
     case 2:
     {

@@ -57,8 +57,7 @@ appbundle: setup
 appbundle_x86: setup
 	cd build; \
 	cmake -DAPPBUNDLE=ON \
-		  -DMAC_X86=ON \
-		  -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+		  -DMAC_CROSSCOMPILE_X86=ON \
 		  -DCERT=${CERT_NAME} \
 		  -DCMAKE_BUILD_TYPE=Release \
 		  ${CMAKE_ARGS} \

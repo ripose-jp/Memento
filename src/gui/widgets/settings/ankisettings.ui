@@ -34,7 +34,7 @@
         <x>0</x>
         <y>0</y>
         <width>497</width>
-        <height>1332</height>
+        <height>1248</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -618,18 +618,18 @@ This can be manually overridden when making a card by checking or unchecking glo
   <customwidget>
    <class>CardBuilder</class>
    <extends>QWidget</extends>
-   <header>src/gui/widgets/settings/cardbuilder.h</header>
+   <header>gui/widgets/settings/cardbuilder.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>ScrollComboBox</class>
    <extends>QComboBox</extends>
-   <header>src/gui/widgets/common/scrollcombobox.h</header>
+   <header>gui/widgets/common/scrollcombobox.h</header>
   </customwidget>
   <customwidget>
    <class>ScrollDoubleSpinBox</class>
    <extends>QDoubleSpinBox</extends>
-   <header>src/gui/widgets/common/scrolldoublespinbox.h</header>
+   <header>gui/widgets/common/scrolldoublespinbox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -1,44 +1,41 @@
 add_library(
-    flowlayout
+    flowlayout STATIC
     flowlayout.cpp
+    flowlayout.h
 )
-target_link_libraries(
-    flowlayout
-    Qt5::Widgets
-)
+target_compile_features(flowlayout PUBLIC cxx_std_17)
+target_compile_options(flowlayout PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_link_libraries(flowlayout PUBLIC Qt5::Widgets)
 
 add_library(
-    strokelabel
+    strokelabel STATIC
     strokelabel.cpp
+    strokelabel.h
 )
-target_link_libraries(
-    strokelabel
-    Qt5::Widgets
-)
+target_compile_features(strokelabel PUBLIC cxx_std_17)
+target_compile_options(strokelabel PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_link_libraries(strokelabel PUBLIC Qt5::Widgets)
 
 add_library(
-    sliderjumpstyle
-    sliderjumpstyle.cpp
+    sliderjumpstyle STATIC
+    sliderjumpstyle.h
 )
-target_link_libraries(
-    sliderjumpstyle
-    Qt5::Widgets
-)
+target_compile_features(sliderjumpstyle PUBLIC cxx_std_17)
+target_compile_options(sliderjumpstyle PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_link_libraries(sliderjumpstyle PUBLIC Qt5::Widgets)
 
 add_library(
-    scrollcombobox
+    scrollcombobox STATIC
     scrollcombobox.h
 )
-target_link_libraries(
-    scrollcombobox
-    Qt5::Widgets
-)
+target_compile_features(scrollcombobox PUBLIC cxx_std_17)
+target_compile_options(scrollcombobox PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_link_libraries(scrollcombobox PUBLIC Qt5::Widgets)
 
 add_library(
-    scrolldoublespinbox
+    scrolldoublespinbox STATIC
     scrolldoublespinbox.h
 )
-target_link_libraries(
-    scrolldoublespinbox
-    Qt5::Widgets
-)
+target_compile_features(scrolldoublespinbox PUBLIC cxx_std_17)
+target_compile_options(scrolldoublespinbox PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_link_libraries(scrolldoublespinbox PUBLIC Qt5::Widgets)

@@ -23,8 +23,8 @@
 
 #include <QSettings>
 
-#include "gui/playeradapter.h"
 #include "gui/widgets/common/sliderjumpstyle.h"
+#include "player/playeradapter.h"
 #include "util/constants.h"
 #include "util/globalmediator.h"
 

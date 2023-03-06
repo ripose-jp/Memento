@@ -1,52 +1,54 @@
 add_library(
-    globalmediator
+    globalmediator STATIC
     globalmediator.cpp
+    globalmediator.h
 )
+target_compile_features(globalmediator PUBLIC cxx_std_17)
+target_compile_options(globalmediator PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_include_directories(globalmediator PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     globalmediator
-    Qt5::Core
+    PUBLIC Qt5::Core
 )
 
 add_library(
-    utils
+    utils STATIC
     utils.cpp
+    utils.h
 )
+target_compile_features(utils PUBLIC cxx_std_17)
+target_compile_options(utils PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_include_directories(utils PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     utils
-    globalmediator
-    Qt5::Core
-    Qt5::Network
+    PRIVATE Qt5::Network
+    PRIVATE version
+    PUBLIC Qt5::Core
 )
 
 add_library(
-    iconfactory
-    iconfactory.h
+    iconfactory STATIC
     iconfactory.cpp
+    iconfactory.h
 )
+target_compile_features(iconfactory PUBLIC cxx_std_17)
+target_compile_options(iconfactory PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_include_directories(iconfactory PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     iconfactory
-    Qt5::Gui
-    Qt5::Widgets
+    PRIVATE Qt5::Core
+    PUBLIC Qt5::Widgets
 )
 
 add_library(
-    subtitleparser
+    subtitleparser STATIC
     subtitleparser.cpp
+    subtitleparser.h
 )
+target_compile_features(subtitleparser PUBLIC cxx_std_17)
+target_compile_options(subtitleparser PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_include_directories(subtitleparser PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     subtitleparser
-    Qt5::Core
+    PUBLIC Qt5::Core
 )
-
-if (APPLE)
-    add_library(
-        cocoa_event_handler
-        cocoaeventhandler.mm
-    )
-    target_link_libraries(
-        cocoa_event_handler
-        "-framework cocoa"
-    )
-endif()
-
-add_subdirectory(timer)
