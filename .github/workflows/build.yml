@@ -25,8 +25,11 @@ jobs:
         /opt/qt515/bin/qt515-env.sh
 
     - name: CMake Build
-      run:
-        CMAKE_ARGS='-DOCR_SUPPORT=ON' make
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DOCR_SUPPORT=ON
+        cmake --build . -j $(nproc)
 
   windows:
     runs-on: windows-latest
@@ -58,8 +61,8 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -DCMAKE_BUILD_TYPE=Release -DOCR_SUPPORT=ON ..
-        cmake --build . -- -j$(nproc)
+        cmake .. -DOCR_SUPPORT=ON
+        cmake --build . -j $(nproc)
 
   macos:
     runs-on: macos-latest
@@ -73,5 +76,8 @@ jobs:
         brew install cmake sqlite3 qt5 mpv mecab mecab-ipadic json-c libzip python || true
 
     - name: CMake Build
-      run:
-        CMAKE_ARGS='-DOCR_SUPPORT=ON' make
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DOCR_SUPPORT=ON
+        cmake --build . -j $(nproc)
