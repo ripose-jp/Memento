@@ -21,7 +21,7 @@
 #ifndef PLAYEROVERLAY_H
 #define PLAYEROVERLAY_H
 
-#include <QVBoxLayout>
+#include <QStackedLayout>
 
 #include <QPointer>
 #include <QPropertyAnimation>
@@ -44,7 +44,7 @@ typedef QSharedPointer<Kanji> SharedKanji;
 /**
  * Widget for overlaying controls over the player.
  */
-class PlayerOverlay : public QVBoxLayout
+class PlayerOverlay : public QStackedLayout
 {
     Q_OBJECT
 

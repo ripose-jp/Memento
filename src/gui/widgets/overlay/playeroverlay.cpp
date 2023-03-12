@@ -39,7 +39,7 @@
 
 /* Begin Constructor/Destructor */
 
-PlayerOverlay::PlayerOverlay(QWidget *parent) : QVBoxLayout(parent)
+PlayerOverlay::PlayerOverlay(QWidget *parent) : QStackedLayout(parent)
 {
     /* Fix the margins */
     setSpacing(0);
@@ -656,15 +656,14 @@ void PlayerOverlay::showOverlay()
 void PlayerOverlay::startOCR()
 {
     m_definition->hide();
-    m_container->hide();
     m_menu->hideMenu();
     m_controls->hide();
-    m_ocrOverlay->show();
+    setCurrentIndex(1);
 }
 
 void PlayerOverlay::stopOCR()
 {
-    m_container->show();
+    setCurrentIndex(0);
     if (m_settings.visibility == OSCVisibility::Visible)
     {
         showOverlay();
