@@ -823,8 +823,8 @@ void MpvWidget::preventScreenDimming()
         "org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver"
     );
     QDBusMessage reply = screenSaver.call(
-        "Inhibit", "ripose.memento", "Playing a video"
-        );
+        "Inhibit", "io.github.ripose-jp.memento", "Playing a video"
+    );
     switch(reply.type())
     {
     case QDBusMessage::ReplyMessage:
