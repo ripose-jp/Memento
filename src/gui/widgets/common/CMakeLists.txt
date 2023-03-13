@@ -8,6 +8,15 @@ target_compile_options(flowlayout PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_link_libraries(flowlayout PUBLIC Qt5::Widgets)
 
 add_library(
+    hittestwidget STATIC
+    hittestwidget.cpp
+    hittestwidget.h
+)
+target_compile_features(hittestwidget PUBLIC cxx_std_17)
+target_compile_options(hittestwidget PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_link_libraries(hittestwidget PUBLIC Qt5::Widgets)
+
+add_library(
     strokelabel STATIC
     strokelabel.cpp
     strokelabel.h

@@ -65,6 +65,9 @@ enum class AudioSourceType
 #define SETTINGS_BEHAVIOR_AUTOFIT_PERCENT           "autofit-percent"
 #define SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT   100
 
+#define SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC          "cursor-hide-osc"
+#define SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC_DEFAULT   true
+
 #define SETTINGS_BEHAVIOR_OSC_DURATION              "osc-duration"
 #define SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT      700
 
@@ -77,8 +80,11 @@ enum class AudioSourceType
 #define SETTINGS_BEHAVIOR_SUBTITLE_PAUSE            "subtitle-pause"
 #define SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT    false
 
-#define SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC          "cursor-hide-osc"
-#define SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC_DEFAULT   true
+#define SETTINGS_BEHAVIOR_SUBTITLE_CURSOR_SHOW          "subtitle-cursor-show"
+#define SETTINGS_BEHAVIOR_SUBTITLE_CURSOR_SHOW_DEFAULT  false
+
+#define SETTINGS_BEHAVIOR_SECONDARY_SUBTITLE_CURSOR_SHOW            "subtitle-cursor-show-secondary"
+#define SETTINGS_BEHAVIOR_SECONDARY_SUBTITLE_CURSOR_SHOW_DEFAULT    false
 
 enum class FileOpenDirectory
 {

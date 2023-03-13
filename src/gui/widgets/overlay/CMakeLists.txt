@@ -22,6 +22,7 @@ target_link_libraries(
     playeroverlay
     PRIVATE "$<$<BOOL:${OCR_SUPPORT}>:ocrmodel>"
     PRIVATE dictionary_db
+    PRIVATE hittestwidget
     PRIVATE iconfactory
     PRIVATE playeradapter
     PRIVATE Qt5::Concurrent

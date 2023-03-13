@@ -103,6 +103,7 @@ public Q_SLOTS:
     void disableSubtitleTwo() override;
 
     void setSubVisiblity(const bool visible) override;
+    void setSecondarySubVisiblity(const bool visible) override;
 
     void setAudioTrack(int64_t id)       override;
     void setVideoTrack(int64_t id)       override;

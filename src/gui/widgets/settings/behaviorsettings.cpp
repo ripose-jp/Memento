@@ -100,6 +100,7 @@ void BehaviorSettings::restoreSaved()
 {
     QSettings settings;
     settings.beginGroup(SETTINGS_BEHAVIOR);
+
     m_ui->checkAutofit->setChecked(
         settings.value(
             SETTINGS_BEHAVIOR_AUTOFIT, SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT
@@ -111,16 +112,11 @@ void BehaviorSettings::restoreSaved()
             SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT
         ).toInt()
     );
+
     m_ui->checkCursorOSC->setChecked(
         settings.value(
             SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC,
             SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC_DEFAULT
-        ).toBool()
-    );
-    m_ui->checkSubtitlePause->setChecked(
-        settings.value(
-            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE,
-            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
         ).toBool()
     );
     m_ui->spinOSCDuration->setValue(
@@ -141,6 +137,26 @@ void BehaviorSettings::restoreSaved()
             SETTINGS_BEHAVIOR_OSC_MIN_MOVE_DEFAULT
         ).toInt()
     );
+
+    m_ui->checkSubtitlePause->setChecked(
+        settings.value(
+            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE,
+            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
+        ).toBool()
+    );
+    m_ui->checkSubtitleShow->setChecked(
+        settings.value(
+            SETTINGS_BEHAVIOR_SUBTITLE_CURSOR_SHOW,
+            SETTINGS_BEHAVIOR_SUBTITLE_CURSOR_SHOW_DEFAULT
+        ).toBool()
+    );
+    m_ui->checkSubtitleSecShow->setChecked(
+        settings.value(
+            SETTINGS_BEHAVIOR_SECONDARY_SUBTITLE_CURSOR_SHOW,
+            SETTINGS_BEHAVIOR_SECONDARY_SUBTITLE_CURSOR_SHOW_DEFAULT
+        ).toBool()
+    );
+
     m_ui->comboFileOpenDir->setCurrentText(
         m_fileOpenMap.key(
             (FileOpenDirectory)settings.value(
@@ -155,6 +171,7 @@ void BehaviorSettings::restoreSaved()
             SETTINGS_BEHAVIOR_FILE_OPEN_CUSTOM_DEFAULT
         ).toString()
     );
+
     settings.endGroup();
 }
 
@@ -162,13 +179,22 @@ void BehaviorSettings::restoreDefaults()
 {
     m_ui->checkAutofit->setChecked(SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT);
     m_ui->spinAutofit->setValue(SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT);
+
     m_ui->checkCursorOSC->setChecked(SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC_DEFAULT);
-    m_ui->checkSubtitlePause->setChecked(
-        SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
-    );
     m_ui->spinOSCDuration->setValue(SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT);
     m_ui->spinOSCFade->setValue(SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT);
     m_ui->spinOSCMinMove->setValue(SETTINGS_BEHAVIOR_OSC_MIN_MOVE_DEFAULT);
+
+    m_ui->checkSubtitlePause->setChecked(
+        SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
+    );
+    m_ui->checkSubtitleShow->setChecked(
+        SETTINGS_BEHAVIOR_SUBTITLE_CURSOR_SHOW_DEFAULT
+    );
+    m_ui->checkSubtitleSecShow->setChecked(
+        SETTINGS_BEHAVIOR_SECONDARY_SUBTITLE_CURSOR_SHOW_DEFAULT
+    );
+
     m_ui->comboFileOpenDir->setCurrentText(
         m_fileOpenMap.key(SETTINGS_BEHAVIOR_FILE_OPEN_DIR_DEFAULT)
     );
@@ -181,17 +207,16 @@ void BehaviorSettings::applySettings()
 {
     QSettings settings;
     settings.beginGroup(SETTINGS_BEHAVIOR);
+
     settings.setValue(
         SETTINGS_BEHAVIOR_AUTOFIT, m_ui->checkAutofit->isChecked()
     );
     settings.setValue(
         SETTINGS_BEHAVIOR_AUTOFIT_PERCENT, m_ui->spinAutofit->value()
     );
+
     settings.setValue(
         SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC, m_ui->checkCursorOSC->isChecked()
-    );
-    settings.setValue(
-        SETTINGS_BEHAVIOR_SUBTITLE_PAUSE, m_ui->checkSubtitlePause->isChecked()
     );
     settings.setValue(
         SETTINGS_BEHAVIOR_OSC_DURATION, m_ui->spinOSCDuration->value()
@@ -202,6 +227,19 @@ void BehaviorSettings::applySettings()
     settings.setValue(
         SETTINGS_BEHAVIOR_OSC_MIN_MOVE, m_ui->spinOSCMinMove->value()
     );
+
+    settings.setValue(
+        SETTINGS_BEHAVIOR_SUBTITLE_PAUSE, m_ui->checkSubtitlePause->isChecked()
+    );
+    settings.setValue(
+        SETTINGS_BEHAVIOR_SUBTITLE_CURSOR_SHOW,
+        m_ui->checkSubtitleShow->isChecked()
+    );
+    settings.setValue(
+        SETTINGS_BEHAVIOR_SECONDARY_SUBTITLE_CURSOR_SHOW,
+        m_ui->checkSubtitleSecShow->isChecked()
+    );
+
     settings.setValue(
         SETTINGS_BEHAVIOR_FILE_OPEN_DIR,
         (int)m_fileOpenMap[m_ui->comboFileOpenDir->currentText()]
@@ -213,6 +251,7 @@ void BehaviorSettings::applySettings()
             m_ui->lineEditFileOpenCustom->text()
         );
     }
+
     settings.endGroup();
 
     Q_EMIT GlobalMediator::getGlobalMediator()->behaviorSettingsChanged();

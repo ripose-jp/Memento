@@ -95,8 +95,31 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
         Qt::QueuedConnection
     );
     connect(
+        mediator, &GlobalMediator::definitionsHidden,
+        this,
+        [this] () {
+            m_definitionsVisible = false;
+            adjustVisibility();
+        },
+        Qt::QueuedConnection
+    );
+    connect(
+        mediator, &GlobalMediator::definitionsHidden,
+        this,     [this] () { m_definitionsVisible = false; },
+        Qt::QueuedConnection
+    );
+    connect(
         mediator, &GlobalMediator::definitionsShown,
         this,     &SubtitleWidget::selectText,
+        Qt::QueuedConnection
+    );
+    connect(
+        mediator, &GlobalMediator::definitionsShown,
+        this,
+        [this] () {
+            m_definitionsVisible = true;
+            adjustVisibility();
+        },
         Qt::QueuedConnection
     );
     connect(
@@ -109,24 +132,31 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
     );
     connect(
         mediator, &GlobalMediator::playerSubtitlesDisabled,
-        this,     [=] { positionChanged(-1); },
+        this,     [this] { positionChanged(-1); },
         Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::playerSubtitleTrackChanged,
-        this,     [=] { positionChanged(-1); },
+        this,     [this] { positionChanged(-1); },
         Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::menuSubtitleVisibilityToggled, this,
-        [=] (bool visible) {
+        [this] (bool visible) {
             m_settings.showSubtitles = visible;
             adjustVisibility();
         },
         Qt::QueuedConnection
     );
+    connect(mediator, &GlobalMediator::requestSubtitleWidgetVisibility, this,
+        [this] (bool visible) {
+            m_settings.requestedVisibility = visible;
+            adjustVisibility();
+        },
+        Qt::QueuedConnection
+    );
     connect(mediator, &GlobalMediator::playerPauseStateChanged, this,
-        [=] (const bool paused) {
+        [this] (bool paused) {
             m_paused = paused;
             adjustVisibility();
         },
@@ -375,6 +405,7 @@ void SubtitleWidget::leaveEvent(QEvent *event)
 
     m_findDelay->stop();
     m_currentIndex = -1;
+    adjustVisibility();
 }
 
 void SubtitleWidget::resizeEvent(QResizeEvent *event)
@@ -465,11 +496,15 @@ void SubtitleWidget::adjustVisibility()
     {
         hide();
     }
-    else if (m_paused)
+    else if (!m_paused && m_settings.hideOnPlay)
     {
-        show();
+        hide();
     }
-    else if (m_settings.hideOnPlay)
+    else if (
+        !m_settings.requestedVisibility &&
+        !m_definitionsVisible &&
+        !underMouse()
+    )
     {
         hide();
     }

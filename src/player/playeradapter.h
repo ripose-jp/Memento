@@ -309,6 +309,12 @@ public Q_SLOTS:
     virtual void setSubVisiblity(const bool visible) = 0;
 
     /**
+     * Sets the secondary subtitle visibility.
+     * @param visible true to make secondary subtitle visible, false otherwise.
+     */
+    virtual void setSecondarySubVisiblity(const bool visible) = 0;
+
+    /**
      * Changes the audio track to the one with the same id.
      * @param id The id of the audio track.
      */

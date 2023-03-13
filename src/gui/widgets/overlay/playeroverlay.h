@@ -29,6 +29,7 @@
 #include <QTimer>
 
 class DefinitionWidget;
+class HitTestWidget;
 class OCROverlay;
 class PlayerControls;
 class PlayerMenu;
@@ -170,12 +171,9 @@ private:
      */
     void moveSubtitles(const double inc);
 
-    /* Saved pointer to the current definition widget. Has ownership. */
-    DefinitionWidget *m_definition;
-
 #ifdef OCR_SUPPORT
     /* Saved pointer to the OCROverlay */
-    OCROverlay *m_ocrOverlay;
+    QPointer<OCROverlay> m_ocrOverlay;
 #endif // OCR_SUPPORT
 
     /* The container widget that holds:
@@ -184,19 +182,22 @@ private:
      * * m_spacer
      * * m_controls
      */
-    QWidget *m_container;
+    QPointer<HitTestWidget> m_widgetOSC;
 
     /* The menu widget */
-    PlayerMenu *m_menu;
+    QPointer<PlayerMenu> m_menu;
 
     /* The subtitle widget */
-    SubtitleWidget *m_subtitle;
+    QPointer<SubtitleWidget> m_subtitle;
 
     /* A generic spacer widget for position the subtitles */
-    QWidget *m_spacer;
+    QPointer<QWidget> m_spacer;
 
     /* The widget containing the player controls */
-    PlayerControls *m_controls;
+    QPointer<PlayerControls> m_controls;
+
+    /* Saved pointer to the current definition widget. Has ownership. */
+    QPointer<DefinitionWidget> m_definition;
 
     /* The amount of time before the OSC should be hidden */
     QTimer m_hideTimer;

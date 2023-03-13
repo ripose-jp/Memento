@@ -143,12 +143,15 @@ private:
     /* The size of the last emitted term match. */
     int m_lastEmittedSize;
 
+    /* True if definitions are visible, false otherwise */
+    bool m_definitionsVisible{false};
+
     /* Saved pause state of the player. */
     bool m_paused;
 
     /* True if playback has already been paused for the current subtitle, false
      * otherwise. */
-    bool m_pausedForCurrentSubtitle = false;
+    bool m_pausedForCurrentSubtitle{false};
 
     /* Contains information about the current subtitle. */
     struct Subtitle
@@ -194,6 +197,10 @@ private:
          * otherwise.
          */
         bool hideOnPlay;
+
+        /* True if the subtitle should be visible if possible, false otherwise
+         */
+        bool requestedVisibility{true};
 
         /* true if playback should pause when the mouse moves over the
          * subtitle false otherwise */

@@ -792,6 +792,15 @@ void MpvAdapter::setSubVisiblity(const bool visible)
     }
 }
 
+void MpvAdapter::setSecondarySubVisiblity(const bool visible)
+{
+    int flag = visible ? 1 : 0;
+    if (mpv_set_property_async(m_handle, 0, "secondary-sub-visibility", MPV_FORMAT_FLAG, &flag) < 0)
+    {
+        qDebug() << "Could not set mpv property secondary-sub-visibility to" << flag;
+    }
+}
+
 void MpvAdapter::setAudioTrack(int64_t id)
 {
     if (mpv_set_property_async(m_handle, 0, "aid", MPV_FORMAT_INT64, &id) < 0)

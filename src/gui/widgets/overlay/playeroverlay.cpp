@@ -32,6 +32,7 @@
 #include "playermenu.h"
 #include "subtitlewidget.h"
 
+#include "gui/widgets/common/hittestwidget.h"
 #include "gui/widgets/definition/definitionwidget.h"
 #include "player/playeradapter.h"
 #include "util/constants.h"
@@ -51,13 +52,13 @@ PlayerOverlay::PlayerOverlay(QWidget *parent) : QStackedLayout(parent)
     layoutContainer->setSpacing(0);
     layoutContainer->setContentsMargins(QMargins(0, 0, 0, 0));
     layoutContainer->setMargin(0);
-    m_container = new QWidget;
-    m_container->setMouseTracking(true);
-    m_container->setLayout(layoutContainer);
-    addWidget(m_container);
+    m_widgetOSC = new HitTestWidget;
+    m_widgetOSC->setMouseTracking(true);
+    m_widgetOSC->setLayout(layoutContainer);
+    addWidget(m_widgetOSC);
 
     /* Set up the definition widget */
-    m_definition = new DefinitionWidget(false, m_container);
+    m_definition = new DefinitionWidget(false, m_widgetOSC);
     m_definition->hide();
 
     /* Add the menubar */
@@ -300,6 +301,7 @@ void PlayerOverlay::initSettings()
     settings.endGroup();
 
     settings.beginGroup(SETTINGS_BEHAVIOR);
+
     m_hideTimer.setSingleShot(true);
     m_hideTimer.setInterval(
         settings.value(
@@ -315,6 +317,79 @@ void PlayerOverlay::initSettings()
         SETTINGS_BEHAVIOR_OSC_MIN_MOVE,
         SETTINGS_BEHAVIOR_OSC_MIN_MOVE_DEFAULT
     ).toInt();
+
+    m_widgetOSC->clearRegions();
+
+    bool showPrimarySubtitles
+    {
+        settings.value(
+            SETTINGS_BEHAVIOR_SUBTITLE_CURSOR_SHOW,
+            SETTINGS_BEHAVIOR_SUBTITLE_CURSOR_SHOW_DEFAULT
+        ).toBool()
+    };
+    if (showPrimarySubtitles)
+    {
+        constexpr qreal SHOW_AREA{0.2};
+
+        const QRectF area{0.0, 1.0 - SHOW_AREA, 1.0, SHOW_AREA};
+
+        m_widgetOSC->addRegion(
+            area,
+            [] ()
+            {
+                Q_EMIT GlobalMediator::getGlobalMediator()
+                    ->requestSubtitleWidgetVisibility(true);
+            },
+            HitTestWidget::MouseEventFlag::Enter
+        );
+        m_widgetOSC->addRegion(
+            area,
+            [] ()
+            {
+                Q_EMIT GlobalMediator::getGlobalMediator()
+                    ->requestSubtitleWidgetVisibility(false);
+            },
+            HitTestWidget::MouseEventFlag::Exit
+        );
+    }
+    Q_EMIT GlobalMediator::getGlobalMediator()
+        ->requestSubtitleWidgetVisibility(!showPrimarySubtitles);
+
+    bool showSecondarySubtitles
+    {
+        settings.value(
+            SETTINGS_BEHAVIOR_SECONDARY_SUBTITLE_CURSOR_SHOW,
+            SETTINGS_BEHAVIOR_SECONDARY_SUBTITLE_CURSOR_SHOW_DEFAULT
+        ).toBool()
+    };
+    if (showSecondarySubtitles)
+    {
+        constexpr qreal SHOW_AREA{0.2};
+
+        const QRectF area{0.0, 0.0, 1.0, SHOW_AREA};
+
+        m_widgetOSC->addRegion(
+            area,
+            [] ()
+            {
+                GlobalMediator::getGlobalMediator()
+                    ->getPlayerAdapter()
+                    ->setSecondarySubVisiblity(true);
+            },
+            HitTestWidget::MouseEventFlag::Enter
+        );
+        m_widgetOSC->addRegion(
+            area,
+            [] ()
+            {
+                GlobalMediator::getGlobalMediator()
+                    ->getPlayerAdapter()
+                    ->setSecondarySubVisiblity(false);
+            },
+            HitTestWidget::MouseEventFlag::Exit
+        );
+    }
+
     settings.endGroup();
 
     repositionSubtitles();
@@ -488,7 +563,7 @@ void PlayerOverlay::moveSubsDown()
 
 bool PlayerOverlay::underMouse() const
 {
-    return m_container->childrenRegion().contains(
+    return m_widgetOSC->childrenRegion().contains(
         parentWidget()->mapFromGlobal(QCursor::pos())
     );
 }

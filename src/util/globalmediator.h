@@ -33,6 +33,7 @@ class QWidget;
 class SubtitleListWidget;
 
 class QKeyEvent;
+class QMouseEvent;
 class QWheelEvent;
 
 struct Term;
@@ -604,6 +605,12 @@ Q_SIGNALS:
      * @param value true to show subtitles, false otherwise.
      */
     void requestSubtitleVisibility(const bool value) const;
+
+    /**
+     * Requests subtitle widget visibility be changed. May be ignored.
+     * @param value true to show subtitles, false otherwise.
+     */
+    void requestSubtitleWidgetVisibility(const bool value) const;
 
     /**
      * Requests that the subtitle list visibility be changed.
