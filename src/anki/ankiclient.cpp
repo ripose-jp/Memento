@@ -767,7 +767,9 @@ AnkiReply *AnkiClient::openBrowse(const QString &deck, const QString &query)
         __attribute__((fallthrough));
     case AnkiConfig::None:
     default:
+        queryStr += '(';
         queryStr += query;
+        queryStr += ')';
     }
     params[ANKI_PARAM_QUERY] = queryStr;
     QNetworkReply *reply = makeRequest(ANKI_ACTION_GUI_BROWSE, params);
