@@ -427,10 +427,10 @@ void DefinitionWidget::showTerms(const int start, const int end)
 void DefinitionWidget::setAddable(const int start, const int end)
 {
     for (int i = start;
-         i < m_addable.size() && i < m_terms.size() && i < end;
+         i * 2 + 1 < m_addable.size() && i < m_terms.size() && i < end;
          ++i)
     {
-        m_termWidgets[i]->setAddable(m_addable[i]);
+        m_termWidgets[i]->setAddable(m_addable[i * 2], m_addable[i * 2 + 1]);
     }
 }
 

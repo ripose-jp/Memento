@@ -507,16 +507,25 @@ void TermWidget::searchKanji(const QString &ch)
 /* End User Input Handlers */
 /* Begin Setters */
 
-void TermWidget::setAddable(bool value)
+void TermWidget::setAddable(bool expression, bool reading)
 {
-    m_ui->buttonAddCard->setVisible(value);
-    m_ui->buttonKanaKanji->setVisible(value && !m_term->reading.isEmpty());
-    m_ui->buttonAnkiOpen->setVisible(!value);
+    m_ui->buttonAddCard->setVisible(expression || reading);
+    m_ui->buttonAnkiOpen->setVisible(
+        !expression || (!reading && !m_term->reading.isEmpty())
+    );
+    m_ui->buttonKanaKanji->setVisible(
+        (expression || reading) && !m_term->reading.isEmpty()
+    );
+    m_ui->buttonKanaKanji->setEnabled(expression && reading);
+    if (!expression && reading && !m_term->reading.isEmpty())
+    {
+        toggleExpressionKanji();
+    }
     for (int i = 0; i < m_layoutGlossary->count(); ++i)
     {
         GlossaryWidget *widget =
             (GlossaryWidget *)m_layoutGlossary->itemAt(i)->widget();
-        widget->setCheckable(value);
+        widget->setCheckable(expression || reading);
     }
 }
 

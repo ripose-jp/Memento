@@ -66,10 +66,10 @@ public:
 
     /**
      * Sets this widget to be addable.
-     * @param value If true, Anki add button is visible. If false Anki search
-     *              button is visible.
+     * @param expression true if the expression is addable, false otherwise
+     * @param reading    true if the reading is addable, false otherwise
      */
-    void setAddable(bool value);
+    void setAddable(bool expression, bool reading);
 
     /**
      * Deletes this term once all outstanding network requests are finished.

@@ -665,19 +665,18 @@ AnkiReply *AnkiClient::notesAddable(QList<QSharedPointer<const Term>> terms)
         [ankiReply, terms] (const QList<bool> &value, const QString &error)
         {
             QList<bool> result;
-            /* Aggregate readingAsExpression true and false into one value */
             for (int termsIdx = 0, valueIdx = 0;
                  termsIdx < terms.size() && valueIdx < value.size();
                  ++termsIdx)
             {
                 if (terms[termsIdx]->reading.isEmpty())
                 {
-                    result << value[valueIdx];
+                    result << value[valueIdx] << false;
                     ++valueIdx;
                 }
                 else
                 {
-                    result << (value[valueIdx] && value[valueIdx + 1]);
+                    result << value[valueIdx] << value[valueIdx + 1];
                     valueIdx += 2;
                 }
             }
