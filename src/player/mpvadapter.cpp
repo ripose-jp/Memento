@@ -1061,6 +1061,7 @@ void MpvAdapter::keyPressed(QKeyEvent *event)
             key += "DOWN";
             break;
         case Qt::Key::Key_Enter:
+        case Qt::Key::Key_Return:
             key += "ENTER";
             break;
         case Qt::Key::Key_Escape:
