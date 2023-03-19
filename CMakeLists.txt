@@ -107,19 +107,19 @@ if(APPLE AND NOT MAC_CROSSCOMPILE_X86)
 		MEMENTO_INCLUDE_DIRS
 
 		# arm64 locations
-		"/opt/homebrew/include"
 		"/opt/homebrew/opt/qt5/include"
+		"/opt/homebrew/include"
 
 		# x86_64 locations
-		"/usr/local/include"
 		"/usr/local/opt/qt5/include/"
+		"/usr/local/include"
 	)
 elseif(APPLE AND MAC_CROSSCOMPILE_X86)
 	# This is a crosscomile target, x86_64 users shouldn't need to use this
 	set(
 		MEMENTO_INCLUDE_DIRS
-		"/usr/local/include"
 		"/usr/local/opt/qt5/include/"
+		"/usr/local/include"
 	)
 endif()
 list(PREPEND MEMENTO_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src")
