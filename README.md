@@ -302,3 +302,5 @@ https://github.com/animebook/animebook.github.io
   * https://www.iconfinder.com/iconsets/play-rounded
 * `mingw-bundledlls.py` based on this script with a slightly expanded blacklist
   * https://github.com/mpreisler/mingw-bundledlls
+* Flatpak manifest heavily based on the mpv Flatpak
+  * https://github.com/flathub/io.mpv.Mpv
