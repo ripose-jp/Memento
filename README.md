@@ -1,6 +1,7 @@
 # Memento
 
 [![AUR](https://img.shields.io/aur/version/memento)](https://aur.archlinux.org/packages/memento/)
+[![Flathub](https://img.shields.io/flathub/v/io.github.ripose_jp.Memento)](https://flathub.org/apps/details/io.github.ripose_jp.Memento)
 
 Memento is a FOSS, mpv-based video player for studying Japanese.
 
