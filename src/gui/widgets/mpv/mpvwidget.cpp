@@ -820,9 +820,7 @@ void MpvWidget::preventScreenDimming()
     );
 #elif defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     QDBusInterface screenSaver(
-        "org.freedesktop.ScreenSaver",
-        "/Screensaver",
-        "org.freedesktop.ScreenSaver"
+        "org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver"
     );
     QDBusMessage reply = screenSaver.call(
         "Inhibit", "io.github.ripose-jp.memento", "Playing a video"
