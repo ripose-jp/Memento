@@ -107,6 +107,11 @@ SearchWidget::SearchWidget(QWidget *parent)
         m_definition, &DefinitionWidget::setTerms,
         Qt::QueuedConnection
     );
+    connect(
+        this, &SearchWidget::widgetShown,
+        m_searchEdit, qOverload<>(&QLineEdit::setFocus),
+        Qt::QueuedConnection
+    );
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     connect(
