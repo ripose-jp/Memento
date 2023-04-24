@@ -197,9 +197,11 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     );
     connect(
         m_findShortcut, &QShortcut::activated, this,
-        [=] { 
-          m_ui->widgetFind->setVisible(!m_ui->widgetFind->isVisible());
+        [this]
+        {
+          m_ui->widgetFind->show();
           m_ui->lineEditSearch->setFocus();
+          findText(m_ui->lineEditSearch->text());
         },
         Qt::QueuedConnection
     );
