@@ -195,12 +195,14 @@ else()
 endif()
 
 # Install targets
-if(UNIX AND NOT APPBUNDLE)
+if(NOT APPBUNDLE AND NOT APPIMAGE)
 	install(
 		TARGETS memento
 		DESTINATION bin
 		COMPONENT binaries
 	)
+endif()
+if(UNIX AND NOT APPLE)
 	install(
 		FILES "${PROJECT_SOURCE_DIR}/res/memento.desktop"
 		DESTINATION share/applications
