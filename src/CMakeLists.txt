@@ -21,7 +21,7 @@ add_subdirectory(util)
 # Executable Targets
 if(APPBUNDLE)
 	set(MEMENTO_ICON_FILE "memento.icns")
-	set(MEMENTO_ICON_PATH "${PROJECT_SOURCE_DIR}/res/${MACOS_ICON_FILE}")
+	set(MEMENTO_ICON_PATH "${PROJECT_SOURCE_DIR}/res/${MEMENTO_ICON_FILE}")
 
 	# Create the executable target
 	add_executable(
