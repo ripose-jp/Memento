@@ -34,15 +34,7 @@ if(EXISTS "${LOC_PATH}")
 endif()
 
 # Options
-if(APPLE)
-	option(APPBUNDLE "Toggle when building macOS AppBundles" OFF)
-endif()
-if(UNIX AND NOT APPLE)
-	option(APPIMAGE "Toggle when building for AppImages" OFF)
-endif()
-option(MAC_CROSSCOMPILE_X86 "Enables ARM machines to cross compile for x86" OFF)
-option(OCR_SUPPORT "Support for OCR through MangaOCR" OFF)
-option(RELEASE_BUILD "Toggle to build with release settings" OFF)
+add_subdirectory(option)
 
 # Check that dangerous options have no been toggled
 if(NOT APPLE AND APPBUNDLE)
