@@ -1,5 +1,6 @@
 if(APPLE)
 	option(APPBUNDLE "Toggle when building macOS AppBundles" OFF)
+    option(CERT "Certificate name used to sign the AppBundle" "")
 endif()
 if(UNIX AND NOT APPLE)
 	option(APPIMAGE "Toggle when building for AppImages" OFF)
