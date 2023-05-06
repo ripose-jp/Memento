@@ -3,16 +3,16 @@
 release: setup
 	cd build; \
 	cmake -DCMAKE_BUILD_TYPE=Release ${CMAKE_ARGS} ..; \
-	make -j$(nproc)
+	cmake --build . -j$(nproc)
 
 debug: setup
 	cd build; \
 	cmake -DCMAKE_BUILD_TYPE=Debug ${CMAKE_ARGS} ..; \
-	make -j$(nproc)
+	cmake --build . -j$(nproc)
 
 install:
 	cd build; \
-	make install -j$(nproc)
+	cmake --build . --target install -j$(nproc)
 
 setup:
 	mkdir -p build
@@ -28,7 +28,7 @@ uninstall:
 appimage: setup
 	cd build; \
 	cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DAPPIMAGE=ON ${CMAKE_ARGS} ..; \
-	make -j$(nproc); \
+	cmake --build . -j$(nproc); \
 	make install DESTDIR=AppDir; \
 	mkdir -p ./AppDir/usr/lib/mecab; \
 	mkdir -p ./AppDir/usr/lib/mecab/dic; \
@@ -49,7 +49,7 @@ appbundle: setup
 		  -DCMAKE_BUILD_TYPE=Release \
 		  ${CMAKE_ARGS} \
 		  ..; \
-	make -j$(nproc); \
+	cmake --build . -j$(nproc); \
 	mkdir -p ./src/Memento.app/Contents/Frameworks/mecab; \
 	cp -r ../dic ./src/Memento.app/Contents/Frameworks/mecab
 
@@ -62,6 +62,6 @@ appbundle_x86: setup
 		  -DCMAKE_BUILD_TYPE=Release \
 		  ${CMAKE_ARGS} \
 		  ..; \
-	make -j$(nproc); \
+	cmake --build . -j$(nproc); \
 	mkdir -p ./src/Memento.app/Contents/Frameworks/mecab; \
 	cp -r ../dic ./src/Memento.app/Contents/Frameworks/mecab
