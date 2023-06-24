@@ -3,8 +3,15 @@ add_library(
     yomidbbuilder.c
     yomidbbuilder.h
 )
-target_compile_features(yomidbbuilder PUBLIC c_std_99)
-target_compile_options(yomidbbuilder PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_compile_features(
+    yomidbbuilder
+    PUBLIC c_std_99
+)
+target_compile_options(
+    yomidbbuilder
+    PRIVATE ${MEMENTO_COMPILER_FLAGS}
+    PRIVATE "$<$<STREQUAL:${CMAKE_C_COMPILER_ID},AppleClang>:-Wno-nullability-extension>"
+)
 target_include_directories(yomidbbuilder PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     yomidbbuilder
