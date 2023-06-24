@@ -996,9 +996,26 @@ static int add_term(sqlite3 *db, json_object *term, const sqlite3_int64 id)
         goto cleanup;
     reading = json_object_get_string(ret_obj);
 
-    if ((ret = get_obj_from_array(term, DEF_TAGS_INDEX, json_type_string, &ret_obj)))
-        goto cleanup;
-    def_tags = json_object_get_string(ret_obj);
+    ret_obj = json_object_array_get_idx(term, DEF_TAGS_INDEX);
+    switch (json_object_get_type(ret_obj))
+    {
+        case json_type_string:
+            def_tags = json_object_get_string(ret_obj);
+            ret = 0;
+            break;
+        case json_type_null:
+            def_tags = "";
+            ret = 0;
+            break;
+        default:
+            fprintf(stderr, "Expected index %u to be of type string or null\n%s\n",
+                    DEF_TAGS_INDEX,
+                    json_object_to_json_string_ext(term, JSON_C_TO_STRING_PRETTY
+            ));
+            ret_obj = NULL;
+            ret = JSON_WRONG_TYPE_ERR;
+            goto cleanup;
+    }
 
     if ((ret = get_obj_from_array(term, RULES_INDEX, json_type_string, &ret_obj)))
         goto cleanup;
