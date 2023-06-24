@@ -1875,7 +1875,7 @@ static int extract_resources(zip_t *dict_archive, const char *res_dir)
     file_regex = &rt; // if regcomp fails, regfree is UB if passed non-NULL
 
     /* Iterate over files */
-    for (zip_int64_t i = 0; i < zip_get_num_files(dict_archive); ++i)
+    for (zip_int64_t i = 0; i < zip_get_num_entries(dict_archive, 0); ++i)
     {
         file_name = zip_get_name(dict_archive, i, 0);
         /* Skip unwanted files */
