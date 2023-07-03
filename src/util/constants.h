@@ -176,6 +176,9 @@ namespace Constants
             constexpr const char *HOVER_PAUSE = "hover-pause";
             constexpr bool HOVER_PAUSE_DEFAULT = false;
 
+            constexpr const char *AUTO_PLAY_AUDIO = "auto-play-audio";
+            constexpr bool AUTO_PLAY_AUDIO_DEFAULT = false;
+
             constexpr const char *LIST_GLOSSARY = "list-result";
             constexpr GlossaryStyle LIST_GLOSSARY_DEFAULT = GlossaryStyle::Bullet;
 

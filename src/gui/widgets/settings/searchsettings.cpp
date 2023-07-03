@@ -143,6 +143,12 @@ void SearchSettings::restoreSaved()
             Constants::Settings::Search::HOVER_PAUSE_DEFAULT
         ).toBool()
     );
+    m_ui->checkAutoPlayAudio->setChecked(
+        settings.value(
+            Constants::Settings::Search::AUTO_PLAY_AUDIO,
+            Constants::Settings::Search::AUTO_PLAY_AUDIO_DEFAULT
+        ).toBool()
+    );
     m_ui->checkReplaceNewLines->setChecked(
         settings.value(
             Constants::Settings::Search::REPLACE_LINES,
@@ -191,6 +197,9 @@ void SearchSettings::restoreDefaults()
     m_ui->checkHoverPause->setChecked(
         Constants::Settings::Search::HOVER_PAUSE_DEFAULT
     );
+    m_ui->checkAutoPlayAudio->setChecked(
+        Constants::Settings::Search::AUTO_PLAY_AUDIO_DEFAULT
+    );
     m_ui->checkReplaceNewLines->setChecked(
         Constants::Settings::Search::REPLACE_LINES_DEFAULT
     );
@@ -236,6 +245,10 @@ void SearchSettings::applySettings()
     settings.setValue(
         Constants::Settings::Search::HOVER_PAUSE,
         m_ui->checkHoverPause->isChecked()
+    );
+    settings.setValue(
+        Constants::Settings::Search::AUTO_PLAY_AUDIO,
+        m_ui->checkAutoPlayAudio->isChecked()
     );
     settings.setValue(
         Constants::Settings::Search::REPLACE_LINES,

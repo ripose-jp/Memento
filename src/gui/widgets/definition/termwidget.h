@@ -71,6 +71,12 @@ public:
      */
     void deleteWhenReady();
 
+public Q_SLOTS:
+    /**
+     * Plays the audio from the first available source.
+     */
+    void playAudio();
+
 Q_SIGNALS:
     /**
      * Emitted when a kanji is searched by the user and found.
@@ -124,11 +130,6 @@ private Q_SLOTS:
      * the expression of the current term.
      */
     void searchAnki();
-
-    /**
-     * Plays the audio from the first available source.
-     */
-    void playAudio();
 
     /**
      * Plays audio for the term from the audio source.

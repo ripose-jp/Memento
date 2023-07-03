@@ -64,6 +64,9 @@ struct DefinitionState
     /* The style of glossary to display */
     Constants::GlossaryStyle glossaryStyle;
 
+    /* Whether or not to auto-play the first result's audio */
+    bool autoPlayAudio;
+
     /* The modifier key used for executing sub-searches */
     Qt::KeyboardModifier searchModifier;
 };

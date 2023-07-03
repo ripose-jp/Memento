@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>612</width>
-    <height>517</height>
+    <width>768</width>
+    <height>601</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,8 +27,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>579</width>
-        <height>524</height>
+        <width>735</width>
+        <height>556</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layoutScrollArea">
@@ -189,6 +189,16 @@ Changing this value from the default is not recommended.</string>
            </property>
            <property name="text">
             <string>Pause on subtitle search hover</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkAutoPlayAudio">
+           <property name="toolTip">
+            <string>Automatically play audio for the top search result</string>
+           </property>
+           <property name="text">
+            <string>Auto-play search result audio</string>
            </property>
           </widget>
          </item>

@@ -141,6 +141,10 @@ void DefinitionWidget::initSearch()
             static_cast<int>(Constants::Settings::Search::LIST_GLOSSARY_DEFAULT)
         ).toInt()
     );
+    m_state.autoPlayAudio = settings.value(
+        Constants::Settings::Search::AUTO_PLAY_AUDIO,
+        Constants::Settings::Search::AUTO_PLAY_AUDIO_DEFAULT
+    ).toBool();
 
     QString modifier = settings.value(
         Constants::Settings::Search::MODIFIER,
@@ -260,6 +264,10 @@ void DefinitionWidget::setTerms(SharedTermList terms, SharedKanji kanji)
     /* Add the terms */
     showTerms(0, m_state.resultLimit);
     m_ui->scrollArea->verticalScrollBar()->setValue(0);
+    if (m_state.autoPlayAudio && !m_termWidgets.empty())
+    {
+        m_termWidgets.front()->playAudio();
+    }
 
     QPushButton *buttonShowMore = nullptr;
     /* Add the show more button */
