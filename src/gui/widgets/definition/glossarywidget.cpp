@@ -28,7 +28,7 @@ GlossaryWidget::GlossaryWidget(
     const size_t number,
     const TermDefinition &def,
     const Qt::KeyboardModifier modifier,
-    const GlossaryStyle style,
+    const Constants::GlossaryStyle style,
     QWidget *parent)
     : QWidget(parent),
       m_def(def)

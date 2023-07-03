@@ -51,7 +51,7 @@ public:
         size_t number,
         const TermDefinition &def,
         Qt::KeyboardModifier modifier,
-        GlossaryStyle style,
+        Constants::GlossaryStyle style,
         QWidget *parent = nullptr);
 
     /**

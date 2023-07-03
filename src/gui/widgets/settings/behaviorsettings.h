@@ -25,7 +25,10 @@
 
 #include <QMap>
 
-enum class FileOpenDirectory;
+namespace Constants
+{
+    enum class FileOpenDirectory;
+}
 
 namespace Ui
 {
@@ -82,7 +85,7 @@ private:
     Ui::BehaviorSettings *m_ui;
 
     /* Maps ComboBox options to their corresponding enum values */
-    QMap<QString, FileOpenDirectory> m_fileOpenMap;
+    QMap<QString, Constants::FileOpenDirectory> m_fileOpenMap;
 };
 
 #endif // BEHAVIORSETTINGS_H

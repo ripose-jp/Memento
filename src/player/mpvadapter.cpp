@@ -246,9 +246,9 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
 void MpvAdapter::initRegex()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_SEARCH);
+    settings.beginGroup(Constants::Settings::Search::GROUP);
     m_subRegex.setPattern(
-        settings.value(SETTINGS_SEARCH_REMOVE_REGEX, "").toString()
+        settings.value(Constants::Settings::Search::REMOVE_REGEX, "").toString()
     );
     settings.endGroup();
 }

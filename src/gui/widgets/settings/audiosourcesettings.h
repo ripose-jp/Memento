@@ -24,7 +24,10 @@
 #include <QWidget>
 
 class QComboBox;
-enum class AudioSourceType;
+namespace Constants
+{
+    enum class AudioSourceType;
+}
 
 namespace Ui
 {
@@ -123,7 +126,7 @@ private:
      * @param type The type the combo box should be set to.
      * @return A QComboBox with all possible options.
      */
-    inline QComboBox *createTypeComboBox(AudioSourceType type) const;
+    inline QComboBox *createTypeComboBox(Constants::AudioSourceType type) const;
 
     /**
      * Creates a combo box for audio source type selection.

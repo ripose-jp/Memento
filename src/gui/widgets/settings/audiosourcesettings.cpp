@@ -149,8 +149,8 @@ void AudioSourceSettings::applyChanges()
     }
 
     QSettings settings;
-    settings.remove(SETTINGS_AUDIO_SRC);
-    settings.beginWriteArray(SETTINGS_AUDIO_SRC);
+    settings.remove(Constants::Settings::AudioSource::GROUP);
+    settings.beginWriteArray(Constants::Settings::AudioSource::GROUP);
     for (int i = 0; i < table->rowCount() - 1; ++i)
     {
         settings.setArrayIndex(i);
@@ -161,14 +161,15 @@ void AudioSourceSettings::applyChanges()
             itemEmpty(i, COL_URL) ? "" : table->item(i, COL_URL)->text();
         QComboBox *comboType = ((QComboBox *)table->cellWidget(i, COL_TYPE));
         int type = comboType ?
-            comboType->currentData().toInt() : (int)AudioSourceType::File;
+            comboType->currentData().toInt() :
+            static_cast<int>(Constants::AudioSourceType::File);
         QString md5 =
             itemEmpty(i, COL_MD5)  ? "" : table->item(i, COL_MD5)->text();
 
-        settings.setValue(SETTINGS_AUDIO_SRC_NAME, name);
-        settings.setValue(SETTINGS_AUDIO_SRC_URL, url);
-        settings.setValue(SETTINGS_AUDIO_SRC_TYPE, (int)type);
-        settings.setValue(SETTINGS_AUDIO_SRC_MD5, md5);
+        settings.setValue(Constants::Settings::AudioSource::NAME, name);
+        settings.setValue(Constants::Settings::AudioSource::URL, url);
+        settings.setValue(Constants::Settings::AudioSource::TYPE, (int)type);
+        settings.setValue(Constants::Settings::AudioSource::MD5, md5);
     }
     settings.endArray();
 
@@ -182,27 +183,39 @@ void AudioSourceSettings::restoreDefaults()
     table->setRowCount(2);
 
     table->setItem(
-        0, COL_NAME, new QTableWidgetItem(SETTINGS_AUDIO_SRC_NAME_DEFAULT)
+        0,
+        COL_NAME,
+        new QTableWidgetItem(Constants::Settings::AudioSource::NAME_DEFAULT)
     );
     table->setItem(
-        0, COL_URL, new QTableWidgetItem(SETTINGS_AUDIO_SRC_URL_DEFAULT)
+        0,
+        COL_URL,
+        new QTableWidgetItem(Constants::Settings::AudioSource::URL_DEFAULT)
     );
     table->setCellWidget(
-        0, COL_TYPE, createTypeComboBox(SETTINGS_AUDIO_SRC_TYPE_DEFAULT)
+        0,
+        COL_TYPE,
+        createTypeComboBox(Constants::Settings::AudioSource::TYPE_DEFAULT)
     );
     table->setItem(
-        0, COL_MD5, new QTableWidgetItem(SETTINGS_AUDIO_SRC_MD5_DEFAULT)
+        0,
+        COL_MD5,
+        new QTableWidgetItem(Constants::Settings::AudioSource::MD5_DEFAULT)
     );
 
     table->setCellWidget(
-        1, COL_TYPE, createTypeComboBox(SETTINGS_AUDIO_SRC_TYPE_DEFAULT)
+        1,
+        COL_TYPE,
+        createTypeComboBox(Constants::Settings::AudioSource::TYPE_DEFAULT)
     );
 }
 
 void AudioSourceSettings::restoreSaved()
 {
     QSettings settings;
-    size_t size = settings.beginReadArray(SETTINGS_AUDIO_SRC);
+    size_t size = settings.beginReadArray(
+        Constants::Settings::AudioSource::GROUP
+    );
     if (size == 0)
     {
         restoreDefaults();
@@ -221,8 +234,8 @@ void AudioSourceSettings::restoreSaved()
             COL_NAME,
             new QTableWidgetItem(
                 settings.value(
-                    SETTINGS_AUDIO_SRC_NAME,
-                    SETTINGS_AUDIO_SRC_NAME_DEFAULT
+                    Constants::Settings::AudioSource::NAME,
+                    Constants::Settings::AudioSource::NAME_DEFAULT
                 ).toString()
             )
         );
@@ -231,8 +244,8 @@ void AudioSourceSettings::restoreSaved()
             COL_URL,
             new QTableWidgetItem(
                 settings.value(
-                    SETTINGS_AUDIO_SRC_URL,
-                    SETTINGS_AUDIO_SRC_URL_DEFAULT
+                    Constants::Settings::AudioSource::URL,
+                    Constants::Settings::AudioSource::URL_DEFAULT
                 ).toString()
             )
         );
@@ -240,10 +253,12 @@ void AudioSourceSettings::restoreSaved()
             i,
             COL_TYPE,
             createTypeComboBox(
-                (AudioSourceType)settings.value(
-                    SETTINGS_AUDIO_SRC_TYPE,
-                    (int)SETTINGS_AUDIO_SRC_TYPE_DEFAULT
-                ).toInt()
+                static_cast<Constants::AudioSourceType>(settings.value(
+                    Constants::Settings::AudioSource::TYPE,
+                    static_cast<int>(
+                        Constants::Settings::AudioSource::TYPE_DEFAULT
+                    )
+                ).toInt())
             )
         );
         table->setItem(
@@ -251,8 +266,8 @@ void AudioSourceSettings::restoreSaved()
             COL_MD5,
             new QTableWidgetItem(
                 settings.value(
-                    SETTINGS_AUDIO_SRC_MD5,
-                    SETTINGS_AUDIO_SRC_MD5_DEFAULT
+                    Constants::Settings::AudioSource::MD5,
+                    Constants::Settings::AudioSource::MD5_DEFAULT
                 ).toString()
             )
         );
@@ -260,7 +275,9 @@ void AudioSourceSettings::restoreSaved()
     settings.endArray();
 
     table->setCellWidget(
-        size, COL_TYPE, createTypeComboBox(SETTINGS_AUDIO_SRC_TYPE_DEFAULT)
+        size,
+        COL_TYPE,
+        createTypeComboBox(Constants::Settings::AudioSource::TYPE_DEFAULT)
     );
 }
 
@@ -355,7 +372,9 @@ void AudioSourceSettings::updateRows()
     {
         table->insertRow(lastRow + 1);
         table->setCellWidget(
-            lastRow + 1, COL_TYPE, createTypeComboBox(AudioSourceType::File)
+            lastRow + 1,
+            COL_TYPE,
+            createTypeComboBox(Constants::AudioSourceType::File)
         );
     }
 }
@@ -404,13 +423,13 @@ inline bool AudioSourceSettings::rowEmpty(const int row) const
 }
 
 inline QComboBox *AudioSourceSettings::createTypeComboBox(
-    AudioSourceType type) const
+    Constants::AudioSourceType type) const
 {
     switch(type)
     {
-    case AudioSourceType::File:
+    case Constants::AudioSourceType::File:
         return createTypeComboBox(TYPE_COMBO_BOX_FILE);
-    case AudioSourceType::JSON:
+    case Constants::AudioSourceType::JSON:
         return createTypeComboBox(TYPE_COMBO_BOX_JSON);
     }
     return createTypeComboBox(TYPE_COMBO_BOX_FILE);
@@ -420,8 +439,14 @@ inline QComboBox *AudioSourceSettings::createTypeComboBox(
     const QString &setting) const
 {
     QComboBox *box = new QComboBox;
-    box->addItem(TYPE_COMBO_BOX_FILE, QVariant((int)AudioSourceType::File));
-    box->addItem(TYPE_COMBO_BOX_JSON, QVariant((int)AudioSourceType::JSON));
+    box->addItem(
+        TYPE_COMBO_BOX_FILE,
+        QVariant(static_cast<int>(Constants::AudioSourceType::File))
+    );
+    box->addItem(
+        TYPE_COMBO_BOX_JSON,
+        QVariant(QVariant(static_cast<int>(Constants::AudioSourceType::JSON)))
+    );
     box->setCurrentText(setting);
     return box;
 }

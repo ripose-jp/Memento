@@ -42,7 +42,7 @@
 
 GlossaryLabel::GlossaryLabel(
     Qt::KeyboardModifier modifier,
-    GlossaryStyle style,
+    Constants::GlossaryStyle style,
     QWidget *parent)
     : QTextEdit(parent),
       m_searchModifier(modifier),
@@ -117,7 +117,7 @@ void GlossaryLabel::setContents(const QJsonArray &definitions, QString basepath)
     basepath += '/';
 
     QString content = "<html><head/><body>";
-    if (m_style == GlossaryStyle::Bullet)
+    if (m_style == Constants::GlossaryStyle::Bullet)
     {
         content += "<ul>";
     }
@@ -125,7 +125,7 @@ void GlossaryLabel::setContents(const QJsonArray &definitions, QString basepath)
     {
         const QJsonValue &val = definitions[i];
 
-        if (m_style == GlossaryStyle::Bullet)
+        if (m_style == Constants::GlossaryStyle::Bullet)
         {
             content += "<li>";
         }
@@ -137,7 +137,8 @@ void GlossaryLabel::setContents(const QJsonArray &definitions, QString basepath)
                 .toString()
                 .replace(
                     '\n',
-                    m_style == GlossaryStyle::Bullet ? "</li><li>" : "<br>"
+                    m_style == Constants::GlossaryStyle::Bullet ?
+                        "</li><li>" : "<br>"
                 );
             break;
         case QJsonValue::Type::Object:
@@ -161,16 +162,17 @@ void GlossaryLabel::setContents(const QJsonArray &definitions, QString basepath)
             break;
         }
 
-        if (m_style == GlossaryStyle::Bullet)
+        if (m_style == Constants::GlossaryStyle::Bullet)
         {
             content += "</li>";
         }
         else if (i < definitions.size() - 1)
         {
-            content += m_style == GlossaryStyle::LineBreak ? "<br>" : " | ";
+            content +=
+                m_style == Constants::GlossaryStyle::LineBreak ? "<br>" : " | ";
         }
     }
-    if (m_style == GlossaryStyle::Bullet)
+    if (m_style == Constants::GlossaryStyle::Bullet)
     {
         content += "</ul>";
     }
@@ -535,7 +537,10 @@ void GlossaryLabel::addText(const QJsonObject &obj, QString &out) const
 {
     out += obj[KEY_TEXT]
         .toString()
-        .replace('\n', m_style == GlossaryStyle::Bullet ? "</li><li>" : "<br>");
+        .replace(
+            '\n',
+            m_style == Constants::GlossaryStyle::Bullet ? "</li><li>" : "<br>"
+        );
 }
 
 #undef KEY_TEXT

@@ -176,7 +176,7 @@ void Dictionary::initDictionaryOrder()
     m_dicOrder.lock.lockForWrite();
 
     QSettings settings;
-    settings.beginGroup(SETTINGS_DICTIONARIES);
+    settings.beginGroup(Constants::Settings::Dictionaries::GROUP);
     QStringList dicts = m_db->getDictionaries();
     m_dicOrder.map.clear();
     for (const QString &dict : dicts)

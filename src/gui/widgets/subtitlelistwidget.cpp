@@ -240,27 +240,29 @@ SubtitleListWidget::~SubtitleListWidget()
 void SubtitleListWidget::initTheme()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_INTERFACE);
+    settings.beginGroup(Constants::Settings::Interface::GROUP);
     const bool customStylesheets = settings.value(
-            SETTINGS_INTERFACE_STYLESHEETS,
-            SETTINGS_INTERFACE_STYLESHEETS_DEFAULT
+            Constants::Settings::Interface::STYLESHEETS,
+            Constants::Settings::Interface::STYLESHEETS_DEFAULT
         ).toBool();
     if (customStylesheets)
     {
         setStyleSheet(settings.value(
-                SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE,
-                SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT
+                Constants::Settings::Interface::Style::SUBTITLE_LIST,
+                Constants::Settings::Interface::Style::SUBTITLE_LIST_DEFAULT
             ).toString()
         );
     }
     else
     {
-        setStyleSheet(SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT);
+        setStyleSheet(
+            Constants::Settings::Interface::Style::SUBTITLE_LIST_DEFAULT
+        );
     }
 
     const bool showTimestamps = !settings.value(
-        SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS,
-        SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS_DEFAULT
+        Constants::Settings::Interface::Subtitle::LIST_TIMESTAMPS,
+        Constants::Settings::Interface::Subtitle::LIST_TIMESTAMPS_DEFAULT
     ).toBool();
     m_ui->tablePrim->setColumnHidden(0, showTimestamps);
     m_ui->tableSec->setColumnHidden (0, showTimestamps);
@@ -276,12 +278,12 @@ void SubtitleListWidget::initTheme()
 void SubtitleListWidget::initRegex()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_SEARCH);
+    settings.beginGroup(Constants::Settings::Search::GROUP);
     m_subRegexLock.lock();
     m_subRegex.setPattern(
         settings.value(
-            SETTINGS_SEARCH_REMOVE_REGEX,
-            SETTINGS_SEARCH_REMOVE_REGEX_DEFAULT
+            Constants::Settings::Search::REMOVE_REGEX,
+            Constants::Settings::Search::REMOVE_REGEX_DEFAULT
         ).toString()
     );
     m_subRegexLock.unlock();

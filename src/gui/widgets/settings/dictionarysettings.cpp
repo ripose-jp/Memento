@@ -175,7 +175,7 @@ void DictionarySettings::applySettings()
     QStringList dictionaries;
 
     QSettings settings;
-    settings.beginGroup(SETTINGS_DICTIONARIES);
+    settings.beginGroup(Constants::Settings::Dictionaries::GROUP);
     settings.remove("");
     for (int i = 0; i < m_ui->listDictionaries->count(); ++i)
     {
@@ -260,7 +260,7 @@ void DictionarySettings::deleteDictionary()
         m_ui->listDictionaries->currentRow()
     );
     QSettings settings;
-    settings.beginGroup(SETTINGS_DICTIONARIES);
+    settings.beginGroup(Constants::Settings::Dictionaries::GROUP);
     settings.remove(item->text());
     settings.endGroup();
     QThreadPool::globalInstance()->start(

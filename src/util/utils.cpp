@@ -94,25 +94,25 @@ QString DirectoryUtils::getDictionaryResourceDir()
 
 #undef RES
 
-QString DirectoryUtils::getFileOpenDirectory(FileOpenDirectory type)
+QString DirectoryUtils::getFileOpenDirectory(Constants::FileOpenDirectory type)
 {
     QString path;
     switch (type)
     {
-    case FileOpenDirectory::Current:
+    case Constants::FileOpenDirectory::Current:
         return "";
-    case FileOpenDirectory::Home:
+    case Constants::FileOpenDirectory::Home:
         path = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
         break;
-    case FileOpenDirectory::Movies:
+    case Constants::FileOpenDirectory::Movies:
         path = QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
         break;
-    case FileOpenDirectory::Documents:
+    case Constants::FileOpenDirectory::Documents:
         path = QStandardPaths::writableLocation(
             QStandardPaths::DocumentsLocation
         );
         break;
-    case FileOpenDirectory::Custom:
+    case Constants::FileOpenDirectory::Custom:
     default:
         break;
     }
@@ -151,7 +151,7 @@ void NetworkUtils::checkForUpdates()
 {
     QNetworkAccessManager *manager = new QNetworkAccessManager;
     manager->setTransferTimeout();
-    QNetworkRequest request(GITHUB_API_LINK);
+    QNetworkRequest request({Constants::Links::GITHUB_API});
     QNetworkReply *reply = manager->get(request);
     reply->connect(reply, &QNetworkReply::finished, reply,
         [=] {
@@ -213,7 +213,7 @@ void NetworkUtils::checkForUpdates()
             Q_EMIT mediator->showCritical(
                 "Error",
                 "Server did not send a valid reply.\n"
-                "Check manually <a href='" + GITHUB_RELEASES +
+                "Check manually <a href='" + QString(Constants::Links::GITHUB_RELEASES) +
                 "'>here</a>"
             );
             reply->deleteLater();

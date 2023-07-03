@@ -131,25 +131,25 @@ SearchWidget::SearchWidget(QWidget *parent)
 void SearchWidget::initSettings()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_SEARCH);
+    settings.beginGroup(Constants::Settings::Search::GROUP);
 
     QString modifier = settings.value(
-            SETTINGS_SEARCH_MODIFIER,
-            SETTINGS_SEARCH_MODIFIER_DEFAULT
+            Constants::Settings::Search::MODIFIER,
+            Constants::Settings::Search::MODIFIER_DEFAULT
         ).toString();
-    if (modifier == SEARCH_MODIFIER_ALT)
+    if (modifier == Constants::Settings::Search::Modifier::ALT)
     {
         m_searchEdit->setModifier(Qt::KeyboardModifier::AltModifier);
     }
-    else if (modifier == SEARCH_MODIFIER_CTRL)
+    else if (modifier == Constants::Settings::Search::Modifier::CTRL)
     {
         m_searchEdit->setModifier(Qt::KeyboardModifier::ControlModifier);
     }
-    else if (modifier == SEARCH_MODIFIER_SHIFT)
+    else if (modifier == Constants::Settings::Search::Modifier::SHIFT)
     {
         m_searchEdit->setModifier(Qt::KeyboardModifier::ShiftModifier);
     }
-    else if (modifier == SEARCH_MODIFIER_SUPER)
+    else if (modifier == Constants::Settings::Search::Modifier::SUPER)
     {
         m_searchEdit->setModifier(Qt::KeyboardModifier::MetaModifier);
     }

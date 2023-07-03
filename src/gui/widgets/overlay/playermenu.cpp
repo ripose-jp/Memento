@@ -272,10 +272,10 @@ PlayerMenu::~PlayerMenu()
 void PlayerMenu::initOCRSettings()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_OCR);
+    settings.beginGroup(Constants::Settings::OCR::GROUP);
 
     bool enabled = settings.value(
-            SETTINGS_OCR_ENABLE, SETTINGS_OCR_ENABLE_DEFAULT
+            Constants::Settings::OCR::ENABLED, Constants::Settings::OCR::ENABLED_DEFAULT
         ).toBool();
     m_ui->actionOCRMode->setVisible(enabled);
 
@@ -576,17 +576,22 @@ void PlayerMenu::updateSecondarySubtitleAction(const int id)
 QString PlayerMenu::getOpenFilePath() const
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_BEHAVIOR);
+    settings.beginGroup(Constants::Settings::Behavior::GROUP);
 
-    FileOpenDirectory type = (FileOpenDirectory)settings.value(
-        SETTINGS_BEHAVIOR_FILE_OPEN_DIR,
-        (int)SETTINGS_BEHAVIOR_FILE_OPEN_DIR_DEFAULT
-    ).toInt();
-    if (type == FileOpenDirectory::Custom)
+    Constants::FileOpenDirectory type =
+        static_cast<Constants::FileOpenDirectory>(
+            settings.value(
+                Constants::Settings::Behavior::FILE_OPEN_DIR,
+                static_cast<int>(
+                    Constants::Settings::Behavior::FILE_OPEN_DIR_DEFAULT
+                )
+            ).toInt()
+        );
+    if (type == Constants::FileOpenDirectory::Custom)
     {
         return settings.value(
-            SETTINGS_BEHAVIOR_FILE_OPEN_CUSTOM,
-            SETTINGS_BEHAVIOR_FILE_OPEN_CUSTOM_DEFAULT
+            Constants::Settings::Behavior::FILE_OPEN_CUSTOM,
+            Constants::Settings::Behavior::FILE_OPEN_CUSTOM_DEFAULT
         ).toString();
     }
     return DirectoryUtils::getFileOpenDirectory(type);
@@ -652,10 +657,10 @@ void PlayerMenu::openConfigFolder() const
 void PlayerMenu::updateSubtitlePauseAction()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_BEHAVIOR);
+    settings.beginGroup(Constants::Settings::Behavior::GROUP);
     const bool newSubtitlePauseSetting = settings.value(
-            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE,
-            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
+            Constants::Settings::Behavior::SUBTITLE_PAUSE,
+            Constants::Settings::Behavior::SUBTITLE_PAUSE_DEFAULT
         ).toBool();
     settings.endGroup();
 
@@ -665,9 +670,9 @@ void PlayerMenu::updateSubtitlePauseAction()
 void PlayerMenu::applySubtitlePauseSetting()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_BEHAVIOR);
+    settings.beginGroup(Constants::Settings::Behavior::GROUP);
     settings.setValue(
-        SETTINGS_BEHAVIOR_SUBTITLE_PAUSE,
+        Constants::Settings::Behavior::SUBTITLE_PAUSE,
         m_ui->actionSubtitlePause->isChecked()
     );
     settings.endGroup();

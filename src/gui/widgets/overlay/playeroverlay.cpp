@@ -286,36 +286,36 @@ void PlayerOverlay::initSettings()
 {
     QSettings settings;
 
-    settings.beginGroup(SETTINGS_INTERFACE);
+    settings.beginGroup(Constants::Settings::Interface::GROUP);
     m_settings.subOffset = settings.value(
-        SETTINGS_INTERFACE_SUB_OFFSET,
-        SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT
+        Constants::Settings::Interface::Subtitle::OFFSET,
+        Constants::Settings::Interface::Subtitle::OFFSET_DEFAULT
     ).toDouble();
 #if defined(Q_OS_WIN)
     m_settings.showMenuBar = settings.value(
-        SETTINGS_INTERFACE_MENUBAR_FULLSCREEN,
-        SETTINGS_INTERFACE_MENUBAR_FULLSCREEN_DEFAULT
+        Constants::Settings::Interface::Subtitle::MENUBAR_FULLSCREEN,
+        Constants::Settings::Interface::Subtitle::MENUBAR_FULLSCREEN_DEFAULT
     ).toBool();
     menuBarHandleStateChange(m_menu->window()->isFullScreen());
 #endif
     settings.endGroup();
 
-    settings.beginGroup(SETTINGS_BEHAVIOR);
+    settings.beginGroup(Constants::Settings::Behavior::GROUP);
 
     m_hideTimer.setSingleShot(true);
     m_hideTimer.setInterval(
         settings.value(
-            SETTINGS_BEHAVIOR_OSC_DURATION,
-            SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT
+            Constants::Settings::Behavior::OSC_DURATION,
+            Constants::Settings::Behavior::OSC_DURATION_DEFAULT
         ).toInt()
     );
     m_settings.fadeDuration = settings.value(
-        SETTINGS_BEHAVIOR_OSC_FADE,
-        SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT
+        Constants::Settings::Behavior::OSC_FADE,
+        Constants::Settings::Behavior::OSC_FADE_DEFAULT
     ).toInt();
     m_settings.cursorMinMove = settings.value(
-        SETTINGS_BEHAVIOR_OSC_MIN_MOVE,
-        SETTINGS_BEHAVIOR_OSC_MIN_MOVE_DEFAULT
+        Constants::Settings::Behavior::OSC_MIN_MOVE,
+        Constants::Settings::Behavior::OSC_MIN_MOVE_DEFAULT
     ).toInt();
 
     m_widgetOSC->clearRegions();
@@ -323,8 +323,8 @@ void PlayerOverlay::initSettings()
     bool showPrimarySubtitles
     {
         settings.value(
-            SETTINGS_BEHAVIOR_SUBTITLE_CURSOR_SHOW,
-            SETTINGS_BEHAVIOR_SUBTITLE_CURSOR_SHOW_DEFAULT
+            Constants::Settings::Behavior::SUBTITLE_CURSOR_SHOW,
+            Constants::Settings::Behavior::SUBTITLE_CURSOR_SHOW_DEFAULT
         ).toBool()
     };
     if (showPrimarySubtitles)
@@ -358,8 +358,8 @@ void PlayerOverlay::initSettings()
     bool showSecondarySubtitles
     {
         settings.value(
-            SETTINGS_BEHAVIOR_SECONDARY_SUBTITLE_CURSOR_SHOW,
-            SETTINGS_BEHAVIOR_SECONDARY_SUBTITLE_CURSOR_SHOW_DEFAULT
+            Constants::Settings::Behavior::SECONDARY_SUBTITLE_CURSOR_SHOW,
+            Constants::Settings::Behavior::SECONDARY_SUBTITLE_CURSOR_SHOW_DEFAULT
         ).toBool()
     };
     if (showSecondarySubtitles)
@@ -499,10 +499,10 @@ void PlayerOverlay::repositionSubtitles()
 void PlayerOverlay::updateSubScale(const double inc)
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_INTERFACE);
+    settings.beginGroup(Constants::Settings::Interface::GROUP);
     double scale = settings.value(
-        SETTINGS_INTERFACE_SUB_SCALE,
-        SETTINGS_INTERFACE_SUB_SCALE_DEFAULT
+        Constants::Settings::Interface::Subtitle::SCALE,
+        Constants::Settings::Interface::Subtitle::SCALE_DEFAULT
     ).toDouble();
     scale += inc;
     if (scale <= 0.0)
@@ -513,7 +513,7 @@ void PlayerOverlay::updateSubScale(const double inc)
     {
         scale = 1.0;
     }
-    settings.setValue(SETTINGS_INTERFACE_SUB_SCALE, scale);
+    settings.setValue(Constants::Settings::Interface::Subtitle::SCALE, scale);
     Q_EMIT GlobalMediator::getGlobalMediator()->interfaceSettingsChanged();
 }
 
@@ -530,10 +530,10 @@ void PlayerOverlay::decreaseSubScale()
 void PlayerOverlay::moveSubtitles(const double inc)
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_INTERFACE);
+    settings.beginGroup(Constants::Settings::Interface::GROUP);
     double offset = settings.value(
-        SETTINGS_INTERFACE_SUB_OFFSET,
-        SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT
+        Constants::Settings::Interface::Subtitle::OFFSET,
+        Constants::Settings::Interface::Subtitle::OFFSET_DEFAULT
     ).toDouble();
     offset += inc;
     if (offset <= 0.0)
@@ -544,7 +544,7 @@ void PlayerOverlay::moveSubtitles(const double inc)
     {
         offset = 1.0;
     }
-    settings.setValue(SETTINGS_INTERFACE_SUB_OFFSET, offset);
+    settings.setValue(Constants::Settings::Interface::Subtitle::OFFSET, offset);
     Q_EMIT GlobalMediator::getGlobalMediator()->interfaceSettingsChanged();
 }
 

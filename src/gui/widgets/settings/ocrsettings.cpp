@@ -84,20 +84,23 @@ void OCRSettings::showEvent(QShowEvent *event)
 void OCRSettings::restoreSaved()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_OCR);
+    settings.beginGroup(Constants::Settings::OCR::GROUP);
     m_ui->checkEnable->setChecked(
         settings.value(
-            SETTINGS_OCR_ENABLE, SETTINGS_OCR_ENABLE_DEFAULT
+            Constants::Settings::OCR::ENABLED,
+            Constants::Settings::OCR::ENABLED_DEFAULT
         ).toBool()
     );
     m_ui->checkGPU->setChecked(
         settings.value(
-            SETTINGS_OCR_ENABLE_GPU, SETTINGS_OCR_ENABLE_GPU_DEFAULT
+            Constants::Settings::OCR::ENABLE_GPU,
+            Constants::Settings::OCR::ENABLE_GPU_DEFAULT
         ).toBool()
     );
     m_ui->lineEditModel->setText(
         settings.value(
-            SETTINGS_OCR_MODEL, SETTINGS_OCR_MODEL_DEFAULT
+            Constants::Settings::OCR::MODEL,
+            Constants::Settings::OCR::MODEL_DEFAULT
         ).toString()
     );
     settings.endGroup();
@@ -105,23 +108,23 @@ void OCRSettings::restoreSaved()
 
 void OCRSettings::restoreDefaults()
 {
-    m_ui->checkEnable->setChecked(SETTINGS_OCR_ENABLE_DEFAULT);
-    m_ui->checkGPU->setChecked(SETTINGS_OCR_ENABLE_GPU);
-    m_ui->lineEditModel->setText(SETTINGS_OCR_MODEL_DEFAULT);
+    m_ui->checkEnable->setChecked(Constants::Settings::OCR::ENABLED_DEFAULT);
+    m_ui->checkGPU->setChecked(Constants::Settings::OCR::ENABLE_GPU_DEFAULT);
+    m_ui->lineEditModel->setText(Constants::Settings::OCR::MODEL_DEFAULT);
 }
 
 void OCRSettings::applySettings()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_OCR);
+    settings.beginGroup(Constants::Settings::OCR::GROUP);
     settings.setValue(
-        SETTINGS_OCR_ENABLE, m_ui->checkEnable->isChecked()
+        Constants::Settings::OCR::ENABLED, m_ui->checkEnable->isChecked()
     );
     settings.setValue(
-        SETTINGS_OCR_ENABLE_GPU, m_ui->checkGPU->isChecked()
+        Constants::Settings::OCR::ENABLE_GPU, m_ui->checkGPU->isChecked()
     );
     settings.setValue(
-        SETTINGS_OCR_MODEL, m_ui->lineEditModel->text()
+        Constants::Settings::OCR::MODEL, m_ui->lineEditModel->text()
     );
     settings.endGroup();
 

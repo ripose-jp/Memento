@@ -176,63 +176,63 @@ SubtitleWidget::~SubtitleWidget()
 void SubtitleWidget::initTheme()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_INTERFACE);
+    settings.beginGroup(Constants::Settings::Interface::GROUP);
 
     QFont font(
         settings.value(
-            SETTINGS_INTERFACE_SUB_FONT,
-            SETTINGS_INTERFACE_SUB_FONT_DEFAULT
+            Constants::Settings::Interface::Subtitle::FONT,
+            Constants::Settings::Interface::Subtitle::FONT_DEFAULT
         ).toString()
     );
     font.setBold(
         settings.value(
-            SETTINGS_INTERFACE_SUB_FONT_BOLD,
-            SETTINGS_INTERFACE_SUB_FONT_BOLD_DEFAULT
+            Constants::Settings::Interface::Subtitle::FONT_BOLD,
+            Constants::Settings::Interface::Subtitle::FONT_BOLD_DEFAULT
         ).toBool()
     );
     font.setItalic(
         settings.value(
-            SETTINGS_INTERFACE_SUB_FONT_ITALICS,
-            SETTINGS_INTERFACE_SUB_FONT_ITALICS_DEFAULT
+            Constants::Settings::Interface::Subtitle::FONT_ITALICS,
+            Constants::Settings::Interface::Subtitle::FONT_ITALICS_DEFAULT
         ).toBool()
     );
     font.setStyleStrategy(QFont::PreferAntialias);
     font.setPixelSize(
         GlobalMediator::getGlobalMediator()->getPlayerWidget()->height() *
         settings.value(
-            SETTINGS_INTERFACE_SUB_SCALE,
-            SETTINGS_INTERFACE_SUB_SCALE_DEFAULT
+            Constants::Settings::Interface::Subtitle::SCALE,
+            Constants::Settings::Interface::Subtitle::SCALE_DEFAULT
         ).toDouble()
     );
     setTextFont(font);
 
     QColor fontColor(
         settings.value(
-            SETTINGS_INTERFACE_SUB_TEXT_COLOR,
-            SETTINGS_INTERFACE_SUB_TEXT_COLOR_DEFAULT
+            Constants::Settings::Interface::Subtitle::TEXT_COLOR,
+            Constants::Settings::Interface::Subtitle::TEXT_COLOR_DEFAULT
         ).toString()
     );
     setTextColor(fontColor);
 
     QColor bgColor(
         settings.value(
-            SETTINGS_INTERFACE_SUB_BG_COLOR,
-            SETTINGS_INTERFACE_SUB_BG_COLOR_DEFAULT
+            Constants::Settings::Interface::Subtitle::BACKGROUND_COLOR,
+            Constants::Settings::Interface::Subtitle::BACKGROUND_COLOR_DEFAULT
         ).toString()
     );
     setBackgroundColor(bgColor);
 
     QColor strokeColor(
         settings.value(
-            SETTINGS_INTERFACE_SUB_STROKE_COLOR,
-            SETTINGS_INTERFACE_SUB_STROKE_COLOR_DEFAULT
+            Constants::Settings::Interface::Subtitle::STROKE_COLOR,
+            Constants::Settings::Interface::Subtitle::STROKE_COLOR_DEFAULT
         ).toString()
     );
     setStrokeColor(strokeColor);
 
     double strokeSize = settings.value(
-        SETTINGS_INTERFACE_SUB_STROKE,
-        SETTINGS_INTERFACE_SUB_STROKE_DEFAULT
+        Constants::Settings::Interface::Subtitle::STROKE,
+        Constants::Settings::Interface::Subtitle::STROKE_DEFAULT
     ).toDouble();
     setStrokeSize(strokeSize);
 
@@ -246,33 +246,33 @@ void SubtitleWidget::initTheme()
 void SubtitleWidget::initSettings()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_SEARCH);
+    settings.beginGroup(Constants::Settings::Search::GROUP);
     m_settings.delay = settings.value(
-            SETTINGS_SEARCH_DELAY,
-            SETTINGS_SEARCH_DELAY_DEFAULT
+            Constants::Settings::Search::DELAY,
+            Constants::Settings::Search::DELAY_DEFAULT
         ).toInt();
     if (m_settings.delay < 0)
     {
-        m_settings.delay = SETTINGS_SEARCH_DELAY_DEFAULT;
+        m_settings.delay = Constants::Settings::Search::DELAY_DEFAULT;
     }
 
     QString modifier = settings.value(
-            SETTINGS_SEARCH_MODIFIER,
-            SETTINGS_SEARCH_MODIFIER_DEFAULT
+            Constants::Settings::Search::MODIFIER,
+            Constants::Settings::Search::MODIFIER_DEFAULT
         ).toString();
-    if (modifier == SEARCH_MODIFIER_ALT)
+    if (modifier == Constants::Settings::Search::Modifier::ALT)
     {
         m_settings.modifier = Qt::Modifier::ALT;
     }
-    else if (modifier == SEARCH_MODIFIER_CTRL)
+    else if (modifier == Constants::Settings::Search::Modifier::CTRL)
     {
         m_settings.modifier = Qt::Modifier::CTRL;
     }
-    else if (modifier == SEARCH_MODIFIER_SHIFT)
+    else if (modifier == Constants::Settings::Search::Modifier::SHIFT)
     {
         m_settings.modifier = Qt::Modifier::SHIFT;
     }
-    else if (modifier == SEARCH_MODIFIER_SUPER)
+    else if (modifier == Constants::Settings::Search::Modifier::SUPER)
     {
         m_settings.modifier = Qt::Modifier::META;
     }
@@ -282,14 +282,14 @@ void SubtitleWidget::initSettings()
     }
 
     QString method = settings.value(
-            SETTINGS_SEARCH_METHOD,
-            SETTINGS_SEARCH_METHOD_DEFAULT
+            Constants::Settings::Search::METHOD,
+            Constants::Settings::Search::METHOD_DEFAULT
         ).toString();
-    if (method == SEARCH_METHOD_HOVER)
+    if (method == Constants::Settings::Search::Method::HOVER)
     {
         m_settings.method = Settings::SearchMethod::Hover;
     }
-    else if (method == SEARCH_METHOD_MODIFIER)
+    else if (method == Constants::Settings::Search::Method::MODIFIER)
     {
         m_settings.method = Settings::SearchMethod::Modifier;
     }
@@ -299,36 +299,36 @@ void SubtitleWidget::initSettings()
     }
 
     m_settings.hideSubsWhenVisible = settings.value(
-            SETTINGS_SEARCH_HIDE_SUBS,
-            SETTINGS_SEARCH_HIDE_SUBS_DEFAULT
+            Constants::Settings::Search::HIDE_SUBS,
+            Constants::Settings::Search::HIDE_SUBS_DEFAULT
         ).toBool();
     m_settings.hideOnPlay = settings.value(
-            SETTINGS_SEARCH_HIDE_BAR,
-            SETTINGS_SEARCH_HIDE_BAR_DEFAULT
+            Constants::Settings::Search::HIDE_BAR,
+            Constants::Settings::Search::HIDE_BAR_DEFAULT
         ).toBool();
     adjustVisibility();
     m_settings.pauseOnHover = settings.value(
-            SETTINGS_SEARCH_HOVER_PAUSE,
-            SETTINGS_SEARCH_HOVER_PAUSE_DEFAULT
+            Constants::Settings::Search::HOVER_PAUSE,
+            Constants::Settings::Search::HOVER_PAUSE_DEFAULT
         ).toBool();
 
     m_settings.replaceNewLines = settings.value(
-            SETTINGS_SEARCH_REPLACE_LINES,
-            SETTINGS_SEARCH_REPLACE_LINES_DEFAULT
+            Constants::Settings::Search::REPLACE_LINES,
+            Constants::Settings::Search::REPLACE_LINES_DEFAULT
         ).toBool();
     m_settings.replaceStr = settings.value(
-            SETTINGS_SEARCH_REPLACE_WITH,
-            SETTINGS_SEARCH_REPLACE_WITH_DEFAULT
+            Constants::Settings::Search::REPLACE_WITH,
+            Constants::Settings::Search::REPLACE_WITH_DEFAULT
         ).toString();
     setSubtitle(
         m_subtitle.rawText, m_subtitle.startTime, m_subtitle.endTime, 0
     );
     settings.endGroup();
 
-    settings.beginGroup(SETTINGS_BEHAVIOR);
+    settings.beginGroup(Constants::Settings::Behavior::GROUP);
     m_settings.pauseOnSubtitleEnd = settings.value(
-            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE,
-            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
+            Constants::Settings::Behavior::SUBTITLE_PAUSE,
+            Constants::Settings::Behavior::SUBTITLE_PAUSE_DEFAULT
         ).toBool();
     settings.endGroup();
 }

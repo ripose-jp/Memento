@@ -228,10 +228,11 @@ void PlayerControls::initTheme()
 void PlayerControls::initOCRSettings()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_OCR);
+    settings.beginGroup(Constants::Settings::OCR::GROUP);
 
     bool enabled = settings.value(
-            SETTINGS_OCR_ENABLE, SETTINGS_OCR_ENABLE_DEFAULT
+            Constants::Settings::OCR::ENABLED,
+            Constants::Settings::OCR::ENABLED_DEFAULT
         ).toBool();
     m_ui->buttonToggleOCR->setVisible(enabled);
 

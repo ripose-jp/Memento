@@ -37,12 +37,12 @@ BehaviorSettings::BehaviorSettings(QWidget *parent)
     m_ui->setupUi(this);
 
     /* Add the items to the File Open combo box */
-    m_fileOpenMap = QMap<QString, FileOpenDirectory>({
-        {"Current", FileOpenDirectory::Current},
-        {"Home", FileOpenDirectory::Home},
-        {"Movies", FileOpenDirectory::Movies},
-        {"Documents", FileOpenDirectory::Documents},
-        {"Custom", FileOpenDirectory::Custom}
+    m_fileOpenMap = QMap<QString, Constants::FileOpenDirectory>({
+        {"Current", Constants::FileOpenDirectory::Current},
+        {"Home", Constants::FileOpenDirectory::Home},
+        {"Movies", Constants::FileOpenDirectory::Movies},
+        {"Documents", Constants::FileOpenDirectory::Documents},
+        {"Custom", Constants::FileOpenDirectory::Custom}
     });
     m_ui->comboFileOpenDir->addItems(QStringList(m_fileOpenMap.keys()));
 
@@ -99,76 +99,79 @@ void BehaviorSettings::showEvent(QShowEvent *event)
 void BehaviorSettings::restoreSaved()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_BEHAVIOR);
+    settings.beginGroup(Constants::Settings::Behavior::GROUP);
 
     m_ui->checkAutofit->setChecked(
         settings.value(
-            SETTINGS_BEHAVIOR_AUTOFIT, SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT
+            Constants::Settings::Behavior::AUTOFIT,
+            Constants::Settings::Behavior::AUTOFIT_DEFAULT
         ).toBool()
     );
     m_ui->spinAutofit->setValue(
         settings.value(
-            SETTINGS_BEHAVIOR_AUTOFIT_PERCENT,
-            SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT
+            Constants::Settings::Behavior::AUTOFIT_PERCENT,
+            Constants::Settings::Behavior::AUTOFIT_PERCENT_DEFAULT
         ).toInt()
     );
 
     m_ui->checkCursorOSC->setChecked(
         settings.value(
-            SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC,
-            SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC_DEFAULT
+            Constants::Settings::Behavior::OSC_CURSOR_HIDE,
+            Constants::Settings::Behavior::OSC_CURSOR_HIDE_DEFAULT
         ).toBool()
     );
     m_ui->spinOSCDuration->setValue(
         settings.value(
-            SETTINGS_BEHAVIOR_OSC_DURATION,
-            SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT
+            Constants::Settings::Behavior::OSC_DURATION,
+            Constants::Settings::Behavior::OSC_DURATION_DEFAULT
         ).toInt()
     );
     m_ui->spinOSCFade->setValue(
         settings.value(
-            SETTINGS_BEHAVIOR_OSC_FADE,
-            SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT
+            Constants::Settings::Behavior::OSC_FADE,
+            Constants::Settings::Behavior::OSC_FADE_DEFAULT
         ).toInt()
     );
     m_ui->spinOSCMinMove->setValue(
         settings.value(
-            SETTINGS_BEHAVIOR_OSC_MIN_MOVE,
-            SETTINGS_BEHAVIOR_OSC_MIN_MOVE_DEFAULT
+            Constants::Settings::Behavior::OSC_MIN_MOVE,
+            Constants::Settings::Behavior::OSC_MIN_MOVE_DEFAULT
         ).toInt()
     );
 
     m_ui->checkSubtitlePause->setChecked(
         settings.value(
-            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE,
-            SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
+            Constants::Settings::Behavior::SUBTITLE_PAUSE,
+            Constants::Settings::Behavior::SUBTITLE_PAUSE_DEFAULT
         ).toBool()
     );
     m_ui->checkSubtitleShow->setChecked(
         settings.value(
-            SETTINGS_BEHAVIOR_SUBTITLE_CURSOR_SHOW,
-            SETTINGS_BEHAVIOR_SUBTITLE_CURSOR_SHOW_DEFAULT
+            Constants::Settings::Behavior::SUBTITLE_CURSOR_SHOW,
+            Constants::Settings::Behavior::SUBTITLE_CURSOR_SHOW_DEFAULT
         ).toBool()
     );
     m_ui->checkSubtitleSecShow->setChecked(
         settings.value(
-            SETTINGS_BEHAVIOR_SECONDARY_SUBTITLE_CURSOR_SHOW,
-            SETTINGS_BEHAVIOR_SECONDARY_SUBTITLE_CURSOR_SHOW_DEFAULT
+            Constants::Settings::Behavior::SECONDARY_SUBTITLE_CURSOR_SHOW,
+            Constants::Settings::Behavior::SECONDARY_SUBTITLE_CURSOR_SHOW_DEFAULT
         ).toBool()
     );
 
     m_ui->comboFileOpenDir->setCurrentText(
         m_fileOpenMap.key(
-            (FileOpenDirectory)settings.value(
-                SETTINGS_BEHAVIOR_FILE_OPEN_DIR,
-                (int)SETTINGS_BEHAVIOR_FILE_OPEN_DIR_DEFAULT
-            ).toInt()
+            static_cast<Constants::FileOpenDirectory>(settings.value(
+                Constants::Settings::Behavior::FILE_OPEN_DIR,
+                static_cast<int>(
+                    Constants::Settings::Behavior::FILE_OPEN_DIR_DEFAULT
+                )
+            ).toInt())
         )
     );
     m_ui->lineEditFileOpenCustom->setText(
         settings.value(
-            SETTINGS_BEHAVIOR_FILE_OPEN_CUSTOM,
-            SETTINGS_BEHAVIOR_FILE_OPEN_CUSTOM_DEFAULT
+            Constants::Settings::Behavior::FILE_OPEN_CUSTOM,
+            Constants::Settings::Behavior::FILE_OPEN_CUSTOM_DEFAULT
         ).toString()
     );
 
@@ -177,77 +180,96 @@ void BehaviorSettings::restoreSaved()
 
 void BehaviorSettings::restoreDefaults()
 {
-    m_ui->checkAutofit->setChecked(SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT);
-    m_ui->spinAutofit->setValue(SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT);
+    m_ui->checkAutofit->setChecked(
+        Constants::Settings::Behavior::AUTOFIT_DEFAULT
+    );
+    m_ui->spinAutofit->setValue(
+        Constants::Settings::Behavior::AUTOFIT_PERCENT_DEFAULT
+    );
 
-    m_ui->checkCursorOSC->setChecked(SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC_DEFAULT);
-    m_ui->spinOSCDuration->setValue(SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT);
-    m_ui->spinOSCFade->setValue(SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT);
-    m_ui->spinOSCMinMove->setValue(SETTINGS_BEHAVIOR_OSC_MIN_MOVE_DEFAULT);
+    m_ui->checkCursorOSC->setChecked(
+        Constants::Settings::Behavior::OSC_CURSOR_HIDE_DEFAULT
+    );
+    m_ui->spinOSCDuration->setValue(
+        Constants::Settings::Behavior::OSC_DURATION_DEFAULT
+    );
+    m_ui->spinOSCFade->setValue(
+        Constants::Settings::Behavior::OSC_FADE_DEFAULT
+    );
+    m_ui->spinOSCMinMove->setValue(
+        Constants::Settings::Behavior::OSC_MIN_MOVE_DEFAULT
+    );
 
     m_ui->checkSubtitlePause->setChecked(
-        SETTINGS_BEHAVIOR_SUBTITLE_PAUSE_DEFAULT
+        Constants::Settings::Behavior::SUBTITLE_PAUSE_DEFAULT
     );
     m_ui->checkSubtitleShow->setChecked(
-        SETTINGS_BEHAVIOR_SUBTITLE_CURSOR_SHOW_DEFAULT
+        Constants::Settings::Behavior::SUBTITLE_CURSOR_SHOW_DEFAULT
     );
     m_ui->checkSubtitleSecShow->setChecked(
-        SETTINGS_BEHAVIOR_SECONDARY_SUBTITLE_CURSOR_SHOW_DEFAULT
+        Constants::Settings::Behavior::SECONDARY_SUBTITLE_CURSOR_SHOW_DEFAULT
     );
 
     m_ui->comboFileOpenDir->setCurrentText(
-        m_fileOpenMap.key(SETTINGS_BEHAVIOR_FILE_OPEN_DIR_DEFAULT)
+        m_fileOpenMap.key(Constants::Settings::Behavior::FILE_OPEN_DIR_DEFAULT)
     );
     m_ui->lineEditFileOpenCustom->setText(
-        SETTINGS_BEHAVIOR_FILE_OPEN_CUSTOM_DEFAULT
+        Constants::Settings::Behavior::FILE_OPEN_CUSTOM_DEFAULT
     );
 }
 
 void BehaviorSettings::applySettings()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_BEHAVIOR);
+    settings.beginGroup(Constants::Settings::Behavior::GROUP);
 
     settings.setValue(
-        SETTINGS_BEHAVIOR_AUTOFIT, m_ui->checkAutofit->isChecked()
+        Constants::Settings::Behavior::AUTOFIT,
+        m_ui->checkAutofit->isChecked()
     );
     settings.setValue(
-        SETTINGS_BEHAVIOR_AUTOFIT_PERCENT, m_ui->spinAutofit->value()
-    );
-
-    settings.setValue(
-        SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC, m_ui->checkCursorOSC->isChecked()
-    );
-    settings.setValue(
-        SETTINGS_BEHAVIOR_OSC_DURATION, m_ui->spinOSCDuration->value()
-    );
-    settings.setValue(
-        SETTINGS_BEHAVIOR_OSC_FADE, m_ui->spinOSCFade->value()
-    );
-    settings.setValue(
-        SETTINGS_BEHAVIOR_OSC_MIN_MOVE, m_ui->spinOSCMinMove->value()
+        Constants::Settings::Behavior::AUTOFIT_PERCENT,
+        m_ui->spinAutofit->value()
     );
 
     settings.setValue(
-        SETTINGS_BEHAVIOR_SUBTITLE_PAUSE, m_ui->checkSubtitlePause->isChecked()
+        Constants::Settings::Behavior::OSC_CURSOR_HIDE,
+        m_ui->checkCursorOSC->isChecked()
     );
     settings.setValue(
-        SETTINGS_BEHAVIOR_SUBTITLE_CURSOR_SHOW,
+        Constants::Settings::Behavior::OSC_DURATION,
+        m_ui->spinOSCDuration->value()
+    );
+    settings.setValue(
+        Constants::Settings::Behavior::OSC_FADE,
+        m_ui->spinOSCFade->value()
+    );
+    settings.setValue(
+        Constants::Settings::Behavior::OSC_MIN_MOVE,
+        m_ui->spinOSCMinMove->value()
+    );
+
+    settings.setValue(
+        Constants::Settings::Behavior::SUBTITLE_PAUSE,
+        m_ui->checkSubtitlePause->isChecked()
+    );
+    settings.setValue(
+        Constants::Settings::Behavior::SUBTITLE_CURSOR_SHOW,
         m_ui->checkSubtitleShow->isChecked()
     );
     settings.setValue(
-        SETTINGS_BEHAVIOR_SECONDARY_SUBTITLE_CURSOR_SHOW,
+        Constants::Settings::Behavior::SECONDARY_SUBTITLE_CURSOR_SHOW,
         m_ui->checkSubtitleSecShow->isChecked()
     );
 
     settings.setValue(
-        SETTINGS_BEHAVIOR_FILE_OPEN_DIR,
+        Constants::Settings::Behavior::FILE_OPEN_DIR,
         (int)m_fileOpenMap[m_ui->comboFileOpenDir->currentText()]
     );
     if (m_ui->comboFileOpenDir->isVisibleTo(this))
     {
         settings.setValue(
-            SETTINGS_BEHAVIOR_FILE_OPEN_CUSTOM,
+            Constants::Settings::Behavior::FILE_OPEN_CUSTOM,
             m_ui->lineEditFileOpenCustom->text()
         );
     }
@@ -262,7 +284,7 @@ void BehaviorSettings::applySettings()
 
 void BehaviorSettings::handleFileOpenChange(const QString &text)
 {
-    bool vis = m_fileOpenMap[text] == FileOpenDirectory::Custom;
+    bool vis = m_fileOpenMap[text] == Constants::FileOpenDirectory::Custom;
     m_ui->lineEditFileOpenCustom->setVisible(vis);
     m_ui->buttonFileOpenCustom->setVisible(vis);
 }

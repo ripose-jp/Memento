@@ -388,11 +388,11 @@ void MpvWidget::initPropertyMap()
 void MpvWidget::initSubtitleRegex()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_SEARCH);
+    settings.beginGroup(Constants::Settings::Search::GROUP);
     m_regex.setPattern(
         settings.value(
-            SETTINGS_SEARCH_REMOVE_REGEX,
-            SETTINGS_SEARCH_REMOVE_REGEX_DEFAULT
+            Constants::Settings::Search::REMOVE_REGEX,
+            Constants::Settings::Search::REMOVE_REGEX_DEFAULT
         ).toString()
     );
     settings.endGroup();
@@ -402,10 +402,10 @@ void MpvWidget::initTimer()
 {
     {
         QSettings settings;
-        settings.beginGroup(SETTINGS_BEHAVIOR);
+        settings.beginGroup(Constants::Settings::Behavior::GROUP);
         bool useOSCTimer = settings.value(
-            SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC,
-            SETTINGS_BEHAVIOR_CURSOR_HIDE_OSC_DEFAULT
+            Constants::Settings::Behavior::OSC_CURSOR_HIDE,
+            Constants::Settings::Behavior::OSC_CURSOR_HIDE_DEFAULT
         ).toBool();
         settings.endGroup();
 

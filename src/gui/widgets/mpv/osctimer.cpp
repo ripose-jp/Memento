@@ -28,14 +28,14 @@ OSCTimer::OSCTimer(QObject *parent) : CursorTimer(parent)
 {
     m_timer.setSingleShot(true);
     QSettings settings;
-    settings.beginGroup(SETTINGS_BEHAVIOR);
+    settings.beginGroup(Constants::Settings::Behavior::GROUP);
     int timeout = settings.value(
-        SETTINGS_BEHAVIOR_OSC_DURATION,
-        SETTINGS_BEHAVIOR_OSC_DURATION_DEFAULT
+        Constants::Settings::Behavior::OSC_DURATION,
+        Constants::Settings::Behavior::OSC_DURATION_DEFAULT
     ).toInt();
     timeout += settings.value(
-        SETTINGS_BEHAVIOR_OSC_FADE,
-        SETTINGS_BEHAVIOR_OSC_FADE_DEFAULT
+        Constants::Settings::Behavior::OSC_FADE,
+        Constants::Settings::Behavior::OSC_FADE_DEFAULT
     ).toInt();
     m_timer.setInterval(timeout);
     settings.endGroup();

@@ -61,12 +61,12 @@
 void updateSettings()
 {
     QSettings settings;
-    uint version = settings.value(SETTINGS_VERSION, 0).toUInt();
-    if (version == SETTINGS_VERSION_CURRENT)
+    uint version = settings.value(Constants::Settings::Version::VERSION, 0).toUInt();
+    if (version == Constants::Settings::Version::CURRENT)
     {
         return;
     }
-    else if (version > SETTINGS_VERSION_CURRENT)
+    else if (version > Constants::Settings::Version::CURRENT)
     {
         QMessageBox message;
         message.critical(
@@ -81,8 +81,8 @@ void updateSettings()
     {
     case 0:
     {
-        settings.beginGroup(SETTINGS_INTERFACE);
-        settings.remove(SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE);
+        settings.beginGroup(Constants::Settings::Interface::GROUP);
+        settings.remove(Constants::Settings::Interface::Style::SUBTITLE_LIST);
         settings.endGroup();
         __attribute__((fallthrough));
     }
@@ -121,15 +121,17 @@ void updateSettings()
     }
     case 2:
     {
-        settings.beginGroup(SETTINGS_SEARCH);
+        settings.beginGroup(Constants::Settings::Search::GROUP);
         bool list = settings.value(
-                SETTINGS_SEARCH_LIST_GLOSSARY,
+                Constants::Settings::Search::LIST_GLOSSARY,
                 true
             ).toBool();
         settings.setValue(
-            SETTINGS_SEARCH_LIST_GLOSSARY,
+            Constants::Settings::Search::LIST_GLOSSARY,
             static_cast<int>(
-                list ? GlossaryStyle::Bullet : GlossaryStyle::LineBreak
+                list ?
+                    Constants::GlossaryStyle::Bullet :
+                    Constants::GlossaryStyle::LineBreak
             )
         );
         settings.endGroup();
@@ -137,12 +139,15 @@ void updateSettings()
     }
 
     /* Remove saved window configurations just to be safe */
-    settings.beginGroup(SETTINGS_GROUP_WINDOW);
+    settings.beginGroup(Constants::Settings::Window::GROUP);
     settings.remove("");
     settings.endGroup();
 
     /* Set the version */
-    settings.setValue(SETTINGS_VERSION, SETTINGS_VERSION_CURRENT);
+    settings.setValue(
+        Constants::Settings::Version::VERSION,
+        Constants::Settings::Version::CURRENT
+    );
 }
 
 /**

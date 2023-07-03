@@ -81,10 +81,11 @@ void OCROverlay::initOCRSettings()
     }
 
     QSettings settings;
-    settings.beginGroup(SETTINGS_OCR);
+    settings.beginGroup(Constants::Settings::OCR::GROUP);
 
     bool enabled = settings.value(
-            SETTINGS_OCR_ENABLE, SETTINGS_OCR_ENABLE_DEFAULT
+            Constants::Settings::OCR::ENABLED,
+            Constants::Settings::OCR::ENABLED_DEFAULT
         ).toBool();
     if (!enabled)
     {
@@ -92,10 +93,12 @@ void OCROverlay::initOCRSettings()
     }
 
     QString model = settings.value(
-            SETTINGS_OCR_MODEL, SETTINGS_OCR_MODEL_DEFAULT
+            Constants::Settings::OCR::MODEL,
+            Constants::Settings::OCR::MODEL_DEFAULT
         ).toString();
     bool useGPU = settings.value(
-            SETTINGS_OCR_ENABLE_GPU, SETTINGS_OCR_ENABLE_GPU_DEFAULT
+            Constants::Settings::OCR::ENABLE_GPU,
+            Constants::Settings::OCR::ENABLE_GPU_DEFAULT
         ).toBool();
     m_model = new OCRModel(model, useGPU);
 

@@ -37,18 +37,26 @@ SearchSettings::SearchSettings(QWidget *parent)
 
     m_ui->frameHover->setVisible(false);
 
-    m_ui->comboBoxMethod->addItem(SEARCH_METHOD_HOVER);
-    m_ui->comboBoxMethod->addItem(SEARCH_METHOD_MODIFIER);
+    m_ui->comboBoxMethod->addItem(Constants::Settings::Search::Method::HOVER);
+    m_ui->comboBoxMethod->addItem(
+        Constants::Settings::Search::Method::MODIFIER
+    );
 
     connect(
         m_ui->comboBoxMethod, &QComboBox::currentTextChanged,
         this, &SearchSettings::methodTextChanged
     );
 
-    m_ui->comboBoxModifier->addItem(SEARCH_MODIFIER_ALT);
-    m_ui->comboBoxModifier->addItem(SEARCH_MODIFIER_CTRL);
-    m_ui->comboBoxModifier->addItem(SEARCH_MODIFIER_SHIFT);
-    m_ui->comboBoxModifier->addItem(SEARCH_MODIFIER_SUPER);
+    m_ui->comboBoxModifier->addItem(Constants::Settings::Search::Modifier::ALT);
+    m_ui->comboBoxModifier->addItem(
+        Constants::Settings::Search::Modifier::CTRL
+    );
+    m_ui->comboBoxModifier->addItem(
+        Constants::Settings::Search::Modifier::SHIFT
+    );
+    m_ui->comboBoxModifier->addItem(
+        Constants::Settings::Search::Modifier::SUPER
+    );
 
     connect(
         m_ui->buttonBox->button(QDialogButtonBox::Reset),
@@ -92,61 +100,71 @@ void SearchSettings::showEvent(QShowEvent *event)
 void SearchSettings::restoreSaved()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_SEARCH);
+    settings.beginGroup(Constants::Settings::Search::GROUP);
     m_ui->spinLimitResults->setValue(
         settings.value(
-            SETTINGS_SEARCH_LIMIT, SETTINGS_SEARCH_LIMIT_DEFAULT
+            Constants::Settings::Search::LIMIT,
+            Constants::Settings::Search::LIMIT_DEFAULT
         ).toInt()
     );
     m_ui->comboBoxMethod->setCurrentText(
         settings.value(
-            SETTINGS_SEARCH_METHOD, SETTINGS_SEARCH_METHOD_DEFAULT
+            Constants::Settings::Search::METHOD,
+            Constants::Settings::Search::METHOD_DEFAULT
         ).toString()
     );
     m_ui->spinBoxDelay->setValue(
         settings.value(
-            SETTINGS_SEARCH_DELAY, SETTINGS_SEARCH_DELAY_DEFAULT
+            Constants::Settings::Search::DELAY,
+            Constants::Settings::Search::DELAY_DEFAULT
         ).toInt()
     );
     m_ui->comboBoxModifier->setCurrentText(
         settings.value(
-            SETTINGS_SEARCH_MODIFIER, SETTINGS_SEARCH_MODIFIER_DEFAULT
+            Constants::Settings::Search::MODIFIER,
+            Constants::Settings::Search::MODIFIER_DEFAULT
         ).toString()
     );
     m_ui->checkHideSubs->setChecked(
         settings.value(
-            SETTINGS_SEARCH_HIDE_SUBS, SETTINGS_SEARCH_HIDE_SUBS_DEFAULT
+            Constants::Settings::Search::HIDE_SUBS,
+            Constants::Settings::Search::HIDE_SUBS_DEFAULT
         ).toBool()
     );
     m_ui->checkHideSearch->setChecked(
         settings.value(
-            SETTINGS_SEARCH_HIDE_BAR, SETTINGS_SEARCH_HIDE_BAR_DEFAULT
+            Constants::Settings::Search::HIDE_BAR,
+            Constants::Settings::Search::HIDE_BAR_DEFAULT
         ).toBool()
     );
     m_ui->checkHoverPause->setChecked(
         settings.value(
-            SETTINGS_SEARCH_HOVER_PAUSE, SETTINGS_SEARCH_HOVER_PAUSE_DEFAULT
+            Constants::Settings::Search::HOVER_PAUSE,
+            Constants::Settings::Search::HOVER_PAUSE_DEFAULT
         ).toBool()
     );
     m_ui->checkReplaceNewLines->setChecked(
         settings.value(
-            SETTINGS_SEARCH_REPLACE_LINES, SETTINGS_SEARCH_REPLACE_LINES_DEFAULT
+            Constants::Settings::Search::REPLACE_LINES,
+            Constants::Settings::Search::REPLACE_LINES_DEFAULT
         ).toBool()
     );
     m_ui->lineEditReplace->setText(
         settings.value(
-            SETTINGS_SEARCH_REPLACE_WITH, SETTINGS_SEARCH_REPLACE_WITH_DEFAULT
+            Constants::Settings::Search::REPLACE_WITH,
+            Constants::Settings::Search::REPLACE_WITH_DEFAULT
         ).toString()
     );
     m_ui->comboGlossaryStyle->setCurrentIndex(
         settings.value(
-            SETTINGS_SEARCH_LIST_GLOSSARY,
-            static_cast<int>(SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT)
+            Constants::Settings::Search::LIST_GLOSSARY,
+            static_cast<int>(Constants::Settings::Search::LIST_GLOSSARY_DEFAULT)
         ).toInt()
     );
     m_ui->lineRemoveRegex->setText(
         settings.value(
-            SETTINGS_SEARCH_REMOVE_REGEX, SETTINGS_SEARCH_REMOVE_REGEX_DEFAULT
+            Constants::Settings::Search::REMOVE_REGEX,
+            Constants::Settings::Search::REMOVE_REGEX_DEFAULT
         ).toString()
     );
     settings.endGroup();
@@ -154,60 +172,86 @@ void SearchSettings::restoreSaved()
 
 void SearchSettings::restoreDefaults()
 {
-    m_ui->spinLimitResults->setValue(SETTINGS_SEARCH_LIMIT_DEFAULT);
-    m_ui->comboBoxMethod->setCurrentText(SETTINGS_SEARCH_METHOD_DEFAULT);
-    m_ui->spinBoxDelay->setValue(SETTINGS_SEARCH_DELAY_DEFAULT);
-    m_ui->comboBoxModifier->setCurrentText(SETTINGS_SEARCH_MODIFIER_DEFAULT);
-    m_ui->checkHideSubs->setChecked(SETTINGS_SEARCH_HIDE_SUBS_DEFAULT);
-    m_ui->checkHideSearch->setChecked(SETTINGS_SEARCH_HIDE_BAR_DEFAULT);
-    m_ui->checkHoverPause->setChecked(SETTINGS_SEARCH_HOVER_PAUSE_DEFAULT);
+    m_ui->spinLimitResults->setValue(
+        Constants::Settings::Search::LIMIT_DEFAULT
+    );
+    m_ui->comboBoxMethod->setCurrentText(
+        Constants::Settings::Search::METHOD_DEFAULT
+    );
+    m_ui->spinBoxDelay->setValue(Constants::Settings::Search::DELAY_DEFAULT);
+    m_ui->comboBoxModifier->setCurrentText(
+        Constants::Settings::Search::MODIFIER_DEFAULT
+    );
+    m_ui->checkHideSubs->setChecked(
+        Constants::Settings::Search::HIDE_SUBS_DEFAULT
+    );
+    m_ui->checkHideSearch->setChecked(
+        Constants::Settings::Search::HIDE_BAR_DEFAULT
+    );
+    m_ui->checkHoverPause->setChecked(
+        Constants::Settings::Search::HOVER_PAUSE_DEFAULT
+    );
     m_ui->checkReplaceNewLines->setChecked(
-        SETTINGS_SEARCH_REPLACE_LINES_DEFAULT
+        Constants::Settings::Search::REPLACE_LINES_DEFAULT
     );
-    m_ui->lineEditReplace->setText(SETTINGS_SEARCH_REPLACE_WITH_DEFAULT);
+    m_ui->lineEditReplace->setText(
+        Constants::Settings::Search::REPLACE_WITH_DEFAULT
+    );
     m_ui->comboGlossaryStyle->setCurrentIndex(
-        static_cast<int>(SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT)
+        static_cast<int>(Constants::Settings::Search::LIST_GLOSSARY_DEFAULT)
     );
-    m_ui->lineRemoveRegex->setText(SETTINGS_SEARCH_REMOVE_REGEX_DEFAULT);
+    m_ui->lineRemoveRegex->setText(
+        Constants::Settings::Search::REMOVE_REGEX_DEFAULT
+    );
 }
 
 void SearchSettings::applySettings()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_SEARCH);
+    settings.beginGroup(Constants::Settings::Search::GROUP);
     settings.setValue(
-        SETTINGS_SEARCH_LIMIT, m_ui->spinLimitResults->value()
+        Constants::Settings::Search::LIMIT,
+        m_ui->spinLimitResults->value()
     );
     settings.setValue(
-        SETTINGS_SEARCH_METHOD, m_ui->comboBoxMethod->currentText()
+        Constants::Settings::Search::METHOD,
+        m_ui->comboBoxMethod->currentText()
     );
     settings.setValue(
-        SETTINGS_SEARCH_DELAY, m_ui->spinBoxDelay->value()
+        Constants::Settings::Search::DELAY,
+        m_ui->spinBoxDelay->value()
     );
     settings.setValue(
-        SETTINGS_SEARCH_MODIFIER, m_ui->comboBoxModifier->currentText()
+        Constants::Settings::Search::MODIFIER,
+        m_ui->comboBoxModifier->currentText()
     );
     settings.setValue(
-        SETTINGS_SEARCH_HIDE_SUBS, m_ui->checkHideSubs->isChecked()
+        Constants::Settings::Search::HIDE_SUBS,
+        m_ui->checkHideSubs->isChecked()
     );
     settings.setValue(
-        SETTINGS_SEARCH_HIDE_BAR, m_ui->checkHideSearch->isChecked()
+        Constants::Settings::Search::HIDE_BAR,
+        m_ui->checkHideSearch->isChecked()
     );
     settings.setValue(
-        SETTINGS_SEARCH_HOVER_PAUSE, m_ui->checkHoverPause->isChecked()
+        Constants::Settings::Search::HOVER_PAUSE,
+        m_ui->checkHoverPause->isChecked()
     );
     settings.setValue(
-        SETTINGS_SEARCH_REPLACE_LINES, m_ui->checkReplaceNewLines->isChecked()
+        Constants::Settings::Search::REPLACE_LINES,
+        m_ui->checkReplaceNewLines->isChecked()
     );
     settings.setValue(
-        SETTINGS_SEARCH_REPLACE_WITH, m_ui->lineEditReplace->text()
+        Constants::Settings::Search::REPLACE_WITH,
+        m_ui->lineEditReplace->text()
     );
     settings.setValue(
-        SETTINGS_SEARCH_LIST_GLOSSARY,
+        Constants::Settings::Search::LIST_GLOSSARY,
         m_ui->comboGlossaryStyle->currentIndex()
     );
     settings.setValue(
-        SETTINGS_SEARCH_REMOVE_REGEX, m_ui->lineRemoveRegex->text()
+        Constants::Settings::Search::REMOVE_REGEX,
+        m_ui->lineRemoveRegex->text()
     );
     settings.endGroup();
 
@@ -219,7 +263,9 @@ void SearchSettings::applySettings()
 
 void SearchSettings::methodTextChanged(const QString &text)
 {
-    m_ui->frameHover->setVisible(text == SEARCH_METHOD_HOVER);
+    m_ui->frameHover->setVisible(
+        text == Constants::Settings::Search::Method::HOVER
+    );
 }
 
 /* End Combo Box Handlers */

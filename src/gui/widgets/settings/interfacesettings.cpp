@@ -112,27 +112,45 @@ void InterfaceSettings::showEvent(QShowEvent *event)
 
 void InterfaceSettings::restoreDefaults()
 {
-    m_ui->comboTheme->setCurrentIndex((int)SETTINGS_INTERFACE_THEME_DEFAULT);
+    m_ui->comboTheme->setCurrentIndex(
+        static_cast<int>(Constants::Settings::Interface::THEME_DEFAULT)
+    );
 #if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
-    m_ui->checkSystemIcons->setChecked(SETTINGS_INTERFACE_SYSTEM_ICONS_DEFAULT);
+    m_ui->checkSystemIcons->setChecked(
+        Constants::Settings::Interface::SYSTEM_ICONS_DEFAULT
+    );
 #endif
 
     /* Subtitle */
     m_ui->fontComboSub->setCurrentFont(
-        QFont(SETTINGS_INTERFACE_SUB_FONT_DEFAULT)
+        QFont(Constants::Settings::Interface::Subtitle::FONT_DEFAULT)
     );
-    m_ui->checkSubBold->setChecked(SETTINGS_INTERFACE_SUB_FONT_BOLD_DEFAULT);
+    m_ui->checkSubBold->setChecked(
+        Constants::Settings::Interface::Subtitle::FONT_BOLD_DEFAULT
+    );
     m_ui->checkSubItalic->setChecked(
-        SETTINGS_INTERFACE_SUB_FONT_ITALICS_DEFAULT
+        Constants::Settings::Interface::Subtitle::FONT_ITALICS_DEFAULT
     );
 
-    m_ui->spinSubScale->setValue(SETTINGS_INTERFACE_SUB_SCALE_DEFAULT);
-    m_ui->spinSubOffset->setValue(SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT);
-    m_ui->spinSubStroke->setValue(SETTINGS_INTERFACE_SUB_STROKE_DEFAULT);
+    m_ui->spinSubScale->setValue(
+        Constants::Settings::Interface::Subtitle::SCALE_DEFAULT
+    );
+    m_ui->spinSubOffset->setValue(
+        Constants::Settings::Interface::Subtitle::OFFSET_DEFAULT
+    );
+    m_ui->spinSubStroke->setValue(
+        Constants::Settings::Interface::Subtitle::STROKE_DEFAULT
+    );
 
-    m_subColor.setNamedColor(SETTINGS_INTERFACE_SUB_TEXT_COLOR_DEFAULT);
-    m_bgColor.setNamedColor(SETTINGS_INTERFACE_SUB_BG_COLOR_DEFAULT);
-    m_strokeColor.setNamedColor(SETTINGS_INTERFACE_SUB_STROKE_COLOR_DEFAULT);
+    m_subColor.setNamedColor(
+        Constants::Settings::Interface::Subtitle::TEXT_COLOR_DEFAULT
+    );
+    m_bgColor.setNamedColor(
+        Constants::Settings::Interface::Subtitle::BACKGROUND_COLOR_DEFAULT
+    );
+    m_strokeColor.setNamedColor(
+        Constants::Settings::Interface::Subtitle::STROKE_COLOR_DEFAULT
+    );
 
     setButtonColor(m_ui->buttonSubColor, m_subColor);
     setButtonColor(m_ui->buttonSubBackground, m_bgColor);
@@ -140,106 +158,108 @@ void InterfaceSettings::restoreDefaults()
 
     /* Sub List */
     m_ui->checkSubListWindow->setChecked(
-        SETTINGS_INTERFACE_SUB_LIST_WINDOW_DEFAULT
+        Constants::Settings::Interface::Subtitle::LIST_WINDOW_DEFAULT
     );
     m_ui->checkSubListTimestamps->setChecked(
-        SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS_DEFAULT
+        Constants::Settings::Interface::Subtitle::LIST_TIMESTAMPS_DEFAULT
     );
 
     /* Aux Search */
     m_ui->checkAuxSearchWindow->setChecked(
-        SETTINGS_INTERFACE_AUX_SEARCH_WINDOW_DEFAULT
+        Constants::Settings::Interface::Subtitle::SEARCH_WINDOW_DEFAULT
     );
 
     /* Menu Bar */
 #if defined(Q_OS_WIN)
     m_ui->checkMenuFullscreen->setChecked(
-        SETTINGS_INTERFACE_MENUBAR_FULLSCREEN_DEFAULT
+        Constants::Settings::Interface::Subtitle::MENUBAR_FULLSCREEN_DEFAULT
     );
 #endif
 
     /* Style Sheets */
-    m_ui->checkStyleSheets->setChecked(SETTINGS_INTERFACE_STYLESHEETS_DEFAULT);
+    m_ui->checkStyleSheets->setChecked(
+        Constants::Settings::Interface::STYLESHEETS_DEFAULT
+    );
     m_ui->editSubList->setPlainText(
-        SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT
+        Constants::Settings::Interface::Style::SUBTITLE_LIST_DEFAULT
     );
     m_ui->editSplitter->setPlainText(
-        SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT
+        Constants::Settings::Interface::Style::SPLITTER_DEFAULT
     );
     m_ui->editDefinitions->setPlainText(
-        SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT
+        Constants::Settings::Interface::Style::DEFINITION_DEFAULT
     );
 }
 
 void InterfaceSettings::restoreSaved()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_INTERFACE);
+    settings.beginGroup(Constants::Settings::Interface::GROUP);
     m_ui->comboTheme->setCurrentIndex(
         settings.value(
-            SETTINGS_INTERFACE_THEME,
-            (int)SETTINGS_INTERFACE_THEME_DEFAULT
+            Constants::Settings::Interface::THEME,
+            (int)Constants::Settings::Interface::THEME_DEFAULT
         ).toInt()
     );
 #if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     m_ui->checkSystemIcons->setChecked(
         settings.value(
-            SETTINGS_INTERFACE_SYSTEM_ICONS,
-            SETTINGS_INTERFACE_SYSTEM_ICONS_DEFAULT
+            Constants::Settings::Interface::SYSTEM_ICONS,
+            Constants::Settings::Interface::SYSTEM_ICONS_DEFAULT
         ).toBool()
     );
 #endif
 
     /* Subtitle */
     m_ui->fontComboSub->setCurrentFont(QFont(settings.value(
-            SETTINGS_INTERFACE_SUB_FONT,
-            SETTINGS_INTERFACE_SUB_FONT_DEFAULT
+            Constants::Settings::Interface::Subtitle::FONT,
+            Constants::Settings::Interface::Subtitle::FONT_DEFAULT
         ).toString())
     );
     m_ui->checkSubBold->setChecked(
         settings.value(
-            SETTINGS_INTERFACE_SUB_FONT_BOLD,
-            SETTINGS_INTERFACE_SUB_FONT_BOLD_DEFAULT
+            Constants::Settings::Interface::Subtitle::FONT_BOLD,
+            Constants::Settings::Interface::Subtitle::FONT_BOLD_DEFAULT
         ).toBool()
     );
     m_ui->checkSubItalic->setChecked(
         settings.value(
-            SETTINGS_INTERFACE_SUB_FONT_ITALICS,
-            SETTINGS_INTERFACE_SUB_FONT_ITALICS_DEFAULT
+            Constants::Settings::Interface::Subtitle::FONT_ITALICS,
+            Constants::Settings::Interface::Subtitle::FONT_ITALICS_DEFAULT
         ).toBool()
     );
 
     m_ui->spinSubScale->setValue(settings.value(
-            SETTINGS_INTERFACE_SUB_SCALE,
-            SETTINGS_INTERFACE_SUB_SCALE_DEFAULT
+            Constants::Settings::Interface::Subtitle::SCALE,
+            Constants::Settings::Interface::Subtitle::SCALE_DEFAULT
         ).toDouble()
     );
     m_ui->spinSubOffset->setValue(settings.value(
-            SETTINGS_INTERFACE_SUB_OFFSET,
-            SETTINGS_INTERFACE_SUB_OFFSET_DEFAULT
+            Constants::Settings::Interface::Subtitle::OFFSET,
+            Constants::Settings::Interface::Subtitle::OFFSET_DEFAULT
         ).toDouble()
     );
     m_ui->spinSubStroke->setValue(settings.value(
-            SETTINGS_INTERFACE_SUB_STROKE,
-            SETTINGS_INTERFACE_SUB_STROKE_DEFAULT
+            Constants::Settings::Interface::Subtitle::STROKE,
+            Constants::Settings::Interface::Subtitle::STROKE_DEFAULT
         ).toDouble()
     );
 
     m_subColor.setNamedColor(settings.value(
-            SETTINGS_INTERFACE_SUB_TEXT_COLOR,
-            SETTINGS_INTERFACE_SUB_TEXT_COLOR_DEFAULT
+            Constants::Settings::Interface::Subtitle::TEXT_COLOR,
+            Constants::Settings::Interface::Subtitle::TEXT_COLOR_DEFAULT
         ).toString()
     );
     setButtonColor(m_ui->buttonSubColor, m_subColor);
     m_bgColor.setNamedColor(settings.value(
-            SETTINGS_INTERFACE_SUB_BG_COLOR,
-            SETTINGS_INTERFACE_SUB_BG_COLOR_DEFAULT
+            Constants::Settings::Interface::Subtitle::BACKGROUND_COLOR,
+            Constants::Settings::Interface::Subtitle::BACKGROUND_COLOR_DEFAULT
         ).toString()
     );
     setButtonColor(m_ui->buttonSubBackground, m_bgColor);
     m_strokeColor.setNamedColor(settings.value(
-            SETTINGS_INTERFACE_SUB_STROKE_COLOR,
-            SETTINGS_INTERFACE_SUB_STROKE_COLOR_DEFAULT
+            Constants::Settings::Interface::Subtitle::STROKE_COLOR,
+            Constants::Settings::Interface::Subtitle::STROKE_COLOR_DEFAULT
         ).toString()
     );
     setButtonColor(m_ui->buttonSubStroke, m_strokeColor);
@@ -247,22 +267,22 @@ void InterfaceSettings::restoreSaved()
     /* Subtitle List */
     m_ui->checkSubListWindow->setChecked(
         settings.value(
-            SETTINGS_INTERFACE_SUB_LIST_WINDOW,
-            SETTINGS_INTERFACE_SUB_LIST_WINDOW_DEFAULT
+            Constants::Settings::Interface::Subtitle::LIST_WINDOW,
+            Constants::Settings::Interface::Subtitle::LIST_WINDOW_DEFAULT
         ).toBool()
     );
     m_ui->checkSubListTimestamps->setChecked(
         settings.value(
-            SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS,
-            SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS_DEFAULT
+            Constants::Settings::Interface::Subtitle::LIST_TIMESTAMPS,
+            Constants::Settings::Interface::Subtitle::LIST_TIMESTAMPS_DEFAULT
         ).toBool()
     );
 
     /* Aux Search */
     m_ui->checkAuxSearchWindow->setChecked(
         settings.value(
-            SETTINGS_INTERFACE_AUX_SEARCH_WINDOW,
-            SETTINGS_INTERFACE_AUX_SEARCH_WINDOW_DEFAULT
+            Constants::Settings::Interface::Subtitle::SEARCH_WINDOW,
+            Constants::Settings::Interface::Subtitle::SEARCH_WINDOW_DEFAULT
         ).toBool()
     );
 
@@ -270,8 +290,8 @@ void InterfaceSettings::restoreSaved()
 #if defined(Q_OS_WIN)
     m_ui->checkMenuFullscreen->setChecked(
         settings.value(
-            SETTINGS_INTERFACE_MENUBAR_FULLSCREEN,
-            SETTINGS_INTERFACE_MENUBAR_FULLSCREEN_DEFAULT
+            Constants::Settings::Interface::Subtitle::MENUBAR_FULLSCREEN,
+            Constants::Settings::Interface::Subtitle::MENUBAR_FULLSCREEN_DEFAULT
         ).toBool()
     );
 #endif
@@ -279,26 +299,26 @@ void InterfaceSettings::restoreSaved()
     /* Style Sheets */
     m_ui->checkStyleSheets->setChecked(
         settings.value(
-            SETTINGS_INTERFACE_STYLESHEETS,
-            SETTINGS_INTERFACE_STYLESHEETS_DEFAULT
+            Constants::Settings::Interface::STYLESHEETS,
+            Constants::Settings::Interface::STYLESHEETS_DEFAULT
         ).toBool()
     );
     m_ui->editSubList->setPlainText(
         settings.value(
-            SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE,
-            SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE_DEFAULT
+            Constants::Settings::Interface::Style::SUBTITLE_LIST,
+            Constants::Settings::Interface::Style::SUBTITLE_LIST_DEFAULT
         ).toString()
     );
     m_ui->editSplitter->setPlainText(
         settings.value(
-            SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE,
-            SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT
+            Constants::Settings::Interface::Style::SPLITTER,
+            Constants::Settings::Interface::Style::SPLITTER_DEFAULT
         ).toString()
     );
     m_ui->editDefinitions->setPlainText(
         settings.value(
-            SETTINGS_INTERFACE_DEFINITION_STYLE,
-            SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT
+            Constants::Settings::Interface::Style::DEFINITION,
+            Constants::Settings::Interface::Style::DEFINITION_DEFAULT
         ).toString()
     );
     settings.endGroup();
@@ -307,85 +327,98 @@ void InterfaceSettings::restoreSaved()
 void InterfaceSettings::applyChanges()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_INTERFACE);
+    settings.beginGroup(Constants::Settings::Interface::GROUP);
 
     settings.setValue(
-        SETTINGS_INTERFACE_THEME, m_ui->comboTheme->currentIndex()
+        Constants::Settings::Interface::THEME,
+        m_ui->comboTheme->currentIndex()
     );
 #if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     settings.setValue(
-        SETTINGS_INTERFACE_SYSTEM_ICONS, m_ui->checkSystemIcons->isChecked()
+        Constants::Settings::Interface::SYSTEM_ICONS,
+        m_ui->checkSystemIcons->isChecked()
     );
 #endif
 
     /* Subtitle */
     settings.setValue(
-        SETTINGS_INTERFACE_SUB_FONT, m_ui->fontComboSub->currentFont().family()
+        Constants::Settings::Interface::Subtitle::FONT,
+        m_ui->fontComboSub->currentFont().family()
     );
     settings.setValue(
-        SETTINGS_INTERFACE_SUB_FONT_BOLD, m_ui->checkSubBold->isChecked()
+        Constants::Settings::Interface::Subtitle::FONT_BOLD,
+        m_ui->checkSubBold->isChecked()
     );
     settings.setValue(
-        SETTINGS_INTERFACE_SUB_FONT_ITALICS, m_ui->checkSubItalic->isChecked()
-    );
-
-    settings.setValue(
-        SETTINGS_INTERFACE_SUB_SCALE, m_ui->spinSubScale->value()
-    );
-    settings.setValue(
-        SETTINGS_INTERFACE_SUB_OFFSET, m_ui->spinSubOffset->value()
-    );
-    settings.setValue(
-        SETTINGS_INTERFACE_SUB_STROKE, m_ui->spinSubStroke->value()
+        Constants::Settings::Interface::Subtitle::FONT_ITALICS,
+        m_ui->checkSubItalic->isChecked()
     );
 
     settings.setValue(
-        SETTINGS_INTERFACE_SUB_TEXT_COLOR, m_subColor.name(QColor::HexArgb)
+        Constants::Settings::Interface::Subtitle::SCALE,
+        m_ui->spinSubScale->value()
     );
     settings.setValue(
-        SETTINGS_INTERFACE_SUB_BG_COLOR, m_bgColor.name(QColor::HexArgb)
+        Constants::Settings::Interface::Subtitle::OFFSET,
+        m_ui->spinSubOffset->value()
     );
     settings.setValue(
-        SETTINGS_INTERFACE_SUB_STROKE_COLOR, m_strokeColor.name(QColor::HexArgb)
+        Constants::Settings::Interface::Subtitle::STROKE,
+        m_ui->spinSubStroke->value()
+    );
+
+    settings.setValue(
+        Constants::Settings::Interface::Subtitle::TEXT_COLOR,
+        m_subColor.name(QColor::HexArgb)
+    );
+    settings.setValue(
+        Constants::Settings::Interface::Subtitle::BACKGROUND_COLOR,
+        m_bgColor.name(QColor::HexArgb)
+    );
+    settings.setValue(
+        Constants::Settings::Interface::Subtitle::STROKE_COLOR,
+        m_strokeColor.name(QColor::HexArgb)
     );
 
     /* Subtitle List */
     settings.setValue(
-        SETTINGS_INTERFACE_SUB_LIST_WINDOW,
+        Constants::Settings::Interface::Subtitle::LIST_WINDOW,
         m_ui->checkSubListWindow->isChecked()
     );
     settings.setValue(
-        SETTINGS_INTERFACE_SUB_LIST_TIMESTAMPS,
+        Constants::Settings::Interface::Subtitle::LIST_TIMESTAMPS,
         m_ui->checkSubListTimestamps->isChecked()
     );
 
     /* Aux Search */
     settings.setValue(
-        SETTINGS_INTERFACE_AUX_SEARCH_WINDOW,
+        Constants::Settings::Interface::Subtitle::SEARCH_WINDOW,
         m_ui->checkAuxSearchWindow->isChecked()
     );
 
     /* Menu Bar */
 #if defined(Q_OS_WIN)
     settings.setValue(
-        SETTINGS_INTERFACE_MENUBAR_FULLSCREEN,
+        Constants::Settings::Interface::Subtitle::MENUBAR_FULLSCREEN,
         m_ui->checkMenuFullscreen->isChecked()
     );
 #endif
 
     /* Style Sheets */
     settings.setValue(
-        SETTINGS_INTERFACE_STYLESHEETS, m_ui->checkStyleSheets->isChecked()
+        Constants::Settings::Interface::STYLESHEETS,
+        m_ui->checkStyleSheets->isChecked()
     );
     settings.setValue(
-        SETTINGS_INTERFACE_SUBTITLE_LIST_STYLE, m_ui->editSubList->toPlainText()
+        Constants::Settings::Interface::Style::SUBTITLE_LIST,
+        m_ui->editSubList->toPlainText()
     );
     settings.setValue(
-        SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE,
+        Constants::Settings::Interface::Style::SPLITTER,
         m_ui->editSplitter->toPlainText()
     );
     settings.setValue(
-        SETTINGS_INTERFACE_DEFINITION_STYLE,
+        Constants::Settings::Interface::Style::DEFINITION,
         m_ui->editDefinitions->toPlainText()
     );
 

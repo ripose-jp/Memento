@@ -118,10 +118,10 @@ MainWindow::~MainWindow()
 void MainWindow::initWindow()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_GROUP_WINDOW);
+    settings.beginGroup(Constants::Settings::Window::GROUP);
 
-    restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
-    m_maximized = settings.value(SETTINGS_MAXIMIZE, false).toBool();
+    restoreGeometry(settings.value(Constants::Settings::Window::GEOMETRY).toByteArray());
+    m_maximized = settings.value(Constants::Settings::Window::MAXIMIZE, false).toBool();
     QApplication::processEvents();
     if (m_maximized)
     {
@@ -239,17 +239,17 @@ void MainWindow::initWindow()
 void MainWindow::initTheme()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_INTERFACE);
+    settings.beginGroup(Constants::Settings::Interface::GROUP);
 
     /* Set Palette */
     QPalette pal;
-    Theme theme = (Theme)settings.value(
-            SETTINGS_INTERFACE_THEME,
-            (int)SETTINGS_INTERFACE_THEME_DEFAULT
-        ).toInt();
+    Constants::Theme theme = static_cast<Constants::Theme>(settings.value(
+            Constants::Settings::Interface::THEME,
+            static_cast<int>(Constants::Settings::Interface::THEME_DEFAULT)
+        ).toInt());
     switch (theme)
     {
-    case Theme::Light:
+    case Constants::Theme::Light:
     {
 #if defined(Q_OS_WIN)
         QStyle *style = QStyleFactory::create("fusion");
@@ -290,7 +290,7 @@ void MainWindow::initTheme()
         );
         break;
     }
-    case Theme::Dark:
+    case Constants::Theme::Dark:
     {
 #if defined(Q_OS_WIN)
         QStyle *style = QStyleFactory::create("fusion");
@@ -333,7 +333,7 @@ void MainWindow::initTheme()
         );
         break;
     }
-    case Theme::System:
+    case Constants::Theme::System:
     default:
 #if defined(Q_OS_WIN)
         QStyle *style = QStyleFactory::create("windowsvista");
@@ -368,8 +368,8 @@ void MainWindow::initTheme()
 #if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     IconFactory::recreate(
         settings.value(
-            SETTINGS_INTERFACE_SYSTEM_ICONS,
-            SETTINGS_INTERFACE_SYSTEM_ICONS_DEFAULT
+            Constants::Settings::Interface::SYSTEM_ICONS,
+            Constants::Settings::Interface::SYSTEM_ICONS_DEFAULT
         ).toBool()
     );
 #else
@@ -380,22 +380,22 @@ void MainWindow::initTheme()
 
     /* Set QSplitter Stylesheet */
     bool customStylesEnabled = settings.value(
-            SETTINGS_INTERFACE_STYLESHEETS,
-            SETTINGS_INTERFACE_STYLESHEETS_DEFAULT
+            Constants::Settings::Interface::STYLESHEETS,
+            Constants::Settings::Interface::STYLESHEETS_DEFAULT
         ).toBool();
     if (customStylesEnabled)
     {
         m_ui->splitterPlayerSubtitles->setStyleSheet(
             settings.value(
-                SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE,
-                SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT
+                Constants::Settings::Interface::Style::SPLITTER,
+                Constants::Settings::Interface::Style::SPLITTER_DEFAULT
             ).toString()
         );
     }
     else
     {
         m_ui->splitterPlayerSubtitles->setStyleSheet(
-            SETTINGS_INTERFACE_PLAYER_SPLITTER_STYLE_DEFAULT
+            Constants::Settings::Interface::Style::SPLITTER_DEFAULT
         );
     }
 
@@ -403,8 +403,8 @@ void MainWindow::initTheme()
     bool vis = m_ui->searchWidget->isVisibleTo(m_ui->splitterSearchList);
     m_ui->searchWidget->setParent(nullptr);
     bool differentWindow = settings.value(
-        SETTINGS_INTERFACE_AUX_SEARCH_WINDOW,
-        SETTINGS_INTERFACE_AUX_SEARCH_WINDOW_DEFAULT
+        Constants::Settings::Interface::Subtitle::SEARCH_WINDOW,
+        Constants::Settings::Interface::Subtitle::SEARCH_WINDOW_DEFAULT
     ).toBool();
     if (!differentWindow)
     {
@@ -416,8 +416,8 @@ void MainWindow::initTheme()
     vis = m_ui->subtitleList->isVisibleTo(m_ui->splitterSearchList);
     m_ui->subtitleList->setParent(nullptr);
     differentWindow = settings.value(
-        SETTINGS_INTERFACE_SUB_LIST_WINDOW,
-        SETTINGS_INTERFACE_SUB_LIST_WINDOW_DEFAULT
+        Constants::Settings::Interface::Subtitle::LIST_WINDOW,
+        Constants::Settings::Interface::Subtitle::LIST_WINDOW_DEFAULT
     ).toBool();
     if (!differentWindow)
     {
@@ -433,8 +433,8 @@ void MainWindow::initTheme()
         QWindowsWindowFunctions::setHasBorderInFullScreen(
             window()->windowHandle(),
             settings.value(
-                SETTINGS_INTERFACE_MENUBAR_FULLSCREEN,
-                SETTINGS_INTERFACE_MENUBAR_FULLSCREEN_DEFAULT
+                Constants::Settings::Interface::Subtitle::MENUBAR_FULLSCREEN,
+                Constants::Settings::Interface::Subtitle::MENUBAR_FULLSCREEN_DEFAULT
             ).toBool()
         );
     }
@@ -491,11 +491,11 @@ void MainWindow::showEvent(QShowEvent *event)
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_GROUP_WINDOW);
+    settings.beginGroup(Constants::Settings::Window::GROUP);
 
-    settings.setValue(SETTINGS_GEOMETRY, saveGeometry());
+    settings.setValue(Constants::Settings::Window::GEOMETRY, saveGeometry());
     settings.setValue(
-        SETTINGS_MAXIMIZE,
+        Constants::Settings::Window::MAXIMIZE,
         isFullScreen() ? m_maximized : isMaximized()
     );
 
@@ -624,13 +624,14 @@ void MainWindow::autoFitMedia(int width, int height)
     }
 
     QSettings settings;
-    settings.beginGroup(SETTINGS_BEHAVIOR);
+    settings.beginGroup(Constants::Settings::Behavior::GROUP);
     bool autoFit = settings.value(
-            SETTINGS_BEHAVIOR_AUTOFIT, SETTINGS_BEHAVIOR_AUTOFIT_DEFAULT
+            Constants::Settings::Behavior::AUTOFIT,
+            Constants::Settings::Behavior::AUTOFIT_DEFAULT
         ).toBool();
     unsigned int percent = settings.value(
-            SETTINGS_BEHAVIOR_AUTOFIT_PERCENT,
-            SETTINGS_BEHAVIOR_AUTOFIT_PERCENT_DEFAULT
+            Constants::Settings::Behavior::AUTOFIT_PERCENT,
+            Constants::Settings::Behavior::AUTOFIT_PERCENT_DEFAULT
         ).toUInt();
     settings.endGroup();
 

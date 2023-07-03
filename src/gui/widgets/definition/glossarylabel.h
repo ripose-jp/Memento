@@ -40,7 +40,7 @@ public:
      */
     GlossaryLabel(
         Qt::KeyboardModifier modifier = Qt::KeyboardModifier::ShiftModifier,
-        GlossaryStyle style = GlossaryStyle::Bullet,
+        Constants::GlossaryStyle style = Constants::GlossaryStyle::Bullet,
         QWidget *parent = nullptr);
     virtual ~GlossaryLabel();
 
@@ -181,7 +181,7 @@ private:
     Qt::KeyboardModifier m_searchModifier = Qt::KeyboardModifier::ShiftModifier;
 
     /* The style of this label */
-    GlossaryStyle m_style;
+    Constants::GlossaryStyle m_style;
 
     /* The index that is currently being searched */
     int m_currentIndex = -1;

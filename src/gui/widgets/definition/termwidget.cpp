@@ -76,7 +76,7 @@ TermWidget::TermWidget(
     QList<AudioSource> &sources,
     int jsonSources,
     Qt::KeyboardModifier modifier,
-    GlossaryStyle style,
+    Constants::GlossaryStyle style,
     QWidget *parent)
     : QWidget(parent),
       m_ui(new Ui::TermWidget),
@@ -183,7 +183,9 @@ void TermWidget::deleteWhenReady()
 /* Begin Initializers */
 
 void TermWidget::initUi(
-    const Term &term, Qt::KeyboardModifier modifier, GlossaryStyle style)
+    const Term &term,
+    Qt::KeyboardModifier modifier,
+    Constants::GlossaryStyle style)
 {
     if (term.reading.isEmpty())
     {
@@ -574,7 +576,7 @@ static inline void processAudioSourceJson(
         }
 
         AudioSource childSrc;
-        childSrc.type = AudioSourceType::File;
+        childSrc.type = Constants::AudioSourceType::File;
         childSrc.name = srcObj[JSON_KEY_AUDIO_SOURCES_NAME].toString();
         childSrc.url = srcObj[JSON_KEY_AUDIO_SOURCES_URL].toString();
         childSrc.md5 = src.md5;
@@ -602,7 +604,7 @@ void TermWidget::loadAudioSources()
     for (int i = 0; i < m_sources.size(); ++i)
     {
         const AudioSource &src = m_sources[i];
-        if (src.type != AudioSourceType::JSON)
+        if (src.type != Constants::AudioSourceType::JSON)
         {
             continue;
         }
@@ -655,11 +657,11 @@ void TermWidget::populateAudioSourceMenu(
     menu->clear();
     for (const AudioSource &src : m_sources)
     {
-        if (src.type == AudioSourceType::File)
+        if (src.type == Constants::AudioSourceType::File)
         {
             menu->addAction(src.name, this, [=] { handler(src); });
         }
-        else if (src.type == AudioSourceType::JSON)
+        else if (src.type == Constants::AudioSourceType::JSON)
         {
             for (const AudioSource &childSrc : src.audioSources)
             {
@@ -676,13 +678,15 @@ AudioSource *TermWidget::getFirstAudioSource()
     AudioSource *ret = nullptr;
     for (AudioSource &src : m_sources)
     {
-        if (src.type == AudioSourceType::File)
+        if (src.type == Constants::AudioSourceType::File)
         {
             ret = &src;
             break;
         }
-        else if (src.type == AudioSourceType::JSON &&
-                 !src.audioSources.isEmpty())
+        else if (
+            src.type == Constants::AudioSourceType::JSON &&
+            !src.audioSources.isEmpty()
+        )
         {
             ret = &src.audioSources.first();
             break;

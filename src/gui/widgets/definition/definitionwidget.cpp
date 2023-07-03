@@ -101,23 +101,25 @@ void DefinitionWidget::clearTerms()
 void DefinitionWidget::initTheme()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_INTERFACE);
+    settings.beginGroup(Constants::Settings::Interface::GROUP);
     const bool stylesheetsEnabled = settings.value(
-            SETTINGS_INTERFACE_STYLESHEETS,
-            SETTINGS_INTERFACE_STYLESHEETS_DEFAULT
+            Constants::Settings::Interface::STYLESHEETS,
+            Constants::Settings::Interface::STYLESHEETS_DEFAULT
         ).toBool();
     if (stylesheetsEnabled)
     {
         setStyleSheet(
             settings.value(
-                SETTINGS_INTERFACE_DEFINITION_STYLE,
-                SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT
+                Constants::Settings::Interface::Style::DEFINITION,
+                Constants::Settings::Interface::Style::DEFINITION_DEFAULT
             ).toString()
         );
     }
     else
     {
-        setStyleSheet(SETTINGS_INTERFACE_DEFINITION_STYLE_DEFAULT);
+        setStyleSheet(
+            Constants::Settings::Interface::Style::DEFINITION_DEFAULT
+        );
     }
     settings.endGroup();
 
@@ -128,32 +130,33 @@ void DefinitionWidget::initTheme()
 void DefinitionWidget::initSearch()
 {
     QSettings settings;
-    settings.beginGroup(SETTINGS_SEARCH);
+    settings.beginGroup(Constants::Settings::Search::GROUP);
     m_limit = settings.value(
-            SETTINGS_SEARCH_LIMIT, SETTINGS_SEARCH_LIMIT_DEFAULT
+            Constants::Settings::Search::LIMIT,
+            Constants::Settings::Search::LIMIT_DEFAULT
         ).toUInt();
-    m_glossaryStyle = static_cast<GlossaryStyle>(settings.value(
-            SETTINGS_SEARCH_LIST_GLOSSARY,
-            static_cast<int>(SETTINGS_SEARCH_LIST_GLOSSARY_DEFAULT)
+    m_glossaryStyle = static_cast<Constants::GlossaryStyle>(settings.value(
+            Constants::Settings::Search::LIST_GLOSSARY,
+            static_cast<int>(Constants::Settings::Search::LIST_GLOSSARY_DEFAULT)
         ).toInt());
 
     QString modifier = settings.value(
-            SETTINGS_SEARCH_MODIFIER,
-            SETTINGS_SEARCH_MODIFIER_DEFAULT
+            Constants::Settings::Search::MODIFIER,
+            Constants::Settings::Search::MODIFIER_DEFAULT
         ).toString();
-    if (modifier == SEARCH_MODIFIER_SHIFT)
+    if (modifier == Constants::Settings::Search::Modifier::SHIFT)
     {
         m_searchModifier = Qt::KeyboardModifier::ShiftModifier;
     }
-    else if (modifier == SEARCH_MODIFIER_ALT)
+    else if (modifier == Constants::Settings::Search::Modifier::ALT)
     {
         m_searchModifier = Qt::KeyboardModifier::AltModifier;
     }
-    else if (modifier == SEARCH_MODIFIER_CTRL)
+    else if (modifier == Constants::Settings::Search::Modifier::CTRL)
     {
         m_searchModifier = Qt::KeyboardModifier::ControlModifier;
     }
-    else if (modifier == SEARCH_MODIFIER_SUPER)
+    else if (modifier == Constants::Settings::Search::Modifier::SUPER)
     {
         m_searchModifier = Qt::KeyboardModifier::MetaModifier;
     }
@@ -169,25 +172,28 @@ void DefinitionWidget::initAudioSources()
     QSettings settings;
     m_sources.clear();
     m_jsonSources = 0;
-    int size = settings.beginReadArray(SETTINGS_AUDIO_SRC);
+    int size = settings.beginReadArray(Constants::Settings::AudioSource::GROUP);
     for (int i = 0; i < size; ++i)
     {
         settings.setArrayIndex(i);
         AudioSource src;
-        src.type = (AudioSourceType)settings.value(
-                SETTINGS_AUDIO_SRC_TYPE,
-                (int)SETTINGS_AUDIO_SRC_TYPE_DEFAULT
-            ).toInt();
+        src.type = static_cast<Constants::AudioSourceType>(settings.value(
+                Constants::Settings::AudioSource::TYPE,
+                static_cast<int>(Constants::Settings::AudioSource::TYPE_DEFAULT)
+            ).toInt());
         src.name = settings.value(
-                SETTINGS_AUDIO_SRC_NAME, SETTINGS_AUDIO_SRC_NAME_DEFAULT
+                Constants::Settings::AudioSource::NAME,
+                Constants::Settings::AudioSource::NAME_DEFAULT
             ).toString();
         src.url = settings.value(
-                SETTINGS_AUDIO_SRC_URL, SETTINGS_AUDIO_SRC_URL_DEFAULT
+                Constants::Settings::AudioSource::URL,
+                Constants::Settings::AudioSource::URL_DEFAULT
             ).toString();
         src.md5 = settings.value(
-                SETTINGS_AUDIO_SRC_MD5, SETTINGS_AUDIO_SRC_MD5_DEFAULT
+                Constants::Settings::AudioSource::MD5,
+                Constants::Settings::AudioSource::MD5_DEFAULT
             ).toString();
-        if (src.type == AudioSourceType::JSON)
+        if (src.type == Constants::AudioSourceType::JSON)
         {
             ++m_jsonSources;
         }

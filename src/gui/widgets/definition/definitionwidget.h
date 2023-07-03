@@ -47,7 +47,7 @@ struct AudioSource
     }
 
     /* The type of the audio source */
-    AudioSourceType type;
+    Constants::AudioSourceType type;
 
     /* The name of the audio source. */
     QString name;
@@ -268,7 +268,7 @@ private:
     Qt::KeyboardModifier m_searchModifier;
 
     /* The style of glossaries */
-    GlossaryStyle m_glossaryStyle;
+    Constants::GlossaryStyle m_glossaryStyle;
 
     /* The child definition widget */
     QPointer<DefinitionWidget> m_child = nullptr;

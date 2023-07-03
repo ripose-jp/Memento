@@ -60,7 +60,7 @@ public:
         QList<AudioSource> &sources,
         int jsonSources,
         Qt::KeyboardModifier modifier,
-        GlossaryStyle style,
+        Constants::GlossaryStyle style,
         QWidget *parent = nullptr);
     ~TermWidget();
 
@@ -169,7 +169,9 @@ private:
      * @param style    The style of the GlossaryWidget.
      */
     void initUi(
-        const Term &term, Qt::KeyboardModifier modifier, GlossaryStyle style);
+        const Term &term,
+        Qt::KeyboardModifier modifier,
+        Constants::GlossaryStyle style);
 
     /**
      * Initializes a new term to add to Anki without audio information.
