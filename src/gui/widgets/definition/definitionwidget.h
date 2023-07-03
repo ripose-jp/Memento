@@ -26,6 +26,7 @@
 #include <QPointer>
 #include <QWheelEvent>
 
+#include "definitionstate.h"
 #include "kanjiwidget.h"
 #include "termwidget.h"
 
@@ -33,45 +34,6 @@
 #include "dict/expression.h"
 
 enum class AudioSourceType;
-
-/**
- * Internal representation of a user defined audio source.
- */
-struct AudioSource
-{
-    AudioSource() = default;
-
-    AudioSource(const AudioSource &src)
-    {
-        *this = src;
-    }
-
-    /* The type of the audio source */
-    Constants::AudioSourceType type;
-
-    /* The name of the audio source. */
-    QString name;
-
-    /* The raw URL (may contain {expression}/{reading}) of the audio source. */
-    QString url;
-
-    /* The MD5 hash to skip if the audio from the source matches. */
-    QString md5;
-
-    /* A subarray of audio sources for this source. */
-    QList<AudioSource> audioSources;
-
-    AudioSource &operator=(const AudioSource &rhs)
-    {
-        type = rhs.type;
-        name = rhs.name;
-        url = rhs.url;
-        md5 = rhs.md5;
-        audioSources = rhs.audioSources;
-
-        return *this;
-    }
-};
 
 namespace Ui
 {
@@ -230,19 +192,13 @@ protected:
 
 private:
     /* UI object containing all the widgets. */
-    Ui::DefinitionWidget *m_ui;
+    Ui::DefinitionWidget *m_ui = nullptr;
 
     /* The AnkiClient used for communicating with AnkiConnect. */
-    AnkiClient *m_client;
+    AnkiClient *m_client = nullptr;
 
-    /* The list of audio sources */
-    QList<AudioSource> m_sources;
-
-    /* the number of json sources */
-    int m_jsonSources = 0;
-
-    /* The maximum number of terms that should be shown on one search */
-    int m_limit;
+    /* The shared definition state */
+    DefinitionState m_state{};
 
     /* List of terms. Owned by this widget. */
     QList<QSharedPointer<const Term>> m_terms;
@@ -259,16 +215,10 @@ private:
     /* The saved scroll location of the term widget. Used for restoring position
      * when looking at a kanji entry.
      */
-    int m_savedScroll;
+    int m_savedScroll = 0;
 
     /* Current search ID. Used to prevent erroneous signals */
     int m_searchId = 0;
-
-    /* The keyboard modifier to use for recursive searches */
-    Qt::KeyboardModifier m_searchModifier;
-
-    /* The style of glossaries */
-    Constants::GlossaryStyle m_glossaryStyle;
 
     /* The child definition widget */
     QPointer<DefinitionWidget> m_child = nullptr;

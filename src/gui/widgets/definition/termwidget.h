@@ -25,12 +25,13 @@
 
 #include <QMutex>
 
+#include "definitionstate.h"
+
 #include "anki/ankiclient.h"
 #include "dict/expression.h"
 #include "gui/widgets/common/flowlayout.h"
 #include "util/constants.h"
 
-struct AudioSource;
 class QMenu;
 
 namespace Ui
@@ -49,18 +50,12 @@ public:
     /**
      * Constructor for TermWidget.
      * @param term        The term to display. Does not take ownership.
-     * @param sources     A list of audio sources.
-     * @param jsonSources True if there are json audio sources.
-     * @param modifier    The modifier key for triggering searches.
-     * @param style       Determines the style of GlossaryWidget.
+     * @param state       The state of the parent of this widget.
      * @param parent      The parent of this widget.
      */
     TermWidget(
         QSharedPointer<const Term> term,
-        QList<AudioSource> &sources,
-        int jsonSources,
-        Qt::KeyboardModifier modifier,
-        Constants::GlossaryStyle style,
+        const DefinitionState &state,
         QWidget *parent = nullptr);
     ~TermWidget();
 
@@ -122,7 +117,7 @@ private Q_SLOTS:
      * Adds the term belonging to this widget to Anki.
      * @param src The audio source to add.
      */
-    void addNote(const AudioSource &src);
+    void addNote(const DefinitionState::AudioSource &src);
 
     /**
      * Opens an Anki window searching the current configured term card deck for
@@ -139,7 +134,7 @@ private Q_SLOTS:
      * Plays audio for the term from the audio source.
      * @param src The audio source to play.
      */
-    void playAudio(const AudioSource &src);
+    void playAudio(const DefinitionState::AudioSource &src);
 
     /**
      * Opens up a context menu with every playable audio source.
@@ -192,20 +187,23 @@ private:
      */
     void populateAudioSourceMenu(
         QMenu *menu,
-        std::function<void(const AudioSource &)> handler);
+        std::function<void(const DefinitionState::AudioSource &)> handler);
 
     /**
      * Returns the first valid file-type audio source.
      * @return A pointer to the first file-type audio source. nullptr if all are
      *         invalid;
      */
-    AudioSource *getFirstAudioSource();
+    DefinitionState::AudioSource *getFirstAudioSource();
 
     /* UI object containing all the widgets. */
     Ui::TermWidget *m_ui;
 
     /* The term this widget is displaying. */
     QSharedPointer<const Term> m_term;
+
+    /* The state of the parent definition widget */
+    const DefinitionState &m_state;
 
     /* This term is a copy m_term that is eventually passed to Anki to add.
      * If this term is not nullptr, TermWidget is not safe to delete without
@@ -218,7 +216,7 @@ private:
     AnkiClient *m_client;
 
     /* The list of current audio sources */
-    QList<AudioSource> m_sources;
+    std::vector<DefinitionState::AudioSource> m_sources;
 
     /* Protects concurrent accesses to the m_sources list */
     QMutex m_lockSources;

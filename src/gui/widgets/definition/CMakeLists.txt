@@ -1,5 +1,6 @@
 add_library(
     definitionwidget STATIC
+    definitionstate.h
     definitionwidget.cpp
     definitionwidget.h
     definitionwidget.ui

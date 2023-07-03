@@ -131,38 +131,40 @@ void DefinitionWidget::initSearch()
 {
     QSettings settings;
     settings.beginGroup(Constants::Settings::Search::GROUP);
-    m_limit = settings.value(
-            Constants::Settings::Search::LIMIT,
-            Constants::Settings::Search::LIMIT_DEFAULT
-        ).toUInt();
-    m_glossaryStyle = static_cast<Constants::GlossaryStyle>(settings.value(
+    m_state.resultLimit = settings.value(
+        Constants::Settings::Search::LIMIT,
+        Constants::Settings::Search::LIMIT_DEFAULT
+    ).toInt();
+    m_state.glossaryStyle = static_cast<Constants::GlossaryStyle>(
+        settings.value(
             Constants::Settings::Search::LIST_GLOSSARY,
             static_cast<int>(Constants::Settings::Search::LIST_GLOSSARY_DEFAULT)
-        ).toInt());
+        ).toInt()
+    );
 
     QString modifier = settings.value(
-            Constants::Settings::Search::MODIFIER,
-            Constants::Settings::Search::MODIFIER_DEFAULT
-        ).toString();
+        Constants::Settings::Search::MODIFIER,
+        Constants::Settings::Search::MODIFIER_DEFAULT
+    ).toString();
     if (modifier == Constants::Settings::Search::Modifier::SHIFT)
     {
-        m_searchModifier = Qt::KeyboardModifier::ShiftModifier;
+        m_state.searchModifier = Qt::KeyboardModifier::ShiftModifier;
     }
     else if (modifier == Constants::Settings::Search::Modifier::ALT)
     {
-        m_searchModifier = Qt::KeyboardModifier::AltModifier;
+        m_state.searchModifier = Qt::KeyboardModifier::AltModifier;
     }
     else if (modifier == Constants::Settings::Search::Modifier::CTRL)
     {
-        m_searchModifier = Qt::KeyboardModifier::ControlModifier;
+        m_state.searchModifier = Qt::KeyboardModifier::ControlModifier;
     }
     else if (modifier == Constants::Settings::Search::Modifier::SUPER)
     {
-        m_searchModifier = Qt::KeyboardModifier::MetaModifier;
+        m_state.searchModifier = Qt::KeyboardModifier::MetaModifier;
     }
     else
     {
-        m_searchModifier = Qt::KeyboardModifier::ShiftModifier;
+        m_state.searchModifier = Qt::KeyboardModifier::ShiftModifier;
     }
     settings.endGroup();
 }
@@ -170,36 +172,39 @@ void DefinitionWidget::initSearch()
 void DefinitionWidget::initAudioSources()
 {
     QSettings settings;
-    m_sources.clear();
-    m_jsonSources = 0;
+    m_state.sources.clear();
     int size = settings.beginReadArray(Constants::Settings::AudioSource::GROUP);
     for (int i = 0; i < size; ++i)
     {
         settings.setArrayIndex(i);
-        AudioSource src;
+        DefinitionState::AudioSource src;
         src.type = static_cast<Constants::AudioSourceType>(settings.value(
-                Constants::Settings::AudioSource::TYPE,
-                static_cast<int>(Constants::Settings::AudioSource::TYPE_DEFAULT)
-            ).toInt());
+            Constants::Settings::AudioSource::TYPE,
+            static_cast<int>(Constants::Settings::AudioSource::TYPE_DEFAULT)
+        ).toInt());
         src.name = settings.value(
-                Constants::Settings::AudioSource::NAME,
-                Constants::Settings::AudioSource::NAME_DEFAULT
-            ).toString();
+            Constants::Settings::AudioSource::NAME,
+            Constants::Settings::AudioSource::NAME_DEFAULT
+        ).toString();
         src.url = settings.value(
-                Constants::Settings::AudioSource::URL,
-                Constants::Settings::AudioSource::URL_DEFAULT
-            ).toString();
+            Constants::Settings::AudioSource::URL,
+            Constants::Settings::AudioSource::URL_DEFAULT
+        ).toString();
         src.md5 = settings.value(
-                Constants::Settings::AudioSource::MD5,
-                Constants::Settings::AudioSource::MD5_DEFAULT
-            ).toString();
-        if (src.type == Constants::AudioSourceType::JSON)
-        {
-            ++m_jsonSources;
-        }
-        m_sources.append(src);
+            Constants::Settings::AudioSource::MD5,
+            Constants::Settings::AudioSource::MD5_DEFAULT
+        ).toString();
+        m_state.sources.emplace_back(src);
     }
     settings.endArray();
+
+    m_state.jsonSourceCount = std::count_if(
+        std::begin(m_state.sources), std::end(m_state.sources),
+        [] (const DefinitionState::AudioSource &src) -> bool
+        {
+            return src.type == Constants::AudioSourceType::JSON;
+        }
+    );
 }
 
 void DefinitionWidget::initSignals()
@@ -253,12 +258,12 @@ void DefinitionWidget::setTerms(SharedTermList terms, SharedKanji kanji)
     }
 
     /* Add the terms */
-    showTerms(0, m_limit);
+    showTerms(0, m_state.resultLimit);
     m_ui->scrollArea->verticalScrollBar()->setValue(0);
 
     QPushButton *buttonShowMore = nullptr;
     /* Add the show more button */
-    if (m_limit < m_terms.size() + (m_kanji ? 1 : 0))
+    if (m_state.resultLimit < m_terms.size() + (m_kanji ? 1 : 0))
     {
         buttonShowMore = new QPushButton;
         buttonShowMore->setSizePolicy(
@@ -293,7 +298,7 @@ void DefinitionWidget::setTerms(SharedTermList terms, SharedKanji kanji)
                 if (error.isEmpty() && searchId == m_searchId)
                 {
                     m_addable = addable;
-                    setAddable(0, m_limit);
+                    setAddable(0, m_state.resultLimit);
                 }
             }
         );
@@ -361,7 +366,7 @@ void DefinitionWidget::showMoreTerms()
 
     /* Add the terms */
     int start = m_termWidgets.size();
-    int end   = start + m_limit;
+    int end   = start + m_state.resultLimit;
     showTerms(start, end);
     setAddable(start, end);
 
@@ -392,13 +397,7 @@ void DefinitionWidget::showTerms(const int start, const int end)
     int i;
     for (i = start; i < m_terms.size() && i < end; ++i)
     {
-        TermWidget *termWidget = new TermWidget(
-              m_terms[i],
-              m_sources,
-              m_jsonSources,
-              m_searchModifier,
-              m_glossaryStyle
-        );
+        TermWidget *termWidget = new TermWidget(m_terms[i], m_state);
         connect(
             termWidget, &TermWidget::kanjiSearched,
             this, &DefinitionWidget::showKanji

@@ -40,6 +40,8 @@
 #include "util/iconfactory.h"
 #include "util/utils.h"
 
+using AudioSource = DefinitionState::AudioSource;
+
 /**
  * Kanji stylesheet format string.
  * @param 1 The color of links. Should be the same as text color.
@@ -73,17 +75,15 @@
 
 TermWidget::TermWidget(
     QSharedPointer<const Term> term,
-    QList<AudioSource> &sources,
-    int jsonSources,
-    Qt::KeyboardModifier modifier,
-    Constants::GlossaryStyle style,
+    const DefinitionState &state,
     QWidget *parent)
     : QWidget(parent),
       m_ui(new Ui::TermWidget),
       m_term(term),
+      m_state(state),
       m_client(GlobalMediator::getGlobalMediator()->getAnkiClient()),
-      m_sources(sources),
-      m_jsonSources(jsonSources)
+      m_sources(state.sources),
+      m_jsonSources(state.jsonSourceCount)
 {
     m_ui->setupUi(this);
 
@@ -121,9 +121,9 @@ TermWidget::TermWidget(
     m_ui->buttonAnkiOpen->setVisible(false);
 
     m_ui->buttonAudio->setIcon(factory->getIcon(IconFactory::Icon::audio));
-    m_ui->buttonAudio->setVisible(!m_sources.isEmpty());
+    m_ui->buttonAudio->setVisible(!m_sources.empty());
 
-    initUi(*term, modifier, style);
+    initUi(*term, m_state.searchModifier, m_state.glossaryStyle);
 
     connect(
         m_ui->buttonCollapse, &QToolButton::clicked,
@@ -390,7 +390,7 @@ void TermWidget::playAudio()
 {
     m_ui->buttonAudio->setEnabled(false);
 
-    if (m_sources.isEmpty())
+    if (m_sources.empty())
     {
         m_ui->buttonAudio->hide();
         return;
@@ -580,7 +580,7 @@ static inline void processAudioSourceJson(
         childSrc.name = srcObj[JSON_KEY_AUDIO_SOURCES_NAME].toString();
         childSrc.url = srcObj[JSON_KEY_AUDIO_SOURCES_URL].toString();
         childSrc.md5 = src.md5;
-        src.audioSources.append(childSrc);
+        src.audioSources.emplace_back(childSrc);
     }
 }
 
@@ -601,7 +601,7 @@ void TermWidget::loadAudioSources()
 
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
     manager->setTransferTimeout(TRANSFER_TIMEOUT);
-    for (int i = 0; i < m_sources.size(); ++i)
+    for (size_t i = 0; i < m_sources.size(); ++i)
     {
         const AudioSource &src = m_sources[i];
         if (src.type != Constants::AudioSourceType::JSON)
@@ -685,10 +685,10 @@ AudioSource *TermWidget::getFirstAudioSource()
         }
         else if (
             src.type == Constants::AudioSourceType::JSON &&
-            !src.audioSources.isEmpty()
+            !src.audioSources.empty()
         )
         {
-            ret = &src.audioSources.first();
+            ret = &src.audioSources.front();
             break;
         }
     }
