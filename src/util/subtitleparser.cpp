@@ -122,15 +122,17 @@ QList<SubtitleInfo> SubtitleParser::parseSubtitles(const QString &path) const
 
 bool SubtitleParser::parseASS(QFile &file, QList<SubtitleInfo> &out) const
 {
+    QTextStream in(&file);
+
     /* Make sure the file isn't empty */
-    if (file.atEnd())
+    if (in.atEnd())
     {
         qDebug() << "ASS Parser: Empty file";
         return false;
     }
 
     /* Check for the header */
-    QString currentLine = file.readLine();
+    QString currentLine = in.readLine();
     if (currentLine.trimmed() != ASS_HEADER)
     {
         qDebug() << "ASS Parser: Missing ASS header";
@@ -139,9 +141,9 @@ bool SubtitleParser::parseASS(QFile &file, QList<SubtitleInfo> &out) const
     }
 
     /* Skip to the [Events] section */
-    while (!file.atEnd())
+    while (!in.atEnd())
     {
-        currentLine = file.readLine();
+        currentLine = in.readLine();
         if (currentLine.trimmed() == EVENT_HEADER)
         {
             break;
@@ -149,13 +151,13 @@ bool SubtitleParser::parseASS(QFile &file, QList<SubtitleInfo> &out) const
     }
 
     /* There is no [Events] section. This is odd but valid. */
-    if (file.atEnd())
+    if (in.atEnd())
     {
         return true;
     }
 
     /* Get format section */
-    currentLine = file.readLine();
+    currentLine = in.readLine();
     if (!currentLine.startsWith(FORMAT_PREFIX))
     {
         qDebug() << "ASS Parser: Missing Format line in the [Events] section";
@@ -216,10 +218,10 @@ bool SubtitleParser::parseASS(QFile &file, QList<SubtitleInfo> &out) const
     }
 
     /* Get dialogue */
-    while (!file.atEnd())
+    while (!in.atEnd())
     {
         /* Skip non-dialogue lines */
-        currentLine = file.readLine();
+        currentLine = in.readLine();
         if (!currentLine.startsWith(DIALOGUE_PREFIX))
         {
             continue;
@@ -265,7 +267,6 @@ bool SubtitleParser::parseASS(QFile &file, QList<SubtitleInfo> &out) const
         }
         info.text.remove(m_assFilter);
         info.text.replace(m_assNewLineReplacer, "\n");
-        info.text.chop(1);
 
         /* Throw out empty subtitles */
         if (info.text.trimmed().isEmpty())
@@ -307,17 +308,18 @@ bool SubtitleParser::parseASS(QFile &file, QList<SubtitleInfo> &out) const
 bool SubtitleParser::parseSRT(QFile &file, QList<SubtitleInfo> &out) const
 {
     QList<SRTInfo> subs;
-    while (!file.atEnd())
+    QTextStream in(&file);
+    while (!in.atEnd())
     {
         SRTInfo info;
 
         /* Skip all new lines */
-        QString currentLine = file.readLine();
-        while (!file.atEnd() && currentLine == "\n")
+        QString currentLine = in.readLine();
+        while (!in.atEnd() && currentLine.isEmpty())
         {
-            currentLine = file.readLine();
+            currentLine = in.readLine();
         }
-        if (file.atEnd())
+        if (in.atEnd())
         {
             break;
         }
@@ -333,12 +335,12 @@ bool SubtitleParser::parseSRT(QFile &file, QList<SubtitleInfo> &out) const
         }
 
         /* Get the timings */
-        if (file.atEnd())
+        if (in.atEnd())
         {
             qDebug() << "SRT Parser: Unexpected file end after position";
             return false;
         }
-        currentLine = file.readLine();
+        currentLine = in.readLine();
         QStringList timing = currentLine.trimmed().split(' ');
         if (timing.size() != 3)
         {
@@ -368,14 +370,15 @@ bool SubtitleParser::parseSRT(QFile &file, QList<SubtitleInfo> &out) const
         }
 
         /* Get the lines */
-        if (file.atEnd())
+        if (in.atEnd())
         {
             qDebug() << "SRT Parser: Unexpected file end after timings";
             return false;
         }
-        while (!file.atEnd() && (currentLine = file.readLine()) != '\n')
+        while (!in.atEnd() && !(currentLine = in.readLine()).isEmpty())
         {
             info.text += currentLine;
+            info.text += '\n';
         }
         info.text.chop(1);
 
@@ -422,32 +425,29 @@ bool SubtitleParser::parseSRT(QFile &file, QList<SubtitleInfo> &out) const
 
 bool SubtitleParser::parseVTT(QFile &file, QList<SubtitleInfo> &out) const
 {
+    QTextStream in(&file);
+
     /* Exit if the file is empty */
-    if (file.atEnd())
+    if (in.atEnd())
     {
         qDebug() << "VTT Parser: Unexpected empty file";
         return false;
     }
     /* Exit if the file is missing the header */
-    else if (!file.readLine().startsWith(VTT_HEADER))
+    else if (!in.readLine().startsWith(VTT_HEADER))
     {
         qDebug() << "VTT Parser: Missing VTT header";
         return false;
     }
 
     /* Skip past header info */
-    while (!file.atEnd())
-    {
-        if (file.readLine().trimmed().isEmpty())
-        {
-            break;
-        }
-    }
+    while (!in.atEnd() && !in.readLine().trimmed().isEmpty())
+        ;
 
     /* Read subtitles */
-    while (!file.atEnd())
+    while (!in.atEnd())
     {
-        QString currentLine = file.readLine().trimmed();
+        QString currentLine = in.readLine().trimmed();
         /* Skip empty lines */
         if (currentLine.isEmpty())
         {
@@ -456,9 +456,9 @@ bool SubtitleParser::parseVTT(QFile &file, QList<SubtitleInfo> &out) const
         /* Skip non-subtitle sections */
         else if (m_vttSections.contains(currentLine.split(' ')[0]))
         {
-            while (!file.atEnd())
+            while (!in.atEnd())
             {
-                currentLine = file.readLine();
+                currentLine = in.readLine();
                 if (currentLine.trimmed().isEmpty())
                 {
                     break;
@@ -473,12 +473,12 @@ bool SubtitleParser::parseVTT(QFile &file, QList<SubtitleInfo> &out) const
         QStringList timings = currentLine.split(' ');
         if (timings.size() < 3 || timings[TIMING_ARROW_INDEX] != TIMING_ARROW)
         {
-            if (file.atEnd())
+            if (in.atEnd())
             {
                 qDebug() << "VTT Parser: Unexpected file end after cue";
                 return false;
             }
-            currentLine = file.readLine();
+            currentLine = in.readLine();
             timings = currentLine.split(' ');
             if (timings.size() < 3 || timings[TIMING_ARROW_INDEX] != TIMING_ARROW)
             {
@@ -504,14 +504,15 @@ bool SubtitleParser::parseVTT(QFile &file, QList<SubtitleInfo> &out) const
         }
 
         /* Get the lines */
-        if (file.atEnd())
+        if (in.atEnd())
         {
             qDebug() << "VTT Parser: Unexpected file end after timings";
             return false;
         }
-        while (!file.atEnd() && (currentLine = file.readLine()) != '\n')
+        while (!in.atEnd() && !(currentLine = in.readLine()).isEmpty())
         {
             info.text += currentLine;
+            info.text += '\n';
         }
         info.text.chop(1);
 
