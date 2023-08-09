@@ -32,6 +32,9 @@ prepare() {
 
 build() {
     cd ${srcdir}/build
+    cmake -E env \
+        CFLAGS="-Wno-error=deprecated-declarations" \
+        CXXFLAGS="-Wno-error=deprecated-declarations" \
     cmake -DCMAKE_INSTALL_PREFIX:PATH=${pkgdir}/usr \
           -DRELEASE_BUILD=ON \
           -DCMAKE_BUILD_TYPE=Release \
