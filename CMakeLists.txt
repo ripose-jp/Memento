@@ -51,11 +51,11 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Set Compiler Flags
-set(
+list(
+	APPEND
 	MEMENTO_COMPILER_FLAGS
 	"-Wall"
 	"-Wextra"
-	"-Werror"
 	"-Wpedantic"
 	"$<$<BOOL:${APPIMAGE}>:-DAPPIMAGE=1>"
 	"$<$<BOOL:${APPBUNDLE}>:-DAPPBUNDLE=1>"
