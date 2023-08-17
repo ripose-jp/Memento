@@ -27,6 +27,7 @@
 #include <QFontDatabase>
 #include <QMessageBox>
 #include <QSettings>
+#include <QTextCodec>
 
 #if defined(Q_OS_WIN)
 #include <QStandardPaths>
@@ -195,6 +196,10 @@ int main(int argc, char **argv)
     /* Image Formats Windows */
     QCoreApplication::addLibraryPath(DirectoryUtils::getProgramDirectory());
 #endif
+
+    /* Always assume UTF-8 unless there's a BOM */
+    QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
+
     /* HiDPI support */
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
