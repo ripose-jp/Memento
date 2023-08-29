@@ -177,6 +177,7 @@ sudo make install
    ```
    brew install git cmake sqlite3 qt5 mpv mecab mecab-ipadic json-c libzip
    ```
+   Note: if you already have the mpv cask installed, you will also need to run `brew link --overwrite mpv` before building.
 1. Clone the repository:
    ```
    git clone https://github.com/ripose-jp/Memento.git
