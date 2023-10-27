@@ -815,7 +815,7 @@ void MpvWidget::preventScreenDimming()
 {
 #if defined(Q_OS_WIN)
     SetThreadExecutionState(
-        ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED
+        ES_CONTINUOUS | ES_DISPLAY_REQUIRED
     );
 #elif defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     QDBusInterface screenSaver(
