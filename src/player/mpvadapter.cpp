@@ -124,6 +124,10 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
         mediator, &GlobalMediator::playerSubDelayChanged
     );
     connect(
+        m_mpv,    &MpvWidget::secSubDelayChanged,
+        mediator, &GlobalMediator::playerSecSubDelayChanged
+    );
+    connect(
         m_mpv,    &MpvWidget::durationChanged,
         mediator, &GlobalMediator::playerDurationChanged
     );

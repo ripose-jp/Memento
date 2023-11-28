@@ -215,6 +215,12 @@ Q_SIGNALS:
     void subDelayChanged(const double delay) const;
 
     /**
+     * Emitted when the secondary subtitle delay is changed.
+     * @param delay The signed delay in seconds.
+     */
+    void secSubDelayChanged(const double delay) const;
+
+    /**
      * Emitted when MpvWidget hides the cursor.
      */
     void cursorHidden() const;
@@ -355,8 +361,14 @@ private:
      */
     void preventScreenDimming();
 
+    /**
+     * Checks if a property exists.
+     * @return true if the property exists, false otherwise.
+     */
+    bool propertyExists(const char *prop);
+
     /* The mpv context */
-    mpv_handle *m_mpv{nullptr};
+    mpv_handle *m_mpv = nullptr;
 
     /* The mpv render context */
     mpv_render_context *mpv_gl;
@@ -381,6 +393,9 @@ private:
 
     /* Regular expression used to filter subtitles */
     QRegularExpression m_regex;
+
+    /* true if secondary-sub-delay is supported, false otherwise */
+    bool m_secSubDelaySupported = false;
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     /* The DBus cookie. Used for allowing the screen to dim again. */

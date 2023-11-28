@@ -322,11 +322,24 @@ void MpvWidget::initPropertyMap()
             }
         };
 
+    m_propertyMap["secondary-sub-delay"] =
+        [=] (mpv_event_property *prop) {
+            if (prop->format == MPV_FORMAT_DOUBLE)
+            {
+                m_secSubDelaySupported = true;
+                Q_EMIT secSubDelayChanged(*(double *)prop->data);
+            }
+        };
+
     m_propertyMap["sub-delay"] =
         [=] (mpv_event_property *prop) {
             if (prop->format == MPV_FORMAT_DOUBLE)
             {
                 Q_EMIT subDelayChanged(*(double *)prop->data);
+                if (!m_secSubDelaySupported)
+                {
+                    Q_EMIT secSubDelayChanged(*(double *)prop->data);
+                }
             }
         };
 
@@ -513,29 +526,30 @@ void MpvWidget::initializeGL()
         QCoreApplication::exit(EXIT_FAILURE);
     }
 
-    mpv_observe_property(m_mpv, 0, "chapter-list",       MPV_FORMAT_NODE);
-    mpv_observe_property(m_mpv, 0, "duration",           MPV_FORMAT_DOUBLE);
-    mpv_observe_property(m_mpv, 0, "fullscreen",         MPV_FORMAT_FLAG);
-    mpv_observe_property(m_mpv, 0, "media-title",        MPV_FORMAT_STRING);
-    mpv_observe_property(m_mpv, 0, "path",               MPV_FORMAT_STRING);
-    mpv_observe_property(m_mpv, 0, "pause",              MPV_FORMAT_FLAG);
-    mpv_observe_property(m_mpv, 0, "time-pos",           MPV_FORMAT_DOUBLE);
-    mpv_observe_property(m_mpv, 0, "track-list/count",   MPV_FORMAT_INT64);
-    mpv_observe_property(m_mpv, 0, "volume",             MPV_FORMAT_INT64);
-    mpv_observe_property(m_mpv, 0, "volume-max",         MPV_FORMAT_INT64);
+    mpv_observe_property(m_mpv, 0, "chapter-list",        MPV_FORMAT_NODE);
+    mpv_observe_property(m_mpv, 0, "duration",            MPV_FORMAT_DOUBLE);
+    mpv_observe_property(m_mpv, 0, "fullscreen",          MPV_FORMAT_FLAG);
+    mpv_observe_property(m_mpv, 0, "media-title",         MPV_FORMAT_STRING);
+    mpv_observe_property(m_mpv, 0, "path",                MPV_FORMAT_STRING);
+    mpv_observe_property(m_mpv, 0, "pause",               MPV_FORMAT_FLAG);
+    mpv_observe_property(m_mpv, 0, "time-pos",            MPV_FORMAT_DOUBLE);
+    mpv_observe_property(m_mpv, 0, "track-list/count",    MPV_FORMAT_INT64);
+    mpv_observe_property(m_mpv, 0, "volume",              MPV_FORMAT_INT64);
+    mpv_observe_property(m_mpv, 0, "volume-max",          MPV_FORMAT_INT64);
 
-    mpv_observe_property(m_mpv, 0, "aid",                MPV_FORMAT_FLAG);
-    mpv_observe_property(m_mpv, 0, "aid",                MPV_FORMAT_INT64);
-    mpv_observe_property(m_mpv, 0, "secondary-sid",      MPV_FORMAT_FLAG);
-    mpv_observe_property(m_mpv, 0, "secondary-sid",      MPV_FORMAT_INT64);
-    mpv_observe_property(m_mpv, 0, "sid",                MPV_FORMAT_FLAG);
-    mpv_observe_property(m_mpv, 0, "sid",                MPV_FORMAT_INT64);
-    mpv_observe_property(m_mpv, 0, "vid",                MPV_FORMAT_FLAG);
-    mpv_observe_property(m_mpv, 0, "vid",                MPV_FORMAT_INT64);
+    mpv_observe_property(m_mpv, 0, "aid",                 MPV_FORMAT_FLAG);
+    mpv_observe_property(m_mpv, 0, "aid",                 MPV_FORMAT_INT64);
+    mpv_observe_property(m_mpv, 0, "secondary-sid",       MPV_FORMAT_FLAG);
+    mpv_observe_property(m_mpv, 0, "secondary-sid",       MPV_FORMAT_INT64);
+    mpv_observe_property(m_mpv, 0, "sid",                 MPV_FORMAT_FLAG);
+    mpv_observe_property(m_mpv, 0, "sid",                 MPV_FORMAT_INT64);
+    mpv_observe_property(m_mpv, 0, "vid",                 MPV_FORMAT_FLAG);
+    mpv_observe_property(m_mpv, 0, "vid",                 MPV_FORMAT_INT64);
 
-    mpv_observe_property(m_mpv, 0, "secondary-sub-text", MPV_FORMAT_STRING);
-    mpv_observe_property(m_mpv, 0, "sub-delay",          MPV_FORMAT_DOUBLE);
-    mpv_observe_property(m_mpv, 0, "sub-text",           MPV_FORMAT_STRING);
+    mpv_observe_property(m_mpv, 0, "secondary-sub-text",  MPV_FORMAT_STRING);
+    mpv_observe_property(m_mpv, 0, "secondary-sub-delay", MPV_FORMAT_DOUBLE); // IMPORTANT: Put this before sub-delay
+    mpv_observe_property(m_mpv, 0, "sub-delay",           MPV_FORMAT_DOUBLE);
+    mpv_observe_property(m_mpv, 0, "sub-text",            MPV_FORMAT_STRING);
 
     mpv_set_wakeup_callback(m_mpv, wakeup, this);
 }

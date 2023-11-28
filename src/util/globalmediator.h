@@ -291,6 +291,12 @@ Q_SIGNALS:
     void playerSubDelayChanged(const double delay) const;
 
     /**
+     * Emitted when the secondary subtitle delay changes.
+     * @param delay The secondary subtitle delay in seconds.
+     */
+    void playerSecSubDelayChanged(const double delay) const;
+
+    /**
      * Emitted when the duration of the media being played changes.
      * @param value The duration in seconds.
      */

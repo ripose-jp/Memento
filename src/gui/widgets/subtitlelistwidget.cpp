@@ -120,7 +120,12 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     );
     connect(
         mediator, &GlobalMediator::playerSubDelayChanged,
-        this,     &SubtitleListWidget::updateTimestamps,
+        this,     &SubtitleListWidget::updatePrimaryTimestamps,
+        Qt::QueuedConnection
+    );
+    connect(
+        mediator, &GlobalMediator::playerSecSubDelayChanged,
+        this,     &SubtitleListWidget::updateSecondaryTimestamps,
         Qt::QueuedConnection
     );
     connect(
@@ -702,9 +707,13 @@ void SubtitleListWidget::updateTimestampsHelper(SubtitleList &list,
     list.table->resizeRowsToContents();
 }
 
-void SubtitleListWidget::updateTimestamps(const double delay)
+void SubtitleListWidget::updatePrimaryTimestamps(const double delay)
 {
     updateTimestampsHelper(m_primary, delay);
+}
+
+void SubtitleListWidget::updateSecondaryTimestamps(const double delay)
+{
     updateTimestampsHelper(m_secondary, delay);
 }
 

@@ -182,11 +182,18 @@ private Q_SLOTS:
                                  double delay);
 
     /**
-     * Updates the timestamps of the subtitles with a new delay.
+     * Updates the primary timestamps of the subtitles with a new delay.
      * Subtitles with a negative timestamp will be rounded to 0.
      * @param delay The signed delay.
      */
-    void updateTimestamps(const double delay);
+    void updatePrimaryTimestamps(const double delay);
+
+    /**
+     * Updates the secondary timestamps of the subtitles with a new delay.
+     * Subtitles with a negative timestamp will be rounded to 0.
+     * @param delay The signed delay.
+     */
+    void updateSecondaryTimestamps(const double delay);
 
     /**
      * Resizes rows to contents.
