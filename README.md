@@ -103,6 +103,15 @@ Move the Memento application to a directory that doesn't have spaces in the path
 like `/Applications`. Unfortunately, this is an limitation of MeCab and there is
 no workaround that can be implemented.
 
+### Linux: Audio and images aren't added to Anki
+
+*This only applies to users of the **Anki** Flatpak.*
+
+By default the **Anki** Flatpak doesn't have access to the `/tmp` directory.
+Memento stores audio and image files here temporarily when making them available to Anki.
+You can give Anki access to the `/tmp` directory by installing [Flatseal](https://flathub.org/apps/com.github.tchx84.Flatseal).
+To do so, open Flatseal, select Anki, and add the `/tmp` directory under **Other files**.
+
 ## Dependencies
 
 * Qt5 (>= 5.15)
