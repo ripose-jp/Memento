@@ -488,6 +488,13 @@ private:
      */
     QString &accumulateTags(const QList<Tag> &tags, QString &tagStr);
 
+    /**
+     * Helper method to convert file to base64.
+     * @param path The path of the file to convert to base64.
+     * @return The base64 encoded file.
+     */
+    static QString fileToBase64(const QString &path);
+
     /* true if a config exists, false otherwise */
     bool m_configExists = false;
 
@@ -511,9 +518,6 @@ private:
 
     /* The Network Manager for this object. */
     QNetworkAccessManager *m_manager;
-
-    /* List of temp files to clean up */
-    QList<QString> m_tempFiles;
 };
 
 #endif // ANKICLIENT_H

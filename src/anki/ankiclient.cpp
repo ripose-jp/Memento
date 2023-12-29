@@ -74,6 +74,7 @@
 #define ANKI_NOTE_TAGS                  "tags"
 #define ANKI_NOTE_AUDIO                 "audio"
 #define ANKI_NOTE_PICTURE               "picture"
+#define ANKI_NOTE_DATA                  "data"
 #define ANKI_NOTE_URL                   "url"
 #define ANKI_NOTE_PATH                  "path"
 #define ANKI_NOTE_FILENAME              "filename"
@@ -144,10 +145,6 @@ AnkiClient::AnkiClient(QObject *parent) : QObject(parent)
 
 AnkiClient::~AnkiClient()
 {
-    for (const QString &path : m_tempFiles)
-    {
-        QFile(path).remove();
-    }
     delete m_manager;
 }
 
@@ -823,7 +820,7 @@ AnkiReply *AnkiClient::addMedia(const QList<QPair<QString, QString>> &fileMap)
         QJsonObject command;
         command[ANKI_ACTION] = ANKI_ACTION_STORE_MEDIA_FILE;
         QJsonObject fileParams;
-        fileParams[ANKI_NOTE_PATH] = p.first;
+        fileParams[ANKI_NOTE_DATA] = fileToBase64(p.first);
         fileParams[ANKI_NOTE_FILENAME] = p.second;
         command[ANKI_PARAMS] = fileParams;
 
@@ -1424,12 +1421,13 @@ void AnkiClient::buildCommonNote(
                 );
             }
             if (!path.isEmpty()) {
-                audObj[ANKI_NOTE_PATH] = path;
-                m_tempFiles.append(path);
+                audObj[ANKI_NOTE_DATA] = fileToBase64(path);
                 QString filename = FileUtils::calculateMd5(path) + ".aac";
                 audObj[ANKI_NOTE_FILENAME] = filename;
                 audObj[ANKI_NOTE_FIELDS] = fieldsWithAudioMedia;
                 audio.append(audObj);
+
+                QFile(path).remove();
             }
         }
 
@@ -1454,12 +1452,13 @@ void AnkiClient::buildCommonNote(
                 );
             }
             if (!path.isEmpty()) {
-                audObj[ANKI_NOTE_PATH] = path;
-                m_tempFiles.append(path);
+                audObj[ANKI_NOTE_DATA] = fileToBase64(path);
                 QString filename = FileUtils::calculateMd5(path) + ".aac";
                 audObj[ANKI_NOTE_FILENAME] = filename;
                 audObj[ANKI_NOTE_FIELDS] = fieldsWithAudioContext;
                 audio.append(audObj);
+
+                QFile(path).remove();
             }
         }
 
@@ -1494,8 +1493,7 @@ void AnkiClient::buildCommonNote(
             const bool visibility = player->getSubVisibility();
             player->setSubVisiblity(true);
             QString path = player->tempScreenshot(true, imageExt);
-            image[ANKI_NOTE_PATH] = path;
-            m_tempFiles.append(path);
+            image[ANKI_NOTE_DATA] = fileToBase64(path);
             player->setSubVisiblity(visibility);
 
             QString filename = FileUtils::calculateMd5(path) + imageExt;
@@ -1507,6 +1505,7 @@ void AnkiClient::buildCommonNote(
             {
                 images.append(image);
             }
+            QFile(path).remove();
         }
 
         if (!fieldWithScreenshotVideo.isEmpty())
@@ -1514,8 +1513,7 @@ void AnkiClient::buildCommonNote(
             QJsonObject image;
             QString path = GlobalMediator::getGlobalMediator()
                 ->getPlayerAdapter()->tempScreenshot(false, imageExt);
-            image[ANKI_NOTE_PATH] = path;
-            m_tempFiles.append(path);
+            image[ANKI_NOTE_DATA] = fileToBase64(path);
 
             QString filename = FileUtils::calculateMd5(path) + imageExt;
             image[ANKI_NOTE_FILENAME] = filename;
@@ -1526,6 +1524,7 @@ void AnkiClient::buildCommonNote(
             {
                 images.append(image);
             }
+            QFile(path).remove();
         }
 
         if (!images.isEmpty())
@@ -1793,6 +1792,16 @@ QString &AnkiClient::accumulateTags(const QList<Tag> &tags, QString &tagStr)
     }
 
     return tagStr;
+}
+
+QString AnkiClient::fileToBase64(const QString &path)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        return {};
+    }
+    return file.readAll().toBase64();
 }
 
 /* End Note Helpers */
