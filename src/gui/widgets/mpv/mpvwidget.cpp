@@ -112,7 +112,6 @@ MpvWidget::MpvWidget(QWidget *parent)
 #endif
     initPropertyMap();
     initSubtitleRegex();
-    initTimer();
 }
 
 MpvWidget::~MpvWidget()
@@ -552,6 +551,8 @@ void MpvWidget::initializeGL()
     mpv_observe_property(m_mpv, 0, "sub-text",            MPV_FORMAT_STRING);
 
     mpv_set_wakeup_callback(m_mpv, wakeup, this);
+
+    initTimer();
 }
 
 void MpvWidget::paintGL()
