@@ -1035,7 +1035,35 @@ void MpvAdapter::keyPressed(QKeyEvent *event)
 #if !defined(Q_OS_MACOS)
     if (event->modifiers() & Qt::KeypadModifier)
     {
-        key += "KP";
+        switch (event->key())
+        {
+        case Qt::Key_0:
+        case Qt::Key_1:
+        case Qt::Key_2:
+        case Qt::Key_3:
+        case Qt::Key_4:
+        case Qt::Key_5:
+        case Qt::Key_6:
+        case Qt::Key_7:
+        case Qt::Key_8:
+        case Qt::Key_9:
+            key += "KP";
+            break;
+        case Qt::Key_Delete:
+        case Qt::Key_Insert:
+        case Qt::Key_Home:
+        case Qt::Key_End:
+        case Qt::Key_Clear:
+        case Qt::Key_PageUp:
+        case Qt::Key_PageDown:
+        case Qt::Key_Right:
+        case Qt::Key_Left:
+        case Qt::Key_Down:
+        case Qt::Key_Up:
+        case Qt::Key_Enter:
+            key += "KP_";
+            break;
+        }
     }
 #endif
 
@@ -1088,6 +1116,9 @@ void MpvAdapter::keyPressed(QKeyEvent *event)
             break;
         case Qt::Key::Key_End:
             key += "END";
+            break;
+        case Qt::Key::Key_Clear:
+            key += "DEC";
             break;
         case Qt::Key::Key_PageUp:
             key += "PGUP";
