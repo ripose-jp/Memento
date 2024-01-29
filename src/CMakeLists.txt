@@ -81,14 +81,12 @@ if(APPBUNDLE)
 		WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/macos"
 	)
 	# Get the python framework paths
-	string(REGEX MATCH ".*Python\.framework" PYTHON_FRAMEWORK_PATH ${OTOOL_PYTHON})
-	# Get the path as it is in the appbundle
-	string(REGEX MATCH "Python\.framework.*" PYTHON_FRAMEWORK_END ${OTOOL_PYTHON})
+	string(REGEX MATCH ".*Python\.framework/Versions/.*/" PYTHON_FRAMEWORK_PATH ${OTOOL_PYTHON})
 	# Change the path in vapoursynth-script
 	add_custom_command(
 		TARGET ${PROJECT_NAME}
 		POST_BUILD
-		COMMAND install_name_tool -change "${OTOOL_PYTHON}" "@executable_path/../Frameworks/${PYTHON_FRAMEWORK_END}" "${VAPOURSYNTH_SCRIPT_NAME}"
+		COMMAND install_name_tool -change "${OTOOL_PYTHON}" "@executable_path/../Frameworks/Python.framework/Python" "${VAPOURSYNTH_SCRIPT_NAME}"
 		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks"
 	)
 
@@ -109,14 +107,8 @@ if(APPBUNDLE)
 	add_custom_command(
 		TARGET ${PROJECT_NAME}
 		POST_BUILD
-		COMMAND cp -RL "${PYTHON_FRAMEWORK_PATH}" . && chmod -R 755 Python.framework
+		COMMAND mkdir Python.framework && cp -RL "${PYTHON_FRAMEWORK_PATH}/*" "Python.framework" && chmod -R 755 Python.framework
 		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks"
-	)
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND rm -rf Current
-		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks/Python.framework/Versions"
 	)
 	add_custom_command(
 		TARGET ${PROJECT_NAME}
