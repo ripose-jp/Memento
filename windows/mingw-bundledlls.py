@@ -54,6 +54,7 @@ blacklist = [
     "avicap32.dll", "avrt.dll", "psapi.dll", "mswsock.dll", "glu32.dll",
     "bcrypt.dll", "rpcrt4.dll", "mfplat.dll", "cfgmgr32.dll", "ncrypt.dll",
     "d3d11.dll", "dxgi.dll", "dwrite.dll", "api-ms-win-core-path-l1-1-0.dll",
+    "api-ms-win-crt-math-l1-1-0.dll",
     "libmocr.dll", "libmocr++.dll"
 ]
 
