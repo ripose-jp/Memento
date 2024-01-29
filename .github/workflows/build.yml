@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Install Dependencies
       run: |
@@ -55,7 +55,7 @@ jobs:
           mingw-w64-x86_64-libzip
           mingw-w64-x86_64-python
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: CMake Build
       run: |
@@ -68,7 +68,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Install Dependencies
       run: |
