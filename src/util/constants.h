@@ -85,7 +85,7 @@ namespace Constants
             constexpr const char *NAME_DEFAULT = "JapanesePod101";
 
             constexpr const char *URL = "url";
-            constexpr const char *URL_DEFAULT = "http://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kanji={expression}&kana={reading}";
+            constexpr const char *URL_DEFAULT = "https://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kanji={expression}&kana={reading}";
 
             constexpr const char *TYPE = "type";
             constexpr AudioSourceType TYPE_DEFAULT = AudioSourceType::File;

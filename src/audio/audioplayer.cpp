@@ -125,11 +125,16 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
 
     /* File does not exist so fetch it */
     AudioPlayerReply *audioReply = new AudioPlayerReply;
-    QNetworkReply *reply = m_manager->get(QNetworkRequest(QUrl(url)));
+    QNetworkRequest req{QUrl(url)};
+    req.setAttribute(
+        QNetworkRequest::RedirectPolicyAttribute,
+        QNetworkRequest::UserVerifiedRedirectPolicy
+    );
+    QNetworkReply *reply = m_manager->get(std::move(req));
     connect(
-        reply, &QNetworkReply::sslErrors,
-        reply, qOverload<>(&QNetworkReply::ignoreSslErrors)
-    ); // God help me
+        reply, &QNetworkReply::redirected,
+        reply, &QNetworkReply::redirectAllowed
+    );
     connect(reply, &QNetworkReply::finished,  this,
         [=] {
             QTemporaryFile *file = nullptr;
