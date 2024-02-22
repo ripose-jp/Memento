@@ -502,11 +502,12 @@ void MpvWidget::initializeGL()
     );
 
     /* Initialize the mpv context */
-    mpv_set_option_string(m_mpv, "terminal",               "yes");
-    mpv_set_option_string(m_mpv, "keep-open",              "yes");
     mpv_set_option_string(m_mpv, "config",                 "yes");
     mpv_set_option_string(m_mpv, "input-default-bindings", "yes");
+    mpv_set_option_string(m_mpv, "keep-open",              "yes");
     mpv_set_option_string(m_mpv, "screenshot-directory",   "~~desktop/");
+    mpv_set_option_string(m_mpv, "terminal",               "yes");
+    mpv_set_option_string(m_mpv, "vo",                     "libmpv");
     mpv_set_option_string(m_mpv, "ytdl",                   "yes");
 
     QByteArray configDir = DirectoryUtils::getConfigDir().toUtf8();
