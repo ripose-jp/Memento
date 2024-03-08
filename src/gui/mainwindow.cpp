@@ -486,6 +486,13 @@ void MainWindow::showEvent(QShowEvent *event)
     /* Load files opened with Memento */
     m_player->loadCommandLineArgs();
     m_player->play();
+
+    /* Update the title in case something is already playing */
+    QString title = m_player->getTitle();
+    if (!title.isEmpty())
+    {
+        setWindowTitle(title + " - Memento");
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
