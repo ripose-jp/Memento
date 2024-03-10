@@ -1544,6 +1544,11 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
                                 QString            &pitchGraph,
                                 QString            &pitchPosition)
 {
+    if (pitches.isEmpty())
+    {
+        return;
+    }
+
     pitch         += "<span class=\"memento-pitch\">";
     pitchGraph    += "<span>";
     pitchPosition += "<span>";
