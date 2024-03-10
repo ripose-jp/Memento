@@ -84,7 +84,7 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
     {
         layoutParent = new QHBoxLayout(this);
     }
-    layoutParent->setMargin(0);
+    layoutParent->setContentsMargins(0, 0, 0, 0);
 
     layoutParent->addWidget(new TagWidget(pitch), 0, Qt::AlignLeft);
 
@@ -92,7 +92,7 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
     for (const uint8_t pos : pitch.position)
     {
         QHBoxLayout *layoutLine = new QHBoxLayout;
-        layoutLine->setMargin(0);
+        layoutLine->setContentsMargins(0, 0, 0, 0);
         layoutLine->setSpacing(0);
         layoutParent->addLayout(layoutLine);
 

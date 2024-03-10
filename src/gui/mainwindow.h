@@ -199,6 +199,13 @@ private:
      */
     void initDefinitionWidget();
 
+#if defined(Q_OS_WIN)
+    /**
+     * Sets whether or not 1px border is drawn when in fullscreen.
+     */
+    void setHasBorderInFullScreen(bool value);
+#endif
+
     /**
      * Returns if the cursor is over the player or not.
      * @return true if the cursor is not over the player controls or the

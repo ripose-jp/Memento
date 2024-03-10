@@ -25,6 +25,8 @@
 
 #include <QSharedPointer>
 
+#include "player/track.h"
+
 class AnkiClient;
 class AudioPlayer;
 class Dictionary;
@@ -42,8 +44,6 @@ typedef QSharedPointer<QList<SharedTerm>> SharedTermList;
 
 struct Kanji;
 typedef QSharedPointer<Kanji> SharedKanji;
-
-struct Track;
 
 /**
  * A mediator that other objects can tap in to in order to send and receive

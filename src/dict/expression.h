@@ -52,7 +52,7 @@ struct Tag
     /* Score of the tag. Used for ordering. */
     int score;
 
-    bool operator==(const Tag &lhs)
+    bool operator==(const Tag &lhs) const
     {
         return name == lhs.name &&
                category == lhs.category &&
@@ -257,13 +257,8 @@ struct Kanji : public CommonExpFields
     QList<KanjiDefinition> definitions;
 };
 
-typedef QSharedPointer<Term> SharedTerm;
-Q_DECLARE_METATYPE(SharedTerm)
-
-typedef QSharedPointer<QList<SharedTerm>> SharedTermList;
-Q_DECLARE_METATYPE(SharedTermList)
-
-typedef QSharedPointer<Kanji> SharedKanji;
-Q_DECLARE_METATYPE(SharedKanji)
+using SharedTerm = QSharedPointer<Term>;
+using SharedTermList = QSharedPointer<QList<SharedTerm>>;
+using SharedKanji = QSharedPointer<Kanji>;
 
 #endif // EXPRESSION_H

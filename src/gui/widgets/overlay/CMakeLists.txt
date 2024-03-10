@@ -24,8 +24,9 @@ target_link_libraries(
     PRIVATE dictionary_db
     PRIVATE hittestwidget
     PRIVATE iconfactory
-    PRIVATE playeradapter
-    PRIVATE Qt5::Concurrent
+    PRIVATE Qt6::Concurrent
     PRIVATE strokelabel
-    PUBLIC Qt5::Widgets
+    PUBLIC playeradapter
+    PUBLIC Qt6::OpenGLWidgets
+    PUBLIC Qt6::Widgets
 )

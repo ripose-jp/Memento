@@ -27,7 +27,6 @@
 #include <QFontDatabase>
 #include <QMessageBox>
 #include <QSettings>
-#include <QTextCodec>
 
 #if defined(Q_OS_WIN)
 #include <QStandardPaths>
@@ -53,6 +52,10 @@
 #if !(defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)) && !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
 #error "OS not supported"
 #endif
+
+Q_DECLARE_METATYPE(SharedTerm)
+Q_DECLARE_METATYPE(SharedTermList)
+Q_DECLARE_METATYPE(SharedKanji)
 
 /**
  * Updates the QSettings before the MainWindow is created.
@@ -197,12 +200,6 @@ int main(int argc, char **argv)
     QCoreApplication::addLibraryPath(DirectoryUtils::getProgramDirectory());
 #endif
 
-    /* Always assume UTF-8 unless there's a BOM */
-    QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-
-    /* HiDPI support */
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     /* Organization Info */
     QCoreApplication::setOrganizationName("memento");
     QCoreApplication::setOrganizationDomain("ripose.projects");

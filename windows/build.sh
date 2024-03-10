@@ -48,7 +48,7 @@ python3 ../windows/mingw-bundledlls.py --copy ./Memento_$arch/memento.exe
 cp $PREFIX/bin/libssl-*.dll ./Memento_$arch
 
 cd Memento_$arch
-windeployqt memento.exe
+windeployqt6 memento.exe
 rm -rf translations
 
 # Get the latest youtube-dl

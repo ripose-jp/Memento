@@ -384,7 +384,7 @@ QString DatabaseManager::queryTerms(const QString &query, QList<SharedTerm> &ter
     }
     if (isStepError(step))
     {
-        ret = QString("Error when executing sqlite query. Code ") + step;
+        ret = "Error when executing sqlite query. Code " + QString::number(step);
         goto error;
     }
 
@@ -919,10 +919,10 @@ QString DatabaseManager::errorCodeToString(const int code) const
     }
 }
 
-#define HALFWIDTH_LOW           0xFF61
-#define HALFWIDTH_HIGH          0xFF9F
-#define HALFWIDTH_VOICED        0xFF9E
-#define HALFWIDTH_SEMI_VOICED   0xFF9F
+static const QChar HALFWIDTH_LOW(0xFF61);
+static const QChar HALFWIDTH_HIGH(0xFF9F);
+static const QChar HALFWIDTH_VOICED(0xFF9E);
+static const QChar HALFWIDTH_SEMI_VOICED(0xFF9F);
 
 QString DatabaseManager::halfToFull(const QString &query) const
 {
@@ -1065,15 +1065,10 @@ QString DatabaseManager::halfToFull(const QString &query) const
     return res;
 }
 
-#undef HALFWIDTH_LOW
-#undef HALFWIDTH_HIGH
-#undef HALFWIDTH_VOICED
-#undef HALFWIDTH_SEMI_VOICED
-
-#define KATAKANA_LOW    0x30A1
-#define KATAKANA_HIGH   0x30F6
-#define HIRAGANA_LOW    0x3041
-#define HIRAGANA_HIGH   0x3096
+static const QChar KATAKANA_LOW(0x30A1);
+static const QChar KATAKANA_HIGH(0x30F6);
+static const QChar HIRAGANA_LOW(0x3041);
+[[maybe_unused]] static const QChar HIRAGANA_HIGH(0x3096);
 
 QString DatabaseManager::kataToHira(QString query) const
 {
@@ -1082,16 +1077,11 @@ QString DatabaseManager::kataToHira(QString query) const
         ushort code = ch.unicode();
         if (code >= KATAKANA_LOW && code <= KATAKANA_HIGH)
         {
-            ch = QChar(HIRAGANA_LOW + (code - KATAKANA_LOW));
+            ch = QChar(HIRAGANA_LOW.unicode() + (code - KATAKANA_LOW.unicode()));
         }
     }
     return query;
 }
-
-#undef KATAKANA_LOW
-#undef KATAKANA_HIGH
-#undef HIRAGANA_LOW
-#undef HIRAGANA_HIGH
 
 QStringList DatabaseManager::jsonArrayToStringList(const char *jsonstr) const
 {

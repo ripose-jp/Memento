@@ -142,13 +142,13 @@ void InterfaceSettings::restoreDefaults()
         Constants::Settings::Interface::Subtitle::STROKE_DEFAULT
     );
 
-    m_subColor.setNamedColor(
+    m_subColor = QColor(
         Constants::Settings::Interface::Subtitle::TEXT_COLOR_DEFAULT
     );
-    m_bgColor.setNamedColor(
+    m_bgColor = QColor(
         Constants::Settings::Interface::Subtitle::BACKGROUND_COLOR_DEFAULT
     );
-    m_strokeColor.setNamedColor(
+    m_strokeColor = QColor(
         Constants::Settings::Interface::Subtitle::STROKE_COLOR_DEFAULT
     );
 
@@ -245,19 +245,19 @@ void InterfaceSettings::restoreSaved()
         ).toDouble()
     );
 
-    m_subColor.setNamedColor(settings.value(
+    m_subColor = QColor(settings.value(
             Constants::Settings::Interface::Subtitle::TEXT_COLOR,
             Constants::Settings::Interface::Subtitle::TEXT_COLOR_DEFAULT
         ).toString()
     );
     setButtonColor(m_ui->buttonSubColor, m_subColor);
-    m_bgColor.setNamedColor(settings.value(
+    m_bgColor = QColor(settings.value(
             Constants::Settings::Interface::Subtitle::BACKGROUND_COLOR,
             Constants::Settings::Interface::Subtitle::BACKGROUND_COLOR_DEFAULT
         ).toString()
     );
     setButtonColor(m_ui->buttonSubBackground, m_bgColor);
-    m_strokeColor.setNamedColor(settings.value(
+    m_strokeColor = QColor(settings.value(
             Constants::Settings::Interface::Subtitle::STROKE_COLOR,
             Constants::Settings::Interface::Subtitle::STROKE_COLOR_DEFAULT
         ).toString()

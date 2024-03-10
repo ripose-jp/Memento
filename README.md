@@ -114,14 +114,9 @@ To do so, open Flatseal, select Anki, and add the `/tmp` directory under **Other
 
 ## Dependencies
 
-* Qt5 (>= 5.15)
-    * QtCore
-    * QtGui
-    * QtWidgets
-    * QtNetwork
-    * QtSvg
-    * QtDBus (Linux)
-    * X11Extras (Linux)
+* Qt
+    * Base
+    * SVG
 * mpv
 * sqlite3
 * MeCab
@@ -158,7 +153,7 @@ sudo make install
     ```
 1. Install the necessary tools and dependencies:
     ```
-    pacman -S git make mingw-w64-x86_64-gcc mingw-w64-x86_64-ninja mingw-w64-x86_64-cmake mingw-w64-x86_64-python mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt5 mingw-w64-x86_64-mpv mingw-w64-x86_64-mecab mingw-w64-x86_64-json-c mingw-w64-x86_64-libzip
+    pacman -S git make mingw-w64-x86_64-gcc mingw-w64-x86_64-ninja mingw-w64-x86_64-cmake mingw-w64-x86_64-python mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-qt6 mingw-w64-x86_64-mpv mingw-w64-x86_64-mecab mingw-w64-x86_64-json-c mingw-w64-x86_64-libzip
     ```
 1. Clone the repository:
     ```
@@ -184,7 +179,7 @@ sudo make install
    ```
 1. Install the necessary tools and dependencies:
    ```
-   brew install git cmake sqlite3 qt5 mpv mecab mecab-ipadic json-c libzip
+   brew install git cmake sqlite3 qt6 mpv mecab mecab-ipadic json-c libzip
    ```
 1. Clone the repository:
    ```

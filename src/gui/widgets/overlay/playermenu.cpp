@@ -21,6 +21,7 @@
 #include "playermenu.h"
 #include "ui_playermenu.h"
 
+#include <QActionGroup>
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -30,7 +31,6 @@
 #include <QSettings>
 
 #include "anki/ankiclient.h"
-#include "player/playeradapter.h"
 #include "util/constants.h"
 #include "util/globalmediator.h"
 #include "util/utils.h"

@@ -11,11 +11,11 @@ target_compile_options(mpvwidget PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(mpvwidget PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     mpvwidget
-    PRIVATE "$<$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>>:Qt5::DBus>"
-    PRIVATE "$<$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>>:Qt5::X11Extras>"
+    PRIVATE "$<$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>>:Qt6::DBus>"
     PRIVATE "$<$<BOOL:${APPLE}>:-framework CoreFoundation>"
     PRIVATE "$<$<BOOL:${APPLE}>:-framework IOKit>"
     PRIVATE globalmediator
     PRIVATE mpv::mpv
-    PUBLIC Qt5::Widgets
+    PUBLIC Qt6::OpenGLWidgets
+    PUBLIC Qt6::Widgets
 )

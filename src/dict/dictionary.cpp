@@ -76,25 +76,21 @@ static QByteArray toWindowsShortPath(const QString &path)
 {
     QByteArray pathArr = path.toUtf8();
     DWORD length = 0;
-    TCHAR *buf = NULL;
 
-    length = GetShortPathName(pathArr.constData(), NULL, 0);
+    length = GetShortPathNameA(pathArr.constData(), NULL, 0);
     if (length == 0)
     {
         return "";
     }
 
-    buf = new TCHAR[length];
-    length = GetShortPathName(pathArr, buf, length);
+    QByteArray buf(length, '\0');
+    length = GetShortPathNameA(pathArr, buf.data(), length);
     if (length == 0)
     {
-        delete[] buf;
         return "";
     }
-
-    QByteArray ret = QByteArray(buf);
-    delete[] buf;
-    return ret;
+    buf.chop(1);
+    return buf;
 }
 
 /**

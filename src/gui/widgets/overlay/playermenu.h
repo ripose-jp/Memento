@@ -23,12 +23,11 @@
 
 #include <QWidget>
 
+#include "player/playeradapter.h"
+
 class QActionGroup;
 class QAction;
 class QMenu;
-
-class PlayerAdapter;
-struct Track;
 
 namespace Ui
 {

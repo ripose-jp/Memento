@@ -25,61 +25,7 @@
 #include <QObject>
 #include <QWheelEvent>
 
-/**
- * Struct containing track information.
- */
-struct Track
-{
-    /**
-     * The type of track.
-     */
-    enum Type
-    {
-        audio,
-        video,
-        subtitle
-    };
-
-    /* Type of track. */
-    Type type;
-
-    /* Id of the track start at 1. Unique within its type. */
-    int64_t id;
-
-    /* Track ID as used in the source file. Not always available. */
-    int64_t srcId;
-
-    /* Track title as it is stored in the file. Not always available. */
-    QString title;
-
-    /* Track language as identified by the file. Not always available. */
-    QString lang;
-
-    /* true if the track has album art. */
-    bool albumart;
-
-    /* true if the track is a default track. */
-    bool def;
-
-    /* true if the track is currently selected. */
-    bool selected;
-
-    /* 0 if this primary track, 1 if the secondary track */
-    int64_t mainSelection;
-
-    /* true if the track is from an external file. */
-    bool external;
-
-    /* The filename if the track is from an external file, unavailable
-     * otherwise.
-     */
-    QString externalFilename;
-
-    /* The codec name used by this track, for example h264. Unavailable in some
-     * rare cases.
-     */
-    QString codec;
-};
+#include "track.h"
 
 /**
  * Adapter for interacting with a media player backend.

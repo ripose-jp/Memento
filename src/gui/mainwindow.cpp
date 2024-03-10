@@ -26,9 +26,10 @@
 #include <QScreen>
 #include <QSettings>
 #include <QStyleFactory>
+#include <QWindow>
 
 #if defined(Q_OS_WIN)
-#include <QtPlatformHeaders/QWindowsWindowFunctions>
+#include <qpa/qplatformwindow_p.h>
 #endif
 
 #include "dict/dictionary.h"
@@ -426,18 +427,14 @@ void MainWindow::initTheme()
     m_ui->subtitleList->setVisible(vis);
     updateSearchSubListSplitter();
 
-    /* Enable or disable the 1px border on Windows */
 #if defined(Q_OS_WIN)
-    if (window()->windowHandle())
-    {
-        QWindowsWindowFunctions::setHasBorderInFullScreen(
-            window()->windowHandle(),
-            settings.value(
-                Constants::Settings::Interface::Subtitle::MENUBAR_FULLSCREEN,
-                Constants::Settings::Interface::Subtitle::MENUBAR_FULLSCREEN_DEFAULT
-            ).toBool()
-        );
-    }
+    /* Enable or disable the 1px border on Windows */
+    setHasBorderInFullScreen(
+        settings.value(
+            Constants::Settings::Interface::Subtitle::MENUBAR_FULLSCREEN,
+            Constants::Settings::Interface::Subtitle::MENUBAR_FULLSCREEN_DEFAULT
+        ).toBool()
+    );
 #endif
 
     settings.endGroup();
@@ -588,6 +585,28 @@ void MainWindow::changeEvent(QEvent *event)
 
 /* End Event Handlers */
 /* Begin Window Helpers */
+
+#if defined(Q_OS_WIN)
+void MainWindow::setHasBorderInFullScreen(bool value)
+{
+    if (window() == nullptr)
+    {
+        return;
+    }
+    else if (window()->windowHandle() == nullptr)
+    {
+        return;
+    }
+    QNativeInterface::Private::QWindowsWindow *windowsWindow = window()
+        ->windowHandle()
+        ->nativeInterface<QNativeInterface::Private::QWindowsWindow>();
+    if (windowsWindow == nullptr)
+    {
+        return;
+    }
+    windowsWindow->setHasBorderInFullScreen(value);
+}
+#endif
 
 void MainWindow::setFullscreen(bool value)
 {

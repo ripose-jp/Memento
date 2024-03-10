@@ -15,7 +15,7 @@ target_include_directories(aboutwindow PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     aboutwindow
     PRIVATE version
-    PUBLIC Qt5::Widgets
+    PUBLIC Qt6::Widgets
 )
 
 add_library(
@@ -30,7 +30,7 @@ target_link_libraries(
     searchwidget
     PRIVATE definitionwidget
     PRIVATE dictionary_db
-    PUBLIC Qt5::Widgets
+    PUBLIC Qt6::Widgets
 )
 
 add_library(
@@ -46,5 +46,5 @@ target_link_libraries(
     subtitlelist
     PRIVATE playeradapter
     PRIVATE subtitleparser
-    PUBLIC Qt5::Widgets
+    PUBLIC Qt6::Widgets
 )

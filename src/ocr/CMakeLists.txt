@@ -10,8 +10,8 @@ if(OCR_SUPPORT)
     target_link_libraries(
         ocrmodel
         PRIVATE mocr++
-        PRIVATE Qt5::Concurrent
-        PRIVATE Qt5::Gui
-        PUBLIC Qt5::Core
+        PRIVATE Qt6::Concurrent
+        PRIVATE Qt6::Gui
+        PUBLIC Qt6::Core
     )
 endif()

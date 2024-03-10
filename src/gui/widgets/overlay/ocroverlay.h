@@ -102,14 +102,6 @@ private:
      */
     void getText(QRect rect);
 
-    /**
-     * Constructs a QRect from two points.
-     * @param p1 One corner of the rectangle.
-     * @param p2 One corner of the rectangle.
-     * @return A QRect defined by points 1 and 2.
-     */
-    static QRect span(const QPoint &p1, const QPoint &p2);
-
     /* The OCR model */
     OCRModel *m_model = nullptr;
 

@@ -54,7 +54,7 @@ if(APPBUNDLE)
 		PRIVATE globalmediator
 		PRIVATE iconfactory
 		PRIVATE mainwindow
-		PRIVATE Qt5::Svg
+		PRIVATE Qt6::Svg
 	)
 
 	# Add in the dylibs
@@ -92,7 +92,7 @@ if(APPBUNDLE)
 
 	# Run macdeployqt to pick up any plugins dylibbundler missed
 	if (MAC_CROSSCOMPILE_X86)
-		set(MACDEPLOYQT_BIN "/usr/local/opt/qt5/bin/macdeployqt")
+		set(MACDEPLOYQT_BIN "/usr/local/opt/qt6/bin/macdeployqt")
 	else()
 		set(MACDEPLOYQT_BIN macdeployqt)
 	endif()
@@ -141,7 +141,7 @@ elseif(WIN32)
 		PRIVATE globalmediator
 		PRIVATE iconfactory
 		PRIVATE mainwindow
-		PRIVATE Qt5::Svg
+		PRIVATE Qt6::Svg
 	)
 
 	# This is a target that will create memento_debug.exe so that issues can be
@@ -162,7 +162,7 @@ elseif(WIN32)
 		PRIVATE globalmediator
 		PRIVATE iconfactory
 		PRIVATE mainwindow
-		PRIVATE Qt5::Svg
+		PRIVATE Qt6::Svg
 	)
 elseif(UNIX)
 	add_executable(
@@ -180,7 +180,7 @@ elseif(UNIX)
 		PRIVATE globalmediator
 		PRIVATE iconfactory
 		PRIVATE mainwindow
-		PRIVATE Qt5::Svg
+		PRIVATE Qt6::Svg
 	)
 else()
 	message(FATAL_ERROR "Unsupported operating system!")

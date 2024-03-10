@@ -13,9 +13,9 @@ target_link_libraries(
     anki
     PRIVATE globalmediator
     PRIVATE mpvadapter
-    PRIVATE Qt5::Gui
-    PRIVATE Qt5::Network
+    PRIVATE Qt6::Gui
+    PRIVATE Qt6::Network
     PRIVATE subtitlelist
     PRIVATE utils
-    PUBLIC Qt5::Core
+    PUBLIC Qt6::Core
 )

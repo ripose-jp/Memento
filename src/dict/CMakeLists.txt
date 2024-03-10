@@ -35,8 +35,8 @@ target_include_directories(dictionary_db PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     dictionary_db
     PRIVATE MeCab::MeCab
-    PRIVATE Qt5::Widgets
+    PRIVATE Qt6::Widgets
     PRIVATE SQLite::SQLite3
     PRIVATE yomidbbuilder
-    PUBLIC Qt5::Core
+    PUBLIC Qt6::Core
 )

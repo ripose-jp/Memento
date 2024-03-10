@@ -532,7 +532,7 @@ QString GlossaryBuilder::addFile(
     int dotIndex = path.indexOf('.', lastSlashIndex);
     if (dotIndex != -1)
     {
-        hash += path.rightRef(path.length() - dotIndex);
+        hash += path.right(path.length() - dotIndex);
     }
     fileMap << QPair<QString, QString>(basepath, hash);
     return hash;
