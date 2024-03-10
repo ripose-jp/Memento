@@ -541,7 +541,6 @@ QString MpvAdapter::getTitle() const
     char *title = NULL;
     if (mpv_get_property(m_handle, "media-title", MPV_FORMAT_STRING, &title) < 0)
     {
-        qDebug() << "Could not get mpv media-title property";
         return "";
     }
     QString title_str(title);
