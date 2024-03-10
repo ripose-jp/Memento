@@ -10,7 +10,7 @@ target_link_libraries(
     audioplayer
     PRIVATE globalmediator
     PRIVATE mpv::mpv
-    PRIVATE Qt5::Core
-    PRIVATE Qt5::Network
+    PRIVATE Qt6::Core
+    PRIVATE Qt6::Network
     PRIVATE utils
 )

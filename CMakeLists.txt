@@ -99,18 +99,18 @@ if(APPLE AND NOT MAC_CROSSCOMPILE_X86)
 		MEMENTO_INCLUDE_DIRS
 
 		# arm64 locations
-		"/opt/homebrew/opt/qt5/include"
+		"/opt/homebrew/opt/qt6/include"
 		"/opt/homebrew/include"
 
 		# x86_64 locations
-		"/usr/local/opt/qt5/include/"
+		"/usr/local/opt/qt6/include/"
 		"/usr/local/include"
 	)
 elseif(APPLE AND MAC_CROSSCOMPILE_X86)
 	# This is a crosscomile target, x86_64 users shouldn't need to use this
 	set(
 		MEMENTO_INCLUDE_DIRS
-		"/usr/local/opt/qt5/include/"
+		"/usr/local/opt/qt6/include/"
 		"/usr/local/include"
 	)
 endif()
@@ -136,18 +136,31 @@ find_package(JsonC REQUIRED)
 find_package(libzip REQUIRED)
 find_package(MeCab REQUIRED)
 find_package(mpv REQUIRED)
-if(UNIX AND NOT APPLE)
-	find_package(
-		Qt5
-		COMPONENTS Widgets Network DBus X11Extras Svg Concurrent REQUIRED
-	)
-	list(APPEND MEMENTO_INCLUDE_DIRS ${Qt5Gui_PRIVATE_INCLUDE_DIRS})
-elseif(APPLE)
-	find_package(Qt5 COMPONENTS Widgets Network Svg Concurrent REQUIRED)
-elseif(WIN32)
-	find_package(Qt5 COMPONENTS Widgets Network Svg Concurrent REQUIRED)
-endif()
 find_package(SQLite3 REQUIRED)
+if (UNIX AND NOT APPLE)
+	find_package(
+		Qt6 REQUIRED
+		COMPONENTS
+			Concurrent
+			DBus
+			Gui
+			Network
+			OpenGLWidgets
+			Svg
+			Widgets
+	)
+else()
+	find_package(
+		Qt6 REQUIRED
+		COMPONENTS
+			Concurrent
+			Gui
+			Network
+			OpenGLWidgets
+			Svg
+			Widgets
+	)
+endif()
 
 # Include CMake Modules
 include(FetchContent)

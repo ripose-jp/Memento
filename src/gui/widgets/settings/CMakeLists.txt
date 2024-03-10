@@ -42,5 +42,5 @@ target_link_libraries(
     PRIVATE playeradapter
     PRIVATE scrollcombobox
     PRIVATE scrolldoublespinbox
-    PUBLIC Qt5::Widgets
+    PUBLIC Qt6::Widgets
 )

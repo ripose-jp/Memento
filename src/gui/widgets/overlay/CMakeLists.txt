@@ -25,7 +25,8 @@ target_link_libraries(
     PRIVATE hittestwidget
     PRIVATE iconfactory
     PRIVATE playeradapter
-    PRIVATE Qt5::Concurrent
+    PRIVATE Qt6::Concurrent
     PRIVATE strokelabel
-    PUBLIC Qt5::Widgets
+    PUBLIC Qt6::OpenGLWidgets
+    PUBLIC Qt6::Widgets
 )

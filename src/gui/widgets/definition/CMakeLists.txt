@@ -26,6 +26,6 @@ target_link_libraries(
     PRIVATE audioplayer
     PRIVATE dictionary_db
     PRIVATE flowlayout
-    PRIVATE Qt5::Network
-    PUBLIC Qt5::Widgets
+    PRIVATE Qt6::Network
+    PUBLIC Qt6::Widgets
 )

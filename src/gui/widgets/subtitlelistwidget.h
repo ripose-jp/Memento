@@ -23,6 +23,9 @@
 
 #include <QWidget>
 
+#include <memory>
+#include <vector>
+
 #include <QHash>
 #include <QMultiHash>
 #include <QMultiMap>
@@ -268,16 +271,19 @@ private:
         QMutex lock;
 
         /* Holds subtitle info for the current track. */
-        QList<SubtitleInfo> *subList;
+        std::shared_ptr<std::vector<std::shared_ptr<SubtitleInfo>>> subList;
 
         /* true if subtitles were parsed, false otherwise */
-        bool *subsParsed = nullptr;
+        std::shared_ptr<bool> subsParsed = nullptr;
 
         /* Maps timecodes to table widget items for the subtitles. */
         QMultiMap<double, QTableWidgetItem *> startToItem;
 
         /* Maps table widget items to subtitle infos. */
-        QHash<QTableWidgetItem *, const SubtitleInfo *> itemToSub;
+        QHash<
+            QTableWidgetItem *,
+            std::shared_ptr<const SubtitleInfo>
+        > itemToSub;
 
         /* Maps subtitle lines to table widget items for parsed subtitles. */
         QMultiHash<QString, QTableWidgetItem *> lineToItem;
@@ -377,7 +383,7 @@ private:
      *         regex is true and the text is empty.
      */
     QTableWidgetItem *addTableItem(SubtitleList &list,
-                                   const SubtitleInfo &info,
+                                   const std::shared_ptr<SubtitleInfo> &info,
                                    double delay,
                                    bool regex = false);
 
@@ -443,10 +449,13 @@ private:
     QMutex m_subRegexLock;
 
     /* Maps sid to a list of subtitles */
-    QHash<int64_t, QList<SubtitleInfo> *> m_subtitleMap;
+    QHash<
+        int64_t,
+        std::shared_ptr<std::vector<std::shared_ptr<SubtitleInfo>>>
+    > m_subtitleMap;
 
     /* Maps sid to whether or not the subtitle was parsed. */
-    QHash<int64_t, bool *> m_subtitleParsed;
+    QHash<int64_t, std::shared_ptr<bool>> m_subtitleParsed;
 
     /* The primary subtitle list */
     SubtitleList m_primary;

@@ -87,7 +87,7 @@ SearchWidget::SearchWidget(QWidget *parent)
     m_layoutParent->addWidget(m_searchEdit);
 
     m_definition = new DefinitionWidget;
-    m_definition->layout()->setMargin(0);
+    m_definition->layout()->setContentsMargins(0, 0, 0, 0);
     m_definition->setMinimumSize(300, 300);
     m_definition->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     m_layoutParent->addWidget(m_definition);

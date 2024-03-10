@@ -82,10 +82,10 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     m_primary.table = m_ui->tablePrim;
     m_secondary.table = m_ui->tableSec;
 
-    m_copyShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), this);
+    m_copyShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_C), this);
     m_copyAudioShortcut =
-        new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_C), this);
-    m_findShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_F), this);
+        new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_C), this);
+    m_findShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this);
 
     initTheme();
     initRegex();
@@ -392,13 +392,21 @@ void SubtitleListWidget::handleTracklistChange(
         {
             if (!m_subtitleMap.contains(extSids[i]))
             {
-                m_subtitleMap[extSids[i]] = new QList<SubtitleInfo>;
-                m_subtitleParsed[extSids[i]] = new bool;
+                m_subtitleMap[extSids[i]] = std::make_shared<
+                    std::vector<std::shared_ptr<SubtitleInfo>>>();
+                m_subtitleParsed[extSids[i]] = std::make_shared<bool>(false);
             }
-            *m_subtitleMap[extSids[i]] =
-                parser.parseSubtitles(extTracks[i]);
+            QList<SubtitleInfo> subtitles = parser.parseSubtitles(extTracks[i]);
+            std::transform(
+                std::begin(subtitles), std::end(subtitles),
+                std::back_inserter(*m_subtitleMap[extSids[i]]),
+                [] (SubtitleInfo &info)
+                {
+                    return std::make_shared<SubtitleInfo>(info);
+                }
+            );
             *m_subtitleParsed[extSids[i]] =
-                !m_subtitleMap[extSids[i]]->isEmpty();
+                !m_subtitleMap[extSids[i]]->empty();
         }
 
         m_secondary.lock.unlock();
@@ -451,14 +459,14 @@ QString SubtitleListWidget::formatTimecode(const int time)
 
 QTableWidgetItem *SubtitleListWidget::addTableItem(
     SubtitleList &list,
-    const SubtitleInfo &info,
+    const std::shared_ptr<SubtitleInfo> &info,
     double delay,
     bool regex)
 {
     QTableWidgetItem *subtitleItem;
     if (regex)
     {
-        QString text = QString(info.text).remove(m_subRegex);
+        QString text = QString(info->text).remove(m_subRegex);
         if (text.isEmpty())
         {
             return nullptr;
@@ -467,15 +475,15 @@ QTableWidgetItem *SubtitleListWidget::addTableItem(
     }
     else
     {
-        subtitleItem = new QTableWidgetItem(info.text);
+        subtitleItem = new QTableWidgetItem(info->text);
     }
-    list.itemToSub.insert(subtitleItem, &info);
-    QStringList lines = info.text.split('\n');
+    list.itemToSub.insert(subtitleItem, info);
+    QStringList lines = info->text.split('\n');
     for (const QString &line : lines)
     {
         list.lineToItem.insert(line, subtitleItem);
     }
-    auto endIt = list.startToItem.insert(info.start, subtitleItem);
+    auto endIt = list.startToItem.insert(info->start, subtitleItem);
 
     /* This is a bit of a hack to get the subtitles to appear in order.
      * If a subtitle starts at the same start time as another, the subtitle
@@ -486,15 +494,15 @@ QTableWidgetItem *SubtitleListWidget::addTableItem(
      * be worth it.
      */
     size_t i = std::distance(list.startToItem.begin(), endIt);
-    for (endIt += 1;
-         endIt != list.startToItem.end() && endIt.key() == info.start;
+    for (++endIt;
+         endIt != list.startToItem.end() && endIt.key() == info->start;
          ++endIt)
     {
         ++i;
     }
 
     QTableWidgetItem *timecodeItem =
-        new QTableWidgetItem(formatTimecode(info.start + delay));
+        new QTableWidgetItem(formatTimecode(info->start + delay));
     timecodeItem->setFlags(Qt::NoItemFlags);
 
     list.table->insertRow(i);
@@ -530,17 +538,17 @@ void SubtitleListWidget::addSubtitle(
     QTableWidgetItem *subtitleItem = nullptr;
     if (it == list.startToItem.end() || it.key() - start > TIME_DELTA)
     {
-        SubtitleInfo info;
-        info.text = subtitle;
-        info.start = start;
-        info.end = end;
-        list.subList->append(info);
+        std::shared_ptr<SubtitleInfo> info = std::make_shared<SubtitleInfo>();
+        info->text = subtitle;
+        info->start = start;
+        info->end = end;
+        list.subList->emplace_back(std::move(info));
 
         if (regex)
         {
             m_subRegexLock.lock();
         }
-        subtitleItem = addTableItem(list, list.subList->last(), delay, regex);
+        subtitleItem = addTableItem(list, list.subList->back(), delay, regex);
         if (regex)
         {
             m_subRegexLock.unlock();
@@ -565,8 +573,9 @@ void SubtitleListWidget::handlePrimaryTrackChange(int64_t sid)
 
     if (!m_subtitleMap.contains(sid))
     {
-        m_subtitleMap[sid] = new QList<SubtitleInfo>;
-        m_subtitleParsed[sid] = new bool{false};
+        m_subtitleMap[sid] =
+            std::make_shared<std::vector<std::shared_ptr<SubtitleInfo>>>();
+        m_subtitleParsed[sid] = std::make_shared<bool>(false);
     }
     m_primary.subList = m_subtitleMap[sid];
     m_primary.subsParsed = m_subtitleParsed[sid];
@@ -574,7 +583,7 @@ void SubtitleListWidget::handlePrimaryTrackChange(int64_t sid)
     double delay =
         GlobalMediator::getGlobalMediator()->getPlayerAdapter()->getSubDelay();
     m_subRegexLock.lock();
-    for (const SubtitleInfo &info : *m_primary.subList)
+    for (const auto &info : *m_primary.subList)
     {
         addTableItem(m_primary, info, delay, true);
     }
@@ -591,15 +600,16 @@ void SubtitleListWidget::handleSecondaryTrackChange(int64_t sid)
 
     if (!m_subtitleMap.contains(sid))
     {
-        m_subtitleMap[sid] = new QList<SubtitleInfo>;
-        m_subtitleParsed[sid] = new bool{false};
+        m_subtitleMap[sid] =
+            std::make_shared<std::vector<std::shared_ptr<SubtitleInfo>>>();
+        m_subtitleParsed[sid] = std::make_shared<bool>(false);
     }
     m_secondary.subList = m_subtitleMap[sid];
     m_secondary.subsParsed = m_subtitleParsed[sid];
 
     double delay =
         GlobalMediator::getGlobalMediator()->getPlayerAdapter()->getSubDelay();
-    for (const SubtitleInfo &info : *m_secondary.subList)
+    for (const auto &info : *m_secondary.subList)
     {
         addTableItem(m_secondary, info, delay);
     }
@@ -626,7 +636,7 @@ void SubtitleListWidget::selectSubtitles(SubtitleList &list,
         QList<QTableWidgetItem *> items = list.lineToItem.values(line);
         for (QTableWidgetItem *item : items)
         {
-            const SubtitleInfo *info = list.itemToSub[item];
+            const auto &info = list.itemToSub[item];
             if (info->start <= time + TIME_DELTA &&
                 info->end >= time - TIME_DELTA)
             {
@@ -762,7 +772,7 @@ inline QPair<double, double> SubtitleListWidget::getContextTime(
     }
     for (QTableWidgetItem *item : items)
     {
-        const SubtitleInfo *info = list.itemToSub[item];
+        const auto &info = list.itemToSub[item];
         start = start < info->start ? start : info->start;
         end = end > info->end ? end : info->end;
     }
@@ -900,15 +910,7 @@ void SubtitleListWidget::clearCachedSubtitles()
 {
     clearPrimarySubtitles();
     clearSecondarySubtitles();
-    for (QList<SubtitleInfo> *l : m_subtitleMap)
-    {
-        delete l;
-    }
     m_subtitleMap.clear();
-    for (bool *b : m_subtitleParsed)
-    {
-        delete b;
-    }
     m_subtitleParsed.clear();
 }
 

@@ -630,7 +630,8 @@ void AnkiSettings::applyToConfig(const QString &profile)
 
     config->tags = QJsonArray();
     QStringList splitTags =
-        m_ui->lineEditTags->text().split(QRegExp(REGEX_REMOVE_SPACES_COMMAS));
+        m_ui->lineEditTags->text()
+            .split(QRegularExpression(REGEX_REMOVE_SPACES_COMMAS));
     for (const QString &tag : splitTags)
     {
         config->tags.append(tag);

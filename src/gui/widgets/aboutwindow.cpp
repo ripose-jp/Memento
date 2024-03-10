@@ -32,7 +32,7 @@ AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
     setWindowTitle("About Memento");
 
     QVBoxLayout *parentLayout = new QVBoxLayout(this);
-    parentLayout->setMargin(20);
+    parentLayout->setContentsMargins(20, 20, 20, 20);
 
     QLabel *labelImage = new QLabel;
     labelImage->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);

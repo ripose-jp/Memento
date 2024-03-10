@@ -21,6 +21,7 @@
 #include "playermenu.h"
 #include "ui_playermenu.h"
 
+#include <QActionGroup>
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QFileDialog>

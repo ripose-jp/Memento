@@ -12,10 +12,11 @@ target_include_directories(mainwindow PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     mainwindow
     PRIVATE "$<$<BOOL:${APPLE}>:cocoa_event_handler>"
+    PRIVATE "$<$<BOOL:${WIN32}>:Qt6::GuiPrivate>"
     PRIVATE aboutwindow
     PRIVATE mpvadapter
     PRIVATE optionswindow
     PRIVATE playeroverlay
     PRIVATE searchwidget
-    PUBLIC Qt5::Widgets
+    PUBLIC Qt6::Widgets
 )

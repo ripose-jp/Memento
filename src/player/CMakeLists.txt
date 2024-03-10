@@ -4,8 +4,8 @@ target_compile_options(playeradapter PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(playeradapter PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     playeradapter
-    PUBLIC Qt5::Core
-    PUBLIC Qt5::Gui
+    PUBLIC Qt6::Core
+    PUBLIC Qt6::Gui
 )
 
 add_library(

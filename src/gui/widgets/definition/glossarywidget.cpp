@@ -39,7 +39,7 @@ GlossaryWidget::GlossaryWidget(
     m_labelNumber   = new QLabel;
     m_glossaryLabel = new GlossaryLabel(modifier, style);
 
-    m_parentLayout->setMargin(0);
+    m_parentLayout->setContentsMargins(0, 0, 0, 0);
     m_parentLayout->addLayout(m_layoutHeader);
     m_parentLayout->addWidget(m_glossaryLabel);
 

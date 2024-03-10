@@ -124,16 +124,16 @@ void ProgressSlider::mouseMoveEvent(QMouseEvent *event)
     }
 
     int pos = QStyle::sliderValueFromPosition(
-        minimum(), maximum(), event->x(), width()
+        minimum(), maximum(), event->position().x(), width()
     );
     m_labelTimecode->setText(formatTime(pos));
     m_labelTimecode->adjustSize();
 
-    int tipX = event->x() + MOUSE_OFFSET;
+    int tipX = event->position().x() + MOUSE_OFFSET;
     int tipY = (parentWidget()->height() / 2) - (m_labelTimecode->height() / 2);
-    if (event->x() > width() / 2)
+    if (event->position().x() > width() / 2)
     {
-        tipX = event->x() - MOUSE_OFFSET - m_labelTimecode->width();
+        tipX = event->position().x() - MOUSE_OFFSET - m_labelTimecode->width();
     }
 
     m_labelTimecode->move(mapToParent(QPoint(tipX, 0)).x(), tipY);

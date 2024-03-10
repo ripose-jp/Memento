@@ -28,7 +28,7 @@
 #include <QStyleFactory>
 
 #if defined(Q_OS_WIN)
-#include <QtPlatformHeaders/QWindowsWindowFunctions>
+#include <qpa/qplatformwindow_p.h>
 #endif
 
 #include "dict/dictionary.h"
@@ -428,10 +428,11 @@ void MainWindow::initTheme()
 
     /* Enable or disable the 1px border on Windows */
 #if defined(Q_OS_WIN)
-    if (window()->windowHandle())
+    QWindowsWindow *windowsWindow =
+        dynamic_cast<QWindowsWindow *>(window()->windowHandle());
+    if (windowsWindow)
     {
-        QWindowsWindowFunctions::setHasBorderInFullScreen(
-            window()->windowHandle(),
+        windowsWindow->setHasBorderInFullScreen(
             settings.value(
                 Constants::Settings::Interface::Subtitle::MENUBAR_FULLSCREEN,
                 Constants::Settings::Interface::Subtitle::MENUBAR_FULLSCREEN_DEFAULT

@@ -22,7 +22,6 @@
 
 #include <QApplication>
 #include <QDebug>
-#include <QDesktopWidget>
 #include <QMessageBox>
 #include <QOpenGLContext>
 #include <QScreen>
@@ -34,7 +33,6 @@
 #elif defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
 #include <qpa/qplatformnativeinterface.h>
 #include <QtDBus>
-#include <QX11Info>
 #endif
 
 #include "cursortimer.h"
@@ -72,8 +70,8 @@ static void onUpdate(void *ctx)
 
 MpvWidget::MpvWidget(QWidget *parent)
     : QOpenGLWidget(parent),
-      m_height(height() * QApplication::desktop()->devicePixelRatioF()),
-      m_width(width() * QApplication::desktop()->devicePixelRatioF())
+      m_height(height() * parent->screen()->devicePixelRatio()),
+      m_width(width() * parent->screen()->devicePixelRatio())
 {
     /* Set the mediator player widget */
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
@@ -477,8 +475,12 @@ void MpvWidget::initializeGL()
 #if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     if (QGuiApplication::platformName().contains("xcb"))
     {
+        QGuiApplication *app =
+            dynamic_cast<QGuiApplication *>(QGuiApplication::instance());
+        QNativeInterface::QX11Application *native =
+            app->nativeInterface<QNativeInterface::QX11Application>();
         params[2].type = MPV_RENDER_PARAM_X11_DISPLAY;
-        params[2].data = QX11Info::display();
+        params[2].data = native->display();
     }
     else if (QGuiApplication::platformName().contains("wayland"))
     {
