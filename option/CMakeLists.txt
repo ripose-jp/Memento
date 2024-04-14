@@ -6,5 +6,7 @@ if(UNIX AND NOT APPLE)
 	option(APPIMAGE "Toggle when building for AppImages" OFF)
 endif()
 option(MAC_CROSSCOMPILE_X86 "Enables ARM machines to cross compile for x86" OFF)
-option(OCR_SUPPORT "Support for OCR through MangaOCR" OFF)
 option(RELEASE_BUILD "Toggle to build with release settings" OFF)
+
+option(OCR_SUPPORT "Support for OCR through MangaOCR" OFF)
+option(MECAB_SUPPORT "Support for deconjugation with MeCab" ON)

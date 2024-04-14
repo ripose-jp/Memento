@@ -29,7 +29,10 @@
 
 #include "databasemanager.h"
 #include "exactquerygenerator.h"
+
+#ifdef MECAB_SUPPORT
 #include "mecabquerygenerator.h"
+#endif // MECAB_SUPPORT
 
 #include "util/constants.h"
 #include "util/globalmediator.h"
@@ -72,6 +75,8 @@ void Dictionary::initDictionaryOrder()
 void Dictionary::initQueryGenerators()
 {
     m_generators.emplace_back(std::make_unique<ExactQueryGenerator>());
+
+#ifdef MECAB_SUPPORT
     m_generators.emplace_back(std::make_unique<MeCabQueryGenerator>());
     if (!m_generators.back()->valid())
     {
@@ -100,6 +105,7 @@ void Dictionary::initQueryGenerators()
 #endif
         );
     }
+#endif // MECAB_SUPPORT
 }
 
 Dictionary::~Dictionary()

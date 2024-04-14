@@ -60,6 +60,7 @@ list(
 	"$<$<BOOL:${APPIMAGE}>:-DAPPIMAGE=1>"
 	"$<$<BOOL:${APPBUNDLE}>:-DAPPBUNDLE=1>"
 	"$<$<BOOL:${OCR_SUPPORT}>:-DOCR_SUPPORT=1>"
+	"$<$<BOOL:${MECAB_SUPPORT}>:-DMECAB_SUPPORT=1>"
 )
 
 # Set Qt preprocessor settings
@@ -134,7 +135,9 @@ endif()
 # Dependencies
 find_package(JsonC REQUIRED)
 find_package(libzip REQUIRED)
-find_package(MeCab REQUIRED)
+if(MECAB_SUPPORT)
+	find_package(MeCab REQUIRED)
+endif()
 find_package(mpv REQUIRED)
 find_package(SQLite3 REQUIRED)
 if (UNIX AND NOT APPLE)

@@ -27,20 +27,26 @@ target_link_libraries(
     PUBLIC querygenerator
 )
 
-add_library(
-    mecabquerygenerator STATIC
-    mecabquerygenerator.cpp
-    mecabquerygenerator.h
-)
-target_compile_features(mecabquerygenerator PRIVATE cxx_std_17)
-target_compile_options(mecabquerygenerator PRIVATE ${MEMENTO_COMPILER_FLAGS})
-target_include_directories(mecabquerygenerator PRIVATE ${MEMENTO_INCLUDE_DIRS})
-target_link_libraries(
-    mecabquerygenerator
-    PRIVATE utils
-    PUBLIC MeCab::MeCab
-    PUBLIC querygenerator
-)
+if(MECAB_SUPPORT)
+    add_library(
+        mecabquerygenerator STATIC
+        mecabquerygenerator.cpp
+        mecabquerygenerator.h
+    )
+    target_compile_features(mecabquerygenerator PRIVATE cxx_std_17)
+    target_compile_options(
+        mecabquerygenerator PRIVATE ${MEMENTO_COMPILER_FLAGS}
+    )
+    target_include_directories(
+        mecabquerygenerator PRIVATE ${MEMENTO_INCLUDE_DIRS}
+    )
+    target_link_libraries(
+        mecabquerygenerator
+        PRIVATE utils
+        PUBLIC MeCab::MeCab
+        PUBLIC querygenerator
+    )
+endif()
 
 add_library(
     yomidbbuilder STATIC
@@ -76,13 +82,20 @@ add_library(
 target_compile_features(dictionary_db PUBLIC cxx_std_17)
 target_compile_options(dictionary_db PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(dictionary_db PRIVATE ${MEMENTO_INCLUDE_DIRS})
+set(
+    DICTIONARY_DB_GENERATOR_LIBS
+    exactquerygenerator
+)
+if(MECAB_SUPPORT)
+    list(APPEND DICTIONARY_DB_GENERATOR_LIBS mecabquerygenerator)
+endif()
 target_link_libraries(
     dictionary_db
-    PRIVATE exactquerygenerator
-    PRIVATE mecabquerygenerator
+    PRIVATE ${DICTIONARY_DB_GENERATOR_LIBS}
     PRIVATE Qt6::Widgets
     PRIVATE querygenerator
     PRIVATE SQLite::SQLite3
     PRIVATE yomidbbuilder
     PUBLIC Qt6::Core
 )
+unset(DICTIONARY_DB_GENERATOR_LIBS)
