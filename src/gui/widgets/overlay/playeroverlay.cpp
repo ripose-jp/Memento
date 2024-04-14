@@ -49,8 +49,7 @@ PlayerOverlay::PlayerOverlay(QWidget *parent) : QStackedLayout(parent)
     /* Create the container */
     QVBoxLayout *layoutContainer = new QVBoxLayout;
     layoutContainer->setContentsMargins(0, 0, 0, 0);
-    layoutContainer->setContentsMargins(0, 0, 0, 0);
-    layoutContainer->setContentsMargins(0, 0, 0, 0);
+    layoutContainer->setSpacing(0);
     m_widgetOSC = new HitTestWidget;
     m_widgetOSC->setMouseTracking(true);
     m_widgetOSC->setLayout(layoutContainer);
