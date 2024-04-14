@@ -78,13 +78,13 @@ public:
      * Gets a list of dictionary names in the database in arbitrary order.
      * @return A list of dictionary names.
      */
-    QStringList getDictionaries();
+    QStringList getDictionaries() const;
 
     /**
      * Gets the list of disabled dictionaries.
      * @return The names of all disabled dictionaries.
      */
-    QStringList getDisabledDictionaries();
+    QStringList getDisabledDictionaries() const;
 
     /**
      * Searches for terms that exactly match the query. Does automatic
@@ -93,7 +93,7 @@ public:
      * @param[out] terms A list of matching terms. Belongs to the caller.
      * @return Empty string on success, error string on error.
      */
-    QString queryTerms(const QString &query, QList<SharedTerm> &terms);
+    QString queryTerms(const QString &query, QList<SharedTerm> &terms) const;
 
     /**
      * Searches for kanji that exactly match the query.
@@ -101,7 +101,7 @@ public:
      * @param[out] kanji The Kanji struct to populate.
      * @return Empty string on success, error string on error.
      */
-    QString queryKanji(const QString &query, Kanji &kanji);
+    QString queryKanji(const QString &query, Kanji &kanji) const;
 
 private:
     /**
@@ -203,7 +203,7 @@ private:
     sqlite3 *m_db;
 
     /* Locks the database for reading and writing. */
-    QReadWriteLock m_dbLock;
+    mutable QReadWriteLock m_dbLock;
 
     /* Saved path to the database. */
     const QByteArray m_dbpath;

@@ -21,21 +21,19 @@
 #ifndef DICTIONARY_H
 #define DICTIONARY_H
 
+#include <QObject>
+
 #include <QList>
 #include <QReadWriteLock>
 #include <QString>
-#include <QThread>
+
+#include <memory>
+#include <vector>
 
 #include "expression.h"
-
-namespace MeCab
-{
-    class Tagger;
-    class Lattice;
-}
+#include "querygenerator.h"
 
 class DatabaseManager;
-struct SearchPair;
 
 /**
  * The intended API for interacting with the database.
@@ -46,7 +44,7 @@ class Dictionary : public QObject
 
 public:
     Dictionary(QObject *parent = nullptr);
-    ~Dictionary();
+    virtual ~Dictionary();
 
     /**
      * Searches for all terms in the query.
@@ -105,13 +103,13 @@ public:
      * Gets a list of dictionaries ordered by user preference.
      * @return A list of dictionaries ordered by user preference.
      */
-    QStringList getDictionaries();
+    QStringList getDictionaries() const;
 
     /**
      * Gets the list of disabled dictionaries.
      * @return The names of all disabled dictionaries.
      */
-    QStringList getDisabledDictionaries();
+    QStringList getDisabledDictionaries() const;
 
 private Q_SLOTS:
     /**
@@ -119,25 +117,49 @@ private Q_SLOTS:
      */
     void initDictionaryOrder();
 
+    /**
+     * Populates the list of QueryGenerators.
+     */
+    void initQueryGenerators();
+
 private:
     /**
-     * Uses MeCab to generate a list of non-exact queries.
-     * @param query The raw query.
-     * @return A list of search pairs.
+     * Generate queries from text.
+     * @param text The text to generate queries from.
+     * @return The list of SearchQuery.
      */
-    QList<SearchPair> generateQueries(const QString &query);
+    [[nodiscard]]
+    std::vector<SearchQuery> generateQueries(const QString &text) const;
+
+    /**
+     * Sorties queries in order from ascending length of the surface.
+     * @param[out] queries The list of queries to sort.
+     */
+    static void sortQueries(std::vector<SearchQuery> &queries);
+
+    /**
+     * Filters out duplicates from the queries vector.
+     * @param[out] queries The queries to filter duplicates from.
+     */
+    static void filterDuplicates(std::vector<SearchQuery> &queries);
+
+    /**
+     * Sort the term list by priority and length.
+     * @param[out] terms The term list to sort.
+     */
+    void sortTerms(SharedTermList &terms) const;
 
     /**
      * Sorts tag by descending order, breaking ties on ascending score.
      * @param[out] tags The list of tags to sort.
      */
-    void sortTags(QList<Tag> &tags);
+    void sortTags(QList<Tag> &tags) const;
 
-    /* The DatabaseManager. */
-    DatabaseManager *m_db;
+    /* The DatabaseManager */
+    std::unique_ptr<DatabaseManager> m_db;
 
-    /* The object used for interacting with MeCab. */
-    MeCab::Tagger *m_tagger;
+    /* List of QueryGenerators */
+    std::vector<std::unique_ptr<QueryGenerator>> m_generators;
 
     /* Contains dictionary priority information. */
     struct DictOrder
@@ -146,135 +168,8 @@ private:
         QHash<QString, int> map;
 
         /* Used for locking for reading and writing. */
-        QReadWriteLock lock;
+        mutable QReadWriteLock lock;
     } m_dicOrder;
-
-    /**
-     * Parent class of dictionary worker threads. Used to cut down on duplicated
-     * terms.
-     */
-    class DictionaryWorker : public QThread
-    {
-    public:
-        DictionaryWorker(
-            const QString &subtitle,
-            const int index,
-            const int *currentIndex,
-            DatabaseManager &db
-        ) : subtitle(subtitle),
-            index(index),
-            currentIndex(currentIndex),
-            db(db) {}
-
-        /* Found terms will be in this list */
-        QList<SharedTerm> terms;
-
-    protected:
-        /* The current subtitle */
-        const QString &subtitle;
-
-        /* The index into the subtitle */
-        const int index;
-
-        /* A reference to the current index */
-        const int *currentIndex;
-
-        /* A reference to the database */
-        DatabaseManager &db;
-    };
-
-    /**
-     * Worker thread for querying the term database for exact substrings of the
-     * query.
-     */
-    class ExactWorker : public Dictionary::DictionaryWorker
-    {
-    public:
-        /**
-         * Creates a worker thread for finding exact matches against the query.
-         * Does so by chopping off the last character of the query until
-         * endSize is reached.
-         * @param query        The query to look for terms in.
-         * @param endSize      The smallest size a query can reach (exclusive)
-         *                     before searching ceases.
-         * @param subtitle     The subtitle the query appears in.
-         * @param index        The index into the subtitle where the query
-         *                     begins.
-         * @param currentIndex A pointer to the current index. If this value is
-         *                     no different from the index before this method is
-         *                     done, the search is aborted.
-         * @param db           The database manager.
-         */
-        ExactWorker(
-            const QString &query,
-            const int endSize,
-            const QString &subtitle,
-            const int index,
-            const int *currentIndex,
-            DatabaseManager &db
-        ) : Dictionary::DictionaryWorker(
-                subtitle,
-                index,
-                currentIndex,
-                db
-            ),
-            query(query),
-            endSize(endSize) {}
-
-        void run() override;
-
-    private:
-        /* The query string */
-        QString query;
-
-        /* The final size of the query. When the query reaches this size, the
-         * thread terminates. */
-        const int endSize;
-    };
-
-    /**
-     * Worker thread for querying the term database for MeCab generated queries.
-     */
-    class MeCabWorker : public Dictionary::DictionaryWorker
-    {
-    public:
-        /**
-         * Creates a worker thread for finding MeCab queries.
-         * @param begin        An iterator pointing to the first query to search
-         *                     (inclusive).
-         * @param end          An iterator pointing to the largest query to
-         *                     search (exclusive).
-         *                     before searching ceases.
-         * @param subtitle     The subtitle the query appears in.
-         * @param index        The index into the subtitle where the query
-         *                     begins.
-         * @param currentIndex A pointer to the current index. If this value is
-         *                     no different from the index before this method is
-         *                     done, the search is aborted.
-         * @param db           The database manager.
-         */
-        MeCabWorker(
-            QList<SearchPair>::const_iterator begin,
-            QList<SearchPair>::const_iterator end,
-            const QString &subtitle,
-            const int index,
-            const int *currentIndex,
-            DatabaseManager &db
-        ) : Dictionary::DictionaryWorker(
-                subtitle,
-                index,
-                currentIndex,
-                db
-            ),
-            begin(begin),
-            end(end) {}
-
-        void run() override;
-
-    private:
-        /* Start and end iterators to queries */
-        QList<SearchPair>::const_iterator begin, end;
-    };
 };
 
 #endif // DICTIONARY_H

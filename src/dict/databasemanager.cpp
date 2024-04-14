@@ -221,7 +221,7 @@ int DatabaseManager::disableDictionaries(const QStringList &dicts)
 
 #define QUERY   "SELECT title FROM directory;"
 
-QStringList DatabaseManager::getDictionaries()
+QStringList DatabaseManager::getDictionaries() const
 {
     m_dbLock.lockForRead();
 
@@ -249,7 +249,7 @@ cleanup:
 
 #define QUERY   "SELECT dic_id FROM dict_disabled;"
 
-QStringList DatabaseManager::getDisabledDictionaries()
+QStringList DatabaseManager::getDisabledDictionaries() const
 {
     m_dbLock.lockForRead();
 
@@ -302,7 +302,7 @@ cleanup:
 #define COLUMN_EXPRESSION       0
 #define COLUMN_READING          1
 
-QString DatabaseManager::queryTerms(const QString &query, QList<SharedTerm> &terms)
+QString DatabaseManager::queryTerms(const QString &query, QList<SharedTerm> &terms) const
 {
     if (m_db == nullptr)
     {
@@ -439,7 +439,7 @@ error:
 #define TAG_NAME_CODE       "code"
 #define TAG_NAME_INDEX      "index"
 
-QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
+QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji) const
 {
     if (m_db == nullptr)
     {
@@ -497,21 +497,21 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
              it != map.constKeyValueEnd();
              ++it)
         {
-            const Tag *tag = &m_tagCache[id][it->first];
+            Tag tag = m_tagCache[id][it->first];
             QList<QPair<Tag, QString>> *list = nullptr;
-            if (tag->category == TAG_NAME_INDEX)
+            if (tag.category == TAG_NAME_INDEX)
             {
                 list = &def.index;
             }
-            else if (tag->category == TAG_NAME_STATS)
+            else if (tag.category == TAG_NAME_STATS)
             {
                 list = &def.stats;
             }
-            else if (tag->category == TAG_NAME_CLAS)
+            else if (tag.category == TAG_NAME_CLAS)
             {
                 list = &def.clas;
             }
-            else if (tag->category == TAG_NAME_CODE)
+            else if (tag.category == TAG_NAME_CODE)
             {
                 list = &def.code;
             }
@@ -519,7 +519,9 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji)
             {
                 continue;
             }
-            list->append(QPair<Tag, QString>(*tag, it->second.toString()));
+            list->append(
+                QPair<Tag, QString>(std::move(tag), it->second.toString())
+            );
         }
 
         kanji.definitions.append(def);

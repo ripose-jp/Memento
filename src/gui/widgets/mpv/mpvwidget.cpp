@@ -29,6 +29,10 @@
 #include <QWindow>
 
 #if defined(Q_OS_WIN)
+#ifndef NOMINMAX
+#define NOMINMAX 1
+#endif // NOMINMAX
+#include <Windows.h>
 #include <winbase.h>
 #elif defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
 #include <QtDBus>

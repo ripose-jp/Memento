@@ -1,3 +1,47 @@
+add_library(searchquery INTERFACE searchquery.h)
+target_compile_features(searchquery INTERFACE cxx_std_17)
+target_compile_options(searchquery INTERFACE ${MEMENTO_COMPILER_FLAGS})
+target_include_directories(searchquery INTERFACE ${MEMENTO_INCLUDE_DIRS})
+target_link_libraries(searchquery INTERFACE Qt6::Core)
+
+add_library(querygenerator INTERFACE querygenerator.h)
+target_compile_features(querygenerator INTERFACE cxx_std_17)
+target_compile_options(querygenerator INTERFACE ${MEMENTO_COMPILER_FLAGS})
+target_include_directories(querygenerator INTERFACE ${MEMENTO_INCLUDE_DIRS})
+target_link_libraries(
+    querygenerator
+    INTERFACE Qt6::Core
+    INTERFACE searchquery
+)
+
+add_library(
+    exactquerygenerator STATIC
+    exactquerygenerator.cpp
+    exactquerygenerator.h
+)
+target_compile_features(exactquerygenerator PRIVATE cxx_std_17)
+target_compile_options(exactquerygenerator PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_include_directories(exactquerygenerator PRIVATE ${MEMENTO_INCLUDE_DIRS})
+target_link_libraries(
+    exactquerygenerator
+    PUBLIC querygenerator
+)
+
+add_library(
+    mecabquerygenerator STATIC
+    mecabquerygenerator.cpp
+    mecabquerygenerator.h
+)
+target_compile_features(mecabquerygenerator PRIVATE cxx_std_17)
+target_compile_options(mecabquerygenerator PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_include_directories(mecabquerygenerator PRIVATE ${MEMENTO_INCLUDE_DIRS})
+target_link_libraries(
+    mecabquerygenerator
+    PRIVATE utils
+    PUBLIC MeCab::MeCab
+    PUBLIC querygenerator
+)
+
 add_library(
     yomidbbuilder STATIC
     yomidbbuilder.c
@@ -34,8 +78,10 @@ target_compile_options(dictionary_db PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(dictionary_db PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     dictionary_db
-    PRIVATE MeCab::MeCab
+    PRIVATE exactquerygenerator
+    PRIVATE mecabquerygenerator
     PRIVATE Qt6::Widgets
+    PRIVATE querygenerator
     PRIVATE SQLite::SQLite3
     PRIVATE yomidbbuilder
     PUBLIC Qt6::Core
