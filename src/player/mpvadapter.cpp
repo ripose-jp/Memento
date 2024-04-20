@@ -596,7 +596,7 @@ void MpvAdapter::open(const QString     &file,
         "loadfile",
         filename,
         append ? "append-play" : "replace",
-        opts,
+        opts.isEmpty() ? NULL : opts.data(),
         NULL
     };
 
@@ -922,7 +922,7 @@ QString MpvAdapter::tempAudioClip(
         "loadfile",
         input,
         "replace",
-        optionCmd,
+        optionCmd.isEmpty() ? NULL : optionCmd.data(),
         NULL
     };
 
