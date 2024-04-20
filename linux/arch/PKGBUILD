@@ -1,6 +1,6 @@
 # Maintainer: Ripose <ripose@protonmail.com>
 pkgname=memento
-pkgver=1.2.2
+pkgver=1.3.0
 pkgrel=0
 pkgdesc="An mpv-based video player for studying Japanese."
 arch=('x86_64')
@@ -8,9 +8,8 @@ url="https://ripose-jp.github.io/Memento/"
 license=('GPL2')
 depends=(
     'mpv'
-    'qt5-base'
-    'qt5-svg'
-    'qt5-x11extras'
+    'qt6-base'
+    'qt6-svg'
     'sqlite'
     'json-c'
     'libzip'
@@ -24,7 +23,7 @@ optdepends=(
     'noto-fonts-cjk: optimal font support'
 )
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/ripose-jp/Memento/archive/refs/tags/v${pkgver}.tar.gz")
-sha256sums=('0fb0341970846b7b569aecb7f16c087c6f3fdc523723b7ac2997ebe5fbfd449e')
+sha256sums=('d902e311a5f041eb7e97ccfedc497e04f08e1732e34efa78ef2789568cacf83f')
 
 prepare() {
     mkdir -p ${srcdir}/build
