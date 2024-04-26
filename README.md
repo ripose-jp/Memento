@@ -162,11 +162,11 @@ sudo make install
 1. Build Memento:
     ```
     cd Memento
-    ./windows/build.sh x86_64
+    ./windows/build.sh x86_64 release
     ```
 1. The resulting file will be in
     ```
-    build/Memento_x86_64
+    build/release_x86_64\Memento
     ```
 
 ### macOS
