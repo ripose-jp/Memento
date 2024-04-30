@@ -205,15 +205,11 @@ void Dictionary::sortQueries(std::vector<SearchQuery> &queries)
         std::begin(queries), std::end(queries),
         [] (const SearchQuery &rhs, const SearchQuery &lhs) -> bool
         {
-            if (rhs.surface.size() > lhs.surface.size())
+            if (rhs.deconj == lhs.deconj)
             {
-                return true;
+                return rhs.surface.size() > lhs.surface.size();
             }
-            if (rhs.surface.size() == lhs.surface.size())
-            {
-                return rhs.deconj.size() > lhs.deconj.size();
-            }
-            return false;
+            return rhs.deconj > lhs.deconj;
         }
     );
 }
