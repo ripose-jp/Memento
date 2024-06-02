@@ -618,11 +618,13 @@ int DatabaseManager::populateTerms(const QList<SharedTerm> &terms) const
                 (const char *)sqlite3_column_text(stmt, COLUMN_DEF_TAGS),
                 def.tags
             );
-            addTags(
-                id,
-                (const char *)sqlite3_column_text(stmt, COLUMN_RULES),
-                def.rules
-            );
+            QStringList rules = QString(
+                (const char *)sqlite3_column_text(stmt, COLUMN_RULES)
+            ).split(' ');
+            def.rules = {
+                std::move_iterator{std::begin(rules)},
+                std::move_iterator{std::end(rules)}
+            };
             term->definitions.append(def);
         }
         if (isStepError(step))
