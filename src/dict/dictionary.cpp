@@ -300,11 +300,15 @@ void Dictionary::sortTerms(SharedTermList &terms) const
             {
                 return lhs->clozeBody.size() > rhs->clozeBody.size();
             }
-            bool lhsIsConjugated = lhs->conjugationExplanation.size() > 0;
-            bool rhsIsConjugated = rhs->conjugationExplanation.size() > 0;
-            if (lhsIsConjugated != rhsIsConjugated)
+            if (lhs->expression.size() != rhs->expression.size())
             {
-                return lhsIsConjugated;
+                return lhs->expression.size() > rhs->expression.size();
+            }
+            if (lhs->conjugationExplanation.size() !=
+                rhs->conjugationExplanation.size())
+            {
+                return lhs->conjugationExplanation.size() >
+                    rhs->conjugationExplanation.size();
             }
             return lhs->score > rhs->score;
         }
