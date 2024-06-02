@@ -28,6 +28,7 @@
 #include <QGuiApplication>
 #include <QInputDialog>
 #include <QList>
+#include <QProxyStyle>
 #include <QSettings>
 
 #include "anki/ankiclient.h"
@@ -35,6 +36,29 @@
 #include "util/globalmediator.h"
 #include "util/utils.h"
 
+/* Begin MenuBar Proxy Style */
+
+/**
+ * A proxy style preventing the menubar from grabbing focus when Alt is pressed.
+ */
+class MenuStyle : public QProxyStyle
+{
+public:
+    int styleHint(
+        StyleHint hint,
+        const QStyleOption *opt,
+        const QWidget *widget,
+        QStyleHintReturn *returnData) const
+    {
+        if (hint == QStyle::SH_MenuBar_AltKeyNavigation)
+        {
+            return 0;
+        }
+        return QProxyStyle::styleHint(hint, opt, widget, returnData);
+    }
+};
+
+/* End MenuBar Proxy Style */
 /* Begin Constructor/Destructor */
 
 PlayerMenu::PlayerMenu(QWidget *parent)
@@ -43,6 +67,8 @@ PlayerMenu::PlayerMenu(QWidget *parent)
       m_player(GlobalMediator::getGlobalMediator()->getPlayerAdapter())
 {
     m_ui->setupUi(this);
+
+    setStyle(new MenuStyle());
 
     updateSubtitlePauseAction();
 
