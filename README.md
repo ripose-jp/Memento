@@ -119,11 +119,11 @@ To do so, open Flatseal, select Anki, and add the `/tmp` directory under **Other
     * SVG
 * mpv
 * sqlite3
-* MeCab
-    * With either ipadic or NAIST-jdic installed as a system dictionary on Linux and macOS. This only applies to self-compiled versions, not appimages or app bundles.
 * Json-C
 * libzip
 * youtube-dl or yt-dlp (optional)
+* MeCab (optional)
+    * With either ipadic or NAIST-jdic installed as a system dictionary on Linux and macOS. This only applies to self-compiled versions, not appimages or app bundles.
 * Python (optional)
 
 For the best experience, install [Noto Sans JP](https://fonts.google.com/noto/specimen/Noto+Sans+JP)
