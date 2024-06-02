@@ -49,14 +49,6 @@ GlossaryWidget::GlossaryWidget(
     {
         m_layoutHeader->addWidget(new TagWidget(tag));
     }
-    for (const Tag &rule : m_def.rules)
-    {
-        if (m_def.tags.contains(rule))
-        {
-            continue;
-        }
-        m_layoutHeader->addWidget(new TagWidget(rule));
-    }
     m_layoutHeader->addWidget(new TagWidget(m_def.dictionary));
 
     m_checkBoxAdd->setChecked(true);

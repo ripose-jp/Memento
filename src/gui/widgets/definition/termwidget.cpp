@@ -66,9 +66,11 @@ using AudioSource = DefinitionState::AudioSource;
 #if defined(Q_OS_MACOS)
 #define EXPRESSION_STYLE    (QString("QLabel { font-size: 30pt; }"))
 #define READING_STYLE       (QString("QLabel { font-size: 18pt; }"))
+#define CONJUGATION_STYLE   (QString("QLabel { font-size: 18pt; }"))
 #else
 #define EXPRESSION_STYLE    (QString("QLabel { font-size: 20pt; }"))
 #define READING_STYLE       (QString("QLabel { font-size: 12pt; }"))
+#define CONJUGATION_STYLE   (QString("QLabel { font-size: 12pt; }"))
 #endif
 
 /* Begin Constructor/Destructor */
@@ -207,6 +209,23 @@ void TermWidget::initUi(
             KANJI_FORMAT_STRING.arg(ch) : ch;
     }
     m_ui->labelKanji->setText(kanjiLabelText);
+
+    if (!term.conjugationExplanation.isEmpty())
+    {
+        m_labelDeconj = new QLabel;
+        m_labelDeconj->setStyleSheet(CONJUGATION_STYLE);
+        m_labelDeconj->setWordWrap(true);
+        m_labelDeconj->setTextInteractionFlags(Qt::TextSelectableByMouse);
+        if (term.reading.isEmpty() || term.conjugationExplanation.size() > 100)
+        {
+            m_ui->layoutTermWidget->insertWidget(1, m_labelDeconj);
+        }
+        else
+        {
+            m_ui->layoutButtonsDeconj->addWidget(m_labelDeconj);
+        }
+        m_labelDeconj->setText(term.conjugationExplanation);
+    }
 
     for (const Frequency &freq : term.frequencies)
     {

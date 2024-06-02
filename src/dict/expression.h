@@ -24,6 +24,7 @@
 #include <QJsonArray>
 #include <QList>
 #include <QMetaType>
+#include <QSet>
 #include <QSharedPointer>
 #include <QString>
 #include <QStringList>
@@ -101,7 +102,7 @@ struct TermDefinition
     QList<Tag> tags;
 
     /* A list of the rules associated with this entry. */
-    QList<Tag> rules;
+    QSet<QString> rules;
 
     /* A list of glossary entries for this definition. */
     QJsonArray glossary;
@@ -171,6 +172,9 @@ struct Term : public CommonExpFields
 
     /* The reading of a term. Usually empty if the term includes no kanji. */
     QString reading;
+
+    /* The conjugation explaination of a term. Usually empty if the term was not conjugated. */
+    QString conjugationExplanation;
 
     /* true if the reading should be used as the expression, false otherwise */
     bool readingAsExpression = false;

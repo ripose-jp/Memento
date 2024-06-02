@@ -23,6 +23,7 @@
 
 #include <QWidget>
 
+#include <QLabel>
 #include <QMutex>
 
 #include "definitionstate.h"
@@ -227,6 +228,9 @@ private:
 
     /* Lock JSON sources */
     QMutex m_lockJsonSources;
+
+    /* Label used for displaying deconjugation information */
+    QLabel *m_labelDeconj{nullptr};
 
     /* Layout used for holding term tags. */
     FlowLayout *m_layoutTermTags;

@@ -78,6 +78,10 @@ add_library(
     dictionary.cpp
     dictionary.h
     expression.h
+    deconjugator.cpp
+    deconjugator.h
+    deconjugationquerygenerator.cpp
+    deconjugationquerygenerator.h
 )
 target_compile_features(dictionary_db PUBLIC cxx_std_17)
 target_compile_options(dictionary_db PRIVATE ${MEMENTO_COMPILER_FLAGS})

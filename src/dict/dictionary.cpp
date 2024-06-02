@@ -28,6 +28,7 @@
 #include <QSettings>
 
 #include "databasemanager.h"
+#include "deconjugationquerygenerator.h"
 #include "exactquerygenerator.h"
 
 #ifdef MECAB_SUPPORT
@@ -75,6 +76,7 @@ void Dictionary::initDictionaryOrder()
 void Dictionary::initQueryGenerators()
 {
     m_generators.emplace_back(std::make_unique<ExactQueryGenerator>());
+    m_generators.emplace_back(std::make_unique<DeconjugationQueryGenerator>());
 
 #ifdef MECAB_SUPPORT
     m_generators.emplace_back(std::make_unique<MeCabQueryGenerator>());
@@ -151,6 +153,27 @@ SharedTermList Dictionary::searchTerms(
             qDebug() << err;
             return nullptr;
         }
+        if (query.ruleFilter.size() > 0)
+        {
+            results.erase(
+                std::remove_if(
+                    results.begin(),
+                    results.end(),
+                    [&] (const SharedTerm &val)
+                    {
+                        for (const TermDefinition &def : val->definitions)
+                        {
+                            if (def.rules.intersects(query.ruleFilter))
+                            {
+                                return false;
+                            }
+                        }
+                        return true;
+                    }
+                ),
+                results.end()
+            );
+        }
 
         QString clozePrefix;
         QString clozeBody;
@@ -170,6 +193,7 @@ SharedTermList Dictionary::searchTerms(
             term->clozePrefix = clozePrefix;
             term->clozeBody = clozeBody;
             term->clozeSuffix = clozeSuffix;
+            term->conjugationExplanation = query.conjugationExplanation;
         }
 
         terms->append(std::move(results));
@@ -220,7 +244,7 @@ void Dictionary::filterDuplicates(std::vector<SearchQuery> &queries)
         std::begin(queries), std::end(queries),
         [] (const SearchQuery &a, const SearchQuery &b) -> bool
         {
-            return a.deconj == b.deconj;
+            return a.deconj == b.deconj && a.ruleFilter == b.ruleFilter;
         }
     );
     queries.erase(last, std::end(queries));
@@ -231,11 +255,17 @@ void Dictionary::sortTerms(SharedTermList &terms) const
     std::sort(std::begin(*terms), std::end(*terms),
         [] (const SharedTerm lhs, const SharedTerm rhs) -> bool
         {
-            return lhs->clozeBody.size() > rhs->clozeBody.size() ||
-                (
-                    lhs->clozeBody.size() == rhs->clozeBody.size() &&
-                    lhs->score > rhs->score
-                );
+            if(lhs->clozeBody.size() != rhs->clozeBody.size())
+            {
+                return lhs->clozeBody.size() > rhs->clozeBody.size();
+            }
+            bool lhsIsConjugated = lhs->conjugationExplanation.size() > 0;
+            bool rhsIsConjugated = rhs->conjugationExplanation.size() > 0;
+            if(lhsIsConjugated != rhsIsConjugated)
+            {
+                return rhsIsConjugated;
+            }
+            return lhs->score > rhs->score;
         }
     );
 
@@ -262,7 +292,6 @@ void Dictionary::sortTerms(SharedTermList &terms) const
         for (TermDefinition &def : term->definitions)
         {
             sortTags(def.tags);
-            sortTags(def.rules);
         }
     }
     m_dicOrder.lock.unlock();

@@ -21,6 +21,7 @@
 #ifndef SEARCHQUERY_H
 #define SEARCHQUERY_H
 
+#include <QSet>
 #include <QString>
 
 /**
@@ -34,6 +35,13 @@ struct SearchQuery
 
     /* The raw conjugated string */
     QString surface;
+
+    /* Filter results based on part of speech */
+    QSet<QString> ruleFilter;
+
+    /* The conjugation explanation of a term. Usually empty if the term was not
+     * conjugated. */
+    QString conjugationExplanation;
 };
 
 #endif // SEARCHQUERY_H

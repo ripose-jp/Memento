@@ -1714,15 +1714,6 @@ QList<QPair<QString, QString>> AnkiClient::buildGlossary(
             glossary += tag.name + ", ";
             glossaryCompact += tag.name + ", ";
         }
-        for (const Tag &rule : def.rules)
-        {
-            if (def.tags.contains(rule))
-            {
-                continue;
-            }
-            glossary += rule.name + ", ";
-            glossaryCompact += rule.name + ", ";
-        }
         glossary += def.dictionary;
         glossary += ")</i>";
         glossaryCompact += def.dictionary;
