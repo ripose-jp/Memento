@@ -25,7 +25,9 @@
 #include <QApplication>
 #include <QDebug>
 #include <QMessageBox>
+#include <QReadLocker>
 #include <QSettings>
+#include <QWriteLocker>
 
 #include "databasemanager.h"
 #include "deconjugationquerygenerator.h"
@@ -54,6 +56,10 @@ Dictionary::Dictionary(QObject *parent) : QObject(parent)
         med, &GlobalMediator::dictionaryOrderChanged,
         this, &Dictionary::initDictionaryOrder
     );
+    connect(
+        med, &GlobalMediator::searchSettingsChanged,
+        this, &Dictionary::initQueryGenerators
+    );
 }
 
 void Dictionary::initDictionaryOrder()
@@ -75,38 +81,71 @@ void Dictionary::initDictionaryOrder()
 
 void Dictionary::initQueryGenerators()
 {
-    m_generators.emplace_back(std::make_unique<ExactQueryGenerator>());
-    m_generators.emplace_back(std::make_unique<DeconjugationQueryGenerator>());
+    QWriteLocker lock{&m_generatorsMutex};
 
-#ifdef MECAB_SUPPORT
-    m_generators.emplace_back(std::make_unique<MeCabQueryGenerator>());
-    if (!m_generators.back()->valid())
+    m_generators.clear();
+
+    QSettings settings;
+    settings.beginGroup(Constants::Settings::Search::GROUP);
+
+    const bool exactMatching = settings.value(
+        Constants::Settings::Search::Matcher::EXACT,
+        Constants::Settings::Search::Matcher::EXACT_DEFAULT
+    ).toBool();
+    if (exactMatching)
     {
-        m_generators.pop_back();
+        m_generators.emplace_back(std::make_unique<ExactQueryGenerator>());
+    }
 
-        qDebug() << MeCab::getTaggerError();
-        QMessageBox::critical(
-            nullptr,
-            "MeCab Error",
-            "Could not initialize MeCab.\n"
-            "Memento will still work, but search results will suffer.\n"
-#if defined(Q_OS_WIN)
-            "Make sure that ipadic is present in\n" +
-            DirectoryUtils::getDictionaryDir()
-#elif defined(APPIMAGE)
-            "Please report this bug at "
-            "https://github.com/ripose-jp/Memento/issues"
-#elif defined(APPBUNDLE)
-            "The current dictionary directory\n" +
-            DirectoryUtils::getDictionaryDir() +
-            "\nIf there are spaces in this path, please move Memento to a "
-            "directory without spaces."
-#else
-            "Make sure you have a system dictionary installed by running "
-            "'mecab -D' from the command line."
-#endif
+    const bool deconjMatching = settings.value(
+        Constants::Settings::Search::Matcher::DECONJ,
+        Constants::Settings::Search::Matcher::DECONJ_DEFAULT
+    ).toBool();
+    if (deconjMatching)
+    {
+        m_generators.emplace_back(
+            std::make_unique<DeconjugationQueryGenerator>()
         );
     }
+
+#ifdef MECAB_SUPPORT
+
+    const bool mecabIpadicMatching = settings.value(
+        Constants::Settings::Search::Matcher::MECAB_IPADIC,
+        Constants::Settings::Search::Matcher::MECAB_IPADIC_DEFAULT
+    ).toBool();
+    if (mecabIpadicMatching)
+    {
+        m_generators.emplace_back(std::make_unique<MeCabQueryGenerator>());
+        if (!m_generators.back()->valid())
+        {
+            m_generators.pop_back();
+
+            qDebug() << MeCab::getTaggerError();
+            QMessageBox::critical(
+                nullptr,
+                "MeCab Error",
+                "Could not initialize MeCab.\n"
+                "Memento will still work, but search results will suffer.\n"
+#if defined(Q_OS_WIN)
+                "Make sure that ipadic is present in\n" +
+                DirectoryUtils::getDictionaryDir()
+#elif defined(APPIMAGE)
+                "Please report this bug at "
+                "https://github.com/ripose-jp/Memento/issues"
+#elif defined(APPBUNDLE)
+                "The current dictionary directory\n" +
+                DirectoryUtils::getDictionaryDir() +
+                "\nIf there are spaces in this path, please move Memento to a "
+                "directory without spaces."
+#else
+                "Make sure you have a system dictionary installed by running "
+                "'mecab -D' from the command line."
+#endif
+            );
+        }
+    }
+
 #endif // MECAB_SUPPORT
 }
 
@@ -210,6 +249,8 @@ SharedTermList Dictionary::searchTerms(
 
 std::vector<SearchQuery> Dictionary::generateQueries(const QString &text) const
 {
+    QReadLocker lock{&m_generatorsMutex};
+
     std::vector<SearchQuery> queries;
     for (const std::unique_ptr<QueryGenerator> &gen : m_generators)
     {
@@ -255,15 +296,15 @@ void Dictionary::sortTerms(SharedTermList &terms) const
     std::sort(std::begin(*terms), std::end(*terms),
         [] (const SharedTerm lhs, const SharedTerm rhs) -> bool
         {
-            if(lhs->clozeBody.size() != rhs->clozeBody.size())
+            if (lhs->clozeBody.size() != rhs->clozeBody.size())
             {
                 return lhs->clozeBody.size() > rhs->clozeBody.size();
             }
             bool lhsIsConjugated = lhs->conjugationExplanation.size() > 0;
             bool rhsIsConjugated = rhs->conjugationExplanation.size() > 0;
-            if(lhsIsConjugated != rhsIsConjugated)
+            if (lhsIsConjugated != rhsIsConjugated)
             {
-                return rhsIsConjugated;
+                return lhsIsConjugated;
             }
             return lhs->score > rhs->score;
         }

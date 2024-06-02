@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>768</width>
-    <height>601</height>
+    <height>739</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,8 +27,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>735</width>
-        <height>556</height>
+        <width>756</width>
+        <height>683</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layoutScrollArea">
@@ -44,6 +44,50 @@
        <property name="bottomMargin">
         <number>0</number>
        </property>
+       <item>
+        <widget class="QLabel" name="labelMatcher">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Matchers</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkExact">
+         <property name="toolTip">
+          <string>Matches text exactly as it appears in subtitles</string>
+         </property>
+         <property name="text">
+          <string>Exact Matcher</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkDeconj">
+         <property name="toolTip">
+          <string>Matches vocabulary by deconjugating using known rules.
+Includes deconjugation information in results.</string>
+         </property>
+         <property name="text">
+          <string>Deconjugation Matcher</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkMecabIpadic">
+         <property name="toolTip">
+          <string>Matches vocabulary using MeCab with IPAdic</string>
+         </property>
+         <property name="text">
+          <string>MeCab IPAdic Matcher</string>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QLabel" name="labelLimit">
          <property name="font">

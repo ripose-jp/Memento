@@ -58,6 +58,10 @@ SearchSettings::SearchSettings(QWidget *parent)
         Constants::Settings::Search::Modifier::SUPER
     );
 
+#ifndef MECAB_SUPPORT
+    m_ui->checkMecabIpadic->setVisible(false);
+#endif // MECAB_SUPPORT
+
     connect(
         m_ui->buttonBox->button(QDialogButtonBox::Reset),
         &QPushButton::clicked,
@@ -101,6 +105,28 @@ void SearchSettings::restoreSaved()
 {
     QSettings settings;
     settings.beginGroup(Constants::Settings::Search::GROUP);
+
+    m_ui->checkExact->setChecked(
+        settings.value(
+            Constants::Settings::Search::Matcher::EXACT,
+            Constants::Settings::Search::Matcher::EXACT_DEFAULT
+        ).toBool()
+    );
+    m_ui->checkDeconj->setChecked(
+        settings.value(
+            Constants::Settings::Search::Matcher::DECONJ,
+            Constants::Settings::Search::Matcher::DECONJ_DEFAULT
+        ).toBool()
+    );
+#ifdef MECAB_SUPPORT
+    m_ui->checkMecabIpadic->setChecked(
+        settings.value(
+            Constants::Settings::Search::Matcher::MECAB_IPADIC,
+            Constants::Settings::Search::Matcher::MECAB_IPADIC_DEFAULT
+        ).toBool()
+    );
+#endif // MECAB_SUPPORT
+
     m_ui->spinLimitResults->setValue(
         settings.value(
             Constants::Settings::Search::LIMIT,
@@ -173,11 +199,24 @@ void SearchSettings::restoreSaved()
             Constants::Settings::Search::REMOVE_REGEX_DEFAULT
         ).toString()
     );
+
     settings.endGroup();
 }
 
 void SearchSettings::restoreDefaults()
 {
+    m_ui->checkExact->setChecked(
+        Constants::Settings::Search::Matcher::EXACT_DEFAULT
+    );
+    m_ui->checkDeconj->setChecked(
+        Constants::Settings::Search::Matcher::DECONJ_DEFAULT
+    );
+#ifdef MECAB_SUPPORT
+    m_ui->checkMecabIpadic->setChecked(
+        Constants::Settings::Search::Matcher::MECAB_IPADIC_DEFAULT
+    );
+#endif // MECAB_SUPPORT
+
     m_ui->spinLimitResults->setValue(
         Constants::Settings::Search::LIMIT_DEFAULT
     );
@@ -218,6 +257,22 @@ void SearchSettings::applySettings()
 {
     QSettings settings;
     settings.beginGroup(Constants::Settings::Search::GROUP);
+
+    settings.setValue(
+        Constants::Settings::Search::Matcher::EXACT,
+        m_ui->checkExact->isChecked()
+    );
+    settings.setValue(
+        Constants::Settings::Search::Matcher::DECONJ,
+        m_ui->checkDeconj->isChecked()
+    );
+#ifdef MECAB_SUPPORT
+    settings.setValue(
+        Constants::Settings::Search::Matcher::MECAB_IPADIC,
+        m_ui->checkMecabIpadic->isChecked()
+    );
+#endif // MECAB_SUPPORT
+
     settings.setValue(
         Constants::Settings::Search::LIMIT,
         m_ui->spinLimitResults->value()
@@ -266,6 +321,7 @@ void SearchSettings::applySettings()
         Constants::Settings::Search::REMOVE_REGEX,
         m_ui->lineRemoveRegex->text()
     );
+
     settings.endGroup();
 
     Q_EMIT GlobalMediator::getGlobalMediator()->searchSettingsChanged();

@@ -158,6 +158,9 @@ private:
     /* The DatabaseManager */
     std::unique_ptr<DatabaseManager> m_db;
 
+    /* Mutex for the list of query generators */
+    mutable QReadWriteLock m_generatorsMutex;
+
     /* List of QueryGenerators */
     std::vector<std::unique_ptr<QueryGenerator>> m_generators;
 

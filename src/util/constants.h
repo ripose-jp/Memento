@@ -141,6 +141,20 @@ namespace Constants
         {
             constexpr const char *GROUP = "search";
 
+            namespace Matcher
+            {
+                constexpr const char *EXACT = "exact-matcher";
+                constexpr bool EXACT_DEFAULT = true;
+
+                constexpr const char *DECONJ = "deconj-matcher";
+                constexpr bool DECONJ_DEFAULT = true;
+
+#ifdef MECAB_SUPPORT
+                constexpr const char *MECAB_IPADIC = "ipadic-matcher";
+                constexpr bool MECAB_IPADIC_DEFAULT = true;
+#endif // MECAB_SUPPORT
+            }
+
             namespace Method
             {
                 constexpr const char *HOVER = "Hover";
