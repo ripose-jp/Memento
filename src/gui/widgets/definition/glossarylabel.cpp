@@ -116,8 +116,12 @@ void GlossaryLabel::setContents(const QJsonArray &definitions, QString basepath)
     basepath.prepend("file://");
     basepath += '/';
 
+    const bool shouldUseBullets =
+        m_style == Constants::GlossaryStyle::Bullet &&
+        !containsStructuredContent(definitions);
+
     QString content = "<html><head/><body>";
-    if (m_style == Constants::GlossaryStyle::Bullet)
+    if (shouldUseBullets)
     {
         content += "<ul>";
     }
@@ -125,7 +129,7 @@ void GlossaryLabel::setContents(const QJsonArray &definitions, QString basepath)
     {
         const QJsonValue &val = definitions[i];
 
-        if (m_style == Constants::GlossaryStyle::Bullet)
+        if (shouldUseBullets)
         {
             content += "<li>";
         }
@@ -137,10 +141,10 @@ void GlossaryLabel::setContents(const QJsonArray &definitions, QString basepath)
                 .toString()
                 .replace(
                     '\n',
-                    m_style == Constants::GlossaryStyle::Bullet ?
-                        "</li><li>" : "<br>"
+                    shouldUseBullets ? "</li><li>" : "<br>"
                 );
             break;
+
         case QJsonValue::Type::Object:
         {
             QJsonObject obj = val.toObject();
@@ -158,21 +162,29 @@ void GlossaryLabel::setContents(const QJsonArray &definitions, QString basepath)
             }
             break;
         }
+
         default:
             break;
         }
 
-        if (m_style == Constants::GlossaryStyle::Bullet)
+        if (shouldUseBullets)
         {
             content += "</li>";
         }
-        else if (i < definitions.size() - 1)
+        else if (i >= definitions.size() - 1)
         {
-            content +=
-                m_style == Constants::GlossaryStyle::LineBreak ? "<br>" : " | ";
+            /* Avoid putting <br> or | after the fine line */
+        }
+        else if (m_style == Constants::GlossaryStyle::LineBreak)
+        {
+            content += "<br>";
+        }
+        else if (m_style == Constants::GlossaryStyle::Pipe)
+        {
+            content += " | ";
         }
     }
-    if (m_style == Constants::GlossaryStyle::Bullet)
+    if (shouldUseBullets)
     {
         content += "</ul>";
     }
@@ -546,6 +558,20 @@ void GlossaryLabel::addText(const QJsonObject &obj, QString &out) const
 #undef KEY_TEXT
 
 /* End Other Object Parsers */
+/* Begin Helpers */
+
+bool GlossaryLabel::containsStructuredContent(const QJsonArray &definitions)
+{
+    return std::any_of(
+        std::begin(definitions), std::end(definitions),
+        [] (const QJsonValue &value) -> bool
+        {
+            return value.type() == QJsonValue::Object;
+        }
+    );
+}
+
+/* End Helpers */
 /* Begin Event Handlers */
 
 void GlossaryLabel::adjustSize()
@@ -591,11 +617,11 @@ void GlossaryLabel::resizeEvent(QResizeEvent *event)
     adjustSize();
 }
 
-/* Prevents large searches from being executed and freezing everything up */
-#define MAX_SEARCH_SIZE 40
-
 void GlossaryLabel::mouseMoveEvent(QMouseEvent *event)
 {
+    /* Prevents large searches from being executed and freezing everything up */
+    constexpr qsizetype MAX_SEARCH_SIZE{40};
+
     QTextEdit::mouseMoveEvent(event);
 
     if (!(QGuiApplication::keyboardModifiers() & m_searchModifier))
@@ -644,8 +670,6 @@ void GlossaryLabel::mouseMoveEvent(QMouseEvent *event)
     );
     QThreadPool::globalInstance()->start(worker);
 }
-
-#undef MAX_SEARCH_SIZE
 
 void GlossaryLabel::mousePressEvent(QMouseEvent *event)
 {

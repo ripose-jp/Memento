@@ -177,6 +177,14 @@ private:
      */
     void addText(const QJsonObject &obj, QString &out) const;
 
+    /**
+     * Determines if an array contains structured content.
+     * @param definitions The array of definitions.
+     * @return True if the array contains structured content, false otherwise.
+     */
+    [[nodiscard]]
+    static bool containsStructuredContent(const QJsonArray &definitions);
+
     /* The modifier that triggers searches */
     Qt::KeyboardModifier m_searchModifier = Qt::KeyboardModifier::ShiftModifier;
 
