@@ -295,7 +295,7 @@ namespace Constants
 "QTableWidget {\n"
 "    background: black;\n"
 "    color: white;\n"
-"    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"
+"    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", \"Noto Color Emoji\", sans-serif;\n"
 "    font-size: 20pt;\n"
 "}";
 #elif defined(Q_OS_WIN)
@@ -322,7 +322,7 @@ namespace Constants
 "QTableWidget {\n"
 "    background: black;\n"
 "    color: white;\n"
-"    font-family: \"Meiryo\", \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"
+"    font-family: \"Meiryo\", \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", \"Noto Color Emoji\", sans-serif;\n"
 "    font-size: 14pt;\n"
 "}";
 #else
@@ -349,7 +349,7 @@ namespace Constants
 "QTableWidget {\n"
 "    background: black;\n"
 "    color: white;\n"
-"    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"
+"    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", \"Noto Color Emoji\", sans-serif;\n"
 "    font-size: 14pt;\n"
 "}";
 #endif
@@ -368,17 +368,17 @@ namespace Constants
                 constexpr const char *DEFINITION_DEFAULT =
 #if defined(Q_OS_MACOS)
 "QLabel, QTextEdit {\n"
-"    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"
+"    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", \"Noto Color Emoji\", sans-serif;\n"
 "    font-size: 15pt;\n"
 "}";
 #elif defined(Q_OS_WIN)
 "QLabel, QTextEdit {\n"
-"    font-family: \"Meiryo\", \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"
+"    font-family: \"Meiryo\", \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", \"Noto Color Emoji\", sans-serif;\n"
 "    font-size: 11pt;\n"
 "}";
 #else
 "QLabel, QTextEdit {\n"
-"    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;\n"
+"    font-family: \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", \"Noto Color Emoji\", sans-serif;\n"
 "    font-size: 11pt;\n"
 "}";
 #endif
