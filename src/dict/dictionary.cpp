@@ -307,8 +307,9 @@ void Dictionary::sortTerms(SharedTermList &terms) const
             if (lhs->conjugationExplanation.size() !=
                 rhs->conjugationExplanation.size())
             {
-                return lhs->conjugationExplanation.size() >
-                    rhs->conjugationExplanation.size();
+                return lhs->conjugationExplanation.isEmpty() ||
+                    lhs->conjugationExplanation.size() >
+                        rhs->conjugationExplanation.size();
             }
             return lhs->score > rhs->score;
         }
