@@ -48,6 +48,7 @@
 #define REPLACE_SENTENCE            "{sentence}"
 #define REPLACE_SENTENCE_SEC        "{sentence-2}"
 #define REPLACE_TAGS                "{tags}"
+#define REPLACE_TAGS_BRIEF          "{tags-brief}"
 #define REPLACE_TITLE               "{title}"
 
 /* Term Markers */
@@ -483,10 +484,13 @@ private:
     /**
      * Helper method for wrapping tags in <li></li>'s.
      * @param      tags   The tags to create a list from.
-     * @param[out] tagStr The string to append to.
-     * @return tagstr
+     * @param[out] tagStr The string to append to for the detailed tag list.
+     * @param[out] tagBriefStr The string to append to for a brief tag list.
      */
-    QString &accumulateTags(const QList<Tag> &tags, QString &tagStr);
+    void buildTags(
+        const QList<Tag> &tags,
+        QString &tagStr,
+        QString &tagBriefStr);
 
     /**
      * Helper method to convert file to base64.
