@@ -146,12 +146,6 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
                 goto cleanup;
             }
 
-            if (!reply->open(QIODevice::ReadOnly))
-            {
-                qDebug() << "Could not open audio reply";
-                goto cleanup;
-            }
-
             /* Put the audio in a new temp file */
             file = new QTemporaryFile;
             if (!file->open())
