@@ -69,7 +69,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="25" column="1">
+         <item row="26" column="1">
           <widget class="QLabel" name="labelTermTitleEx">
            <property name="text">
             <string>Title of the video. Filename if no title.</string>
@@ -594,7 +594,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="25" column="0">
+         <item row="26" column="0">
           <widget class="QLabel" name="labelTermTitle">
            <property name="font">
             <font>
@@ -685,6 +685,32 @@ These will expand to larger expressions in the final card.</string>
            </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="25" column="0">
+          <widget class="QLabel" name="labelTermTagsBrief">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{tags-brief}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="25" column="1">
+          <widget class="QLabel" name="labelTermTagsBriefEx">
+           <property name="text">
+            <string>Bulleted list of the term tags without description.</string>
            </property>
           </widget>
          </item>
@@ -969,6 +995,25 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
+         <item row="19" column="0">
+          <widget class="QLabel" name="labelKanjiTagsBrief">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{tags-brief}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
          <item row="9" column="1">
           <widget class="QLabel" name="labelKanjiFrequenciesEx">
            <property name="text">
@@ -1032,6 +1077,13 @@ These will expand to larger expressions in the final card.</string>
           <widget class="QLabel" name="labelKanjiTagsEx">
            <property name="text">
             <string>Bulleted list of the term tags.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="19" column="1">
+          <widget class="QLabel" name="labelKanjiTagsBriefEx">
+           <property name="text">
+            <string>Bulleted list of the term tags without description.</string>
            </property>
           </widget>
          </item>
@@ -1135,7 +1187,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="19" column="0">
+         <item row="20" column="0">
           <widget class="QLabel" name="labelKanjiTitle">
            <property name="font">
             <font>
@@ -1249,7 +1301,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="19" column="1">
+         <item row="20" column="1">
           <widget class="QLabel" name="labelKanjiTitleEx">
            <property name="text">
             <string>Title of the video. Filename if no title.</string>

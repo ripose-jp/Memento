@@ -1128,11 +1128,9 @@ QJsonObject AnkiClient::createAnkiNoteObject(
     QString pitchPosition;
     buildPitchInfo(term.pitches, pitch, pitchGraph, pitchPosition);
 
-    QString tags = "<ul>";
-    accumulateTags(term.tags, tags);
-    tags += "</ul>";
-    if (tags == "<ul></ul>")
-        tags.clear();
+    QString tags, tagsBrief;
+    buildTags(term.tags, tags, tagsBrief);
+
 
     /* Find and replace markers with data */
     QStringList fields = m_currentConfig->termFields.keys();
@@ -1158,6 +1156,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(
         value.replace(REPLACE_PITCH_POSITIONS,  pitchPosition);
         value.replace(REPLACE_READING,          reading);
         value.replace(REPLACE_TAGS,             tags);
+        value.replace(REPLACE_TAGS_BRIEF,       tagsBrief);
 
         fieldsObj[field] = value;
     }
@@ -1204,14 +1203,13 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji, bool media)
 
     /* Build Note Fields */
     QString glossary;
-    QString tags;
+    QString tags, tagsBrief;
     QString strokeCount;
     QString onyomi;
     QString kunyomi;
     if (!kanji.definitions.isEmpty())
     {
         glossary += "<ol>";
-        tags += "<ul>";
         for (const KanjiDefinition &def : kanji.definitions)
         {
             /* Build glossary */
@@ -1236,7 +1234,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji, bool media)
             }
 
             /* Build tags */
-            accumulateTags(def.tags, tags);
+            buildTags(def.tags, tags, tagsBrief);
 
             /* Find the stroke count if we haven't already */
             if (strokeCount.isEmpty())
@@ -1265,16 +1263,12 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji, bool media)
             }
         }
         glossary += "</ol>";
-        tags += "</ul>";
         onyomi.chop(2);
         kunyomi.chop(2);
 
         /* Clear out empty results */
         if (glossary == "<ol></ol>")
             glossary.clear();
-            /* Clear out an empty tag */
-        if (tags == "<ul></ul>")
-            tags.clear();
     }
 
     /* Replace Markers */
@@ -1290,6 +1284,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji, bool media)
         value.replace(REPLACE_STROKE_COUNT, strokeCount);
         value.replace(REPLACE_GLOSSARY,     glossary);
         value.replace(REPLACE_TAGS,         tags);
+        value.replace(REPLACE_TAGS_BRIEF,   tagsBrief);
 
         fieldsObj[field] = value;
     }
@@ -1770,24 +1765,36 @@ QString AnkiClient::buildFrequencies(const QList<Frequency> &frequencies)
     return freqStr;
 }
 
-QString &AnkiClient::accumulateTags(const QList<Tag> &tags, QString &tagStr)
+void AnkiClient::buildTags(
+    const QList<Tag> &tags,
+    QString &tagStr,
+    QString &tagBriefStr)
 {
     if (tags.isEmpty())
-        return tagStr;
+    {
+        tagStr.clear();
+        tagBriefStr.clear();
+        return;
+    }
 
+    tagStr      = "<ul>";
+    tagBriefStr = "<ul>";
     for (const Tag &tag : tags)
     {
-        tagStr += "<li>";
-        tagStr += tag.name;
+        tagStr      += "<li>";
+        tagStr      += tag.name;
+        tagBriefStr += "<li>";
+        tagBriefStr += tag.name;
         if (!tag.notes.isEmpty())
         {
             tagStr += ": ";
             tagStr += tag.notes;
         }
-        tagStr += "</li>";
+        tagStr      += "</li>";
+        tagBriefStr += "</li>";
     }
-
-    return tagStr;
+    tagStr      += "</ul>";
+    tagBriefStr += "</ul>";
 }
 
 QString AnkiClient::fileToBase64(const QString &path)

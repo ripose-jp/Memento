@@ -57,6 +57,7 @@ AnkiSettings::AnkiSettings(QWidget *parent)
             REPLACE_SENTENCE,
             REPLACE_SENTENCE_SEC,
             REPLACE_TAGS,
+            REPLACE_TAGS_BRIEF,
             REPLACE_TITLE,
 
             /* Term */
