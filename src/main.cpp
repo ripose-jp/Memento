@@ -205,6 +205,9 @@ int main(int argc, char **argv)
     QCoreApplication::setOrganizationDomain("ripose.projects");
     QCoreApplication::setApplicationName("memento");
 
+    /* Make the icon show up on Wayland */
+    QGuiApplication::setDesktopFileName("memento");
+
     /* Construct the application */
     QApplication memento(argc, argv);
 
