@@ -467,7 +467,7 @@ void MainWindow::showEvent(QShowEvent *event)
             "please install a dictionary."
             "<br>"
             "Dictionaries can be found "
-            "<a href='https://foosoft.net/projects/yomichan/#dictionaries'>"
+            "<a href='https://github.com/ripose-jp/Memento?tab=readme-ov-file#dictionaries'>"
                 "here"
             "</a>."
             "<br>"
