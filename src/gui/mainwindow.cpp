@@ -343,7 +343,7 @@ void MainWindow::initTheme()
             QApplication::setStyle(style);
         }
 #elif defined(Q_OS_MACOS)
-        QStyle *style = QStyleFactory::create("macintosh");
+        QStyle *style = QStyleFactory::create("macos");
         if (style)
         {
             QApplication::setStyle(style);
