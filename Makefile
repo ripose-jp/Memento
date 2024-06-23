@@ -49,9 +49,7 @@ appbundle: setup
 		  -DCMAKE_BUILD_TYPE=Release \
 		  ${CMAKE_ARGS} \
 		  ..; \
-	cmake --build . -j$(nproc); \
-	mkdir -p ./src/Memento.app/Contents/Frameworks/mecab; \
-	cp -r ../dic ./src/Memento.app/Contents/Frameworks/mecab
+	cmake --build . -j$(nproc);
 
 # This target is for building x86_64 app bundles on arm Macs
 appbundle_x86: setup
@@ -62,6 +60,4 @@ appbundle_x86: setup
 		  -DCMAKE_BUILD_TYPE=Release \
 		  ${CMAKE_ARGS} \
 		  ..; \
-	cmake --build . -j$(nproc); \
-	mkdir -p ./src/Memento.app/Contents/Frameworks/mecab; \
-	cp -r ../dic ./src/Memento.app/Contents/Frameworks/mecab
+	cmake --build . -j$(nproc);

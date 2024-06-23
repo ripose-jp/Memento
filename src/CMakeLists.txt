@@ -175,6 +175,22 @@ if(APPBUNDLE)
 		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
 	)
 
+	# Copy ipadic if necessary
+	if(MECAB_SUPPORT)
+		add_custom_command(
+			TARGET ${PROJECT_NAME}
+			POST_BUILD
+			COMMAND mkdir -p "${PROJECT_NAME}.app/Contents/Frameworks/mecab"
+			WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
+		)
+		add_custom_command(
+			TARGET ${PROJECT_NAME}
+			POST_BUILD
+			COMMAND cp -r "${PROJECT_SOURCE_DIR}/dic" "${PROJECT_NAME}.app/Contents/Frameworks/mecab"
+			WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
+		)
+	endif()
+
 	# Sign the code
 	add_custom_command(
 		TARGET ${PROJECT_NAME}
