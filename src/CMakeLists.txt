@@ -20,6 +20,18 @@ add_subdirectory(util)
 
 # Executable Targets
 if(APPBUNDLE)
+	# Get the Homebrew install path
+	execute_process(
+		COMMAND uname -m
+		OUTPUT_VARIABLE MEMENTO_MACOS_ARCH
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+	if(MEMENTO_MACOS_ARCH STREQUAL "x86_64" OR MAC_CROSSCOMPILE_X86)
+		set(HOMEBREW_PREFIX_PATH "/usr/local")
+	else()
+		set(HOMEBREW_PREFIX_PATH "/opt/homebrew")
+	endif()
+
 	set(MEMENTO_ICON_FILE "memento.icns")
 	set(MEMENTO_ICON_PATH "${PROJECT_SOURCE_DIR}/res/${MEMENTO_ICON_FILE}")
 
@@ -91,16 +103,62 @@ if(APPBUNDLE)
 	)
 
 	# Run macdeployqt to pick up any plugins dylibbundler missed
-	if (MAC_CROSSCOMPILE_X86)
-		set(MACDEPLOYQT_BIN "/usr/local/opt/qt6/bin/macdeployqt")
-	else()
-		set(MACDEPLOYQT_BIN macdeployqt)
-	endif()
+	set(MACDEPLOYQT_BIN "${HOMEBREW_PREFIX_PATH}/opt/qt6/bin/macdeployqt")
 	add_custom_command(
 		TARGET ${PROJECT_NAME}
 		POST_BUILD
 		COMMAND ${MACDEPLOYQT_BIN} ${PROJECT_NAME}.app
 		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
+	)
+
+	# Copy QtDBus because the maintainers of Homebrew built it for some reason
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND mkdir -p "${PROJECT_NAME}.app/Contents/Frameworks/QtDBus.framework/Versions/A"
+		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
+	)
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND cp -r "${HOMEBREW_PREFIX_PATH}/lib/QtDBus.framework/Versions/A" "."
+		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks/QtDBus.framework/Versions"
+	)
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND ln -s "A" "Current"
+		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks/QtDBus.framework/Versions"
+	)
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND ln -s "Versions/Current/QtDBus" "QtDBus"
+		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks/QtDBus.framework/"
+	)
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND ln -s "Versions/Current/Resources" "Resources"
+		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks/QtDBus.framework/"
+	)
+	execute_process(
+		COMMAND ./getlib.sh "${HOMEBREW_PREFIX_PATH}/lib/QtDBus.framework/QtDBus" libdbus
+		OUTPUT_VARIABLE OTOOL_LIBDBUS
+		WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/macos"
+	)
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND cp "${OTOOL_LIBDBUS}" "."
+		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks/"
+	)
+	string(REGEX MATCH "libdbus-.*\.dylib" LIBDBUS_DYLIB ${OTOOL_LIBDBUS})
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND install_name_tool -change "${OTOOL_LIBDBUS}" "@executable_path/../Frameworks/${LIBDBUS_DYLIB}" "QtDBus.framework/QtDBus"
+		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks"
 	)
 
 	# Copy python. This need to happen here because Python confuses codesign
