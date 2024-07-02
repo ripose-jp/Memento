@@ -294,7 +294,7 @@ void Dictionary::filterDuplicates(std::vector<SearchQuery> &queries)
 void Dictionary::sortTerms(SharedTermList &terms) const
 {
     std::sort(std::begin(*terms), std::end(*terms),
-        [] (const SharedTerm lhs, const SharedTerm rhs) -> bool
+        [] (const SharedTerm &lhs, const SharedTerm &rhs) -> bool
         {
             if (lhs->clozeBody.size() != rhs->clozeBody.size())
             {
@@ -304,12 +304,11 @@ void Dictionary::sortTerms(SharedTermList &terms) const
             {
                 return lhs->expression.size() > rhs->expression.size();
             }
-            if (lhs->conjugationExplanation.size() !=
-                rhs->conjugationExplanation.size())
+            if (lhs->conjugationExplanation.isEmpty() !=
+                rhs->conjugationExplanation.isEmpty())
             {
-                return lhs->conjugationExplanation.isEmpty() ||
-                    lhs->conjugationExplanation.size() >
-                        rhs->conjugationExplanation.size();
+                return lhs->conjugationExplanation.size() >
+                    rhs->conjugationExplanation.size();
             }
             return lhs->score > rhs->score;
         }
