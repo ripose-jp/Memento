@@ -31,6 +31,7 @@ std::vector<SearchQuery> ExactQueryGenerator::generateQueries(
         SearchQuery sq;
         sq.deconj = query;
         sq.surface = query;
+        sq.source = SearchQuery::Source::exact;
         queries.emplace_back(std::move(sq));
         query.chop(1);
     }

@@ -281,6 +281,38 @@ void Dictionary::sortQueries(std::vector<SearchQuery> &queries)
 
 void Dictionary::filterDuplicates(std::vector<SearchQuery> &queries)
 {
+#ifdef MECAB_SUPPORT
+    /* Remove all duplicates that both MeCab and the deconjugator got.
+     * Prefer deconjugator results over MeCab. */
+    QSet<QString> deconjQueries;
+    for (const SearchQuery &query : queries)
+    {
+        if (query.source == SearchQuery::Source::deconj)
+        {
+            deconjQueries.insert(query.deconj);
+        }
+    }
+    queries.erase(
+        std::remove_if(
+            std::begin(queries), std::end(queries),
+            [&deconjQueries] (const SearchQuery &query) -> bool
+            {
+                switch (query.source)
+                {
+                    case SearchQuery::Source::mecab:
+                        return deconjQueries.contains(query.deconj);
+
+                    case SearchQuery::Source::deconj:
+                    case SearchQuery::Source::exact:
+                        return false;
+                }
+                return false;
+            }
+        ),
+        std::end(queries)
+    );
+#endif // MECAB_SUPPORT
+
     auto last = std::unique(
         std::begin(queries), std::end(queries),
         [] (const SearchQuery &lhs, const SearchQuery &rhs) -> bool

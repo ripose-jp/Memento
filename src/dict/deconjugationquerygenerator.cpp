@@ -79,10 +79,11 @@ std::vector<SearchQuery> DeconjugationQueryGenerator::generateQueries(
         else
         {
             result.emplace_back(SearchQuery{
+                SearchQuery::Source::deconj,
                 info.base,
                 info.conjugated,
                 { rule },
-                info.derivationDisplay
+                info.derivationDisplay,
             });
         }
 

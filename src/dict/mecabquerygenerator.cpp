@@ -153,6 +153,7 @@ MeCabQueryGenerator::generateQueriesHelper(const MeCab::Node *node)
             query.deconj = deconj;
             query.surface = surface;
             query.surfaceClean = surfaceClean;
+            query.source = SearchQuery::Source::mecab;
             queries.emplace_back(std::move(query));
         }
 

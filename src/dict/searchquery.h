@@ -30,6 +30,19 @@
  */
 struct SearchQuery
 {
+    /**
+     * Enumeration of SearchQuery sources.
+     */
+    enum class Source
+    {
+        exact,
+        deconj,
+        mecab,
+    };
+
+    /* The query algorithm this query comes from */
+    Source source;
+
     /* The deconjugated string */
     QString deconj;
 
