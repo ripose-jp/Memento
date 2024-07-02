@@ -151,7 +151,7 @@ namespace Constants
 
 #ifdef MECAB_SUPPORT
                 constexpr const char *MECAB_IPADIC = "ipadic-matcher";
-                constexpr bool MECAB_IPADIC_DEFAULT = true;
+                constexpr bool MECAB_IPADIC_DEFAULT = false;
 #endif // MECAB_SUPPORT
             }
 
