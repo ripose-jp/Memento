@@ -268,13 +268,13 @@ void Dictionary::sortQueries(std::vector<SearchQuery> &queries)
 {
     std::sort(
         std::begin(queries), std::end(queries),
-        [] (const SearchQuery &rhs, const SearchQuery &lhs) -> bool
+        [] (const SearchQuery &lhs, const SearchQuery &rhs) -> bool
         {
-            if (rhs.deconj == lhs.deconj)
+            if (lhs.deconj == rhs.deconj)
             {
-                return rhs.surface.size() > lhs.surface.size();
+                return lhs.surface.size() > rhs.surface.size();
             }
-            return rhs.deconj > lhs.deconj;
+            return lhs.deconj > rhs.deconj;
         }
     );
 }
@@ -283,9 +283,9 @@ void Dictionary::filterDuplicates(std::vector<SearchQuery> &queries)
 {
     auto last = std::unique(
         std::begin(queries), std::end(queries),
-        [] (const SearchQuery &a, const SearchQuery &b) -> bool
+        [] (const SearchQuery &lhs, const SearchQuery &rhs) -> bool
         {
-            return a.deconj == b.deconj && a.ruleFilter == b.ruleFilter;
+            return lhs.deconj == rhs.deconj && lhs.ruleFilter == rhs.ruleFilter;
         }
     );
     queries.erase(last, std::end(queries));
