@@ -12,32 +12,27 @@ EGIT_REPO_URI="https://github.com/ripose-jp/Memento.git"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64"
+IUSE="mecab"
 
 DEPEND="
     dev-libs/libzip
-    app-text/mecab
-    app-dicts/mecab-ipadic
+    mecab? ( app-text/mecab )
+    mecab? ( app-dicts/mecab-ipadic )
     dev-db/sqlite
     media-video/mpv:=[libmpv]
     dev-libs/json-c
-    >=dev-qt/qtcore-5.15.0:5
-    >=dev-qt/qtopengl-5.15.0:5
-    >=dev-qt/qtgui-5.15.0:5
-    >=dev-qt/qtx11extras-5.15.0:5
-    >=dev-qt/qtsvg-5.15.0:5
-    >=dev-qt/qtnetwork-5.15.0:5
-    >=dev-qt/qtdbus-5.15.0:5
-    >=dev-qt/qtconcurrent-5.15.0:5"
+    >=dev-qt/qtbase-6.7.0:6"
 RDEPEND="
     ${DEPEND}
     media-fonts/noto-cjk"
 BDEPEND="
-    >=dev-util/cmake-3.15.0"
+    >=dev-build/cmake-3.15.0"
 
 src_configure()
 {
     local mycmakeargs=(
         "-DBUILD_SHARED_LIBS=OFF"
+        "-DMECAB_SUPPORT=$(use mecab && echo ON || echo OFF)"
     )
     cmake_src_configure
 }
