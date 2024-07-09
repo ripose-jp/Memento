@@ -322,6 +322,11 @@ private Q_SLOTS:
     void initTimer();
 
     /**
+     * Initializes mpv options from the command line.
+     */
+    void initOptions();
+
+    /**
      * Shows the cursor over this widget.
      */
     void showCursor();
