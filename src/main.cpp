@@ -188,7 +188,7 @@ int main(int argc, char **argv)
 {
     if (showHelpMessage(argc, argv))
     {
-        std::cout << "Usage:\t memento [options] [url|path/]filename\n"
+        std::cout << "Usage:\t memento [options] [url|path]\n"
             << "\n"
             << "For more information about command line arguments, see "
                "https://mpv.io/manual/\n";
