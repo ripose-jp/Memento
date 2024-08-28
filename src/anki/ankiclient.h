@@ -42,6 +42,10 @@
 #define REPLACE_CONTEXT             "{context}"
 #define REPLACE_CONTEXT_SEC         "{context-2}"
 #define REPLACE_FREQUENCIES         "{frequencies}"
+#define REPLACE_FREQ_HARMONIC_RANK  "{frequency-harmonic-rank}"
+#define REPLACE_FREQ_HARMONIC_OCCU  "{frequency-harmonic-occurrence}"
+#define REPLACE_FREQ_AVERAGE_RANK   "{frequency-average-rank}"
+#define REPLACE_FREQ_AVERAGE_OCCU   "{frequency-average-occurrence}"
 #define REPLACE_GLOSSARY            "{glossary}"
 #define REPLACE_SCREENSHOT          "{screenshot}"
 #define REPLACE_SCREENSHOT_VIDEO    "{screenshot-video}"
@@ -444,6 +448,33 @@ private:
      *         if there are none.
      */
     QString buildFrequencies(const QList<Frequency> &freq);
+
+
+    /**
+     * Extracts frequency numbers from a list of frequency tags.
+     * @param frequencies A list of Frequency structs.
+     * @return A vector of positive integers representing the frequency numbers.
+     *         (Only selecting the first frequency displayed by a dictionary,
+     *          to avoid picking secondary frequencies like kana frequencies)
+     */
+    std::vector<int> getFrequencyNumbers(const QList<Frequency> &freq);
+
+    // Function to convert integer to QString with a specific default value if `value` < 0.
+    QString positiveIntToQString(const int value, const int defaultValue);
+
+    /**
+     * Function to calculate the harmonic mean of frequencies.
+     * @param frequencies A list of Frequency structs.
+     * @return The harmonic mean as an integer, or -1 if the list is empty.
+     */
+    int getFrequencyHarmonic(const QList<Frequency> &freq);
+
+    /**
+     * Function to calculate the arithmetic average of frequencies.
+     * @param frequencies A list of Frequency structs.
+     * @return The arithmetic average as an integer, or -1 if the list is empty.
+     */
+    int getFrequencyAverage(const QList<Frequency> &freq);
 
     /**
      * Creates the HTML representation of the pitch, pitch graph, and pitch
