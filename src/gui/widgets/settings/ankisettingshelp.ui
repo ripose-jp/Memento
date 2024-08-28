@@ -62,21 +62,21 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="20" column="1">
+         <item row="24" column="1">
           <widget class="QLabel" name="labelTermScreenshotEx">
            <property name="text">
             <string>Screenshot of the current frame.</string>
            </property>
           </widget>
          </item>
-         <item row="26" column="1">
+         <item row="30" column="1">
           <widget class="QLabel" name="labelTermTitleEx">
            <property name="text">
             <string>Title of the video. Filename if no title.</string>
            </property>
           </widget>
          </item>
-         <item row="13" column="0">
+         <item row="17" column="0">
           <widget class="QLabel" name="labelTermGlossary">
            <property name="font">
             <font>
@@ -95,14 +95,14 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="17" column="1">
+         <item row="21" column="1">
           <widget class="QLabel" name="labelTermPitchGraphEx">
            <property name="text">
             <string>Pitch graphs for the reading of the term.</string>
            </property>
           </widget>
          </item>
-         <item row="19" column="0">
+         <item row="23" column="0">
           <widget class="QLabel" name="labelTermReading">
            <property name="font">
             <font>
@@ -128,7 +128,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="22" column="0">
+         <item row="26" column="0">
           <widget class="QLabel" name="labelTermSentence">
            <property name="font">
             <font>
@@ -154,7 +154,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="19" column="1">
+         <item row="23" column="1">
           <widget class="QLabel" name="labelTermReadingEx">
            <property name="text">
             <string>The reading of the word in kana.</string>
@@ -202,7 +202,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="21" column="1">
+         <item row="25" column="1">
           <widget class="QLabel" name="labelTermScreenshotVideo">
            <property name="text">
             <string>Screenshot of the current frame without subtitles if visible.</string>
@@ -228,7 +228,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="23" column="1">
+         <item row="27" column="1">
           <widget class="QLabel" name="labelTermSentence2Ex">
            <property name="text">
             <string>The current secondary subtitle.</string>
@@ -242,7 +242,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="16" column="0">
+         <item row="20" column="0">
           <widget class="QLabel" name="labelTermPitch">
            <property name="font">
             <font>
@@ -322,14 +322,14 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="18" column="1">
+         <item row="22" column="1">
           <widget class="QLabel" name="labelTermPitchPositionEx">
            <property name="text">
             <string>Pitch positions for the reading of the term.</string>
            </property>
           </widget>
          </item>
-         <item row="23" column="0">
+         <item row="27" column="0">
           <widget class="QLabel" name="labelTermSentence2">
            <property name="font">
             <font>
@@ -348,7 +348,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="13" column="1">
+         <item row="17" column="1">
           <widget class="QLabel" name="labelTermGlossaryEx">
            <property name="text">
             <string>The dictionary definitions of the expression.</string>
@@ -413,14 +413,14 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="14" column="1">
+         <item row="18" column="1">
           <widget class="QLabel" name="labelTermGlossaryBriefEx">
            <property name="text">
             <string>The dictionary definitions of the expression without dictionary information.</string>
            </property>
           </widget>
          </item>
-         <item row="17" column="0">
+         <item row="21" column="0">
           <widget class="QLabel" name="labelTermPitchGraph">
            <property name="font">
             <font>
@@ -439,7 +439,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="14" column="0">
+         <item row="18" column="0">
           <widget class="QLabel" name="labelTermGlossaryBrief">
            <property name="font">
             <font>
@@ -458,7 +458,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="24" column="1">
+         <item row="28" column="1">
           <widget class="QLabel" name="labelTermTagsEx">
            <property name="text">
             <string>Bulleted list of the term tags.</string>
@@ -536,7 +536,111 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="18" column="0">
+         <item row="16" column="0">
+          <widget class="QLabel" name="labelTermFrequencyHarmonicRank">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{frequency-harmonic-rank}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="16" column="1">
+          <widget class="QLabel" name="labelTermFrequencyHarmonicRankEx">
+           <property name="text">
+            <string>The harmonic mean of frequency data for the current term. Defaults to rank 9999999 when frequency data is not found.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="15" column="0">
+          <widget class="QLabel" name="labelTermFrequencyHarmonicOccurrence">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{frequency-harmonic-occurrence}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="15" column="1">
+          <widget class="QLabel" name="labelTermFrequencyHarmonicOccurrenceEx">
+           <property name="text">
+            <string>The harmonic mean of frequency data for the current term. Defaults to 0 occurrences when frequency data is not found.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="0">
+          <widget class="QLabel" name="labelTermFrequencyAverageRank">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{frequency-average-rank}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="1">
+          <widget class="QLabel" name="labelTermFrequencyAverageRankEx">
+           <property name="text">
+            <string>The average of frequency data for the current term. Defaults to rank 9999999 when frequency data is not found.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="0">
+          <widget class="QLabel" name="labelTermFrequencyAverageOccurrence">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>{frequency-average-occurrence}</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="1">
+          <widget class="QLabel" name="labelTermFrequencyAverageOccurrenceEx">
+           <property name="text">
+            <string>The average of frequency data for the current term. Defaults to 0 occurrences when frequency data is not found.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="22" column="0">
           <widget class="QLabel" name="labelTermPitchPosition">
            <property name="font">
             <font>
@@ -555,7 +659,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="21" column="0">
+         <item row="25" column="0">
           <widget class="QLabel" name="labelTermScreenshotMedia">
            <property name="font">
             <font>
@@ -594,7 +698,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="26" column="0">
+         <item row="30" column="0">
           <widget class="QLabel" name="labelTermTitle">
            <property name="font">
             <font>
@@ -613,14 +717,14 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="16" column="1">
+         <item row="20" column="1">
           <widget class="QLabel" name="labelTermPitchEx">
            <property name="text">
             <string>Pitch accents for the reading of the term.</string>
            </property>
           </widget>
          </item>
-         <item row="22" column="1">
+         <item row="26" column="1">
           <widget class="QLabel" name="labelTermSentenceEx">
            <property name="text">
             <string>The current subtitle.</string>
@@ -669,7 +773,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="24" column="0">
+         <item row="28" column="0">
           <widget class="QLabel" name="labelTermTags">
            <property name="font">
             <font>
@@ -688,7 +792,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="25" column="0">
+         <item row="29" column="0">
           <widget class="QLabel" name="labelTermTagsBrief">
            <property name="font">
             <font>
@@ -707,14 +811,14 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="25" column="1">
+         <item row="29" column="1">
           <widget class="QLabel" name="labelTermTagsBriefEx">
            <property name="text">
             <string>Bulleted list of the term tags without description.</string>
            </property>
           </widget>
          </item>
-         <item row="20" column="0">
+         <item row="24" column="0">
           <widget class="QLabel" name="labelTermScreenshot">
            <property name="font">
             <font>
@@ -752,7 +856,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="15" column="0">
+         <item row="19" column="0">
           <widget class="QLabel" name="labelGlossaryCompact">
            <property name="font">
             <font>
@@ -771,7 +875,7 @@ These will expand to larger expressions in the final card.</string>
            </property>
           </widget>
          </item>
-         <item row="15" column="1">
+         <item row="19" column="1">
           <widget class="QLabel" name="labelGlossaryCompactEx">
            <property name="text">
             <string>The dictionary definitions of the expression in a compact form.</string>

@@ -1344,6 +1344,8 @@ void AnkiClient::buildCommonNote(
         QString(exp.context2).replace('\n', m_currentConfig->newlineReplacer);
 
     QString frequencies = buildFrequencies(exp.frequencies);
+    const int frequencyHarmonic = getFrequencyHarmonic(exp.frequencies);
+    const int frequencyAverage = getFrequencyAverage(exp.frequencies);
 
     QJsonArray fieldsWithAudioMedia;
     QJsonArray fieldsWithAudioContext;
@@ -1384,6 +1386,25 @@ void AnkiClient::buildCommonNote(
         value.replace(REPLACE_CLOZE_PREFIX, clozePrefix);
         value.replace(REPLACE_CLOZE_SUFFIX, clozeSuffix);
         value.replace(REPLACE_FREQUENCIES,  frequencies);
+
+        /* If the term never occurs in the corpus of any loaded frequency
+         * dictionary, assume it is a very rare word.
+         * (The higher the ranking, the rarer the term) */
+        constexpr int default_freq_rank = 9999999;
+        constexpr int default_freq_occurrence = 0;
+
+        value.replace(REPLACE_FREQ_HARMONIC_RANK, 
+                positiveIntToQString(frequencyHarmonic, default_freq_rank));
+
+        value.replace(REPLACE_FREQ_HARMONIC_OCCU, 
+                positiveIntToQString(frequencyHarmonic, default_freq_occurrence));
+
+        value.replace(REPLACE_FREQ_AVERAGE_RANK,  
+                positiveIntToQString(frequencyAverage, default_freq_rank));
+
+        value.replace(REPLACE_FREQ_AVERAGE_OCCU,  
+                positiveIntToQString(frequencyAverage, default_freq_occurrence));
+
         value.replace(REPLACE_SENTENCE,     sentence);
         value.replace(REPLACE_SENTENCE_SEC, sentence2);
         value.replace(REPLACE_CONTEXT,      context);
@@ -1763,6 +1784,83 @@ QString AnkiClient::buildFrequencies(const QList<Frequency> &frequencies)
         freqStr.clear();
 
     return freqStr;
+}
+
+std::vector<int> AnkiClient::getFrequencyNumbers(
+        const QList<Frequency> &frequencies)
+{
+    QString previousDictionary;
+    std::vector<int> frequencyNumbers;
+
+    for (const Frequency &frequencyEntry : frequencies)
+    {
+        if (frequencyEntry.dictionary == previousDictionary 
+                || frequencyEntry.freq.isNull())
+        {
+            continue;
+        }
+        previousDictionary = frequencyEntry.dictionary;
+
+        /* This regular expression only catches numbers in base 10 and 
+         * would not catch negative or decimal numbers because we make
+         * the assumption that these special types of numbers will not
+         * appear in frequency dictionaries. */
+        QRegularExpression numberPattern("\\d+");
+        QRegularExpressionMatch match = numberPattern.match(frequencyEntry.freq);
+
+        if (match.hasMatch()) 
+        {
+            /* Only save the first number to avoid counting secondary frequency 
+             * information (e.g. frequency for the full kana orthography) in the
+             * aggregate measures to align with Yomitan's behavior. */
+            frequencyNumbers.push_back(match.captured(0).toInt());
+            continue;
+        }
+    }
+
+    return frequencyNumbers;
+}
+
+QString AnkiClient::positiveIntToQString(const int value, const int defaultValue)
+{
+    return (value < 0) ? QString::number(defaultValue) : QString::number(value);
+}
+
+int AnkiClient::getFrequencyHarmonic(const QList<Frequency> &frequencies) 
+{
+    const std::vector<int> frequencyNumbers = getFrequencyNumbers(frequencies);
+
+    if (frequencyNumbers.empty()) 
+    {
+        return -1;
+    }
+
+    double total = 0.0;
+    for (int frequencyNum : frequencyNumbers) 
+    {
+        if (frequencyNum != 0) 
+        {
+            total += 1.0 / frequencyNum;
+        }
+    }
+
+    return std::floor(frequencyNumbers.size() / total);
+}
+
+int AnkiClient::getFrequencyAverage(const QList<Frequency> &frequencies)
+{
+    const std::vector<int> frequencyNumbers = getFrequencyNumbers(frequencies);
+
+    if (frequencyNumbers.empty()) 
+    {
+        return -1;
+    }
+
+    /* Sum the elements in the vector */
+    double total = std::accumulate(frequencyNumbers.begin(), 
+            frequencyNumbers.end(), 0);
+
+    return std::floor(total / frequencyNumbers.size());
 }
 
 void AnkiClient::buildTags(
