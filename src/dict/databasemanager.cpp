@@ -757,21 +757,52 @@ int DatabaseManager::addFrequencies(
                 {
                     continue;
                 }
-                obj = obj[OBJ_FREQ_KEY].toObject();
             }
 
-            /* Check for the type that should be shown */
-            if (obj[OBJ_DISPLAY_KEY].isString())
+            /* First scenario:
+             * [
+             *     "<term>","freq",{"reading":"<reading>","frequency":<number>}
+             * ]
+             */
+            if (obj[OBJ_FREQ_KEY].isDouble())
             {
-                freqStr = obj[OBJ_DISPLAY_KEY].toString();
+                freqStr = QString::number(obj[OBJ_FREQ_KEY].toInt());
             }
-            else if (obj[OBJ_VALUE_KEY].isDouble())
+
+            /* Second scenario:
+             * [
+             *     "<term>","freq",{"reading":"<reading>","frequency": "<frequency string>">}
+             * ]
+             */
+            else if (obj[OBJ_FREQ_KEY].isString())
             {
-                freqStr = QString::number(obj[OBJ_VALUE_KEY].toInt());
+                freqStr = obj[OBJ_FREQ_KEY].toString();
             }
-            else
+
+            /* Third scenario:
+             * [
+             *     "<term>","freq",
+             *     {"reading":"<reading>",
+             *        "frequency": {"value": <number>, "displayValue": "<stylized frequency string>"}
+             *     }
+             * ]
+             */
+            else if (obj[OBJ_FREQ_KEY].isObject())
             {
-                continue;
+                obj = obj[OBJ_FREQ_KEY].toObject();
+                /* Check for the type that should be shown */
+                if (obj[OBJ_DISPLAY_KEY].isString())
+                {
+                    freqStr = obj[OBJ_DISPLAY_KEY].toString();
+                }
+                else if (obj[OBJ_VALUE_KEY].isDouble())
+                {
+                    freqStr = QString::number(obj[OBJ_VALUE_KEY].toInt());
+                }
+                else
+                {
+                    continue;
+                }
             }
             break;
         }
