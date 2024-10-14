@@ -17,7 +17,7 @@
    <item>
     <widget class="QScrollArea" name="scrollArea">
      <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
+      <enum>QFrame::Shape::NoFrame</enum>
      </property>
      <property name="widgetResizable">
       <bool>true</bool>
@@ -27,12 +27,15 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>728</width>
-        <height>2412</height>
+        <width>729</width>
+        <height>2402</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
         <number>0</number>
        </property>
        <property name="rightMargin">
@@ -45,7 +48,6 @@
         <widget class="QLabel" name="labelTheme">
          <property name="font">
           <font>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -87,7 +89,6 @@
         <widget class="QLabel" name="labelSubSearch">
          <property name="font">
           <font>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -102,10 +103,10 @@
           <bool>true</bool>
          </property>
          <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
+          <enum>QFrame::Shape::StyledPanel</enum>
          </property>
          <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
+          <enum>QFrame::Shadow::Raised</enum>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
@@ -120,7 +121,6 @@
               </property>
               <property name="font">
                <font>
-                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -132,7 +132,7 @@
             <item>
              <widget class="QFontComboBox" name="fontComboSub">
               <property name="writingSystem">
-               <enum>QFontDatabase::Japanese</enum>
+               <enum>QFontDatabase::WritingSystem::Japanese</enum>
               </property>
              </widget>
             </item>
@@ -167,11 +167,10 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="7" alignment="Qt::AlignRight">
+            <item row="1" column="7" alignment="">
              <widget class="QLabel" name="labelSubStrokeColor">
               <property name="font">
                <font>
-                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -197,11 +196,10 @@ A value of 0.1 would make each character 10% of the height of the player.</strin
               </property>
              </widget>
             </item>
-            <item row="0" column="7" alignment="Qt::AlignRight">
+            <item row="0" column="7" alignment="">
              <widget class="QLabel" name="labelSubStrokeSize">
               <property name="font">
                <font>
-                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -210,11 +208,10 @@ A value of 0.1 would make each character 10% of the height of the player.</strin
               </property>
              </widget>
             </item>
-            <item row="0" column="1" alignment="Qt::AlignRight">
+            <item row="0" column="1" alignment="">
              <widget class="QLabel" name="labelSubScale">
               <property name="font">
                <font>
-                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -223,11 +220,10 @@ A value of 0.1 would make each character 10% of the height of the player.</strin
               </property>
              </widget>
             </item>
-            <item row="0" column="4" alignment="Qt::AlignRight">
+            <item row="0" column="4" alignment="">
              <widget class="QLabel" name="labelSubOffset">
               <property name="font">
                <font>
-                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -239,7 +235,7 @@ A value of 0.1 would make each character 10% of the height of the player.</strin
             <item row="0" column="6">
              <spacer name="horizontalSpacer_4">
               <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+               <enum>Qt::Orientation::Horizontal</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
@@ -249,11 +245,10 @@ A value of 0.1 would make each character 10% of the height of the player.</strin
               </property>
              </spacer>
             </item>
-            <item row="1" column="4" alignment="Qt::AlignRight">
+            <item row="1" column="4" alignment="">
              <widget class="QLabel" name="labelSubBackground">
               <property name="font">
                <font>
-                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -265,7 +260,7 @@ A value of 0.1 would make each character 10% of the height of the player.</strin
             <item row="0" column="9">
              <spacer name="horizontalSpacer_2">
               <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+               <enum>Qt::Orientation::Horizontal</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
@@ -275,11 +270,10 @@ A value of 0.1 would make each character 10% of the height of the player.</strin
               </property>
              </spacer>
             </item>
-            <item row="1" column="1" alignment="Qt::AlignRight">
+            <item row="1" column="1" alignment="">
              <widget class="QLabel" name="labelSubColor">
               <property name="font">
                <font>
-                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -302,7 +296,7 @@ A value of 0 disables stroke.</string>
             <item row="0" column="0">
              <spacer name="horizontalSpacer">
               <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+               <enum>Qt::Orientation::Horizontal</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
@@ -346,7 +340,7 @@ A value of 1 positions the subtitle at the top.</string>
             <item row="0" column="3">
              <spacer name="horizontalSpacer_3">
               <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+               <enum>Qt::Orientation::Horizontal</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
@@ -380,7 +374,6 @@ A value of 1 positions the subtitle at the top.</string>
           <widget class="QLabel" name="labelAuxSearch">
            <property name="font">
             <font>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -393,7 +386,6 @@ A value of 1 positions the subtitle at the top.</string>
           <widget class="QLabel" name="labelSubList_2">
            <property name="font">
             <font>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -435,7 +427,6 @@ A value of 1 positions the subtitle at the top.</string>
         <widget class="QLabel" name="labelMenuBar">
          <property name="font">
           <font>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -459,10 +450,79 @@ Enable only if you don't mind the border.</string>
         </widget>
        </item>
        <item>
+        <widget class="QWidget" name="widgetDpiScaling" native="true">
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="labelDpiScaling">
+            <property name="font">
+             <font>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>DPI Scaling</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="layoutDpiScaleOverride">
+            <item alignment="">
+             <widget class="QCheckBox" name="checkDpiScaleOverride">
+              <property name="toolTip">
+               <string>When using fractional DPI scaling on Wayland, set this value to your DPI scale</string>
+              </property>
+              <property name="text">
+               <string>Override DPI scaling factor to</string>
+              </property>
+             </widget>
+            </item>
+            <item alignment="">
+             <widget class="QDoubleSpinBox" name="spinDpiScaleFactor">
+              <property name="minimum">
+               <double>0.050000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>99.950000000000003</double>
+              </property>
+              <property name="singleStep">
+               <double>0.050000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_5">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="labelStylesheets">
          <property name="font">
           <font>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -488,17 +548,16 @@ Click the help button for documentation</string>
           <bool>false</bool>
          </property>
          <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
+          <enum>QFrame::Shape::StyledPanel</enum>
          </property>
          <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
+          <enum>QFrame::Shadow::Raised</enum>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
            <widget class="QLabel" name="labelSubList">
             <property name="font">
              <font>
-              <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>
@@ -521,7 +580,6 @@ Click the help button for documentation</string>
            <widget class="QLabel" name="labelSplitter">
             <property name="font">
              <font>
-              <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>
@@ -544,7 +602,6 @@ Click the help button for documentation</string>
            <widget class="QLabel" name="labelDefinitions">
             <property name="font">
              <font>
-              <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>
@@ -573,7 +630,7 @@ Click the help button for documentation</string>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="standardButtons">
-      <set>QDialogButtonBox::Apply|QDialogButtonBox::Help|QDialogButtonBox::Reset|QDialogButtonBox::RestoreDefaults</set>
+      <set>QDialogButtonBox::StandardButton::Apply|QDialogButtonBox::StandardButton::Help|QDialogButtonBox::StandardButton::Reset|QDialogButtonBox::StandardButton::RestoreDefaults</set>
      </property>
     </widget>
    </item>

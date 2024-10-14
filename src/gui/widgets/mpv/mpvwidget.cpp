@@ -106,6 +106,13 @@ MpvWidget::MpvWidget(QWidget *parent)
         this, &MpvWidget::initTimer,
         Qt::QueuedConnection
     );
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
+    connect(
+        mediator, &GlobalMediator::interfaceSettingsChanged,
+        this, &MpvWidget::initDimensions,
+        Qt::QueuedConnection
+    );
+#endif
 
     /* Run initialization tasks */
 #if defined(Q_OS_MACOS)
@@ -113,6 +120,9 @@ MpvWidget::MpvWidget(QWidget *parent)
 #endif
     initPropertyMap();
     initSubtitleRegex();
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
+    initDimensions();
+#endif
 }
 
 MpvWidget::~MpvWidget()
@@ -411,6 +421,33 @@ void MpvWidget::initSubtitleRegex()
     settings.endGroup();
 }
 
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
+void MpvWidget::initDimensions()
+{
+    QSettings settings;
+    settings.beginGroup(Constants::Settings::Interface::GROUP);
+
+    m_overrideDevicePixelRatio = settings.value(
+        Constants::Settings::Interface::DPI_SCALE_OVERRIDE,
+        Constants::Settings::Interface::DPI_SCALE_OVERRIDE_DEFAULT
+    ).toBool();
+    if (m_overrideDevicePixelRatio)
+    {
+        m_devicePixelRatio = settings.value(
+            Constants::Settings::Interface::DPI_SCALE_FACTOR,
+            Constants::Settings::Interface::DPI_SCALE_FACTOR_DEFAULT
+        ).toDouble();
+    }
+    else
+    {
+        m_devicePixelRatio = screen()->devicePixelRatio();
+    }
+
+    m_height = height() * m_devicePixelRatio;
+    m_width = width() * m_devicePixelRatio;
+}
+#endif
+
 void MpvWidget::initTimer()
 {
     {
@@ -643,8 +680,11 @@ void MpvWidget::resizeGL(int width, int height)
 
 void MpvWidget::screenChanged(QScreen *screen)
 {
-    m_devicePixelRatio = screen ? screen->devicePixelRatio() : 1.0;
-    resizeGL(width(), height());
+    if (!m_overrideDevicePixelRatio)
+    {
+        m_devicePixelRatio = screen ? screen->devicePixelRatio() : 1.0;
+        resizeGL(width(), height());
+    }
 }
 
 void MpvWidget::reportFrameSwap()

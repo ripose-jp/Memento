@@ -220,6 +220,14 @@ namespace Constants
             constexpr bool SYSTEM_ICONS_DEFAULT = true;
 #endif
 
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
+            constexpr const char *DPI_SCALE_OVERRIDE = "dpi-override";
+            constexpr const bool DPI_SCALE_OVERRIDE_DEFAULT = false;
+
+            constexpr const char *DPI_SCALE_FACTOR = "dpi-factor";
+            constexpr const double DPI_SCALE_FACTOR_DEFAULT = 1.0;
+#endif
+
             constexpr const char *STYLESHEETS = "stylesheets-enabled";
             constexpr bool STYLESHEETS_DEFAULT = false;
 

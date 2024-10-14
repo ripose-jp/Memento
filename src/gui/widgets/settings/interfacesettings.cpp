@@ -39,6 +39,7 @@ InterfaceSettings::InterfaceSettings(QWidget *parent)
 
 #if !defined(Q_OS_UNIX) || defined(Q_OS_DARWIN)
     m_ui->checkSystemIcons->hide();
+    m_ui->widgetDpiScaling->hide();
 #endif
 
 #if !defined(Q_OS_WIN)
@@ -176,6 +177,16 @@ void InterfaceSettings::restoreDefaults()
     );
 #endif
 
+    /* DPI Scaling */
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
+    m_ui->checkDpiScaleOverride->setChecked(
+        Constants::Settings::Interface::DPI_SCALE_OVERRIDE_DEFAULT
+    );
+    m_ui->spinDpiScaleFactor->setValue(
+        Constants::Settings::Interface::DPI_SCALE_FACTOR_DEFAULT
+    );
+#endif
+
     /* Style Sheets */
     m_ui->checkStyleSheets->setChecked(
         Constants::Settings::Interface::STYLESHEETS_DEFAULT
@@ -296,6 +307,22 @@ void InterfaceSettings::restoreSaved()
     );
 #endif
 
+    /* DPI Scaling */
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
+    m_ui->checkDpiScaleOverride->setChecked(
+        settings.value(
+            Constants::Settings::Interface::DPI_SCALE_OVERRIDE,
+            Constants::Settings::Interface::DPI_SCALE_OVERRIDE_DEFAULT
+        ).toBool()
+    );
+    m_ui->spinDpiScaleFactor->setValue(
+        settings.value(
+            Constants::Settings::Interface::DPI_SCALE_FACTOR,
+            Constants::Settings::Interface::DPI_SCALE_FACTOR_DEFAULT
+        ).toDouble()
+    );
+#endif
+
     /* Style Sheets */
     m_ui->checkStyleSheets->setChecked(
         settings.value(
@@ -401,6 +428,18 @@ void InterfaceSettings::applyChanges()
     settings.setValue(
         Constants::Settings::Interface::Subtitle::MENUBAR_FULLSCREEN,
         m_ui->checkMenuFullscreen->isChecked()
+    );
+#endif
+
+    /* DPI Scaling */
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
+    settings.setValue(
+        Constants::Settings::Interface::DPI_SCALE_OVERRIDE,
+        m_ui->checkDpiScaleOverride->isChecked()
+    );
+    settings.setValue(
+        Constants::Settings::Interface::DPI_SCALE_FACTOR,
+        m_ui->spinDpiScaleFactor->value()
     );
 #endif
 

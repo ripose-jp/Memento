@@ -316,6 +316,13 @@ private Q_SLOTS:
      */
     void initSubtitleRegex();
 
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
+    /**
+     * Initializes screen dimensions with regards to DPI scaling.
+     */
+    void initDimensions();
+#endif
+
     /**
      * Initializes the cursor timer.
      */
@@ -383,6 +390,9 @@ private:
 
     /* The DPI ratio. */
     qreal m_devicePixelRatio = 1.0;
+
+    /* Override default device pixel ratio */
+    bool m_overrideDevicePixelRatio = false;
 
     /* The height of the player adjusted for DPI. */
     int m_height;
