@@ -243,7 +243,7 @@ void MainWindow::initTheme()
     settings.beginGroup(Constants::Settings::Interface::GROUP);
 
     /* Set Palette */
-    QPalette pal;
+    QPalette pal{QApplication::style()->standardPalette()};
     Constants::Theme theme = static_cast<Constants::Theme>(settings.value(
             Constants::Settings::Interface::THEME,
             static_cast<int>(Constants::Settings::Interface::THEME_DEFAULT)
