@@ -112,8 +112,14 @@ AnkiSettings::AnkiSettings(QWidget *parent)
     initIcons();
 
     connect(
-        m_ui->checkBoxEnabled, &QCheckBox::stateChanged,
-        this,                  &AnkiSettings::enabledStateChanged
+        m_ui->checkBoxEnabled,
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+        &QCheckBox::stateChanged,
+#else
+        &QCheckBox::checkStateChanged,
+#endif
+        this,
+        &AnkiSettings::enabledStateChanged
     );
     connect(
         m_ui->comboBoxProfile, &QComboBox::currentTextChanged,
@@ -124,8 +130,19 @@ AnkiSettings::AnkiSettings(QWidget *parent)
         this,                [=] { connectToClient(true); }
     );
     connect(
-        m_ui->checkboxAdvanced, &QCheckBox::stateChanged, this,
-        [=] (int state) {
+        m_ui->checkboxAdvanced,
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+        &QCheckBox::stateChanged,
+#else
+        &QCheckBox::checkStateChanged,
+#endif
+        this,
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+        [=] (int state)
+#else
+        [=] (Qt::CheckState state)
+#endif
+        {
             m_ui->frameAdvanced->setVisible(state == Qt::Checked);
         }
     );
@@ -425,7 +442,11 @@ void AnkiSettings::updateModelFields(CardBuilder *cb, const QString &model)
 /* End AnkiConnect Actions */
 /* Begin UI Management */
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 void AnkiSettings::enabledStateChanged(int state)
+#else
+void AnkiSettings::enabledStateChanged(Qt::CheckState state)
+#endif
 {
     bool enabled = state == Qt::CheckState::Checked;
     m_ui->frameContent->setEnabled(enabled);

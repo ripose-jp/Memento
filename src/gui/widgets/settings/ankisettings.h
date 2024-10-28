@@ -83,9 +83,13 @@ private Q_SLOTS:
     /**
      * Called when the Anki Integration Enabled checkbox is changed.
      * Enables/Disables widgets on the front end.
-     * @param state The checkbox state (Qt::CheckState).
+     * @param state The checkbox state.
      */
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
     void enabledStateChanged(int state);
+#else
+    void enabledStateChanged(Qt::CheckState state);
+#endif
 
     /**
      * Connects to AnkiConnect and updates the decks, models, and fields.

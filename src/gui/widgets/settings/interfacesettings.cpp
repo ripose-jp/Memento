@@ -58,8 +58,20 @@ InterfaceSettings::InterfaceSettings(QWidget *parent)
         [=] { askButtonColor(m_ui->buttonSubStroke, m_strokeColor); }
     );
 
-    connect(m_ui->checkStyleSheets, &QCheckBox::stateChanged, this,
-        [=] (const int state) {
+    connect(
+        m_ui->checkStyleSheets,
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+        &QCheckBox::stateChanged,
+#else
+        &QCheckBox::checkStateChanged,
+#endif
+        this,
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+        [=] (int state)
+#else
+        [=] (Qt::CheckState state)
+#endif
+        {
             m_ui->frameStyleSheets->setEnabled(
                 state == Qt::CheckState::Checked
             );
