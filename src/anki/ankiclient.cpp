@@ -1393,16 +1393,16 @@ void AnkiClient::buildCommonNote(
         constexpr int default_freq_rank = 9999999;
         constexpr int default_freq_occurrence = 0;
 
-        value.replace(REPLACE_FREQ_HARMONIC_RANK, 
+        value.replace(REPLACE_FREQ_HARMONIC_RANK,
                 positiveIntToQString(frequencyHarmonic, default_freq_rank));
 
-        value.replace(REPLACE_FREQ_HARMONIC_OCCU, 
+        value.replace(REPLACE_FREQ_HARMONIC_OCCU,
                 positiveIntToQString(frequencyHarmonic, default_freq_occurrence));
 
-        value.replace(REPLACE_FREQ_AVERAGE_RANK,  
+        value.replace(REPLACE_FREQ_AVERAGE_RANK,
                 positiveIntToQString(frequencyAverage, default_freq_rank));
 
-        value.replace(REPLACE_FREQ_AVERAGE_OCCU,  
+        value.replace(REPLACE_FREQ_AVERAGE_OCCU,
                 positiveIntToQString(frequencyAverage, default_freq_occurrence));
 
         value.replace(REPLACE_SENTENCE,     sentence);
@@ -1794,23 +1794,23 @@ std::vector<int> AnkiClient::getFrequencyNumbers(
 
     for (const Frequency &frequencyEntry : frequencies)
     {
-        if (frequencyEntry.dictionary == previousDictionary 
+        if (frequencyEntry.dictionary == previousDictionary
                 || frequencyEntry.freq.isNull())
         {
             continue;
         }
         previousDictionary = frequencyEntry.dictionary;
 
-        /* This regular expression only catches numbers in base 10 and 
+        /* This regular expression only catches numbers in base 10 and
          * would not catch negative or decimal numbers because we make
          * the assumption that these special types of numbers will not
          * appear in frequency dictionaries. */
         QRegularExpression numberPattern("\\d+");
         QRegularExpressionMatch match = numberPattern.match(frequencyEntry.freq);
 
-        if (match.hasMatch()) 
+        if (match.hasMatch())
         {
-            /* Only save the first number to avoid counting secondary frequency 
+            /* Only save the first number to avoid counting secondary frequency
              * information (e.g. frequency for the full kana orthography) in the
              * aggregate measures to align with Yomitan's behavior. */
             frequencyNumbers.push_back(match.captured(0).toInt());
@@ -1826,19 +1826,19 @@ QString AnkiClient::positiveIntToQString(const int value, const int defaultValue
     return (value < 0) ? QString::number(defaultValue) : QString::number(value);
 }
 
-int AnkiClient::getFrequencyHarmonic(const QList<Frequency> &frequencies) 
+int AnkiClient::getFrequencyHarmonic(const QList<Frequency> &frequencies)
 {
     const std::vector<int> frequencyNumbers = getFrequencyNumbers(frequencies);
 
-    if (frequencyNumbers.empty()) 
+    if (frequencyNumbers.empty())
     {
         return -1;
     }
 
     double total = 0.0;
-    for (int frequencyNum : frequencyNumbers) 
+    for (int frequencyNum : frequencyNumbers)
     {
-        if (frequencyNum != 0) 
+        if (frequencyNum != 0)
         {
             total += 1.0 / frequencyNum;
         }
@@ -1851,13 +1851,13 @@ int AnkiClient::getFrequencyAverage(const QList<Frequency> &frequencies)
 {
     const std::vector<int> frequencyNumbers = getFrequencyNumbers(frequencies);
 
-    if (frequencyNumbers.empty()) 
+    if (frequencyNumbers.empty())
     {
         return -1;
     }
 
     /* Sum the elements in the vector */
-    double total = std::accumulate(frequencyNumbers.begin(), 
+    double total = std::accumulate(frequencyNumbers.begin(),
             frequencyNumbers.end(), 0);
 
     return std::floor(total / frequencyNumbers.size());
