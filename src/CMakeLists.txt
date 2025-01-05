@@ -103,11 +103,25 @@ if(APPBUNDLE)
 	)
 
 	# Run macdeployqt to pick up any plugins dylibbundler missed
+	# lib needs to be symlinked because of a bug in either macdeployqt or
+	# homebrew's packaging of it
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND ln -s "${HOMEBREW_PREFIX_PATH}/lib" lib
+		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
+	)
 	set(MACDEPLOYQT_BIN "${HOMEBREW_PREFIX_PATH}/opt/qt6/bin/macdeployqt")
 	add_custom_command(
 		TARGET ${PROJECT_NAME}
 		POST_BUILD
 		COMMAND ${MACDEPLOYQT_BIN} ${PROJECT_NAME}.app
+		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
+	)
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND rm lib
 		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
 	)
 
