@@ -13,8 +13,6 @@ depends=(
     'sqlite'
     'json-c'
     'libzip'
-    'mecab'
-    'mecab-ipadic'
 )
 makedepends=('git' 'make' 'cmake' 'gcc')
 optdepends=(
@@ -34,7 +32,7 @@ build() {
     cmake -DCMAKE_INSTALL_PREFIX:PATH=${pkgdir}/usr \
           -DRELEASE_BUILD=ON \
           -DCMAKE_BUILD_TYPE=Release \
-          -DMECAB_SUPPORT=ON \
+          -DMECAB_SUPPORT=OFF \
           "${srcdir}/Memento-${pkgver}"
     cmake --build . -j $(grep -c ^processor /proc/cpuinfo)
 }
