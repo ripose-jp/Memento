@@ -63,6 +63,7 @@
 #define REPLACE_GLOSSARY_BRIEF      "{glossary-brief}"
 #define REPLACE_GLOSSARY_COMPACT    "{glossary-compact}"
 #define REPLACE_PITCH               "{pitch}"
+#define REPLACE_PITCH_CATEGORIES    "{pitch-categories}"
 #define REPLACE_PITCH_GRAPHS        "{pitch-graph}"
 #define REPLACE_PITCH_POSITIONS     "{pitch-position}"
 #define REPLACE_READING             "{reading}"
@@ -477,17 +478,23 @@ private:
     int getFrequencyAverage(const QList<Frequency> &freq);
 
     /**
-     * Creates the HTML representation of the pitch, pitch graph, and pitch
-     * position for the given pitches.
-     * @param pitches            The pitches to turn into HTML.
-     * @param[out] pitch         The HTML representation of the {pitch} marker.
-     * @param[out] pitchGraph    The HTML representation of the {pitch-graph}
-     *                           marker.
-     * @param[out] pitchPosition The HTML representation of the {pitch-position}
-     *                           marker.
+     * Creates the HTML representation of the pitch, pitch category, pitch graph,
+     * and pitch position for the given pitches.
+     * @param pitches              The pitches to turn into HTML.
+     * @param canBeKifuku          Is the term an i-adjective or a verb whose
+     *                             pitch accent is either kifuku or heiban.
+     * @param[out] pitch           The HTML representation of the {pitch} marker.
+     * @param[out] pitchCategories The comma-separated representation of the
+     *                             {pitch-categories} marker.
+     * @param[out] pitchGraph      The HTML representation of the {pitch-graph}
+     *                             marker.
+     * @param[out] pitchPosition   The HTML representation of the {pitch-position}
+     *                             marker.
      */
     void buildPitchInfo(const QList<Pitch> &pitches,
+                        const bool          canBeKifuku,
                         QString            &pitch,
+                        QString            &pitchCategories,
                         QString            &pitchGraph,
                         QString            &pitchPosition);
 
@@ -529,6 +536,12 @@ private:
      * @return The base64 encoded file.
      */
     static QString fileToBase64(const QString &path);
+
+    /**
+     * Helper method to determine if the kifuku pitch accent pattern
+     * is potentially applicable to a term, by checking its part-of-speech.
+     */
+    bool isKifukuApplicable(const QList<TermDefinition> &defs);
 
     /* true if a config exists, false otherwise */
     bool m_configExists = false;
