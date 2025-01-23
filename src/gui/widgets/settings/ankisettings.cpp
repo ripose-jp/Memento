@@ -72,6 +72,7 @@ AnkiSettings::AnkiSettings(QWidget *parent)
             REPLACE_GLOSSARY_BRIEF,
             REPLACE_GLOSSARY_COMPACT,
             REPLACE_PITCH,
+            REPLACE_PITCH_CATEGORIES,
             REPLACE_PITCH_GRAPHS,
             REPLACE_PITCH_POSITIONS,
             REPLACE_READING,

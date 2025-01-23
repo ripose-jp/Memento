@@ -1124,9 +1124,12 @@ QJsonObject AnkiClient::createAnkiNoteObject(
     );
 
     QString pitch;
+    QString pitchCategories;
     QString pitchGraph;
     QString pitchPosition;
-    buildPitchInfo(term.pitches, pitch, pitchGraph, pitchPosition);
+    const bool canBeKifuku{isKifukuApplicable(term.definitions)};
+    buildPitchInfo(term.pitches, canBeKifuku, pitch, pitchCategories,
+                   pitchGraph, pitchPosition);
 
     QString tags, tagsBrief;
     buildTags(term.tags, tags, tagsBrief);
@@ -1152,6 +1155,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(
         value.replace(REPLACE_GLOSSARY_BRIEF,   glossaryBrief);
         value.replace(REPLACE_GLOSSARY_COMPACT, glossaryCompact);
         value.replace(REPLACE_PITCH,            pitch);
+        value.replace(REPLACE_PITCH_CATEGORIES, pitchCategories);
         value.replace(REPLACE_PITCH_GRAPHS,     pitchGraph);
         value.replace(REPLACE_PITCH_POSITIONS,  pitchPosition);
         value.replace(REPLACE_READING,          reading);
@@ -1556,7 +1560,9 @@ void AnkiClient::buildCommonNote(
 #define PITCH_FORMAT    (QString("<span style=\"%1\">%2</span>"))
 
 void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
+                                const bool          canBeKifuku,
                                 QString            &pitch,
+                                QString            &pitchCategories,
                                 QString            &pitchGraph,
                                 QString            &pitchPosition)
 {
@@ -1568,6 +1574,8 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
     pitch         += "<span class=\"memento-pitch\">";
     pitchGraph    += "<span>";
     pitchPosition += "<span>";
+
+    QSet<QString> pitchCategoriesSet{};
 
     const bool multipleDicts = pitches.size() > 1;
 
@@ -1611,10 +1619,11 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
                 pitchPosition += "<li>";
             }
 
-            /* Build {pitch} marker */
+            /* Build {pitch} and {pitch-categories} markers */
             switch (pos)
             {
             case 0:
+                pitchCategoriesSet << "heiban";
                 pitch += p.mora.first();
                 if (p.mora.size() > 1)
                 {
@@ -1624,6 +1633,7 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
                 }
                 break;
             case 1:
+                pitchCategoriesSet << (canBeKifuku ? "kifuku" : "atamadaka");
                 pitch += PITCH_FORMAT.arg(HL_STYLE).arg(p.mora.first());
                 if (p.mora.size() > 1)
                 {
@@ -1632,6 +1642,18 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
                 break;
             default:
             {
+                if (p.mora.size() == pos)
+                {
+                    pitchCategoriesSet << "odaka";
+                }
+                else if (canBeKifuku)
+                {
+                    pitchCategoriesSet << "kifuku";
+                }
+                else
+                {
+                    pitchCategoriesSet << "nakadaka";
+                }
                 QString text = p.mora.first();
                 pitch += text;
 
@@ -1698,6 +1720,20 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
     pitch         += "</span>";
     pitchGraph    += "</span>";
     pitchPosition += "</span>";
+
+    bool isFirstPitchCategory{true};
+    for (const QString &pitchCategory : pitchCategoriesSet)
+    {
+        if (isFirstPitchCategory)
+        {
+            pitchCategories += pitchCategory;
+            isFirstPitchCategory = false;
+        }
+        else
+        {
+            pitchCategories += "," + pitchCategory;
+        }
+    }
 }
 
 #undef HL_STYLE
@@ -1903,6 +1939,36 @@ QString AnkiClient::fileToBase64(const QString &path)
         return {};
     }
     return file.readAll().toBase64();
+}
+
+bool AnkiClient::isKifukuApplicable(const QList<TermDefinition> &defs)
+{
+    bool canBeKifuku{false};
+
+    for (const TermDefinition &def : defs)
+    {
+        for (const QString &rule : def.rules)
+        {
+            /* See http://www.edrdg.org/jmwsgi/edhelp.py?svc=jmdict&sid=#kw_pos
+             * for more information on the meaning of JMDict part-of-speech tags
+             * such as "v1", "adj-i", etc.
+             */
+            if (rule == "v1" ||  // Ichidan verb
+                rule == "v5" ||  // Godan verb
+                rule == "vk" ||  // Kuru verb - special class
+                rule == "vz" ||  // Ichidan verb - zuru verb (alternative form of -jiru verb)
+                rule == "adj-i") // I-adjective (keiyoushi)
+            {
+                canBeKifuku = true;
+            }
+            else if (rule == "vs") // Noun or participle which takes the aux. verb suru
+            {
+                return false;
+            }
+        }
+    }
+
+    return canBeKifuku;
 }
 
 /* End Note Helpers */
