@@ -73,6 +73,18 @@ public:
      */
     bool isChecked() const;
 
+    /**
+     * Returns if there is selected glossary text.
+     * @return true if there is a selection in the glossary, false otherwise.
+     */
+    bool hasSelection() const;
+
+    /**
+     * Returns the current selected text string.
+     * @return The current selected text.
+     */
+    QString selection() const;
+
 Q_SIGNALS:
     /**
      * Emitted when a recursive search is performed.

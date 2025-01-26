@@ -76,6 +76,7 @@ AnkiSettings::AnkiSettings(QWidget *parent)
             REPLACE_PITCH_GRAPHS,
             REPLACE_PITCH_POSITIONS,
             REPLACE_READING,
+            REPLACE_SELECTION,
         }
     );
     m_ui->kanjiCardBuilder->setSuggestions(

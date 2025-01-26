@@ -188,6 +188,9 @@ struct Term : public CommonExpFields
     /* The list of definitions for this term. */
     QList<TermDefinition> definitions;
 
+    /* The text selected in the glossary */
+    QStringList selection;
+
     /* The score of this term.
      * Larger values generally mean this term is more common.
      */

@@ -1134,6 +1134,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(
     QString tags, tagsBrief;
     buildTags(term.tags, tags, tagsBrief);
 
+    QString selection = buildSelection(term.selection);
 
     /* Find and replace markers with data */
     QStringList fields = m_currentConfig->termFields.keys();
@@ -1159,6 +1160,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(
         value.replace(REPLACE_PITCH_GRAPHS,     pitchGraph);
         value.replace(REPLACE_PITCH_POSITIONS,  pitchPosition);
         value.replace(REPLACE_READING,          reading);
+        value.replace(REPLACE_SELECTION,        selection);
         value.replace(REPLACE_TAGS,             tags);
         value.replace(REPLACE_TAGS_BRIEF,       tagsBrief);
 
@@ -1929,6 +1931,30 @@ void AnkiClient::buildTags(
     }
     tagStr      += "</ul>";
     tagBriefStr += "</ul>";
+}
+
+QString AnkiClient::buildSelection(const QStringList &selections) const
+{
+    QString selection;
+
+    if (selections.size() == 1)
+    {
+        selection = selections.front();
+    }
+    else if (selections.size() > 1)
+    {
+        selection = "<ul>";
+        for (const QString &text : selections)
+        {
+            selection += "<li>";
+            selection += text;
+            selection += "</li>";
+        }
+        selection += "</ul>";
+    }
+
+    selection.replace('\n', "<br>");
+    return selection;
 }
 
 QString AnkiClient::fileToBase64(const QString &path)

@@ -20,6 +20,8 @@
 
 #include "glossarywidget.h"
 
+#include <QTextDocumentFragment>
+
 #include "tagwidget.h"
 
 #include "util/utils.h"
@@ -85,4 +87,14 @@ void GlossaryWidget::setChecked(const bool value)
 bool GlossaryWidget::isChecked() const
 {
     return m_checkBoxAdd->isChecked();
+}
+
+bool GlossaryWidget::hasSelection() const
+{
+    return m_glossaryLabel->textCursor().hasSelection();
+}
+
+QString GlossaryWidget::selection() const
+{
+    return m_glossaryLabel->textCursor().selection().toPlainText();
 }

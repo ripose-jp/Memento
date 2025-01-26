@@ -248,8 +248,8 @@ void TermWidget::initUi(
     for (int i = 0; i < term.definitions.size(); ++i)
     {
         GlossaryWidget *g = new GlossaryWidget(
-                i + 1, term.definitions[i], modifier, style
-            );
+            i + 1, term.definitions[i], modifier, style
+        );
         g->setChecked(
             !config->excludeGloss.contains(term.definitions[i].dictionary)
         );
@@ -265,16 +265,22 @@ void TermWidget::initUi(
 Term *TermWidget::initAnkiTerm() const
 {
     Term *term = new Term(*m_term);
-    term->definitions.clear();
     for (int i = 0; i < m_layoutGlossary->count(); ++i)
     {
         GlossaryWidget *widget =
             (GlossaryWidget *)m_layoutGlossary->itemAt(i)->widget();
         if (widget->isChecked())
         {
-            term->definitions.append(TermDefinition(m_term->definitions[i]));
+            term->definitions.emplace_back(
+                TermDefinition(m_term->definitions[i])
+            );
         }
         widget->setCheckable(false);
+
+        if (widget->hasSelection())
+        {
+            term->selection.emplace_back(widget->selection().trimmed());
+        }
     }
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();

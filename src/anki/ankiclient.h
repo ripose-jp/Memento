@@ -67,6 +67,7 @@
 #define REPLACE_PITCH_GRAPHS        "{pitch-graph}"
 #define REPLACE_PITCH_POSITIONS     "{pitch-position}"
 #define REPLACE_READING             "{reading}"
+#define REPLACE_SELECTION           "{selection}"
 
 /* Kanji Markers */
 #define REPLACE_CHARACTER           "{character}"
@@ -529,6 +530,13 @@ private:
         const QList<Tag> &tags,
         QString &tagStr,
         QString &tagBriefStr);
+
+    /**
+     * Helper method for building the selection list.
+     * @param selections The list of text selections.
+     * @return HTML string encoding the selected text.
+     */
+    QString buildSelection(const QStringList &selections) const;
 
     /**
      * Helper method to convert file to base64.
