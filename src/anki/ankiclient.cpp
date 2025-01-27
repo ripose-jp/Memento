@@ -31,6 +31,8 @@
 #include <QThreadPool>
 
 #include "glossarybuilder.h"
+#include "marker.h"
+#include "markertokenizer.h"
 
 #include "gui/widgets/subtitlelistwidget.h"
 #include "player/playeradapter.h"
@@ -1128,8 +1130,14 @@ QJsonObject AnkiClient::createAnkiNoteObject(
     QString pitchGraph;
     QString pitchPosition;
     const bool canBeKifuku{isKifukuApplicable(term.definitions)};
-    buildPitchInfo(term.pitches, canBeKifuku, pitch, pitchCategories,
-                   pitchGraph, pitchPosition);
+    buildPitchInfo(
+        term.pitches,
+        canBeKifuku,
+        pitch,
+        pitchCategories,
+        pitchGraph,
+        pitchPosition
+    );
 
     QString tags, tagsBrief;
     buildTags(term.tags, tags, tagsBrief);
@@ -1143,26 +1151,71 @@ QJsonObject AnkiClient::createAnkiNoteObject(
     {
         QString value = fieldsObj[field].toString();
 
-        if (value.contains(REPLACE_AUDIO))
+        QList<Anki::Token> tokens = Anki::tokenize(value);
+        for (const Anki::Token &t : tokens)
         {
-            fieldsWithAudio.append(field);
+            if (t.marker == Anki::Marker::AUDIO)
+            {
+                fieldsWithAudio.append(field);
+                value.replace(t.raw, "");
+            }
+            else if (t.marker == Anki::Marker::EXPRESSION)
+            {
+                value.replace(t.raw, expression);
+            }
+            else if (t.marker == Anki::Marker::FURIGANA)
+            {
+                value.replace(t.raw, furigana);
+            }
+            else if (t.marker == Anki::Marker::FURIGANA_PLAIN)
+            {
+                value.replace(t.raw, furiganaPlain);
+            }
+            else if (t.marker == Anki::Marker::GLOSSARY)
+            {
+                value.replace(t.raw, glossary);
+            }
+            else if (t.marker == Anki::Marker::GLOSSARY_BRIEF)
+            {
+                value.replace(t.raw, glossaryBrief);
+            }
+            else if (t.marker == Anki::Marker::GLOSSARY_COMPACT)
+            {
+                value.replace(t.raw, glossaryCompact);
+            }
+            else if (t.marker == Anki::Marker::PITCH)
+            {
+                value.replace(t.raw, pitch);
+            }
+            else if (t.marker == Anki::Marker::PITCH_CATEGORIES)
+            {
+                value.replace(t.raw, pitchCategories);
+            }
+            else if (t.marker == Anki::Marker::PITCH_GRAPHS)
+            {
+                value.replace(t.raw, pitchGraph);
+            }
+            else if (t.marker == Anki::Marker::PITCH_POSITIONS)
+            {
+                value.replace(t.raw, pitchPosition);
+            }
+            else if (t.marker == Anki::Marker::READING)
+            {
+                value.replace(t.raw, reading);
+            }
+            else if (t.marker == Anki::Marker::SELECTION)
+            {
+                value.replace(t.raw, selection);
+            }
+            else if (t.marker == Anki::Marker::TAGS)
+            {
+                value.replace(t.raw, tags);
+            }
+            else if (t.marker == Anki::Marker::TAGS_BRIEF)
+            {
+                value.replace(t.raw, tagsBrief);
+            }
         }
-        value.replace(REPLACE_AUDIO, "");
-
-        value.replace(REPLACE_EXPRESSION,       expression);
-        value.replace(REPLACE_FURIGANA,         furigana);
-        value.replace(REPLACE_FURIGANA_PLAIN,   furiganaPlain);
-        value.replace(REPLACE_GLOSSARY,         glossary);
-        value.replace(REPLACE_GLOSSARY_BRIEF,   glossaryBrief);
-        value.replace(REPLACE_GLOSSARY_COMPACT, glossaryCompact);
-        value.replace(REPLACE_PITCH,            pitch);
-        value.replace(REPLACE_PITCH_CATEGORIES, pitchCategories);
-        value.replace(REPLACE_PITCH_GRAPHS,     pitchGraph);
-        value.replace(REPLACE_PITCH_POSITIONS,  pitchPosition);
-        value.replace(REPLACE_READING,          reading);
-        value.replace(REPLACE_SELECTION,        selection);
-        value.replace(REPLACE_TAGS,             tags);
-        value.replace(REPLACE_TAGS_BRIEF,       tagsBrief);
 
         fieldsObj[field] = value;
     }
@@ -1176,11 +1229,11 @@ QJsonObject AnkiClient::createAnkiNoteObject(
         {
             QJsonObject audObj;
 
-            audObj[ANKI_NOTE_URL]      = QString(term.audioURL)
+            audObj[ANKI_NOTE_URL] = QString(term.audioURL)
                 .replace(REPLACE_EXPRESSION, term.expression)
-                .replace(REPLACE_READING, reading);
+                .replace(REPLACE_READING,    reading);
             audObj[ANKI_NOTE_FILENAME] = audioFile;
-            audObj[ANKI_NOTE_FIELDS]   = fieldsWithAudio;
+            audObj[ANKI_NOTE_FIELDS] = fieldsWithAudio;
             audObj[ANKI_NOTE_SKIPHASH] = term.audioSkipHash;
             audio.append(audObj);
         }
@@ -1284,13 +1337,38 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji, bool media)
     {
         QString value = fieldsObj[field].toString();
 
-        value.replace(REPLACE_CHARACTER,    kanji.character);
-        value.replace(REPLACE_KUNYOMI,      kunyomi);
-        value.replace(REPLACE_ONYOMI,       onyomi);
-        value.replace(REPLACE_STROKE_COUNT, strokeCount);
-        value.replace(REPLACE_GLOSSARY,     glossary);
-        value.replace(REPLACE_TAGS,         tags);
-        value.replace(REPLACE_TAGS_BRIEF,   tagsBrief);
+        QList<Anki::Token> tokens = Anki::tokenize(value);
+        for (const Anki::Token &t : tokens)
+        {
+            if (t.marker == Anki::Marker::CHARACTER)
+            {
+                value.replace(t.raw, kanji.character);
+            }
+            else if (t.marker == Anki::Marker::KUNYOMI)
+            {
+                value.replace(t.raw, kunyomi);
+            }
+            else if (t.marker == Anki::Marker::ONYOMI)
+            {
+                value.replace(t.raw, onyomi);
+            }
+            else if (t.marker == Anki::Marker::STROKE_COUNT)
+            {
+                value.replace(t.raw, strokeCount);
+            }
+            else if (t.marker == Anki::Marker::GLOSSARY)
+            {
+                value.replace(t.raw, glossary);
+            }
+            else if (t.marker == Anki::Marker::TAGS)
+            {
+                value.replace(t.raw, tags);
+            }
+            else if (t.marker == Anki::Marker::TAGS_BRIEF)
+            {
+                value.replace(t.raw, tagsBrief);
+            }
+        }
 
         fieldsObj[field] = value;
     }
@@ -1362,59 +1440,112 @@ void AnkiClient::buildCommonNote(
     {
         QString value = configFields[field].toString();
 
-        if (value.contains(REPLACE_AUDIO_MEDIA))
+        QList<Anki::Token> tokens = Anki::tokenize(value);
+        for (const Anki::Token &t : tokens)
         {
-            fieldsWithAudioMedia.append(field);
+            /* If the term never occurs in the corpus of any loaded frequency
+            * dictionary, assume it is a very rare word.
+            * (The higher the ranking, the rarer the term) */
+            constexpr int DEFAULT_FREQ_RANK = 9999999;
+            constexpr int DEFAULT_FREQ_OCCURANCE = 0;
+
+            if (t.marker == Anki::Marker::AUDIO_MEDIA)
+            {
+                fieldsWithAudioMedia.append(field);
+                value.replace(t.raw, "");
+            }
+            else if (t.marker == Anki::Marker::AUDIO_CONTEXT)
+            {
+                fieldsWithAudioContext.append(field);
+                value.replace(t.raw, "");
+            }
+            else if (t.marker == Anki::Marker::SCREENSHOT)
+            {
+                fieldsWithScreenshot.append(field),
+                value.replace(t.raw, "");
+            }
+            else if (t.marker == Anki::Marker::SCREENSHOT_VIDEO)
+            {
+                fieldWithScreenshotVideo.append(field);
+                value.replace(t.raw, "");
+            }
+            else if (t.marker == Anki::Marker::TITLE)
+            {
+                value.replace(t.raw, exp.title);
+            }
+            else if (t.marker == Anki::Marker::CLIPBOARD)
+            {
+                value.replace(t.raw, clipboard);
+            }
+            else if (t.marker == Anki::Marker::CLOZE_BODY)
+            {
+                value.replace(t.raw, clozeBody);
+            }
+            else if (t.marker == Anki::Marker::CLOZE_PREFIX)
+            {
+                value.replace(t.raw, clozePrefix);
+            }
+            else if (t.marker == Anki::Marker::CLOZE_SUFFIX)
+            {
+                value.replace(t.raw, clozeSuffix);
+            }
+            else if (t.marker == Anki::Marker::FREQUENCIES)
+            {
+                value.replace(t.raw, frequencies);
+            }
+            else if (t.marker == Anki::Marker::FREQ_HARMONIC_RANK)
+            {
+                value.replace(
+                    t.raw,
+                    positiveIntToQString(
+                        frequencyHarmonic, DEFAULT_FREQ_RANK
+                    )
+                );
+            }
+            else if (t.marker == Anki::Marker::FREQ_HARMONIC_OCCU)
+            {
+                value.replace(
+                    t.raw,
+                    positiveIntToQString(
+                        frequencyHarmonic, DEFAULT_FREQ_OCCURANCE
+                    )
+                );
+            }
+            else if (t.marker == Anki::Marker::FREQ_AVERAGE_RANK)
+            {
+                value.replace(
+                    t.raw,
+                    positiveIntToQString(
+                        frequencyAverage, DEFAULT_FREQ_RANK
+                    )
+                );
+            }
+            else if (t.marker == Anki::Marker::FREQ_AVERAGE_OCCU)
+            {
+                value.replace(
+                    t.raw,
+                    positiveIntToQString(
+                        frequencyAverage, DEFAULT_FREQ_OCCURANCE
+                    )
+                );
+            }
+            else if (t.marker == Anki::Marker::SENTENCE)
+            {
+                value.replace(t.raw, sentence);
+            }
+            else if (t.marker == Anki::Marker::SENTENCE_SEC)
+            {
+                value.replace(t.raw, sentence2);
+            }
+            else if (t.marker == Anki::Marker::CONTEXT)
+            {
+                value.replace(t.raw, context);
+            }
+            else if (t.marker == Anki::Marker::CONTEXT_SEC)
+            {
+                value.replace(t.raw, context2);
+            }
         }
-        value.replace(REPLACE_AUDIO_MEDIA, "");
-
-        if (value.contains(REPLACE_AUDIO_CONTEXT))
-        {
-            fieldsWithAudioContext.append(field);
-        }
-        value.replace(REPLACE_AUDIO_CONTEXT, "");
-
-        if (value.contains(REPLACE_SCREENSHOT))
-        {
-            fieldsWithScreenshot.append(field);
-        }
-        value.replace(REPLACE_SCREENSHOT, "");
-
-        if (value.contains(REPLACE_SCREENSHOT_VIDEO))
-        {
-            fieldWithScreenshotVideo.append(field);
-        }
-        value.replace(REPLACE_SCREENSHOT_VIDEO, "");
-
-        value.replace(REPLACE_TITLE,        exp.title);
-        value.replace(REPLACE_CLIPBOARD,    clipboard);
-        value.replace(REPLACE_CLOZE_BODY,   clozeBody);
-        value.replace(REPLACE_CLOZE_PREFIX, clozePrefix);
-        value.replace(REPLACE_CLOZE_SUFFIX, clozeSuffix);
-        value.replace(REPLACE_FREQUENCIES,  frequencies);
-
-        /* If the term never occurs in the corpus of any loaded frequency
-         * dictionary, assume it is a very rare word.
-         * (The higher the ranking, the rarer the term) */
-        constexpr int default_freq_rank = 9999999;
-        constexpr int default_freq_occurrence = 0;
-
-        value.replace(REPLACE_FREQ_HARMONIC_RANK,
-                positiveIntToQString(frequencyHarmonic, default_freq_rank));
-
-        value.replace(REPLACE_FREQ_HARMONIC_OCCU,
-                positiveIntToQString(frequencyHarmonic, default_freq_occurrence));
-
-        value.replace(REPLACE_FREQ_AVERAGE_RANK,
-                positiveIntToQString(frequencyAverage, default_freq_rank));
-
-        value.replace(REPLACE_FREQ_AVERAGE_OCCU,
-                positiveIntToQString(frequencyAverage, default_freq_occurrence));
-
-        value.replace(REPLACE_SENTENCE,     sentence);
-        value.replace(REPLACE_SENTENCE_SEC, sentence2);
-        value.replace(REPLACE_CONTEXT,      context);
-        value.replace(REPLACE_CONTEXT_SEC,  context2);
 
         fieldObj[field] = value;
     }

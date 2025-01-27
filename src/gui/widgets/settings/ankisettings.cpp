@@ -24,6 +24,8 @@
 #include <QSettings>
 #include <QTableWidgetItem>
 
+#include "anki/ankiclient.h"
+#include "anki/marker.h"
 #include "dict/dictionary.h"
 #include "util/constants.h"
 #include "util/globalmediator.h"
@@ -39,77 +41,77 @@ AnkiSettings::AnkiSettings(QWidget *parent)
     m_ui->setupUi(this);
     m_ui->frameAdvanced->hide();
 
-    m_ui->termCardBuilder->setSuggestions(
-        {
-            /* Shared */
-            REPLACE_AUDIO_MEDIA,
-            REPLACE_AUDIO_CONTEXT,
-            REPLACE_CLIPBOARD,
-            REPLACE_CLOZE_BODY,
-            REPLACE_CLOZE_PREFIX,
-            REPLACE_CLOZE_SUFFIX,
-            REPLACE_CONTEXT,
-            REPLACE_CONTEXT_SEC,
-            REPLACE_FREQUENCIES,
-            REPLACE_FREQ_HARMONIC_RANK,
-            REPLACE_FREQ_HARMONIC_OCCU,
-            REPLACE_FREQ_AVERAGE_RANK,
-            REPLACE_FREQ_AVERAGE_OCCU,
-            REPLACE_GLOSSARY,
-            REPLACE_SCREENSHOT,
-            REPLACE_SCREENSHOT_VIDEO,
-            REPLACE_SENTENCE,
-            REPLACE_SENTENCE_SEC,
-            REPLACE_TAGS,
-            REPLACE_TAGS_BRIEF,
-            REPLACE_TITLE,
+    const auto makeSuggestion = [] (const char *str) -> QString
+    {
+        return QString("{%1}").arg(str);
+    };
+    m_ui->termCardBuilder->setSuggestions({
+        /* Shared */
+        makeSuggestion(Anki::Marker::AUDIO_MEDIA),
+        makeSuggestion(Anki::Marker::AUDIO_CONTEXT),
+        makeSuggestion(Anki::Marker::CLIPBOARD),
+        makeSuggestion(Anki::Marker::CLOZE_BODY),
+        makeSuggestion(Anki::Marker::CLOZE_PREFIX),
+        makeSuggestion(Anki::Marker::CLOZE_SUFFIX),
+        makeSuggestion(Anki::Marker::CONTEXT),
+        makeSuggestion(Anki::Marker::CONTEXT_SEC),
+        makeSuggestion(Anki::Marker::FREQUENCIES),
+        makeSuggestion(Anki::Marker::FREQ_HARMONIC_RANK),
+        makeSuggestion(Anki::Marker::FREQ_HARMONIC_OCCU),
+        makeSuggestion(Anki::Marker::FREQ_AVERAGE_RANK),
+        makeSuggestion(Anki::Marker::FREQ_AVERAGE_OCCU),
+        makeSuggestion(Anki::Marker::GLOSSARY),
+        makeSuggestion(Anki::Marker::SCREENSHOT),
+        makeSuggestion(Anki::Marker::SCREENSHOT_VIDEO),
+        makeSuggestion(Anki::Marker::SENTENCE),
+        makeSuggestion(Anki::Marker::SENTENCE_SEC),
+        makeSuggestion(Anki::Marker::TAGS),
+        makeSuggestion(Anki::Marker::TAGS_BRIEF),
+        makeSuggestion(Anki::Marker::TITLE),
 
-            /* Term */
-            REPLACE_AUDIO,
-            REPLACE_EXPRESSION,
-            REPLACE_FURIGANA,
-            REPLACE_FURIGANA_PLAIN,
-            REPLACE_GLOSSARY_BRIEF,
-            REPLACE_GLOSSARY_COMPACT,
-            REPLACE_PITCH,
-            REPLACE_PITCH_CATEGORIES,
-            REPLACE_PITCH_GRAPHS,
-            REPLACE_PITCH_POSITIONS,
-            REPLACE_READING,
-            REPLACE_SELECTION,
-        }
-    );
-    m_ui->kanjiCardBuilder->setSuggestions(
-        {
-            /* Shared */
-            REPLACE_AUDIO_MEDIA,
-            REPLACE_AUDIO_CONTEXT,
-            REPLACE_CLIPBOARD,
-            REPLACE_CLOZE_BODY,
-            REPLACE_CLOZE_PREFIX,
-            REPLACE_CLOZE_SUFFIX,
-            REPLACE_CONTEXT,
-            REPLACE_CONTEXT_SEC,
-            REPLACE_FREQUENCIES,
-            REPLACE_FREQ_HARMONIC_RANK,
-            REPLACE_FREQ_HARMONIC_OCCU,
-            REPLACE_FREQ_AVERAGE_RANK,
-            REPLACE_FREQ_AVERAGE_OCCU,
-            REPLACE_GLOSSARY,
-            REPLACE_SCREENSHOT,
-            REPLACE_SCREENSHOT_VIDEO,
-            REPLACE_SENTENCE,
-            REPLACE_SENTENCE_SEC,
-            REPLACE_TAGS,
-            REPLACE_TITLE,
+        /* Term */
+        makeSuggestion(Anki::Marker::AUDIO),
+        makeSuggestion(Anki::Marker::EXPRESSION),
+        makeSuggestion(Anki::Marker::FURIGANA),
+        makeSuggestion(Anki::Marker::FURIGANA_PLAIN),
+        makeSuggestion(Anki::Marker::GLOSSARY_BRIEF),
+        makeSuggestion(Anki::Marker::GLOSSARY_COMPACT),
+        makeSuggestion(Anki::Marker::PITCH),
+        makeSuggestion(Anki::Marker::PITCH_CATEGORIES),
+        makeSuggestion(Anki::Marker::PITCH_GRAPHS),
+        makeSuggestion(Anki::Marker::PITCH_POSITIONS),
+        makeSuggestion(Anki::Marker::READING),
+        makeSuggestion(Anki::Marker::SELECTION),
+    });
+    m_ui->kanjiCardBuilder->setSuggestions({
+        /* Shared */
+        makeSuggestion(Anki::Marker::AUDIO_MEDIA),
+        makeSuggestion(Anki::Marker::AUDIO_CONTEXT),
+        makeSuggestion(Anki::Marker::CLIPBOARD),
+        makeSuggestion(Anki::Marker::CLOZE_BODY),
+        makeSuggestion(Anki::Marker::CLOZE_PREFIX),
+        makeSuggestion(Anki::Marker::CLOZE_SUFFIX),
+        makeSuggestion(Anki::Marker::CONTEXT),
+        makeSuggestion(Anki::Marker::CONTEXT_SEC),
+        makeSuggestion(Anki::Marker::FREQUENCIES),
+        makeSuggestion(Anki::Marker::FREQ_HARMONIC_RANK),
+        makeSuggestion(Anki::Marker::FREQ_HARMONIC_OCCU),
+        makeSuggestion(Anki::Marker::FREQ_AVERAGE_RANK),
+        makeSuggestion(Anki::Marker::FREQ_AVERAGE_OCCU),
+        makeSuggestion(Anki::Marker::GLOSSARY),
+        makeSuggestion(Anki::Marker::SCREENSHOT),
+        makeSuggestion(Anki::Marker::SCREENSHOT_VIDEO),
+        makeSuggestion(Anki::Marker::SENTENCE),
+        makeSuggestion(Anki::Marker::SENTENCE_SEC),
+        makeSuggestion(Anki::Marker::TAGS),
+        makeSuggestion(Anki::Marker::TITLE),
 
-            /* Kanji */
-            REPLACE_CHARACTER,
-            REPLACE_KUNYOMI,
-            REPLACE_ONYOMI,
-            REPLACE_STROKE_COUNT,
-        }
-    );
+        /* Kanji */
+        makeSuggestion(Anki::Marker::CHARACTER),
+        makeSuggestion(Anki::Marker::KUNYOMI),
+        makeSuggestion(Anki::Marker::ONYOMI),
+        makeSuggestion(Anki::Marker::STROKE_COUNT),
+    });
 
     initIcons();
 

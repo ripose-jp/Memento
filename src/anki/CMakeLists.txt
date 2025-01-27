@@ -3,8 +3,10 @@ add_library(
     ankiclient.cpp
     ankiclient.h
     ankiconfig.h
-    glossarybuilder.h
     glossarybuilder.cpp
+    glossarybuilder.h
+    markertokenizer.cpp
+    markertokenizer.h
 )
 target_compile_features(anki PUBLIC cxx_std_17)
 target_compile_options(anki PRIVATE ${MEMENTO_COMPILER_FLAGS})
