@@ -1959,8 +1959,8 @@ QList<QPair<QString, QString>> AnkiClient::buildGlossary(
 
     for (const TermDefinition &def : definitions)
     {
-        glossary += "<li>";
-        glossaryCompact += "<li>";
+        glossary += "<li data-dictionary=\"" + def.dictionary + "\">";
+        glossaryCompact += "<li data-dictionary=\"" + def.dictionary + "\">";
 
         glossary += "<i>(";
         glossaryCompact += "<i>(";
