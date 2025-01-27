@@ -32,7 +32,6 @@
 
 #include "glossarybuilder.h"
 #include "marker.h"
-#include "markertokenizer.h"
 
 #include "gui/widgets/subtitlelistwidget.h"
 #include "player/playeradapter.h"
@@ -1173,14 +1172,38 @@ QJsonObject AnkiClient::createAnkiNoteObject(
             }
             else if (t.marker == Anki::Marker::GLOSSARY)
             {
+                QString glossary, glossaryBrief, glossaryCompact;
+                buildGlossary(
+                    term.definitions,
+                    t.args,
+                    glossary,
+                    glossaryBrief,
+                    glossaryCompact
+                );
                 value.replace(t.raw, glossary);
             }
             else if (t.marker == Anki::Marker::GLOSSARY_BRIEF)
             {
+                QString glossary, glossaryBrief, glossaryCompact;
+                buildGlossary(
+                    term.definitions,
+                    t.args,
+                    glossary,
+                    glossaryBrief,
+                    glossaryCompact
+                );
                 value.replace(t.raw, glossaryBrief);
             }
             else if (t.marker == Anki::Marker::GLOSSARY_COMPACT)
             {
+                QString glossary, glossaryBrief, glossaryCompact;
+                buildGlossary(
+                    term.definitions,
+                    t.args,
+                    glossary,
+                    glossaryBrief,
+                    glossaryCompact
+                );
                 value.replace(t.raw, glossaryCompact);
             }
             else if (t.marker == Anki::Marker::PITCH)
@@ -1876,10 +1899,57 @@ void AnkiClient::buildPitchInfo(const QList<Pitch> &pitches,
 
 QList<QPair<QString, QString>> AnkiClient::buildGlossary(
     const QList<TermDefinition> &definitions,
+    const QHash<QString, QString> &args,
     QString &glossary,
     QString &glossaryBrief,
     QString &glossaryCompact)
 {
+    constexpr const char *ARG_DICTIONARY = "dict";
+
+    const auto dicIdStr = args.constFind(ARG_DICTIONARY);
+    if (dicIdStr == std::end(args))
+    {
+        return buildGlossary(
+            definitions, glossary, glossaryBrief, glossaryCompact
+        );
+    }
+
+    bool success = false;
+    const int dicId = dicIdStr->toInt(&success);
+    if (!success)
+    {
+        glossary = glossaryBrief = glossaryCompact =
+            "ERROR: Invalid dic-id value";
+        return {};
+    }
+
+    QList<TermDefinition> filteredDefinitions;
+    std::copy_if(
+        std::begin(definitions),
+        std::end(definitions),
+        std::back_inserter(filteredDefinitions),
+        [dicId] (const TermDefinition &td) -> bool
+        {
+            return td.dictionaryId == dicId;
+        }
+    );
+
+    return buildGlossary(
+        filteredDefinitions, glossary, glossaryBrief, glossaryCompact
+    );
+}
+
+QList<QPair<QString, QString>> AnkiClient::buildGlossary(
+    const QList<TermDefinition> &definitions,
+    QString &glossary,
+    QString &glossaryBrief,
+    QString &glossaryCompact)
+{
+    if (definitions.empty())
+    {
+        return {};
+    }
+
     QString basepath = DirectoryUtils::getDictionaryResourceDir() + SLASH;
 
     glossary += "<div style=\"text-align: left;\"><ol>";

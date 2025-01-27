@@ -29,6 +29,7 @@
 #include <QStringList>
 
 #include "ankiconfig.h"
+#include "markertokenizer.h"
 
 #include "dict/expression.h"
 
@@ -459,6 +460,22 @@ private:
                         QString            &pitchCategories,
                         QString            &pitchGraph,
                         QString            &pitchPosition);
+
+    /**
+     * Builds an HTML glossary from the TermDefinitions.
+     * @param      definitions     The definitions to build the glossary from.
+     * @param      args            The set of marker arguments.
+     * @param[out] glossary        The glossary.
+     * @param[out] glossaryBrief   The brief glossary.
+     * @param[out] glossaryCompact The compact glossary.
+     * @return A mapping of file paths to filenames.
+     */
+    QList<QPair<QString, QString>> buildGlossary(
+        const QList<TermDefinition> &definitions,
+        const QHash<QString, QString> &args,
+        QString &glossary,
+        QString &glossaryBrief,
+        QString &glossaryCompact);
 
     /**
      * Builds an HTML glossary from the TermDefinitions.
