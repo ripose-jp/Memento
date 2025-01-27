@@ -68,11 +68,11 @@ void Dictionary::initDictionaryOrder()
 
     QSettings settings;
     settings.beginGroup(Constants::Settings::Dictionaries::GROUP);
-    QStringList dicts = m_db->getDictionaries();
+    QList<DictionaryInfo> dicts = m_db->getDictionaries();
     m_dicOrder.map.clear();
-    for (const QString &dict : dicts)
+    for (const DictionaryInfo &dict : dicts)
     {
-        m_dicOrder.map[dict] = settings.value(dict).toInt();
+        m_dicOrder.map[dict.id] = settings.value(dict.name).toInt();
     }
     settings.endGroup();
 
@@ -352,8 +352,8 @@ void Dictionary::sortTerms(SharedTermList &terms) const
         std::sort(std::begin(term->definitions), std::end(term->definitions),
             [=] (const TermDefinition &lhs, const TermDefinition &rhs) -> bool
             {
-                uint32_t lhsPriority = m_dicOrder.map[lhs.dictionary];
-                uint32_t rhsPriority = m_dicOrder.map[rhs.dictionary];
+                uint32_t lhsPriority = m_dicOrder.map[lhs.dictionaryId];
+                uint32_t rhsPriority = m_dicOrder.map[rhs.dictionaryId];
                 return lhsPriority < rhsPriority ||
                        (lhsPriority == rhsPriority && lhs.score > rhs.score);
             }
@@ -361,8 +361,8 @@ void Dictionary::sortTerms(SharedTermList &terms) const
         std::sort(std::begin(term->frequencies), std::end(term->frequencies),
             [=] (const Frequency &lhs, const Frequency &rhs) -> bool
             {
-                return m_dicOrder.map[lhs.dictionary] <
-                       m_dicOrder.map[rhs.dictionary];
+                return m_dicOrder.map[lhs.dictionaryId] <
+                       m_dicOrder.map[rhs.dictionaryId];
             }
         );
         sortTags(term->tags);
@@ -392,14 +392,14 @@ SharedKanji Dictionary::searchKanji(const QString ch)
     m_dicOrder.lock.lockForRead();
     std::sort(kanji->frequencies.begin(), kanji->frequencies.end(),
         [=] (const Frequency &lhs, const Frequency &rhs) -> bool {
-            return m_dicOrder.map[lhs.dictionary] <
-                   m_dicOrder.map[rhs.dictionary];
+            return m_dicOrder.map[lhs.dictionaryId] <
+                   m_dicOrder.map[rhs.dictionaryId];
         }
     );
     std::sort(kanji->definitions.begin(), kanji->definitions.end(),
         [=] (const KanjiDefinition &lhs, const KanjiDefinition &rhs) -> bool {
-            return m_dicOrder.map[lhs.dictionary] <
-                   m_dicOrder.map[rhs.dictionary];
+            return m_dicOrder.map[lhs.dictionaryId] <
+                   m_dicOrder.map[rhs.dictionaryId];
         }
     );
     m_dicOrder.lock.unlock();
@@ -465,15 +465,15 @@ QString Dictionary::disableDictionaries(const QStringList &dictionaries)
     return "";
 }
 
-QStringList Dictionary::getDictionaries() const
+QList<DictionaryInfo> Dictionary::getDictionaries() const
 {
-    QStringList dictionaries = m_db->getDictionaries();
+    QList<DictionaryInfo> dictionaries = m_db->getDictionaries();
 
     m_dicOrder.lock.lockForRead();
     std::sort(dictionaries.begin(), dictionaries.end(),
-        [=] (const QString &lhs, const QString &rhs) -> bool
+        [=] (const DictionaryInfo &lhs, const DictionaryInfo &rhs) -> bool
         {
-            return m_dicOrder.map[lhs] < m_dicOrder.map[rhs];
+            return m_dicOrder.map[lhs.id] < m_dicOrder.map[rhs.id];
         }
     );
     m_dicOrder.lock.unlock();
@@ -481,7 +481,7 @@ QStringList Dictionary::getDictionaries() const
     return dictionaries;
 }
 
-QStringList Dictionary::getDisabledDictionaries() const
+QList<DictionaryInfo> Dictionary::getDisabledDictionaries() const
 {
     return m_db->getDisabledDictionaries();
 }

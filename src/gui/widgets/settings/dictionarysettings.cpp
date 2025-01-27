@@ -31,6 +31,9 @@
 #include "util/globalmediator.h"
 #include "util/iconfactory.h"
 
+static constexpr int ROLE_DICTIONARY_ID{Qt::UserRole + 0};
+static constexpr int ROLE_DICTIONARY_NAME{Qt::UserRole + 1};
+
 /* Begin Constructor/Destructor */
 
 DictionarySettings::DictionarySettings(QWidget *parent)
@@ -74,11 +77,6 @@ DictionarySettings::DictionarySettings(QWidget *parent)
     connect(
         m_ui->buttonDelete, &QToolButton::clicked,
         this,               &DictionarySettings::deleteDictionary
-    );
-
-    connect(
-        this, &DictionarySettings::restoreSavedReady,
-        this, &DictionarySettings::restoreSavedHelper
     );
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
@@ -137,32 +135,37 @@ void DictionarySettings::restoreSaved()
 
     setEnabled(false);
 
-    QThreadPool::globalInstance()->start(
-        [this] {
-            Dictionary *dict =
-                GlobalMediator::getGlobalMediator()->getDictionary();
-            QStringList dicts = dict->getDictionaries();
-            QStringList disabledNames = dict->getDisabledDictionaries();
+    Dictionary *dict =
+        GlobalMediator::getGlobalMediator()->getDictionary();
+    QList<DictionaryInfo> dicts = dict->getDictionaries();
+    QList<DictionaryInfo> disabledNames =
+        dict->getDisabledDictionaries();
 
-            Q_EMIT restoreSavedReady(dicts, disabledNames);
-        }
-    );
-}
-
-void DictionarySettings::restoreSavedHelper(
-    const QStringList &dicts,
-    const QStringList &disabledNames)
-{
     m_ui->listDictionaries->clear();
-    m_ui->listDictionaries->addItems(dicts);
+    for (const DictionaryInfo &info : dicts)
+    {
+        QListWidgetItem *item = new QListWidgetItem(
+            QString("%1 [%2]")
+                .arg(info.name)
+                .arg(info.id)
+        );
+        item->setData(ROLE_DICTIONARY_ID, QVariant::fromValue(info.id));
+        item->setData(ROLE_DICTIONARY_NAME, QVariant::fromValue(info.name));
+        m_ui->listDictionaries->addItem(item);
+    }
 
-    QSet<QString> disabled(disabledNames.begin(), disabledNames.end());
+    QSet<int> disabled;
+    for (const DictionaryInfo &info : disabledNames)
+    {
+        disabled.insert(info.id);
+    }
     for (int i = 0; i < m_ui->listDictionaries->count(); ++i)
     {
         QListWidgetItem *item = m_ui->listDictionaries->item(i);
         item->setFlags(item->flags() | Qt::ItemFlag::ItemIsUserCheckable);
         item->setCheckState(
-            disabled.contains(item->text()) ? Qt::Unchecked : Qt::Checked
+            disabled.contains(item->data(ROLE_DICTIONARY_ID).toInt()) ?
+                Qt::Unchecked : Qt::Checked
         );
     }
 
@@ -182,9 +185,9 @@ void DictionarySettings::applySettings()
         QListWidgetItem *item = m_ui->listDictionaries->item(i);
         if (item->checkState() == Qt::Unchecked)
         {
-            dictionaries << item->text();
+            dictionaries << item->data(ROLE_DICTIONARY_NAME).toString();
         }
-        settings.setValue(item->text(), i);
+        settings.setValue(item->data(ROLE_DICTIONARY_NAME).toString(), i);
     }
     settings.endGroup();
 
@@ -261,14 +264,16 @@ void DictionarySettings::deleteDictionary()
     );
     QSettings settings;
     settings.beginGroup(Constants::Settings::Dictionaries::GROUP);
-    settings.remove(item->text());
+    settings.remove(item->data(ROLE_DICTIONARY_NAME).toString());
     settings.endGroup();
     QThreadPool::globalInstance()->start(
         [=] {
             setEnabled(false);
             Dictionary *dic =
                 GlobalMediator::getGlobalMediator()->getDictionary();
-            QString err = dic->deleteDictionary(item->text());
+            QString err = dic->deleteDictionary(
+                item->data(ROLE_DICTIONARY_NAME).toString()
+            );
             if (!err.isEmpty())
             {
                 Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(

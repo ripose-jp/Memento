@@ -103,13 +103,13 @@ public:
      * Gets a list of dictionaries ordered by user preference.
      * @return A list of dictionaries ordered by user preference.
      */
-    QStringList getDictionaries() const;
+    QList<DictionaryInfo> getDictionaries() const;
 
     /**
      * Gets the list of disabled dictionaries.
      * @return The names of all disabled dictionaries.
      */
-    QStringList getDisabledDictionaries() const;
+    QList<DictionaryInfo> getDisabledDictionaries() const;
 
 private Q_SLOTS:
     /**
@@ -168,7 +168,7 @@ private:
     struct DictOrder
     {
         /* Maps dictionary names to priorities. */
-        QHash<QString, int> map;
+        QHash<int, int> map;
 
         /* Used for locking for reading and writing. */
         mutable QReadWriteLock lock;

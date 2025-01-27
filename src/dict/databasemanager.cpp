@@ -140,6 +140,7 @@ int DatabaseManager::initCache()
         QHash<QString, Tag> &tags = m_tagCache[id];
 
         Tag tag;
+        tag.dictionaryId = id;
         tag.dictionary = m_dictionaryCache[id],
         tag.name = (const char *)sqlite3_column_text(stmt, COLUMN_NAME),
         tag.category = (const char *)sqlite3_column_text(stmt, COLUMN_CATEGORY),
@@ -219,15 +220,18 @@ int DatabaseManager::disableDictionaries(const QStringList &dicts)
 /* End Dictionary Database Modifiers */
 /* Begin Database Getters */
 
-#define QUERY   "SELECT title FROM directory;"
+#define QUERY   "SELECT dic_id, title FROM directory;"
 
-QStringList DatabaseManager::getDictionaries() const
+QList<DictionaryInfo> DatabaseManager::getDictionaries() const
 {
+    constexpr int COLUMN_DIC_ID = 0;
+    constexpr int COLUMN_TITLE = 1;
+
     m_dbLock.lockForRead();
 
-    QStringList   dictionaries;
-    sqlite3_stmt *stmt  = NULL;
-    int           step  = 0;
+    QList<DictionaryInfo>  dictionaries;
+    sqlite3_stmt          *stmt  = NULL;
+    int                    step  = 0;
 
     if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
     {
@@ -235,7 +239,10 @@ QStringList DatabaseManager::getDictionaries() const
     }
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
-        dictionaries.append((const char *)sqlite3_column_text(stmt, 0));
+        DictionaryInfo info{};
+        info.id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
+        info.name = (const char *)sqlite3_column_text(stmt, COLUMN_TITLE);
+        dictionaries.emplaceBack(std::move(info));
     }
 
 cleanup:
@@ -249,13 +256,13 @@ cleanup:
 
 #define QUERY   "SELECT dic_id FROM dict_disabled;"
 
-QStringList DatabaseManager::getDisabledDictionaries() const
+QList<DictionaryInfo> DatabaseManager::getDisabledDictionaries() const
 {
     m_dbLock.lockForRead();
 
-    QStringList   dictionaries;
-    sqlite3_stmt *stmt  = NULL;
-    int           step  = 0;
+    QList<DictionaryInfo>  dictionaries;
+    sqlite3_stmt          *stmt  = NULL;
+    int                    step  = 0;
 
     if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
     {
@@ -263,8 +270,10 @@ QStringList DatabaseManager::getDisabledDictionaries() const
     }
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
-        int64_t id = sqlite3_column_int64(stmt, 0);
-        dictionaries << getDictionary(id);
+        DictionaryInfo info{};
+        info.id = sqlite3_column_int64(stmt, 0);
+        info.name = getDictionary(info.id);
+        dictionaries.emplaceBack(std::move(info));
     }
 
 cleanup:
@@ -476,6 +485,7 @@ QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji) const
         uint64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
 
         KanjiDefinition def;
+        def.dictionaryId = id;
         def.dictionary = getDictionary(id),
         def.onyomi = QString(
                 (const char *)sqlite3_column_text(stmt, COLUMN_ONYOMI)
@@ -608,6 +618,7 @@ int DatabaseManager::populateTerms(const QList<SharedTerm> &terms) const
             );
 
             TermDefinition def;
+            def.dictionaryId = id;
             def.dictionary = getDictionary(id);
             def.glossary = QJsonDocument::fromJson(
                 (const char *)sqlite3_column_text(stmt, COLUMN_GLOSSARY)
@@ -809,10 +820,12 @@ int DatabaseManager::addFrequencies(
         default:
             continue;
         }
-        freq.append(Frequency {
-            getDictionary(sqlite3_column_int64(stmt, 0)),
-            freqStr
-        });
+
+        Frequency f;
+        f.dictionaryId = sqlite3_column_int64(stmt, 0);
+        f.dictionary = getDictionary(f.dictionaryId);
+        f.freq = freqStr;
+        freq.emplaceBack(std::move(f));
     }
     if (isStepError(step))
     {
@@ -872,7 +885,8 @@ int DatabaseManager::addPitches(Term &term) const
         }
 
         Pitch pitch;
-        pitch.dictionary = getDictionary(sqlite3_column_int64(stmt, 0));
+        pitch.dictionaryId = sqlite3_column_int64(stmt, 0);
+        pitch.dictionary = getDictionary(pitch.dictionaryId);
 
         /* Add mora */
         QString currentMora;

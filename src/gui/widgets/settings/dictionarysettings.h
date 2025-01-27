@@ -54,16 +54,6 @@ protected:
      */
     void hideEvent(QHideEvent *event) override;
 
-Q_SIGNALS:
-    /**
-     * Emitted when the dictionary grabbing thread completes.
-     * @param dicts    The list of dictionaries.
-     * @param disabled The list of disabled dictionaries.
-     */
-    void restoreSavedReady(
-        const QStringList &dicts,
-        const QStringList &disabled) const;
-
 private Q_SLOTS:
     /**
      * Initializes button icons.
@@ -74,16 +64,6 @@ private Q_SLOTS:
      * Restores saved settings and applies them again.
      */
     void restoreSaved();
-
-    /**
-     * Handles updating the UI when dictionaries are returned from the worker
-     * thread.
-     * @param dicts    The list of dictionaries.
-     * @param disabled The list of disabled dictionaries.
-     */
-    void restoreSavedHelper(
-        const QStringList &dicts,
-        const QStringList &disabled);
 
     /**
      * Saves the dictionary priorities.

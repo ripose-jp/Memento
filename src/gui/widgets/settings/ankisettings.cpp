@@ -31,6 +31,9 @@
 #include "util/globalmediator.h"
 #include "util/iconfactory.h"
 
+static constexpr int ROLE_DICTIONARY_ID{Qt::UserRole + 0};
+static constexpr int ROLE_DICTIONARY_NAME{Qt::UserRole + 1};
+
 /* Begin Constructor/Destructors */
 
 AnkiSettings::AnkiSettings(QWidget *parent)
@@ -500,16 +503,22 @@ void AnkiSettings::populateFields(
 
     m_ui->listIncludeGlossary->clear();
     Dictionary *dict = GlobalMediator::getGlobalMediator()->getDictionary();
-    QStringList dictionaries = dict->getDictionaries();
-    std::sort(dictionaries.begin(), dictionaries.end());
-    m_ui->listIncludeGlossary->addItems(dictionaries);
+    QList<DictionaryInfo> dictionaries = dict->getDictionaries();
+    for (const DictionaryInfo &info : dictionaries)
+    {
+        QListWidgetItem *item = new QListWidgetItem(info.name);
+        item->setData(ROLE_DICTIONARY_ID, QVariant::fromValue(info.id));
+        item->setData(ROLE_DICTIONARY_NAME, QVariant::fromValue(info.name));
+        m_ui->listIncludeGlossary->addItem(item);
+    }
     for (int i = 0; i < m_ui->listIncludeGlossary->count(); ++i)
     {
         QListWidgetItem *item = m_ui->listIncludeGlossary->item(i);
         item->setFlags(item->flags() | Qt::ItemFlag::ItemIsUserCheckable);
         item->setCheckState(
-            config.excludeGloss.contains(item->text()) ?
-                Qt::Unchecked : Qt::Checked
+            config.excludeGloss.contains(
+                item->data(ROLE_DICTIONARY_NAME).toString()
+            ) ? Qt::Unchecked : Qt::Checked
         );
     }
 

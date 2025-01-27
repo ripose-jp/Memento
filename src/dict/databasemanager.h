@@ -76,15 +76,15 @@ public:
 
     /**
      * Gets a list of dictionary names in the database in arbitrary order.
-     * @return A list of dictionary names.
+     * @return A list of dictionary infos.
      */
-    QStringList getDictionaries() const;
+    QList<DictionaryInfo> getDictionaries() const;
 
     /**
      * Gets the list of disabled dictionaries.
-     * @return The names of all disabled dictionaries.
+     * @return The info of all disabled dictionaries.
      */
-    QStringList getDisabledDictionaries() const;
+    QList<DictionaryInfo> getDisabledDictionaries() const;
 
     /**
      * Searches for terms that exactly match the query. Does automatic

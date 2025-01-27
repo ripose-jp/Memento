@@ -31,10 +31,25 @@
 #include <QVariant>
 
 /**
+ * Struct containing dictionary metadata.
+ */
+struct DictionaryInfo
+{
+    /* ID of the dictionary */
+    int id;
+
+    /* Name of the dictionary */
+    QString name;
+};
+
+/**
  * Struct holding all the data that makes up a tag.
  */
 struct Tag
 {
+    /* The backend ID of the dictionary this entry comes from */
+    int dictionaryId;
+
     /* The dictionary the tag comes from */
     QString dictionary;
 
@@ -68,6 +83,9 @@ struct Tag
  */
 struct Frequency
 {
+    /* The backend ID of the dictionary this entry comes from */
+    int dictionaryId;
+
     /* The name of the frequency dictionary. */
     QString dictionary;
 
@@ -80,6 +98,9 @@ struct Frequency
  */
 struct Pitch
 {
+    /* The backend ID of the dictionary this entry comes from */
+    int dictionaryId;
+
     /* The name of the dictionary this pitch accent belongs to. */
     QString dictionary;
 
@@ -95,6 +116,9 @@ struct Pitch
  */
 struct TermDefinition
 {
+    /* The backend ID of the dictionary this entry comes from */
+    int dictionaryId;
+
     /* The name of the dictionary this entry comes from. */
     QString dictionary;
 
@@ -212,6 +236,9 @@ struct Term : public CommonExpFields
  */
 struct KanjiDefinition
 {
+    /* The backend ID of the dictionary this entry comes from */
+    int dictionaryId;
+
     /* The name of the dictionary the definition comes from. */
     QString dictionary;
 
