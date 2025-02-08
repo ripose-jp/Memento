@@ -75,6 +75,8 @@ namespace Constants
             constexpr const char *GROUP = "main-window";
             constexpr const char *GEOMETRY = "geometry";
             constexpr const char *MAXIMIZE = "maximize";
+            constexpr const char *SUBTITLE_LIST = "subtitle-list";
+            constexpr const char *SEARCH = "search";
         }
 
         namespace AudioSource

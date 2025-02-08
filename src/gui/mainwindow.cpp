@@ -118,23 +118,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::initWindow()
 {
-    QSettings settings;
-    settings.beginGroup(Constants::Settings::Window::GROUP);
-
-    restoreGeometry(settings.value(Constants::Settings::Window::GEOMETRY).toByteArray());
-    m_maximized = settings.value(Constants::Settings::Window::MAXIMIZE, false).toBool();
-    QApplication::processEvents();
-    if (m_maximized)
-    {
-        showMaximized();
-    }
-    else
-    {
-        showNormal();
-    }
-
-    settings.endGroup();
-
     /* Search Widget Signals */
     connect(
         m_mediator, &GlobalMediator::requestSearchVisibility,
@@ -234,6 +217,31 @@ void MainWindow::initWindow()
         m_mediator, &GlobalMediator::menuShowAbout,
         this, &MainWindow::showAbout,
         Qt::QueuedConnection
+    );
+
+    QSettings settings;
+    settings.beginGroup(Constants::Settings::Window::GROUP);
+
+    restoreGeometry(
+        settings.value(Constants::Settings::Window::GEOMETRY).toByteArray()
+    );
+    m_maximized =
+        settings.value(Constants::Settings::Window::MAXIMIZE, false).toBool();
+    QApplication::processEvents();
+    if (m_maximized)
+    {
+        showMaximized();
+    }
+    else
+    {
+        showNormal();
+    }
+
+    emit m_mediator->requestSubtitleListVisibility(
+        settings.value(Constants::Settings::Window::SUBTITLE_LIST).toBool()
+    );
+    emit m_mediator->requestSearchVisibility(
+        settings.value(Constants::Settings::Window::SEARCH).toBool()
     );
 }
 
@@ -501,6 +509,14 @@ void MainWindow::closeEvent(QCloseEvent *event)
     settings.setValue(
         Constants::Settings::Window::MAXIMIZE,
         isFullScreen() ? m_maximized : isMaximized()
+    );
+    settings.setValue(
+        Constants::Settings::Window::SUBTITLE_LIST,
+        m_ui->subtitleList->isVisible()
+    );
+    settings.setValue(
+        Constants::Settings::Window::SEARCH,
+        m_ui->searchWidget->isVisible()
     );
 
     QMainWindow::closeEvent(event);
