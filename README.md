@@ -281,11 +281,9 @@ tracker.
 
 Before making a pull request, please read [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Animebook
+## asbplayer
 
-If you hate Memento, try [Animebook](https://animebook.github.io/).
-
-https://github.com/animebook/animebook.github.io
+If you hate Memento, try [asbplayer](https://killergerbah.github.io/asbplayer/).
 
 ## Acknowledgements
 
