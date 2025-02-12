@@ -275,6 +275,12 @@ namespace Constants
                 constexpr const char *MENUBAR_FULLSCREEN = "menubar-fullscreen";
                 constexpr bool MENUBAR_FULLSCREEN_DEFAULT = false;
 #endif
+
+                constexpr const char *POPUP_WIDTH = "sub-popup-width";
+                constexpr int POPUP_WIDTH_DEFAULT = 500;
+
+                constexpr const char *POPUP_HEIGHT = "sub-popup-height";
+                constexpr int POPUP_HEIGHT_DEFAULT = 400;
             }
 
             namespace Style

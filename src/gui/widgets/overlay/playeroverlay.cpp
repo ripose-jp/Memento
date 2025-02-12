@@ -283,8 +283,8 @@ PlayerOverlay::~PlayerOverlay()
 void PlayerOverlay::initSettings()
 {
     QSettings settings;
-
     settings.beginGroup(Constants::Settings::Interface::GROUP);
+
     m_settings.subOffset = settings.value(
         Constants::Settings::Interface::Subtitle::OFFSET,
         Constants::Settings::Interface::Subtitle::OFFSET_DEFAULT
@@ -296,6 +296,20 @@ void PlayerOverlay::initSettings()
     ).toBool();
     menuBarHandleStateChange(m_menu->window()->isFullScreen());
 #endif
+
+    m_definition->setGeometry(
+        0,
+        0,
+        settings.value(
+            Constants::Settings::Interface::Subtitle::POPUP_WIDTH,
+            Constants::Settings::Interface::Subtitle::POPUP_WIDTH_DEFAULT
+        ).toInt(),
+        settings.value(
+            Constants::Settings::Interface::Subtitle::POPUP_HEIGHT,
+            Constants::Settings::Interface::Subtitle::POPUP_HEIGHT_DEFAULT
+        ).toInt()
+    );
+
     settings.endGroup();
 
     settings.beginGroup(Constants::Settings::Behavior::GROUP);

@@ -169,6 +169,13 @@ void InterfaceSettings::restoreDefaults()
     setButtonColor(m_ui->buttonSubBackground, m_bgColor);
     setButtonColor(m_ui->buttonSubStroke, m_strokeColor);
 
+    m_ui->spinWidth->setValue(
+        Constants::Settings::Interface::Subtitle::POPUP_WIDTH_DEFAULT
+    );
+    m_ui->spinHeight->setValue(
+        Constants::Settings::Interface::Subtitle::POPUP_HEIGHT_DEFAULT
+    );
+
     /* Sub List */
     m_ui->checkSubListWindow->setChecked(
         Constants::Settings::Interface::Subtitle::LIST_WINDOW_DEFAULT
@@ -286,6 +293,19 @@ void InterfaceSettings::restoreSaved()
         ).toString()
     );
     setButtonColor(m_ui->buttonSubStroke, m_strokeColor);
+
+    m_ui->spinWidth->setValue(
+        settings.value(
+            Constants::Settings::Interface::Subtitle::POPUP_WIDTH,
+            Constants::Settings::Interface::Subtitle::POPUP_WIDTH_DEFAULT
+        ).toInt()
+    );
+    m_ui->spinHeight->setValue(
+        settings.value(
+            Constants::Settings::Interface::Subtitle::POPUP_HEIGHT,
+            Constants::Settings::Interface::Subtitle::POPUP_HEIGHT_DEFAULT
+        ).toInt()
+    );
 
     /* Subtitle List */
     m_ui->checkSubListWindow->setChecked(
@@ -417,6 +437,15 @@ void InterfaceSettings::applyChanges()
     settings.setValue(
         Constants::Settings::Interface::Subtitle::STROKE_COLOR,
         m_strokeColor.name(QColor::HexArgb)
+    );
+
+    settings.setValue(
+        Constants::Settings::Interface::Subtitle::POPUP_WIDTH,
+        m_ui->spinWidth->value()
+    );
+    settings.setValue(
+        Constants::Settings::Interface::Subtitle::POPUP_HEIGHT,
+        m_ui->spinHeight->value()
     );
 
     /* Subtitle List */

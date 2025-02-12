@@ -28,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>729</width>
-        <height>2402</height>
+        <height>2437</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -167,7 +167,7 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="7" alignment="">
+            <item row="1" column="7">
              <widget class="QLabel" name="labelSubStrokeColor">
               <property name="font">
                <font>
@@ -196,7 +196,7 @@ A value of 0.1 would make each character 10% of the height of the player.</strin
               </property>
              </widget>
             </item>
-            <item row="0" column="7" alignment="">
+            <item row="0" column="7">
              <widget class="QLabel" name="labelSubStrokeSize">
               <property name="font">
                <font>
@@ -208,7 +208,7 @@ A value of 0.1 would make each character 10% of the height of the player.</strin
               </property>
              </widget>
             </item>
-            <item row="0" column="1" alignment="">
+            <item row="0" column="1">
              <widget class="QLabel" name="labelSubScale">
               <property name="font">
                <font>
@@ -220,7 +220,7 @@ A value of 0.1 would make each character 10% of the height of the player.</strin
               </property>
              </widget>
             </item>
-            <item row="0" column="4" alignment="">
+            <item row="0" column="4">
              <widget class="QLabel" name="labelSubOffset">
               <property name="font">
                <font>
@@ -245,7 +245,7 @@ A value of 0.1 would make each character 10% of the height of the player.</strin
               </property>
              </spacer>
             </item>
-            <item row="1" column="4" alignment="">
+            <item row="1" column="4">
              <widget class="QLabel" name="labelSubBackground">
               <property name="font">
                <font>
@@ -270,7 +270,7 @@ A value of 0.1 would make each character 10% of the height of the player.</strin
               </property>
              </spacer>
             </item>
-            <item row="1" column="1" alignment="">
+            <item row="1" column="1">
              <widget class="QLabel" name="labelSubColor">
               <property name="font">
                <font>
@@ -367,6 +367,63 @@ A value of 1 positions the subtitle at the top.</string>
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="layoutPopupSize">
+         <item>
+          <widget class="QLabel" name="labelPopupSize">
+           <property name="text">
+            <string>Default popup size</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spinWidth">
+           <property name="toolTip">
+            <string>Width</string>
+           </property>
+           <property name="minimum">
+            <number>200</number>
+           </property>
+           <property name="maximum">
+            <number>9999</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="labelPopupSizeBy">
+           <property name="text">
+            <string>by</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spinHeight">
+           <property name="toolTip">
+            <string>Height</string>
+           </property>
+           <property name="minimum">
+            <number>200</number>
+           </property>
+           <property name="maximum">
+            <number>9999</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="spacerPopupSize">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
        </item>
        <item>
         <layout class="QGridLayout" name="layoutSubSearch">
@@ -478,7 +535,7 @@ Enable only if you don't mind the border.</string>
           </item>
           <item>
            <layout class="QHBoxLayout" name="layoutDpiScaleOverride">
-            <item alignment="">
+            <item>
              <widget class="QCheckBox" name="checkDpiScaleOverride">
               <property name="toolTip">
                <string>When using fractional DPI scaling on Wayland, set this value to your DPI scale</string>
@@ -488,7 +545,7 @@ Enable only if you don't mind the border.</string>
               </property>
              </widget>
             </item>
-            <item alignment="">
+            <item>
              <widget class="QDoubleSpinBox" name="spinDpiScaleFactor">
               <property name="minimum">
                <double>0.050000000000000</double>
