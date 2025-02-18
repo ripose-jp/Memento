@@ -32,10 +32,10 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="focusPolicy">
-      <enum>Qt::NoFocus</enum>
+      <enum>Qt::FocusPolicy::NoFocus</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <property name="tabBarAutoHide">
       <bool>true</bool>
@@ -63,22 +63,22 @@
        <item>
         <widget class="QTableWidget" name="tablePrim">
          <property name="focusPolicy">
-          <enum>Qt::NoFocus</enum>
+          <enum>Qt::FocusPolicy::ClickFocus</enum>
          </property>
          <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
+          <enum>QFrame::Shape::NoFrame</enum>
          </property>
          <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
+          <enum>QFrame::Shadow::Plain</enum>
          </property>
          <property name="lineWidth">
           <number>0</number>
          </property>
          <property name="horizontalScrollBarPolicy">
-          <enum>Qt::ScrollBarAlwaysOff</enum>
+          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
          </property>
          <property name="editTriggers">
-          <set>QAbstractItemView::NoEditTriggers</set>
+          <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
          </property>
          <property name="tabKeyNavigation">
           <bool>false</bool>
@@ -144,22 +144,22 @@
        <item>
         <widget class="QTableWidget" name="tableSec">
          <property name="focusPolicy">
-          <enum>Qt::NoFocus</enum>
+          <enum>Qt::FocusPolicy::ClickFocus</enum>
          </property>
          <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
+          <enum>QFrame::Shape::NoFrame</enum>
          </property>
          <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
+          <enum>QFrame::Shadow::Plain</enum>
          </property>
          <property name="lineWidth">
           <number>0</number>
          </property>
          <property name="horizontalScrollBarPolicy">
-          <enum>Qt::ScrollBarAlwaysOff</enum>
+          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
          </property>
          <property name="editTriggers">
-          <set>QAbstractItemView::NoEditTriggers</set>
+          <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
          </property>
          <property name="tabKeyNavigation">
           <bool>false</bool>
@@ -264,7 +264,7 @@
         </property>
        </widget>
       </item>
-      <item alignment="Qt::AlignLeft">
+      <item alignment="Qt::AlignmentFlag::AlignLeft">
        <widget class="QLabel" name="labelSearchMatch">
         <property name="text">
          <string>No Matches</string>

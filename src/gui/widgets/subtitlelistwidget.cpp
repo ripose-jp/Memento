@@ -83,9 +83,12 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     m_secondary.table = m_ui->tableSec;
 
     m_copyShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_C), this);
+    m_copyShortcut->setContext(Qt::WidgetWithChildrenShortcut);
     m_copyAudioShortcut =
         new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_C), this);
+    m_copyAudioShortcut->setContext(Qt::WidgetWithChildrenShortcut);
     m_findShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this);
+    m_findShortcut->setContext(Qt::WidgetWithChildrenShortcut);
 
     initTheme();
     initRegex();
