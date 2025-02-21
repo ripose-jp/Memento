@@ -345,7 +345,7 @@ void MainWindow::initTheme()
     case Constants::Theme::System:
     default:
 #if defined(Q_OS_WIN)
-        QStyle *style = QStyleFactory::create("windowsvista");
+        QStyle *style = QStyleFactory::create("fusion");
         if (style)
         {
             QApplication::setStyle(style);
