@@ -200,7 +200,10 @@ void MpvWidget::initPropertyMap()
         [=] (mpv_event_property *prop) {
             if (prop->format == MPV_FORMAT_FLAG)
             {
-                m_cursorTimer->forceTimeout();
+                if (m_cursorTimer)
+                {
+                    m_cursorTimer->forceTimeout();
+                }
                 bool full = *(int *)prop->data;
                 Q_EMIT fullscreenChanged(full);
             }
@@ -784,7 +787,10 @@ void MpvWidget::mouseMoveEvent(QMouseEvent *event)
     QOpenGLWidget::mouseMoveEvent(event);
     event->ignore();
 
-    m_cursorTimer->start();
+    if (m_cursorTimer)
+    {
+        m_cursorTimer->start();
+    }
     Q_EMIT mouseMoved(event);
 }
 
