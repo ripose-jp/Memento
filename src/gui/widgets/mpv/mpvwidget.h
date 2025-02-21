@@ -383,7 +383,7 @@ private:
     mpv_handle *m_mpv = nullptr;
 
     /* The mpv render context */
-    mpv_render_context *mpv_gl;
+    mpv_render_context *mpv_gl = nullptr;
 
     /* Keeps track if this widget has already been shown once before or not */
     bool m_firstShow = true;
@@ -395,10 +395,10 @@ private:
     bool m_overrideDevicePixelRatio = false;
 
     /* The height of the player adjusted for DPI. */
-    int m_height;
+    int m_height = 1;
 
     /* The width of the player adjusted for DPI. */
-    int m_width;
+    int m_width = 1;
 
     /* Maps mpv properties to the appropriate event handling function */
     QHash<QString, std::function<void(mpv_event_property *)>> m_propertyMap;
