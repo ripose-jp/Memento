@@ -219,6 +219,15 @@ PlayerOverlay::PlayerOverlay(QWidget *parent) : QStackedLayout(parent)
         Qt::QueuedConnection
     );
     connect(
+        m_definition,
+        &DefinitionWidget::widgetShown,
+        m_definition,
+        [this] () {
+            m_definition->setFocus(Qt::FocusReason::PopupFocusReason);
+        },
+        Qt::QueuedConnection
+    );
+    connect(
         m_definition, &DefinitionWidget::widgetHidden,
         &m_hideTimer, qOverload<>(&QTimer::start),
         Qt::QueuedConnection

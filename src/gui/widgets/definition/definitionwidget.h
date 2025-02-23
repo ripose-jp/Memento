@@ -24,6 +24,7 @@
 #include <QWidget>
 
 #include <QPointer>
+#include <QShortcut>
 #include <QWheelEvent>
 
 #include "definitionstate.h"
@@ -101,6 +102,11 @@ private Q_SLOTS:
     void initAudioSources();
 
     /**
+     * Initializes keyboard shortcuts.
+     */
+    void initShortcuts();
+
+    /**
      * Initializes settings signals.
      */
     void initSignals();
@@ -156,6 +162,16 @@ private Q_SLOTS:
      * @return True if the child was successfully repositioned, false otherwise.
      */
     bool positionChild(const QPoint &pos);
+
+    /**
+     * Skips to the previous entry in the scroll area.
+     */
+    void skipPrev();
+
+    /**
+     * Skips to the next entry in the scroll area.
+     */
+    void skipNext();
 
 protected:
     /**
@@ -217,11 +233,20 @@ private:
      */
     int m_savedScroll = 0;
 
+    /* True if a subsearch kanji is shown, false otherwise */
+    bool m_kanjiShown = false;
+
     /* Current search ID. Used to prevent erroneous signals */
     int m_searchId = 0;
 
     /* The child definition widget */
     QPointer<DefinitionWidget> m_child = nullptr;
+
+    /* Shortcut to skip to the previous entry */
+    QShortcut *m_shortcutSkipPrev = nullptr;
+
+    /* Shortcut to skip to the next entry */
+    QShortcut *m_shortcutSkipNext = nullptr;
 };
 
 #endif // DEFINITIONWIDGET_H

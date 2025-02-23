@@ -677,6 +677,12 @@ void GlossaryLabel::mousePressEvent(QMouseEvent *event)
     event->ignore();
 }
 
+void GlossaryLabel::keyPressEvent(QKeyEvent *event)
+{
+    QTextEdit::keyPressEvent(event);
+    event->ignore();
+}
+
 /* End Event Handlers */
 /* Begin Worker Implementation */
 

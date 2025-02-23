@@ -50,6 +50,7 @@ DefinitionWidget::DefinitionWidget(bool showNavigation, QWidget *parent)
     initTheme();
     initSearch();
     initAudioSources();
+    initShortcuts();
     initSignals();
 }
 
@@ -211,6 +212,27 @@ void DefinitionWidget::initAudioSources()
     );
 }
 
+void DefinitionWidget::initShortcuts()
+{
+    m_shortcutSkipPrev =
+        new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Up), this);
+    m_shortcutSkipPrev->setContext(Qt::WidgetWithChildrenShortcut);
+    connect(
+        m_shortcutSkipPrev, &QShortcut::activated,
+        this, &DefinitionWidget::skipPrev,
+        Qt::QueuedConnection
+    );
+
+    m_shortcutSkipNext =
+        new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Down), this);
+    m_shortcutSkipNext->setContext(Qt::WidgetWithChildrenShortcut);
+    connect(
+        m_shortcutSkipNext, &QShortcut::activated,
+        this, &DefinitionWidget::skipNext,
+        Qt::QueuedConnection
+    );
+}
+
 void DefinitionWidget::initSignals()
 {
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
@@ -361,6 +383,20 @@ void DefinitionWidget::mousePressEvent(QMouseEvent *event)
         m_child->deleteLater();
         m_child = nullptr;
     }
+
+    switch (event->button())
+    {
+        case Qt::BackButton:
+            skipNext();
+            break;
+
+        case Qt::ForwardButton:
+            skipPrev();
+            break;
+
+        default:
+            break;
+    }
 }
 
 void DefinitionWidget::showMoreTerms()
@@ -469,6 +505,8 @@ void DefinitionWidget::showKanji(QSharedPointer<const Kanji> kanji)
     );
     m_ui->scrollAreaContents->layout()->addWidget(kanjiWidget);
     m_ui->scrollArea->verticalScrollBar()->setValue(0);
+
+    m_kanjiShown = true;
 }
 
 void DefinitionWidget::hideKanji()
@@ -488,6 +526,8 @@ void DefinitionWidget::hideKanji()
     }
     QApplication::processEvents();
     m_ui->scrollArea->verticalScrollBar()->setValue(m_savedScroll);
+
+    m_kanjiShown = false;
 }
 
 /* End Kanji Helpers */
@@ -571,3 +611,66 @@ bool DefinitionWidget::positionChild(const QPoint &pos)
 #undef VERTICAL_OFFSET
 
 /* End Child Handlers */
+/* Begin Shortcut Helpers */
+
+void DefinitionWidget::skipPrev()
+{
+    constexpr int ITER_SKIP = 2;
+
+    if (m_kanjiShown)
+    {
+        return;
+    }
+
+    int scrollY = m_ui->scrollArea->verticalScrollBar()->value();
+    QLayout *scrollLayout = m_ui->scrollAreaContents->layout();
+    int prevY = 0;
+    for (int i = 1; i < scrollLayout->count(); i += ITER_SKIP)
+    {
+        QWidget *widget = scrollLayout->itemAt(i)->widget();
+        if (widget == nullptr)
+        {
+            break;
+        }
+        int currY = widget->mapToParent(QPoint(0, 0)).y();
+        if (prevY <= scrollY && scrollY <= currY)
+        {
+            m_ui->scrollArea->verticalScrollBar()->setValue(prevY);
+            return;
+        }
+        prevY = currY;
+    }
+
+    m_ui->scrollArea->verticalScrollBar()->setValue(prevY);
+}
+
+void DefinitionWidget::skipNext()
+{
+    constexpr int ITER_SKIP = 2;
+
+    if (m_kanjiShown)
+    {
+        return;
+    }
+
+    int scrollY = m_ui->scrollArea->verticalScrollBar()->value();
+    QLayout *scrollLayout = m_ui->scrollAreaContents->layout();
+    int prevY = 0;
+    for (int i = 1; i < scrollLayout->count(); i += ITER_SKIP)
+    {
+        QWidget *widget = scrollLayout->itemAt(i)->widget();
+        if (widget == nullptr)
+        {
+            break;
+        }
+        int currY = widget->mapToParent(QPoint(0, 0)).y();
+        if (prevY <= scrollY && scrollY < currY)
+        {
+            m_ui->scrollArea->verticalScrollBar()->setValue(currY);
+            return;
+        }
+        prevY = currY;
+    }
+}
+
+/* End Shortcut Helpers */

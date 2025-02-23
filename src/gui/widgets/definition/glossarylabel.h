@@ -96,6 +96,12 @@ protected:
      */
     void mousePressEvent(QMouseEvent *event) override;
 
+    /**
+     * Ignore the key press event.
+     * @param event The key event.
+     */
+    void keyPressEvent(QKeyEvent *event) override;
+
 private Q_SLOTS:
     /**
      * Adjust the size of the label.
