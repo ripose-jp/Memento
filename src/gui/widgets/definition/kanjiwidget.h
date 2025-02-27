@@ -23,6 +23,8 @@
 
 #include <QWidget>
 
+#include <QShortcut>
+
 #include "dict/expression.h"
 
 class QFrame;
@@ -119,7 +121,10 @@ private:
     QSharedPointer<const Kanji> m_kanji;
 
     /* The button for adding or opening the kanji in Anki. */
-    QToolButton *m_buttonAnkiAddOpen;
+    QToolButton *m_buttonAnkiAddOpen = nullptr;
+
+    /* The shortcut for adding to Anki */
+    QShortcut *m_shortcutAnkiAdd = nullptr;
 };
 
 #endif // KANJIWIDGET_H

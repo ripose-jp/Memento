@@ -89,6 +89,8 @@ TermWidget::TermWidget(
 {
     m_ui->setupUi(this);
 
+    setFocusPolicy(Qt::ClickFocus);
+
     m_menuAdd = new QMenu("Play Audio Source", m_ui->buttonAddCard);
     m_menuAudio = new QMenu("Add Audio Source", m_ui->buttonAudio);
 
@@ -99,6 +101,10 @@ TermWidget::TermWidget(
     m_layoutFreqTags = new FlowLayout(-1, 6);
     m_layoutPitches  = new QVBoxLayout;
     m_layoutGlossary = new QVBoxLayout;
+
+    m_shortcutAddCard = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this);
+    m_shortcutAddCard->setContext(Qt::WidgetWithChildrenShortcut);
+    m_shortcutAddCard->setEnabled(false);
 
     m_ui->layoutGlossaryContainer->addLayout(m_layoutTermTags);
     m_ui->layoutGlossaryContainer->addLayout(m_layoutFreqTags);
@@ -137,6 +143,10 @@ TermWidget::TermWidget(
     );
     connect(
         m_ui->buttonAddCard, &QToolButton::clicked,
+        this, QOverload<>::of(&TermWidget::addNote)
+    );
+    connect(
+        m_shortcutAddCard, &QShortcut::activated,
         this, QOverload<>::of(&TermWidget::addNote)
     );
     connect(
@@ -334,6 +344,7 @@ void TermWidget::toggleExpressionKanji()
 void TermWidget::addNote()
 {
     m_ui->buttonAddCard->setEnabled(false);
+    m_shortcutAddCard->setEnabled(false);
     m_ui->buttonKanaKanji->setEnabled(false);
     if (m_ankiTerm == nullptr)
     {
@@ -360,6 +371,7 @@ void TermWidget::addNote()
 void TermWidget::addNote(const AudioSource &src)
 {
     m_ui->buttonAddCard->setEnabled(false);
+    m_shortcutAddCard->setEnabled(false);
     m_ui->buttonKanaKanji->setEnabled(false);
     if (m_ankiTerm == nullptr)
     {
@@ -537,6 +549,7 @@ void TermWidget::searchKanji(const QString &ch)
 void TermWidget::setAddable(bool expression, bool reading)
 {
     m_ui->buttonAddCard->setVisible(expression || reading);
+    m_shortcutAddCard->setEnabled(expression || reading);
     m_ui->buttonAnkiOpen->setVisible(
         !expression || (!reading && !m_term->reading.isEmpty())
     );

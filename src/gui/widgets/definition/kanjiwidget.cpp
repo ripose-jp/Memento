@@ -45,6 +45,8 @@ KanjiWidget::KanjiWidget(
     : QWidget(parent),
       m_kanji(kanji)
 {
+    setFocusPolicy(Qt::ClickFocus);
+
     QVBoxLayout *layoutParent = new QVBoxLayout(this);
 
     QHBoxLayout *layoutTop = new QHBoxLayout;
@@ -92,6 +94,10 @@ KanjiWidget::KanjiWidget(
     layoutTop->addWidget(m_buttonAnkiAddOpen);
     layoutTop->setAlignment(m_buttonAnkiAddOpen, Qt::AlignTop | Qt::AlignRight);
 
+    m_shortcutAnkiAdd = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this);
+    m_shortcutAnkiAdd->setContext(Qt::WidgetWithChildrenShortcut);
+    m_shortcutAnkiAdd->setEnabled(false);
+
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     if (client->isEnabled())
     {
@@ -117,6 +123,7 @@ KanjiWidget::KanjiWidget(
                         this, &KanjiWidget::addKanji
                     );
                     m_buttonAnkiAddOpen->show();
+                    m_shortcutAnkiAdd->setEnabled(true);
                 }
                 /* Kanji Already Added */
                 else
@@ -130,6 +137,7 @@ KanjiWidget::KanjiWidget(
                         this, &KanjiWidget::openAnki
                     );
                     m_buttonAnkiAddOpen->show();
+                    m_shortcutAnkiAdd->setEnabled(false);
                 }
             }
         );
@@ -137,7 +145,9 @@ KanjiWidget::KanjiWidget(
 
     FlowLayout *frequencies = new FlowLayout(-1, 6);
     for (const Frequency &freq : kanji->frequencies)
+    {
         frequencies->addWidget(new TagWidget(freq));
+    }
     layoutParent->addLayout(frequencies);
 
     QVBoxLayout *layoutDefinitions = new QVBoxLayout;
@@ -154,6 +164,11 @@ KanjiWidget::KanjiWidget(
     delete line;
 
     layoutParent->addStretch();
+
+    connect(
+        m_shortcutAnkiAdd, &QShortcut::activated,
+        this, &KanjiWidget::addKanji
+    );
 }
 
 /* Begin Constructor/Destructor */
@@ -246,6 +261,7 @@ void KanjiWidget::addKVSection(const QString &title,
 void KanjiWidget::addKanji()
 {
     m_buttonAnkiAddOpen->setEnabled(false);
+    m_shortcutAnkiAdd->setEnabled(false);
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     PlayerAdapter *player = mediator->getPlayerAdapter();
@@ -285,6 +301,7 @@ void KanjiWidget::addKanji()
                     this, &KanjiWidget::openAnki
                 );
                 m_buttonAnkiAddOpen->setEnabled(true);
+                m_shortcutAnkiAdd->setEnabled(false);
             }
         }
     );

@@ -25,6 +25,7 @@
 
 #include <QLabel>
 #include <QMutex>
+#include <QShortcut>
 
 #include "definitionstate.h"
 
@@ -230,25 +231,28 @@ private:
     QMutex m_lockJsonSources;
 
     /* Label used for displaying deconjugation information */
-    QLabel *m_labelDeconj{nullptr};
+    QLabel *m_labelDeconj = nullptr;
 
     /* Layout used for holding term tags. */
-    FlowLayout *m_layoutTermTags;
+    FlowLayout *m_layoutTermTags = nullptr;
 
     /* Layout used for holding frequency tags. */
-    FlowLayout *m_layoutFreqTags;
+    FlowLayout *m_layoutFreqTags = nullptr;
 
     /* Layout used hold pitch tags and pitches. */
-    QVBoxLayout *m_layoutPitches;
+    QVBoxLayout *m_layoutPitches = nullptr;
 
     /* Layout used for holding glossary entries. */
-    QVBoxLayout *m_layoutGlossary;
+    QVBoxLayout *m_layoutGlossary = nullptr;
 
     /* The context menu for the add button */
-    QMenu *m_menuAdd;
+    QMenu *m_menuAdd = nullptr;
 
     /* The context menu for the sound button */
-    QMenu *m_menuAudio;
+    QMenu *m_menuAudio = nullptr;
+
+    /* Shortcut to add an Anki note */
+    QShortcut *m_shortcutAddCard = nullptr;
 
     /* true if the {expression} marker should use kana, false for kanji */
     bool m_readingAsExp = false;
