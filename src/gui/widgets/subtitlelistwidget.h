@@ -245,6 +245,11 @@ private Q_SLOTS:
     void copyAudioContext() const;
 
     /**
+     * Show the find widget.
+     */
+    void findShow();
+
+    /**
      * Find the text in the current subtitle list.
      * @param text The text to search for.
      */
@@ -421,7 +426,7 @@ private:
      * @param list The list to find the text in.
      * @param text The text to search for.
      */
-    void findTextHelper(SubtitleList &list, const QString &text);
+    void findTextHelper(SubtitleList &list, QString text);
 
     /**
      * Selects the row of the current table with the offset from the currently

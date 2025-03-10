@@ -204,19 +204,24 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
         Qt::QueuedConnection
     );
     connect(
-        m_findShortcut, &QShortcut::activated, this,
-        [this]
-        {
-          m_ui->widgetFind->show();
-          m_ui->lineEditSearch->setFocus();
-          findText(m_ui->lineEditSearch->text());
-        },
+        m_findShortcut, &QShortcut::activated,
+        this, &SubtitleListWidget::findShow,
         Qt::QueuedConnection
     );
 
     connect(
         m_ui->lineEditSearch, &QLineEdit::textChanged,
         this, &SubtitleListWidget::findText,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_ui->checkIgnoreWhitespace,
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+        &QCheckBox::stateChanged,
+#else
+        &QCheckBox::checkStateChanged,
+#endif
+        this, [this] () { findText(m_ui->lineEditSearch->text()); },
         Qt::QueuedConnection
     );
     connect(
@@ -952,14 +957,28 @@ void SubtitleListWidget::fixTableDimensions(const int index)
 /* End Helper Slots */
 /* Begin Find Widget Slots */
 
+void SubtitleListWidget::findShow()
+{
+    m_ui->widgetFind->show();
+    m_ui->lineEditSearch->setFocus();
+    findText(m_ui->lineEditSearch->text());
+}
+
 #define MATCH_NONE      "No Matches"
 #define MATCH_FORMAT    QString("%1 of %2 Rows")
 
-void SubtitleListWidget::findTextHelper(SubtitleList &list, const QString &text)
+void SubtitleListWidget::findTextHelper(SubtitleList &list, QString text)
 {
+    const QRegularExpression REGEX_REMOVE_WHITESPACE("\\s*");
+
     list.modified = false;
     list.foundRows.clear();
     list.currentFind = 0;
+
+    if (m_ui->checkIgnoreWhitespace->isChecked())
+    {
+        text = text.replace(REGEX_REMOVE_WHITESPACE, "");
+    }
 
     if (text.isEmpty())
     {
@@ -970,7 +989,12 @@ void SubtitleListWidget::findTextHelper(SubtitleList &list, const QString &text)
     for (int i = 0; i < list.table->rowCount(); ++i)
     {
         QTableWidgetItem *item = list.table->item(i, 1);
-        if (item->text().contains(text, Qt::CaseInsensitive))
+        QString subtitleText = item->text();
+        if (m_ui->checkIgnoreWhitespace->isChecked())
+        {
+            subtitleText = subtitleText.replace(REGEX_REMOVE_WHITESPACE, "");
+        }
+        if (subtitleText.contains(text, Qt::CaseInsensitive))
         {
             list.foundRows << i;
         }
@@ -1007,7 +1031,7 @@ void SubtitleListWidget::findText(const QString &text)
  * @param modulus The modulus of the operation.
  * @return n mod modulus
  */
-static inline int mod(int n, int modulus)
+static constexpr int mod(int n, int modulus)
 {
     return (n % modulus + modulus) % modulus;
 }
@@ -1034,6 +1058,13 @@ void SubtitleListWidget::findRowHelper(int offset)
     m_ui->labelSearchMatch->setText(
         MATCH_FORMAT.arg(list.currentFind + 1).arg(list.foundRows.size())
     );
+    if (m_ui->checkAutoSeek->isChecked())
+    {
+        seekToSubtitle(
+            list.table->item(list.foundRows[list.currentFind], 1),
+            list
+        );
+    }
 }
 
 #undef MATCH_NONE
