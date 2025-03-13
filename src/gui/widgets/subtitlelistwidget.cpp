@@ -1011,6 +1011,13 @@ void SubtitleListWidget::findTextHelper(SubtitleList &list, QString text)
         m_ui->labelSearchMatch->setText(
             MATCH_FORMAT.arg(1).arg(list.foundRows.size())
         );
+        if (m_ui->checkAutoSeek->isChecked())
+        {
+            seekToSubtitle(
+                list.table->item(list.foundRows[list.currentFind], 1),
+                list
+            );
+        }
     }
 }
 
