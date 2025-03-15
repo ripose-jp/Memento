@@ -135,6 +135,16 @@ private Q_SLOTS:
     void initRegex();
 
     /**
+     * Initializes the saved state of the subtitle list widget.
+     */
+    void initState();
+
+    /**
+     * Save the state of the subtitle list widget.
+     */
+    void saveState();
+
+    /**
      * Handles the track list changing.
      */
     void handleTracklistChange(const QList<const Track *> &tracks);

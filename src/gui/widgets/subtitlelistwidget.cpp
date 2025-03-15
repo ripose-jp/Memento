@@ -92,6 +92,7 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
 
     initTheme();
     initRegex();
+    initState();
     hideSecondarySubs();
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
@@ -244,7 +245,25 @@ SubtitleListWidget::~SubtitleListWidget()
 {
     disconnect();
     clearCachedSubtitles();
+    saveState();
     delete m_ui;
+}
+
+void SubtitleListWidget::saveState()
+{
+    QSettings settings;
+    settings.beginGroup(Constants::Settings::SubtitleList::GROUP);
+
+    settings.setValue(
+        Constants::Settings::SubtitleList::IGNORE_WHITESPACE,
+        m_ui->checkIgnoreWhitespace->isChecked()
+    );
+    settings.setValue(
+        Constants::Settings::SubtitleList::AUTO_SEEK,
+        m_ui->checkAutoSeek->isChecked()
+    );
+
+    settings.endGroup();
 }
 
 /* End Constructor/Destructors */
@@ -313,6 +332,27 @@ void SubtitleListWidget::initRegex()
             delete track;
         }
     }
+}
+
+void SubtitleListWidget::initState()
+{
+    QSettings settings;
+    settings.beginGroup(Constants::Settings::SubtitleList::GROUP);
+
+    m_ui->checkIgnoreWhitespace->setChecked(
+        settings.value(
+            Constants::Settings::SubtitleList::IGNORE_WHITESPACE,
+            Constants::Settings::SubtitleList::IGNORE_WHITESPACE_DEFAULT
+        ).toBool()
+    );
+    m_ui->checkAutoSeek->setChecked(
+        settings.value(
+            Constants::Settings::SubtitleList::AUTO_SEEK,
+            Constants::Settings::SubtitleList::AUTO_SEEK_DEFAULT
+        ).toBool()
+    );
+
+    settings.endGroup();
 }
 
 /* End Initializers */

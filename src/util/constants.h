@@ -79,6 +79,17 @@ namespace Constants
             constexpr const char *SEARCH = "search";
         }
 
+        namespace SubtitleList
+        {
+            constexpr const char *GROUP = "subtitle-list";
+
+            constexpr const char *IGNORE_WHITESPACE = "ignore-whitespace";
+            constexpr bool IGNORE_WHITESPACE_DEFAULT = false;
+
+            constexpr const char *AUTO_SEEK = "auto-seek";
+            constexpr bool AUTO_SEEK_DEFAULT = false;
+        }
+
         namespace AudioSource
         {
             constexpr const char *GROUP = "audio-srcs";
