@@ -275,6 +275,7 @@ void TermWidget::initUi(
 Term *TermWidget::initAnkiTerm() const
 {
     Term *term = new Term(*m_term);
+    term->definitions.clear();
     for (int i = 0; i < m_layoutGlossary->count(); ++i)
     {
         GlossaryWidget *widget =
