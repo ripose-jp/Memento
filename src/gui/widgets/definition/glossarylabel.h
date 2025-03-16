@@ -184,6 +184,14 @@ private:
     void addText(const QJsonObject &obj, QString &out) const;
 
     /**
+     * Converts point size to pixel size.
+     * @param pointSize The point size of the text.
+     * @return The equivalent pixel size for the window.
+     */
+    [[nodiscard]]
+    int pointSizeToPixelSize(double pointSize) const;
+
+    /**
      * Determines if an array contains structured content.
      * @param definitions The array of definitions.
      * @return True if the array contains structured content, false otherwise.

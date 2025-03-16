@@ -28,6 +28,7 @@
 #include <QSettings>
 #include <QTextBlock>
 #include <QThreadPool>
+#include <QWindow>
 
 #include "dict/dictionary.h"
 #include "util/constants.h"
@@ -345,7 +346,9 @@ void GlossaryLabel::addStructuredContentHelper(
         out += obj[KEY_PATH].toString();
         out += '"';
 
-        if (obj[KEY_UNITS].isNull() || obj[KEY_UNITS].toString() == "px")
+        if (obj[KEY_UNITS].isNull() ||
+            obj[KEY_UNITS].toString() == "px" ||
+            obj[KEY_UNITS].toString() == "em")
         {
             double width = -1;
             double height = -1;
@@ -357,24 +360,16 @@ void GlossaryLabel::addStructuredContentHelper(
             {
                 height = obj[KEY_HEIGHT].toDouble();
             }
-            /*
-             * As of right now, this code creates mustard gas because while
-             * QTextEdit does inherit its font from stylesheets set in a parent
-             * widget, there is no good way to get the font size. That means
-             * there is no good way to scale the text according to ems.
-             */
-            /*
             if (obj[KEY_UNITS].toString() == "em")
             {
                 int size = font().pixelSize();
                 if (size < 0)
                 {
-                    size = (int)(font().pointSize() / 0.75);
+                    size = pointSizeToPixelSize(font().pointSizeF());
                 }
                 width *= size;
                 height *= size;
             }
-            */
             if (width > MAX_WIDTH)
             {
                 height = MAX_WIDTH * height / width;
@@ -559,6 +554,13 @@ void GlossaryLabel::addText(const QJsonObject &obj, QString &out) const
 
 /* End Other Object Parsers */
 /* Begin Helpers */
+
+int GlossaryLabel::pointSizeToPixelSize(double pointSize) const
+{
+    constexpr double POINTS_IN_INCH = 72.0;
+    return pointSize / POINTS_IN_INCH *
+        QGuiApplication::primaryScreen()->physicalDotsPerInch();
+}
 
 bool GlossaryLabel::containsStructuredContent(const QJsonArray &definitions)
 {
