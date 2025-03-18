@@ -19,7 +19,6 @@ depends=(
 makedepends=('git' 'make' 'cmake' 'gcc')
 optdepends=(
     'youtube-dl: streaming support'
-    'mpv-git: additional secondary subtitle support'
     'noto-fonts-cjk: optimal font support'
 )
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/ripose-jp/Memento/archive/refs/tags/v${pkgver}.tar.gz")
