@@ -23,12 +23,8 @@
 
 #include "querygenerator.h"
 
-#include <memory>
-
-#include <mecab.h>
-
 /**
- * Query generator that uses MeCab backed by ipadic to deconjugate text.
+ * Query generator that uses look up tables to deconjugate phrases.
  */
 class DeconjugationQueryGenerator final : public QueryGenerator
 {
