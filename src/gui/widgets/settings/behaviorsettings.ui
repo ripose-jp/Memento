@@ -216,6 +216,9 @@ The fade in duration is included in this time.</string>
               <property name="toolTip">
                <string>The number of pixels that need to be moved before the OSC is shown</string>
               </property>
+              <property name="maximum">
+               <number>10000</number>
+              </property>
              </widget>
             </item>
             <item>
