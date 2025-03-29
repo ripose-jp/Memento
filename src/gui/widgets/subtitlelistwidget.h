@@ -436,11 +436,22 @@ private:
     void clearSubtitles(SubtitleList &list);
 
     /**
+     * Handles a change in the sid of a subtitle track.
+     * @tparam SUBTITLE_INDEX The index of the subtitle track.
+     * @param list The list
+     * @param sid  The sid of the new primary subtitle track.
+     */
+    template<int SUBTITLE_INDEX>
+    void handleTrackChange(SubtitleList &list, int64_t sid);
+
+    /**
      * Seeks to the subtitle belonging to the item.
+     * @tparam SUBTITLE_INDEX The index of the subtitle.
      * @param item       The item belonging to the subtitle to seek to. Not a
      *                   timestamp item.
      * @param startTimes Maps an item to a timecode.
      */
+    template<int SUBTITLE_INDEX>
     void seekToSubtitle(QTableWidgetItem *item, const SubtitleList &list) const;
 
     /**
@@ -454,17 +465,28 @@ private:
 
     /**
      * Finds the text in the list without locking the list.
+     * @tparam SUBTITLE_INDEX The index of the subtitle.
      * @param list The list to find the text in.
      * @param text The text to search for.
      */
+    template<int SUBTITLE_INDEX>
     void findTextHelper(SubtitleList &list, QString text);
 
     /**
      * Selects the row of the current table with the offset from the currently
      * currently found row.
+     * @tparam SUBTITLE_INDEX The index of the subtitle.
      * @param offset The offset from the currently found row.
      */
+    template<int SUBTITLE_INDEX>
     void findRowHelper(int offset);
+
+    /**
+     * Returns if the primary subtitle list is the current subtitle list.
+     * @return True if the primary list is the current list, false otherwise.
+     */
+    [[nodiscard]]
+    bool isPrimaryCurrent() const;
 
     /* The UI item containing the widgets. */
     Ui::SubtitleListWidget *m_ui;

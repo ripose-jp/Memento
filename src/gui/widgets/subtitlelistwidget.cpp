@@ -574,8 +574,6 @@ QTableWidgetItem *SubtitleListWidget::addTableItem(
     return subtitleItem;
 }
 
-#define TIME_DELTA 0.0001
-
 void SubtitleListWidget::addSubtitle(
     SubtitleList &list,
     const QString &subtitle,
@@ -584,6 +582,8 @@ void SubtitleListWidget::addSubtitle(
     const double delay,
     const bool regex)
 {
+    constexpr double TIME_DELTA = 0.0001;
+
     /* Check if we have already seen this subtitle. Finds it if we have. */
     auto it = list.startToItem.lowerBound(start - TIME_DELTA);
     while (it != list.startToItem.end() && it.key() - start <= TIME_DELTA)
@@ -623,13 +623,12 @@ void SubtitleListWidget::addSubtitle(
     list.table->setCurrentItem(subtitleItem);
 }
 
-#undef TIME_DELTA
-
-void SubtitleListWidget::handlePrimaryTrackChange(int64_t sid)
+template<int SUBTITLE_INDEX>
+void SubtitleListWidget::handleTrackChange(SubtitleList &list, int64_t sid)
 {
-    m_primary.lock.lock();
+    list.lock.lock();
 
-    clearSubtitles(m_primary);
+    clearSubtitles(list);
 
     if (!m_subtitleMap.contains(sid))
     {
@@ -637,52 +636,48 @@ void SubtitleListWidget::handlePrimaryTrackChange(int64_t sid)
             std::make_shared<std::vector<std::shared_ptr<SubtitleInfo>>>();
         m_subtitleParsed[sid] = std::make_shared<bool>(false);
     }
-    m_primary.subList = m_subtitleMap[sid];
-    m_primary.subsParsed = m_subtitleParsed[sid];
+    list.subList = m_subtitleMap[sid];
+    list.subsParsed = m_subtitleParsed[sid];
 
-    double delay =
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter()->getSubDelay();
-    m_subRegexLock.lock();
-    for (const auto &info : *m_primary.subList)
+    double delay = 0;
+    if constexpr (SUBTITLE_INDEX == 0)
     {
-        addTableItem(m_primary, info, delay, true);
+        delay = GlobalMediator::getGlobalMediator()
+            ->getPlayerAdapter()
+            ->getSubDelay();
+    }
+    else if constexpr (SUBTITLE_INDEX == 1)
+    {
+        delay = GlobalMediator::getGlobalMediator()
+            ->getPlayerAdapter()
+            ->getSecondarySubDelay();
+    }
+    m_subRegexLock.lock();
+    for (const auto &info : *list.subList)
+    {
+        addTableItem(list, info, delay, true);
     }
     m_subRegexLock.unlock();
 
-    m_primary.lock.unlock();
+    list.lock.unlock();
+}
+
+void SubtitleListWidget::handlePrimaryTrackChange(int64_t sid)
+{
+    handleTrackChange<0>(m_primary, sid);
 }
 
 void SubtitleListWidget::handleSecondaryTrackChange(int64_t sid)
 {
-    m_secondary.lock.lock();
-
-    clearSubtitles(m_secondary);
-
-    if (!m_subtitleMap.contains(sid))
-    {
-        m_subtitleMap[sid] =
-            std::make_shared<std::vector<std::shared_ptr<SubtitleInfo>>>();
-        m_subtitleParsed[sid] = std::make_shared<bool>(false);
-    }
-    m_secondary.subList = m_subtitleMap[sid];
-    m_secondary.subsParsed = m_subtitleParsed[sid];
-
-    double delay =
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter()->getSubDelay();
-    for (const auto &info : *m_secondary.subList)
-    {
-        addTableItem(m_secondary, info, delay);
-    }
-
-    m_secondary.lock.unlock();
+    handleTrackChange<1>(m_secondary, sid);
 }
-
-#define TIME_DELTA 0.001
 
 void SubtitleListWidget::selectSubtitles(SubtitleList &list,
                                          const QString &subtitle,
                                          double delay)
 {
+    constexpr double TIME_DELTA = 0.001;
+
     PlayerAdapter *player =
         GlobalMediator::getGlobalMediator()->getPlayerAdapter();
     double time = player->getTimePos() - delay;
@@ -715,8 +710,6 @@ void SubtitleListWidget::selectSubtitles(SubtitleList &list,
         }
     }
 }
-
-#undef TIME_DELTA
 
 void SubtitleListWidget::updatePrimarySubtitle(const QString &subtitle,
                                                double start,
@@ -848,16 +841,28 @@ QPair<double, double> SubtitleListWidget::getPrimaryContextTime() const
 /* End Context Methods */
 /* Begin Seek Methods */
 
-#define SEEK_ERROR 0.028
-
+template<int SUBTITLE_INDEX>
 void SubtitleListWidget::seekToSubtitle(QTableWidgetItem *item,
                                         const SubtitleList &list) const
 {
+    constexpr double SEEK_ERROR = 0.028;
+
     PlayerAdapter *player =
         GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+
+    double delay = 0;
+    if constexpr (SUBTITLE_INDEX == 0)
+    {
+        delay = player->getSubDelay();
+    }
+    else if constexpr (SUBTITLE_INDEX == 1)
+    {
+        delay = player->getSecondarySubDelay();
+    }
+
     double pos =
         list.itemToSub[item]->start +
-        player->getSubDelay() +
+        delay +
         SEEK_ERROR;
     if (pos < 0)
     {
@@ -866,16 +871,14 @@ void SubtitleListWidget::seekToSubtitle(QTableWidgetItem *item,
     player->seek(pos);
 }
 
-#undef SEEK_ERROR
-
 void SubtitleListWidget::seekToPrimarySubtitle(QTableWidgetItem *item) const
 {
-    seekToSubtitle(item, m_primary);
+    seekToSubtitle<0>(item, m_primary);
 }
 
 void SubtitleListWidget::seekToSecondarySubtitle(QTableWidgetItem *item) const
 {
-    seekToSubtitle(item, m_secondary);
+    seekToSubtitle<1>(item, m_secondary);
 }
 
 /* End Seek Methods */
@@ -934,7 +937,7 @@ void SubtitleListWidget::handleSecondaryContextMenu(const QPoint &pos)
 void SubtitleListWidget::copyContext() const
 {
     QClipboard *clipboard = QGuiApplication::clipboard();
-    if (m_ui->tabWidget->currentWidget() == m_ui->tabPrimary)
+    if (isPrimaryCurrent())
     {
         clipboard->setText(getPrimaryContext("\n"));
     }
@@ -947,8 +950,7 @@ void SubtitleListWidget::copyContext() const
 void SubtitleListWidget::copyAudioContext() const
 {
     QPair<double, double> times = getContextTime(
-        m_ui->tabWidget->currentWidget() == m_ui->tabPrimary ?
-            m_primary : m_secondary
+        isPrimaryCurrent() ? m_primary : m_secondary
     );
     if (times.first >= times.second)
     {
@@ -957,7 +959,9 @@ void SubtitleListWidget::copyAudioContext() const
 
     PlayerAdapter *player =
         GlobalMediator::getGlobalMediator()->getPlayerAdapter();
-    double delay = player->getSubDelay() - player->getAudioDelay();
+    double delay = isPrimaryCurrent() ?
+        player->getSubDelay() : player->getSecondarySubDelay();
+    delay -= player->getAudioDelay();
     double start = times.first + delay;
     double end = times.second + delay;
     bool normalize = false;
@@ -1069,6 +1073,7 @@ void SubtitleListWidget::findShow()
 #define MATCH_NONE      "No Matches"
 #define MATCH_FORMAT    QString("%1 of %2 Rows")
 
+template<int SUBTITLE_INDEX>
 void SubtitleListWidget::findTextHelper(SubtitleList &list, QString text)
 {
     const QRegularExpression REGEX_REMOVE_WHITESPACE("\\s*");
@@ -1115,7 +1120,7 @@ void SubtitleListWidget::findTextHelper(SubtitleList &list, QString text)
         );
         if (m_ui->checkAutoSeek->isChecked())
         {
-            seekToSubtitle(
+            seekToSubtitle<SUBTITLE_INDEX>(
                 list.table->item(list.foundRows[list.currentFind], 1),
                 list
             );
@@ -1125,11 +1130,16 @@ void SubtitleListWidget::findTextHelper(SubtitleList &list, QString text)
 
 void SubtitleListWidget::findText(const QString &text)
 {
-    SubtitleList &list =
-        m_ui->tabWidget->currentWidget() == m_ui->tabPrimary ?
-            m_primary : m_secondary;
+    SubtitleList &list = isPrimaryCurrent() ? m_primary : m_secondary;
     list.lock.lock();
-    findTextHelper(list, text);
+    if (isPrimaryCurrent())
+    {
+        findTextHelper<0>(list, text);
+    }
+    else
+    {
+        findTextHelper<1>(list, text);
+    }
     list.lock.unlock();
 }
 
@@ -1145,16 +1155,16 @@ static constexpr int mod(int n, int modulus)
     return (n % modulus + modulus) % modulus;
 }
 
+template<int SUBTITLE_INDEX>
 void SubtitleListWidget::findRowHelper(int offset)
 {
-    SubtitleList &list = m_ui->tabWidget->currentWidget() == m_ui->tabPrimary ?
-        m_primary : m_secondary;
+    SubtitleList &list = isPrimaryCurrent() ? m_primary : m_secondary;
 
     QMutexLocker locker(&list.lock);
 
     if (list.modified)
     {
-        findTextHelper(list, m_ui->lineEditSearch->text());
+        findTextHelper<SUBTITLE_INDEX>(list, m_ui->lineEditSearch->text());
     }
 
     if (list.foundRows.isEmpty())
@@ -1169,7 +1179,7 @@ void SubtitleListWidget::findRowHelper(int offset)
     );
     if (m_ui->checkAutoSeek->isChecked())
     {
-        seekToSubtitle(
+        seekToSubtitle<SUBTITLE_INDEX>(
             list.table->item(list.foundRows[list.currentFind], 1),
             list
         );
@@ -1181,12 +1191,31 @@ void SubtitleListWidget::findRowHelper(int offset)
 
 void SubtitleListWidget::findPrev()
 {
-    findRowHelper(-1);
+    if (isPrimaryCurrent())
+    {
+        findRowHelper<0>(-1);
+    }
+    else
+    {
+        findRowHelper<1>(-1);
+    }
 }
 
 void SubtitleListWidget::findNext()
 {
-    findRowHelper(1);
+    if (isPrimaryCurrent())
+    {
+        findRowHelper<0>(1);
+    }
+    else
+    {
+        findRowHelper<1>(1);
+    }
+}
+
+bool SubtitleListWidget::isPrimaryCurrent() const
+{
+    return m_ui->tabWidget->currentWidget() == m_ui->tabPrimary;
 }
 
 /* End Find Widget Slots */
