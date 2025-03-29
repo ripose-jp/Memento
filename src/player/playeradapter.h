@@ -74,6 +74,12 @@ public:
     virtual double getSubDelay() const = 0;
 
     /**
+     * Get the secondary subtitle delay.
+     * @return The subtitle delay in seconds.
+     */
+    virtual double getSecondarySubDelay() const = 0;
+
+    /**
      * Get the subtitle text.
      * @param filter true to filter the subtitle with the subtitle regex, false
      *               otherwise.
@@ -259,6 +265,18 @@ public Q_SLOTS:
      * @param visible true to make secondary subtitle visible, false otherwise.
      */
     virtual void setSecondarySubVisiblity(const bool visible) = 0;
+
+    /**
+     * Sets the primary subtitle delay.
+     * @param delay The delay to set.
+     */
+    virtual void setSubDelay(double delay) = 0;
+
+    /**
+     * Sets the secondary subtitle delay. Sets the primary delay is unsupported.
+     * @param delay The delay to set.
+     */
+    virtual void setSecondarySubDelay(double delay) = 0;
 
     /**
      * Changes the audio track to the one with the same id.

@@ -51,6 +51,8 @@ public:
 
     double getSubDelay() const override;
 
+    double getSecondarySubDelay() const override;
+
     QString getSubtitle(bool filter = false) const override;
 
     QString getSecondarySubtitle() const override;
@@ -104,6 +106,9 @@ public Q_SLOTS:
 
     void setSubVisiblity(const bool visible) override;
     void setSecondarySubVisiblity(const bool visible) override;
+
+    void setSubDelay(double delay)          override;
+    void setSecondarySubDelay(double delay) override;
 
     void setAudioTrack(int64_t id)       override;
     void setVideoTrack(int64_t id)       override;

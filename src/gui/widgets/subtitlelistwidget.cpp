@@ -22,9 +22,11 @@
 #include "ui_subtitlelistwidget.h"
 
 #include <iterator>
+
 #include <QApplication>
 #include <QClipboard>
 #include <QGuiApplication>
+#include <QMenu>
 #include <QMimeData>
 #include <QMultiMap>
 #include <QMutexLocker>
@@ -105,6 +107,16 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     connect(
         m_ui->tableSec, &QTableWidget::itemDoubleClicked,
         this,           &SubtitleListWidget::seekToSecondarySubtitle
+    );
+    connect(
+        m_ui->tablePrim, &QTableWidget::customContextMenuRequested,
+        this, &SubtitleListWidget::handlePrimaryContextMenu,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_ui->tableSec, &QTableWidget::customContextMenuRequested,
+        this, &SubtitleListWidget::handleSecondaryContextMenu,
+        Qt::QueuedConnection
     );
     connect(
         m_ui->tabWidget, &QTabWidget::currentChanged,
@@ -867,6 +879,56 @@ void SubtitleListWidget::seekToSecondarySubtitle(QTableWidgetItem *item) const
 }
 
 /* End Seek Methods */
+/* Begin Context Menu Methods */
+
+template<int SUBTITLE_INDEX>
+void SubtitleListWidget::handleContextMenu(
+    SubtitleList &list, const QPoint &pos)
+{
+    QTableWidgetItem *item = list.table->itemAt(pos);
+    if (item == nullptr)
+    {
+        return;
+    }
+
+    QMenu contextMenu(this);
+
+    QAction actionAlign("Align Delay", this);
+    connect(
+        &actionAlign, &QAction::triggered, this,
+        [&list, item] () -> void
+        {
+            PlayerAdapter *player =
+                GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+            double currentPos = player->getTimePos();
+            double currentStart = list.itemToSub[item]->start;
+            double newDelay = currentPos - currentStart;
+            if constexpr (SUBTITLE_INDEX == 0)
+            {
+                player->setSubDelay(newDelay);
+            }
+            else if constexpr (SUBTITLE_INDEX == 1)
+            {
+                player->setSecondarySubDelay(newDelay);
+            }
+        }
+    );
+    contextMenu.addAction(&actionAlign);
+
+    contextMenu.exec(mapToGlobal(pos));
+}
+
+void SubtitleListWidget::handlePrimaryContextMenu(const QPoint &pos)
+{
+    handleContextMenu<0>(m_primary, pos);
+}
+
+void SubtitleListWidget::handleSecondaryContextMenu(const QPoint &pos)
+{
+    handleContextMenu<1>(m_secondary, pos);
+}
+
+/* End Context Menu Methods */
 /* Begin Shortcut Handlers */
 
 void SubtitleListWidget::copyContext() const

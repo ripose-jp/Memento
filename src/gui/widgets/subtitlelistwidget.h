@@ -245,6 +245,18 @@ private Q_SLOTS:
     void seekToSecondarySubtitle(QTableWidgetItem *item) const;
 
     /**
+     * Open the context menu for the primary subtitles.
+     * @param pos The point the context menu was requested at.
+     */
+    void handlePrimaryContextMenu(const QPoint &pos);
+
+    /**
+     * Open the context menu for the secondary subtitles.
+     * @param pos The point the context menu was requested at.
+     */
+    void handleSecondaryContextMenu(const QPoint &pos);
+
+    /**
      * Copys the currently selected context to clipboard.
      */
     void copyContext() const;
@@ -430,6 +442,15 @@ private:
      * @param startTimes Maps an item to a timecode.
      */
     void seekToSubtitle(QTableWidgetItem *item, const SubtitleList &list) const;
+
+    /**
+     * Open the context menu.
+     * @tparam SUBTITLE_INDEX The index of the subtitle.
+     * @param list The list to handle the context menu for.
+     * @param pos  The point the context menu was requested at.
+     */
+    template<int SUBTITLE_INDEX>
+    void handleContextMenu(SubtitleList &list, const QPoint &pos);
 
     /**
      * Finds the text in the list without locking the list.

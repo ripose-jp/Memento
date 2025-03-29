@@ -430,6 +430,17 @@ double MpvAdapter::getSubDelay() const
     return delay;
 }
 
+double MpvAdapter::getSecondarySubDelay() const
+{
+    double delay;
+    if (mpv_get_property(m_handle, "secondary-sub-delay", MPV_FORMAT_DOUBLE, &delay) < 0)
+    {
+        qDebug() << "Could not get secondary-sub-delay property, falling back to sub-delay";
+        return getSubDelay();
+    }
+    return delay;
+}
+
 QString MpvAdapter::getSubtitle(bool filter) const
 {
     QString subtitle;
@@ -807,6 +818,25 @@ void MpvAdapter::setSecondarySubVisiblity(const bool visible)
     if (mpv_set_property_async(m_handle, 0, "secondary-sub-visibility", MPV_FORMAT_FLAG, &flag) < 0)
     {
         qDebug() << "Could not set mpv property secondary-sub-visibility to" << flag;
+    }
+}
+
+void MpvAdapter::setSubDelay(double delay)
+{
+    if (mpv_set_property(m_handle, "sub-delay", MPV_FORMAT_DOUBLE, &delay) < 0)
+    {
+        qDebug() << "Could not set mpv property sub-delay to" << delay;
+    }
+}
+
+void MpvAdapter::setSecondarySubDelay(double delay)
+{
+    if (mpv_set_property(m_handle, "secondary-sub-delay", MPV_FORMAT_DOUBLE, &delay) < 0)
+    {
+        qDebug() << "Could not set mpv property secondary-sub-delay to"
+            << delay
+            << "falling back to sub-delay";
+        setSubDelay(delay);
     }
 }
 

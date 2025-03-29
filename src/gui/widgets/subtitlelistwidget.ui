@@ -35,7 +35,7 @@
       <enum>Qt::FocusPolicy::NoFocus</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <property name="tabBarAutoHide">
       <bool>true</bool>
@@ -64,6 +64,9 @@
         <widget class="QTableWidget" name="tablePrim">
          <property name="focusPolicy">
           <enum>Qt::FocusPolicy::ClickFocus</enum>
+         </property>
+         <property name="contextMenuPolicy">
+          <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
          </property>
          <property name="frameShape">
           <enum>QFrame::Shape::NoFrame</enum>
@@ -145,6 +148,9 @@
         <widget class="QTableWidget" name="tableSec">
          <property name="focusPolicy">
           <enum>Qt::FocusPolicy::ClickFocus</enum>
+         </property>
+         <property name="contextMenuPolicy">
+          <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
          </property>
          <property name="frameShape">
           <enum>QFrame::Shape::NoFrame</enum>
