@@ -889,7 +889,7 @@ void SubtitleListWidget::handleContextMenu(
     SubtitleList &list, const QPoint &pos)
 {
     QTableWidgetItem *item = list.table->itemAt(pos);
-    if (item == nullptr)
+    if (item == nullptr || item->column() != 1)
     {
         return;
     }
