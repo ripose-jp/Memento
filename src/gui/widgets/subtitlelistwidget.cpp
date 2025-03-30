@@ -896,6 +896,22 @@ void SubtitleListWidget::handleContextMenu(
 
     QMenu contextMenu(this);
 
+    QAction actionCopyText("Copy Text", this);
+    actionCopyText.setShortcut(m_copyShortcut->key());
+    connect(
+        &actionCopyText, &QAction::triggered,
+        this, &SubtitleListWidget::copyContext
+    );
+    contextMenu.addAction(&actionCopyText);
+
+    QAction actionCopyAudio("Copy Audio", this);
+    actionCopyAudio.setShortcut(m_copyAudioShortcut->key());
+    connect(
+        &actionCopyAudio, &QAction::triggered,
+        this, &SubtitleListWidget::copyAudioContext
+    );
+    contextMenu.addAction(&actionCopyAudio);
+
     QAction actionAlign("Align Delay", this);
     connect(
         &actionAlign, &QAction::triggered, this,
