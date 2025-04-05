@@ -77,11 +77,6 @@ Q_SIGNALS:
     void aboutToHide() const;
 
 private Q_SLOTS:
-    /**
-     * Initializes the style for the widget.
-     */
-    void initStyle();
-
 #ifdef OCR_SUPPORT
     /**
      * Initializes menus with regards to OCR Settings.
@@ -237,9 +232,6 @@ private:
 
     /* A saved pointer to the player */
     PlayerAdapter *m_player;
-
-    /* The menu style object. QWidget does not take ownership. */
-    std::unique_ptr<MenuStyle> m_menuStyle;
 };
 
 #endif // PLAYERMENU_H

@@ -70,8 +70,6 @@ PlayerMenu::PlayerMenu(QWidget *parent)
 {
     m_ui->setupUi(this);
 
-    initStyle();
-
     updateSubtitlePauseAction();
 
     /* Anki */
@@ -279,11 +277,6 @@ PlayerMenu::PlayerMenu(QWidget *parent)
         );
     }
 
-    connect(
-        mediator, &GlobalMediator::interfaceSettingsChanged,
-        this,     &PlayerMenu::initStyle
-    );
-
 #ifdef OCR_SUPPORT
     connect(
         mediator, &GlobalMediator::ocrSettingsChanged,
@@ -294,52 +287,12 @@ PlayerMenu::PlayerMenu(QWidget *parent)
 
 PlayerMenu::~PlayerMenu()
 {
-    setStyle(nullptr);
     clearTracks();
     delete m_ui;
 }
 
 /* End Constructor/Destructor */
 /* Begin Initializers */
-
-void PlayerMenu::initStyle()
-{
-#ifdef Q_OS_WIN
-    QSettings settings;
-    settings.beginGroup(Constants::Settings::Interface::GROUP);
-    Constants::Theme theme = static_cast<Constants::Theme>(
-        settings.value(
-            Constants::Settings::Interface::THEME,
-            static_cast<int>(Constants::Settings::Interface::THEME_DEFAULT)
-        ).toInt()
-    );
-    settings.endGroup();
-
-    switch (theme)
-    {
-        case Constants::Theme::Dark:
-            /* Not using MenuStyle in dark mode is due to a bug in Qt that
-             * messes up colors on Windows when using a proxy style. This only
-             * makes text unreadable in dark mode. */
-            setStyle(nullptr);
-            break;
-
-        case Constants::Theme::Light:
-        case Constants::Theme::System:
-        default:
-            std::unique_ptr<MenuStyle> menuStyle =
-                std::make_unique<MenuStyle>(QApplication::style());
-            setStyle(menuStyle.get());
-            m_menuStyle = std::move(menuStyle);
-            break;
-    }
-#else
-    std::unique_ptr<MenuStyle> menuStyle =
-        std::make_unique<MenuStyle>(QApplication::style());
-    setStyle(menuStyle.get());
-    m_menuStyle = std::move(menuStyle);
-#endif // Q_OS_WIN
-}
 
 #ifdef OCR_SUPPORT
 void PlayerMenu::initOCRSettings()
