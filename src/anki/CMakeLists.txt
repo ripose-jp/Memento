@@ -3,6 +3,7 @@ add_library(
     ankiclient.cpp
     ankiclient.h
     ankiconfig.h
+    ankiconnect.h
     glossarybuilder.cpp
     glossarybuilder.h
     markertokenizer.cpp

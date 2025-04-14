@@ -30,61 +30,14 @@
 #include <QTemporaryFile>
 #include <QThreadPool>
 
-#include "glossarybuilder.h"
-#include "marker.h"
-
+#include "anki/ankiconnect.h"
+#include "anki/glossarybuilder.h"
+#include "anki/marker.h"
 #include "gui/widgets/subtitlelistwidget.h"
 #include "player/playeradapter.h"
 #include "util/constants.h"
 #include "util/globalmediator.h"
 #include "util/utils.h"
-
-/* Anki request fields */
-#define ANKI_ACTION                     "action"
-#define ANKI_RESULT                     "result"
-#define ANKI_PARAMS                     "params"
-
-/* Anki reply fields */
-#define ANKI_ERROR                      "error"
-#define ANKI_VERSION                    "version"
-
-/* Anki actions */
-#define ANKI_ACTION_DECK_NAMES          "deckNames"
-#define ANKI_ACTION_MODEL_NAMES         "modelNames"
-#define ANKI_ACTION_FIELD_NAMES         "modelFieldNames"
-#define ANKI_ACTION_VERSION             "version"
-#define ANKI_ACTION_CAN_ADD_NOTES       "canAddNotes"
-#define ANKI_ACTION_ADD_NOTE            "addNote"
-
-#define ANKI_ACTION_GUI_BROWSE          "guiBrowse"
-#define ANKI_ACTION_STORE_MEDIA_FILE    "storeMediaFile"
-#define ANKI_ACTION_MULTI               "multi"
-
-/* Anki param fields */
-#define ANKI_PARAM_MODEL_NAME           "modelName"
-#define ANKI_PARAM_QUERY                "query"
-#define ANKI_PARAM_ADD_NOTE             "note"
-#define ANKI_PARAM_ACTIONS              "actions"
-
-/* Anki note fields */
-#define ANKI_CAN_ADD_NOTES_PARAM        "notes"
-#define ANKI_NOTE_DECK                  "deckName"
-#define ANKI_NOTE_MODEL                 "modelName"
-#define ANKI_NOTE_FIELDS                "fields"
-#define ANKI_NOTE_OPTIONS               "options"
-#define ANKI_NOTE_TAGS                  "tags"
-#define ANKI_NOTE_AUDIO                 "audio"
-#define ANKI_NOTE_PICTURE               "picture"
-#define ANKI_NOTE_DATA                  "data"
-#define ANKI_NOTE_URL                   "url"
-#define ANKI_NOTE_PATH                  "path"
-#define ANKI_NOTE_FILENAME              "filename"
-#define ANKI_NOTE_SKIPHASH              "skipHash"
-
-/* Anki note option fields */
-#define ANKI_NOTE_OPTIONS_ALLOW_DUP         "allowDuplicate"
-#define ANKI_NOTE_OPTIONS_SCOPE             "duplicateScope"
-#define ANKI_NOTE_OPTIONS_SCOPE_CHECK_DECK  "deck"
 
 #define MIN_ANKICONNECT_VERSION         6
 #define TIMEOUT                         5000
@@ -582,7 +535,7 @@ void AnkiClient::setServer(const QString &address, const QString &port)
 
 AnkiReply *AnkiClient::testConnection()
 {
-    QNetworkReply *reply = makeRequest(ANKI_ACTION_VERSION);
+    QNetworkReply *reply = makeRequest(AnkiConnect::Action::VERSION);
     AnkiReply *ankiReply = new AnkiReply;
     connect(reply, &QNetworkReply::finished, this,
         [=] {
@@ -592,19 +545,20 @@ AnkiReply *AnkiClient::testConnection()
             {
                 Q_EMIT ankiReply->finishedBool(false, error);
             }
-            else if (!replyObj[ANKI_RESULT].isDouble())
+            else if (!replyObj[AnkiConnect::Req::RESULT].isDouble())
             {
                 Q_EMIT ankiReply->finishedBool(
                     false, "AnkiConnect result is not a number"
                 );
             }
-            else if (replyObj[ANKI_RESULT].toInt() < MIN_ANKICONNECT_VERSION)
+            else if (replyObj[AnkiConnect::Req::RESULT].toInt() <
+                MIN_ANKICONNECT_VERSION)
             {
                 error = "AnkiConnect version %1 < %2";
                 error = error.arg(
-                        QString::number(replyObj[ANKI_RESULT].toInt()),
-                        QString::number(MIN_ANKICONNECT_VERSION)
-                    );
+                    QString::number(replyObj[AnkiConnect::Req::RESULT].toInt()),
+                    QString::number(MIN_ANKICONNECT_VERSION)
+                );
                 Q_EMIT ankiReply->finishedBool(false, error);
             }
             else
@@ -620,19 +574,19 @@ AnkiReply *AnkiClient::testConnection()
 
 AnkiReply *AnkiClient::getDeckNames()
 {
-    return requestStringList(ANKI_ACTION_DECK_NAMES);
+    return requestStringList(AnkiConnect::Action::DECK_NAMES);
 }
 
 AnkiReply *AnkiClient::getModelNames()
 {
-    return requestStringList(ANKI_ACTION_MODEL_NAMES);
+    return requestStringList(AnkiConnect::Action::MODEL_NAMES);
 }
 
 AnkiReply *AnkiClient::getFieldNames(const QString &model)
 {
     QJsonObject params;
-    params[ANKI_PARAM_MODEL_NAME] = model;
-    return requestStringList(ANKI_ACTION_FIELD_NAMES, params);
+    params[AnkiConnect::Param::MODEL_NAME] = model;
+    return requestStringList(AnkiConnect::Action::FIELD_NAMES, params);
 }
 
 AnkiReply *AnkiClient::notesAddable(QList<QSharedPointer<const Term>> terms)
@@ -656,7 +610,7 @@ AnkiReply *AnkiClient::notesAddable(QList<QSharedPointer<const Term>> terms)
             }
         }
         QJsonObject params;
-        params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
+        params[AnkiConnect::Note::CAN_ADD_NOTES_PARAM] = notes;
 
         AnkiReply *proxyReply = new AnkiReply;
         connect(proxyReply, &AnkiReply::finishedBoolList, this,
@@ -684,7 +638,7 @@ AnkiReply *AnkiClient::notesAddable(QList<QSharedPointer<const Term>> terms)
         );
 
         Q_EMIT sendBoolListRequest(
-            ANKI_ACTION_CAN_ADD_NOTES, params, proxyReply
+            AnkiConnect::Action::CAN_ADD_NOTES, params, proxyReply
         );
     }
     );
@@ -704,9 +658,9 @@ AnkiReply *AnkiClient::notesAddable(QList<QSharedPointer<const Kanji>> kanji)
                 notes.append(createAnkiNoteObject(*kanji, false));
             }
             QJsonObject params;
-            params[ANKI_CAN_ADD_NOTES_PARAM] = notes;
+            params[AnkiConnect::Note::CAN_ADD_NOTES_PARAM] = notes;
             Q_EMIT sendBoolListRequest(
-                ANKI_ACTION_CAN_ADD_NOTES, params, ankiReply
+                AnkiConnect::Action::CAN_ADD_NOTES, params, ankiReply
             );
         }
     );
@@ -728,8 +682,10 @@ AnkiReply *AnkiClient::addNote(const Term *term)
                 Q_EMIT requestAddMedia(filemap);
             }
             delete term;
-            params[ANKI_PARAM_ADD_NOTE] = note;
-            Q_EMIT sendIntRequest(ANKI_ACTION_ADD_NOTE, params, ankiReply);
+            params[AnkiConnect::Param::ADD_NOTE] = note;
+            Q_EMIT sendIntRequest(
+                AnkiConnect::Action::ADD_NOTE, params, ankiReply
+            );
         }
     );
 
@@ -745,8 +701,10 @@ AnkiReply *AnkiClient::addNote(const Kanji *kanji)
             QJsonObject params;
             QJsonObject note = createAnkiNoteObject(*kanji, true);
             delete kanji;
-            params[ANKI_PARAM_ADD_NOTE] = note;
-            Q_EMIT sendIntRequest(ANKI_ACTION_ADD_NOTE, params, ankiReply);
+            params[AnkiConnect::Param::ADD_NOTE] = note;
+            Q_EMIT sendIntRequest(
+                AnkiConnect::Action::ADD_NOTE, params, ankiReply
+            );
         }
     );
 
@@ -769,8 +727,8 @@ AnkiReply *AnkiClient::openBrowse(const QString &deck, const QString &query)
         queryStr += query;
         queryStr += ')';
     }
-    params[ANKI_PARAM_QUERY] = queryStr;
-    QNetworkReply *reply = makeRequest(ANKI_ACTION_GUI_BROWSE, params);
+    params[AnkiConnect::Param::QUERY] = queryStr;
+    QNetworkReply *reply = makeRequest(AnkiConnect::Action::GUI_BROWSE, params);
     AnkiReply *ankiReply = new AnkiReply;
     connect(reply, &QNetworkReply::finished, this,
         [=] {
@@ -780,7 +738,7 @@ AnkiReply *AnkiClient::openBrowse(const QString &deck, const QString &query)
             {
                 Q_EMIT ankiReply->finishedIntList(QList<int>(), error);
             }
-            else if (!replyObj[ANKI_RESULT].isArray())
+            else if (!replyObj[AnkiConnect::Req::RESULT].isArray())
             {
                 Q_EMIT ankiReply->finishedIntList(
                     QList<int>(), "Result is not an array"
@@ -789,7 +747,8 @@ AnkiReply *AnkiClient::openBrowse(const QString &deck, const QString &query)
             else
             {
                 QList<int> response;
-                QJsonArray resultArray = replyObj[ANKI_RESULT].toArray();
+                QJsonArray resultArray =
+                    replyObj[AnkiConnect::Req::RESULT].toArray();
                 for (const QJsonValueRef &addable : resultArray)
                 {
                     if (addable.isDouble())
@@ -819,17 +778,18 @@ AnkiReply *AnkiClient::addMedia(const QList<QPair<QString, QString>> &fileMap)
     for (const QPair<QString, QString> &p : fileMap)
     {
         QJsonObject command;
-        command[ANKI_ACTION] = ANKI_ACTION_STORE_MEDIA_FILE;
+        command[AnkiConnect::Req::ACTION] =
+            AnkiConnect::Action::STORE_MEDIA_FILE;
         QJsonObject fileParams;
-        fileParams[ANKI_NOTE_DATA] = fileToBase64(p.first);
-        fileParams[ANKI_NOTE_FILENAME] = p.second;
-        command[ANKI_PARAMS] = fileParams;
+        fileParams[AnkiConnect::Note::DATA] = fileToBase64(p.first);
+        fileParams[AnkiConnect::Note::FILENAME] = p.second;
+        command[AnkiConnect::Req::PARAMS] = fileParams;
 
         actions << command;
     }
-    params[ANKI_PARAM_ACTIONS] = actions;
+    params[AnkiConnect::Param::ACTIONS] = actions;
 
-    QNetworkReply *reply = makeRequest(ANKI_ACTION_MULTI, params);
+    QNetworkReply *reply = makeRequest(AnkiConnect::Action::MULTI, params);
     AnkiReply *ankiReply = new AnkiReply;
     connect(reply, &QNetworkReply::finished, this,
         [=] {
@@ -839,7 +799,7 @@ AnkiReply *AnkiClient::addMedia(const QList<QPair<QString, QString>> &fileMap)
             {
                 Q_EMIT ankiReply->finishedStringList(QStringList(), error);
             }
-            else if (!replyObj[ANKI_RESULT].isArray())
+            else if (!replyObj[AnkiConnect::Req::RESULT].isArray())
             {
                 Q_EMIT ankiReply->finishedStringList(
                     QStringList(), "Result is not an array"
@@ -848,7 +808,8 @@ AnkiReply *AnkiClient::addMedia(const QList<QPair<QString, QString>> &fileMap)
             else
             {
                 QStringList filenames;
-                QJsonArray resultObjects = replyObj[ANKI_RESULT].toArray();
+                QJsonArray resultObjects =
+                    replyObj[AnkiConnect::Req::RESULT].toArray();
                 for (const QJsonValueRef &result : resultObjects)
                 {
                     QJsonObject obj;
@@ -861,15 +822,16 @@ AnkiReply *AnkiClient::addMedia(const QList<QPair<QString, QString>> &fileMap)
                     }
 
                     obj = result.toObject();
-                    if (!obj[ANKI_ERROR].isNull())
+                    if (!obj[AnkiConnect::Reply::ERROR].isNull())
                     {
                         Q_EMIT ankiReply->finishedStringList(
-                            QStringList(), obj[ANKI_ERROR].toString()
+                            QStringList(),
+                            obj[AnkiConnect::Reply::ERROR].toString()
                         );
                         goto exit;
                     }
 
-                    if (!obj[ANKI_RESULT].isString())
+                    if (!obj[AnkiConnect::Req::RESULT].isString())
                     {
                         Q_EMIT ankiReply->finishedStringList(
                             QStringList(), "A result is not a string"
@@ -877,7 +839,7 @@ AnkiReply *AnkiClient::addMedia(const QList<QPair<QString, QString>> &fileMap)
                         goto exit;
                     }
 
-                    filenames << obj[ANKI_RESULT].toString();
+                    filenames << obj[AnkiConnect::Req::RESULT].toString();
                 }
                 Q_EMIT ankiReply->finishedStringList(filenames, error);
             }
@@ -900,11 +862,11 @@ QNetworkReply *AnkiClient::makeRequest(const QString     &action,
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     QJsonObject jsonMsg;
-    jsonMsg[ANKI_ACTION] = action;
-    jsonMsg[ANKI_VERSION] = MIN_ANKICONNECT_VERSION;
+    jsonMsg[AnkiConnect::Req::ACTION] = action;
+    jsonMsg[AnkiConnect::Reply::VERSION] = MIN_ANKICONNECT_VERSION;
     if (!params.isEmpty())
     {
-        jsonMsg[ANKI_PARAMS] = params;
+        jsonMsg[AnkiConnect::Req::PARAMS] = params;
     }
     QJsonDocument jsonDoc(jsonMsg);
 
@@ -935,17 +897,17 @@ QJsonObject AnkiClient::processReply(QNetworkReply *reply, QString &error)
         {
             error = "Anki response has unexpected number of fields";
         }
-        else if (!replyObj.contains(ANKI_ERROR))
+        else if (!replyObj.contains(AnkiConnect::Reply::ERROR))
         {
             error = "Anki response is missing error field";
         }
-        else if (!replyObj.contains(ANKI_RESULT))
+        else if (!replyObj.contains(AnkiConnect::Req::RESULT))
         {
             error = "Anki response is missing result field";
         }
-        else if (!replyObj[ANKI_ERROR].isNull())
+        else if (!replyObj[AnkiConnect::Reply::ERROR].isNull())
         {
-            error = replyObj[ANKI_ERROR].toString();
+            error = replyObj[AnkiConnect::Reply::ERROR].toString();
         }
         else
         {
@@ -973,7 +935,7 @@ void AnkiClient::receiveIntRequest(const QString     &action,
             {
                 Q_EMIT ankiReply->finishedInt(0, error);
             }
-            else if (!replyObj[ANKI_RESULT].isDouble())
+            else if (!replyObj[AnkiConnect::Req::RESULT].isDouble())
             {
                 Q_EMIT ankiReply->finishedInt(
                     0, "AnkiConnect result is not a double"
@@ -982,7 +944,7 @@ void AnkiClient::receiveIntRequest(const QString     &action,
             else
             {
                 Q_EMIT ankiReply->finishedInt(
-                    replyObj[ANKI_RESULT].toInt(), error
+                    replyObj[AnkiConnect::Req::RESULT].toInt(), error
                 );
             }
             ankiReply->deleteLater();
@@ -995,7 +957,8 @@ void AnkiClient::receiveBoolListRequest(const QString     &,
                                         const QJsonObject &params,
                                         AnkiReply         *ankiReply)
 {
-    QNetworkReply *reply = makeRequest(ANKI_ACTION_CAN_ADD_NOTES, params);
+    QNetworkReply *reply =
+        makeRequest(AnkiConnect::Action::CAN_ADD_NOTES, params);
     connect(reply, &QNetworkReply::finished, this,
         [=] {
             QString error;
@@ -1004,7 +967,7 @@ void AnkiClient::receiveBoolListRequest(const QString     &,
             {
                 Q_EMIT ankiReply->finishedBoolList(QList<bool>(), error);
             }
-            else if (!replyObj[ANKI_RESULT].isArray())
+            else if (!replyObj[AnkiConnect::Req::RESULT].isArray())
             {
                 Q_EMIT ankiReply->finishedBoolList(
                     QList<bool>(), "Result is not an array"
@@ -1013,7 +976,8 @@ void AnkiClient::receiveBoolListRequest(const QString     &,
             else
             {
                 QList<bool> response;
-                QJsonArray resultArray = replyObj[ANKI_RESULT].toArray();
+                QJsonArray resultArray =
+                    replyObj[AnkiConnect::Req::RESULT].toArray();
                 for (const QJsonValueRef &addable : resultArray)
                 {
                     if (addable.isBool())
@@ -1048,7 +1012,7 @@ AnkiReply *AnkiClient::requestStringList(const QString     &action,
             {
                 Q_EMIT ankiReply->finishedStringList(QStringList(), error);
             }
-            else if (!replyObj[ANKI_RESULT].isArray())
+            else if (!replyObj[AnkiConnect::Req::RESULT].isArray())
             {
                 Q_EMIT ankiReply->finishedStringList(
                     QStringList(), "Result is not an array"
@@ -1057,7 +1021,8 @@ AnkiReply *AnkiClient::requestStringList(const QString     &action,
             else
             {
                 QStringList decks;
-                QJsonArray deckNames = replyObj[ANKI_RESULT].toArray();
+                QJsonArray deckNames =
+                    replyObj[AnkiConnect::Req::RESULT].toArray();
                 for (const QJsonValueRef &name : deckNames)
                     decks.append(name.toString());
                 Q_EMIT ankiReply->finishedStringList(decks, error);
@@ -1091,8 +1056,8 @@ QJsonObject AnkiClient::createAnkiNoteObject(
     );
 
     /* Set Term and Model */
-    note[ANKI_NOTE_DECK] = m_currentConfig->termDeck;
-    note[ANKI_NOTE_MODEL] = m_currentConfig->termModel;
+    note[AnkiConnect::Note::DECK] = m_currentConfig->termDeck;
+    note[AnkiConnect::Note::MODEL] = m_currentConfig->termModel;
 
     /* Process Fields */
     QString audioFile = AUDIO_FILENAME_FORMAT_STRING
@@ -1242,28 +1207,28 @@ QJsonObject AnkiClient::createAnkiNoteObject(
 
         fieldsObj[field] = value;
     }
-    note[ANKI_NOTE_FIELDS] = fieldsObj;
+    note[AnkiConnect::Note::FIELDS] = fieldsObj;
 
     /* Add {audio} marker to the note */
     if (media)
     {
-        QJsonArray audio = note[ANKI_NOTE_AUDIO].toArray();
+        QJsonArray audio = note[AnkiConnect::Note::AUDIO].toArray();
         if (!fieldsWithAudio.isEmpty())
         {
             QJsonObject audObj;
 
-            audObj[ANKI_NOTE_URL] = QString(term.audioURL)
+            audObj[AnkiConnect::Note::URL] = QString(term.audioURL)
                 .replace(REPLACE_EXPRESSION, term.expression)
                 .replace(REPLACE_READING,    reading);
-            audObj[ANKI_NOTE_FILENAME] = audioFile;
-            audObj[ANKI_NOTE_FIELDS] = fieldsWithAudio;
-            audObj[ANKI_NOTE_SKIPHASH] = term.audioSkipHash;
+            audObj[AnkiConnect::Note::FILENAME] = audioFile;
+            audObj[AnkiConnect::Note::FIELDS] = fieldsWithAudio;
+            audObj[AnkiConnect::Note::SKIPHASH] = term.audioSkipHash;
             audio.append(audObj);
         }
 
         if (!audio.isEmpty())
         {
-            note[ANKI_NOTE_AUDIO] = audio;
+            note[AnkiConnect::Note::AUDIO] = audio;
         }
     }
 
@@ -1280,8 +1245,8 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji, bool media)
     );
 
     /* Set Term and Model */
-    note[ANKI_NOTE_DECK] = m_currentConfig->kanjiDeck;
-    note[ANKI_NOTE_MODEL] = m_currentConfig->kanjiModel;
+    note[AnkiConnect::Note::DECK] = m_currentConfig->kanjiDeck;
+    note[AnkiConnect::Note::MODEL] = m_currentConfig->kanjiModel;
 
     /* Build Note Fields */
     QString glossary;
@@ -1397,7 +1362,7 @@ QJsonObject AnkiClient::createAnkiNoteObject(const Kanji &kanji, bool media)
     }
 
     /* Add Fields */
-    note[ANKI_NOTE_FIELDS] = fieldsObj;
+    note[AnkiConnect::Note::FIELDS] = fieldsObj;
 
     return note;
 }
@@ -1413,24 +1378,27 @@ void AnkiClient::buildCommonNote(
     switch (m_currentConfig->duplicatePolicy)
     {
     case AnkiConfig::DuplicatePolicy::None:
-        note[ANKI_NOTE_OPTIONS] = QJsonObject{
-            {ANKI_NOTE_OPTIONS_ALLOW_DUP, false},
+        note[AnkiConnect::Note::OPTIONS] = QJsonObject{
+            {AnkiConnect::Note::Option::ALLOW_DUP, false},
         };
         break;
     case AnkiConfig::DuplicatePolicy::DifferentDeck:
-        note[ANKI_NOTE_OPTIONS] = QJsonObject{
-            {ANKI_NOTE_OPTIONS_SCOPE, ANKI_NOTE_OPTIONS_SCOPE_CHECK_DECK}
+        note[AnkiConnect::Note::OPTIONS] = QJsonObject{
+            {
+                AnkiConnect::Note::Option::SCOPE,
+                AnkiConnect::Note::Option::SCOPE_CHECK_DECK
+            }
         };
         break;
     case AnkiConfig::DuplicatePolicy::SameDeck:
-        note[ANKI_NOTE_OPTIONS] = QJsonObject{
-            {ANKI_NOTE_OPTIONS_ALLOW_DUP, true}
+        note[AnkiConnect::Note::OPTIONS] = QJsonObject{
+            {AnkiConnect::Note::Option::ALLOW_DUP, true}
         };
         break;
     }
 
     /* Add Card Tags */
-    note[ANKI_NOTE_TAGS] = m_currentConfig->tags;
+    note[AnkiConnect::Note::TAGS] = m_currentConfig->tags;
 
     /* Find and replace markers with processed data */
     QString clipboard =
@@ -1597,10 +1565,10 @@ void AnkiClient::buildCommonNote(
                 );
             }
             if (!path.isEmpty()) {
-                audObj[ANKI_NOTE_DATA] = fileToBase64(path);
+                audObj[AnkiConnect::Note::DATA] = fileToBase64(path);
                 QString filename = FileUtils::calculateMd5(path) + ".aac";
-                audObj[ANKI_NOTE_FILENAME] = filename;
-                audObj[ANKI_NOTE_FIELDS] = fieldsWithAudioMedia;
+                audObj[AnkiConnect::Note::FILENAME] = filename;
+                audObj[AnkiConnect::Note::FIELDS] = fieldsWithAudioMedia;
                 audio.append(audObj);
 
                 QFile(path).remove();
@@ -1628,10 +1596,10 @@ void AnkiClient::buildCommonNote(
                 );
             }
             if (!path.isEmpty()) {
-                audObj[ANKI_NOTE_DATA] = fileToBase64(path);
+                audObj[AnkiConnect::Note::DATA] = fileToBase64(path);
                 QString filename = FileUtils::calculateMd5(path) + ".aac";
-                audObj[ANKI_NOTE_FILENAME] = filename;
-                audObj[ANKI_NOTE_FIELDS] = fieldsWithAudioContext;
+                audObj[AnkiConnect::Note::FILENAME] = filename;
+                audObj[AnkiConnect::Note::FIELDS] = fieldsWithAudioContext;
                 audio.append(audObj);
 
                 QFile(path).remove();
@@ -1640,7 +1608,7 @@ void AnkiClient::buildCommonNote(
 
         if (!audio.isEmpty())
         {
-            note[ANKI_NOTE_AUDIO] = audio;
+            note[AnkiConnect::Note::AUDIO] = audio;
         }
 
         QString imageExt;
@@ -1669,13 +1637,13 @@ void AnkiClient::buildCommonNote(
             const bool visibility = player->getSubVisibility();
             player->setSubVisiblity(true);
             QString path = player->tempScreenshot(true, imageExt);
-            image[ANKI_NOTE_DATA] = fileToBase64(path);
+            image[AnkiConnect::Note::DATA] = fileToBase64(path);
             player->setSubVisiblity(visibility);
 
             QString filename = FileUtils::calculateMd5(path) + imageExt;
-            image[ANKI_NOTE_FILENAME] = filename;
+            image[AnkiConnect::Note::FILENAME] = filename;
 
-            image[ANKI_NOTE_FIELDS] = fieldsWithScreenshot;
+            image[AnkiConnect::Note::FIELDS] = fieldsWithScreenshot;
 
             if (filename != imageExt)
             {
@@ -1689,12 +1657,12 @@ void AnkiClient::buildCommonNote(
             QJsonObject image;
             QString path = GlobalMediator::getGlobalMediator()
                 ->getPlayerAdapter()->tempScreenshot(false, imageExt);
-            image[ANKI_NOTE_DATA] = fileToBase64(path);
+            image[AnkiConnect::Note::DATA] = fileToBase64(path);
 
             QString filename = FileUtils::calculateMd5(path) + imageExt;
-            image[ANKI_NOTE_FILENAME] = filename;
+            image[AnkiConnect::Note::FILENAME] = filename;
 
-            image[ANKI_NOTE_FIELDS] = fieldWithScreenshotVideo;
+            image[AnkiConnect::Note::FIELDS] = fieldWithScreenshotVideo;
 
             if (filename != imageExt)
             {
@@ -1705,7 +1673,7 @@ void AnkiClient::buildCommonNote(
 
         if (!images.isEmpty())
         {
-            note[ANKI_NOTE_PICTURE] = images;
+            note[AnkiConnect::Note::PICTURE] = images;
         }
     }
 }
@@ -2060,7 +2028,7 @@ std::vector<int> AnkiClient::getFrequencyNumbers(
     return frequencyNumbers;
 }
 
-QString AnkiClient::positiveIntToQString(const int value, const int defaultValue)
+QString AnkiClient::positiveIntToQString(int value, int defaultValue)
 {
     return (value < 0) ? QString::number(defaultValue) : QString::number(value);
 }
