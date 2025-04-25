@@ -82,7 +82,7 @@ AnkiSettings::AnkiSettings(QWidget *parent)
         makeSuggestion(Anki::Marker::PITCH),
         makeSuggestion(Anki::Marker::PITCH_CATEGORIES),
         makeSuggestion(Anki::Marker::PITCH_GRAPHS),
-        makeSuggestion(Anki::Marker::PITCH_POSITIONS),
+        makeSuggestion(Anki::Marker::PITCH_POSITION),
         makeSuggestion(Anki::Marker::READING),
         makeSuggestion(Anki::Marker::SELECTION),
     });

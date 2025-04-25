@@ -31,11 +31,8 @@
 #include "ankiconfig.h"
 #include "markertokenizer.h"
 
+#include "anki/glossarybuilder.h"
 #include "dict/expression.h"
-
-/* Audio markers */
-#define REPLACE_EXPRESSION "{expression}"
-#define REPLACE_READING    "{reading}"
 
 /* Default AnkiConfig Values */
 #define DEFAULT_PROFILE                 "Default"
@@ -244,7 +241,7 @@ public Q_SLOTS:
      * @return An AnkiReply that emits the finishedStringList() signal. Strings
      *         are added filenames.
      */
-    AnkiReply *addMedia(const QList<QPair<QString, QString>> &fileMap);
+    AnkiReply *addMedia(const QList<GlossaryBuilder::FileInfo> &fileMap);
 
 Q_SIGNALS:
     /**
@@ -252,7 +249,7 @@ Q_SIGNALS:
      * This is a hack to get the media request on the main thread.
      * @param fileMap The filemap to add.
      */
-    void requestAddMedia(const QList<QPair<QString, QString>> &fileMap) const;
+    void requestAddMedia(const QList<GlossaryBuilder::FileInfo> &fileMap) const;
 
     /**
      * Sends a request to issue a command to Anki that returns an integer.
@@ -355,179 +352,6 @@ private:
      */
     AnkiReply *requestStringList(const QString     &action,
                                  const QJsonObject &params = QJsonObject());
-
-    /**
-     * Creates an AnkiConnect compatible note JSON object.
-     * @param term  The term to make the object from.
-     * @param media true if screenshots and audio should be included in the
-     *              object, false otherwise.
-     * @return A JSON object corresponding to the term.
-     */
-    QJsonObject createAnkiNoteObject(
-        const Term &term,
-        bool media);
-
-    /**
-     * Creates an AnkiConnect compatible note JSON object.
-     * @param      term    The term to make the object from.
-     * @param      media   true if screenshots and audio should be included in
-     *                     the object, false otherwise.
-     * @param[out] filemap A mapping of file paths to filenames.
-     * @return A JSON object corresponding to the term.
-     */
-    QJsonObject createAnkiNoteObject(
-        const Term &term,
-        bool media,
-        QList<QPair<QString, QString>> &filemap);
-
-    /**
-     * Creates an AnkiConnect compatible note JSON object.
-     * @param kanji The term to make the object from.
-     * @param media true if screenshots and audio should be included in the
-     *              object, false otherwise.
-     * @return A JSON object corresponding to the term.
-     */
-    QJsonObject createAnkiNoteObject(const Kanji &kanji, bool media);
-
-    /**
-     * Helper method for processing the card markers shared by both term and
-     * kanji cards.
-     * @param      configFields The raw fields object for the note type.
-     * @param      exp          The fields common between Kanji and Terms.
-     * @param      media        true if audio and screenshots should be added,
-     *                          false otherwise.
-     * @param[out] note         The note object to populate.
-     * @param[out] fieldObj     The processed fields object.
-     */
-    void buildCommonNote(const QJsonObject     &configFields,
-                         const CommonExpFields &exp,
-                         const bool             media,
-                         QJsonObject           &note,
-                         QJsonObject           &fieldObj);
-
-    /**
-     * Generates an HTML representation of the frequencies.
-     * @param freq The frequencies to represent as HTML.
-     * @return The HTML representation of all the frequencies. The empty string
-     *         if there are none.
-     */
-    QString buildFrequencies(const QList<Frequency> &freq);
-
-
-    /**
-     * Extracts frequency numbers from a list of frequency tags.
-     * @param frequencies A list of Frequency structs.
-     * @return A vector of positive integers representing the frequency numbers.
-     *         (Only selecting the first frequency displayed by a dictionary,
-     *          to avoid picking secondary frequencies like kana frequencies)
-     */
-    std::vector<int> getFrequencyNumbers(const QList<Frequency> &freq);
-
-    // Function to convert integer to QString with a specific default value if `value` < 0.
-    QString positiveIntToQString(const int value, const int defaultValue);
-
-    /**
-     * Function to calculate the harmonic mean of frequencies.
-     * @param frequencies A list of Frequency structs.
-     * @return The harmonic mean as an integer, or -1 if the list is empty.
-     */
-    int getFrequencyHarmonic(const QList<Frequency> &freq);
-
-    /**
-     * Function to calculate the arithmetic average of frequencies.
-     * @param frequencies A list of Frequency structs.
-     * @return The arithmetic average as an integer, or -1 if the list is empty.
-     */
-    int getFrequencyAverage(const QList<Frequency> &freq);
-
-    /**
-     * Creates the HTML representation of the pitch, pitch category, pitch graph,
-     * and pitch position for the given pitches.
-     * @param pitches              The pitches to turn into HTML.
-     * @param canBeKifuku          Is the term an i-adjective or a verb whose
-     *                             pitch accent is either kifuku or heiban.
-     * @param[out] pitch           The HTML representation of the {pitch} marker.
-     * @param[out] pitchCategories The comma-separated representation of the
-     *                             {pitch-categories} marker.
-     * @param[out] pitchGraph      The HTML representation of the {pitch-graph}
-     *                             marker.
-     * @param[out] pitchPosition   The HTML representation of the {pitch-position}
-     *                             marker.
-     */
-    void buildPitchInfo(const QList<Pitch> &pitches,
-                        const bool          canBeKifuku,
-                        QString            &pitch,
-                        QString            &pitchCategories,
-                        QString            &pitchGraph,
-                        QString            &pitchPosition);
-
-    /**
-     * Builds an HTML glossary from the TermDefinitions.
-     * @param      definitions     The definitions to build the glossary from.
-     * @param      args            The set of marker arguments.
-     * @param[out] glossary        The glossary.
-     * @param[out] glossaryBrief   The brief glossary.
-     * @param[out] glossaryCompact The compact glossary.
-     * @return A mapping of file paths to filenames.
-     */
-    QList<QPair<QString, QString>> buildGlossary(
-        const QList<TermDefinition> &definitions,
-        const QHash<QString, QString> &args,
-        QString &glossary,
-        QString &glossaryBrief,
-        QString &glossaryCompact);
-
-    /**
-     * Builds an HTML glossary from the TermDefinitions.
-     * @param      definitions     The definitions to build the glossary from.
-     * @param[out] glossary        The glossary.
-     * @param[out] glossaryBrief   The brief glossary.
-     * @param[out] glossaryCompact The compact glossary.
-     * @return A mapping of file paths to filenames.
-     */
-    QList<QPair<QString, QString>> buildGlossary(
-        const QList<TermDefinition> &definitions,
-        QString &glossary,
-        QString &glossaryBrief,
-        QString &glossaryCompact);
-
-    /**
-     * Builds an HTML glossary from the KanjiDefinitions.
-     * @param definitions The definitions to build the glossary from.
-     * @return An HTML glossary.
-     */
-    QString buildGlossary(const QList<KanjiDefinition> &definitions);
-
-    /**
-     * Helper method for wrapping tags in <li></li>'s.
-     * @param      tags   The tags to create a list from.
-     * @param[out] tagStr The string to append to for the detailed tag list.
-     * @param[out] tagBriefStr The string to append to for a brief tag list.
-     */
-    void buildTags(
-        const QList<Tag> &tags,
-        QString &tagStr,
-        QString &tagBriefStr);
-
-    /**
-     * Helper method for building the selection list.
-     * @param selections The list of text selections.
-     * @return HTML string encoding the selected text.
-     */
-    QString buildSelection(const QStringList &selections) const;
-
-    /**
-     * Helper method to convert file to base64.
-     * @param path The path of the file to convert to base64.
-     * @return The base64 encoded file.
-     */
-    static QString fileToBase64(const QString &path);
-
-    /**
-     * Helper method to determine if the kifuku pitch accent pattern
-     * is potentially applicable to a term, by checking its part-of-speech.
-     */
-    bool isKifukuApplicable(const QList<TermDefinition> &defs);
 
     /* true if a config exists, false otherwise */
     bool m_configExists = false;

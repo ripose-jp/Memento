@@ -37,7 +37,7 @@
 QStringList GlossaryBuilder::buildGlossary(
     const QJsonArray &definitions,
     QString basepath,
-    QList<QPair<QString, QString>> &fileMap)
+    QSet<FileInfo> &fileMap)
 {
     basepath += SLASH;
     QStringList glossaries;
@@ -212,7 +212,7 @@ void GlossaryBuilder::addStructuredContentHelper(
     const QJsonArray &arr,
     const QString &basepath,
     QString &out,
-    QList<QPair<QString, QString>> &fileMap)
+    QSet<FileInfo> &fileMap)
 {
     for (const QJsonValue &val : arr)
     {
@@ -241,7 +241,7 @@ void GlossaryBuilder::addStructuredContentHelper(
     const QJsonObject &obj,
     const QString &basepath,
     QString &out,
-    QList<QPair<QString, QString>> &fileMap)
+    QSet<FileInfo> &fileMap)
 {
     QString tag = obj[KEY_TAG].toString();
     if (tag.isEmpty())
@@ -387,7 +387,7 @@ void GlossaryBuilder::addStructuredContent(
     const QJsonValue &val,
     const QString &basepath,
     QString &out,
-    QList<QPair<QString, QString>> &fileMap)
+    QSet<FileInfo> &fileMap)
 {
     switch (val.type())
     {
@@ -422,7 +422,7 @@ void GlossaryBuilder::addImage(
     const QJsonObject &obj,
     const QString &basepath,
     QString &out,
-    QList<QPair<QString, QString>> &fileMap)
+    QSet<FileInfo> &fileMap)
 {
     bool collapsed = obj[KEY_COLLAPSED].toBool(false);
     bool collapseable = obj[KEY_COLLAPSED].toBool(true);
@@ -512,7 +512,7 @@ void GlossaryBuilder::addText(const QJsonObject &obj, QString &out)
 QString GlossaryBuilder::addFile(
     QString basepath,
     const QString &path,
-    QList<QPair<QString, QString>> &fileMap)
+    QSet<FileInfo> &fileMap)
 {
 #if defined(Q_OS_WIN)
     basepath += QString(path).replace('/', SLASH);
@@ -534,7 +534,7 @@ QString GlossaryBuilder::addFile(
     {
         hash += path.right(path.length() - dotIndex);
     }
-    fileMap << QPair<QString, QString>(basepath, hash);
+    fileMap.insert(FileInfo{basepath, hash});
     return hash;
 }
 

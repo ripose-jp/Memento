@@ -30,6 +30,18 @@ class GlossaryBuilder
 {
 public:
     /**
+     * A struct containing info about a files.
+     */
+    struct FileInfo
+    {
+        /* The path of the file */
+        QString path;
+
+        /* The new name of the file */
+        QString name;
+    };
+
+    /**
      * Sets the contents of this label.
      * @param      definitions The definitions to add to this label.
      * @param      basepath    The path where all external resources begin.
@@ -39,7 +51,7 @@ public:
     static QStringList buildGlossary(
         const QJsonArray &definitions,
         QString basepath,
-        QList<QPair<QString, QString>> &fileMap);
+        QSet<FileInfo> &fileMap);
 
 private:
     GlossaryBuilder() {}
@@ -76,7 +88,7 @@ private:
         const QJsonArray &arr,
         const QString &basepath,
         QString &out,
-        QList<QPair<QString, QString>> &fileMap);
+        QSet<FileInfo> &fileMap);
 
     /**
      * Adds an object of structured content.
@@ -89,7 +101,7 @@ private:
         const QJsonObject &obj,
         const QString &basepath,
         QString &out,
-        QList<QPair<QString, QString>> &fileMap);
+        QSet<FileInfo> &fileMap);
 
     /**
      * Parses and outputs structured content to HTML.
@@ -103,7 +115,7 @@ private:
         const QJsonValue &val,
         const QString &basepath,
         QString &out,
-        QList<QPair<QString, QString>> &fileMap);
+        QSet<FileInfo> &fileMap);
 
     /**
      * Displays an image type object.
@@ -116,7 +128,7 @@ private:
         const QJsonObject &obj,
         const QString &basepath,
         QString &out,
-        QList<QPair<QString, QString>> &fileMap);
+        QSet<FileInfo> &fileMap);
 
     /**
      * Adds a text object to the HTML document.
@@ -134,7 +146,19 @@ private:
     static QString addFile(
         QString basepath,
         const QString &path,
-        QList<QPair<QString, QString>> &fileMap);
+        QSet<FileInfo> &fileMap);
 };
+
+inline bool operator==(
+    const GlossaryBuilder::FileInfo &lhs,
+    const GlossaryBuilder::FileInfo &rhs)
+{
+    return lhs.path == rhs.path && lhs.name == rhs.name;
+}
+
+inline size_t qHash(const GlossaryBuilder::FileInfo &key, size_t seed)
+{
+    return qHash(key.path, seed);
+}
 
 #endif // GLOSSARYLABEL_H

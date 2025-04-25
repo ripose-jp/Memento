@@ -57,7 +57,7 @@ constexpr const char *GLOSSARY_COMPACT = "glossary-compact";
 constexpr const char *PITCH = "pitch";
 constexpr const char *PITCH_CATEGORIES = "pitch-categories";
 constexpr const char *PITCH_GRAPHS = "pitch-graph";
-constexpr const char *PITCH_POSITIONS = "pitch-position";
+constexpr const char *PITCH_POSITION = "pitch-position";
 constexpr const char *READING = "reading";
 constexpr const char *SELECTION = "selection";
 

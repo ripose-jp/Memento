@@ -120,6 +120,20 @@ public:
      */
     static QString calculateMd5(QFile *file);
 
+    /**
+     * Conevert a file path into base64.
+     * @param path The path of the file to encode.
+     * @return The base64 encoding of the given file, empty if failed.
+     */
+    static QString toBase64(const QString &path);
+
+    /**
+     * Convert a file into base64.
+     * @param file The file to encode.
+     * @return The base64 encoding of the given file, empty if failed.
+     */
+    static QString toBase64(QFile *file);
+
 private:
     FileUtils() {}
 };

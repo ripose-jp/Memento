@@ -8,6 +8,8 @@ add_library(
     glossarybuilder.h
     markertokenizer.cpp
     markertokenizer.h
+    notebuilder.cpp
+    notebuilder.h
 )
 target_compile_features(anki PUBLIC cxx_std_17)
 target_compile_options(anki PRIVATE ${MEMENTO_COMPILER_FLAGS})

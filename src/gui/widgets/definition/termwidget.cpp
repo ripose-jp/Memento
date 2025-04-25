@@ -63,6 +63,12 @@ using AudioSource = DefinitionState::AudioSource;
  */
 #define KANJI_FORMAT_STRING     (QString("<a href=\"%1\">%1</a>"))
 
+/* Used for replace expressions with text in URLs */
+static constexpr const char *REPLACE_EXPRESSION = "{expression}";
+
+/* Used for replacing reading with text in URLs */
+static constexpr const char *REPLACE_READING = "{reading}";
+
 #if defined(Q_OS_MACOS)
 #define EXPRESSION_STYLE    (QString("QLabel { font-size: 30pt; }"))
 #define READING_STYLE       (QString("QLabel { font-size: 18pt; }"))

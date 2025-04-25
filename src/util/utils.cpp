@@ -144,6 +144,21 @@ QString FileUtils::calculateMd5(QFile *file)
     return hash;
 }
 
+QString FileUtils::toBase64(const QString &path)
+{
+    QFile file(path);
+    return toBase64(&file);
+}
+
+QString FileUtils::toBase64(QFile *file)
+{
+    if (!file->open(QIODevice::ReadOnly))
+    {
+        return {};
+    }
+    return file->readAll().toBase64();
+}
+
 /* End FileUtils */
 /* Begin NetworkUtils */
 
