@@ -24,14 +24,14 @@
 #include <QRegularExpressionMatch>
 #include <QRegularExpressionMatchIterator>
 
-QList<Anki::Token> Anki::tokenize(const QString &text)
+QList<Anki::Tokenizer::Token> Anki::Tokenizer::tokenize(const QString &text)
 {
     constexpr qsizetype MAX_ARG_DELIM_COUNT{1};
     constexpr qsizetype MAX_KEY_VALUE_DELIM_COUNT{1};
 
     QRegularExpression tokenMatcher("{.*?}");
 
-    QList<Anki::Token> tokens;
+    QList<Anki::Tokenizer::Token> tokens;
 
     QRegularExpressionMatchIterator matchIt = tokenMatcher.globalMatch(text);
     while (matchIt.hasNext())
@@ -41,35 +41,43 @@ QList<Anki::Token> Anki::tokenize(const QString &text)
         Token t;
         t.raw = match.captured();
 
-        QString marker = t.raw.mid(1, t.raw.size() - 2);
-        QStringList markerArgs = marker.split(':');
-        if (markerArgs.isEmpty())
+        QString tokenText = t.raw.mid(1, t.raw.size() - 2);
+        for (const QString &marker : tokenText.split('|'))
         {
-            continue;
-        }
-        t.marker = markerArgs[0].trimmed();
-        if (markerArgs.size() == 1)
-        {
-            tokens.emplaceBack(std::move(t));
-            continue;
-        }
+            Anki::Tokenizer::Marker m;
 
-        if (markerArgs.size() != MAX_ARG_DELIM_COUNT + 1)
-        {
-            continue;
-        }
-        QStringList args = markerArgs[1].split(',');
-        for (const QString &arg : args)
-        {
-            QStringList kv = arg.split('=');
-            if (kv.size() != MAX_KEY_VALUE_DELIM_COUNT + 1)
+            QStringList markerArgs = marker.split(':');
+            if (markerArgs.isEmpty())
             {
+                break;
+            }
+            m.marker = markerArgs[0].trimmed();
+            if (markerArgs.size() == 1)
+            {
+                t.markers.emplaceBack(std::move(m));
                 continue;
             }
-            t.args.emplace(kv[0].trimmed(), kv[1].trimmed());
-        }
 
-        tokens.emplaceBack(std::move(t));
+            if (markerArgs.size() != MAX_ARG_DELIM_COUNT + 1)
+            {
+                break;
+            }
+            QStringList args = markerArgs[1].split(',');
+            for (const QString &arg : args)
+            {
+                QStringList kv = arg.split('=');
+                if (kv.size() != MAX_KEY_VALUE_DELIM_COUNT + 1)
+                {
+                    continue;
+                }
+                m.args.emplace(kv[0].trimmed(), kv[1].trimmed());
+            }
+            t.markers.emplaceBack(std::move(m));
+        }
+        if (!t.markers.empty())
+        {
+            tokens.emplaceBack(std::move(t));
+        }
     }
 
     return tokens;

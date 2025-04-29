@@ -24,17 +24,28 @@
 
 namespace Anki
 {
+namespace Tokenizer
+{
 
 /**
- * Represents a marker token.
+ * Holds the information of a marker.
  */
-struct Token
+struct Marker
 {
     /* Name of the marker */
     QString marker;
 
     /* A key value pair of arguments */
     QHash<QString, QString> args;
+};
+
+/**
+ * Represents a text token.
+ */
+struct Token
+{
+    /* Contains all the markers */
+    QList<Anki::Tokenizer::Marker> markers;
 
     /* The raw token */
     QString raw;
@@ -43,9 +54,10 @@ struct Token
 /**
  * Returns a list of tokens found in the text.
  * @param text The text to parse for tokens.
- * @return A list of the tokens found in the text.
+ * @return A list of tokens found in the text.
  */
 [[nodiscard]]
-QList<Token> tokenize(const QString &text);
+QList<Anki::Tokenizer::Token> tokenize(const QString &text);
 
+}
 }
