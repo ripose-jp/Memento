@@ -70,6 +70,21 @@ struct GlossaryData
     QSet<GlossaryBuilder::FileInfo> files;
 };
 
+/**
+ * Holds information about Anki token data.
+ */
+struct TokenResult
+{
+    /* true if the token was handled, false otherwise. */
+    bool handled;
+
+    /* true if the token was a media token, false otherwise */
+    bool media;
+
+    /* Text result of the token */
+    QString text;
+};
+
 /* Begin Context Methods */
 
 void Anki::Note::Context::setDeck(const QString &deck)
@@ -1097,50 +1112,50 @@ static QString getTagsBrief(const QList<KanjiDefinition> &definitions)
  * Processes kanji specific tokens.
  * @param kanji         The kanji to build the token with.
  * @param token         The token to handle.
- * @param[out] value    The value to update.
- * @return true if the token was processed, false otherwise.
+ * @return A token result containing information for the token.
  */
-static bool processToken(
-    const Kanji &kanji,
-    const Anki::Token &token,
-    QString &value)
+[[nodiscard]]
+static TokenResult processToken(const Kanji &kanji, const Anki::Token &token)
 {
+    TokenResult result{};
+    result.handled = true;
     if (token.marker == Anki::Marker::CHARACTER)
     {
-        value.replace(token.raw, kanji.character);
-        return true;
+        result.text = kanji.character;
+        return result;
     }
     else if (token.marker == Anki::Marker::KUNYOMI)
     {
-        value.replace(token.raw, getKunyomi(kanji.definitions));
-        return true;
+        result.text = getKunyomi(kanji.definitions);
+        return result;
     }
     else if (token.marker == Anki::Marker::ONYOMI)
     {
-        value.replace(token.raw, getOnyomi(kanji.definitions));
-        return true;
+        result.text = getOnyomi(kanji.definitions);
+        return result;
     }
     else if (token.marker == Anki::Marker::STROKE_COUNT)
     {
-        value.replace(token.raw, getStrokeCount(kanji.definitions));
-        return true;
+        result.text = getStrokeCount(kanji.definitions);
+        return result;
     }
     else if (token.marker == Anki::Marker::GLOSSARY)
     {
-        value.replace(token.raw, getGlossary(kanji.definitions));
-        return true;
+        result.text = getGlossary(kanji.definitions);
+        return result;
     }
     else if (token.marker == Anki::Marker::TAGS)
     {
-        value.replace(token.raw, getTags(kanji.definitions));
-        return true;
+        result.text = getTags(kanji.definitions);
+        return result;
     }
     else if (token.marker == Anki::Marker::TAGS_BRIEF)
     {
-        value.replace(token.raw, getTagsBrief(kanji.definitions));
-        return true;
+        result.text = getTagsBrief(kanji.definitions);
+        return result;
     }
-    return false;
+    result.handled = false;
+    return result;
 }
 
 /**
@@ -1149,103 +1164,103 @@ static bool processToken(
  * @param term          The term to build the token with.
  * @param token         The token to handle.
  * @param field         The field this token belongs to.
- * @param[out] value    The value to update.
  * @param[out] fieldCtx The field context to update.
- * @return true if the token was processed, false otherwise.
+ * @return A token result containing information for the token.
  */
-static bool processToken(
+[[nodiscard]]
+static TokenResult processToken(
     const AnkiConfig &config,
     const Term &term,
     const Anki::Token &token,
     const QString &field,
-    QString &value,
     FieldContext &fieldCtx)
 {
+    TokenResult result{};
+    result.handled = true;
     if (token.marker == Anki::Marker::AUDIO)
     {
         fieldCtx.fieldsWithAudio.append(field);
-        value.replace(token.raw, "");
-        return true;
+        result.media = true;
+        return result;
     }
     else if (token.marker == Anki::Marker::EXPRESSION)
     {
-        value.replace(token.raw, getExpression(term));
-        return true;
+        result.text = getExpression(term);
+        return result;
     }
     else if (token.marker == Anki::Marker::FURIGANA)
     {
-        value.replace(token.raw, getFurigana(term));
-        return true;
+        result.text = getFurigana(term);
+        return result;
     }
     else if (token.marker == Anki::Marker::FURIGANA_PLAIN)
     {
-        value.replace(token.raw, getFuriganaPlain(term));
-        return true;
+        result.text = getFuriganaPlain(term);
+        return result;
     }
     else if (token.marker == Anki::Marker::READING)
     {
-        value.replace(token.raw, getReading(term));
-        return true;
+        result.text = getReading(term);
+        return result;
     }
     else if (token.marker == Anki::Marker::GLOSSARY)
     {
         GlossaryData data = getGlossary(term.definitions, token.args);
-        value.replace(token.raw, data.glossary);
+        result.text = data.glossary;
         fieldCtx.files.unite(data.files);
-        return true;
+        return result;
     }
     else if (token.marker == Anki::Marker::GLOSSARY_BRIEF)
     {
         GlossaryData data = getGlossary(term.definitions, token.args);
-        value.replace(token.raw, data.glossaryBrief);
+        result.text = data.glossaryBrief;
         fieldCtx.files.unite(data.files);
-        return true;
+        return result;
     }
     else if (token.marker == Anki::Marker::GLOSSARY_COMPACT)
     {
         GlossaryData data = getGlossary(term.definitions, token.args);
-        value.replace(token.raw, data.glossaryCompact);
+        result.text = data.glossaryCompact;
         fieldCtx.files.unite(data.files);
-        return true;
+        return result;
     }
     else if (token.marker == Anki::Marker::PITCH)
     {
-        value.replace(token.raw, getPitch(term.pitches));
-        return true;
+        result.text = getPitch(term.pitches);
+        return result;
     }
     else if (token.marker == Anki::Marker::PITCH_GRAPHS)
     {
-        value.replace(token.raw, getPitchGraph(term.pitches));
-        return true;
+        result.text = getPitchGraph(term.pitches);
+        return result;
     }
     else if (token.marker == Anki::Marker::PITCH_POSITION)
     {
-        value.replace(token.raw, getPitchPosition(term.pitches));
-        return true;
+        result.text = getPitchPosition(term.pitches);
+        return result;
     }
     else if (token.marker == Anki::Marker::PITCH_CATEGORIES)
     {
-        value.replace(token.raw, getPitchCategories(term));
-        return true;
+        result.text = getPitchCategories(term);
+        return result;
     }
     else if (token.marker == Anki::Marker::SELECTION)
     {
-        value.replace(
-            token.raw, replaceNewLines(getSelection(term.selection), config)
-        );
-        return true;
+        result.text = replaceNewLines(getSelection(term.selection), config);
+        return result;
     }
     else if (token.marker == Anki::Marker::TAGS)
     {
-        value.replace(token.raw, getTags(term.tags));
-        return true;
+        result.text = getTags(term.tags);
+        return result;
     }
     else if (token.marker == Anki::Marker::TAGS_BRIEF)
     {
-        value.replace(token.raw, getTagsBrief(term.tags));
-        return true;
+        result.text = getTagsBrief(term.tags);
+        return result;
     }
-    return false;
+    result.handled = false;
+    return result;
 }
 
 /**
@@ -1254,17 +1269,15 @@ static bool processToken(
  * @param      exp      The details of the current expression.
  * @param      token    The Anki::Token to process in the field.
  * @param      field    The name of the field.
- * @param[out] value    The value of the field. This is modified by this
- *                      function.
  * @param[out] fieldCtx The context containing all the media fields.
- * @return True if the field was modified, false otherwise.
+ * @return A token result containing information for the token.
  */
-static bool processTokenCommon(
+[[nodiscard]]
+static TokenResult processTokenCommon(
     const AnkiConfig &config,
     const CommonExpFields &exp,
     const Anki::Token &token,
     const QString &field,
-    QString &value,
     FieldContext &fieldCtx)
 {
     /* If the term never occurs in the corpus of any loaded frequency
@@ -1273,121 +1286,112 @@ static bool processTokenCommon(
     constexpr int DEFAULT_FREQ_RANK = 9999999;
     constexpr int DEFAULT_FREQ_OCCURRENCE = 0;
 
+    TokenResult result{};
+    result.handled = true;
     if (token.marker == Anki::Marker::AUDIO_MEDIA)
     {
         fieldCtx.fieldsWithAudioMedia.append(field);
-        value.replace(token.raw, "");
-        return true;
+        result.media = true;
+        return result;
     }
     else if (token.marker == Anki::Marker::AUDIO_CONTEXT)
     {
         fieldCtx.fieldsWithAudioContext.append(field);
-        value.replace(token.raw, "");
-        return true;
+        result.media = true;
+        return result;
     }
     else if (token.marker == Anki::Marker::SCREENSHOT)
     {
         fieldCtx.fieldsWithScreenshot.append(field),
-        value.replace(token.raw, "");
-        return true;
+        result.media = true;
+        return result;
     }
     else if (token.marker == Anki::Marker::SCREENSHOT_VIDEO)
     {
         fieldCtx.fieldsWithScreenshotVideo.append(field);
-        value.replace(token.raw, "");
-        return true;
+        result.media = true;
+        return result;
     }
     else if (token.marker == Anki::Marker::TITLE)
     {
-        value.replace(token.raw, replaceNewLines(exp.title, config));
-        return true;
+        result.text = replaceNewLines(exp.title, config);
+        return result;
     }
     else if (token.marker == Anki::Marker::CLIPBOARD)
     {
-        value.replace(token.raw, replaceNewLines(exp.clipboard, config));
-        return true;
+        result.text = replaceNewLines(exp.clipboard, config);
+        return result;
     }
     else if (token.marker == Anki::Marker::CLOZE_BODY)
     {
-        value.replace(token.raw, replaceNewLines(exp.clozeBody, config));
-        return true;
+        result.text = replaceNewLines(exp.clozeBody, config);
+        return result;
     }
     else if (token.marker == Anki::Marker::CLOZE_PREFIX)
     {
-        value.replace(token.raw, replaceNewLines(exp.clozePrefix, config));
-        return true;
+        result.text = replaceNewLines(exp.clozePrefix, config);
+        return result;
     }
     else if (token.marker == Anki::Marker::CLOZE_SUFFIX)
     {
-        value.replace(token.raw, replaceNewLines(exp.clozeSuffix, config));
-        return true;
+        result.text = replaceNewLines(exp.clozeSuffix, config);
+        return result;
     }
     else if (token.marker == Anki::Marker::SENTENCE)
     {
-        value.replace(token.raw, replaceNewLines(exp.sentence, config));
-        return true;
+        result.text = replaceNewLines(exp.sentence, config);
+        return result;
     }
     else if (token.marker == Anki::Marker::SENTENCE_SEC)
     {
-        value.replace(token.raw, replaceNewLines(exp.sentence2, config));
-        return true;
+        result.text = replaceNewLines(exp.sentence2, config);
+        return result;
     }
     else if (token.marker == Anki::Marker::CONTEXT)
     {
-        value.replace(token.raw, replaceNewLines(exp.context, config));
-        return true;
+        result.text = replaceNewLines(exp.context, config);
+        return result;
     }
     else if (token.marker == Anki::Marker::CONTEXT_SEC)
     {
-        value.replace(token.raw, replaceNewLines(exp.context2, config));
-        return true;
+        result.text = replaceNewLines(exp.context2, config);
+        return result;
     }
     else if (token.marker == Anki::Marker::FREQUENCIES)
     {
-        value.replace(token.raw, buildFrequencies(exp.frequencies));
-        return true;
+        result.text = buildFrequencies(exp.frequencies);
+        return result;
     }
     else if (token.marker == Anki::Marker::FREQ_HARMONIC_RANK)
     {
-        value.replace(
-            token.raw,
-            positiveIntToQString(
-                getFrequencyHarmonic(exp.frequencies), DEFAULT_FREQ_RANK
-            )
+        result.text = positiveIntToQString(
+            getFrequencyHarmonic(exp.frequencies), DEFAULT_FREQ_RANK
         );
-        return true;
+        return result;
     }
     else if (token.marker == Anki::Marker::FREQ_HARMONIC_OCCU)
     {
-        value.replace(
-            token.raw,
-            positiveIntToQString(
-                getFrequencyHarmonic(exp.frequencies), DEFAULT_FREQ_OCCURRENCE
-            )
+        result.text = positiveIntToQString(
+            getFrequencyHarmonic(exp.frequencies), DEFAULT_FREQ_OCCURRENCE
         );
-        return true;
+        return result;
     }
     else if (token.marker == Anki::Marker::FREQ_AVERAGE_RANK)
     {
-        value.replace(
-            token.raw,
-            positiveIntToQString(
-                getFrequencyAverage(exp.frequencies), DEFAULT_FREQ_RANK
-            )
+        result.text = positiveIntToQString(
+            getFrequencyAverage(exp.frequencies), DEFAULT_FREQ_RANK
         );
-        return true;
+        return result;
     }
     else if (token.marker == Anki::Marker::FREQ_AVERAGE_OCCU)
     {
-        value.replace(
-            token.raw,
-            positiveIntToQString(
-                getFrequencyAverage(exp.frequencies), DEFAULT_FREQ_OCCURRENCE
-            )
+        result.text = positiveIntToQString(
+            getFrequencyAverage(exp.frequencies), DEFAULT_FREQ_OCCURRENCE
         );
-        return true;
+        return result;
     }
-    return false;
+    result.handled = false;
+    return result;
 }
 
 /* End Marker Functions */
@@ -1650,15 +1654,20 @@ Anki::Note::Context Anki::Note::build(
         QList<Anki::Token> tokens = Anki::tokenize(value);
         for (const Anki::Token &t : tokens)
         {
-            bool tokenProcessed = processTokenCommon(
-                config, term, t, field, value, fieldCtx
+            TokenResult result = processTokenCommon(
+                config, term, t, field, fieldCtx
             );
-            if (tokenProcessed)
+            if (result.handled)
             {
+                value.replace(t.raw, result.text);
                 continue;
             }
-            tokenProcessed =
-                processToken(config, term, t, field, value, fieldCtx);
+            result = processToken(config, term, t, field, fieldCtx);
+            if (result.handled)
+            {
+                value.replace(t.raw, result.text);
+                continue;
+            }
         }
         fieldsObj[field] = value;
     }
@@ -1701,14 +1710,20 @@ Anki::Note::Context Anki::Note::build(
         QList<Anki::Token> tokens = Anki::tokenize(value);
         for (const Anki::Token &t : tokens)
         {
-            bool tokenProcessed = processTokenCommon(
-                config, kanji, t, field, value, fieldCtx
+            TokenResult result = processTokenCommon(
+                config, kanji, t, field, fieldCtx
             );
-            if (tokenProcessed)
+            if (result.handled)
             {
+                value.replace(t.raw, result.text);
                 continue;
             }
-            tokenProcessed = processToken(kanji, t, value);
+            result = processToken(kanji, t);
+            if (result.handled)
+            {
+                value.replace(t.raw, result.text);
+                continue;
+            }
         }
         fieldsObj[field] = value;
     }
