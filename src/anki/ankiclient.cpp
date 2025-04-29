@@ -954,12 +954,11 @@ void AnkiClient::receiveIntRequest(const QString     &action,
     );
 }
 
-void AnkiClient::receiveBoolListRequest(const QString     &,
+void AnkiClient::receiveBoolListRequest(const QString     &action,
                                         const QJsonObject &params,
                                         AnkiReply         *ankiReply)
 {
-    QNetworkReply *reply =
-        makeRequest(AnkiConnect::Action::CAN_ADD_NOTES, params);
+    QNetworkReply *reply = makeRequest(action, params);
     connect(reply, &QNetworkReply::finished, this,
         [=] {
             QString error;
