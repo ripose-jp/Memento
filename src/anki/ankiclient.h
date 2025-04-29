@@ -35,17 +35,17 @@
 #include "dict/expression.h"
 
 /* Default AnkiConfig Values */
-#define DEFAULT_PROFILE                 "Default"
-#define DEFAULT_HOST                    "localhost"
-#define DEFAULT_PORT                    "8765"
-#define DEFAULT_SCREENSHOT              AnkiConfig::FileType::jpg
-#define DEFAULT_DUPLICATE_POLICY        AnkiConfig::DuplicatePolicy::DifferentDeck
-#define DEFAULT_NEWLINE_REPLACER        "<br>"
-#define DEFAULT_TAGS                    "memento"
-#define DEFAULT_AUDIO_PAD_START         0.0
-#define DEFAULT_AUDIO_PAD_END           0.0
-#define DEFAULT_AUDIO_NORMALIZE         false
-#define DEFAULT_AUDIO_DB                (-20.0)
+static constexpr const char *DEFAULT_PROFILE = "Default";
+static constexpr const char *DEFAULT_HOST = "localhost";
+static constexpr const char *DEFAULT_PORT = "8765";
+static constexpr AnkiConfig::FileType DEFAULT_SCREENSHOT = AnkiConfig::FileType::jpg;
+static constexpr AnkiConfig::DuplicatePolicy DEFAULT_DUPLICATE_POLICY = AnkiConfig::DuplicatePolicy::DifferentDeck;
+static constexpr const char *DEFAULT_NEWLINE_REPLACER = "<br>";
+static constexpr const char *DEFAULT_TAGS = "memento";
+static constexpr double DEFAULT_AUDIO_PAD_START = 0.0;
+static constexpr double DEFAULT_AUDIO_PAD_END = 0.0;
+static constexpr bool DEFAULT_AUDIO_NORMALIZE = false;
+static constexpr double DEFAULT_AUDIO_DB = -20.0;
 
 class QNetworkAccessManager;
 class QNetworkReply;

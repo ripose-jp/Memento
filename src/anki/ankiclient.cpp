@@ -35,31 +35,31 @@
 #include "util/globalmediator.h"
 #include "util/utils.h"
 
-#define MIN_ANKICONNECT_VERSION         6
-#define TIMEOUT                         5000
-#define CONFIG_FILE                     "anki_connect.json"
+static constexpr int MIN_ANKICONNECT_VERSION = 6;
+static constexpr int TIMEOUT = 5000;
+static constexpr const char *CONFIG_FILE = "anki_connect.json";
 
 /* Config file fields */
-#define CONFIG_ENABLED          "enabled"
-#define CONFIG_PROFILES         "profiles"
-#define CONFIG_SET_PROFILE      "setProfile"
-#define CONFIG_NAME             "name"
-#define CONFIG_HOST             "host"
-#define CONFIG_PORT             "port"
-#define CONFIG_DUPLICATE        "duplicate"
-#define CONFIG_NEWLINE_REPLACER "newline-replace"
-#define CONFIG_SCREENSHOT       "screenshot"
-#define CONFIG_AUDIO_PAD_START  "audio-pad-start"
-#define CONFIG_AUDIO_PAD_END    "audio-pad-end"
-#define CONFIG_AUDIO_NORMALIZE  "audio-normalize"
-#define CONFIG_AUDIO_DB         "audio-db"
-#define CONFIG_TERM             "term"
-#define CONFIG_KANJI            "kanji"
-#define CONFIG_TAGS             "tags"
-#define CONFIG_DECK             "deck"
-#define CONFIG_MODEL            "model"
-#define CONFIG_FIELDS           "fields"
-#define CONFIG_EXCLUDE_GLOSSARY "ex-glos"
+static constexpr const char *CONFIG_ENABLED = "enabled";
+static constexpr const char *CONFIG_PROFILES = "profiles";
+static constexpr const char *CONFIG_SET_PROFILE = "setProfile";
+static constexpr const char *CONFIG_NAME = "name";
+static constexpr const char *CONFIG_HOST = "host";
+static constexpr const char *CONFIG_PORT = "port";
+static constexpr const char *CONFIG_DUPLICATE = "duplicate";
+static constexpr const char *CONFIG_NEWLINE_REPLACER = "newline-replace";
+static constexpr const char *CONFIG_SCREENSHOT = "screenshot";
+static constexpr const char *CONFIG_AUDIO_PAD_START = "audio-pad-start";
+static constexpr const char *CONFIG_AUDIO_PAD_END = "audio-pad-end";
+static constexpr const char *CONFIG_AUDIO_NORMALIZE = "audio-normalize";
+static constexpr const char *CONFIG_AUDIO_DB = "audio-db";
+static constexpr const char *CONFIG_TERM = "term";
+static constexpr const char *CONFIG_KANJI = "kanji";
+static constexpr const char *CONFIG_TAGS = "tags";
+static constexpr const char *CONFIG_DECK = "deck";
+static constexpr const char *CONFIG_MODEL = "model";
+static constexpr const char *CONFIG_FIELDS = "fields";
+static constexpr const char *CONFIG_EXCLUDE_GLOSSARY = "ex-glos";
 
 /* Begin Constructor/Destructors */
 
