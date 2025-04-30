@@ -59,7 +59,7 @@ DictionarySettings::DictionarySettings(QWidget *parent)
 
     connect(
         m_ui->listDictionaries, &QListWidget::currentRowChanged,
-        this,                   [=] (int row) { setButtonsEnabled(row != -1); }
+        this, [this] (int row) { setButtonsEnabled(row != -1); }
     );
 
     connect(
@@ -267,7 +267,8 @@ void DictionarySettings::deleteDictionary()
     settings.remove(item->data(ROLE_DICTIONARY_NAME).toString());
     settings.endGroup();
     QThreadPool::globalInstance()->start(
-        [=] {
+        [this, item]
+        {
             setEnabled(false);
             Dictionary *dic =
                 GlobalMediator::getGlobalMediator()->getDictionary();

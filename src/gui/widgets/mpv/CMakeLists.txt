@@ -6,7 +6,7 @@ add_library(
     mpvwidget.h
     osctimer.cpp
 )
-target_compile_features(mpvwidget PUBLIC cxx_std_17)
+target_compile_features(mpvwidget PUBLIC cxx_std_20)
 target_compile_options(mpvwidget PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(mpvwidget PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(

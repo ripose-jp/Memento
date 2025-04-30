@@ -532,7 +532,8 @@ AnkiReply *AnkiClient::testConnection()
     QNetworkReply *reply = makeRequest(AnkiConnect::Action::VERSION);
     AnkiReply *ankiReply = new AnkiReply;
     connect(reply, &QNetworkReply::finished, this,
-        [=] {
+        [this, reply, ankiReply]
+        {
             QString error;
             QJsonObject replyObj = processReply(reply, error);
             if (replyObj.isEmpty())
@@ -673,7 +674,8 @@ AnkiReply *AnkiClient::addNote(const Term *term)
     AnkiReply *ankiReply = new AnkiReply;
 
     QThreadPool::globalInstance()->start(
-        [=] {
+        [this, term, ankiReply]
+        {
             QJsonObject params;
             Anki::Note::Context ctx =
                 Anki::Note::build(*m_currentConfig, *term, true);
@@ -697,7 +699,8 @@ AnkiReply *AnkiClient::addNote(const Kanji *kanji)
     AnkiReply *ankiReply = new AnkiReply;
 
     QThreadPool::globalInstance()->start(
-        [=] {
+        [this, kanji, ankiReply]
+        {
             QJsonObject params;
             Anki::Note::Context ctx =
                 Anki::Note::build(*m_currentConfig, *kanji, true);
@@ -732,7 +735,8 @@ AnkiReply *AnkiClient::openBrowse(const QString &deck, const QString &query)
     QNetworkReply *reply = makeRequest(AnkiConnect::Action::GUI_BROWSE, params);
     AnkiReply *ankiReply = new AnkiReply;
     connect(reply, &QNetworkReply::finished, this,
-        [=] {
+        [this, reply, ankiReply]
+        {
             QString error;
             QJsonObject replyObj = processReply(reply, error);
             if (replyObj.isEmpty())
@@ -763,10 +767,10 @@ AnkiReply *AnkiClient::openBrowse(const QString &deck, const QString &query)
                         );
                     }
                 }
-            Q_EMIT ankiReply->finishedIntList(response, error);
-        }
-        ankiReply->deleteLater();
-        reply->deleteLater();
+                Q_EMIT ankiReply->finishedIntList(response, error);
+            }
+            ankiReply->deleteLater();
+            reply->deleteLater();
         }
     );
     return ankiReply;
@@ -793,7 +797,8 @@ AnkiReply *AnkiClient::addMedia(const QList<GlossaryBuilder::FileInfo> &fileMap)
     QNetworkReply *reply = makeRequest(AnkiConnect::Action::MULTI, params);
     AnkiReply *ankiReply = new AnkiReply;
     connect(reply, &QNetworkReply::finished, this,
-        [=] {
+        [this, reply, ankiReply]
+        {
             QString error;
             QJsonObject replyObj = processReply(reply, error);
             if (replyObj.isEmpty())
@@ -929,7 +934,8 @@ void AnkiClient::receiveIntRequest(const QString     &action,
 {
     QNetworkReply *reply = makeRequest(action, params);
     connect(reply, &QNetworkReply::finished, this,
-        [=] {
+        [this, reply, ankiReply]
+        {
             QString error;
             QJsonObject replyObj = processReply(reply, error);
             if (replyObj.isEmpty())
@@ -960,7 +966,8 @@ void AnkiClient::receiveBoolListRequest(const QString     &action,
 {
     QNetworkReply *reply = makeRequest(action, params);
     connect(reply, &QNetworkReply::finished, this,
-        [=] {
+        [this, reply, ankiReply]
+        {
             QString error;
             QJsonObject replyObj = processReply(reply, error);
             if (replyObj.isEmpty())
@@ -1005,7 +1012,8 @@ AnkiReply *AnkiClient::requestStringList(const QString     &action,
     QNetworkReply *reply = makeRequest(action, params);
     AnkiReply *ankiReply = new AnkiReply;
     connect(reply, &QNetworkReply::finished, this,
-        [=] {
+        [this, reply, ankiReply]
+        {
             QString error;
             QJsonObject replyObj = processReply(reply, error);
             if (replyObj.isEmpty())

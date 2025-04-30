@@ -442,7 +442,7 @@ void SubtitleListWidget::handleTracklistChange(
         }
     }
 
-    QThreadPool::globalInstance()->start([=] {
+    QThreadPool::globalInstance()->start([this, extTracks, extSids] {
         SubtitleParser parser;
 
         m_primary.lock.lock();

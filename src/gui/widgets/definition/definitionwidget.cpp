@@ -324,7 +324,8 @@ void DefinitionWidget::setTerms(SharedTermList terms, SharedKanji kanji)
         AnkiReply *reply = m_client->notesAddable(m_terms);
         int searchId = m_searchId;
         connect(reply, &AnkiReply::finishedBoolList, this,
-            [=] (const QList<bool> &addable, const QString &error) {
+            [this, searchId] (const QList<bool> &addable, const QString &error)
+            {
                 if (error.isEmpty() && searchId == m_searchId)
                 {
                     m_addable = addable;
@@ -336,7 +337,8 @@ void DefinitionWidget::setTerms(SharedTermList terms, SharedKanji kanji)
         {
             connect(
                 reply, &AnkiReply::finishedBoolList,
-                buttonShowMore, [=] { buttonShowMore->setEnabled(true); }
+                buttonShowMore,
+                [buttonShowMore] { buttonShowMore->setEnabled(true); }
             );
         }
     }

@@ -350,7 +350,8 @@ void Dictionary::sortTerms(SharedTermList &terms) const
     for (SharedTerm term : *terms)
     {
         std::sort(std::begin(term->definitions), std::end(term->definitions),
-            [=] (const TermDefinition &lhs, const TermDefinition &rhs) -> bool
+            [this]
+            (const TermDefinition &lhs, const TermDefinition &rhs) -> bool
             {
                 uint32_t lhsPriority = m_dicOrder.map[lhs.dictionaryId];
                 uint32_t rhsPriority = m_dicOrder.map[rhs.dictionaryId];
@@ -359,7 +360,7 @@ void Dictionary::sortTerms(SharedTermList &terms) const
             }
         );
         std::sort(std::begin(term->frequencies), std::end(term->frequencies),
-            [=] (const Frequency &lhs, const Frequency &rhs) -> bool
+            [this] (const Frequency &lhs, const Frequency &rhs) -> bool
             {
                 return m_dicOrder.map[lhs.dictionaryId] <
                        m_dicOrder.map[rhs.dictionaryId];
@@ -391,13 +392,15 @@ SharedKanji Dictionary::searchKanji(const QString ch)
     /* Sort all the information */
     m_dicOrder.lock.lockForRead();
     std::sort(kanji->frequencies.begin(), kanji->frequencies.end(),
-        [=] (const Frequency &lhs, const Frequency &rhs) -> bool {
+        [this] (const Frequency &lhs, const Frequency &rhs) -> bool
+        {
             return m_dicOrder.map[lhs.dictionaryId] <
                    m_dicOrder.map[rhs.dictionaryId];
         }
     );
     std::sort(kanji->definitions.begin(), kanji->definitions.end(),
-        [=] (const KanjiDefinition &lhs, const KanjiDefinition &rhs) -> bool {
+        [this] (const KanjiDefinition &lhs, const KanjiDefinition &rhs) -> bool
+        {
             return m_dicOrder.map[lhs.dictionaryId] <
                    m_dicOrder.map[rhs.dictionaryId];
         }
@@ -471,7 +474,7 @@ QList<DictionaryInfo> Dictionary::getDictionaries() const
 
     m_dicOrder.lock.lockForRead();
     std::sort(dictionaries.begin(), dictionaries.end(),
-        [=] (const DictionaryInfo &lhs, const DictionaryInfo &rhs) -> bool
+        [this] (const DictionaryInfo &lhs, const DictionaryInfo &rhs) -> bool
         {
             return m_dicOrder.map[lhs.id] < m_dicOrder.map[rhs.id];
         }

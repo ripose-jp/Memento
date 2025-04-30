@@ -9,7 +9,7 @@ add_library(
     aboutwindow.cpp
     aboutwindow.h
 )
-target_compile_features(aboutwindow PUBLIC cxx_std_17)
+target_compile_features(aboutwindow PUBLIC cxx_std_20)
 target_compile_options(aboutwindow PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(aboutwindow PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
@@ -23,7 +23,7 @@ add_library(
     searchwidget.cpp
     searchwidget.h
 )
-target_compile_features(searchwidget PUBLIC cxx_std_17)
+target_compile_features(searchwidget PUBLIC cxx_std_20)
 target_compile_options(searchwidget PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(searchwidget PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
@@ -39,7 +39,7 @@ add_library(
     subtitlelistwidget.h
     subtitlelistwidget.ui
 )
-target_compile_features(subtitlelist PUBLIC cxx_std_17)
+target_compile_features(subtitlelist PUBLIC cxx_std_20)
 target_compile_options(subtitlelist PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(subtitlelist PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(

@@ -4,7 +4,7 @@ configure_file(
     "${PROJECT_BINARY_DIR}/src/version.h"
 )
 add_library(version STATIC "${PROJECT_BINARY_DIR}/src/version.h")
-target_compile_features(version PUBLIC cxx_std_17)
+target_compile_features(version PUBLIC cxx_std_20)
 target_compile_options(version PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(version PUBLIC "${PROJECT_BINARY_DIR}/src")
 
@@ -42,7 +42,7 @@ if(APPBUNDLE)
 		"${PROJECT_SOURCE_DIR}/res/resources.qrc"
 		"${MEMENTO_ICON_PATH}"
 	)
-	target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+	target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 	target_compile_options(${PROJECT_NAME} PRIVATE ${MEMENTO_COMPILER_FLAGS})
 	target_include_directories(${PROJECT_NAME} PRIVATE ${MEMENTO_INCLUDE_DIRS})
 	set_target_properties(
@@ -219,7 +219,7 @@ elseif(WIN32)
 		"${PROJECT_SOURCE_DIR}/res/resources.qrc"
 		"${PROJECT_SOURCE_DIR}/res/appicon.rc"
 	)
-	target_compile_features(memento PUBLIC cxx_std_17)
+	target_compile_features(memento PUBLIC cxx_std_20)
 	target_compile_options(memento PRIVATE ${MEMENTO_COMPILER_FLAGS})
 	target_include_directories(memento PRIVATE ${MEMENTO_INCLUDE_DIRS})
 	target_link_libraries(
@@ -240,7 +240,7 @@ elseif(WIN32)
 		"${PROJECT_SOURCE_DIR}/res/resources.qrc"
 		"${PROJECT_SOURCE_DIR}/res/appicon.rc"
 	)
-	target_compile_features(memento_debug PUBLIC cxx_std_17)
+	target_compile_features(memento_debug PUBLIC cxx_std_20)
 	target_compile_options(memento_debug PRIVATE ${MEMENTO_COMPILER_FLAGS})
 	target_include_directories(memento_debug PRIVATE ${MEMENTO_INCLUDE_DIRS})
 	target_link_libraries(
@@ -258,7 +258,7 @@ elseif(UNIX)
 		main.cpp
 		"${PROJECT_SOURCE_DIR}/res/resources.qrc"
 	)
-	target_compile_features(memento PUBLIC cxx_std_17)
+	target_compile_features(memento PUBLIC cxx_std_20)
 	target_compile_options(memento PRIVATE ${MEMENTO_COMPILER_FLAGS})
 	target_include_directories(memento PRIVATE ${MEMENTO_INCLUDE_DIRS})
 	target_link_libraries(

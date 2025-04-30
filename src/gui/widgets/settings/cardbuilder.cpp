@@ -320,7 +320,7 @@ void CardBuilder::setFields(const QStringList &fields)
         CompleterEdit *edit = new CompleterEdit(m_completer);
         connect(
             edit, &CompleterEdit::blockCountChanged,
-            this, [=] { m_ui->tableFields->resizeRowToContents(i); }
+            this, [this, i] { m_ui->tableFields->resizeRowToContents(i); }
         );
         m_ui->tableFields->setCellWidget(i, 1, edit);
     }

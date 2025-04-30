@@ -122,15 +122,15 @@ PlayerMenu::PlayerMenu(QWidget *parent)
 
     connect(
         m_ui->actionAudioNone, &QAction::toggled, this,
-        [=] (bool checked) { if (checked) setAudioTrack(0); }
+        [this] (bool checked) { if (checked) setAudioTrack(0); }
     );
     connect(
         m_ui->actionSubtitleNone, &QAction::toggled, this,
-        [=] (bool checked) { if (checked) setSubtitleTrack(0); }
+        [this] (bool checked) { if (checked) setSubtitleTrack(0); }
     );
     connect(
         m_ui->actionSubtitleTwoNone, &QAction::toggled, this,
-        [=] (bool checked) { if (checked) setSecondarySubtitleTrack(0); }
+        [this] (bool checked) { if (checked) setSecondarySubtitleTrack(0); }
     );
 
     connect(
@@ -148,20 +148,21 @@ PlayerMenu::PlayerMenu(QWidget *parent)
 
     connect(
         mediator, &GlobalMediator::playerAudioDisabled,
-        this, [=] { updateAudioAction(); }
+        this, [this] { updateAudioAction(); }
     );
     connect(
         mediator, &GlobalMediator::playerSubtitlesDisabled,
-        this, [=] { updateSubtitleAction(); }
+        this, [this] { updateSubtitleAction(); }
     );
     connect(
         mediator, &GlobalMediator::playerSecondSubtitlesDisabled,
-        this, [=] { updateSecondarySubtitleAction(); }
+        this, [this] { updateSecondarySubtitleAction(); }
     );
 
     connect(
-        mediator, &GlobalMediator::playerFileLoaded,
-        this, [=] {
+        mediator, &GlobalMediator::playerFileLoaded, this,
+        [this]
+        {
             QList<const Track *> tracks = m_player->getTracks();
             setTracks(tracks);
             for (const Track *track : tracks)
@@ -245,25 +246,25 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     connect(
         mediator, &GlobalMediator::searchWidgetHidden,
         m_ui->actionShowSearch,
-        [=] { m_ui->actionShowSearch->setChecked(false); },
+        [this] { m_ui->actionShowSearch->setChecked(false); },
         Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::searchWidgetShown,
         m_ui->actionShowSearch,
-        [=] { m_ui->actionShowSearch->setChecked(true); },
+        [this] { m_ui->actionShowSearch->setChecked(true); },
         Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::subtitleListHidden,
         m_ui->actionShowSearch,
-        [=] { m_ui->actionShowSubtitleList->setChecked(false); },
+        [this] { m_ui->actionShowSubtitleList->setChecked(false); },
         Qt::QueuedConnection
     );
     connect(
         mediator, &GlobalMediator::subtitleListShown,
         m_ui->actionShowSearch,
-        [=] { m_ui->actionShowSubtitleList->setChecked(true); },
+        [this] { m_ui->actionShowSubtitleList->setChecked(true); },
         Qt::QueuedConnection
     );
 
@@ -446,7 +447,8 @@ void PlayerMenu::setTracks(const QList<const Track *> &tracks)
             }
 
             connect(action, &QAction::toggled, action,
-                [=] (bool checked) {
+                [this, id] (bool checked)
+                {
                     if (checked)
                     {
                         setAudioTrack(id);
@@ -481,7 +483,8 @@ void PlayerMenu::setTracks(const QList<const Track *> &tracks)
             }
 
             connect(action, &QAction::toggled, action,
-                [=] (bool checked) {
+                [this, id] (bool checked)
+                {
                     if (checked)
                     {
                         setSubtitleTrack(id);
@@ -497,7 +500,8 @@ void PlayerMenu::setTracks(const QList<const Track *> &tracks)
             );
 
             connect(actionSubTwo, &QAction::toggled, actionSubTwo,
-                [=] (bool checked) {
+                [this, id] (bool checked)
+                {
                     if (checked)
                     {
                         setSecondarySubtitleTrack(id);

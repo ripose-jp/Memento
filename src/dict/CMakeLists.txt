@@ -1,11 +1,11 @@
 add_library(searchquery INTERFACE searchquery.h)
-target_compile_features(searchquery INTERFACE cxx_std_17)
+target_compile_features(searchquery INTERFACE cxx_std_20)
 target_compile_options(searchquery INTERFACE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(searchquery INTERFACE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(searchquery INTERFACE Qt6::Core)
 
 add_library(querygenerator INTERFACE querygenerator.h)
-target_compile_features(querygenerator INTERFACE cxx_std_17)
+target_compile_features(querygenerator INTERFACE cxx_std_20)
 target_compile_options(querygenerator INTERFACE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(querygenerator INTERFACE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
@@ -19,7 +19,7 @@ add_library(
     exactquerygenerator.cpp
     exactquerygenerator.h
 )
-target_compile_features(exactquerygenerator PRIVATE cxx_std_17)
+target_compile_features(exactquerygenerator PRIVATE cxx_std_20)
 target_compile_options(exactquerygenerator PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(exactquerygenerator PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
@@ -33,7 +33,7 @@ if(MECAB_SUPPORT)
         mecabquerygenerator.cpp
         mecabquerygenerator.h
     )
-    target_compile_features(mecabquerygenerator PRIVATE cxx_std_17)
+    target_compile_features(mecabquerygenerator PRIVATE cxx_std_20)
     target_compile_options(
         mecabquerygenerator PRIVATE ${MEMENTO_COMPILER_FLAGS}
     )
@@ -83,7 +83,7 @@ add_library(
     deconjugationquerygenerator.cpp
     deconjugationquerygenerator.h
 )
-target_compile_features(dictionary_db PUBLIC cxx_std_17)
+target_compile_features(dictionary_db PUBLIC cxx_std_20)
 target_compile_options(dictionary_db PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(dictionary_db PRIVATE ${MEMENTO_INCLUDE_DIRS})
 set(

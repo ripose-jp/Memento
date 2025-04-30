@@ -135,7 +135,7 @@ AnkiSettings::AnkiSettings(QWidget *parent)
     );
     connect(
         m_ui->buttonConnect, &QPushButton::clicked,
-        this,                [=] { connectToClient(true); }
+        this, [this] { connectToClient(true); }
     );
     connect(
         m_ui->checkboxAdvanced,
@@ -146,21 +146,23 @@ AnkiSettings::AnkiSettings(QWidget *parent)
 #endif
         this,
 #if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
-        [=] (int state)
+        [this] (int state)
 #else
-        [=] (Qt::CheckState state)
+        [this] (Qt::CheckState state)
 #endif
         {
             m_ui->frameAdvanced->setVisible(state == Qt::Checked);
         }
     );
     connect(m_ui->termCardBuilder,  &CardBuilder::modelTextChanged, this,
-        [=] (const QString &model) {
+        [this] (const QString &model)
+        {
             updateModelFields(m_ui->termCardBuilder, model);
         }
     );
     connect(m_ui->kanjiCardBuilder, &CardBuilder::modelTextChanged, this,
-        [=] (const QString &model) {
+        [this] (const QString &model)
+        {
             updateModelFields(m_ui->kanjiCardBuilder, model);
         }
     );
@@ -363,67 +365,73 @@ void AnkiSettings::connectToClient(const bool showErrors)
     client->setServer(m_ui->lineEditHost->text(), m_ui->lineEditPort->text());
 
     AnkiReply *reply = client->testConnection();
-    connect(reply, &AnkiReply::finishedBool,
-        [=] (const bool val, const QString &error) {
+    connect(reply, &AnkiReply::finishedBool, this,
+        [this, client, showErrors] (const bool val, const QString &error)
+        {
             if (val)
             {
-            AnkiReply *reply = client->getDeckNames();
-            connect(reply, &AnkiReply::finishedStringList,
-                [=] (const QStringList &decks, const QString &error) {
-                    if (error.isEmpty())
+                AnkiReply *reply = client->getDeckNames();
+                connect(reply, &AnkiReply::finishedStringList,
+                    [this, client, showErrors]
+                    (const QStringList &decks, const QString &error)
                     {
-                        m_ui->termCardBuilder->setDecks(
-                            decks,
-                            client->getConfig(client->getProfile())->termDeck
-                        );
-                        m_ui->kanjiCardBuilder->setDecks(
-                            decks,
-                            client->getConfig(client->getProfile())->kanjiDeck
-                        );
+                        if (error.isEmpty())
+                        {
+                            m_ui->termCardBuilder->setDecks(
+                                decks,
+                                client->getConfig(client->getProfile())->termDeck
+                            );
+                            m_ui->kanjiCardBuilder->setDecks(
+                                decks,
+                                client->getConfig(client->getProfile())->kanjiDeck
+                            );
+                        }
+                        else if (showErrors)
+                        {
+                            Q_EMIT GlobalMediator::getGlobalMediator()
+                                ->showCritical("Error", error);
+                        }
                     }
-                    else if (showErrors)
-                    {
-                        Q_EMIT GlobalMediator::getGlobalMediator()
-                            ->showCritical("Error", error);
-                    }
-                }
-            );
+                );
 
-            reply = client->getModelNames();
-            connect(reply, &AnkiReply::finishedStringList,
-                [=] (const QStringList &models, const QString &error) {
-                    if (error.isEmpty())
+                reply = client->getModelNames();
+                connect(reply, &AnkiReply::finishedStringList,
+                    [this, client, showErrors]
+                    (const QStringList &models, const QString &error)
                     {
-                        m_ui->termCardBuilder->blockSignals(true);
-                        m_ui->termCardBuilder->setModels(
-                            models,
-                            client->getConfig(client->getProfile())->termModel
-                        );
-                        m_ui->termCardBuilder->blockSignals(false);
+                        if (error.isEmpty())
+                        {
+                            m_ui->termCardBuilder->blockSignals(true);
+                            m_ui->termCardBuilder->setModels(
+                                models,
+                                client->getConfig(client->getProfile())->termModel
+                            );
+                            m_ui->termCardBuilder->blockSignals(false);
 
-                        m_ui->kanjiCardBuilder->blockSignals(true);
-                        m_ui->kanjiCardBuilder->setModels(
-                            models,
-                            client->getConfig(client->getProfile())->kanjiModel
-                        );
-                        m_ui->kanjiCardBuilder->blockSignals(false);
+                            m_ui->kanjiCardBuilder->blockSignals(true);
+                            m_ui->kanjiCardBuilder->setModels(
+                                models,
+                                client->getConfig(client->getProfile())->kanjiModel
+                            );
+                            m_ui->kanjiCardBuilder->blockSignals(false);
+                        }
+                        else if (showErrors)
+                        {
+                            Q_EMIT GlobalMediator::getGlobalMediator()
+                                ->showCritical("Error", error);
+                        }
                     }
-                    else if (showErrors)
-                    {
-                        Q_EMIT GlobalMediator::getGlobalMediator()
-                            ->showCritical("Error", error);
-                    }
-                }
-            );
+                );
+            }
+            else if (showErrors)
+            {
+                Q_EMIT GlobalMediator::getGlobalMediator()
+                    ->showCritical("Error", error);
+            }
+
+            m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
         }
-        else if (showErrors)
-        {
-            Q_EMIT GlobalMediator::getGlobalMediator()
-                ->showCritical("Error", error);
-        }
-
-        m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
-    });
+    );
 }
 
 void AnkiSettings::updateModelFields(CardBuilder *cb, const QString &model)
@@ -432,7 +440,9 @@ void AnkiSettings::updateModelFields(CardBuilder *cb, const QString &model)
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     AnkiReply *reply = client->getFieldNames(model);
     connect(reply, &AnkiReply::finishedStringList,
-        [=] (const QStringList &fields, const QString error) {
+        [this, cb]
+        (const QStringList &fields, const QString error)
+        {
             if (error.isEmpty())
             {
                 cb->setFields(fields);

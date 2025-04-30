@@ -49,13 +49,13 @@ InterfaceSettings::InterfaceSettings(QWidget *parent)
 
     /* Signals */
     connect(m_ui->buttonSubColor, &QToolButton::clicked, this,
-        [=] { askButtonColor(m_ui->buttonSubColor, m_subColor); }
+        [this] { askButtonColor(m_ui->buttonSubColor, m_subColor); }
     );
     connect(m_ui->buttonSubBackground, &QToolButton::clicked, this,
-        [=] { askButtonColor(m_ui->buttonSubBackground, m_bgColor); }
+        [this] { askButtonColor(m_ui->buttonSubBackground, m_bgColor); }
     );
     connect(m_ui->buttonSubStroke, &QToolButton::clicked, this,
-        [=] { askButtonColor(m_ui->buttonSubStroke, m_strokeColor); }
+        [this] { askButtonColor(m_ui->buttonSubStroke, m_strokeColor); }
     );
 
     connect(
@@ -67,9 +67,9 @@ InterfaceSettings::InterfaceSettings(QWidget *parent)
 #endif
         this,
 #if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
-        [=] (int state)
+        [this] (int state)
 #else
-        [=] (Qt::CheckState state)
+        [this] (Qt::CheckState state)
 #endif
         {
             m_ui->frameStyleSheets->setEnabled(

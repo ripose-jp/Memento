@@ -31,7 +31,7 @@ add_library(
     searchsettings.h
     searchsettings.ui
 )
-target_compile_features(optionswindow PUBLIC cxx_std_17)
+target_compile_features(optionswindow PUBLIC cxx_std_20)
 target_compile_options(optionswindow PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(optionswindow PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(

@@ -436,7 +436,8 @@ void SubtitleWidget::findTerms()
 
     QString subtitleText = getText();
     QThreadPool::globalInstance()->start(
-        [=] {
+        [this, index, queryStr, subtitleText]
+        {
             /* Look for Terms */
             SharedTermList terms = m_dictionary->searchTerms(
                 queryStr, subtitleText, index, &m_currentIndex

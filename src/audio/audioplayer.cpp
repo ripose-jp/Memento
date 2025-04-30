@@ -136,7 +136,8 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
         reply, &QNetworkReply::redirectAllowed
     );
     connect(reply, &QNetworkReply::finished,  this,
-        [=] {
+        [this, reply, audioReply, url, hash]
+        {
             QTemporaryFile *file = nullptr;
             bool res = false;
 

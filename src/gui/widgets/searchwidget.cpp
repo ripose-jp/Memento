@@ -99,7 +99,7 @@ SearchWidget::SearchWidget(QWidget *parent)
     );
     connect(
         m_searchEdit, &SearchEdit::searchTriggered,
-        this, qOverload<const QString &, int>(&SearchWidget::updateSearch),
+        this, qOverload<QString, int>(&SearchWidget::updateSearch),
         Qt::QueuedConnection
     );
     connect(
@@ -172,10 +172,11 @@ void SearchWidget::updateSearch(const QString &text)
     updateSearch(text, 0);
 }
 
-void SearchWidget::updateSearch(const QString &text, const int index)
+void SearchWidget::updateSearch(QString text, const int index)
 {
     QThreadPool::globalInstance()->start(
-        [=] {
+        [this, text, index]
+        {
             const QString query = text.mid(index, MAX_SEARCH_SIZE);
             SharedTermList terms =
                 m_dictionary->searchTerms(query, text, index, &index);

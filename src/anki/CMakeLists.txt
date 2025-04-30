@@ -11,7 +11,7 @@ add_library(
     notebuilder.cpp
     notebuilder.h
 )
-target_compile_features(anki PUBLIC cxx_std_17)
+target_compile_features(anki PUBLIC cxx_std_20)
 target_compile_options(anki PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(anki PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(

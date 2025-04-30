@@ -105,7 +105,8 @@ KanjiWidget::KanjiWidget(
             QList<QSharedPointer<const Kanji>>({m_kanji})
         );
         connect(reply, &AnkiReply::finishedBoolList, this,
-            [=] (const QList<bool> &value, const QString &error) {
+            [this, factory] (const QList<bool> &value, const QString &error)
+            {
                 if (!error.isEmpty())
                 {
                     return;
@@ -284,7 +285,8 @@ void KanjiWidget::addKanji()
 
     AnkiReply *reply = mediator->getAnkiClient()->addNote(kanji);
     connect(reply, &AnkiReply::finishedInt, this,
-        [=] (const int, const QString &error) {
+        [this, mediator] (const int, const QString &error)
+        {
             if (!error.isEmpty())
             {
                 Q_EMIT mediator->showCritical("Error Adding Note", error);

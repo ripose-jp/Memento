@@ -125,7 +125,7 @@ private Q_SLOTS:
      * @param text The text to search.
      * @param index The index into the text where the search should begin.
      */
-    void updateSearch(const QString &text, int index);
+    void updateSearch(QString text, int index);
 
     /**
      * Handler for updating the search widget when new text is entered.

@@ -393,7 +393,8 @@ void TermWidget::addNote(const AudioSource &src)
     m_ankiTerm = nullptr;
     Q_EMIT safeToDelete();
     connect(reply, &AnkiReply::finishedInt, this,
-        [=] (const int, const QString &error) {
+        [this] (const int, const QString &error)
+        {
             if (!error.isEmpty())
             {
                 Q_EMIT GlobalMediator::getGlobalMediator()
@@ -479,7 +480,8 @@ void TermWidget::playAudio(const AudioSource &src)
     if (reply)
     {
         connect(reply, &AudioPlayerReply::result, this,
-            [=] (const bool success) {
+            [this] (const bool success)
+            {
                 if (!success)
                 {
                     IconFactory *factory = IconFactory::create();
@@ -505,7 +507,7 @@ void TermWidget::showPlayableAudioSources(const QPoint &pos)
     else if (m_menuAudio->actions().isEmpty())
     {
         populateAudioSourceMenu(
-            m_menuAudio, [=] (const AudioSource &src) { playAudio(src); }
+            m_menuAudio, [this] (const AudioSource &src) { playAudio(src); }
         );
     }
     m_lockJsonSources.unlock();
@@ -524,7 +526,7 @@ void TermWidget::showAddableAudioSources(const QPoint &pos)
     else if (m_menuAdd->actions().isEmpty())
     {
         populateAudioSourceMenu(
-            m_menuAdd, [=] (const AudioSource &src) { addNote(src); }
+            m_menuAdd, [this] (const AudioSource &src) { addNote(src); }
         );
     }
     m_lockJsonSources.unlock();
@@ -661,34 +663,37 @@ void TermWidget::loadAudioSources()
                m_term->reading.isEmpty() ? m_term->expression : m_term->reading
             );
         QNetworkReply *reply = manager->get(QNetworkRequest(QUrl(url)));
-        connect(reply, &QNetworkReply::finished, this, [=] {
-            if (reply->error() == QNetworkReply::NoError)
+        connect(reply, &QNetworkReply::finished, this,
+            [this, reply, manager, i]
             {
-                processAudioSourceJson(reply->readAll(), m_sources[i]);
-            }
+                if (reply->error() == QNetworkReply::NoError)
+                {
+                    processAudioSourceJson(reply->readAll(), m_sources[i]);
+                }
 
-            m_lockJsonSources.lock();
-            if (--m_jsonSources == 0)
-            {
-                m_lockJsonSources.unlock();
-                populateAudioSourceMenu(
-                    m_menuAdd,
-                    [=] (const AudioSource &src) { addNote(src); }
-                );
-                populateAudioSourceMenu(
-                    m_menuAudio,
-                    [=] (const AudioSource &src) { playAudio(src); }
-                );
-                m_lockSources.unlock();
-                manager->deleteLater();
+                m_lockJsonSources.lock();
+                if (--m_jsonSources == 0)
+                {
+                    m_lockJsonSources.unlock();
+                    populateAudioSourceMenu(
+                        m_menuAdd,
+                        [this] (const AudioSource &src) { addNote(src); }
+                    );
+                    populateAudioSourceMenu(
+                        m_menuAudio,
+                        [this] (const AudioSource &src) { playAudio(src); }
+                    );
+                    m_lockSources.unlock();
+                    manager->deleteLater();
 
-                Q_EMIT audioSourcesLoaded();
+                    Q_EMIT audioSourcesLoaded();
+                }
+                else
+                {
+                    m_lockJsonSources.unlock();
+                }
             }
-            else
-            {
-                m_lockJsonSources.unlock();
-            }
-        });
+        );
         connect(reply, &QNetworkReply::finished, reply, &QObject::deleteLater);
     }
 }

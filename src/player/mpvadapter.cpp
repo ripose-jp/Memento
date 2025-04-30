@@ -59,7 +59,8 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     /* Signals */
     connect(
         m_mpv, &MpvWidget::tracklistChanged, this,
-        [=] (const mpv_node *node) {
+        [this, mediator] (const mpv_node *node)
+        {
             QList<const Track *> tracks = processTracks(node);
             Q_EMIT mediator->playerTracksChanged(tracks);
             for (const Track *track : tracks)

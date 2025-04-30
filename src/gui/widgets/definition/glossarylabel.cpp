@@ -77,8 +77,9 @@ GlossaryLabel::GlossaryLabel(
         this, &GlossaryLabel::adjustSize
     );
     connect(
-        verticalScrollBar(), &QScrollBar::valueChanged,
-        this, [=] (int value) {
+        verticalScrollBar(), &QScrollBar::valueChanged, this,
+        [this] (int value)
+        {
             if (value != 0)
             {
                 verticalScrollBar()->setValue(0);

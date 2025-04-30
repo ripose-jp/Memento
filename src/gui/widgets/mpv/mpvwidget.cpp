@@ -151,264 +151,263 @@ void MpvWidget::initScreenSignals()
 
 void MpvWidget::initPropertyMap()
 {
-    m_propertyMap["chapter-list"] =
-        [=] (mpv_event_property *prop)
+    m_propertyMap["chapter-list"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format != MPV_FORMAT_NODE)
         {
-            if (prop->format != MPV_FORMAT_NODE)
-            {
-                return;
-            }
-            mpv_node *node = (mpv_node *)prop->data;
+            return;
+        }
+        mpv_node *node = (mpv_node *)prop->data;
 
-            if (node->format != MPV_FORMAT_NODE_ARRAY)
-            {
-                return;
-            }
-            mpv_node_list *arr = node->u.list;
+        if (node->format != MPV_FORMAT_NODE_ARRAY)
+        {
+            return;
+        }
+        mpv_node_list *arr = node->u.list;
 
-            QList<double> chapters;
-            for (int i = 0; i < arr->num; ++i)
+        QList<double> chapters;
+        for (int i = 0; i < arr->num; ++i)
+        {
+            if (arr->values[i].format != MPV_FORMAT_NODE_MAP)
             {
-                if (arr->values[i].format != MPV_FORMAT_NODE_MAP)
+                continue;
+            }
+            mpv_node_list *map = arr->values[i].u.list;
+            for (int j = 0; j < map->num; ++j)
+            {
+                if (map->values[j].format == MPV_FORMAT_DOUBLE &&
+                    strcmp(map->keys[j], "time") == 0)
                 {
-                    continue;
-                }
-                mpv_node_list *map = arr->values[i].u.list;
-                for (int j = 0; j < map->num; ++j)
-                {
-                    if (map->values[j].format == MPV_FORMAT_DOUBLE &&
-                        strcmp(map->keys[j], "time") == 0)
-                    {
-                        chapters << map->values[j].u.double_;
-                    }
+                    chapters << map->values[j].u.double_;
                 }
             }
+        }
 
-            Q_EMIT chaptersChanged(chapters);
-        };
+        Q_EMIT chaptersChanged(chapters);
+    };
 
-    m_propertyMap["duration"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_DOUBLE)
-            {
-                double time = *(double *)prop->data;
-                Q_EMIT durationChanged(time);
-            }
-        };
+    m_propertyMap["duration"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_DOUBLE)
+        {
+            double time = *(double *)prop->data;
+            Q_EMIT durationChanged(time);
+        }
+    };
 
-    m_propertyMap["fullscreen"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_FLAG)
+    m_propertyMap["fullscreen"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_FLAG)
+        {
+            if (m_cursorTimer)
             {
-                if (m_cursorTimer)
-                {
-                    m_cursorTimer->forceTimeout();
-                }
-                bool full = *(int *)prop->data;
-                Q_EMIT fullscreenChanged(full);
+                m_cursorTimer->forceTimeout();
             }
-        };
+            bool full = *(int *)prop->data;
+            Q_EMIT fullscreenChanged(full);
+        }
+    };
 
-    m_propertyMap["media-title"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_STRING)
-            {
-                const char **name = (const char **)prop->data;
-                Q_EMIT titleChanged(*name);
-            }
-        };
+    m_propertyMap["media-title"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_STRING)
+        {
+            const char **name = (const char **)prop->data;
+            Q_EMIT titleChanged(*name);
+        }
+    };
 
-    m_propertyMap["path"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_STRING)
-            {
-                const char **path = (const char **)prop->data;
-                Q_EMIT fileChanged(*path);
-            }
-        };
+    m_propertyMap["path"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_STRING)
+        {
+            const char **path = (const char **)prop->data;
+            Q_EMIT fileChanged(*path);
+        }
+    };
 
-    m_propertyMap["pause"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_FLAG)
+    m_propertyMap["pause"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_FLAG)
+        {
+            bool paused = *(int *)prop->data;
+            if (paused)
             {
-                bool paused = *(int *)prop->data;
-                if (paused)
-                {
-                    allowScreenDimming();
-                }
-                else
-                {
-                    preventScreenDimming();
-                }
-                Q_EMIT pauseChanged(paused);
+                allowScreenDimming();
             }
-        };
+            else
+            {
+                preventScreenDimming();
+            }
+            Q_EMIT pauseChanged(paused);
+        }
+    };
 
-    m_propertyMap["time-pos"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_DOUBLE)
-            {
-                double time = *(double *)prop->data;
-                Q_EMIT positionChanged(time);
-            }
-        };
+    m_propertyMap["time-pos"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_DOUBLE)
+        {
+            double time = *(double *)prop->data;
+            Q_EMIT positionChanged(time);
+        }
+    };
 
-    m_propertyMap["track-list/count"] =
-        [=] (mpv_event_property *) {
-            mpv_node node;
-            mpv_get_property(m_mpv, "track-list", MPV_FORMAT_NODE, &node);
-            Q_EMIT tracklistChanged(&node);
-            mpv_free_node_contents(&node);
-        };
+    m_propertyMap["track-list/count"] = [this] (mpv_event_property *)
+    {
+        mpv_node node;
+        mpv_get_property(m_mpv, "track-list", MPV_FORMAT_NODE, &node);
+        Q_EMIT tracklistChanged(&node);
+        mpv_free_node_contents(&node);
+    };
 
-    m_propertyMap["volume"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_INT64)
-            {
-                int volume = *(int64_t *)prop->data;
-                Q_EMIT volumeChanged(volume);
-            }
-        };
+    m_propertyMap["volume"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_INT64)
+        {
+            int volume = *(int64_t *)prop->data;
+            Q_EMIT volumeChanged(volume);
+        }
+    };
 
-    m_propertyMap["volume-max"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_INT64)
-            {
-                int volume = *(int64_t *)prop->data;
-                Q_EMIT volumeMaxChanged(volume);
-            }
-        };
+    m_propertyMap["volume-max"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_INT64)
+        {
+            int volume = *(int64_t *)prop->data;
+            Q_EMIT volumeMaxChanged(volume);
+        }
+    };
 
-    m_propertyMap["aid"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_INT64)
-            {
-                int64_t id = *(int64_t *)prop->data;
-                Q_EMIT audioTrackChanged(id);
-            }
-            else if (prop->format == MPV_FORMAT_FLAG)
-            {
-                if (!*(int64_t *)prop->data)
-                    Q_EMIT audioDisabled();
-            }
-        };
+    m_propertyMap["aid"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_INT64)
+        {
+            int64_t id = *(int64_t *)prop->data;
+            Q_EMIT audioTrackChanged(id);
+        }
+        else if (prop->format == MPV_FORMAT_FLAG)
+        {
+            if (!*(int64_t *)prop->data)
+                Q_EMIT audioDisabled();
+        }
+    };
 
-    m_propertyMap["secondary-sid"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_INT64)
-            {
-                int64_t id = *(int64_t *)prop->data;
-                Q_EMIT subtitleTwoTrackChanged(id);
-            }
-            else if (prop->format == MPV_FORMAT_FLAG)
-            {
-                if (!*(int64_t *)prop->data)
-                    Q_EMIT subtitleTwoDisabled();
-            }
-        };
+    m_propertyMap["secondary-sid"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_INT64)
+        {
+            int64_t id = *(int64_t *)prop->data;
+            Q_EMIT subtitleTwoTrackChanged(id);
+        }
+        else if (prop->format == MPV_FORMAT_FLAG)
+        {
+            if (!*(int64_t *)prop->data)
+                Q_EMIT subtitleTwoDisabled();
+        }
+    };
 
-    m_propertyMap["sid"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_INT64)
-            {
-                int64_t id = *(int64_t *)prop->data;
-                Q_EMIT subtitleTrackChanged(id);
-            }
-            else if (prop->format == MPV_FORMAT_FLAG)
-            {
-                if (!*(int64_t *)prop->data)
-                    Q_EMIT subtitleDisabled();
-            }
-        };
+    m_propertyMap["sid"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_INT64)
+        {
+            int64_t id = *(int64_t *)prop->data;
+            Q_EMIT subtitleTrackChanged(id);
+        }
+        else if (prop->format == MPV_FORMAT_FLAG)
+        {
+            if (!*(int64_t *)prop->data)
+                Q_EMIT subtitleDisabled();
+        }
+    };
 
-    m_propertyMap["vid"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_INT64)
-            {
-                int64_t id = *(int64_t *)prop->data;
-                Q_EMIT videoTrackChanged(id);
-            }
-            else if (prop->format == MPV_FORMAT_FLAG)
-            {
-                if (!*(int64_t *)prop->data)
-                    Q_EMIT videoDisabled();
-            }
-        };
+    m_propertyMap["vid"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_INT64)
+        {
+            int64_t id = *(int64_t *)prop->data;
+            Q_EMIT videoTrackChanged(id);
+        }
+        else if (prop->format == MPV_FORMAT_FLAG)
+        {
+            if (!*(int64_t *)prop->data)
+                Q_EMIT videoDisabled();
+        }
+    };
 
-    m_propertyMap["secondary-sub-delay"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_DOUBLE)
+    m_propertyMap["secondary-sub-delay"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_DOUBLE)
+        {
+            m_secSubDelaySupported = true;
+            Q_EMIT secSubDelayChanged(*(double *)prop->data);
+        }
+    };
+
+    m_propertyMap["sub-delay"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_DOUBLE)
+        {
+            Q_EMIT subDelayChanged(*(double *)prop->data);
+            if (!m_secSubDelaySupported)
             {
-                m_secSubDelaySupported = true;
                 Q_EMIT secSubDelayChanged(*(double *)prop->data);
             }
-        };
+        }
+    };
 
-    m_propertyMap["sub-delay"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_DOUBLE)
+    m_propertyMap["sub-text"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_STRING)
+        {
+            QString subtitle = *(const char **)prop->data;
+            subtitle.remove(m_regex);
+            if (!subtitle.isEmpty())
             {
-                Q_EMIT subDelayChanged(*(double *)prop->data);
-                if (!m_secSubDelaySupported)
-                {
-                    Q_EMIT secSubDelayChanged(*(double *)prop->data);
-                }
-            }
-        };
+                double delay, start, end;
 
-    m_propertyMap["sub-text"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_STRING)
+                mpv_get_property(
+                    m_mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
+                );
+                mpv_get_property(
+                    m_mpv, "sub-start", MPV_FORMAT_DOUBLE, &start
+                );
+                mpv_get_property(
+                    m_mpv, "sub-end",   MPV_FORMAT_DOUBLE, &end
+                );
+
+                Q_EMIT subtitleChanged(subtitle, start, end, delay);
+                Q_EMIT subtitleChangedRaw(
+                    *(const char **)prop->data, start, end, delay
+                );
+            }
+        }
+    };
+
+    m_propertyMap["secondary-sub-text"] = [this] (mpv_event_property *prop)
+    {
+        if (prop->format == MPV_FORMAT_STRING)
+        {
+            const char **subtitle = (const char **)prop->data;
+            if (strcmp(*subtitle, ""))
             {
-                QString subtitle = *(const char **)prop->data;
-                subtitle.remove(m_regex);
-                if (!subtitle.isEmpty())
-                {
-                    double delay, start, end;
+                double start, end, delay;
 
-                    mpv_get_property(
-                        m_mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
-                    );
-                    mpv_get_property(
-                        m_mpv, "sub-start", MPV_FORMAT_DOUBLE, &start
-                    );
-                    mpv_get_property(
-                        m_mpv, "sub-end",   MPV_FORMAT_DOUBLE, &end
-                    );
+                mpv_get_property(
+                    m_mpv, "secondary-sub-start", MPV_FORMAT_DOUBLE, &start
+                );
+                mpv_get_property(
+                    m_mpv, "secondary-sub-end", MPV_FORMAT_DOUBLE, &end
+                );
+                mpv_get_property(
+                    m_mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
+                );
 
-                    Q_EMIT subtitleChanged(subtitle, start, end, delay);
-                    Q_EMIT subtitleChangedRaw(
-                        *(const char **)prop->data, start, end, delay
-                    );
-                }
+                Q_EMIT subtitleChangedSecondary(
+                    *subtitle, start, end, delay
+                );
             }
-        };
-
-    m_propertyMap["secondary-sub-text"] =
-        [=] (mpv_event_property *prop) {
-            if (prop->format == MPV_FORMAT_STRING)
-            {
-                const char **subtitle = (const char **)prop->data;
-                if (strcmp(*subtitle, ""))
-                {
-                    double start, end, delay;
-
-                    mpv_get_property(
-                        m_mpv, "secondary-sub-start", MPV_FORMAT_DOUBLE, &start
-                    );
-                    mpv_get_property(
-                        m_mpv, "secondary-sub-end", MPV_FORMAT_DOUBLE, &end
-                    );
-                    mpv_get_property(
-                        m_mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
-                    );
-
-                    Q_EMIT subtitleChangedSecondary(
-                        *subtitle, start, end, delay
-                    );
-                }
-            }
-        };
+        }
+    };
 }
 
 void MpvWidget::initSubtitleRegex()

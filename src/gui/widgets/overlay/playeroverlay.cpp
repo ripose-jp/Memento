@@ -199,7 +199,8 @@ PlayerOverlay::PlayerOverlay(QWidget *parent) : QStackedLayout(parent)
     );
     connect(
         mediator, &GlobalMediator::playerPauseStateChanged, this,
-        [=] (const bool paused) {
+        [this] (const bool paused)
+        {
             if (!paused)
             {
                 m_definition->hide();

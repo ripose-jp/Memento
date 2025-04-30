@@ -15,7 +15,7 @@ add_library(
     subtitlewidget.cpp
     subtitlewidget.h
 )
-target_compile_features(playeroverlay PUBLIC cxx_std_17)
+target_compile_features(playeroverlay PUBLIC cxx_std_20)
 target_compile_options(playeroverlay PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(playeroverlay PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(

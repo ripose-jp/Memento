@@ -58,13 +58,15 @@ PlayerControls::PlayerControls(QWidget *parent)
 
     /* Signals */
     connect(m_ui->sliderProgress, &QSlider::sliderPressed, this,
-        [=] {
+        [this, mediator]
+        {
             m_ignorePause = !m_paused;
             Q_EMIT mediator->controlsPause();
         }
     );
     connect(m_ui->sliderProgress, &QSlider::sliderReleased, this,
-        [=] {
+        [this, mediator]
+        {
             if (m_ignorePause)
             {
                 m_ignorePause = false;

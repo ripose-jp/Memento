@@ -18,7 +18,7 @@ add_library(
     termwidget.h
     termwidget.ui
 )
-target_compile_features(definitionwidget PUBLIC cxx_std_17)
+target_compile_features(definitionwidget PUBLIC cxx_std_20)
 target_compile_options(definitionwidget PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(definitionwidget PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
