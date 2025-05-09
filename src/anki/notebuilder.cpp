@@ -1625,7 +1625,7 @@ static bool createScreenshotVideo(
 
     QJsonObject image;
 
-    QString path = player->tempScreenshot(true, imageExt);
+    QString path = player->tempScreenshot(false, imageExt);
     image[AnkiConnect::Note::DATA] = FileUtils::toBase64(path);
     QString filename = FileUtils::calculateMd5(path) + imageExt;
     image[AnkiConnect::Note::FILENAME] = filename;
