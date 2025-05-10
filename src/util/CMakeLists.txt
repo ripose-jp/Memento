@@ -23,6 +23,7 @@ target_include_directories(utils PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     utils
     PRIVATE Qt6::Network
+    PUBLIC Qt6::Gui
     PRIVATE version
     PUBLIC Qt6::Core
 )

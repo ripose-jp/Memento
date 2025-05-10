@@ -1582,21 +1582,106 @@ static bool createScreenshot(
     const bool visibility = player->getSubVisibility();
     player->setSubVisiblity(true);
     QString path = player->tempScreenshot(true, imageExt);
-    image[AnkiConnect::Note::DATA] = FileUtils::toBase64(path);
     player->setSubVisiblity(visibility);
 
-    QString filename = FileUtils::calculateMd5(path) + imageExt;
-    image[AnkiConnect::Note::FILENAME] = filename;
-    image[AnkiConnect::Note::FIELDS] = fieldCtx.fieldsWithScreenshot;
+    QHash<QPair<QPair<int, int>, bool>, QStringList> imageFormatToFields;
 
-    if (filename == imageExt)
+    QSet<QString> uniqueFieldsWithScreenshot;
+    for (const QJsonValue &jsonValue : fieldCtx.fieldsWithScreenshot)
     {
-        return false;
+        uniqueFieldsWithScreenshot.insert(jsonValue.toString());
     }
-    QJsonArray images =
-        ctx.ankiObject[AnkiConnect::Note::PICTURE].toArray();
-    images.append(image);
-    ctx.ankiObject[AnkiConnect::Note::PICTURE] = images;
+
+    for (const QString &field : uniqueFieldsWithScreenshot)
+    {
+        QString fieldString = config.termFields.value(field).toString();
+        QList<Anki::Tokenizer::Token> tokens = Anki::Tokenizer::tokenize(fieldString);
+        if (!tokens.isEmpty())
+        {
+            for (const Anki::Tokenizer::Token &token : tokens)
+            {
+                for (const Anki::Tokenizer::Marker &marker : token.markers)
+                {
+                    if (marker.marker == Anki::Marker::SCREENSHOT)
+                    {
+                        // Assuming there's only one way to define image size for a specific token.
+                        // AKA you can't have {screenshot:max-width=160...|max-width=320...}
+                        int max_width = marker.args.value("max-width", "-1").toInt();
+                        int max_height = marker.args.value("max-height", "-1").toInt();
+                        bool keepAspectRatio;
+                        QString keepAspectRatioStr = marker.args.value("keep-ratio", "true").toLower();
+                        if (keepAspectRatioStr == "true" || keepAspectRatioStr == "1")
+                        {
+                            keepAspectRatio = true;
+                        }
+                        else if (keepAspectRatioStr == "false" || keepAspectRatioStr == "0")
+                        {
+                            keepAspectRatio = false;
+                        }
+                        else
+                        {
+                            qWarning() << "Unexpected value for keep-ratio:" << keepAspectRatioStr << "Defaulting to true.";
+                            keepAspectRatio = true;
+                        }
+
+                        QPair<int, int> size = QPair<int, int>(max_width, max_height);
+                        QPair<QPair<int, int>, bool> format = QPair<QPair<int, int>, bool>(size, keepAspectRatio);
+                        imageFormatToFields[format].append(field);
+                    }
+                }
+            }
+        }
+    }
+
+
+    for (const QPair<QPair<int, int>, bool> &imgFormat : imageFormatToFields.keys())
+    {
+        QString imagePath;
+        int max_width = imgFormat.first.first;
+        int max_height = imgFormat.first.second;
+        bool keepAspectRatio = imgFormat.second;
+        bool resizeSuccessful = false;
+
+        if (max_height != -1 && max_width != -1)
+        {
+            imagePath = ImageUtils::resizeImage(path, imageExt, max_width, max_height, keepAspectRatio);
+            if (imagePath == "")
+            {
+                qDebug() << "Could not resize screenshot";
+                imagePath = path;
+            }
+            else
+            {
+                resizeSuccessful = true;
+            }
+        }
+        else
+        {
+            imagePath = path;
+        }
+
+        QJsonObject image;
+
+        image[AnkiConnect::Note::DATA] = FileUtils::toBase64(imagePath);
+        QString filename = FileUtils::calculateMd5(imagePath) + imageExt;
+        image[AnkiConnect::Note::FILENAME] = filename;
+        image[AnkiConnect::Note::FIELDS] = QJsonArray::fromStringList(imageFormatToFields[imgFormat]);
+
+        if (filename == imageExt)
+        {
+            return false;
+        }
+        QJsonArray images =
+            ctx.ankiObject[AnkiConnect::Note::PICTURE].toArray();
+        images.append(image);
+        ctx.ankiObject[AnkiConnect::Note::PICTURE] = images;
+
+        if (resizeSuccessful)
+        {
+            QFile(imagePath).remove();
+        }
+
+    }
 
     QFile(path).remove();
     return true;
@@ -1623,22 +1708,106 @@ static bool createScreenshotVideo(
         GlobalMediator::getGlobalMediator()->getPlayerAdapter();
     const QString imageExt = getImageFileExtension(config.screenshotType);
 
-    QJsonObject image;
-
     QString path = player->tempScreenshot(false, imageExt);
-    image[AnkiConnect::Note::DATA] = FileUtils::toBase64(path);
-    QString filename = FileUtils::calculateMd5(path) + imageExt;
-    image[AnkiConnect::Note::FILENAME] = filename;
-    image[AnkiConnect::Note::FIELDS] = fieldCtx.fieldsWithScreenshotVideo;
 
-    if (filename == imageExt)
+    QHash<QPair<QPair<int, int>, bool>, QStringList> imageFormatToFields;
+
+    QSet<QString> uniqueFieldsWithScreenshotVideo;
+    for (const QJsonValue &jsonValue : fieldCtx.fieldsWithScreenshotVideo)
     {
-        return false;
+        uniqueFieldsWithScreenshotVideo.insert(jsonValue.toString());
     }
-    QJsonArray images =
-        ctx.ankiObject[AnkiConnect::Note::PICTURE].toArray();
-    images.append(image);
-    ctx.ankiObject[AnkiConnect::Note::PICTURE] = images;
+
+    for (const QString &field : uniqueFieldsWithScreenshotVideo)
+    {
+        QString fieldString = config.termFields.value(field).toString();
+        QList<Anki::Tokenizer::Token> tokens = Anki::Tokenizer::tokenize(fieldString);
+        if (!tokens.isEmpty())
+        {
+            for (const Anki::Tokenizer::Token &token : tokens)
+            {
+                for (const Anki::Tokenizer::Marker &marker : token.markers)
+                {
+                    if (marker.marker == Anki::Marker::SCREENSHOT_VIDEO)
+                    {
+                        // Assuming there's only one way to define image size for a specific token.
+                        // AKA you can't have {screenshot:max-width=160...|max-width=320...}
+                        int max_width = marker.args.value("max-width", "-1").toInt();
+                        int max_height = marker.args.value("max-height", "-1").toInt();
+                        bool keepAspectRatio;
+                        QString keepAspectRatioStr = marker.args.value("keep-ratio", "true").toLower();
+                        if (keepAspectRatioStr == "true" || keepAspectRatioStr == "1")
+                        {
+                            keepAspectRatio = true;
+                        }
+                        else if (keepAspectRatioStr == "false" || keepAspectRatioStr == "0")
+                        {
+                            keepAspectRatio = false;
+                        }
+                        else
+                        {
+                            qWarning() << "Unexpected value for keep-ratio:" << keepAspectRatioStr << "Defaulting to true.";
+                            keepAspectRatio = true;
+                        }
+
+                        QPair<int, int> size = QPair<int, int>(max_width, max_height);
+                        QPair<QPair<int, int>, bool> format = QPair<QPair<int, int>, bool>(size, keepAspectRatio);
+                        imageFormatToFields[format].append(field);
+                    }
+                }
+            }
+        }
+    }
+
+
+    for (const QPair<QPair<int, int>, bool> &imgFormat : imageFormatToFields.keys())
+    {
+        QString imagePath;
+        int max_width = imgFormat.first.first;
+        int max_height = imgFormat.first.second;
+        bool keepAspectRatio = imgFormat.second;
+        bool resizeSuccessful = false;
+
+        if (max_height != -1 && max_width != -1)
+        {
+            imagePath = ImageUtils::resizeImage(path, imageExt, max_width, max_height, keepAspectRatio);
+            if (imagePath == "")
+            {
+                qDebug() << "Could not resize screenshot";
+                imagePath = path;
+            }
+            else
+            {
+                resizeSuccessful = true;
+            }
+        }
+        else
+        {
+            imagePath = path;
+        }
+
+        QJsonObject image;
+
+        image[AnkiConnect::Note::DATA] = FileUtils::toBase64(imagePath);
+        QString filename = FileUtils::calculateMd5(imagePath) + imageExt;
+        image[AnkiConnect::Note::FILENAME] = filename;
+        image[AnkiConnect::Note::FIELDS] = QJsonArray::fromStringList(imageFormatToFields[imgFormat]);
+
+        if (filename == imageExt)
+        {
+            return false;
+        }
+        QJsonArray images =
+            ctx.ankiObject[AnkiConnect::Note::PICTURE].toArray();
+        images.append(image);
+        ctx.ankiObject[AnkiConnect::Note::PICTURE] = images;
+
+        if (resizeSuccessful)
+        {
+            QFile(imagePath).remove();
+        }
+
+    }
 
     QFile(path).remove();
     return true;
