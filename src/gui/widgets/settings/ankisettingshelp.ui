@@ -47,15 +47,15 @@ These will expand to larger expressions in the final card.</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>1074</width>
-        <height>869</height>
+        <width>1066</width>
+        <height>858</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <widget class="QTabWidget" name="tabWidget">
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="tabTermMarkers">
           <attribute name="title">
@@ -1582,60 +1582,170 @@ These will expand to larger expressions in the final card.</string>
           <attribute name="title">
            <string>Extended Syntax</string>
           </attribute>
-          <layout class="QVBoxLayout" name="layoutExtendedSyntax">
-           <item>
-            <widget class="QLabel" name="labelExtendedSyntaxEx">
-             <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Extended marker syntax uses additional arguments to modify the behavior of markers.&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Arguments are specified after the : character.&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Multiple arguments are separated by the , character.&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;An argument is specified in the form 'name = value'.&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Whitespace is ignored.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;An example of extended marker syntax is {glossary : dict = 1}.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="wordWrap">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <layout class="QGridLayout" name="layoutExtendedSyntaxList" columnstretch="2,9">
-             <item row="0" column="0" alignment="Qt::AlignmentFlag::AlignHCenter">
-              <widget class="QLabel" name="labelExtendedDicId">
-               <property name="font">
-                <font>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>dict</string>
-               </property>
-               <property name="textInteractionFlags">
-                <set>Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLabel" name="labelExtendedDicIdEx">
-               <property name="text">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter to only use entries from a particular dictionary. Identifies dictionaries using dictionary IDs. IDs can be found in &lt;span style=&quot; font-weight:700;&quot;&gt;Options&lt;/span&gt; under &lt;span style=&quot; font-weight:700;&quot;&gt;Dictionaries&lt;/span&gt; at the end of dictionary names. Applies to term markers &lt;span style=&quot; font-weight:700;&quot;&gt;{glossary}&lt;/span&gt;, &lt;span style=&quot; font-weight:700;&quot;&gt;{glossary-brief}&lt;/span&gt;, and &lt;span style=&quot; font-weight:700;&quot;&gt;{glossary-compact}&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="wordWrap">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <spacer name="spacerExtendedSyntax">
-             <property name="orientation">
-              <enum>Qt::Orientation::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
+          <widget class="QLabel" name="labelExtendedSyntaxEx">
+           <property name="geometry">
+            <rect>
+             <x>9</x>
+             <y>9</y>
+             <width>1026</width>
+             <height>132</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Extended marker syntax uses additional arguments to modify the behavior of markers.&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Arguments are specified after the : character.&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Multiple arguments are separated by the , character.&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;An argument is specified in the form 'name = value'.&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Whitespace is ignored.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;An example of extended marker syntax is {glossary : dict = 1} or {screenshot:max-width=1280,max-height=720}.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+          <widget class="QLabel" name="labelExtendedDicIdEx">
+           <property name="geometry">
+            <rect>
+             <x>201</x>
+             <y>148</y>
+             <width>833</width>
+             <height>36</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter to only use entries from a particular dictionary. Identifies dictionaries using dictionary IDs. IDs can be found in &lt;span style=&quot; font-weight:700;&quot;&gt;Options&lt;/span&gt; under &lt;span style=&quot; font-weight:700;&quot;&gt;Dictionaries&lt;/span&gt; at the end of dictionary names. Applies to term markers &lt;span style=&quot; font-weight:700;&quot;&gt;{glossary}&lt;/span&gt;, &lt;span style=&quot; font-weight:700;&quot;&gt;{glossary-brief}&lt;/span&gt;, and &lt;span style=&quot; font-weight:700;&quot;&gt;{glossary-compact}&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+          <widget class="QLabel" name="labelExtendedDicId">
+           <property name="geometry">
+            <rect>
+             <x>90</x>
+             <y>148</y>
+             <width>25</width>
+             <height>18</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>dict</string>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+           </property>
+          </widget>
+          <widget class="QLabel" name="labelExtendedScreenshotWidth">
+           <property name="geometry">
+            <rect>
+             <x>70</x>
+             <y>200</y>
+             <width>81</width>
+             <height>18</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>max-width</string>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+           </property>
+          </widget>
+          <widget class="QLabel" name="labelExtendedScreenshotHeightEx">
+           <property name="geometry">
+            <rect>
+             <x>200</x>
+             <y>220</y>
+             <width>833</width>
+             <height>36</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Used to determine the maximum height of the saved screenshot when using &lt;span style=&quot; font-weight:700;&quot;&gt;{screenshot} &lt;/span&gt;or &lt;span style=&quot; font-weight:700;&quot;&gt;{screenshot-video}&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+          <widget class="QLabel" name="labelExtendedScreenshotHeight">
+           <property name="geometry">
+            <rect>
+             <x>70</x>
+             <y>230</y>
+             <width>91</width>
+             <height>18</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>max-height</string>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+           </property>
+          </widget>
+          <widget class="QLabel" name="labelExtendedScreenshotWidthEx">
+           <property name="geometry">
+            <rect>
+             <x>200</x>
+             <y>190</y>
+             <width>833</width>
+             <height>36</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Used to determine the maximum width of the saved screenshot when using &lt;span style=&quot; font-weight:700;&quot;&gt;{screenshot} &lt;/span&gt;or &lt;span style=&quot; font-weight:700;&quot;&gt;{screenshot-video}&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+          <widget class="QLabel" name="labelExtendedScreenshotKeepAspect">
+           <property name="geometry">
+            <rect>
+             <x>200</x>
+             <y>250</y>
+             <width>833</width>
+             <height>36</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Used to determine if too keep the aspect ratio of the original image when resizing &lt;span style=&quot; font-weight:700;&quot;&gt;{screenshot} &lt;/span&gt;or &lt;span style=&quot; font-weight:700;&quot;&gt;{screenshot-video}&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+          <widget class="QLabel" name="labelExtendedScreenshotKeepAspectEx">
+           <property name="geometry">
+            <rect>
+             <x>70</x>
+             <y>260</y>
+             <width>91</width>
+             <height>18</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>keep-ratio</string>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+           </property>
+          </widget>
          </widget>
         </widget>
        </item>
