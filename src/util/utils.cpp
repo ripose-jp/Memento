@@ -31,6 +31,7 @@
 #include <QNetworkRequest>
 #include <QStandardPaths>
 #include <QStringList>
+#include <QTemporaryFile>
 
 #if defined(Q_OS_WIN)
 #include <windows.h>
@@ -485,3 +486,102 @@ bool CharacterUtils::isKanji(const QString &ch)
 #undef KANJI_UNICODE_UPPER_RARE
 
 /* End CharacterUtils */
+/* Begin ImageUtils */
+
+QString ImageUtils::resizeImage(
+    const QString &filePath,
+    const QString &ext,
+    int maxWidth,
+    int maxHeight,
+    bool keepAspectRatio)
+{
+    if ((maxWidth != -1 && maxWidth <= 0) ||
+        (maxHeight != -1 && maxHeight <= 0))
+    {
+        return "";
+    }
+
+    QImage originalImage(filePath);
+    if (originalImage.isNull())
+    {
+        qDebug() << "Failed to load image";
+        return "";
+    }
+
+    const int originalWidth = originalImage.width();
+    const int originalHeight = originalImage.height();
+    const int targetWidth = maxWidth == -1 ?
+        originalWidth : std::min(maxWidth, originalWidth);
+    const int targetHeight = maxHeight == -1 ?
+        originalHeight : std::min(maxHeight, originalHeight);
+
+    QImage finalImage = originalImage;
+    bool scalingWasDone = true;
+    if (keepAspectRatio)
+    {
+        if (maxWidth != -1 && maxHeight != -1)
+        {
+            finalImage = originalImage.scaled(
+                targetWidth,
+                targetHeight,
+                Qt::KeepAspectRatio,
+                Qt::SmoothTransformation
+            );
+        }
+        else if (maxWidth != -1)
+        {
+            finalImage = originalImage.scaledToWidth(
+                targetWidth, Qt::SmoothTransformation
+            );
+        }
+        else if (maxHeight != -1)
+        {
+            finalImage = originalImage.scaledToHeight(
+                targetHeight, Qt::SmoothTransformation
+            );
+        }
+        else
+        {
+            scalingWasDone = false;
+        }
+    }
+    else if (maxWidth != -1 ||
+        maxHeight != -1 ||
+        targetWidth != originalWidth ||
+        targetHeight != originalHeight)
+    {
+        finalImage = originalImage.scaled(
+            targetWidth,
+            targetHeight,
+            Qt::IgnoreAspectRatio,
+            Qt::SmoothTransformation
+        );
+    }
+    else
+    {
+        scalingWasDone = false;
+    }
+
+    if (scalingWasDone && finalImage.isNull())
+    {
+        qDebug() << "New image is null after scaling";
+        return "";
+    }
+
+    QTemporaryFile newFilePath;
+    if (!newFilePath.open())
+    {
+        return "";
+    }
+    QString newFileName = newFilePath.fileName() + ext;
+    newFilePath.close();
+    if (!finalImage.save(newFileName))
+    {
+        qDebug() << "Failed to save image";
+        return "";
+    }
+
+    return newFileName;
+}
+
+/* End ImageUtils */

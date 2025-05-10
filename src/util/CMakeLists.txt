@@ -25,6 +25,7 @@ target_link_libraries(
     PRIVATE Qt6::Network
     PRIVATE version
     PUBLIC Qt6::Core
+    PUBLIC Qt6::Gui
 )
 
 add_library(
