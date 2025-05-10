@@ -23,6 +23,7 @@
 
 #include <QFile>
 #include <QString>
+#include <QImage>
 
 namespace Constants
 {
@@ -186,6 +187,30 @@ public:
 
 private:
     CharacterUtils() {}
+};
+
+
+class ImageUtils
+{
+public:
+    /**
+    * Resize the image using extended marker syntax options
+    * @param filePath        The file path where the screenshot was saved.
+    * @param ext             The file extension.
+    * @param newWidth        The desired new image width.
+    * @param newHeight       The desired new image width.
+    * @param keepAspectRatio Whether or not to maintain the image aspect ratio.
+    * @return Path of the new resized image if successful, else an empty string.
+    */
+    static QString resizeImage(
+        const QString &path,
+        const QString &ext,
+        int newWidth,
+        int newHeight,
+        bool keepAspectRatio = true);
+
+private:
+    ImageUtils() {}
 };
 
 #endif // UTILS_H

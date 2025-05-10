@@ -20,6 +20,10 @@
 
 #include "notebuilder.h"
 
+#include <optional>
+
+#include <QHash>
+
 #include "anki/ankiconnect.h"
 #include "anki/glossarybuilder.h"
 #include "anki/marker.h"
@@ -27,6 +31,21 @@
 #include "player/playeradapter.h"
 #include "util/globalmediator.h"
 #include "util/utils.h"
+
+/**
+ * Holds parameters for a screenshot.
+ */
+struct ScreenshotParams
+{
+    /* The maximum width an image can be */
+    int maxWidth = -1;
+
+    /* The maximum height an image can be */
+    int maxHeight = -1;
+
+    /* true to keep the aspect ratio during resize, false otherwise */
+    bool keepAspectRatio = true;
+};
 
 /**
  * Holds all the fields that contain media.
@@ -43,10 +62,10 @@ struct FieldContext
     QJsonArray fieldsWithAudioContext;
 
     /* Fields that contain the {screenshot} marker */
-    QJsonArray fieldsWithScreenshot;
+    QHash<ScreenshotParams, QJsonArray> fieldsWithScreenshot;
 
     /* Fields that contain the {screenshot-video} marker */
-    QJsonArray fieldsWithScreenshotVideo;
+    QHash<ScreenshotParams, QJsonArray> fieldsWithScreenshotVideo;
 
     /* Files to include in the note request */
     QSet<GlossaryBuilder::FileInfo> files;
@@ -95,6 +114,37 @@ struct MarkerResult
     }
 };
 
+/* Begin ScreenshotParams Operators */
+
+/**
+ * Check for equality between ScreenshotParams structs.
+ * @param rhs The left-hand side of the operator.
+ * @param lhs The right-hand side of the operator.
+ * @return true if ScreenshotParams are equal, false otherwise.
+ */
+[[nodiscard]]
+inline bool operator==(const ScreenshotParams &lhs, const ScreenshotParams &rhs)
+{
+    return lhs.maxWidth == rhs.maxWidth &&
+        lhs.maxHeight == rhs.maxHeight &&
+        lhs.keepAspectRatio == rhs.keepAspectRatio;
+}
+
+/**
+ * Calculates a hash for a ScreenshotParams.
+ * @param key  The ScreenshotParams struct to hash.
+ * @param seed The seed to use in the hash function calculation.
+ * @return The value of the hash.
+ */
+[[nodiscard]]
+inline size_t qHash(const ScreenshotParams &key, size_t seed)
+{
+    return qHash(key.maxWidth, seed) *
+        qHash(key.maxHeight, seed) *
+        qHash(key.keepAspectRatio, seed);
+}
+
+/* End ScreenshotParams Operators */
 /* Begin Context Methods */
 
 void Anki::Note::Context::setDeck(const QString &deck)
@@ -267,6 +317,108 @@ static QString getImageFileExtension(const AnkiConfig::FileType &type)
     default:
         return ".jpg";
     }
+}
+
+/**
+ * Creates a ScreenshotParams from the given marker.
+ * @param marker The marker to create the params from.
+ * @return A populated ScreenshotParams if all arguments are valid, empty
+ *         otherwise.
+ */
+[[nodiscard]]
+static std::optional<ScreenshotParams> getScreenshotParams(
+    const Anki::Tokenizer::Marker &marker)
+{
+    constexpr const char *MAX_WIDTH_KEY = "max-width";
+    constexpr const char *MAX_HEIGHT_KEY = "max-height";
+    constexpr const char *KEEP_RATIO_KEY = "keep-ratio";
+
+    ScreenshotParams params{};
+    if (marker.args.contains(MAX_WIDTH_KEY))
+    {
+        bool ok = false;
+        params.maxWidth = marker.args[MAX_WIDTH_KEY].toInt(&ok);
+        if (!ok)
+        {
+            return {};
+        }
+    }
+    if (marker.args.contains(MAX_HEIGHT_KEY))
+    {
+        bool ok = false;
+        params.maxHeight = marker.args[MAX_HEIGHT_KEY].toInt(&ok);
+        if (!ok)
+        {
+            return {};
+        }
+    }
+    if (marker.args.contains(KEEP_RATIO_KEY))
+    {
+        params.keepAspectRatio = QVariant(marker.args[KEEP_RATIO_KEY]).toBool();
+    }
+    return params;
+}
+
+/**
+ * Adds a screenshot with the given params to the context object.
+ * @param      path   The path of the of the image file to use.
+ * @param      ext    The extension of the image file.
+ * @param      params The parameters to use to manipulate the file.
+ * @param      fields The fields this image appears in.
+ * @param[out] ctx    The context to add the image to.
+ * @return true if the image was added to the context, false otherwise.
+ */
+static bool createScreenshotHelper(
+    QString path,
+    const QString &ext,
+    const ScreenshotParams &params,
+    const QJsonArray &fields,
+    Anki::Note::Context &ctx)
+{
+    bool resizeSuccessful = false;
+    if (params.maxHeight != -1 || params.maxWidth != -1)
+    {
+        QString newPath = ImageUtils::resizeImage(
+            path,
+            ext,
+            params.maxWidth,
+            params.maxHeight,
+            params.keepAspectRatio
+        );
+        if (!newPath.isEmpty())
+        {
+            path = std::move(newPath);
+            resizeSuccessful = true;
+        }
+        else
+        {
+            qDebug() << "Could not resize screenshot";
+        }
+    }
+
+    QJsonObject image;
+    image[AnkiConnect::Note::DATA] = FileUtils::toBase64(path);
+    QString filename = FileUtils::calculateMd5(path);
+    if (filename.isEmpty())
+    {
+        if (resizeSuccessful)
+        {
+            QFile(path).remove();
+        }
+        return false;
+    }
+    image[AnkiConnect::Note::FILENAME] = filename + ext;
+    image[AnkiConnect::Note::FIELDS] = fields;
+
+    QJsonArray images = ctx.ankiObject[AnkiConnect::Note::PICTURE].toArray();
+    images.append(image);
+    ctx.ankiObject[AnkiConnect::Note::PICTURE] = images;
+
+    if (resizeSuccessful)
+    {
+        QFile(path).remove();
+    }
+    return true;
 }
 
 /* End Helper Functions */
@@ -1314,13 +1466,25 @@ static MarkerResult processMarkerCommon(
     }
     else if (marker.marker == Anki::Marker::SCREENSHOT)
     {
-        fieldCtx.fieldsWithScreenshot.append(field),
+        std::optional<ScreenshotParams> params = getScreenshotParams(marker);
+        if (!params)
+        {
+            result.handled = false;
+            return result;
+        }
+        fieldCtx.fieldsWithScreenshot[*params].append(field),
         result.media = true;
         return result;
     }
     else if (marker.marker == Anki::Marker::SCREENSHOT_VIDEO)
     {
-        fieldCtx.fieldsWithScreenshotVideo.append(field);
+        std::optional<ScreenshotParams> params = getScreenshotParams(marker);
+        if (!params)
+        {
+            result.handled = false;
+            return result;
+        }
+        fieldCtx.fieldsWithScreenshotVideo[*params].append(field),
         result.media = true;
         return result;
     }
@@ -1582,21 +1746,13 @@ static bool createScreenshot(
     const bool visibility = player->getSubVisibility();
     player->setSubVisiblity(true);
     QString path = player->tempScreenshot(true, imageExt);
-    image[AnkiConnect::Note::DATA] = FileUtils::toBase64(path);
     player->setSubVisiblity(visibility);
 
-    QString filename = FileUtils::calculateMd5(path) + imageExt;
-    image[AnkiConnect::Note::FILENAME] = filename;
-    image[AnkiConnect::Note::FIELDS] = fieldCtx.fieldsWithScreenshot;
-
-    if (filename == imageExt)
+    for (const auto &[params, fields] :
+        fieldCtx.fieldsWithScreenshot.asKeyValueRange())
     {
-        return false;
+        createScreenshotHelper(path, imageExt, params, fields, ctx);
     }
-    QJsonArray images =
-        ctx.ankiObject[AnkiConnect::Note::PICTURE].toArray();
-    images.append(image);
-    ctx.ankiObject[AnkiConnect::Note::PICTURE] = images;
 
     QFile(path).remove();
     return true;
@@ -1623,22 +1779,13 @@ static bool createScreenshotVideo(
         GlobalMediator::getGlobalMediator()->getPlayerAdapter();
     const QString imageExt = getImageFileExtension(config.screenshotType);
 
-    QJsonObject image;
-
     QString path = player->tempScreenshot(false, imageExt);
-    image[AnkiConnect::Note::DATA] = FileUtils::toBase64(path);
-    QString filename = FileUtils::calculateMd5(path) + imageExt;
-    image[AnkiConnect::Note::FILENAME] = filename;
-    image[AnkiConnect::Note::FIELDS] = fieldCtx.fieldsWithScreenshotVideo;
 
-    if (filename == imageExt)
+    for (const auto &[params, fields] :
+        fieldCtx.fieldsWithScreenshotVideo.asKeyValueRange())
     {
-        return false;
+        createScreenshotHelper(path, imageExt, params, fields, ctx);
     }
-    QJsonArray images =
-        ctx.ankiObject[AnkiConnect::Note::PICTURE].toArray();
-    images.append(image);
-    ctx.ankiObject[AnkiConnect::Note::PICTURE] = images;
 
     QFile(path).remove();
     return true;
