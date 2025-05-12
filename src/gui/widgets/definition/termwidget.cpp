@@ -185,7 +185,7 @@ void TermWidget::deleteWhenReady()
 {
     hide();
     setParent(nullptr);
-    if (m_ankiTerm)
+    if (!m_safeToDelete)
     {
         connect(this, &TermWidget::safeToDelete, this, &QObject::deleteLater);
     }
@@ -353,6 +353,7 @@ void TermWidget::addNote()
     m_ui->buttonKanaKanji->setEnabled(false);
     if (m_ankiTerm == nullptr)
     {
+        m_safeToDelete = false;
         m_ankiTerm = initAnkiTerm();
     }
 
@@ -380,6 +381,7 @@ QCoro::Task<void> TermWidget::addNote(const AudioSource &src)
     m_ui->buttonKanaKanji->setEnabled(false);
     if (m_ankiTerm == nullptr)
     {
+        m_safeToDelete = false;
         m_ankiTerm = initAnkiTerm();
     }
     m_ankiTerm->readingAsExpression = m_readingAsExp;
@@ -389,7 +391,6 @@ QCoro::Task<void> TermWidget::addNote(const AudioSource &src)
 
     AnkiReply<int> addNoteResult =
         co_await m_client->addNote(std::move(m_ankiTerm));
-    emit safeToDelete();
     if (!addNoteResult.error.isEmpty())
     {
         emit GlobalMediator::getGlobalMediator()
@@ -399,6 +400,9 @@ QCoro::Task<void> TermWidget::addNote(const AudioSource &src)
     m_ui->buttonAnkiOpen->show();
     m_ui->buttonAddCard->hide();
     m_ui->buttonKanaKanji->hide();
+
+    m_safeToDelete = true;
+    emit safeToDelete();
 }
 
 QCoro::Task<void> TermWidget::searchAnki()

@@ -221,6 +221,9 @@ private:
      */
     std::unique_ptr<Term> m_ankiTerm = nullptr;
 
+    /* True if the TermWidget is safe to delete right now, false otherwise */
+    bool m_safeToDelete = true;
+
     /* Saved pointer to the global AnkiClient. */
     AnkiClient *m_client;
 
