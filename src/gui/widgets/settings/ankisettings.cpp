@@ -369,7 +369,7 @@ QCoro::Task<void> AnkiSettings::connectToClient(const bool showErrors)
     {
         if (showErrors)
         {
-            Q_EMIT GlobalMediator::getGlobalMediator()
+            emit GlobalMediator::getGlobalMediator()
                 ->showCritical("Error", testResult.error);
         }
         m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
@@ -381,7 +381,7 @@ QCoro::Task<void> AnkiSettings::connectToClient(const bool showErrors)
     {
         if (showErrors)
         {
-            Q_EMIT GlobalMediator::getGlobalMediator()
+            emit GlobalMediator::getGlobalMediator()
                 ->showCritical("Error", deckNames.error);
         }
         m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
@@ -401,7 +401,7 @@ QCoro::Task<void> AnkiSettings::connectToClient(const bool showErrors)
     {
         if (showErrors)
         {
-            Q_EMIT GlobalMediator::getGlobalMediator()
+            emit GlobalMediator::getGlobalMediator()
                 ->showCritical("Error", modelNames.error);
         }
         m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
@@ -436,7 +436,7 @@ QCoro::Task<void> AnkiSettings::updateModelFields(
     }
     else
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()
+        emit GlobalMediator::getGlobalMediator()
             ->showCritical("Error", fieldNames.error);
     }
     m_mutexUpdateModelFields.unlock();
@@ -560,7 +560,7 @@ void AnkiSettings::addProfile()
     QString profileName = m_ui->lineEditProfileName->text();
     if (m_configs.contains(profileName))
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
+        emit GlobalMediator::getGlobalMediator()->showInformation(
             "Failed",
             "Profile with name " + profileName + " already exists."
         );
@@ -586,7 +586,7 @@ void AnkiSettings::deleteProfile()
     QString profile = m_ui->comboBoxProfile->currentText();
     if (profile == DEFAULT_PROFILE)
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
+        emit GlobalMediator::getGlobalMediator()->showInformation(
             "Failed",
             "The Default profile cannot be deleted"
         );
@@ -613,7 +613,7 @@ void AnkiSettings::renameProfile(const QString &oldName, const QString &newName)
 
     if (oldName == DEFAULT_PROFILE)
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
+        emit GlobalMediator::getGlobalMediator()->showInformation(
             "Info",
             "Default profile cannot be renamed"
         );
@@ -621,7 +621,7 @@ void AnkiSettings::renameProfile(const QString &oldName, const QString &newName)
     }
     else if (newName.isEmpty())
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()->showInformation(
+        emit GlobalMediator::getGlobalMediator()->showInformation(
             "Info",
             "Profile must have a name"
         );

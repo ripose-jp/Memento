@@ -95,7 +95,7 @@ void MpvTimer::start()
 {
     if (shouldIgnore())
     {
-        Q_EMIT showCursor();
+        emit showCursor();
         return;
     }
 
@@ -103,15 +103,15 @@ void MpvTimer::start()
     {
     case TimerState::Number:
         m_timer.start();
-        Q_EMIT showCursor();
+        emit showCursor();
         break;
 
     case TimerState::Always:
-        Q_EMIT hideCursor();
+        emit hideCursor();
         break;
 
     case TimerState::Never:
-        Q_EMIT showCursor();
+        emit showCursor();
         break;
     }
 }
@@ -134,14 +134,14 @@ void MpvTimer::handleTimeout() const
 {
     if (shouldIgnore())
     {
-        Q_EMIT showCursor();
+        emit showCursor();
         return;
     }
 
     switch (m_state)
     {
     case TimerState::Number:
-        Q_EMIT hideCursor();
+        emit hideCursor();
         break;
 
     case TimerState::Always:
@@ -156,7 +156,7 @@ void MpvTimer::handleStateChange(TimerState state)
 
     if (shouldIgnore())
     {
-        Q_EMIT showCursor();
+        emit showCursor();
         return;
     }
 
@@ -168,12 +168,12 @@ void MpvTimer::handleStateChange(TimerState state)
 
     case TimerState::Always:
         m_timer.stop();
-        Q_EMIT hideCursor();
+        emit hideCursor();
         break;
 
     case TimerState::Never:
         m_timer.stop();
-        Q_EMIT showCursor();
+        emit showCursor();
         break;
     }
 }

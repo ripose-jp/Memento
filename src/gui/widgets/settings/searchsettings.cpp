@@ -324,7 +324,7 @@ void SearchSettings::applySettings()
 
     settings.endGroup();
 
-    Q_EMIT GlobalMediator::getGlobalMediator()->searchSettingsChanged();
+    emit GlobalMediator::getGlobalMediator()->searchSettingsChanged();
 }
 
 /* Begin Button Box Handlers */

@@ -276,7 +276,7 @@ void BehaviorSettings::applySettings()
 
     settings.endGroup();
 
-    Q_EMIT GlobalMediator::getGlobalMediator()->behaviorSettingsChanged();
+    emit GlobalMediator::getGlobalMediator()->behaviorSettingsChanged();
 }
 
 /* End Button Box Handlers */

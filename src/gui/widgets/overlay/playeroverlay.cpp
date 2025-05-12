@@ -267,7 +267,7 @@ PlayerOverlay::PlayerOverlay(QWidget *parent) : QStackedLayout(parent)
     connect(
         m_ocrOverlay, &OCROverlay::finished,
         mediator,
-        [mediator] { Q_EMIT mediator->requestSearchVisibility(true); },
+        [mediator] { emit mediator->requestSearchVisibility(true); },
         Qt::QueuedConnection
     );
 #endif // OCR_SUPPORT
@@ -359,7 +359,7 @@ void PlayerOverlay::initSettings()
             area,
             [] ()
             {
-                Q_EMIT GlobalMediator::getGlobalMediator()
+                emit GlobalMediator::getGlobalMediator()
                     ->requestSubtitleWidgetVisibility(true);
             },
             HitTestWidget::MouseEventFlag::Enter
@@ -368,13 +368,13 @@ void PlayerOverlay::initSettings()
             area,
             [] ()
             {
-                Q_EMIT GlobalMediator::getGlobalMediator()
+                emit GlobalMediator::getGlobalMediator()
                     ->requestSubtitleWidgetVisibility(false);
             },
             HitTestWidget::MouseEventFlag::Exit
         );
     }
-    Q_EMIT GlobalMediator::getGlobalMediator()
+    emit GlobalMediator::getGlobalMediator()
         ->requestSubtitleWidgetVisibility(!showPrimarySubtitles);
 
     bool showSecondarySubtitles
@@ -536,7 +536,7 @@ void PlayerOverlay::updateSubScale(const double inc)
         scale = 1.0;
     }
     settings.setValue(Constants::Settings::Interface::Subtitle::SCALE, scale);
-    Q_EMIT GlobalMediator::getGlobalMediator()->interfaceSettingsChanged();
+    emit GlobalMediator::getGlobalMediator()->interfaceSettingsChanged();
 }
 
 void PlayerOverlay::increaseSubScale()
@@ -567,7 +567,7 @@ void PlayerOverlay::moveSubtitles(const double inc)
         offset = 1.0;
     }
     settings.setValue(Constants::Settings::Interface::Subtitle::OFFSET, offset);
-    Q_EMIT GlobalMediator::getGlobalMediator()->interfaceSettingsChanged();
+    emit GlobalMediator::getGlobalMediator()->interfaceSettingsChanged();
 }
 
 void PlayerOverlay::moveSubsUp()

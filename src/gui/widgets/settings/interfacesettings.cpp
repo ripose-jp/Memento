@@ -504,7 +504,7 @@ void InterfaceSettings::applyChanges()
 
     settings.endGroup();
 
-    Q_EMIT GlobalMediator::getGlobalMediator()->interfaceSettingsChanged();
+    emit GlobalMediator::getGlobalMediator()->interfaceSettingsChanged();
 }
 
 void InterfaceSettings::showHelp() const

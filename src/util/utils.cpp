@@ -182,7 +182,7 @@ void NetworkUtils::checkForUpdates()
             /* Make sure there weren't any errors */
             if (reply->error())
             {
-                Q_EMIT mediator->showCritical(
+                emit mediator->showCritical(
                     "Error",
                     "Could not check for updates:\n" + reply->errorString()
                 );
@@ -206,7 +206,7 @@ void NetworkUtils::checkForUpdates()
             /* Get the url and tag */
             if (tag != QString("v") + Memento::VERSION)
             {
-                Q_EMIT mediator->showInformation(
+                emit mediator->showInformation(
                     "Update Available",
                     QString("New version <a href='%1'>%2</a> available.")
                         .arg(url)
@@ -216,7 +216,7 @@ void NetworkUtils::checkForUpdates()
             }
 
             /* If reached, Memento was up to date */
-            Q_EMIT mediator->showInformation(
+            emit mediator->showInformation(
                 "Up to Date", "Memento is up to date"
             );
 
@@ -226,7 +226,7 @@ void NetworkUtils::checkForUpdates()
             return;
 
         error:
-            Q_EMIT mediator->showCritical(
+            emit mediator->showCritical(
                 "Error",
                 "Server did not send a valid reply.\n"
                 "Check manually <a href='" + QString(Constants::Links::GITHUB_RELEASES) +

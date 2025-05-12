@@ -707,7 +707,7 @@ void PlayerMenu::applySubtitlePauseSetting()
     );
     settings.endGroup();
 
-    Q_EMIT GlobalMediator::getGlobalMediator()->behaviorSettingsChanged();
+    emit GlobalMediator::getGlobalMediator()->behaviorSettingsChanged();
 }
 /* End Playback Actions */
 /* Begin Anki Profile Handler */
@@ -760,14 +760,14 @@ void PlayerMenu::updateAnkiProfileMenu()
 
 void PlayerMenu::handleToggleSearch()
 {
-    Q_EMIT GlobalMediator::getGlobalMediator()->requestSearchVisibility(
+    emit GlobalMediator::getGlobalMediator()->requestSearchVisibility(
         m_ui->actionShowSearch->isChecked()
     );
 }
 
 void PlayerMenu::handleToggleSubtitleList()
 {
-    Q_EMIT GlobalMediator::getGlobalMediator()->requestSubtitleListVisibility(
+    emit GlobalMediator::getGlobalMediator()->requestSubtitleListVisibility(
         m_ui->actionShowSubtitleList->isChecked()
     );
 }

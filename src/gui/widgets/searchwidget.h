@@ -144,14 +144,14 @@ protected:
      * @param event The hide event, not used.
      */
     void hideEvent(QHideEvent *event) override
-        { QWidget::hideEvent(event); Q_EMIT widgetHidden(); }
+        { QWidget::hideEvent(event); emit widgetHidden(); }
 
     /**
      * Scrolls to the current selected row on show.
      * @param event The show event, not used.
      */
     void showEvent(QShowEvent *event) override
-        { QWidget::showEvent(event); Q_EMIT widgetShown(); }
+        { QWidget::showEvent(event); emit widgetShown(); }
 
     /**
      * Size hint to prevent the widget from being too large when shown.

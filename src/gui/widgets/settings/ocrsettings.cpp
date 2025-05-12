@@ -128,7 +128,7 @@ void OCRSettings::applySettings()
     );
     settings.endGroup();
 
-    Q_EMIT GlobalMediator::getGlobalMediator()->ocrSettingsChanged();
+    emit GlobalMediator::getGlobalMediator()->ocrSettingsChanged();
 }
 
 /* End Button Box Handlers */

@@ -173,7 +173,7 @@ void AudioSourceSettings::applyChanges()
     }
     settings.endArray();
 
-    Q_EMIT GlobalMediator::getGlobalMediator()->audioSourceSettingsChanged();
+    emit GlobalMediator::getGlobalMediator()->audioSourceSettingsChanged();
 }
 
 void AudioSourceSettings::restoreDefaults()

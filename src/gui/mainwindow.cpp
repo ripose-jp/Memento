@@ -387,7 +387,7 @@ void MainWindow::initTheme()
     IconFactory::create()->buildIcons();
 #endif
 
-    Q_EMIT m_mediator->requestThemeRefresh();
+    emit m_mediator->requestThemeRefresh();
 
     /* Set QSplitter Stylesheet */
     bool customStylesEnabled = settings.value(
@@ -531,11 +531,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     switch (event->key())
     {
     case Qt::Key::Key_Delete:
-        Q_EMIT m_mediator->windowOSCStateCycled();
+        emit m_mediator->windowOSCStateCycled();
         event->accept();
         break;
     default:
-        Q_EMIT m_mediator->keyPressed(event);
+        emit m_mediator->keyPressed(event);
         break;
     }
 
@@ -553,7 +553,7 @@ void MainWindow::wheelEvent(QWheelEvent *event)
 {
     if (!m_ui->subtitleList->underMouse() && !m_overlay->underMouse())
     {
-        Q_EMIT m_mediator->wheelMoved(event);
+        emit m_mediator->wheelMoved(event);
     }
 
     QMainWindow::wheelEvent(event);
@@ -582,7 +582,7 @@ void MainWindow::dropEvent(QDropEvent *event)
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     event->ignore();
-    Q_EMIT m_mediator->requestDefinitionDelete();
+    emit m_mediator->requestDefinitionDelete();
     QMainWindow::mousePressEvent(event);
 }
 
@@ -591,7 +591,7 @@ void MainWindow::changeEvent(QEvent *event)
     QMainWindow::changeEvent(event);
     if (event->type() == QEvent::ActivationChange)
     {
-        Q_EMIT m_mediator->windowFocusChanged(isActiveWindow());
+        emit m_mediator->windowFocusChanged(isActiveWindow());
     }
 #if defined(Q_OS_MACOS)
     else if (event->type() == QEvent::WindowStateChange)
@@ -767,7 +767,7 @@ void MainWindow::autoFitMedia(int width, int height)
 void MainWindow::toggleSubtitleListVisibility()
 {
     bool vis = m_ui->subtitleList->isVisibleTo(m_ui->splitterSearchList);
-    Q_EMIT m_mediator->requestSubtitleListVisibility(!vis);
+    emit m_mediator->requestSubtitleListVisibility(!vis);
 }
 
 void MainWindow::updateSearchSubListSplitter()

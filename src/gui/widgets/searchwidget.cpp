@@ -62,7 +62,7 @@ void SearchEdit::mouseMoveEvent(QMouseEvent *event)
     }
 
     m_lastIndex = i;
-    Q_EMIT searchTriggered(text(), m_lastIndex);
+    emit searchTriggered(text(), m_lastIndex);
 }
 
 /* End SearchEdit Class */
@@ -187,7 +187,7 @@ void SearchWidget::updateSearch(QString text, const int index)
                 kanji = SharedKanji(m_dictionary->searchKanji(query[0]));
             }
 
-            Q_EMIT searchUpdated(terms, kanji);
+            emit searchUpdated(terms, kanji);
         }
     );
 }

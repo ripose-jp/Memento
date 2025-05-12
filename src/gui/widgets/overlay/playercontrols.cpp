@@ -61,7 +61,7 @@ PlayerControls::PlayerControls(QWidget *parent)
         [this, mediator]
         {
             m_ignorePause = !m_paused;
-            Q_EMIT mediator->controlsPause();
+            emit mediator->controlsPause();
         }
     );
     connect(m_ui->sliderProgress, &QSlider::sliderReleased, this,
@@ -70,7 +70,7 @@ PlayerControls::PlayerControls(QWidget *parent)
             if (m_ignorePause)
             {
                 m_ignorePause = false;
-                Q_EMIT mediator->controlsPlay();
+                emit mediator->controlsPlay();
             }
         }
     );
@@ -248,13 +248,13 @@ void PlayerControls::initOCRSettings()
 void PlayerControls::hideEvent(QHideEvent *event)
 {
     QWidget::hideEvent(event);
-    Q_EMIT GlobalMediator::getGlobalMediator()->controlsHidden();
+    emit GlobalMediator::getGlobalMediator()->controlsHidden();
 }
 
 void PlayerControls::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
-    Q_EMIT GlobalMediator::getGlobalMediator()->controlsShown();
+    emit GlobalMediator::getGlobalMediator()->controlsShown();
 }
 
 /* End Event Handlers */
@@ -326,11 +326,11 @@ void PlayerControls::togglePause()
 {
     if (m_paused)
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()->controlsPlay();
+        emit GlobalMediator::getGlobalMediator()->controlsPlay();
     }
     else
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()->controlsPause();
+        emit GlobalMediator::getGlobalMediator()->controlsPause();
     }
 }
 
@@ -339,7 +339,7 @@ void PlayerControls::toggleFullscreen()
 {
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     bool fullscreen = mediator->getPlayerAdapter()->isFullscreen();
-    Q_EMIT mediator->controlsFullscreenChanged(!fullscreen);
+    emit mediator->controlsFullscreenChanged(!fullscreen);
 }
 
 /* End Button Implementations */

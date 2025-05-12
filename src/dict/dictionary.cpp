@@ -424,7 +424,7 @@ QString Dictionary::addDictionary(const QString &path)
     {
         return m_db->errorCodeToString(err);
     }
-    Q_EMIT GlobalMediator::getGlobalMediator()->dictionariesChanged();
+    emit GlobalMediator::getGlobalMediator()->dictionariesChanged();
     return "";
 }
 
@@ -437,13 +437,13 @@ QString Dictionary::addDictionary(const QStringList &paths)
         {
             if (i > 0)
             {
-                Q_EMIT GlobalMediator::getGlobalMediator()
+                emit GlobalMediator::getGlobalMediator()
                     ->dictionariesChanged();
             }
             return m_db->errorCodeToString(err);
         }
     }
-    Q_EMIT GlobalMediator::getGlobalMediator()->dictionariesChanged();
+    emit GlobalMediator::getGlobalMediator()->dictionariesChanged();
     return "";
 }
 
@@ -454,7 +454,7 @@ QString Dictionary::deleteDictionary(const QString &name)
     {
         return m_db->errorCodeToString(err);
     }
-    Q_EMIT GlobalMediator::getGlobalMediator()->dictionariesChanged();
+    emit GlobalMediator::getGlobalMediator()->dictionariesChanged();
     return "";
 }
 

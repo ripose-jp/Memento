@@ -46,7 +46,7 @@ OCROverlay::OCROverlay(QWidget *parent)
 
     connect(
         &m_resultWatcher, &QFutureWatcher<QString>::finished,
-        this, [this] () { Q_EMIT finished(m_resultWatcher.result()); },
+        this, [this] () { emit finished(m_resultWatcher.result()); },
         Qt::QueuedConnection
     );
     connect(
@@ -143,7 +143,7 @@ void OCROverlay::hideEvent(QHideEvent *event)
 {
     QWidget::hideEvent(event);
 
-    Q_EMIT widgetHidden();
+    emit widgetHidden();
 }
 
 void OCROverlay::handleKeyPress(QKeyEvent *event)

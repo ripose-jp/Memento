@@ -593,7 +593,7 @@ void GlossaryLabel::handleSearch(
         return;
     }
 
-    Q_EMIT contentSearched(terms, kanji);
+    emit contentSearched(terms, kanji);
 
     QTextCursor q = textCursor();
     q.setPosition(position);
@@ -725,7 +725,7 @@ void DictionaryWorker::run()
     {
         length = 1;
     }
-    Q_EMIT searchDone(terms, kanji, position, length);
+    emit searchDone(terms, kanji, position, length);
 }
 
 /* End Worker Implementation */

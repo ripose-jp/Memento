@@ -194,7 +194,7 @@ void DictionarySettings::applySettings()
     Dictionary *dict = GlobalMediator::getGlobalMediator()->getDictionary();
     dict->disableDictionaries(dictionaries);
 
-    Q_EMIT GlobalMediator::getGlobalMediator()->dictionaryOrderChanged();
+    emit GlobalMediator::getGlobalMediator()->dictionaryOrderChanged();
 }
 
 /* End Button Box Handlers */
@@ -243,7 +243,7 @@ void DictionarySettings::addDictionary()
             QString err = dic->addDictionary(files);
             if (!err.isEmpty())
             {
-                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+                emit GlobalMediator::getGlobalMediator()->showCritical(
                     "Error adding dictionary", err
                 );
             }
@@ -277,7 +277,7 @@ void DictionarySettings::deleteDictionary()
             );
             if (!err.isEmpty())
             {
-                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+                emit GlobalMediator::getGlobalMediator()->showCritical(
                     "Error deleting dictionary", err
                 );
             }

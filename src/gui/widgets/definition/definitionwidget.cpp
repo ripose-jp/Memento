@@ -319,7 +319,7 @@ QCoro::Task<void> DefinitionWidget::setTerms(
     }
     m_ui->layoutScroll->addStretch();
 
-    Q_EMIT widgetShown();
+    emit widgetShown();
 
     if (!m_client->isEnabled())
     {
@@ -346,7 +346,7 @@ QCoro::Task<void> DefinitionWidget::setTerms(
 void DefinitionWidget::hideEvent(QHideEvent *event)
 {
     QWidget::hideEvent(event);
-    Q_EMIT widgetHidden();
+    emit widgetHidden();
     if (m_child)
     {
         m_child->deleteLater();
@@ -357,7 +357,7 @@ void DefinitionWidget::hideEvent(QHideEvent *event)
 void DefinitionWidget::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
-    Q_EMIT widgetShown();
+    emit widgetShown();
 }
 
 void DefinitionWidget::resizeEvent(QResizeEvent *event)

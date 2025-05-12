@@ -84,7 +84,7 @@ MpvWidget::MpvWidget(QWidget *parent)
     m_mpv = mpv_create();
     if (!m_mpv)
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+        emit GlobalMediator::getGlobalMediator()->showCritical(
             "Could not start mpv",
             "MpvWidget: Could not create mpv context"
         );
@@ -183,7 +183,7 @@ void MpvWidget::initPropertyMap()
             }
         }
 
-        Q_EMIT chaptersChanged(chapters);
+        emit chaptersChanged(chapters);
     };
 
     m_propertyMap["duration"] = [this] (mpv_event_property *prop)
@@ -191,7 +191,7 @@ void MpvWidget::initPropertyMap()
         if (prop->format == MPV_FORMAT_DOUBLE)
         {
             double time = *(double *)prop->data;
-            Q_EMIT durationChanged(time);
+            emit durationChanged(time);
         }
     };
 
@@ -204,7 +204,7 @@ void MpvWidget::initPropertyMap()
                 m_cursorTimer->forceTimeout();
             }
             bool full = *(int *)prop->data;
-            Q_EMIT fullscreenChanged(full);
+            emit fullscreenChanged(full);
         }
     };
 
@@ -213,7 +213,7 @@ void MpvWidget::initPropertyMap()
         if (prop->format == MPV_FORMAT_STRING)
         {
             const char **name = (const char **)prop->data;
-            Q_EMIT titleChanged(*name);
+            emit titleChanged(*name);
         }
     };
 
@@ -222,7 +222,7 @@ void MpvWidget::initPropertyMap()
         if (prop->format == MPV_FORMAT_STRING)
         {
             const char **path = (const char **)prop->data;
-            Q_EMIT fileChanged(*path);
+            emit fileChanged(*path);
         }
     };
 
@@ -239,7 +239,7 @@ void MpvWidget::initPropertyMap()
             {
                 preventScreenDimming();
             }
-            Q_EMIT pauseChanged(paused);
+            emit pauseChanged(paused);
         }
     };
 
@@ -248,7 +248,7 @@ void MpvWidget::initPropertyMap()
         if (prop->format == MPV_FORMAT_DOUBLE)
         {
             double time = *(double *)prop->data;
-            Q_EMIT positionChanged(time);
+            emit positionChanged(time);
         }
     };
 
@@ -256,7 +256,7 @@ void MpvWidget::initPropertyMap()
     {
         mpv_node node;
         mpv_get_property(m_mpv, "track-list", MPV_FORMAT_NODE, &node);
-        Q_EMIT tracklistChanged(&node);
+        emit tracklistChanged(&node);
         mpv_free_node_contents(&node);
     };
 
@@ -265,7 +265,7 @@ void MpvWidget::initPropertyMap()
         if (prop->format == MPV_FORMAT_INT64)
         {
             int volume = *(int64_t *)prop->data;
-            Q_EMIT volumeChanged(volume);
+            emit volumeChanged(volume);
         }
     };
 
@@ -274,7 +274,7 @@ void MpvWidget::initPropertyMap()
         if (prop->format == MPV_FORMAT_INT64)
         {
             int volume = *(int64_t *)prop->data;
-            Q_EMIT volumeMaxChanged(volume);
+            emit volumeMaxChanged(volume);
         }
     };
 
@@ -283,12 +283,12 @@ void MpvWidget::initPropertyMap()
         if (prop->format == MPV_FORMAT_INT64)
         {
             int64_t id = *(int64_t *)prop->data;
-            Q_EMIT audioTrackChanged(id);
+            emit audioTrackChanged(id);
         }
         else if (prop->format == MPV_FORMAT_FLAG)
         {
             if (!*(int64_t *)prop->data)
-                Q_EMIT audioDisabled();
+                emit audioDisabled();
         }
     };
 
@@ -297,12 +297,12 @@ void MpvWidget::initPropertyMap()
         if (prop->format == MPV_FORMAT_INT64)
         {
             int64_t id = *(int64_t *)prop->data;
-            Q_EMIT subtitleTwoTrackChanged(id);
+            emit subtitleTwoTrackChanged(id);
         }
         else if (prop->format == MPV_FORMAT_FLAG)
         {
             if (!*(int64_t *)prop->data)
-                Q_EMIT subtitleTwoDisabled();
+                emit subtitleTwoDisabled();
         }
     };
 
@@ -311,12 +311,12 @@ void MpvWidget::initPropertyMap()
         if (prop->format == MPV_FORMAT_INT64)
         {
             int64_t id = *(int64_t *)prop->data;
-            Q_EMIT subtitleTrackChanged(id);
+            emit subtitleTrackChanged(id);
         }
         else if (prop->format == MPV_FORMAT_FLAG)
         {
             if (!*(int64_t *)prop->data)
-                Q_EMIT subtitleDisabled();
+                emit subtitleDisabled();
         }
     };
 
@@ -325,12 +325,12 @@ void MpvWidget::initPropertyMap()
         if (prop->format == MPV_FORMAT_INT64)
         {
             int64_t id = *(int64_t *)prop->data;
-            Q_EMIT videoTrackChanged(id);
+            emit videoTrackChanged(id);
         }
         else if (prop->format == MPV_FORMAT_FLAG)
         {
             if (!*(int64_t *)prop->data)
-                Q_EMIT videoDisabled();
+                emit videoDisabled();
         }
     };
 
@@ -339,7 +339,7 @@ void MpvWidget::initPropertyMap()
         if (prop->format == MPV_FORMAT_DOUBLE)
         {
             m_secSubDelaySupported = true;
-            Q_EMIT secSubDelayChanged(*(double *)prop->data);
+            emit secSubDelayChanged(*(double *)prop->data);
         }
     };
 
@@ -347,10 +347,10 @@ void MpvWidget::initPropertyMap()
     {
         if (prop->format == MPV_FORMAT_DOUBLE)
         {
-            Q_EMIT subDelayChanged(*(double *)prop->data);
+            emit subDelayChanged(*(double *)prop->data);
             if (!m_secSubDelaySupported)
             {
-                Q_EMIT secSubDelayChanged(*(double *)prop->data);
+                emit secSubDelayChanged(*(double *)prop->data);
             }
         }
     };
@@ -375,8 +375,8 @@ void MpvWidget::initPropertyMap()
                     m_mpv, "sub-end",   MPV_FORMAT_DOUBLE, &end
                 );
 
-                Q_EMIT subtitleChanged(subtitle, start, end, delay);
-                Q_EMIT subtitleChangedRaw(
+                emit subtitleChanged(subtitle, start, end, delay);
+                emit subtitleChangedRaw(
                     *(const char **)prop->data, start, end, delay
                 );
             }
@@ -402,7 +402,7 @@ void MpvWidget::initPropertyMap()
                     m_mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
                 );
 
-                Q_EMIT subtitleChangedSecondary(
+                emit subtitleChangedSecondary(
                     *subtitle, start, end, delay
                 );
             }
@@ -594,7 +594,7 @@ void MpvWidget::initializeGL()
 
     if (mpv_render_context_create(&mpv_gl, m_mpv, params) < 0)
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+        emit GlobalMediator::getGlobalMediator()->showCritical(
             "Could not start mpv",
             "MpvWidget: Failed to initialize mpv GL context"
         );
@@ -677,7 +677,7 @@ void MpvWidget::resizeGL(int width, int height)
 {
     m_width = width * m_devicePixelRatio;
     m_height = height * m_devicePixelRatio;
-    Q_EMIT GlobalMediator::getGlobalMediator()->playerResized();
+    emit GlobalMediator::getGlobalMediator()->playerResized();
 }
 
 void MpvWidget::screenChanged(QScreen *screen)
@@ -756,11 +756,11 @@ void MpvWidget::handleMpvEvent(mpv_event *event)
         mpv_get_property(m_mpv, "video-params/w", MPV_FORMAT_INT64, &w);
         int64_t h = 0;
         mpv_get_property(m_mpv, "video-params/h", MPV_FORMAT_INT64, &h);
-        Q_EMIT newFileLoaded(w, h);
+        emit newFileLoaded(w, h);
         break;
     }
     case MPV_EVENT_SHUTDOWN:
-        Q_EMIT shutdown();
+        emit shutdown();
         break;
     default:;
         // Ignore uninteresting or unknown events.
@@ -790,7 +790,7 @@ void MpvWidget::mouseMoveEvent(QMouseEvent *event)
     {
         m_cursorTimer->start();
     }
-    Q_EMIT mouseMoved(event);
+    emit mouseMoved(event);
 }
 
 /**
@@ -891,7 +891,7 @@ void MpvWidget::hideCursor()
      * this widget with maybeUpdate().
      */
     update();
-    Q_EMIT cursorHidden();
+    emit cursorHidden();
 }
 
 void MpvWidget::showCursor()

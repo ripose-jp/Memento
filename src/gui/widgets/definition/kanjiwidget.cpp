@@ -273,7 +273,7 @@ QCoro::Task<void> KanjiWidget::addKanji()
     AnkiReply<int> result = co_await client->addNote(initAnkiKanji());
     if (!result.error.isEmpty())
     {
-        Q_EMIT mediator->showCritical("Error Adding Note", result.error);
+        emit mediator->showCritical("Error Adding Note", result.error);
         co_return;
     }
 
@@ -299,7 +299,7 @@ QCoro::Task<void> KanjiWidget::openAnki()
         co_await client->openDuplicates(initAnkiKanji());
     if (!result.error.isEmpty())
     {
-        Q_EMIT mediator->showCritical("Error Opening Anki", result.error);
+        emit mediator->showCritical("Error Opening Anki", result.error);
     }
 }
 

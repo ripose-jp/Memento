@@ -389,10 +389,10 @@ QCoro::Task<void> TermWidget::addNote(const AudioSource &src)
 
     AnkiReply<int> addNoteResult =
         co_await m_client->addNote(std::move(m_ankiTerm));
-    Q_EMIT safeToDelete();
+    emit safeToDelete();
     if (!addNoteResult.error.isEmpty())
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()
+        emit GlobalMediator::getGlobalMediator()
             ->showCritical("Error Adding Note", addNoteResult.error);
         co_return;
     }
@@ -407,7 +407,7 @@ QCoro::Task<void> TermWidget::searchAnki()
         co_await m_client->openDuplicates(initAnkiTerm());
     if (!openBrowseResult.error.isEmpty())
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+        emit GlobalMediator::getGlobalMediator()->showCritical(
             "Error Opening Anki", openBrowseResult.error
         );
     }
@@ -530,7 +530,7 @@ void TermWidget::searchKanji(const QString &ch)
         kanji->clozePrefix = m_term->clozePrefix;
         kanji->clozeBody   = m_term->clozeBody;
         kanji->clozeSuffix = m_term->clozeSuffix;
-        Q_EMIT kanjiSearched(QSharedPointer<const Kanji>(kanji));
+        emit kanjiSearched(QSharedPointer<const Kanji>(kanji));
     }
 }
 
@@ -668,7 +668,7 @@ void TermWidget::loadAudioSources()
                     m_lockSources.unlock();
                     manager->deleteLater();
 
-                    Q_EMIT audioSourcesLoaded();
+                    emit audioSourcesLoaded();
                 }
                 else
                 {

@@ -342,7 +342,7 @@ void SubtitleWidget::showEvent(QShowEvent *event)
 
     if (m_settings.hideSubsWhenVisible)
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()
+        emit GlobalMediator::getGlobalMediator()
             ->requestSubtitleVisibility(false);
     }
 }
@@ -353,10 +353,10 @@ void SubtitleWidget::hideEvent(QHideEvent *event)
 
     if (m_settings.hideSubsWhenVisible && m_settings.hideOnPlay)
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()
+        emit GlobalMediator::getGlobalMediator()
             ->requestSubtitleVisibility(true);
     }
-    Q_EMIT GlobalMediator::getGlobalMediator()->subtitleHidden();
+    emit GlobalMediator::getGlobalMediator()->subtitleHidden();
 }
 
 void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
@@ -412,7 +412,7 @@ void SubtitleWidget::resizeEvent(QResizeEvent *event)
 {
     StrokeLabel::resizeEvent(event);
 
-    Q_EMIT GlobalMediator::getGlobalMediator()->requestDefinitionDelete();
+    emit GlobalMediator::getGlobalMediator()->requestDefinitionDelete();
 }
 
 /* End Event Handlers */
@@ -481,7 +481,7 @@ void SubtitleWidget::findTerms()
                 }
             }
 
-            Q_EMIT GlobalMediator::getGlobalMediator()
+            emit GlobalMediator::getGlobalMediator()
                 ->termsChanged(terms, kanji);
         }
     );
@@ -538,7 +538,7 @@ void SubtitleWidget::positionChanged(const double value)
         m_subtitle.rawText.clear();
         clearText();
         hide();
-        Q_EMIT GlobalMediator::getGlobalMediator()->subtitleExpired();
+        emit GlobalMediator::getGlobalMediator()->subtitleExpired();
     }
 }
 

@@ -39,7 +39,7 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent)
     m_mpv = mpv_create();
     if (!m_mpv)
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+        emit GlobalMediator::getGlobalMediator()->showCritical(
             "Could not start mpv",
             "AudioPlayer: Could not create mpv context"
         );
@@ -55,7 +55,7 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent)
 
     if (mpv_initialize(m_mpv) < 0)
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+        emit GlobalMediator::getGlobalMediator()->showCritical(
             "Could not start mpv",
             "AudioPlayer: Failed to initialize mpv context"
         );
@@ -181,7 +181,7 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
 
             res = true;
         cleanup:
-            Q_EMIT audioReply->result(res);
+            emit audioReply->result(res);
             reply->deleteLater();
             audioReply->deleteLater();
         }

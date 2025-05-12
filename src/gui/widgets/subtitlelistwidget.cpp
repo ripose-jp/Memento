@@ -379,7 +379,7 @@ void SubtitleListWidget::showEvent(QShowEvent *event)
     m_ui->tablePrim->resizeRowsToContents();
     m_ui->tableSec->resizeRowsToContents();
 
-    Q_EMIT widgetShown();
+    emit widgetShown();
 }
 
 void SubtitleListWidget::hideEvent(QHideEvent *event)
@@ -398,7 +398,7 @@ void SubtitleListWidget::hideEvent(QHideEvent *event)
         m_ui->tableSec->scrollToItem(items.last());
     }
 
-    Q_EMIT widgetHidden();
+    emit widgetHidden();
 }
 
 void SubtitleListWidget::resizeEvent(QResizeEvent *event)
@@ -472,7 +472,7 @@ void SubtitleListWidget::handleTracklistChange(
         m_secondary.lock.unlock();
         m_primary.lock.unlock();
 
-        Q_EMIT requestRefresh();
+        emit requestRefresh();
     });
 
     if (primarySid != -1)

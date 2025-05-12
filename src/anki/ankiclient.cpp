@@ -388,7 +388,7 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
 void AnkiClient::writeChanges()
 {
     writeConfigToFile(CONFIG_FILE);
-    Q_EMIT GlobalMediator::getGlobalMediator()->ankiSettingsChanged();
+    emit GlobalMediator::getGlobalMediator()->ankiSettingsChanged();
 }
 
 /* End Config File Methods */

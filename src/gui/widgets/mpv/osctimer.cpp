@@ -51,7 +51,7 @@ OSCTimer::~OSCTimer()
 void OSCTimer::start()
 {
     m_timer.start();
-    Q_EMIT showCursor();
+    emit showCursor();
 }
 
 void OSCTimer::stop()
@@ -62,5 +62,5 @@ void OSCTimer::stop()
 void OSCTimer::forceTimeout()
 {
     m_timer.stop();
-    Q_EMIT hideCursor();
+    emit hideCursor();
 }
