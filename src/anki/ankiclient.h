@@ -23,15 +23,21 @@
 
 #include <QObject>
 
+#include <memory>
+
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <QString>
 #include <QStringList>
 
-#include "ankiconfig.h"
-#include "markertokenizer.h"
+#include <qcoro/network/qcoronetworkreply.h>
+#include <qcoro/qcorotask.h>
 
+#include "anki/ankiconfig.h"
 #include "anki/glossarybuilder.h"
+#include "anki/markertokenizer.h"
 #include "dict/expression.h"
 
 /* Default AnkiConfig Values */
@@ -47,26 +53,17 @@ static constexpr double DEFAULT_AUDIO_PAD_END = 0.0;
 static constexpr bool DEFAULT_AUDIO_NORMALIZE = false;
 static constexpr double DEFAULT_AUDIO_DB = -20.0;
 
-class QNetworkAccessManager;
-class QNetworkReply;
-
 /**
- * Object used for sending replies to from one thread to another.
+ * Contains information about an AnkiConnect reply.
  */
-class AnkiReply : public QObject
+template<typename T>
+struct AnkiReply
 {
-    Q_OBJECT
+    /* The data returned by Anki */
+    T value{};
 
-public:
-    using QObject::QObject;
-
-/* Overloaded signals suck to use, so this is the best alternative. */
-Q_SIGNALS:
-    void finishedBool(const bool value, const QString &error);
-    void finishedStringList(const QStringList &value, const QString &error);
-    void finishedBoolList(const QList<bool> &value, const QString &error);
-    void finishedInt(const int value, const QString &error);
-    void finishedIntList(const QList<int> &value, const QString &error);
+    /* An error string describing what went wrong */
+    QString error;
 };
 
 class AnkiClient : public QObject
@@ -75,7 +72,6 @@ class AnkiClient : public QObject
 
 public:
     AnkiClient(QObject *parent = nullptr);
-    ~AnkiClient();
 
     /**
      * Destructor for all allocated AnkiConfigs.
@@ -161,145 +157,97 @@ public:
 
     /**
      * Tests the connection to the server.
-     * @return An AnkiReply that emits the finishedBool() signal. Caller does
-     *         not have ownership. Emits true if connection was successful,
-     *         false and an error string otherwise.
+     * @return A reply containing true if a connection was established, false
+     *         otherwise.
      */
-    AnkiReply *testConnection();
+    [[nodiscard]]
+    QCoro::Task<AnkiReply<bool>> testConnection();
 
     /**
      * Gets the names of all Anki decks.
      * @return An AnkiReply that emits the finishedStringList() signal. Deck
      *         names are values in the list. Caller does not have ownership.
      */
-    AnkiReply *getDeckNames();
+    [[nodiscard]]
+    QCoro::Task<AnkiReply<QStringList>> getDeckNames();
 
     /**
      * Gets the names of all Anki models.
-     * @return An AnkiReply that emits the finishedStringList() signal. Model
-     *         names are values in the list. Caller does not have ownership.
+     * @return An AnkiReply containing a string list on success, error message
+     *         on failure.
      */
-    AnkiReply *getModelNames();
+    [[nodiscard]]
+    QCoro::Task<AnkiReply<QStringList>> getModelNames();
 
     /**
      * Gets the field names for the model.
      * @param model The name of the model.
-     * @return An AnkiReply that emits the finishedStringList() signal. Fields
-     *         are values in the list. Caller does not have ownership.
+     * @return An AnkiReply containing a string list on success, error message
+     *         on failure.
      */
-    AnkiReply *getFieldNames(const QString &model);
+    [[nodiscard]]
+    QCoro::Task<AnkiReply<QStringList>> getFieldNames(const QString &model);
 
     /**
      * Gets if the list of terms are addable given the current configuration.
      * @param terms The list of terms to check if are addable.
-     * @return An AnkiReply that emits the finishedBoolList() signal. The term
-     *         at the same index is addable if true, not addable otherwise.
-     *         Caller does not have ownership.
+     * @return An AnkiReply containing a boolean list of addable terms. Each
+     *         term is represented by two booleans. The first determines if the
+     *         expression is addable, the second if the reading is addable.
      */
-    AnkiReply *notesAddable(QList<QSharedPointer<const Term>> terms);
+    [[nodiscard]]
+    QCoro::Task<AnkiReply<QList<bool>>> notesAddable(
+        QList<QSharedPointer<const Term>> terms);
 
     /**
      * Gets if the list of kanji are addable given the current configuration.
      * @param kanji The list of kanji to check if are addable.
-     * @return An AnkiReply that emits the finishedBoolList() signal. The term
-     *         at the same index is addable if true, not addable otherwise.
-     *         Caller does not have ownership.
+     * @return An AnkiReply containing a boolean list of addable terms. The
+     *         kanji at the same index is addable if true, not addable
+     *         otherwise.
      */
-    AnkiReply *notesAddable(QList<QSharedPointer<const Kanji>> kanji);
+    [[nodiscard]]
+    QCoro::Task<AnkiReply<QList<bool>>> notesAddable(
+        QList<QSharedPointer<const Kanji>> kanji);
 
     /**
      * Adds a term note to Anki.
      * @param term The term to add a note for.
-     * @return An AnkiReply that emits the finishedInt() signal. The integer
-     *         value is the identifer of the card. Caller does not have
-     *         ownership.
+     * @return An AnkiReply containing the ID of the added card. An error string
+     *         otherwise.
      */
-    AnkiReply *addNote(const Term *term);
+    [[nodiscard]]
+    QCoro::Task<AnkiReply<int>> addNote(std::unique_ptr<const Term> term);
 
     /**
      * Adds a kanji note to Anki.
      * @param kanji The kanji to add a note for.
-     * @return An AnkiReply that emits the finishedInt() signal. The integer
-     *         value is the identifer of the card. Caller does not have
-     *         ownership.
+     * @return An AnkiReply containing the ID of the added card. An error string
+     *         otherwise.
      */
-    AnkiReply *addNote(const Kanji *kanji);
+    [[nodiscard]]
+    QCoro::Task<AnkiReply<int>> addNote(std::unique_ptr<const Kanji> kanji);
+
+    /**
+     * Adds media file to Anki.
+     * @param files A mapping of file paths to file names.
+     * @return An AnkiReply containing a list of added filenames. An error
+     *         string on failure.
+     */
+    [[nodiscard]]
+    QCoro::Task<AnkiReply<QStringList>> addMedia(
+        QList<GlossaryBuilder::FileInfo> fileMap);
 
     /**
      * Opens an Anki GUI window searching for a query in a deck.
      * @param deck  The name of the deck to search in.
      * @param query The query to search.
-     * @return An AnkiReply that emits the finishedIntList() signal. Integer
-     *         values are card IDs.
+     * @return An AnkiReply containing a list of card IDs on success, an error
+     *         string otherwise.
      */
-    AnkiReply *openBrowse(const QString &deck, const QString &query);
-
-public Q_SLOTS:
-    /**
-     * Adds media file to Anki.
-     * @param files A mapping of file paths to file names.
-     * @return An AnkiReply that emits the finishedStringList() signal. Strings
-     *         are added filenames.
-     */
-    AnkiReply *addMedia(const QList<GlossaryBuilder::FileInfo> &fileMap);
-
-Q_SIGNALS:
-    /**
-     * Sends an add media request.
-     * This is a hack to get the media request on the main thread.
-     * @param fileMap The filemap to add.
-     */
-    void requestAddMedia(const QList<GlossaryBuilder::FileInfo> &fileMap) const;
-
-    /**
-     * Sends a request to issue a command to Anki that returns an integer.
-     * This is a hack to make sure that the QNetworkAccessManager is used from
-     * the correct thread when multithreading.
-     * @param action    The AnkiConnect 'verb'.
-     * @param params    Parameters for the action.
-     * @param ankiReply The AnkiReply to emit the finishedInt() signal on.
-     */
-    void sendIntRequest(const QString     &action,
-                        const QJsonObject &params,
-                        AnkiReply         *ankiReply);
-
-    /**
-     * Sends a request to issue a command to Anki that returns a list of
-     * booleans.
-     * This is a hack to make sure that the QNetworkAccessManager is used from
-     * the correct thread when multithreading.
-     * @param action    The AnkiConnect 'verb'.
-     * @param params    Parameters for the action.
-     * @param ankiReply The AnkiReply to emit the finishedBoolList() signal on.
-     */
-    void sendBoolListRequest(const QString     &action,
-                             const QJsonObject &params,
-                             AnkiReply         *ankiReply);
-
-private Q_SLOTS:
-    /**
-     * Issues a command to Anki that returns an integer.
-     * This is a hack to make sure that the QNetworkAccessManager is used from
-     * the correct thread when multithreading.
-     * @param action    The AnkiConnect 'verb'.
-     * @param params    Parameters for the action.
-     * @param ankiReply The AnkiReply to emit the finishedInt() signal on.
-     */
-    void receiveIntRequest(const QString     &action,
-                           const QJsonObject &params,
-                           AnkiReply         *ankiReply);
-
-    /**
-     * Issues a command to Anki that returns a list of bools.
-     * This is a hack to make sure that the QNetworkAccessManager is used from
-     * the correct thread when multithreading.
-     * @param action    The AnkiConnect 'verb'.
-     * @param params    Parameters for the action.
-     * @param ankiReply The AnkiReply to emit the finishedBoolList() signal on.
-     */
-    void receiveBoolListRequest(const QString     &action,
-                                const QJsonObject &params,
-                                AnkiReply         *ankiReply);
+    [[nodiscard]]
+    QCoro::Task<AnkiReply<QList<int>>> openBrowse(
+        const QString &deck, const QString &query);
 
 private:
     /**
@@ -325,33 +273,64 @@ private:
     void setDefaultConfig();
 
     /**
+     * Makes a request to AnkiConnect that returns a list of strings.
+     * @param action The AnkiConnect 'verb'.
+     * @param params The parameters of the action if applicable.
+     * @return An AnkiReply containing the string list on success, error message
+     *         on error.
+     */
+    [[nodiscard]]
+    QCoro::Task<AnkiReply<QStringList>> requestStringList(
+        const QString &action,
+        const QJsonObject &params = QJsonObject());
+
+    /**
+     * Issues a command to Anki that returns a list of bools.
+     * @param action The AnkiConnect 'verb'.
+     * @param params Parameters for the action.
+     * @return An AnkiReply containing the bool list on success, error message
+     *         on error.
+     */
+    [[nodiscard]]
+    QCoro::Task<AnkiReply<QList<bool>>> requestBoolList(
+        const QString &action,
+        const QJsonObject &params = QJsonObject());
+
+    /**
+     * Issues a command to Anki that returns an integer.
+     * @param action The AnkiConnect 'verb'.
+     * @param params Parameters for the action.
+     * @return An AnkiReply containing the int on success, error message on
+     *         error.
+     */
+    [[nodiscard]]
+    QCoro::Task<AnkiReply<int>> requestInt(
+        const QString &action,
+        const QJsonObject &params = QJsonObject());
+
+    /**
      * Makes a request to AnkiConnect.
      * @param action The AnkiConnection 'verb' to execute.
      * @param params The parameters of the action.
-     * @return A QNetworkReply where the result will be received. Caller takes
-     *         ownership.
+     * @return A QNetworkReply where the result will be received.
      */
-    QNetworkReply *makeRequest(const QString     &action,
-                               const QJsonObject &params = QJsonObject());
+    [[nodiscard]]
+    QCoro::Task<std::unique_ptr<QNetworkReply>> makeRequest(
+        const QString &action,
+        const QJsonObject &params = QJsonObject());
 
     /**
      * Error checks the AnkiConnect reply.
-     * @param reply      The reply to error check.
+     * @param      reply The reply to error check.
      * @param[out] error The reason the command failed. Empty string if no
      *                   error.
      * @return The JSON object AnkiConnect replied with.
      */
-    QJsonObject processReply(QNetworkReply *reply, QString &error);
+    [[nodiscard]]
+    QJsonObject processReply(QNetworkReply &reply, QString &error);
 
-    /**
-     * Makes a request to AnkiConnect that returns a list of strings.
-     * @param action The AnkiConnect 'verb'.
-     * @param params The parameters of the action if applicable.
-     * @return An AnkiReply that emits the finishedStringList signal. Caller
-     *         does not take ownership.
-     */
-    AnkiReply *requestStringList(const QString     &action,
-                                 const QJsonObject &params = QJsonObject());
+    /* The Network Manager for this object. */
+    QNetworkAccessManager m_manager;
 
     /* true if a config exists, false otherwise */
     bool m_configExists = false;
@@ -373,9 +352,6 @@ private:
 
     /* The current AnkiConnect port. */
     QString m_port;
-
-    /* The Network Manager for this object. */
-    QNetworkAccessManager *m_manager;
 };
 
 #endif // ANKICLIENT_H

@@ -307,3 +307,5 @@ If you hate Memento, try [asbplayer](https://killergerbah.github.io/asbplayer/).
   * https://github.com/mpreisler/mingw-bundledlls
 * Flatpak manifest heavily based on the mpv Flatpak
   * https://github.com/flathub/io.mpv.Mpv
+* QCoro is builtin to the project
+  * https://github.com/qcoro/qcoro

@@ -27,13 +27,12 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 
-#include "definitionwidget.h"
-#include "glossarywidget.h"
-#include "pitchwidget.h"
-#include "tagwidget.h"
-
 #include "audio/audioplayer.h"
 #include "dict/dictionary.h"
+#include "gui/widgets/definition/definitionwidget.h"
+#include "gui/widgets/definition/glossarywidget.h"
+#include "gui/widgets/definition/pitchwidget.h"
+#include "gui/widgets/definition/tagwidget.h"
 #include "gui/widgets/subtitlelistwidget.h"
 #include "util/constants.h"
 #include "util/globalmediator.h"
@@ -180,7 +179,6 @@ TermWidget::TermWidget(
 TermWidget::~TermWidget()
 {
     delete m_ui;
-    delete m_ankiTerm;
 }
 
 void TermWidget::deleteWhenReady()
@@ -278,9 +276,9 @@ void TermWidget::initUi(
     }
 }
 
-Term *TermWidget::initAnkiTerm() const
+std::unique_ptr<Term> TermWidget::initAnkiTerm() const
 {
-    Term *term = new Term(*m_term);
+    std::unique_ptr<Term> term = std::make_unique<Term>(*m_term);
     term->definitions.clear();
     for (int i = 0; i < m_layoutGlossary->count(); ++i)
     {
@@ -375,7 +373,7 @@ void TermWidget::addNote()
     addNote(src ? *src : AudioSource());
 }
 
-void TermWidget::addNote(const AudioSource &src)
+QCoro::Task<void> TermWidget::addNote(const AudioSource &src)
 {
     m_ui->buttonAddCard->setEnabled(false);
     m_shortcutAddCard->setEnabled(false);
@@ -389,46 +387,35 @@ void TermWidget::addNote(const AudioSource &src)
     m_ankiTerm->audioURL = src.url;
     m_ankiTerm->audioSkipHash = src.md5;
 
-    AnkiReply *reply = m_client->addNote(m_ankiTerm);
-    m_ankiTerm = nullptr;
+    AnkiReply<int> addNoteResult =
+        co_await m_client->addNote(std::move(m_ankiTerm));
     Q_EMIT safeToDelete();
-    connect(reply, &AnkiReply::finishedInt, this,
-        [this] (const int, const QString &error)
-        {
-            if (!error.isEmpty())
-            {
-                Q_EMIT GlobalMediator::getGlobalMediator()
-                    ->showCritical("Error Adding Note", error);
-            }
-            else
-            {
-                m_ui->buttonAnkiOpen->show();
-                m_ui->buttonAddCard->hide();
-                m_ui->buttonKanaKanji->hide();
-            }
-        }
-    );
+    if (!addNoteResult.error.isEmpty())
+    {
+        Q_EMIT GlobalMediator::getGlobalMediator()
+            ->showCritical("Error Adding Note", addNoteResult.error);
+        co_return;
+    }
+    m_ui->buttonAnkiOpen->show();
+    m_ui->buttonAddCard->hide();
+    m_ui->buttonKanaKanji->hide();
 }
 
-void TermWidget::searchAnki()
+QCoro::Task<void> TermWidget::searchAnki()
 {
     QString deck = m_client->getConfig()->termDeck;
-    AnkiReply *reply = m_client->openBrowse(
+    AnkiReply<QList<int>> openBrowseResult = co_await m_client->openBrowse(
         deck,
         m_term->reading.isEmpty() ?
             m_term->expression :
             QString("%1 or %2").arg(m_term->expression).arg(m_term->reading)
     );
-    connect(reply, &AnkiReply::finishedIntList, this,
-        [=] (const QList<int> &, const QString &error) {
-            if (!error.isEmpty())
-            {
-                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
-                    "Error Opening Anki", error
-                );
-            }
-        }
-    );
+    if (!openBrowseResult.error.isEmpty())
+    {
+        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+            "Error Opening Anki", openBrowseResult.error
+        );
+    }
 }
 
 void TermWidget::playAudio()
@@ -526,7 +513,7 @@ void TermWidget::showAddableAudioSources(const QPoint &pos)
     else if (m_menuAdd->actions().isEmpty())
     {
         populateAudioSourceMenu(
-            m_menuAdd, [this] (const AudioSource &src) { addNote(src); }
+            m_menuAdd, [this] (const AudioSource &src) { return addNote(src); }
         );
     }
     m_lockJsonSources.unlock();
@@ -677,7 +664,7 @@ void TermWidget::loadAudioSources()
                     m_lockJsonSources.unlock();
                     populateAudioSourceMenu(
                         m_menuAdd,
-                        [this] (const AudioSource &src) { addNote(src); }
+                        [this] (const AudioSource &src) { return addNote(src); }
                     );
                     populateAudioSourceMenu(
                         m_menuAudio,

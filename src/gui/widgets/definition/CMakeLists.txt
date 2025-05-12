@@ -27,5 +27,7 @@ target_link_libraries(
     PRIVATE dictionary_db
     PRIVATE flowlayout
     PRIVATE Qt6::Network
+    PUBLIC anki
+    PUBLIC QCoro6Core
     PUBLIC Qt6::Widgets
 )

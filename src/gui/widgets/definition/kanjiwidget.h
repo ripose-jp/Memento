@@ -25,6 +25,8 @@
 
 #include <QShortcut>
 
+#include <qcoro/qcorotask.h>
+
 #include "dict/expression.h"
 
 class QFrame;
@@ -61,14 +63,16 @@ private Q_SLOTS:
     /**
      * Adds the currently displayed kanji to Anki.
      * Shows a dialog on error.
+     * @return An awaitable task.
      */
-    void addKanji();
+    QCoro::Task<void> addKanji();
 
     /**
      * Opens the Anki browser and searches for the kanji character in the deck
      * AnkiClient is configured to add kanji cards to.
+     * @return An awaitable task.
      */
-    void openAnki();
+    QCoro::Task<void> openAnki();
 
 private:
     /**
@@ -85,9 +89,10 @@ private:
      *               used as the key.
      * @param layout The layout to add key-values to.
      */
-    void addKVSection(const QString &title,
-                      const QList<QPair<Tag, QString>> &pairs,
-                      QVBoxLayout *layout);
+    void addKVSection(
+        const QString &title,
+        const QList<QPair<Tag, QString>> &pairs,
+        QVBoxLayout *layout);
 
     /**
      * Helper method for creating a horizontal line widget.

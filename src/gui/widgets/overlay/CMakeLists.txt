@@ -21,6 +21,7 @@ target_include_directories(playeroverlay PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     playeroverlay
     PRIVATE "$<$<BOOL:${OCR_SUPPORT}>:ocrmodel>"
+    PRIVATE definitionwidget
     PRIVATE dictionary_db
     PRIVATE hittestwidget
     PRIVATE iconfactory

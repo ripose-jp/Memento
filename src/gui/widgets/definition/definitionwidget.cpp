@@ -258,7 +258,8 @@ void DefinitionWidget::initSignals()
     );
 }
 
-void DefinitionWidget::setTerms(SharedTermList terms, SharedKanji kanji)
+QCoro::Task<void> DefinitionWidget::setTerms(
+    SharedTermList terms, SharedKanji kanji)
 {
     clearTerms();
 
@@ -267,7 +268,7 @@ void DefinitionWidget::setTerms(SharedTermList terms, SharedKanji kanji)
     {
         for (SharedTerm term : *terms)
         {
-            m_terms << QSharedPointer<const Term>(term);
+            m_terms.emplaceBack(QSharedPointer<const Term>(term));
         }
     }
 
@@ -280,7 +281,7 @@ void DefinitionWidget::setTerms(SharedTermList terms, SharedKanji kanji)
     /* Early exit if there is nothing to show */
     if (m_terms.isEmpty() && m_kanji == nullptr)
     {
-        return;
+        co_return;
     }
 
     /* Add the terms */
@@ -318,32 +319,25 @@ void DefinitionWidget::setTerms(SharedTermList terms, SharedKanji kanji)
     }
     m_ui->layoutScroll->addStretch();
 
-    /* Check if entries are addable to Anki */
-    if (m_client->isEnabled())
+    Q_EMIT widgetShown();
+
+    if (!m_client->isEnabled())
     {
-        AnkiReply *reply = m_client->notesAddable(m_terms);
-        int searchId = m_searchId;
-        connect(reply, &AnkiReply::finishedBoolList, this,
-            [this, searchId] (const QList<bool> &addable, const QString &error)
-            {
-                if (error.isEmpty() && searchId == m_searchId)
-                {
-                    m_addable = addable;
-                    setAddable(0, m_state.resultLimit);
-                }
-            }
-        );
-        if (buttonShowMore)
-        {
-            connect(
-                reply, &AnkiReply::finishedBoolList,
-                buttonShowMore,
-                [buttonShowMore] { buttonShowMore->setEnabled(true); }
-            );
-        }
+        co_return;
     }
 
-    Q_EMIT widgetShown();
+    /* Check if entries are addable to Anki */
+    int searchId = m_searchId;
+    AnkiReply<QList<bool>> result = co_await m_client->notesAddable(m_terms);
+    if (result.error.isEmpty() && searchId == m_searchId)
+    {
+        m_addable = std::move(result.value);
+        setAddable(0, m_state.resultLimit);
+        if (buttonShowMore)
+        {
+            buttonShowMore->setEnabled(true);
+        }
+    }
 }
 
 /* End Initializers */

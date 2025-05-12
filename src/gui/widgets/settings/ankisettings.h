@@ -25,9 +25,10 @@
 
 #include <QMutex>
 
-#include "ankisettingshelp.h"
+#include <qcoro/qcorotask.h>
 
 #include "anki/ankiconfig.h"
+#include "gui/widgets/settings/ankisettingshelp.h"
 
 namespace Ui
 {
@@ -93,15 +94,17 @@ private Q_SLOTS:
     /**
      * Connects to AnkiConnect and updates the decks, models, and fields.
      * @param showErrors If true, shows a dialog box containing errors.
+     * @return A task that returns upon completion.
      */
-    void connectToClient(const bool showErrors = true);
+    QCoro::Task<void> connectToClient(const bool showErrors = true);
 
     /**
      * Shows the fields for the currently selected model in the table.
      * @param cb    The CardBuilder that should be updated.
      * @param model The name of the model to get fields from.
+     * @return A task that returns upon completion.
      */
-    void updateModelFields(CardBuilder *cb, const QString &model);
+    QCoro::Task<void> updateModelFields(CardBuilder *cb, const QString &model);
 
     /**
      * Populates the UI with the asked profile.

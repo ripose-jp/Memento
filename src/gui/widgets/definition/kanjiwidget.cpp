@@ -20,6 +20,8 @@
 
 #include "kanjiwidget.h"
 
+#include <memory>
+
 #include <QClipboard>
 #include <QDebug>
 #include <QGuiApplication>
@@ -98,52 +100,6 @@ KanjiWidget::KanjiWidget(
     m_shortcutAnkiAdd->setContext(Qt::WidgetWithChildrenShortcut);
     m_shortcutAnkiAdd->setEnabled(false);
 
-    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
-    if (client->isEnabled())
-    {
-        AnkiReply *reply = client->notesAddable(
-            QList<QSharedPointer<const Kanji>>({m_kanji})
-        );
-        connect(reply, &AnkiReply::finishedBoolList, this,
-            [this, factory] (const QList<bool> &value, const QString &error)
-            {
-                if (!error.isEmpty())
-                {
-                    return;
-                }
-
-                /* Kanji Addable */
-                if (value.first())
-                {
-                    m_buttonAnkiAddOpen->setIcon(
-                        factory->getIcon(IconFactory::Icon::plus)
-                    );
-                    m_buttonAnkiAddOpen->setToolTip("Add Anki note");
-                    connect(
-                        m_buttonAnkiAddOpen, &QToolButton::clicked,
-                        this, &KanjiWidget::addKanji
-                    );
-                    m_buttonAnkiAddOpen->show();
-                    m_shortcutAnkiAdd->setEnabled(true);
-                }
-                /* Kanji Already Added */
-                else
-                {
-                    m_buttonAnkiAddOpen->setIcon(
-                        factory->getIcon(IconFactory::Icon::hamburger)
-                    );
-                    m_buttonAnkiAddOpen->setToolTip("Show in Anki");
-                    connect(
-                        m_buttonAnkiAddOpen, &QToolButton::clicked,
-                        this, &KanjiWidget::openAnki
-                    );
-                    m_buttonAnkiAddOpen->show();
-                    m_shortcutAnkiAdd->setEnabled(false);
-                }
-            }
-        );
-    }
-
     FlowLayout *frequencies = new FlowLayout(-1, 6);
     for (const Frequency &freq : kanji->frequencies)
     {
@@ -169,6 +125,53 @@ KanjiWidget::KanjiWidget(
     connect(
         m_shortcutAnkiAdd, &QShortcut::activated,
         this, &KanjiWidget::addKanji
+    );
+
+    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
+    if (!client->isEnabled())
+    {
+        return;
+    }
+
+    QCoro::Task<AnkiReply<QList<bool>>> reply =
+        client->notesAddable(QList<QSharedPointer<const Kanji>>({m_kanji}));
+    QCoro::connect(
+        std::move(reply),
+        this,
+        [this, factory] (AnkiReply<QList<bool>> &&result) -> void
+        {
+            if (!result.error.isEmpty())
+            {
+                return;
+            }
+
+            if (result.value.first()) /* Kanji Addable */
+            {
+                m_buttonAnkiAddOpen->setIcon(
+                    factory->getIcon(IconFactory::Icon::plus)
+                );
+                m_buttonAnkiAddOpen->setToolTip("Add Anki note");
+                connect(
+                    m_buttonAnkiAddOpen, &QToolButton::clicked,
+                    this, &KanjiWidget::addKanji
+                );
+                m_buttonAnkiAddOpen->show();
+                m_shortcutAnkiAdd->setEnabled(true);
+            }
+            else /* Kanji Already Added */
+            {
+                m_buttonAnkiAddOpen->setIcon(
+                    factory->getIcon(IconFactory::Icon::hamburger)
+                );
+                m_buttonAnkiAddOpen->setToolTip("Show in Anki");
+                connect(
+                    m_buttonAnkiAddOpen, &QToolButton::clicked,
+                    this, &KanjiWidget::openAnki
+                );
+                m_buttonAnkiAddOpen->show();
+                m_shortcutAnkiAdd->setEnabled(false);
+            }
+        }
     );
 }
 
@@ -259,7 +262,7 @@ void KanjiWidget::addKVSection(const QString &title,
 /* End Builders */
 /* Begin Button Handlers */
 
-void KanjiWidget::addKanji()
+QCoro::Task<void> KanjiWidget::addKanji()
 {
     m_buttonAnkiAddOpen->setEnabled(false);
     m_shortcutAnkiAdd->setEnabled(false);
@@ -267,7 +270,7 @@ void KanjiWidget::addKanji()
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     PlayerAdapter *player = mediator->getPlayerAdapter();
     SubtitleListWidget *subList = mediator->getSubtitleListWidget();
-    Kanji *kanji = new Kanji(*m_kanji);
+    std::unique_ptr<Kanji> kanji = std::make_unique<Kanji>(*m_kanji);
     double delay =
         mediator->getPlayerAdapter()->getSubDelay() -
         mediator->getPlayerAdapter()->getAudioDelay();
@@ -283,47 +286,41 @@ void KanjiWidget::addKanji()
     kanji->startTimeContext = contextTimes.first + delay;
     kanji->endTimeContext = contextTimes.second + delay;
 
-    AnkiReply *reply = mediator->getAnkiClient()->addNote(kanji);
-    connect(reply, &AnkiReply::finishedInt, this,
-        [this, mediator] (const int, const QString &error)
-        {
-            if (!error.isEmpty())
-            {
-                Q_EMIT mediator->showCritical("Error Adding Note", error);
-            }
-            else
-            {
-                m_buttonAnkiAddOpen->disconnect();
-                m_buttonAnkiAddOpen->setIcon(
-                    IconFactory::create()->getIcon(IconFactory::Icon::hamburger)
-                );
-                m_buttonAnkiAddOpen->setToolTip("Show in Anki");
-                connect(
-                    m_buttonAnkiAddOpen, &QToolButton::clicked,
-                    this, &KanjiWidget::openAnki
-                );
-                m_buttonAnkiAddOpen->setEnabled(true);
-                m_shortcutAnkiAdd->setEnabled(false);
-            }
-        }
+    AnkiReply<int> result =
+        co_await mediator->getAnkiClient()->addNote(std::move(kanji));
+    if (!result.error.isEmpty())
+    {
+        Q_EMIT mediator->showCritical(
+            "Error Adding Note", result.error
+        );
+        co_return;
+    }
+
+    m_buttonAnkiAddOpen->disconnect();
+    m_buttonAnkiAddOpen->setIcon(
+        IconFactory::create()->getIcon(IconFactory::Icon::hamburger)
     );
+    m_buttonAnkiAddOpen->setToolTip("Show in Anki");
+    connect(
+        m_buttonAnkiAddOpen, &QToolButton::clicked,
+        this, &KanjiWidget::openAnki
+    );
+    m_buttonAnkiAddOpen->setEnabled(true);
+    m_shortcutAnkiAdd->setEnabled(false);
 }
 
-void KanjiWidget::openAnki()
+QCoro::Task<void> KanjiWidget::openAnki()
 {
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     QString deck = client->getConfig()->kanjiDeck;
-    AnkiReply *reply = client->openBrowse(deck, m_kanji->character);
-    connect(reply, &AnkiReply::finishedIntList, this,
-        [=] (const QList<int> &, const QString &error) {
-            if (!error.isEmpty())
-            {
-                Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
-                    "Error Opening Anki", error
-                );
-            }
-        }
-    );
+    AnkiReply<QList<int>> result =
+        co_await client->openBrowse(deck, m_kanji->character);
+    if (!result.error.isEmpty())
+    {
+        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
+            "Error Opening Anki", result.error
+        );
+    }
 }
 
 /* End Button Handler */

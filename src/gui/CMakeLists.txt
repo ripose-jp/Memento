@@ -18,5 +18,6 @@ target_link_libraries(
     PRIVATE optionswindow
     PRIVATE playeroverlay
     PRIVATE searchwidget
+    PUBLIC anki
     PUBLIC Qt6::Widgets
 )

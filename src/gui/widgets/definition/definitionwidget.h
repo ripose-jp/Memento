@@ -77,8 +77,9 @@ public Q_SLOTS:
      *              list. Can be nullptr.
      * @param kanji A pointer to the current kanji. Takes ownership. Can be
      *              nullptr.
+     * @return An awaitable task.
      */
-    void setTerms(SharedTermList terms, SharedKanji kanji);
+    QCoro::Task<void> setTerms(SharedTermList terms, SharedKanji kanji);
 
     /**
      * Clears all terms.

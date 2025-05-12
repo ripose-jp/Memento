@@ -44,6 +44,7 @@ target_compile_options(subtitlelist PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(subtitlelist PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     subtitlelist
+    PRIVATE definitionwidget
     PRIVATE playeradapter
     PRIVATE subtitleparser
     PUBLIC Qt6::Widgets

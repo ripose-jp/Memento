@@ -23,15 +23,18 @@
 
 #include <QWidget>
 
+#include <memory>
+
 #include <QLabel>
 #include <QMutex>
 #include <QShortcut>
 
-#include "definitionstate.h"
+#include <qcoro/qcorotask.h>
 
 #include "anki/ankiclient.h"
 #include "dict/expression.h"
 #include "gui/widgets/common/flowlayout.h"
+#include "gui/widgets/definition/definitionstate.h"
 #include "util/constants.h"
 
 class QMenu;
@@ -124,14 +127,16 @@ private Q_SLOTS:
     /**
      * Adds the term belonging to this widget to Anki.
      * @param src The audio source to add.
+     * @return An awaitable task.
      */
-    void addNote(const DefinitionState::AudioSource &src);
+    QCoro::Task<void> addNote(const DefinitionState::AudioSource &src);
 
     /**
      * Opens an Anki window searching the current configured term card deck for
      * the expression of the current term.
+     * @return An awaitable task.
      */
-    void searchAnki();
+    QCoro::Task<void> searchAnki();
 
     /**
      * Plays audio for the term from the audio source.
@@ -173,9 +178,10 @@ private:
 
     /**
      * Initializes a new term to add to Anki without audio information.
-     * @return A term without audio source information. Belongs to the caller.
+     * @return A term without audio source information.
      */
-    Term *initAnkiTerm() const;
+    [[nodiscard]]
+    std::unique_ptr<Term> initAnkiTerm() const;
 
     /**
      * Loads all remote audio sources.
@@ -213,7 +219,7 @@ private:
      * losing this term. This is necessary because of the asynchronous nature
      * of JSON audio sources.
      */
-    Term *m_ankiTerm = nullptr;
+    std::unique_ptr<Term> m_ankiTerm = nullptr;
 
     /* Saved pointer to the global AnkiClient. */
     AnkiClient *m_client;

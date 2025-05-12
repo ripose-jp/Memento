@@ -21,14 +21,10 @@
 #include "ankiclient.h"
 
 #include <QDebug>
-#include <QFile>
 #include <QJsonArray>
-#include <QMetaType>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
-#include <QTemporaryFile>
-#include <QThreadPool>
+#include <QtConcurrent>
+
+#include <qcoro/core/qcorofuture.h>
 
 #include "anki/ankiconnect.h"
 #include "anki/notebuilder.h"
@@ -63,37 +59,16 @@ static constexpr const char *CONFIG_EXCLUDE_GLOSSARY = "ex-glos";
 
 /* Begin Constructor/Destructors */
 
-AnkiClient::AnkiClient(QObject *parent) : QObject(parent)
+AnkiClient::AnkiClient(QObject *parent) : QObject(parent), m_manager(this)
 {
-    m_manager = new QNetworkAccessManager(this);
-    m_manager->setTransferTimeout(TIMEOUT);
+    m_manager.setTransferTimeout(TIMEOUT);
 
     if (!readConfigFromFile(CONFIG_FILE) || m_currentConfig == nullptr)
     {
         setDefaultConfig();
     }
 
-    qRegisterMetaType<QList<GlossaryBuilder::FileInfo>>("FileMap");
-
-    connect(
-        this, &AnkiClient::requestAddMedia,
-        this, &AnkiClient::addMedia
-    );
-    connect(
-        this, &AnkiClient::sendIntRequest,
-        this, &AnkiClient::receiveIntRequest
-    );
-    connect(
-        this, &AnkiClient::sendBoolListRequest,
-        this, &AnkiClient::receiveBoolListRequest
-    );
-
     GlobalMediator::getGlobalMediator()->setAnkiClient(this);
-}
-
-AnkiClient::~AnkiClient()
-{
-    delete m_manager;
 }
 
 void AnkiClient::clearProfiles()
@@ -527,258 +502,198 @@ void AnkiClient::setServer(const QString &address, const QString &port)
 /* End Getter/Setters */
 /* Begin Commands */
 
-AnkiReply *AnkiClient::testConnection()
+QCoro::Task<AnkiReply<bool>> AnkiClient::testConnection()
 {
-    QNetworkReply *reply = makeRequest(AnkiConnect::Action::VERSION);
-    AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, this,
-        [this, reply, ankiReply]
-        {
-            QString error;
-            QJsonObject replyObj = processReply(reply, error);
-            if (replyObj.isEmpty())
-            {
-                Q_EMIT ankiReply->finishedBool(false, error);
-            }
-            else if (!replyObj[AnkiConnect::Req::RESULT].isDouble())
-            {
-                Q_EMIT ankiReply->finishedBool(
-                    false, "AnkiConnect result is not a number"
-                );
-            }
-            else if (replyObj[AnkiConnect::Req::RESULT].toInt() <
-                MIN_ANKICONNECT_VERSION)
-            {
-                error = "AnkiConnect version %1 < %2";
-                error = error.arg(
-                    QString::number(replyObj[AnkiConnect::Req::RESULT].toInt()),
-                    QString::number(MIN_ANKICONNECT_VERSION)
-                );
-                Q_EMIT ankiReply->finishedBool(false, error);
-            }
-            else
-            {
-                Q_EMIT ankiReply->finishedBool(true, error);
-            }
-            ankiReply->deleteLater();
-            reply->deleteLater();
-        }
-    );
-    return ankiReply;
+    AnkiReply<bool> result{};
+
+    std::unique_ptr<QNetworkReply> reply =
+        co_await makeRequest(AnkiConnect::Action::VERSION);
+
+    QJsonObject replyObj = processReply(*reply, result.error);
+    if (replyObj.isEmpty())
+    {
+        result.value = false;
+        co_return result;
+    }
+
+    if (!replyObj[AnkiConnect::Req::RESULT].isDouble())
+    {
+        result.value = false;
+        result.error = "AnkiConnect result is not a number";
+        co_return result;
+    }
+
+    if (replyObj[AnkiConnect::Req::RESULT].toInt() < MIN_ANKICONNECT_VERSION)
+    {
+        result.value = false;
+        result.error = "AnkiConnect version %1 < %2";
+        result.error = result.error.arg(
+            QString::number(replyObj[AnkiConnect::Req::RESULT].toInt()),
+            QString::number(MIN_ANKICONNECT_VERSION)
+        );
+        co_return result;
+    }
+
+    result.value = true;
+    co_return result;
 }
 
-AnkiReply *AnkiClient::getDeckNames()
+QCoro::Task<AnkiReply<QStringList>> AnkiClient::getDeckNames()
 {
     return requestStringList(AnkiConnect::Action::DECK_NAMES);
 }
 
-AnkiReply *AnkiClient::getModelNames()
+QCoro::Task<AnkiReply<QStringList>> AnkiClient::getModelNames()
 {
     return requestStringList(AnkiConnect::Action::MODEL_NAMES);
 }
 
-AnkiReply *AnkiClient::getFieldNames(const QString &model)
+QCoro::Task<AnkiReply<QStringList>> AnkiClient::getFieldNames(
+    const QString &model)
 {
     QJsonObject params;
     params[AnkiConnect::Param::MODEL_NAME] = model;
-    return requestStringList(AnkiConnect::Action::FIELD_NAMES, params);
+    return requestStringList(
+        AnkiConnect::Action::FIELD_NAMES, std::move(params)
+    );
 }
 
-AnkiReply *AnkiClient::notesAddable(QList<QSharedPointer<const Term>> terms)
+QCoro::Task<AnkiReply<QList<bool>>> AnkiClient::notesAddable(
+    QList<QSharedPointer<const Term>> terms)
 {
-    AnkiReply *ankiReply = new AnkiReply;
-
-    QThreadPool::globalInstance()->start(
-    [this, terms, ankiReply]
-    {
-        QJsonArray notes;
-        for (QSharedPointer<const Term> term : terms)
+    QJsonObject params = co_await QtConcurrent::run(
+        [currentConfig = m_currentConfig, terms] () -> QJsonObject
         {
-            /* Make sure to check for both reading as expression and not */
-            Term termCopy(*term);
-            termCopy.readingAsExpression = false;
-            Anki::Note::Context ctx =
-                Anki::Note::build(*m_currentConfig, termCopy, false);
-            notes.append(ctx.ankiObject);
-            if (!term->reading.isEmpty())
+            QJsonArray notes;
+            for (QSharedPointer<const Term> term : terms)
             {
-                termCopy.readingAsExpression = true;
+                /* Make sure to check for both reading as expression and not */
+                Term termCopy(*term);
+                termCopy.readingAsExpression = false;
                 Anki::Note::Context ctx =
-                    Anki::Note::build(*m_currentConfig, termCopy, false);
+                    Anki::Note::build(*currentConfig, termCopy, false);
                 notes.append(ctx.ankiObject);
-            }
-        }
-        QJsonObject params;
-        params[AnkiConnect::Note::CAN_ADD_NOTES_PARAM] = notes;
-
-        AnkiReply *proxyReply = new AnkiReply;
-        connect(proxyReply, &AnkiReply::finishedBoolList, this,
-        [ankiReply, terms] (const QList<bool> &value, const QString &error)
-        {
-            QList<bool> result;
-            for (int termsIdx = 0, valueIdx = 0;
-                 termsIdx < terms.size() && valueIdx < value.size();
-                 ++termsIdx)
-            {
-                if (terms[termsIdx]->reading.isEmpty())
+                if (!term->reading.isEmpty())
                 {
-                    result << value[valueIdx] << false;
-                    ++valueIdx;
-                }
-                else
-                {
-                    result << value[valueIdx] << value[valueIdx + 1];
-                    valueIdx += 2;
+                    termCopy.readingAsExpression = true;
+                    Anki::Note::Context ctx =
+                        Anki::Note::build(*currentConfig, termCopy, false);
+                    notes.append(ctx.ankiObject);
                 }
             }
-            Q_EMIT ankiReply->finishedBoolList(result, error);
-            ankiReply->deleteLater();
+            QJsonObject params;
+            params[AnkiConnect::Note::CAN_ADD_NOTES_PARAM] = std::move(notes);
+            return params;
         }
-        );
-
-        Q_EMIT sendBoolListRequest(
-            AnkiConnect::Action::CAN_ADD_NOTES, params, proxyReply
-        );
-    }
     );
 
-    return ankiReply;
+    AnkiReply<QList<bool>> canAddResult = co_await requestBoolList(
+        AnkiConnect::Action::CAN_ADD_NOTES, std::move(params)
+    );
+    if (!canAddResult.error.isEmpty())
+    {
+        canAddResult.value.clear();
+        co_return canAddResult;
+    }
+
+    AnkiReply<QList<bool>> result{};
+    for (int termsIdx = 0, valueIdx = 0;
+         termsIdx < terms.size() && valueIdx < canAddResult.value.size();
+         ++termsIdx)
+    {
+        if (terms[termsIdx]->reading.isEmpty())
+        {
+            result.value.emplaceBack(canAddResult.value[valueIdx]);
+            result.value.emplaceBack(false);
+            ++valueIdx;
+        }
+        else
+        {
+            result.value.emplaceBack(canAddResult.value[valueIdx]);
+            result.value.emplaceBack(canAddResult.value[valueIdx + 1]);
+            valueIdx += 2;
+        }
+    }
+    co_return result;
 }
 
-AnkiReply *AnkiClient::notesAddable(QList<QSharedPointer<const Kanji>> kanji)
+QCoro::Task<AnkiReply<QList<bool>>> AnkiClient::notesAddable(
+    QList<QSharedPointer<const Kanji>> kanji)
 {
-    AnkiReply *ankiReply = new AnkiReply;
-
-    QThreadPool::globalInstance()->start(
-        [this, kanji, ankiReply] {
+    QJsonObject params = co_await QtConcurrent::run(
+        [currentConfig = m_currentConfig, kanji] () -> QJsonObject
+        {
             QJsonArray notes;
             for (QSharedPointer<const Kanji> kanji : kanji)
             {
                 Anki::Note::Context ctx =
-                    Anki::Note::build(*m_currentConfig, *kanji, false);
+                    Anki::Note::build(*currentConfig, *kanji, false);
                 notes.append(ctx.ankiObject);
             }
             QJsonObject params;
             params[AnkiConnect::Note::CAN_ADD_NOTES_PARAM] = notes;
-            Q_EMIT sendBoolListRequest(
-                AnkiConnect::Action::CAN_ADD_NOTES, params, ankiReply
-            );
+            return params;
         }
     );
-
-    return ankiReply;
+    co_return co_await requestBoolList(
+        AnkiConnect::Action::CAN_ADD_NOTES, std::move(params)
+    );
 }
 
-AnkiReply *AnkiClient::addNote(const Term *term)
+QCoro::Task<AnkiReply<int>> AnkiClient::addNote(
+    std::unique_ptr<const Term> term)
 {
-    AnkiReply *ankiReply = new AnkiReply;
-
-    QThreadPool::globalInstance()->start(
-        [this, term, ankiReply]
-        {
-            QJsonObject params;
-            Anki::Note::Context ctx =
-                Anki::Note::build(*m_currentConfig, *term, true);
-            if (!ctx.fileMap.isEmpty())
-            {
-                Q_EMIT requestAddMedia(ctx.fileMap);
-            }
-            delete term;
-            params[AnkiConnect::Param::ADD_NOTE] = ctx.ankiObject;
-            Q_EMIT sendIntRequest(
-                AnkiConnect::Action::ADD_NOTE, params, ankiReply
-            );
-        }
+    Anki::Note::Context ctx = co_await QtConcurrent::run(
+        static_cast<
+            Anki::Note::Context(*)(const AnkiConfig &, const Term &, bool)
+        >(&Anki::Note::build),
+        *m_currentConfig,
+        *term,
+        true
     );
 
-    return ankiReply;
-}
-
-AnkiReply *AnkiClient::addNote(const Kanji *kanji)
-{
-    AnkiReply *ankiReply = new AnkiReply;
-
-    QThreadPool::globalInstance()->start(
-        [this, kanji, ankiReply]
-        {
-            QJsonObject params;
-            Anki::Note::Context ctx =
-                Anki::Note::build(*m_currentConfig, *kanji, true);
-            delete kanji;
-            params[AnkiConnect::Param::ADD_NOTE] = ctx.ankiObject;
-            Q_EMIT sendIntRequest(
-                AnkiConnect::Action::ADD_NOTE, params, ankiReply
-            );
-        }
-    );
-
-    return ankiReply;
-}
-
-AnkiReply *AnkiClient::openBrowse(const QString &deck, const QString &query)
-{
-    QJsonObject params;
-    QString queryStr;
-    switch (m_currentConfig->duplicatePolicy)
+    if (!ctx.fileMap.isEmpty())
     {
-    case AnkiConfig::DifferentDeck:
-    case AnkiConfig::SameDeck:
-        queryStr += "\"deck:" + deck + "\" ";
-        __attribute__((fallthrough));
-    case AnkiConfig::None:
-    default:
-        queryStr += '(';
-        queryStr += query;
-        queryStr += ')';
-    }
-    params[AnkiConnect::Param::QUERY] = queryStr;
-    QNetworkReply *reply = makeRequest(AnkiConnect::Action::GUI_BROWSE, params);
-    AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, this,
-        [this, reply, ankiReply]
+        AnkiReply<QStringList> addMediaResult =
+            co_await addMedia(std::move(ctx.fileMap));
+        if (!addMediaResult.error.isEmpty())
         {
-            QString error;
-            QJsonObject replyObj = processReply(reply, error);
-            if (replyObj.isEmpty())
-            {
-                Q_EMIT ankiReply->finishedIntList(QList<int>(), error);
-            }
-            else if (!replyObj[AnkiConnect::Req::RESULT].isArray())
-            {
-                Q_EMIT ankiReply->finishedIntList(
-                    QList<int>(), "Result is not an array"
-                );
-            }
-            else
-            {
-                QList<int> response;
-                QJsonArray resultArray =
-                    replyObj[AnkiConnect::Req::RESULT].toArray();
-                for (const QJsonValueRef &addable : resultArray)
-                {
-                    if (addable.isDouble())
-                    {
-                        response.append(addable.toInt());
-                    }
-                    else
-                    {
-                        Q_EMIT ankiReply->finishedIntList(
-                            QList<int>(), "Response was not an array of bool"
-                        );
-                    }
-                }
-                Q_EMIT ankiReply->finishedIntList(response, error);
-            }
-            ankiReply->deleteLater();
-            reply->deleteLater();
+            co_return AnkiReply<int>{
+                .value = {},
+                .error = std::move(addMediaResult.error),
+            };
         }
+    }
+
+    QJsonObject params;
+    params[AnkiConnect::Param::ADD_NOTE] = std::move(ctx.ankiObject);
+    co_return co_await requestInt(
+        AnkiConnect::Action::ADD_NOTE, std::move(params)
     );
-    return ankiReply;
 }
 
-AnkiReply *AnkiClient::addMedia(const QList<GlossaryBuilder::FileInfo> &fileMap)
+QCoro::Task<AnkiReply<int>> AnkiClient::addNote(
+    std::unique_ptr<const Kanji> kanji)
 {
+    Anki::Note::Context ctx = co_await QtConcurrent::run(
+        static_cast<
+            Anki::Note::Context(*)(const AnkiConfig &, const Kanji &, bool)
+        >(&Anki::Note::build),
+        *m_currentConfig,
+        *kanji,
+        true
+    );
+
     QJsonObject params;
+    params[AnkiConnect::Param::ADD_NOTE] = std::move(ctx.ankiObject);
+    co_return co_await requestInt(
+        AnkiConnect::Action::ADD_NOTE, std::move(params)
+    );
+}
+
+QCoro::Task<AnkiReply<QStringList>> AnkiClient::addMedia(
+    QList<GlossaryBuilder::FileInfo> fileMap)
+{
     QJsonArray actions;
     for (const GlossaryBuilder::FileInfo &info : fileMap)
     {
@@ -790,78 +705,183 @@ AnkiReply *AnkiClient::addMedia(const QList<GlossaryBuilder::FileInfo> &fileMap)
         fileParams[AnkiConnect::Note::FILENAME] = info.name;
         command[AnkiConnect::Req::PARAMS] = fileParams;
 
-        actions << command;
+        actions.append(std::move(command));
     }
-    params[AnkiConnect::Param::ACTIONS] = actions;
 
-    QNetworkReply *reply = makeRequest(AnkiConnect::Action::MULTI, params);
-    AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, this,
-        [this, reply, ankiReply]
+    QJsonObject params;
+    params[AnkiConnect::Param::ACTIONS] = std::move(actions);
+
+    std::unique_ptr<QNetworkReply> reply =
+        co_await makeRequest(AnkiConnect::Action::MULTI, params);
+
+    AnkiReply<QStringList> result{};
+
+    QJsonObject multiResult = processReply(*reply, result.error);
+    if (multiResult.isEmpty())
+    {
+        co_return result;
+    }
+
+    if (!multiResult[AnkiConnect::Req::RESULT].isArray())
+    {
+        result.error = "Result is not an array";
+        co_return result;
+    }
+
+    QJsonArray actionResults = multiResult[AnkiConnect::Req::RESULT].toArray();
+    for (QJsonValueRef actionResult : actionResults)
+    {
+        if (!actionResult.isString())
         {
-            QString error;
-            QJsonObject replyObj = processReply(reply, error);
-            if (replyObj.isEmpty())
-            {
-                Q_EMIT ankiReply->finishedStringList(QStringList(), error);
-            }
-            else if (!replyObj[AnkiConnect::Req::RESULT].isArray())
-            {
-                Q_EMIT ankiReply->finishedStringList(
-                    QStringList(), "Result is not an array"
-                );
-            }
-            else
-            {
-                QStringList filenames;
-                QJsonArray resultObjects =
-                    replyObj[AnkiConnect::Req::RESULT].toArray();
-                for (const QJsonValueRef &result : resultObjects)
-                {
-                    QJsonObject obj;
-                    if (!result.isObject())
-                    {
-                        Q_EMIT ankiReply->finishedStringList(
-                            QStringList(), "Result is not an array of objects"
-                        );
-                        goto exit;
-                    }
-
-                    obj = result.toObject();
-                    if (!obj[AnkiConnect::Reply::ERROR].isNull())
-                    {
-                        Q_EMIT ankiReply->finishedStringList(
-                            QStringList(),
-                            obj[AnkiConnect::Reply::ERROR].toString()
-                        );
-                        goto exit;
-                    }
-
-                    if (!obj[AnkiConnect::Req::RESULT].isString())
-                    {
-                        Q_EMIT ankiReply->finishedStringList(
-                            QStringList(), "A result is not a string"
-                        );
-                        goto exit;
-                    }
-
-                    filenames << obj[AnkiConnect::Req::RESULT].toString();
-                }
-                Q_EMIT ankiReply->finishedStringList(filenames, error);
-            }
-        exit:
-            ankiReply->deleteLater();
-            reply->deleteLater();
+            result.value.clear();
+            result.error = "Result is not a string";
+            co_return result;
         }
-    );
-    return ankiReply;
+        result.value.emplaceBack(actionResult.toString());
+    }
+    co_return result;
+}
+
+QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openBrowse(
+    const QString &deck, const QString &query)
+{
+    QJsonObject params;
+    QString queryStr;
+    switch (m_currentConfig->duplicatePolicy)
+    {
+        case AnkiConfig::DifferentDeck:
+        case AnkiConfig::SameDeck:
+            queryStr += "\"deck:" + deck + "\" ";
+            [[fallthrough]];
+
+        case AnkiConfig::None:
+        default:
+            queryStr += '(';
+            queryStr += query;
+            queryStr += ')';
+            break;
+    }
+    params[AnkiConnect::Param::QUERY] = std::move(queryStr);
+
+    std::unique_ptr<QNetworkReply> reply =
+        co_await makeRequest(AnkiConnect::Action::GUI_BROWSE, params);
+
+    AnkiReply<QList<int>> result{};
+
+    QJsonObject replyObj = processReply(*reply, result.error);
+    if (replyObj.isEmpty())
+    {
+        co_return result;
+    }
+
+    if (!replyObj[AnkiConnect::Req::RESULT].isArray())
+    {
+        result.error = "Result is not an array";
+        co_return result;
+    }
+
+    QJsonArray resultArray = replyObj[AnkiConnect::Req::RESULT].toArray();
+    for (QJsonValueRef addable : resultArray)
+    {
+        if (!addable.isDouble())
+        {
+            result.value.clear();
+            result.error = "Response was not an array of bool";
+            co_return result;
+        }
+        result.value.emplaceBack(addable.toInt());
+    }
+    co_return result;
 }
 
 /* End Commands */
 /* Begin Network Helpers */
 
-QNetworkReply *AnkiClient::makeRequest(const QString     &action,
-                                       const QJsonObject &params)
+QCoro::Task<AnkiReply<QStringList>> AnkiClient::requestStringList(
+    const QString &action, const QJsonObject &params)
+{
+    std::unique_ptr<QNetworkReply> reply = co_await makeRequest(action, params);
+
+    AnkiReply<QStringList> result{};
+
+    QJsonObject replyObj = processReply(*reply, result.error);
+    if (replyObj.isEmpty())
+    {
+        co_return result;
+    }
+
+    if (!replyObj[AnkiConnect::Req::RESULT].isArray())
+    {
+        result.error = "Result is not an array";
+        co_return result;
+    }
+
+    QJsonArray deckNames = replyObj[AnkiConnect::Req::RESULT].toArray();
+    for (const QJsonValueRef name : deckNames)
+    {
+        result.value.append(name.toString());
+    }
+    co_return result;
+}
+
+QCoro::Task<AnkiReply<QList<bool>>> AnkiClient::requestBoolList(
+    const QString &action, const QJsonObject &params)
+{
+    std::unique_ptr<QNetworkReply> reply = co_await makeRequest(action, params);
+
+    AnkiReply<QList<bool>> result{};
+
+    QJsonObject replyObj = processReply(*reply, result.error);
+    if (replyObj.isEmpty())
+    {
+        co_return result;
+    }
+
+    if (!replyObj[AnkiConnect::Req::RESULT].isArray())
+    {
+        result.error = "Result is not an array";
+        co_return result;
+    }
+
+    QJsonArray resultArray = replyObj[AnkiConnect::Req::RESULT].toArray();
+    for (QJsonValueRef addable : resultArray)
+    {
+        if (!addable.isBool())
+        {
+            result.value.clear();
+            result.error = "Response was not an array of bool";
+            co_return result;
+        }
+        result.value.emplaceBack(addable.toBool());
+    }
+    co_return result;
+}
+
+QCoro::Task<AnkiReply<int>> AnkiClient::requestInt(
+    const QString &action, const QJsonObject &params)
+{
+    std::unique_ptr<QNetworkReply> reply = co_await makeRequest(action, params);
+
+    AnkiReply<int> result{};
+
+    QJsonObject replyObj = processReply(*reply, result.error);
+    if (replyObj.isEmpty())
+    {
+        co_return result;
+    }
+
+    if (!replyObj[AnkiConnect::Req::RESULT].isDouble())
+    {
+        result.error = "AnkiConnect result is not a double";
+        co_return result;
+    }
+
+    result.value = replyObj[AnkiConnect::Req::RESULT].toInt();
+    co_return result;
+}
+
+QCoro::Task<std::unique_ptr<QNetworkReply>> AnkiClient::makeRequest(
+    const QString &action, const QJsonObject &params)
 {
     QNetworkRequest request;
     request.setUrl(QUrl("http://" + m_address + ":" + m_port));
@@ -876,20 +896,22 @@ QNetworkReply *AnkiClient::makeRequest(const QString     &action,
     }
     QJsonDocument jsonDoc(jsonMsg);
 
-    return m_manager->post(request, jsonDoc.toJson());
+    co_return std::unique_ptr<QNetworkReply>{
+        co_await m_manager.post(request, jsonDoc.toJson())
+    };
 }
 
-QJsonObject AnkiClient::processReply(QNetworkReply *reply, QString &error)
+QJsonObject AnkiClient::processReply(QNetworkReply &reply, QString &error)
 {
-    switch (reply->error())
+    switch (reply.error())
     {
     case QNetworkReply::NoError:
     {
-        QJsonDocument replyDoc = QJsonDocument::fromJson(reply->readAll());
+        QJsonDocument replyDoc = QJsonDocument::fromJson(reply.readAll());
         if (replyDoc.isNull())
         {
             error = "Reply was not JSON";
-            qDebug() << reply->readAll();
+            qDebug() << reply.readAll();
             return QJsonObject();
         }
         else if (!replyDoc.isObject())
@@ -922,124 +944,10 @@ QJsonObject AnkiClient::processReply(QNetworkReply *reply, QString &error)
         break;
     }
     default:
-        error = reply->errorString();
+        error = reply.errorString();
     }
 
     return QJsonObject();
-}
-
-void AnkiClient::receiveIntRequest(const QString     &action,
-                                   const QJsonObject &params,
-                                   AnkiReply         *ankiReply)
-{
-    QNetworkReply *reply = makeRequest(action, params);
-    connect(reply, &QNetworkReply::finished, this,
-        [this, reply, ankiReply]
-        {
-            QString error;
-            QJsonObject replyObj = processReply(reply, error);
-            if (replyObj.isEmpty())
-            {
-                Q_EMIT ankiReply->finishedInt(0, error);
-            }
-            else if (!replyObj[AnkiConnect::Req::RESULT].isDouble())
-            {
-                Q_EMIT ankiReply->finishedInt(
-                    0, "AnkiConnect result is not a double"
-                );
-            }
-            else
-            {
-                Q_EMIT ankiReply->finishedInt(
-                    replyObj[AnkiConnect::Req::RESULT].toInt(), error
-                );
-            }
-            ankiReply->deleteLater();
-            reply->deleteLater();
-        }
-    );
-}
-
-void AnkiClient::receiveBoolListRequest(const QString     &action,
-                                        const QJsonObject &params,
-                                        AnkiReply         *ankiReply)
-{
-    QNetworkReply *reply = makeRequest(action, params);
-    connect(reply, &QNetworkReply::finished, this,
-        [this, reply, ankiReply]
-        {
-            QString error;
-            QJsonObject replyObj = processReply(reply, error);
-            if (replyObj.isEmpty())
-            {
-                Q_EMIT ankiReply->finishedBoolList(QList<bool>(), error);
-            }
-            else if (!replyObj[AnkiConnect::Req::RESULT].isArray())
-            {
-                Q_EMIT ankiReply->finishedBoolList(
-                    QList<bool>(), "Result is not an array"
-                );
-            }
-            else
-            {
-                QList<bool> response;
-                QJsonArray resultArray =
-                    replyObj[AnkiConnect::Req::RESULT].toArray();
-                for (const QJsonValueRef &addable : resultArray)
-                {
-                    if (addable.isBool())
-                    {
-                        response.append(addable.toBool());
-                    }
-                    else
-                    {
-                        Q_EMIT ankiReply->finishedBoolList(
-                            QList<bool>(), "Response was not an array of bool"
-                        );
-                    }
-                }
-                Q_EMIT ankiReply->finishedBoolList(response, error);
-            }
-            ankiReply->deleteLater();
-            reply->deleteLater();
-        }
-    );
-}
-
-AnkiReply *AnkiClient::requestStringList(const QString     &action,
-                                         const QJsonObject &params)
-{
-    QNetworkReply *reply = makeRequest(action, params);
-    AnkiReply *ankiReply = new AnkiReply;
-    connect(reply, &QNetworkReply::finished, this,
-        [this, reply, ankiReply]
-        {
-            QString error;
-            QJsonObject replyObj = processReply(reply, error);
-            if (replyObj.isEmpty())
-            {
-                Q_EMIT ankiReply->finishedStringList(QStringList(), error);
-            }
-            else if (!replyObj[AnkiConnect::Req::RESULT].isArray())
-            {
-                Q_EMIT ankiReply->finishedStringList(
-                    QStringList(), "Result is not an array"
-                );
-            }
-            else
-            {
-                QStringList decks;
-                QJsonArray deckNames =
-                    replyObj[AnkiConnect::Req::RESULT].toArray();
-                for (const QJsonValueRef &name : deckNames)
-                    decks.append(name.toString());
-                Q_EMIT ankiReply->finishedStringList(decks, error);
-            }
-            ankiReply->deleteLater();
-            reply->deleteLater();
-        }
-    );
-    return ankiReply;
 }
 
 /* End Network Helpers */

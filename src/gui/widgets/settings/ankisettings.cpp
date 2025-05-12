@@ -135,7 +135,7 @@ AnkiSettings::AnkiSettings(QWidget *parent)
     );
     connect(
         m_ui->buttonConnect, &QPushButton::clicked,
-        this, [this] { connectToClient(true); }
+        this, [this] { return connectToClient(true); }
     );
     connect(
         m_ui->checkboxAdvanced,
@@ -357,104 +357,89 @@ void AnkiSettings::restoreSaved()
 /* End Dialog Button Actions */
 /* Begin AnkiConnect Actions */
 
-void AnkiSettings::connectToClient(const bool showErrors)
+QCoro::Task<void> AnkiSettings::connectToClient(const bool showErrors)
 {
     m_ui->buttonConnect->setEnabled(false);
 
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
     client->setServer(m_ui->lineEditHost->text(), m_ui->lineEditPort->text());
 
-    AnkiReply *reply = client->testConnection();
-    connect(reply, &AnkiReply::finishedBool, this,
-        [this, client, showErrors] (const bool val, const QString &error)
+    AnkiReply<bool> testResult = co_await client->testConnection();
+    if (!testResult.value)
+    {
+        if (showErrors)
         {
-            if (val)
-            {
-                AnkiReply *reply = client->getDeckNames();
-                connect(reply, &AnkiReply::finishedStringList,
-                    [this, client, showErrors]
-                    (const QStringList &decks, const QString &error)
-                    {
-                        if (error.isEmpty())
-                        {
-                            m_ui->termCardBuilder->setDecks(
-                                decks,
-                                client->getConfig(client->getProfile())->termDeck
-                            );
-                            m_ui->kanjiCardBuilder->setDecks(
-                                decks,
-                                client->getConfig(client->getProfile())->kanjiDeck
-                            );
-                        }
-                        else if (showErrors)
-                        {
-                            Q_EMIT GlobalMediator::getGlobalMediator()
-                                ->showCritical("Error", error);
-                        }
-                    }
-                );
-
-                reply = client->getModelNames();
-                connect(reply, &AnkiReply::finishedStringList,
-                    [this, client, showErrors]
-                    (const QStringList &models, const QString &error)
-                    {
-                        if (error.isEmpty())
-                        {
-                            m_ui->termCardBuilder->blockSignals(true);
-                            m_ui->termCardBuilder->setModels(
-                                models,
-                                client->getConfig(client->getProfile())->termModel
-                            );
-                            m_ui->termCardBuilder->blockSignals(false);
-
-                            m_ui->kanjiCardBuilder->blockSignals(true);
-                            m_ui->kanjiCardBuilder->setModels(
-                                models,
-                                client->getConfig(client->getProfile())->kanjiModel
-                            );
-                            m_ui->kanjiCardBuilder->blockSignals(false);
-                        }
-                        else if (showErrors)
-                        {
-                            Q_EMIT GlobalMediator::getGlobalMediator()
-                                ->showCritical("Error", error);
-                        }
-                    }
-                );
-            }
-            else if (showErrors)
-            {
-                Q_EMIT GlobalMediator::getGlobalMediator()
-                    ->showCritical("Error", error);
-            }
-
-            m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
+            Q_EMIT GlobalMediator::getGlobalMediator()
+                ->showCritical("Error", testResult.error);
         }
+        m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
+        co_return;
+    }
+
+    AnkiReply<QStringList> deckNames = co_await client->getDeckNames();
+    if (!deckNames.error.isEmpty())
+    {
+        if (showErrors)
+        {
+            Q_EMIT GlobalMediator::getGlobalMediator()
+                ->showCritical("Error", deckNames.error);
+        }
+        m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
+        co_return;
+    }
+    m_ui->termCardBuilder->setDecks(
+        deckNames.value,
+        client->getConfig(client->getProfile())->termDeck
     );
+    m_ui->kanjiCardBuilder->setDecks(
+        deckNames.value,
+        client->getConfig(client->getProfile())->kanjiDeck
+    );
+
+    AnkiReply<QStringList> modelNames = co_await client->getModelNames();
+    if (!modelNames.error.isEmpty())
+    {
+        if (showErrors)
+        {
+            Q_EMIT GlobalMediator::getGlobalMediator()
+                ->showCritical("Error", modelNames.error);
+        }
+        m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
+        co_return;
+    }
+    m_ui->termCardBuilder->blockSignals(true);
+    m_ui->termCardBuilder->setModels(
+        modelNames.value,
+        client->getConfig(client->getProfile())->termModel
+    );
+    m_ui->termCardBuilder->blockSignals(false);
+
+    m_ui->kanjiCardBuilder->blockSignals(true);
+    m_ui->kanjiCardBuilder->setModels(
+        modelNames.value,
+        client->getConfig(client->getProfile())->kanjiModel
+    );
+    m_ui->kanjiCardBuilder->blockSignals(false);
+
+    m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
 }
 
-void AnkiSettings::updateModelFields(CardBuilder *cb, const QString &model)
+QCoro::Task<void> AnkiSettings::updateModelFields(
+    CardBuilder *cb, const QString &model)
 {
     m_mutexUpdateModelFields.lock();
     AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
-    AnkiReply *reply = client->getFieldNames(model);
-    connect(reply, &AnkiReply::finishedStringList,
-        [this, cb]
-        (const QStringList &fields, const QString error)
-        {
-            if (error.isEmpty())
-            {
-                cb->setFields(fields);
-            }
-            else
-            {
-                Q_EMIT GlobalMediator::getGlobalMediator()
-                    ->showCritical("Error", error);
-            }
-            m_mutexUpdateModelFields.unlock();
-        }
-    );
+    AnkiReply<QStringList> fieldNames = co_await client->getFieldNames(model);
+    if (fieldNames.error.isEmpty())
+    {
+        cb->setFields(fieldNames.value);
+    }
+    else
+    {
+        Q_EMIT GlobalMediator::getGlobalMediator()
+            ->showCritical("Error", fieldNames.error);
+    }
+    m_mutexUpdateModelFields.unlock();
 }
 
 /* End AnkiConnect Actions */
