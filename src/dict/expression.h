@@ -21,11 +21,12 @@
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
 
+#include <memory>
+
 #include <QJsonArray>
 #include <QList>
 #include <QMetaType>
 #include <QSet>
-#include <QSharedPointer>
 #include <QString>
 #include <QStringList>
 #include <QVariant>
@@ -291,8 +292,8 @@ struct Kanji : public CommonExpFields
     QList<KanjiDefinition> definitions;
 };
 
-using SharedTerm = QSharedPointer<Term>;
-using SharedTermList = QSharedPointer<QList<SharedTerm>>;
-using SharedKanji = QSharedPointer<Kanji>;
+using SharedTerm = std::shared_ptr<Term>;
+using SharedTermList = std::shared_ptr<QList<SharedTerm>>;
+using SharedKanji = std::shared_ptr<Kanji>;
 
 #endif // EXPRESSION_H

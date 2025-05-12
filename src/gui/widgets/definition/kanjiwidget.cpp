@@ -20,8 +20,6 @@
 
 #include "kanjiwidget.h"
 
-#include <memory>
-
 #include <QClipboard>
 #include <QDebug>
 #include <QGuiApplication>
@@ -41,7 +39,7 @@
 /* Begin Constructor/Destructor */
 
 KanjiWidget::KanjiWidget(
-    QSharedPointer<const Kanji> kanji,
+    std::shared_ptr<const Kanji> kanji,
     bool showBack,
     QWidget *parent)
     : QWidget(parent),
@@ -134,7 +132,7 @@ KanjiWidget::KanjiWidget(
     }
 
     QCoro::Task<AnkiReply<QList<bool>>> reply =
-        client->notesAddable(QList<QSharedPointer<const Kanji>>({m_kanji}));
+        client->notesAddable(QList<std::shared_ptr<const Kanji>>({m_kanji}));
     QCoro::connect(
         std::move(reply),
         this,

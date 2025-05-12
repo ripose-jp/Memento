@@ -23,9 +23,10 @@
 
 #include <QStackedLayout>
 
+#include <memory>
+
 #include <QPointer>
 #include <QPropertyAnimation>
-#include <QSharedPointer>
 #include <QTimer>
 
 class DefinitionWidget;
@@ -36,11 +37,11 @@ class PlayerMenu;
 class SubtitleWidget;
 
 struct Term;
-typedef QSharedPointer<Term> SharedTerm;
-typedef QSharedPointer<QList<SharedTerm>> SharedTermList;
+typedef std::shared_ptr<Term> SharedTerm;
+typedef std::shared_ptr<QList<SharedTerm>> SharedTermList;
 
 struct Kanji;
-typedef QSharedPointer<Kanji> SharedKanji;
+typedef std::shared_ptr<Kanji> SharedKanji;
 
 /**
  * Widget for overlaying controls over the player.

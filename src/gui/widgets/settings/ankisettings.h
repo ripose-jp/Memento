@@ -180,7 +180,7 @@ private:
     AnkiSettingsHelp *m_ankiSettingsHelp;
 
     /* A cached set of configs index by profile name. */
-    QHash<QString, QSharedPointer<AnkiConfig>> m_configs;
+    QHash<QString, std::shared_ptr<AnkiConfig>> m_configs;
 
     /* The name of the current profile visible in the UI. */
     QString m_currentProfile;

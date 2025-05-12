@@ -23,16 +23,17 @@
 
 #include <QWidget>
 
+#include <memory>
+
 #include <QPointer>
 #include <QShortcut>
 #include <QWheelEvent>
 
-#include "definitionstate.h"
-#include "kanjiwidget.h"
-#include "termwidget.h"
-
 #include "anki/ankiclient.h"
 #include "dict/expression.h"
+#include "gui/widgets/definition/definitionstate.h"
+#include "gui/widgets/definition/kanjiwidget.h"
+#include "gui/widgets/definition/termwidget.h"
 
 enum class AudioSourceType;
 
@@ -137,7 +138,7 @@ private Q_SLOTS:
      * Hides terms and shows a kanji entry.
      * @param kanji The kanji to show.
      */
-    void showKanji(QSharedPointer<const Kanji> kanji);
+    void showKanji(const std::shared_ptr<const Kanji> &kanji);
 
     /**
      * Hides the currently shown kanji entry and brings up current terms.
@@ -218,10 +219,10 @@ private:
     DefinitionState m_state{};
 
     /* List of terms. Owned by this widget. */
-    QList<QSharedPointer<const Term>> m_terms;
+    QList<std::shared_ptr<const Term>> m_terms;
 
     /* Pointer to the current kanji */
-    QSharedPointer<const Kanji> m_kanji;
+    std::shared_ptr<const Kanji> m_kanji;
 
     /* List of booleans describing if a term can be added to Anki. */
     QList<bool> m_addable;

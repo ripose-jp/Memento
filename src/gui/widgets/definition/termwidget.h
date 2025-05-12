@@ -59,7 +59,7 @@ public:
      * @param parent      The parent of this widget.
      */
     TermWidget(
-        QSharedPointer<const Term> term,
+        std::shared_ptr<const Term> term,
         const DefinitionState &state,
         QWidget *parent = nullptr);
     ~TermWidget();
@@ -87,7 +87,7 @@ Q_SIGNALS:
      * Emitted when a kanji is searched by the user and found.
      * @param kanji The found kanji.
      */
-    void kanjiSearched(QSharedPointer<const Kanji> kanji);
+    void kanjiSearched(std::shared_ptr<const Kanji> kanji);
 
     /**
      * Emitted when a recursive search is performed.
@@ -209,7 +209,7 @@ private:
     Ui::TermWidget *m_ui;
 
     /* The term this widget is displaying. */
-    QSharedPointer<const Term> m_term;
+    std::shared_ptr<const Term> m_term;
 
     /* The state of the parent definition widget */
     const DefinitionState &m_state;

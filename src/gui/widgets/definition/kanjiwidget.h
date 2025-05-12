@@ -23,6 +23,8 @@
 
 #include <QWidget>
 
+#include <memory>
+
 #include <QShortcut>
 
 #include <qcoro/qcorotask.h>
@@ -49,7 +51,7 @@ public:
      * @param parent   The parent of the widget.
      */
     KanjiWidget(
-        QSharedPointer<const Kanji> kanji,
+        std::shared_ptr<const Kanji> kanji,
         bool showBack = false,
         QWidget *parent = nullptr);
 
@@ -130,7 +132,7 @@ private:
     std::unique_ptr<Kanji> initAnkiKanji() const;
 
     /* The kanji that this widget is displaying. Has ownership. */
-    QSharedPointer<const Kanji> m_kanji;
+    std::shared_ptr<const Kanji> m_kanji;
 
     /* The button for adding or opening the kanji in Anki. */
     QToolButton *m_buttonAnkiAddOpen = nullptr;

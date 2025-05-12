@@ -115,20 +115,20 @@ public:
      * @return The config corresponding to the profile, nullptr if it doesn't
      *         exist.
      */
-    QSharedPointer<const AnkiConfig> getConfig(const QString &profile) const;
+    std::shared_ptr<const AnkiConfig> getConfig(const QString &profile) const;
 
     /**
      * Gets the current active AnkiConfig.
      * @return The current AnkiConfig.
      */
-    QSharedPointer<const AnkiConfig> getConfig() const;
+    std::shared_ptr<const AnkiConfig> getConfig() const;
 
     /**
      * Gets a mapping of all the profiles to their corresponding configuration.
      * AnkiConfigs are deep copied.
      * @return A map that maps profile names to their AnkiConfigs.
      */
-    QHash<QString, QSharedPointer<AnkiConfig>> getConfigs() const;
+    QHash<QString, std::shared_ptr<AnkiConfig>> getConfigs() const;
 
     /**
      * Gets if a configuration exists.
@@ -197,7 +197,7 @@ public:
      */
     [[nodiscard]]
     QCoro::Task<AnkiReply<QList<bool>>> notesAddable(
-        QList<QSharedPointer<const Term>> terms);
+        QList<std::shared_ptr<const Term>> terms);
 
     /**
      * Gets if the list of kanji are addable given the current configuration.
@@ -208,7 +208,7 @@ public:
      */
     [[nodiscard]]
     QCoro::Task<AnkiReply<QList<bool>>> notesAddable(
-        QList<QSharedPointer<const Kanji>> kanji);
+        QList<std::shared_ptr<const Kanji>> kanji);
 
     /**
      * Adds a term note to Anki.
@@ -359,10 +359,10 @@ private:
     bool m_enabled = false;
 
     /* A mapping of profile names to their configurations. */
-    QHash<QString, QSharedPointer<const AnkiConfig>> m_configs;
+    QHash<QString, std::shared_ptr<const AnkiConfig>> m_configs;
 
     /* The reference to the active AnkiConfig. */
-    QSharedPointer<const AnkiConfig> m_currentConfig = nullptr;
+    std::shared_ptr<const AnkiConfig> m_currentConfig = nullptr;
 
     /* The name of the active profile. */
     QString m_currentProfile;

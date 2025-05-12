@@ -22,9 +22,9 @@
 #define SEARCHWIDGET_H
 
 #include <QLineEdit>
-#include <QWidget>
 
-#include <QSharedPointer>
+#include <memory>
+
 #include <QWheelEvent>
 
 class DefinitionWidget;
@@ -32,11 +32,11 @@ class Dictionary;
 class QVBoxLayout;
 
 struct Term;
-typedef QSharedPointer<Term> SharedTerm;
-typedef QSharedPointer<QList<SharedTerm>> SharedTermList;
+typedef std::shared_ptr<Term> SharedTerm;
+typedef std::shared_ptr<QList<SharedTerm>> SharedTermList;
 
 struct Kanji;
-typedef QSharedPointer<Kanji> SharedKanji;
+typedef std::shared_ptr<Kanji> SharedKanji;
 
 /**
  * Widget for doing keyboard searches.

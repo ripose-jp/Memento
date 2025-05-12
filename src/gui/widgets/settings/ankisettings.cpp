@@ -258,7 +258,7 @@ void AnkiSettings::hideEvent(QHideEvent *event)
 
     AnkiClient *client =
         GlobalMediator::getGlobalMediator()->getAnkiClient();
-    QSharedPointer<const AnkiConfig> config =
+    std::shared_ptr<const AnkiConfig> config =
         client->getConfig(client->getProfile());
     client->setServer(config->address, config->port);
     m_configs.clear();
@@ -567,8 +567,8 @@ void AnkiSettings::addProfile()
     }
     else
     {
-        m_configs[profileName] = QSharedPointer<AnkiConfig>(
-            new AnkiConfig(*m_configs[m_ui->comboBoxProfile->currentText()])
+        m_configs[profileName] = std::make_shared<AnkiConfig>(
+            *m_configs[m_ui->comboBoxProfile->currentText()]
         );
 
         m_ui->comboBoxProfile->blockSignals(true);
@@ -648,7 +648,7 @@ void AnkiSettings::renameProfile(const QString &oldName, const QString &newName)
 
 void AnkiSettings::applyToConfig(const QString &profile)
 {
-    QSharedPointer<AnkiConfig> config = m_configs[profile];
+    std::shared_ptr<AnkiConfig> config = m_configs[profile];
 
     config->address = m_ui->lineEditHost->text();
     config->port = m_ui->lineEditPort->text();

@@ -23,7 +23,7 @@
 
 #include <QObject>
 
-#include <QSharedPointer>
+#include <memory>
 
 #include "player/track.h"
 
@@ -39,11 +39,11 @@ class QMouseEvent;
 class QWheelEvent;
 
 struct Term;
-typedef QSharedPointer<Term> SharedTerm;
-typedef QSharedPointer<QList<SharedTerm>> SharedTermList;
+typedef std::shared_ptr<Term> SharedTerm;
+typedef std::shared_ptr<QList<SharedTerm>> SharedTermList;
 
 struct Kanji;
-typedef QSharedPointer<Kanji> SharedKanji;
+typedef std::shared_ptr<Kanji> SharedKanji;
 
 /**
  * A mediator that other objects can tap in to in order to send and receive

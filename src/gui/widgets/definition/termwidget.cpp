@@ -81,7 +81,7 @@ static constexpr const char *REPLACE_READING = "{reading}";
 /* Begin Constructor/Destructor */
 
 TermWidget::TermWidget(
-    QSharedPointer<const Term> term,
+    std::shared_ptr<const Term> term,
     const DefinitionState &state,
     QWidget *parent)
     : QWidget(parent),
@@ -258,7 +258,7 @@ void TermWidget::initUi(
         m_layoutTermTags->addWidget(tag);
     }
 
-    QSharedPointer<const AnkiConfig> config = m_client->getConfig();
+    std::shared_ptr<const AnkiConfig> config = m_client->getConfig();
     for (int i = 0; i < term.definitions.size(); ++i)
     {
         GlossaryWidget *g = new GlossaryWidget(
@@ -530,7 +530,7 @@ void TermWidget::searchKanji(const QString &ch)
         kanji->clozePrefix = m_term->clozePrefix;
         kanji->clozeBody   = m_term->clozeBody;
         kanji->clozeSuffix = m_term->clozeSuffix;
-        emit kanjiSearched(QSharedPointer<const Kanji>(kanji));
+        emit kanjiSearched(kanji);
     }
 }
 

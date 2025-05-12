@@ -271,7 +271,7 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
     m_currentProfile = jsonObj[CONFIG_SET_PROFILE].toString();
     for (const QJsonValue &val : profiles)
     {
-        QSharedPointer<AnkiConfig> config(new AnkiConfig);
+        std::shared_ptr<AnkiConfig> config = std::make_shared<AnkiConfig>();
         QJsonObject profile     = val.toObject();
         config->address         = profile[CONFIG_HOST].toString();
         config->port            = profile[CONFIG_PORT].toString();
@@ -340,7 +340,7 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
     QList<QString> profiles = m_configs.keys();
     for (const QString &profile : profiles)
     {
-        QSharedPointer<const AnkiConfig> config = m_configs.value(profile);
+        std::shared_ptr<const AnkiConfig> config = m_configs.value(profile);
 
         QJsonObject configObj;
         configObj[CONFIG_NAME]             = profile;
@@ -411,7 +411,7 @@ QStringList AnkiClient::getProfiles() const
 
 bool AnkiClient::setProfile(const QString &profile)
 {
-    QSharedPointer<const AnkiConfig> config = m_configs.value(profile);
+    std::shared_ptr<const AnkiConfig> config = m_configs.value(profile);
     if (config)
     {
         m_currentConfig = config;
@@ -425,38 +425,34 @@ bool AnkiClient::setProfile(const QString &profile)
 void AnkiClient::addProfile(const QString &profile, const AnkiConfig &config)
 {
     m_configs.insert(
-        profile, QSharedPointer<const AnkiConfig>(new AnkiConfig(config))
+        profile, std::make_shared<const AnkiConfig>(config)
     );
 }
 
-QSharedPointer<const AnkiConfig> AnkiClient::getConfig(
+std::shared_ptr<const AnkiConfig> AnkiClient::getConfig(
     const QString &profile) const
 {
     return m_configs.value(profile);
 }
 
-QSharedPointer<const AnkiConfig> AnkiClient::getConfig() const
+std::shared_ptr<const AnkiConfig> AnkiClient::getConfig() const
 {
     return m_currentConfig;
 }
 
-QHash<QString, QSharedPointer<AnkiConfig>> AnkiClient::getConfigs() const
+QHash<QString, std::shared_ptr<AnkiConfig>> AnkiClient::getConfigs() const
 {
-    QHash<QString, QSharedPointer<AnkiConfig>> configs;
-    for (auto it = m_configs.constKeyValueBegin();
-         it != m_configs.constKeyValueEnd();
-         ++it)
+    QHash<QString, std::shared_ptr<AnkiConfig>> configs;
+    for (const auto &[profile, config] : m_configs.asKeyValueRange())
     {
-        configs[it->first] =
-            QSharedPointer<AnkiConfig>(new AnkiConfig(*it->second));
+        configs[profile] = std::make_shared<AnkiConfig>(*config);
     }
     return configs;
 }
 
 void AnkiClient::setDefaultConfig()
 {
-    QSharedPointer<AnkiConfig> config =
-        QSharedPointer<AnkiConfig>(new AnkiConfig);
+    std::shared_ptr<AnkiConfig> config = std::make_shared<AnkiConfig>();
     config->address         = DEFAULT_HOST;
     config->port            = DEFAULT_PORT;
     config->duplicatePolicy = DEFAULT_DUPLICATE_POLICY;
@@ -559,13 +555,13 @@ QCoro::Task<AnkiReply<QStringList>> AnkiClient::getFieldNames(
 }
 
 QCoro::Task<AnkiReply<QList<bool>>> AnkiClient::notesAddable(
-    QList<QSharedPointer<const Term>> terms)
+    QList<std::shared_ptr<const Term>> terms)
 {
     QJsonObject params = co_await QtConcurrent::run(
         [currentConfig = m_currentConfig, terms] () -> QJsonObject
         {
             QJsonArray notes;
-            for (QSharedPointer<const Term> term : terms)
+            for (std::shared_ptr<const Term> term : terms)
             {
                 /* Make sure to check for both reading as expression and not */
                 Term termCopy(*term);
@@ -618,13 +614,13 @@ QCoro::Task<AnkiReply<QList<bool>>> AnkiClient::notesAddable(
 }
 
 QCoro::Task<AnkiReply<QList<bool>>> AnkiClient::notesAddable(
-    QList<QSharedPointer<const Kanji>> kanji)
+    QList<std::shared_ptr<const Kanji>> kanji)
 {
     QJsonObject params = co_await QtConcurrent::run(
         [currentConfig = m_currentConfig, kanji] () -> QJsonObject
         {
             QJsonArray notes;
-            for (QSharedPointer<const Kanji> kanji : kanji)
+            for (std::shared_ptr<const Kanji> kanji : kanji)
             {
                 Anki::Note::Context ctx =
                     Anki::Note::build(*currentConfig, *kanji, false);

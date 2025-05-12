@@ -985,7 +985,7 @@ void SubtitleListWidget::copyAudioContext() const
 
     if (m_client->isEnabled())
     {
-        QSharedPointer<const AnkiConfig> config = m_client->getConfig();
+        std::shared_ptr<const AnkiConfig> config = m_client->getConfig();
         start -= config->audioPadStart;
         end += config->audioPadEnd;
         normalize = config->audioNormalize;

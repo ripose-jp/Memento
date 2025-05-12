@@ -268,14 +268,14 @@ QCoro::Task<void> DefinitionWidget::setTerms(
     {
         for (SharedTerm term : *terms)
         {
-            m_terms.emplaceBack(QSharedPointer<const Term>(term));
+            m_terms.emplaceBack(term);
         }
     }
 
     /* Save kanji in a shared pointer */
     if (kanji)
     {
-        m_kanji = QSharedPointer<const Kanji>(kanji);
+        m_kanji = kanji;
     }
 
     /* Early exit if there is nothing to show */
@@ -482,7 +482,7 @@ void DefinitionWidget::setAddable(const int start, const int end)
 /* End Term Helpers */
 /* Begin Kanji Helpers */
 
-void DefinitionWidget::showKanji(QSharedPointer<const Kanji> kanji)
+void DefinitionWidget::showKanji(const std::shared_ptr<const Kanji> &kanji)
 {
     m_savedScroll = m_ui->scrollArea->verticalScrollBar()->value();
     for (int i = 0; i < m_ui->scrollAreaContents->layout()->count(); ++i)
