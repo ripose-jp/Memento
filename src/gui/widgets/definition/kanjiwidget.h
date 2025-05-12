@@ -122,6 +122,13 @@ private:
      */
     QLayout *createKVLabel(const QString &key, const QString &value) const;
 
+    /**
+     * Creates an addable copy of the current Kanji object.
+     * @return A std::unique_ptr containing an addable Kanji.
+     */
+    [[nodiscard]]
+    std::unique_ptr<Kanji> initAnkiKanji() const;
+
     /* The kanji that this widget is displaying. Has ownership. */
     QSharedPointer<const Kanji> m_kanji;
 

@@ -794,6 +794,104 @@ QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openBrowse(
     co_return result;
 }
 
+QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openDuplicates(
+    std::unique_ptr<Term> term)
+{
+    AnkiReply fieldNames = co_await getFieldNames(m_currentConfig->termModel);
+    if (!fieldNames.error.isEmpty())
+    {
+        co_return AnkiReply<QList<int>>{
+            .value = {},
+            .error = std::move(fieldNames.error),
+        };
+    }
+
+    if (fieldNames.value.isEmpty())
+    {
+        co_return AnkiReply<QList<int>>{
+            .value = {},
+            .error = "The current model has no fields",
+        };
+    }
+    QString fieldKey = fieldNames.value.front();
+
+    term->readingAsExpression = false;
+    Anki::Note::Context ctx = co_await QtConcurrent::run(
+        static_cast<
+            Anki::Note::Context(*)(const AnkiConfig &, const Term &, bool)
+        >(&Anki::Note::build),
+        *m_currentConfig,
+        *term,
+        false
+    );
+    QString fieldValue =
+        ctx.ankiObject[AnkiConnect::Note::FIELDS][fieldKey].toString();
+
+    QString query = QString("%1:\"%2\"")
+        .arg(fieldKey)
+        .arg(fieldValue.replace('\\', "\\\\").replace('"', "\\\""));
+
+    if (!term->reading.isEmpty())
+    {
+        term->readingAsExpression = true;
+        ctx = co_await QtConcurrent::run(
+            static_cast<
+                Anki::Note::Context(*)(const AnkiConfig &, const Term &, bool)
+            >(&Anki::Note::build),
+            *m_currentConfig,
+            *term,
+            false
+        );
+        QString fieldValue =
+            ctx.ankiObject[AnkiConnect::Note::FIELDS][fieldKey].toString();
+
+        query += QString(" OR %1:\"%2\"")
+            .arg(fieldKey)
+            .arg(fieldValue.replace('\\', "\\\\").replace('"', "\\\""));
+    }
+
+    co_return co_await openBrowse(m_currentConfig->termDeck, query);
+}
+
+QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openDuplicates(
+    std::unique_ptr<Kanji> kanji)
+{
+    AnkiReply fieldNames = co_await getFieldNames(m_currentConfig->kanjiModel);
+    if (!fieldNames.error.isEmpty())
+    {
+        co_return AnkiReply<QList<int>>{
+            .value = {},
+            .error = std::move(fieldNames.error),
+        };
+    }
+
+    if (fieldNames.value.isEmpty())
+    {
+        co_return AnkiReply<QList<int>>{
+            .value = {},
+            .error = "The current model has no fields",
+        };
+    }
+    QString fieldKey = fieldNames.value.front();
+
+    Anki::Note::Context ctx = co_await QtConcurrent::run(
+        static_cast<
+            Anki::Note::Context(*)(const AnkiConfig &, const Kanji &, bool)
+        >(&Anki::Note::build),
+        *m_currentConfig,
+        *kanji,
+        false
+    );
+    QString fieldValue =
+        ctx.ankiObject[AnkiConnect::Note::FIELDS][fieldKey].toString();
+
+    QString query = QString("%1:\"%2\"")
+        .arg(fieldKey)
+        .arg(fieldValue.replace('\\', "\\\\").replace('"', "\\\""));
+
+    co_return co_await openBrowse(m_currentConfig->kanjiDeck, query);
+}
+
 /* End Commands */
 /* Begin Network Helpers */
 

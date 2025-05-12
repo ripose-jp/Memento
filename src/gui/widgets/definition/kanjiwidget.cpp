@@ -268,31 +268,12 @@ QCoro::Task<void> KanjiWidget::addKanji()
     m_shortcutAnkiAdd->setEnabled(false);
 
     GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-    PlayerAdapter *player = mediator->getPlayerAdapter();
-    SubtitleListWidget *subList = mediator->getSubtitleListWidget();
-    std::unique_ptr<Kanji> kanji = std::make_unique<Kanji>(*m_kanji);
-    double delay =
-        mediator->getPlayerAdapter()->getSubDelay() -
-        mediator->getPlayerAdapter()->getAudioDelay();
-    kanji->clipboard = QGuiApplication::clipboard()->text();
-    kanji->title = player->getTitle();
-    kanji->sentence = player->getSubtitle(true);
-    kanji->sentence2 = player->getSecondarySubtitle();
-    kanji->startTime = player->getSubStart() + delay;
-    kanji->endTime = player->getSubEnd() + delay;
-    kanji->context = subList->getPrimaryContext("\n");
-    kanji->context2 = subList->getSecondaryContext("\n");
-    QPair<double, double> contextTimes = subList->getPrimaryContextTime();
-    kanji->startTimeContext = contextTimes.first + delay;
-    kanji->endTimeContext = contextTimes.second + delay;
+    AnkiClient *client = mediator->getAnkiClient();
 
-    AnkiReply<int> result =
-        co_await mediator->getAnkiClient()->addNote(std::move(kanji));
+    AnkiReply<int> result = co_await client->addNote(initAnkiKanji());
     if (!result.error.isEmpty())
     {
-        Q_EMIT mediator->showCritical(
-            "Error Adding Note", result.error
-        );
+        Q_EMIT mediator->showCritical("Error Adding Note", result.error);
         co_return;
     }
 
@@ -311,15 +292,14 @@ QCoro::Task<void> KanjiWidget::addKanji()
 
 QCoro::Task<void> KanjiWidget::openAnki()
 {
-    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
-    QString deck = client->getConfig()->kanjiDeck;
+    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+    AnkiClient *client = mediator->getAnkiClient();
+
     AnkiReply<QList<int>> result =
-        co_await client->openBrowse(deck, m_kanji->character);
+        co_await client->openDuplicates(initAnkiKanji());
     if (!result.error.isEmpty())
     {
-        Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(
-            "Error Opening Anki", result.error
-        );
+        Q_EMIT mediator->showCritical("Error Opening Anki", result.error);
     }
 }
 
@@ -366,6 +346,30 @@ QLayout *KanjiWidget::createKVLabel(const QString &key,
     vLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
     layout->addWidget(vLabel);
     return layout;
+}
+
+std::unique_ptr<Kanji> KanjiWidget::initAnkiKanji() const
+{
+    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
+    PlayerAdapter *player = mediator->getPlayerAdapter();
+    SubtitleListWidget *subList = mediator->getSubtitleListWidget();
+
+    std::unique_ptr<Kanji> kanji = std::make_unique<Kanji>(*m_kanji);
+    double delay =
+        mediator->getPlayerAdapter()->getSubDelay() -
+        mediator->getPlayerAdapter()->getAudioDelay();
+    kanji->clipboard = QGuiApplication::clipboard()->text();
+    kanji->title = player->getTitle();
+    kanji->sentence = player->getSubtitle(true);
+    kanji->sentence2 = player->getSecondarySubtitle();
+    kanji->startTime = player->getSubStart() + delay;
+    kanji->endTime = player->getSubEnd() + delay;
+    kanji->context = subList->getPrimaryContext("\n");
+    kanji->context2 = subList->getSecondaryContext("\n");
+    QPair<double, double> contextTimes = subList->getPrimaryContextTime();
+    kanji->startTimeContext = contextTimes.first + delay;
+    kanji->endTimeContext = contextTimes.second + delay;
+    return kanji;
 }
 
 /* End Helpers */

@@ -403,13 +403,8 @@ QCoro::Task<void> TermWidget::addNote(const AudioSource &src)
 
 QCoro::Task<void> TermWidget::searchAnki()
 {
-    QString deck = m_client->getConfig()->termDeck;
-    AnkiReply<QList<int>> openBrowseResult = co_await m_client->openBrowse(
-        deck,
-        m_term->reading.isEmpty() ?
-            m_term->expression :
-            QString("%1 or %2").arg(m_term->expression).arg(m_term->reading)
-    );
+    AnkiReply<QList<int>> openBrowseResult =
+        co_await m_client->openDuplicates(initAnkiTerm());
     if (!openBrowseResult.error.isEmpty())
     {
         Q_EMIT GlobalMediator::getGlobalMediator()->showCritical(

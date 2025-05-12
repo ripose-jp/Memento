@@ -249,6 +249,26 @@ public:
     QCoro::Task<AnkiReply<QList<int>>> openBrowse(
         const QString &deck, const QString &query);
 
+    /**
+     * Opens a window for all cards that might be detected as duplicates for the
+     * given term.
+     * @param term The term to check for duplicates.
+     * @return The IDs of the cards that may be duplicates.
+     */
+    [[nodiscard]]
+    QCoro::Task<AnkiReply<QList<int>>> openDuplicates(
+        std::unique_ptr<Term> term);
+
+    /**
+     * Opens a window for all cards that might be detected as duplicates for the
+     * given kanji.
+     * @param kanji The kanji to check for duplicates.
+     * @return The IDs of the cards that may be duplicates.
+     */
+    [[nodiscard]]
+    QCoro::Task<AnkiReply<QList<int>>> openDuplicates(
+        std::unique_ptr<Kanji> kanji);
+
 private:
     /**
      * Loads an Anki Integration configuration file.
