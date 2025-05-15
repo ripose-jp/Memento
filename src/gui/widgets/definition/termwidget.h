@@ -54,9 +54,9 @@ class TermWidget : public QWidget
 public:
     /**
      * Constructor for TermWidget.
-     * @param term        The term to display. Does not take ownership.
-     * @param state       The state of the parent of this widget.
-     * @param parent      The parent of this widget.
+     * @param term   The term to display. Does not take ownership.
+     * @param state  The state of the parent of this widget.
+     * @param parent The parent of this widget.
      */
     TermWidget(
         std::shared_ptr<const Term> term,
@@ -167,13 +167,15 @@ private Q_SLOTS:
 private:
     /**
      * Puts term information into the UI.
-     * @param term     The term to populate the UI with.
-     * @param modifier The modifier key for triggering recursive search.
-     * @param style    The style of the GlossaryWidget.
+     * @param term            The term to populate the UI with.
+     * @param modifier        The modifier key for triggering recursive search.
+     * @param middleMouseScan The flag for triggering middle mouse scan.
+     * @param style           The style of the GlossaryWidget.
      */
     void initUi(
         const Term &term,
         Qt::KeyboardModifier modifier,
+        bool middleMouseScan,
         Constants::GlossaryStyle style);
 
     /**

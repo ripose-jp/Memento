@@ -182,6 +182,9 @@ namespace Constants
                 constexpr const char *SUPER = "Super";
             }
 
+            constexpr const char *MIDDLE_MOUSE_SCAN = "middle-mouse-scan";
+            constexpr bool MIDDLE_MOUSE_SCAN_DEFAULT = false;
+
             constexpr const char *LIMIT = "limit";
             constexpr int LIMIT_DEFAULT = 10;
 

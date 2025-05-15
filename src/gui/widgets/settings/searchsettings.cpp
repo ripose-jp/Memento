@@ -145,6 +145,12 @@ void SearchSettings::restoreSaved()
             Constants::Settings::Search::DELAY_DEFAULT
         ).toInt()
     );
+    m_ui->checkMiddleMouse->setChecked(
+        settings.value(
+            Constants::Settings::Search::MIDDLE_MOUSE_SCAN,
+            Constants::Settings::Search::MIDDLE_MOUSE_SCAN_DEFAULT
+        ).toBool()
+    );
     m_ui->comboBoxModifier->setCurrentText(
         settings.value(
             Constants::Settings::Search::MODIFIER,
@@ -227,6 +233,9 @@ void SearchSettings::restoreDefaults()
     m_ui->comboBoxModifier->setCurrentText(
         Constants::Settings::Search::MODIFIER_DEFAULT
     );
+    m_ui->checkMiddleMouse->setChecked(
+        Constants::Settings::Search::MIDDLE_MOUSE_SCAN_DEFAULT
+    );
     m_ui->checkHideSubs->setChecked(
         Constants::Settings::Search::HIDE_SUBS_DEFAULT
     );
@@ -288,6 +297,10 @@ void SearchSettings::applySettings()
     settings.setValue(
         Constants::Settings::Search::MODIFIER,
         m_ui->comboBoxModifier->currentText()
+    );
+    settings.setValue(
+        Constants::Settings::Search::MIDDLE_MOUSE_SCAN,
+        m_ui->checkMiddleMouse->isChecked()
     );
     settings.setValue(
         Constants::Settings::Search::HIDE_SUBS,

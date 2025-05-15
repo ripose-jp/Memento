@@ -69,6 +69,9 @@ struct DefinitionState
 
     /* The modifier key used for executing sub-searches */
     Qt::KeyboardModifier searchModifier;
+
+    /* The flag for tiggering middle mouse scan */
+    bool middleMouseScan;
 };
 
 #endif // DEFINITIONSTATE_H

@@ -136,7 +136,12 @@ TermWidget::TermWidget(
     m_ui->buttonAudio->setIcon(factory->getIcon(IconFactory::Icon::audio));
     m_ui->buttonAudio->setVisible(!m_sources.empty());
 
-    initUi(*term, m_state.searchModifier, m_state.glossaryStyle);
+    initUi(
+        *term,
+        m_state.searchModifier,
+        m_state.middleMouseScan,
+        m_state.glossaryStyle
+    );
 
     connect(
         m_ui->buttonCollapse, &QToolButton::clicked,
@@ -201,6 +206,7 @@ void TermWidget::deleteWhenReady()
 void TermWidget::initUi(
     const Term &term,
     Qt::KeyboardModifier modifier,
+    bool middleMouseScan,
     Constants::GlossaryStyle style)
 {
     if (term.reading.isEmpty())
@@ -262,7 +268,7 @@ void TermWidget::initUi(
     for (int i = 0; i < term.definitions.size(); ++i)
     {
         GlossaryWidget *g = new GlossaryWidget(
-            i + 1, term.definitions[i], modifier, style
+            i + 1, term.definitions[i], modifier, middleMouseScan, style
         );
         g->setChecked(
             !config->excludeGloss.contains(term.definitions[i].dictionary)

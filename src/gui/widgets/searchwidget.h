@@ -48,11 +48,15 @@ class SearchEdit : public QLineEdit
 public:
     /**
      * Constructs a SearchEdit.
-     * @param modifier The modifier this SearchEdit uses to trigger searches.
-     * @param parent   The parent of this SearchEdit.
+     * @param modifier              The modifier this SearchEdit uses to trigger
+     *                              searches.
+     * @param searchWithMiddleMouse True to search with middle mouse, false
+     *                              otherwise.
+     * @param parent                The parent of this SearchEdit.
      */
     SearchEdit(
         Qt::KeyboardModifier modifier = Qt::KeyboardModifier::ShiftModifier,
+        bool searchWithMiddleMouse = false,
         QWidget *parent = nullptr);
 
     /**
@@ -60,6 +64,12 @@ public:
      * @param modifier The modifier to use.
      */
     void setModifier(Qt::KeyboardModifier modifier);
+
+    /**
+     * Sets if searches should be triggered by middle mouse.
+     * @param enabled true to enable, false to disable.
+     */
+    void setSearchWithMiddleMouse(bool enabled);
 
 Q_SIGNALS:
     /**
@@ -76,9 +86,18 @@ protected:
      */
     void mouseMoveEvent(QMouseEvent *event) override;
 
+    /**
+     * Handle the triggering of searches with middle mouse.
+     * @param event The mouse move event.
+     */
+    void mousePressEvent(QMouseEvent *event) override;
+
 private:
     /* The modifier used to trigger searches */
-    Qt::KeyboardModifier m_modifier;
+    Qt::KeyboardModifier m_modifier = Qt::KeyboardModifier::ShiftModifier;
+
+    /* True if middle mouse should be used for searches, false otherwise */
+    bool m_searchWithMiddleMouse = false;
 
     /* The last index that caused searchTriggered to fire */
     int m_lastIndex = -1;
