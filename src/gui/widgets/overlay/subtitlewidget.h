@@ -49,6 +49,14 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
 
     /**
+     * Used for starting searches.
+     * If m_settings.middleMouseScan is true and m_settings.method is Modifier
+     * starts a direct search.
+     * @param event The mouse move event.
+     */
+    void mousePressEvent(QMouseEvent *event) override;
+
+    /**
      * Copys the current subtitle to clipboard.
      * @param event Mouse event, not used.
      */
@@ -181,6 +189,9 @@ private:
 
         /* The currently set search method. */
         SearchMethod method;
+
+        /* Whether search is set to trigger on middle mouse press*/
+        bool middleMouseScan;
 
         /* The hover delay, before a search is triggered. */
         int delay;

@@ -171,6 +171,10 @@ void DefinitionWidget::initSearch()
     {
         m_state.searchModifier = Qt::KeyboardModifier::ShiftModifier;
     }
+    m_state.middleMouseScan = settings.value(
+        Constants::Settings::Search::MIDDLE_MOUSE_SCAN,
+        Constants::Settings::Search::MIDDLE_MOUSE_SCAN_DEFAULT
+    ).toBool();
     settings.endGroup();
 }
 

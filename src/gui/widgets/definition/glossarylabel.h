@@ -34,12 +34,14 @@ class GlossaryLabel : public QTextEdit
 public:
     /**
      * Creates a new glossary label.
-     * @param modifier The modifier that triggers recursive searches.
-     * @param style    The style to display different definitions in.
-     * @param parent   The parent of this label.
+     * @param modifier        The modifier that triggers recursive searches.
+     * @param middleMouseScan The flag for triggering middle mouse scan.
+     * @param style           The style to display different definitions in.
+     * @param parent          The parent of this label.
      */
     GlossaryLabel(
         Qt::KeyboardModifier modifier = Qt::KeyboardModifier::ShiftModifier,
+        bool middleMouseScan = false,
         Constants::GlossaryStyle style = Constants::GlossaryStyle::Bullet,
         QWidget *parent = nullptr);
     virtual ~GlossaryLabel();
@@ -199,11 +201,21 @@ private:
     [[nodiscard]]
     static bool containsStructuredContent(const QJsonArray &definitions);
 
+    /**
+     * Helper method to initiate the finding terms in search or glossary.
+     * @param position Location of the cursor in the text.
+     */
+    void findTerms(int position);
+
     /* The modifier that triggers searches */
     Qt::KeyboardModifier m_searchModifier = Qt::KeyboardModifier::ShiftModifier;
 
+    /* Determines if to scan content using middle mouse button*/
+    bool m_middleMouseScan = false;
+
     /* The style of this label */
-    Constants::GlossaryStyle m_style;
+    Constants::GlossaryStyle m_style =
+        Constants::Settings::Search::LIST_GLOSSARY_DEFAULT;
 
     /* The index that is currently being searched */
     int m_currentIndex = -1;

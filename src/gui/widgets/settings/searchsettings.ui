@@ -17,7 +17,7 @@
    <item>
     <widget class="QScrollArea" name="scrollArea">
      <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
+      <enum>QFrame::Shape::NoFrame</enum>
      </property>
      <property name="widgetResizable">
       <bool>true</bool>
@@ -27,8 +27,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>756</width>
-        <height>683</height>
+        <width>750</width>
+        <height>689</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layoutScrollArea">
@@ -48,7 +48,6 @@
         <widget class="QLabel" name="labelMatcher">
          <property name="font">
           <font>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -92,7 +91,6 @@ Includes deconjugation information in results.</string>
         <widget class="QLabel" name="labelLimit">
          <property name="font">
           <font>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -117,7 +115,6 @@ Zero is equivalent to no limit.</string>
         <widget class="QLabel" name="labelMethod">
          <property name="font">
           <font>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -138,10 +135,10 @@ Zero is equivalent to no limit.</string>
        <item>
         <widget class="QFrame" name="frameHover">
          <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
+          <enum>QFrame::Shape::StyledPanel</enum>
          </property>
          <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
+          <enum>QFrame::Shadow::Raised</enum>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
@@ -154,7 +151,6 @@ Zero is equivalent to no limit.</string>
             </property>
             <property name="font">
              <font>
-              <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>
@@ -194,7 +190,6 @@ Changing this value from the default is not recommended.</string>
         <widget class="QLabel" name="labelModifier">
          <property name="font">
           <font>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -212,6 +207,13 @@ Changing this value from the default is not recommended.</string>
        </item>
        <item>
         <layout class="QVBoxLayout" name="layoutCheckHide">
+         <item>
+          <widget class="QCheckBox" name="checkMiddleMouse">
+           <property name="text">
+            <string>Search using middle mouse button</string>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="QCheckBox" name="checkHideSubs">
            <property name="text">
@@ -308,7 +310,6 @@ Changing this value from the default is not recommended.</string>
         <widget class="QLabel" name="labelRemoveRegex">
          <property name="font">
           <font>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -329,7 +330,7 @@ Changes to the primary subtitle will appear in the subtitle list, Anki cards, an
        <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -346,7 +347,7 @@ Changes to the primary subtitle will appear in the subtitle list, Anki cards, an
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="standardButtons">
-      <set>QDialogButtonBox::Apply|QDialogButtonBox::Reset|QDialogButtonBox::RestoreDefaults</set>
+      <set>QDialogButtonBox::StandardButton::Apply|QDialogButtonBox::StandardButton::Reset|QDialogButtonBox::StandardButton::RestoreDefaults</set>
      </property>
     </widget>
    </item>

@@ -297,7 +297,10 @@ void SubtitleWidget::initSettings()
     {
         m_settings.method = Settings::SearchMethod::Hover;
     }
-
+    m_settings.middleMouseScan = settings.value(
+            Constants::Settings::Search::MIDDLE_MOUSE_SCAN,
+            Constants::Settings::Search::MIDDLE_MOUSE_SCAN_DEFAULT
+        ).toBool();
     m_settings.hideSubsWhenVisible = settings.value(
             Constants::Settings::Search::HIDE_SUBS,
             Constants::Settings::Search::HIDE_SUBS_DEFAULT
@@ -388,6 +391,27 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
             findTerms();
         }
         break;
+    }
+
+    event->ignore();
+}
+
+void SubtitleWidget::mousePressEvent(QMouseEvent *event)
+{
+    StrokeLabel::mousePressEvent(event);
+
+    int position = getPosition(event->pos());
+    if (!m_paused || position == m_currentIndex || position == -1)
+    {
+        return;
+    }
+
+    if(m_settings.method == Settings::SearchMethod::Modifier &&
+        m_settings.middleMouseScan &&
+        event->button() == Qt::MiddleButton)
+    {
+        m_currentIndex = position;
+        findTerms();
     }
 
     event->ignore();

@@ -41,16 +41,18 @@ class GlossaryWidget : public QWidget
 public:
     /**
      * Constructor for the GlossaryWidget.
-     * @param number   The number to label the term.
-     * @param def      The term definition to display.
-     * @param modifier The modifier key for triggering searches.
-     * @param style    The style of the GlossaryLabel.
-     * @param parent   The parent of the GlossaryWidget.
+     * @param number          The number to label the term.
+     * @param def             The term definition to display.
+     * @param modifier        The modifier key for triggering searches.
+     * @param middleMouseScan The flag for triggering middle mouse scan.
+     * @param style           The style of the GlossaryLabel.
+     * @param parent          The parent of the GlossaryWidget.
      */
     GlossaryWidget(
         size_t number,
         const TermDefinition &def,
         Qt::KeyboardModifier modifier,
+        bool middleMouseScan,
         Constants::GlossaryStyle style,
         QWidget *parent = nullptr);
 

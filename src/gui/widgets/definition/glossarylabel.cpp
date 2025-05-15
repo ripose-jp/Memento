@@ -43,10 +43,12 @@
 
 GlossaryLabel::GlossaryLabel(
     Qt::KeyboardModifier modifier,
+    bool middleMouseScan,
     Constants::GlossaryStyle style,
     QWidget *parent)
     : QTextEdit(parent),
       m_searchModifier(modifier),
+      m_middleMouseScan(middleMouseScan),
       m_style(style)
 {
     setTextInteractionFlags(
@@ -574,9 +576,6 @@ bool GlossaryLabel::containsStructuredContent(const QJsonArray &definitions)
     );
 }
 
-/* End Helpers */
-/* Begin Event Handlers */
-
 void GlossaryLabel::adjustSize()
 {
     setFixedHeight(document()->size().toSize().height());
@@ -601,39 +600,11 @@ void GlossaryLabel::handleSearch(
     setTextCursor(q);
 }
 
-QSize GlossaryLabel::sizeHint() const
-{
-    QSize s = QTextEdit::sizeHint();
-    s.setHeight(document()->size().toSize().height());
-    return s;
-}
-
-void GlossaryLabel::showEvent(QShowEvent *event)
-{
-    QTextEdit::showEvent(event);
-    adjustSize();
-}
-
-void GlossaryLabel::resizeEvent(QResizeEvent *event)
-{
-    QTextEdit::resizeEvent(event);
-    adjustSize();
-}
-
-void GlossaryLabel::mouseMoveEvent(QMouseEvent *event)
+void GlossaryLabel::findTerms(int position)
 {
     /* Prevents large searches from being executed and freezing everything up */
     constexpr qsizetype MAX_SEARCH_SIZE{40};
 
-    QTextEdit::mouseMoveEvent(event);
-
-    if (!(QGuiApplication::keyboardModifiers() & m_searchModifier))
-    {
-        return;
-    }
-
-    int position =
-        document()->documentLayout()->hitTest(event->pos(), Qt::ExactHit);
     if (position == -1 || position == m_currentIndex)
     {
         return;
@@ -674,10 +645,56 @@ void GlossaryLabel::mouseMoveEvent(QMouseEvent *event)
     QThreadPool::globalInstance()->start(worker);
 }
 
+/* End Helpers */
+/* Begin Event Handlers */
+
+QSize GlossaryLabel::sizeHint() const
+{
+    QSize s = QTextEdit::sizeHint();
+    s.setHeight(document()->size().toSize().height());
+    return s;
+}
+
+void GlossaryLabel::showEvent(QShowEvent *event)
+{
+    QTextEdit::showEvent(event);
+    adjustSize();
+}
+
+void GlossaryLabel::resizeEvent(QResizeEvent *event)
+{
+    QTextEdit::resizeEvent(event);
+    adjustSize();
+}
+
+void GlossaryLabel::mouseMoveEvent(QMouseEvent *event)
+{
+    QTextEdit::mouseMoveEvent(event);
+
+    if (!(QGuiApplication::keyboardModifiers() & m_searchModifier))
+    {
+        return;
+    }
+
+    int position =
+        document()->documentLayout()->hitTest(event->pos(), Qt::ExactHit);
+
+    findTerms(position);
+}
+
 void GlossaryLabel::mousePressEvent(QMouseEvent *event)
 {
     QTextEdit::mousePressEvent(event);
-    event->ignore();
+
+    if (!m_middleMouseScan || event->button() != Qt::MiddleButton)
+    {
+        return;
+    }
+
+    int position =
+        document()->documentLayout()->hitTest(event->pos(), Qt::ExactHit);
+
+    findTerms(position);
 }
 
 void GlossaryLabel::keyPressEvent(QKeyEvent *event)

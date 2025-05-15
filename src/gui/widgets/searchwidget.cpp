@@ -21,6 +21,7 @@
 #include "searchwidget.h"
 
 #include <QGuiApplication>
+#include <QMouseEvent>
 #include <QSettings>
 #include <QThreadPool>
 #include <QVBoxLayout>
@@ -36,8 +37,13 @@
 
 /* Begin SearchEdit Class */
 
-SearchEdit::SearchEdit(Qt::KeyboardModifier modifier, QWidget *parent)
-    : QLineEdit(parent), m_modifier(modifier)
+SearchEdit::SearchEdit(
+    Qt::KeyboardModifier modifier,
+    bool searchWithMiddleMouse,
+    QWidget *parent) :
+    QLineEdit(parent),
+    m_modifier(modifier),
+    m_searchWithMiddleMouse(searchWithMiddleMouse)
 {
     connect(this, &QLineEdit::textChanged, this, [this] { m_lastIndex = -1; });
 }
@@ -47,10 +53,35 @@ void SearchEdit::setModifier(Qt::KeyboardModifier modifier)
     m_modifier = modifier;
 }
 
+void SearchEdit::setSearchWithMiddleMouse(bool enabled)
+{
+    m_searchWithMiddleMouse = enabled;
+}
+
 void SearchEdit::mouseMoveEvent(QMouseEvent *event)
 {
     QLineEdit::mouseMoveEvent(event);
+
     if (!(QGuiApplication::keyboardModifiers() & m_modifier))
+    {
+        return;
+    }
+
+    int i = cursorPositionAt(event->pos());
+    if (i == m_lastIndex)
+    {
+        return;
+    }
+
+    m_lastIndex = i;
+    emit searchTriggered(text(), m_lastIndex);
+}
+
+void SearchEdit::mousePressEvent(QMouseEvent *event)
+{
+    QLineEdit::mousePressEvent(event);
+
+    if (!m_searchWithMiddleMouse || event->button() != Qt::MiddleButton)
     {
         return;
     }
@@ -157,6 +188,12 @@ void SearchWidget::initSettings()
     {
         m_searchEdit->setModifier(Qt::KeyboardModifier::ShiftModifier);
     }
+    m_searchEdit->setSearchWithMiddleMouse(
+        settings.value(
+            Constants::Settings::Search::MIDDLE_MOUSE_SCAN,
+            Constants::Settings::Search::MIDDLE_MOUSE_SCAN_DEFAULT
+        ).toBool()
+    );
 
     settings.endGroup();
 }
