@@ -19,9 +19,6 @@
   <property name="focusPolicy">
    <enum>Qt::FocusPolicy::ClickFocus</enum>
   </property>
-  <property name="windowTitle">
-   <string>Form</string>
-  </property>
   <property name="autoFillBackground">
    <bool>true</bool>
   </property>

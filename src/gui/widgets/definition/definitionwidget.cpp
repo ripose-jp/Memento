@@ -263,8 +263,7 @@ void DefinitionWidget::initSignals()
     );
 }
 
-QCoro::Task<void> DefinitionWidget::setTerms(
-    SharedTermList terms, SharedKanji kanji)
+void DefinitionWidget::setTerms(SharedTermList terms, SharedKanji kanji)
 {
     clearTerms();
 
@@ -286,7 +285,7 @@ QCoro::Task<void> DefinitionWidget::setTerms(
     /* Early exit if there is nothing to show */
     if (m_terms.isEmpty() && m_kanji == nullptr)
     {
-        co_return;
+        return;
     }
 
     /* Add the terms */
@@ -328,22 +327,33 @@ QCoro::Task<void> DefinitionWidget::setTerms(
 
     if (!m_context->getAnkiClient()->isEnabled())
     {
-        co_return;
+        return;
     }
 
     /* Check if entries are addable to Anki */
-    int searchId = m_searchId;
-    AnkiReply<QList<bool>> result =
-        co_await m_context->getAnkiClient()->notesAddable(m_terms);
-    if (result.error.isEmpty() && searchId == m_searchId)
-    {
-        m_addable = std::move(result.value);
-        setAddable(0, m_state.resultLimit);
-    }
-    if (buttonShowMore)
-    {
-        buttonShowMore->setEnabled(true);
-    }
+    QCoro::Task<AnkiReply<QList<bool>>> notesAddableTask =
+        m_context->getAnkiClient()->notesAddable(m_terms);
+    QCoro::connect(
+        std::move(notesAddableTask),
+        this,
+        [this, searchId = m_searchId, buttonShowMore]
+        (AnkiReply<QList<bool>> &&result) -> void
+        {
+            if (searchId != m_searchId)
+            {
+                return;
+            }
+            if (result.error.isEmpty())
+            {
+                m_addable = std::move(result.value);
+                setAddable(0, m_state.resultLimit);
+            }
+            if (buttonShowMore)
+            {
+                buttonShowMore->setEnabled(true);
+            }
+        }
+    );
 }
 
 /* End Initializers */
@@ -555,8 +565,7 @@ void DefinitionWidget::showChild(SharedTermList terms, SharedKanji kanji)
         m_child = new DefinitionWidget(m_context, true, parentWidget());
     }
 
-    QGraphicsDropShadowEffect *ge =
-        new QGraphicsDropShadowEffect(m_child.get());
+    QGraphicsDropShadowEffect *ge = new QGraphicsDropShadowEffect(m_child);
     ge->setBlurRadius(SHADOW_BLUR_RADIUS);
     ge->setOffset(0);
     m_child->setGraphicsEffect(ge);
