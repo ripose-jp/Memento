@@ -28,8 +28,11 @@ target_compile_options(searchwidget PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(searchwidget PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     searchwidget
-    PRIVATE definitionwidget
+    PRIVATE constants
     PRIVATE dictionary_db
+    PRIVATE utils
+    PUBLIC context
+    PUBLIC definitionwidget
     PUBLIC Qt6::Widgets
 )
 
@@ -44,8 +47,13 @@ target_compile_options(subtitlelist PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(subtitlelist PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     subtitlelist
+    PRIVATE anki
+    PRIVATE constants
     PRIVATE definitionwidget
+    PRIVATE iconfactory
     PRIVATE playeradapter
     PRIVATE subtitleparser
+    PRIVATE utils
+    PUBLIC context
     PUBLIC Qt6::Widgets
 )

@@ -14,8 +14,10 @@ target_link_libraries(
     PRIVATE "$<$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>>:Qt6::DBus>"
     PRIVATE "$<$<BOOL:${APPLE}>:-framework CoreFoundation>"
     PRIVATE "$<$<BOOL:${APPLE}>:-framework IOKit>"
-    PRIVATE globalmediator
+    PRIVATE constants
     PRIVATE mpv::mpv
+    PUBLIC context
     PUBLIC Qt6::OpenGLWidgets
     PUBLIC Qt6::Widgets
+    PUBLIC utils
 )

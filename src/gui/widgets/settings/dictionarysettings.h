@@ -23,7 +23,12 @@
 
 #include <QWidget>
 
+#include <memory>
+
 #include <QMutex>
+#include <QPointer>
+
+#include "state/context.h"
 
 namespace Ui
 {
@@ -38,7 +43,7 @@ class DictionarySettings : public QWidget
     Q_OBJECT
 
 public:
-    DictionarySettings(QWidget *parent = nullptr);
+    DictionarySettings(QPointer<Context> context, QWidget *parent = nullptr);
     ~DictionarySettings();
 
 protected:
@@ -101,7 +106,10 @@ private Q_SLOTS:
 
 private:
     /* The UI object containing all the widgets. */
-    Ui::DictionarySettings *m_ui;
+    std::unique_ptr<Ui::DictionarySettings> m_ui;
+
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
 
     /* Condition to prevent multiple restoreSaved thread from being fired */
     QMutex m_restoreSavedActive;

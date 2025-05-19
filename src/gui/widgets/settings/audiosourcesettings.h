@@ -23,7 +23,13 @@
 
 #include <QWidget>
 
-class QComboBox;
+#include <memory>
+
+#include <QComboBox>
+#include <QPointer>
+
+#include "state/context.h"
+
 namespace Constants
 {
     enum class AudioSourceType;
@@ -42,8 +48,8 @@ class AudioSourceSettings : public QWidget
     Q_OBJECT
 
 public:
-    AudioSourceSettings(QWidget *parent = nullptr);
-    ~AudioSourceSettings();
+    AudioSourceSettings(QPointer<Context> context, QWidget *parent = nullptr);
+    virtual ~AudioSourceSettings();
 
 protected:
     /**
@@ -136,7 +142,10 @@ private:
     inline QComboBox *createTypeComboBox(const QString &type) const;
 
     /* The UI object containing all the widgets. */
-    Ui::AudioSourceSettings *m_ui;
+    std::unique_ptr<Ui::AudioSourceSettings> m_ui;
+
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
 };
 
 #endif // AUDIOSOURCESETTINGS_H

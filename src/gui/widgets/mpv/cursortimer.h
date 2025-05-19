@@ -155,6 +155,10 @@ private:
      */
     void handleFullscreenOnlyChange(bool fsOnly);
 
+    /**
+     * Handles changes in behavior when fullscreen changes.
+     * @param fullscreen True if fullscreen, false otherwise.
+     */
     void handleFullscreenChange(bool fullscreen);
 
     /**
@@ -174,7 +178,7 @@ private:
     QTimer m_timer;
 
     /* The mpv_handle for this timer */
-    mpv_handle *m_handle;
+    mpv_handle *m_handle = nullptr;
 
     /* The current state of cursor-autohide */
     TimerState m_state = TimerState::Number;

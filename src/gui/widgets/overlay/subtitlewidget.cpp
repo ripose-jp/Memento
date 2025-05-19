@@ -31,28 +31,21 @@
 
 #include "player/playeradapter.h"
 #include "util/constants.h"
-#include "util/globalmediator.h"
 #include "util/utils.h"
 
 /* The maximum length of text that can be searched. */
-#define MAX_QUERY_LENGTH 37
+static constexpr int MAX_QUERY_LENGTH = 37;
 
 /* Prevents valid subtitles from being hidden due to double precision errors. */
-#define DOUBLE_DELTA 0.001
+static constexpr double DOUBLE_DELTA = 0.001;
 
 /* Begin Constructor/Destructor */
 
-SubtitleWidget::SubtitleWidget(QWidget *parent)
-    : StrokeLabel(parent),
-      m_dictionary(GlobalMediator::getGlobalMediator()->getDictionary()),
-      m_findDelay(new QTimer(this)),
-      m_currentIndex(-1),
-      m_paused(true)
+SubtitleWidget::SubtitleWidget(QPointer<Context> context, QWidget *parent) :
+    StrokeLabel(parent),
+    m_context(std::move(context)),
+    m_findDelay(this)
 {
-    if (m_dictionary == nullptr)
-    {
-        m_dictionary = new Dictionary;
-    }
     m_settings.showSubtitles = true;
 
     initTheme();
@@ -61,41 +54,39 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
     setCursor(Qt::ArrowCursor);
     hide();
 
-    m_findDelay->setSingleShot(true);
+    m_findDelay.setSingleShot(true);
 
     initSettings();
 
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-
     /* Slots */
-    connect(m_findDelay, &QTimer::timeout, this, &SubtitleWidget::findTerms);
+    connect(&m_findDelay, &QTimer::timeout, this, &SubtitleWidget::findTerms);
     connect(
-        mediator, &GlobalMediator::behaviorSettingsChanged,
-        this,     &SubtitleWidget::initSettings,
+        m_context, &Context::behaviorSettingsChanged,
+        this, &SubtitleWidget::initSettings,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::searchSettingsChanged,
-        this,     &SubtitleWidget::initSettings,
+        m_context, &Context::searchSettingsChanged,
+        this, &SubtitleWidget::initSettings,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerResized,
-        this,     &SubtitleWidget::initTheme,
+        m_context, &Context::playerResized,
+        this, &SubtitleWidget::initTheme,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::interfaceSettingsChanged,
-        this,     &SubtitleWidget::initTheme,
+        m_context, &Context::interfaceSettingsChanged,
+        this, &SubtitleWidget::initTheme,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::definitionsHidden,
-        this,     &StrokeLabel::deselectText,
+        m_context, &Context::definitionsHidden,
+        this, &StrokeLabel::deselectText,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::definitionsHidden,
+        m_context, &Context::definitionsHidden,
         this,
         [this] () {
             m_definitionsVisible = false;
@@ -104,17 +95,17 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::definitionsHidden,
-        this,     [this] () { m_definitionsVisible = false; },
+        m_context, &Context::definitionsHidden,
+        this, [this] () { m_definitionsVisible = false; },
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::definitionsShown,
-        this,     &SubtitleWidget::selectText,
+        m_context, &Context::definitionsShown,
+        this, &SubtitleWidget::selectText,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::definitionsShown,
+        m_context, &Context::definitionsShown,
         this,
         [this] () {
             m_definitionsVisible = true;
@@ -123,39 +114,39 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerSubtitleChanged,
-        this,     &SubtitleWidget::setSubtitle
+        m_context, &Context::playerSubtitleChanged,
+        this, &SubtitleWidget::setSubtitle
     );
     connect(
-        mediator, &GlobalMediator::playerPositionChanged,
-        this,     &SubtitleWidget::positionChanged
+        m_context, &Context::playerPositionChanged,
+        this, &SubtitleWidget::positionChanged
     );
     connect(
-        mediator, &GlobalMediator::playerSubtitlesDisabled,
-        this,     [this] { positionChanged(-1); },
+        m_context, &Context::playerSubtitlesDisabled,
+        this, [this] { positionChanged(-1); },
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerSubtitleTrackChanged,
-        this,     [this] { positionChanged(-1); },
+        m_context, &Context::playerSubtitleTrackChanged,
+        this, [this] { positionChanged(-1); },
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::menuSubtitleVisibilityToggled, this,
+        m_context, &Context::menuSubtitleVisibilityToggled, this,
         [this] (bool visible) {
             m_settings.showSubtitles = visible;
             adjustVisibility();
         },
         Qt::QueuedConnection
     );
-    connect(mediator, &GlobalMediator::requestSubtitleWidgetVisibility, this,
+    connect(m_context, &Context::requestSubtitleWidgetVisibility, this,
         [this] (bool visible) {
             m_settings.requestedVisibility = visible;
             adjustVisibility();
         },
         Qt::QueuedConnection
     );
-    connect(mediator, &GlobalMediator::playerPauseStateChanged, this,
+    connect(m_context, &Context::playerPauseStateChanged, this,
         [this] (bool paused) {
             m_paused = paused;
             adjustVisibility();
@@ -167,7 +158,6 @@ SubtitleWidget::SubtitleWidget(QWidget *parent)
 SubtitleWidget::~SubtitleWidget()
 {
     disconnect();
-    delete m_findDelay;
 }
 
 /* End Constructor/Destructor */
@@ -198,7 +188,7 @@ void SubtitleWidget::initTheme()
     );
     font.setStyleStrategy(QFont::PreferAntialias);
     font.setPixelSize(
-        GlobalMediator::getGlobalMediator()->getPlayerWidget()->height() *
+        m_context->getPlayerWidget()->height() *
         settings.value(
             Constants::Settings::Interface::Subtitle::SCALE,
             Constants::Settings::Interface::Subtitle::SCALE_DEFAULT
@@ -345,8 +335,7 @@ void SubtitleWidget::showEvent(QShowEvent *event)
 
     if (m_settings.hideSubsWhenVisible)
     {
-        emit GlobalMediator::getGlobalMediator()
-            ->requestSubtitleVisibility(false);
+        emit m_context->requestSubtitleVisibility(false);
     }
 }
 
@@ -356,10 +345,10 @@ void SubtitleWidget::hideEvent(QHideEvent *event)
 
     if (m_settings.hideSubsWhenVisible && m_settings.hideOnPlay)
     {
-        emit GlobalMediator::getGlobalMediator()
+        emit m_context
             ->requestSubtitleVisibility(true);
     }
-    emit GlobalMediator::getGlobalMediator()->subtitleHidden();
+    emit m_context->subtitleHidden();
 }
 
 void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
@@ -368,7 +357,7 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
 
     if (m_settings.pauseOnHover && !m_paused)
     {
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter()->pause();
+        m_context->getPlayerAdapter()->pause();
     }
 
     int position = getPosition(event->pos());
@@ -381,7 +370,7 @@ void SubtitleWidget::mouseMoveEvent(QMouseEvent *event)
     {
     case Settings::SearchMethod::Hover:
         m_currentIndex = position;
-        m_findDelay->start(m_settings.delay);
+        m_findDelay.start(m_settings.delay);
         break;
 
     case Settings::SearchMethod::Modifier:
@@ -427,7 +416,7 @@ void SubtitleWidget::leaveEvent(QEvent *event)
 {
     StrokeLabel::leaveEvent(event);
 
-    m_findDelay->stop();
+    m_findDelay.stop();
     m_currentIndex = -1;
     adjustVisibility();
 }
@@ -436,7 +425,7 @@ void SubtitleWidget::resizeEvent(QResizeEvent *event)
 {
     StrokeLabel::resizeEvent(event);
 
-    emit GlobalMediator::getGlobalMediator()->requestDefinitionDelete();
+    emit m_context->requestDefinitionDelete();
 }
 
 /* End Event Handlers */
@@ -463,7 +452,7 @@ void SubtitleWidget::findTerms()
         [this, index, queryStr, subtitleText]
         {
             /* Look for Terms */
-            SharedTermList terms = m_dictionary->searchTerms(
+            SharedTermList terms = m_context->getDictionary()->searchTerms(
                 queryStr, subtitleText, index, &m_currentIndex
             );
             if (terms == nullptr)
@@ -490,7 +479,7 @@ void SubtitleWidget::findTerms()
             SharedKanji kanji = nullptr;
             if (CharacterUtils::isKanji(queryStr[0]))
             {
-                kanji = m_dictionary->searchKanji(queryStr[0]);
+                kanji = m_context->getDictionary()->searchKanji(queryStr[0]);
                 if (kanji)
                 {
                     kanji->sentence = subtitleText;
@@ -505,8 +494,7 @@ void SubtitleWidget::findTerms()
                 }
             }
 
-            emit GlobalMediator::getGlobalMediator()
-                ->termsChanged(terms, kanji);
+            emit m_context->termsChanged(terms, kanji);
         }
     );
 }
@@ -539,12 +527,12 @@ void SubtitleWidget::adjustVisibility()
     }
 }
 
-/* If pausing on subtitle end is enabled, prevents pausing on the next
- * subtitle. */
-#define PAUSE_DELTA 0.04
-
 void SubtitleWidget::positionChanged(const double value)
 {
+    /* If pausing on subtitle end is enabled, prevents pausing on the next
+     * subtitle. */
+    constexpr double PAUSE_DELTA = 0.04;
+
     const double timeToSubtitleEnd = m_subtitle.endTime - value;
     if (m_settings.pauseOnSubtitleEnd &&
         !m_pausedForCurrentSubtitle &&
@@ -552,8 +540,8 @@ void SubtitleWidget::positionChanged(const double value)
         timeToSubtitleEnd <= PAUSE_DELTA &&
         value > PAUSE_DELTA)
     {
-         GlobalMediator::getGlobalMediator()->getPlayerAdapter()->pause();
-         m_pausedForCurrentSubtitle = true;
+        m_context->getPlayerAdapter()->pause();
+        m_pausedForCurrentSubtitle = true;
     }
 
     if (value < m_subtitle.startTime - DOUBLE_DELTA ||
@@ -562,11 +550,9 @@ void SubtitleWidget::positionChanged(const double value)
         m_subtitle.rawText.clear();
         clearText();
         hide();
-        emit GlobalMediator::getGlobalMediator()->subtitleExpired();
+        emit m_context->subtitleExpired();
     }
 }
-
-#undef PAUSE_DELTA
 
 void SubtitleWidget::setSubtitle(QString subtitle,
                                  const double start,

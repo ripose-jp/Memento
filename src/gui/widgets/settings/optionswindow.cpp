@@ -31,23 +31,23 @@
 #endif // OCR_SUPPORT
 #include "searchsettings.h"
 
-#include "util/globalmediator.h"
-
 /* Begin Constructor/Destructor */
 
-#define NAME_ANKI           "Anki Integration"
-#define NAME_AUDIO_SOURCE   "Audio Sources"
-#define NAME_BEHAVIOR       "Behavior"
-#define NAME_DICTIONARIES   "Dictionaries"
-#define NAME_INTERFACE      "Interface"
-#define NAME_OCR            "OCR"
-#define NAME_SEARCH         "Search"
-
-OptionsWindow::OptionsWindow(QWidget *parent)
-    : QWidget(parent),
-      m_ui(new Ui::OptionsWindow),
-      m_currentWidget(nullptr)
+OptionsWindow::OptionsWindow(QPointer<Context> context, QWidget *parent) :
+    QWidget(parent),
+    m_ui(std::make_unique<Ui::OptionsWindow>()),
+    m_context(std::move(context))
 {
+    constexpr const char *NAME_ANKI = "Anki Integration";
+    constexpr const char *NAME_AUDIO_SOURCE = "Audio Sources";
+    constexpr const char *NAME_BEHAVIOR = "Behavior";
+    constexpr const char *NAME_DICTIONARIES = "Dictionaries";
+    constexpr const char *NAME_INTERFACE = "Interface";
+    constexpr const char *NAME_SEARCH = "Search";
+#ifdef OCR_SUPPORT
+    constexpr const char *NAME_OCR = "OCR";
+#endif // OCR_SUPPORT
+
     m_ui->setupUi(this);
 
     QFont labelFont = m_ui->labelOption->font();
@@ -58,14 +58,14 @@ OptionsWindow::OptionsWindow(QWidget *parent)
 #endif
     m_ui->labelOption->setFont(labelFont);
 
-    addOption(NAME_ANKI,         new AnkiSettings);
-    addOption(NAME_AUDIO_SOURCE, new AudioSourceSettings);
-    addOption(NAME_BEHAVIOR,     new BehaviorSettings);
-    addOption(NAME_DICTIONARIES, new DictionarySettings);
-    addOption(NAME_SEARCH,       new SearchSettings);
-    addOption(NAME_INTERFACE,    new InterfaceSettings);
+    addOption(NAME_ANKI, new AnkiSettings(m_context));
+    addOption(NAME_AUDIO_SOURCE, new AudioSourceSettings(m_context));
+    addOption(NAME_BEHAVIOR, new BehaviorSettings(m_context));
+    addOption(NAME_DICTIONARIES, new DictionarySettings(m_context));
+    addOption(NAME_SEARCH, new SearchSettings(m_context));
+    addOption(NAME_INTERFACE, new InterfaceSettings(m_context));
 #ifdef OCR_SUPPORT
-    addOption(NAME_OCR,          new OCRSettings);
+    addOption(NAME_OCR, new OCRSettings(m_context));
 #endif // OCR_SUPPORT
 
     connect(
@@ -74,16 +74,9 @@ OptionsWindow::OptionsWindow(QWidget *parent)
     );
 }
 
-#undef NAME_ANKI
-#undef NAME_AUDIO_SOURCE
-#undef NAME_DICTIONARIES
-#undef NAME_INTERFACE
-#undef NAME_SEARCH
-
 OptionsWindow::~OptionsWindow()
 {
     disconnect();
-    delete m_ui;
 }
 
 /* End Constructor/Destructor */
@@ -99,7 +92,7 @@ void OptionsWindow::showEvent(QShowEvent *event)
 /* End Event Handlers */
 /* Begin Helpers */
 
-void OptionsWindow::addOption(const QString &name, QWidget *widget)
+void OptionsWindow::addOption(const QString &name, QPointer<QWidget> widget)
 {
     m_ui->listOptions->addItem(name);
     widget->hide();

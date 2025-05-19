@@ -28,6 +28,8 @@
 
 #include <mpv/client.h>
 
+#include "state/context.h"
+
 class MpvWidget;
 
 /**
@@ -36,7 +38,10 @@ class MpvWidget;
 class MpvAdapter : public PlayerAdapter
 {
 public:
-    MpvAdapter(MpvWidget *mpv, QObject *parent = 0);
+    MpvAdapter(
+        QPointer<Context> context,
+        QPointer<MpvWidget> mpv,
+        QObject *parent = nullptr);
     virtual ~MpvAdapter() { disconnect(); }
 
     void loadCommandLineArgs() override;
@@ -173,10 +178,11 @@ private:
      * @return The index of the argument array buildArgsTree stopped at. -1 on
      *         error.
      */
-    int buildArgsTree(const QStringList &args,
-                      int index,
-                      struct LoadFileNode &parent,
-                      int depth = 10) const;
+    int buildArgsTree(
+        const QStringList &args,
+        int index,
+        struct LoadFileNode &parent,
+        int depth = 10) const;
 
     /**
      * Quotes an option correctly
@@ -190,14 +196,16 @@ private:
      * @param parent  The parent to load files from.
      * @param options Options inherited by files at this level.
      */
-    void loadFilesFromTree(const struct LoadFileNode &parent,
-                                        QStringList  &options);
+    void loadFilesFromTree(const LoadFileNode &parent, QStringList &options);
+
+    /* The application conext */
+    QPointer<Context> m_context = nullptr;
 
     /* The MpvWidget */
-    MpvWidget *m_mpv;
+    QPointer<MpvWidget> m_mpv = nullptr;
 
     /* The mpv context. Used for interacting with the mpv api. */
-    mpv_handle *m_handle;
+    mpv_handle *m_handle = nullptr;
 
     /* A set containing all subtitle filetype extensions. */
     QSet<QString> m_subExts;

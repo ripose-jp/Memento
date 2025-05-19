@@ -20,26 +20,30 @@
 
 #include "audioplayer.h"
 
-#include <mpv/client.h>
+#include <cstdlib>
+
 #include <QCoreApplication>
 #include <QFileInfo>
-#include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QThreadPool>
-#include <stdlib.h>
 
-#include "util/globalmediator.h"
+#include <mpv/client.h>
+
+#include "state/context.h"
 #include "util/utils.h"
 
 /* Begin Constructor/Destructor */
 
-AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent)
+AudioPlayer::AudioPlayer(QPointer<Context> context, QObject *parent) :
+    QObject(parent),
+    m_context(std::move(context)),
+    m_manager(this)
 {
     m_mpv = mpv_create();
     if (!m_mpv)
     {
-        emit GlobalMediator::getGlobalMediator()->showCritical(
+        emit m_context->showCritical(
             "Could not start mpv",
             "AudioPlayer: Could not create mpv context"
         );
@@ -55,21 +59,17 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent)
 
     if (mpv_initialize(m_mpv) < 0)
     {
-        emit GlobalMediator::getGlobalMediator()->showCritical(
+        emit m_context->showCritical(
             "Could not start mpv",
             "AudioPlayer: Failed to initialize mpv context"
         );
         QCoreApplication::exit(EXIT_FAILURE);
     }
-
-    /* Initialize other values */
-    m_manager = new QNetworkAccessManager;
 }
 
 AudioPlayer::~AudioPlayer()
 {
     mpv_terminate_destroy(m_mpv);
-    delete m_manager;
     clearFiles();
 }
 
@@ -130,7 +130,7 @@ AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
         QNetworkRequest::RedirectPolicyAttribute,
         QNetworkRequest::UserVerifiedRedirectPolicy
     );
-    QNetworkReply *reply = m_manager->get(std::move(req));
+    QNetworkReply *reply = m_manager.get(std::move(req));
     connect(
         reply, &QNetworkReply::redirected,
         reply, &QNetworkReply::redirectAllowed

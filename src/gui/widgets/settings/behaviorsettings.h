@@ -25,6 +25,8 @@
 
 #include <QMap>
 
+#include "state/context.h"
+
 namespace Constants
 {
     enum class FileOpenDirectory;
@@ -43,8 +45,8 @@ class BehaviorSettings : public QWidget
     Q_OBJECT
 
 public:
-    BehaviorSettings(QWidget *parent = nullptr);
-    ~BehaviorSettings();
+    BehaviorSettings(QPointer<Context> context, QWidget *parent = nullptr);
+    virtual ~BehaviorSettings();
 
 protected:
     /**
@@ -82,7 +84,10 @@ private Q_SLOTS:
 
 private:
     /* The UI object containing all the widgets. */
-    Ui::BehaviorSettings *m_ui;
+    std::unique_ptr<Ui::BehaviorSettings> m_ui;
+
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
 
     /* Maps ComboBox options to their corresponding enum values */
     QMap<QString, Constants::FileOpenDirectory> m_fileOpenMap;

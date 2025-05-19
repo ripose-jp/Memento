@@ -26,18 +26,17 @@
 #include <memory>
 
 #include <QLabel>
+#include <QMenu>
 #include <QMutex>
+#include <QPointer>
 #include <QShortcut>
 
 #include <qcoro/qcorotask.h>
 
-#include "anki/ankiclient.h"
 #include "dict/expression.h"
 #include "gui/widgets/common/flowlayout.h"
 #include "gui/widgets/definition/definitionstate.h"
-#include "util/constants.h"
-
-class QMenu;
+#include "state/context.h"
 
 namespace Ui
 {
@@ -54,15 +53,17 @@ class TermWidget : public QWidget
 public:
     /**
      * Constructor for TermWidget.
-     * @param term   The term to display. Does not take ownership.
-     * @param state  The state of the parent of this widget.
-     * @param parent The parent of this widget.
+     * @param context The application context.
+     * @param term    The term to display.
+     * @param state   The state of the parent of this widget.
+     * @param parent  The parent of this widget.
      */
     TermWidget(
+        QPointer<Context> context,
         std::shared_ptr<const Term> term,
         const DefinitionState &state,
         QWidget *parent = nullptr);
-    ~TermWidget();
+    virtual ~TermWidget();
 
     /**
      * Sets this widget to be addable.
@@ -168,15 +169,8 @@ private:
     /**
      * Puts term information into the UI.
      * @param term            The term to populate the UI with.
-     * @param modifier        The modifier key for triggering recursive search.
-     * @param middleMouseScan The flag for triggering middle mouse scan.
-     * @param style           The style of the GlossaryWidget.
      */
-    void initUi(
-        const Term &term,
-        Qt::KeyboardModifier modifier,
-        bool middleMouseScan,
-        Constants::GlossaryStyle style);
+    void initUi(const Term &term);
 
     /**
      * Initializes a new term to add to Anki without audio information.
@@ -207,11 +201,14 @@ private:
      */
     DefinitionState::AudioSource *getFirstAudioSource();
 
-    /* UI object containing all the widgets. */
-    Ui::TermWidget *m_ui;
+    /* UI object containing all the widgets */
+    std::unique_ptr<Ui::TermWidget> m_ui;
+
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
 
     /* The term this widget is displaying. */
-    std::shared_ptr<const Term> m_term;
+    std::shared_ptr<const Term> m_term = nullptr;
 
     /* The state of the parent definition widget */
     const DefinitionState &m_state;
@@ -226,9 +223,6 @@ private:
     /* True if the TermWidget is safe to delete right now, false otherwise */
     bool m_safeToDelete = true;
 
-    /* Saved pointer to the global AnkiClient. */
-    AnkiClient *m_client;
-
     /* The list of current audio sources */
     std::vector<DefinitionState::AudioSource> m_sources;
 
@@ -236,7 +230,7 @@ private:
     QMutex m_lockSources;
 
     /* The number of json audio sources that haven't been parsed */
-    int m_jsonSources;
+    int m_jsonSources = 0;
 
     /* Lock JSON sources */
     QMutex m_lockJsonSources;

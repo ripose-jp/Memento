@@ -23,13 +23,17 @@
 
 #include <QMainWindow>
 
+#include <memory>
+
 #include "anki/ankiclient.h"
+#include "audio/audioplayer.h"
+#include "dict/dictionary.h"
 #include "gui/widgets/aboutwindow.h"
 #include "gui/widgets/definition/definitionwidget.h"
 #include "gui/widgets/overlay/playeroverlay.h"
 #include "gui/widgets/settings/optionswindow.h"
 #include "player/playeradapter.h"
-#include "util/globalmediator.h"
+#include "state/context.h"
 
 #if defined(Q_OS_MACOS)
 #include "macos/cocoaeventhandler.h"
@@ -52,8 +56,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    MainWindow(QWidget *parent = nullptr);
+    virtual ~MainWindow();
 
 #if defined(Q_OS_MACOS)
     /**
@@ -183,7 +187,7 @@ private Q_SLOTS:
     /**
      * Updates the visibility of the subtitle list splitter.
      * This is required to prevent the splitter between the subtitle list and
-     * player from being visibile when nothing else is.
+     * player from being visible when nothing else is.
      */
     void updateSearchSubListSplitter();
 
@@ -194,11 +198,6 @@ private:
      */
     void initWindow();
 
-    /**
-     * Intializes DefinitionWidget signals.
-     */
-    void initDefinitionWidget();
-
 #if defined(Q_OS_WIN)
     /**
      * Sets whether or not 1px border is drawn when in fullscreen.
@@ -206,51 +205,49 @@ private:
     void setHasBorderInFullScreen(bool value);
 #endif
 
-    /**
-     * Returns if the cursor is over the player or not.
-     * @return true if the cursor is not over the player controls or the
-     *         DefinitonWidget, false otherwise.
-     */
-    inline bool isMouseOverPlayer();
-
     /* The object containing all of MainWindows widgets. Has ownership. */
-    Ui::MainWindow *m_ui;
+    std::unique_ptr<Ui::MainWindow> m_ui;
 
-    /* A saved pointer to the GlobalMediator. Does not have ownership. */
-    GlobalMediator *m_mediator;
+    /* A saved pointer to the context */
+    Context *m_context = nullptr;
 
-    /* A saved pointer to the player adapter. Has ownership. */
-    PlayerAdapter *m_player;
+    /* A saved pointer to the current AnkiClient */
+    AnkiClient *m_ankiClient = nullptr;
 
-    /* A saved pointer to the player overlay. Has ownership. */
-    PlayerOverlay *m_overlay;
+    /* A saved pointer to the current AudioPlayer */
+    AudioPlayer *m_audioPlayer = nullptr;
 
-    /* A saved pointer to the current AnkiClient. Has ownership. */
-    AnkiClient *m_ankiClient;
+    /* A saved pointer to the current Dictionary */
+    Dictionary *m_dictionary = nullptr;
 
-    /* A saved pointer to the options window. Has ownership. */
-    OptionsWindow *m_optionsWindow;
+    /* A saved pointer to the player adapter */
+    PlayerAdapter *m_player = nullptr;
 
-    /* A saved pointer to the AboutWindow. Has ownership. */
-    AboutWindow *m_aboutWindow;
+    /* A saved pointer to the player overlay */
+    PlayerOverlay *m_overlay = nullptr;
+
+    /* A saved pointer to the options window */
+    std::unique_ptr<OptionsWindow> m_optionsWindow = nullptr;
+
+    /* A saved pointer to the AboutWindow */
+    std::unique_ptr<AboutWindow> m_aboutWindow = nullptr;
 
     /* Saved value for determining if the MainWindow is maximized. Used for
-     * restoring window state when leaving fullscreen.
-     */
-    bool m_maximized;
+     * restoring window state when leaving fullscreen. */
+    bool m_maximized = false;
 
     /* true if the window has never been shown before, false otherwise */
-    bool m_firstShow;
+    bool m_firstShow = true;
 
 #if defined(Q_OS_MACOS)
     /* The Cocoa event handler for preventing updates on screen transitions. */
-    CocoaEventHandler *m_cocoaHandler;
+    std::unique_ptr<CocoaEventHandler> m_cocoaHandler = nullptr;
 
     /* The old updatesEnabled() value before screen transitions. */
-    bool m_oldUpdatesEnabled;
+    bool m_oldUpdatesEnabled = true;
 
     /* The old pause state before screen transitions. */
-    bool m_oldPause;
+    bool m_oldPause = false;
 #endif
 };
 

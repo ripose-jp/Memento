@@ -1,18 +1,4 @@
 add_library(
-    globalmediator STATIC
-    globalmediator.cpp
-    globalmediator.h
-)
-target_compile_features(globalmediator PUBLIC cxx_std_20)
-target_compile_options(globalmediator PRIVATE ${MEMENTO_COMPILER_FLAGS})
-target_include_directories(globalmediator PRIVATE ${MEMENTO_INCLUDE_DIRS})
-target_link_libraries(
-    globalmediator
-    PUBLIC Qt6::Core
-    PUBLIC track
-)
-
-add_library(
     utils STATIC
     utils.cpp
     utils.h
@@ -24,8 +10,18 @@ target_link_libraries(
     utils
     PRIVATE Qt6::Network
     PRIVATE version
+    PUBLIC context
     PUBLIC Qt6::Core
     PUBLIC Qt6::Gui
+)
+
+add_library(constants INTERFACE constants.h)
+target_compile_features(constants INTERFACE cxx_std_20)
+target_compile_options(constants INTERFACE ${MEMENTO_COMPILER_FLAGS})
+target_include_directories(constants INTERFACE ${MEMENTO_INCLUDE_DIRS})
+target_link_libraries(constants
+    INTERFACE Qt6::Core
+    INTERFACE utils
 )
 
 add_library(

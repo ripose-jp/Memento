@@ -25,13 +25,13 @@
 #include <QSettings>
 
 #include "util/constants.h"
-#include "util/globalmediator.h"
 
 /* Begin Constructor/Destructor */
 
-SearchSettings::SearchSettings(QWidget *parent)
-    : QWidget(parent),
-      m_ui(new Ui::SearchSettings)
+SearchSettings::SearchSettings(QPointer<Context> context, QWidget *parent) :
+    QWidget(parent),
+    m_ui(std::make_unique<Ui::SearchSettings>()),
+    m_context(std::move(context))
 {
     m_ui->setupUi(this);
 
@@ -85,7 +85,6 @@ SearchSettings::SearchSettings(QWidget *parent)
 SearchSettings::~SearchSettings()
 {
     disconnect();
-    delete m_ui;
 }
 
 /* End Constructor/Destructor */
@@ -337,7 +336,7 @@ void SearchSettings::applySettings()
 
     settings.endGroup();
 
-    emit GlobalMediator::getGlobalMediator()->searchSettingsChanged();
+    emit m_context->searchSettingsChanged();
 }
 
 /* Begin Button Box Handlers */

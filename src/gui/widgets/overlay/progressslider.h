@@ -23,7 +23,10 @@
 
 #include <QSlider>
 
-class StrokeLabel;
+#include <QPointer>
+
+#include "gui/widgets/common/strokelabel.h"
+#include "state/context.h"
 
 /**
  * A custom slider for displaying video progress.
@@ -35,6 +38,12 @@ class ProgressSlider : public QSlider
 public:
     ProgressSlider(QWidget *parent = nullptr);
     ~ProgressSlider();
+
+    /**
+     * Initializes this widget with the given context.
+     * @param context The application context.
+     */
+    void initialize(QPointer<Context> context);
 
     /**
      * Creates an (HH):MM:SS timecode from the supplied time.
@@ -89,8 +98,11 @@ private Q_SLOTS:
     void initStylesheet();
 
 private:
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
+
     /* The label used for displaying the timecode the mouse is hovering over. */
-    StrokeLabel *m_labelTimecode;
+    StrokeLabel *m_labelTimecode = nullptr;
 
     /* Saved chapter times in seconds. */
     QList<double> m_chapterTimes;

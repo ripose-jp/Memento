@@ -29,6 +29,7 @@
 #include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QPointer>
 #include <QString>
 #include <QStringList>
 
@@ -39,6 +40,7 @@
 #include "anki/glossarybuilder.h"
 #include "anki/markertokenizer.h"
 #include "dict/expression.h"
+#include "state/context.h"
 
 /* Default AnkiConfig Values */
 static constexpr const char *DEFAULT_PROFILE = "Default";
@@ -71,7 +73,7 @@ class AnkiClient : public QObject
     Q_OBJECT
 
 public:
-    AnkiClient(QObject *parent = nullptr);
+    AnkiClient(QPointer<Context> context, QObject *parent = nullptr);
 
     /**
      * Destructor for all allocated AnkiConfigs.
@@ -349,7 +351,10 @@ private:
     [[nodiscard]]
     QJsonObject processReply(QNetworkReply &reply, QString &error);
 
-    /* The Network Manager for this object. */
+    /* The context object for this application */
+    QPointer<Context> m_context = nullptr;
+
+    /* The Network Manager for this object */
     QNetworkAccessManager m_manager;
 
     /* true if a config exists, false otherwise */

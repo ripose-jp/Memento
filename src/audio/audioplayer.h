@@ -25,10 +25,13 @@
 
 #include <QHash>
 #include <QMutex>
+#include <QNetworkAccessManager>
+#include <QPointer>
 #include <QTemporaryFile>
 
+#include "state/context.h"
+
 struct mpv_handle;
-class QNetworkAccessManager;
 
 /**
  * Returns an asynchronous replies from the AudioPlayer.
@@ -55,8 +58,8 @@ class AudioPlayer : public QObject
 {
     Q_OBJECT
 public:
-    AudioPlayer(QObject *parent = nullptr);
-    ~AudioPlayer();
+    AudioPlayer(QPointer<Context> context, QObject *parent = nullptr);
+    virtual ~AudioPlayer();
 
     /**
      * Clears all files in the cache.
@@ -82,11 +85,14 @@ private:
      */
     bool playFile(const QTemporaryFile *file);
 
-    /* The mpv context. Used for playing audio. */
-    mpv_handle *m_mpv;
+    /* The context for this application */
+    QPointer<Context> m_context = nullptr;
 
     /* The network access manager used for fetching audio files. */
-    QNetworkAccessManager *m_manager;
+    QNetworkAccessManager m_manager;
+
+    /* The mpv context. Used for playing audio. */
+    mpv_handle *m_mpv = nullptr;
 
     /* Maps urls to cached files. */
     QHash<QString, QTemporaryFile *> m_files;

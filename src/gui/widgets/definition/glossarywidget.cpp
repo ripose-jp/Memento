@@ -22,25 +22,25 @@
 
 #include <QTextDocumentFragment>
 
-#include "tagwidget.h"
-
+#include "gui/widgets/definition/tagwidget.h"
 #include "util/utils.h"
 
 GlossaryWidget::GlossaryWidget(
-    size_t number,
+    QPointer<Context> context,
+    const DefinitionState &state,
     const TermDefinition &def,
-    Qt::KeyboardModifier modifier,
-    bool middleMouseScan,
-    Constants::GlossaryStyle style,
-    QWidget *parent)
-    : QWidget(parent),
-      m_def(def)
+    size_t number,
+    QWidget *parent) :
+    QWidget(parent),
+    m_context(std::move(context)),
+    m_state(state),
+    m_def(def)
 {
-    m_parentLayout  = new QVBoxLayout(this);
-    m_layoutHeader  = new FlowLayout(-1, 6);
-    m_checkBoxAdd   = new QCheckBox;
-    m_labelNumber   = new QLabel;
-    m_glossaryLabel = new GlossaryLabel(modifier, middleMouseScan, style);
+    m_parentLayout = new QVBoxLayout(this);
+    m_layoutHeader = new FlowLayout(-1, 6);
+    m_checkBoxAdd = new QCheckBox(this);
+    m_labelNumber = new QLabel(this);
+    m_glossaryLabel = new GlossaryLabel(m_context, m_state, this);
 
     m_parentLayout->setContentsMargins(0, 0, 0, 0);
     m_parentLayout->addLayout(m_layoutHeader);

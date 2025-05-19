@@ -27,13 +27,15 @@
 #include <QSettings>
 
 #include "util/constants.h"
-#include "util/globalmediator.h"
 
 /* Begin Constructor/Destructor */
 
-InterfaceSettings::InterfaceSettings(QWidget *parent)
-    : QWidget(parent),
-      m_ui(new Ui::InterfaceSettings)
+InterfaceSettings::InterfaceSettings(
+    QPointer<Context> context,
+    QWidget *parent) :
+    QWidget(parent),
+    m_ui(std::make_unique<Ui::InterfaceSettings>()),
+    m_context(std::move(context))
 {
     m_ui->setupUi(this);
 
@@ -108,7 +110,6 @@ InterfaceSettings::InterfaceSettings(QWidget *parent)
 InterfaceSettings::~InterfaceSettings()
 {
     disconnect();
-    delete m_ui;
 }
 
 /* End Constructor/Destructor */
@@ -504,7 +505,7 @@ void InterfaceSettings::applyChanges()
 
     settings.endGroup();
 
-    emit GlobalMediator::getGlobalMediator()->interfaceSettingsChanged();
+    emit m_context->interfaceSettingsChanged();
 }
 
 void InterfaceSettings::showHelp() const

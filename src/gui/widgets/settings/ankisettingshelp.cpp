@@ -22,17 +22,18 @@
 #include "ui_ankisettingshelp.h"
 
 #include "player/playeradapter.h"
-#include "util/globalmediator.h"
 
-AnkiSettingsHelp::AnkiSettingsHelp(QWidget *parent)
-    : QDialog(parent), m_ui(new Ui::AnkiSettingsHelp)
+AnkiSettingsHelp::AnkiSettingsHelp(QPointer<Context> context, QWidget *parent) :
+    QDialog(parent),
+    m_ui(std::make_unique<Ui::AnkiSettingsHelp>()),
+    m_context(std::move(context))
 {
     m_ui->setupUi(this);
     resize(minimumSizeHint());
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
 
     /* Decide whether or not to show secondary subtitle properties */
-    PlayerAdapter *player = GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+    PlayerAdapter *player = m_context->getPlayerAdapter();
     if (!player->canGetSecondarySubText())
     {
         m_ui->labelTermSentence2->hide();
@@ -51,5 +52,5 @@ AnkiSettingsHelp::AnkiSettingsHelp(QWidget *parent)
 
 AnkiSettingsHelp::~AnkiSettingsHelp()
 {
-    delete m_ui;
+
 }

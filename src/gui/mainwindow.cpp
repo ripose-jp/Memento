@@ -32,7 +32,6 @@
 #include <qpa/qplatformwindow_p.h>
 #endif
 
-#include "dict/dictionary.h"
 #include "gui/widgets/common/sliderjumpstyle.h"
 #include "player/mpvadapter.h"
 #include "util/constants.h"
@@ -40,46 +39,68 @@
 
 /* Begin Constructor/Destructor */
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent),
-      m_ui(new Ui::MainWindow),
-      m_mediator(GlobalMediator::getGlobalMediator()),
-      m_ankiClient(new AnkiClient(this)),
-      m_maximized(false),
-      m_firstShow(true)
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    m_ui(std::make_unique<Ui::MainWindow>())
 {
     m_ui->setupUi(this);
 
 #if defined(Q_OS_MACOS)
     m_oldUpdatesEnabled = updatesEnabled();
-    m_cocoaHandler = new CocoaEventHandler(this);
+    m_cocoaHandler = std::make_unique<CocoaEventHandler>(this);
 #endif
 
-    /* Player Adapter */
-    m_player = new MpvAdapter(m_ui->player, this);
-    m_player->pause();
+    /* Context */
+    m_context = new Context(this);
 
-    /* Player Overlay */
-    m_overlay = new PlayerOverlay(m_ui->player);
-
-    /* Utility Widgets */
-    m_mediator->setSubtitleList(m_ui->subtitleList);
+    /* Subtitle List */
+    m_ui->subtitleList->initialize(m_context);
+    m_context->setSubtitleList(m_ui->subtitleList);
     m_ui->subtitleList->setWindowTitle(
         "Memento - " + m_ui->subtitleList->windowTitle()
     );
     m_ui->subtitleList->hide();
+
+    /* Anki Client */
+    m_ankiClient = new AnkiClient(m_context, this);
+    m_context->setAnkiClient(m_ankiClient);
+
+    /* Audio Player */
+    m_audioPlayer = new AudioPlayer(m_context, this);
+    m_context->setAudioPlayer(m_audioPlayer);
+
+    /* Dictionary */
+    m_dictionary = new Dictionary(m_context, this);
+    m_context->setDictionary(m_dictionary);
+
+    /* Player Widget */
+    m_ui->player->initialize(m_context);
+    m_context->setPlayerWidget(m_ui->player);
+
+    /* Player Adapter */
+    m_player = new MpvAdapter(m_context, m_ui->player, this);
+    m_player->pause();
+    m_context->setPlayerAdapter(m_player);
+
+    /* Player Overlay */
+    m_overlay = new PlayerOverlay(m_context, m_ui->player);
+
+    /* Search Widget */
+    m_ui->searchWidget->initialize(m_context);
     m_ui->searchWidget->setWindowTitle(
         "Memento - " + m_ui->searchWidget->windowTitle()
     );
     m_ui->searchWidget->hide();
+
+    /* Utility Widgets */
     m_ui->splitterSearchList->hide();
 
     /* Options */
-    m_optionsWindow = new OptionsWindow;
+    m_optionsWindow = std::make_unique<OptionsWindow>(m_context);
     m_optionsWindow->hide();
 
     /* About Window */
-    m_aboutWindow = new AboutWindow;
+    m_aboutWindow = std::make_unique<AboutWindow>();
     m_aboutWindow->hide();
 
     /* Splitter */
@@ -94,23 +115,6 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     disconnect();
-
-    /* Reparent the widgets so they get deleted */
-    m_ui->subtitleList->setParent(this);
-    m_ui->searchWidget->setParent(this);
-
-    /* Widgets */
-    delete m_ui;
-    m_optionsWindow->deleteLater();
-    m_aboutWindow->deleteLater();
-    m_overlay->deleteLater();
-
-    /* Wrappers and Clients */
-    m_player->deleteLater();
-    m_ankiClient->deleteLater();
-#if defined(Q_OS_MACOS)
-    delete m_cocoaHandler;
-#endif
 }
 
 /* End Constructor/Destructor */
@@ -120,101 +124,101 @@ void MainWindow::initWindow()
 {
     /* Search Widget Signals */
     connect(
-        m_mediator, &GlobalMediator::requestSearchVisibility,
+        m_context, &Context::requestSearchVisibility,
         m_ui->searchWidget, &SearchWidget::setVisible,
         Qt::QueuedConnection
     );
     connect(
         m_ui->searchWidget, &SearchWidget::widgetHidden,
-        m_mediator, &GlobalMediator::searchWidgetHidden,
+        m_context, &Context::searchWidgetHidden,
         Qt::QueuedConnection
     );
     connect(
         m_ui->searchWidget, &SearchWidget::widgetShown,
-        m_mediator, &GlobalMediator::searchWidgetShown,
+        m_context, &Context::searchWidgetShown,
         Qt::QueuedConnection
     );
     connect(
-        m_mediator, &GlobalMediator::searchWidgetRequest,
+        m_context, &Context::searchWidgetRequest,
         m_ui->searchWidget, &SearchWidget::setSearch,
         Qt::QueuedConnection
     );
 
     /* Subtitle List Signals */
     connect(
-        m_mediator, &GlobalMediator::requestSubtitleListVisibility,
+        m_context, &Context::requestSubtitleListVisibility,
         m_ui->subtitleList, &SubtitleListWidget::setVisible,
         Qt::QueuedConnection
     );
     connect(
         m_ui->subtitleList, &SubtitleListWidget::widgetShown,
-        m_mediator, &GlobalMediator::subtitleListShown,
+        m_context, &Context::subtitleListShown,
         Qt::QueuedConnection
     );
     connect(
         m_ui->subtitleList, &SubtitleListWidget::widgetHidden,
-        m_mediator, &GlobalMediator::subtitleListHidden,
+        m_context, &Context::subtitleListHidden,
         Qt::QueuedConnection
     );
 
     /* MainWindow Signals */
     connect(
-        m_mediator, &GlobalMediator::playerFullscreenChanged,
+        m_context, &Context::playerFullscreenChanged,
         this, &MainWindow::setFullscreen,
         Qt::QueuedConnection
     );
     connect(
-        m_mediator, &GlobalMediator::playerFileLoaded,
+        m_context, &Context::playerFileLoaded,
         this, &MainWindow::autoFitMedia
     );
     connect(
-        m_mediator, &GlobalMediator::playerClosed,
+        m_context, &Context::playerClosed,
         this, &MainWindow::close
     );
     connect(
-        m_mediator, &GlobalMediator::interfaceSettingsChanged,
+        m_context, &Context::interfaceSettingsChanged,
         this, &MainWindow::initTheme,
         Qt::QueuedConnection
     );
     connect(
-        m_mediator, &GlobalMediator::controlsSubtitleListToggled,
+        m_context, &Context::controlsSubtitleListToggled,
         this, &MainWindow::toggleSubtitleListVisibility,
         Qt::QueuedConnection
     );
     connect(
-        m_mediator, &GlobalMediator::requestSearchVisibility,
+        m_context, &Context::requestSearchVisibility,
         this, &MainWindow::updateSearchSubListSplitter,
         Qt::QueuedConnection
     );
     connect(
-        m_mediator, &GlobalMediator::requestSubtitleListVisibility,
+        m_context, &Context::requestSubtitleListVisibility,
         this, &MainWindow::updateSearchSubListSplitter,
         Qt::QueuedConnection
     );
     connect(
-        m_mediator, &GlobalMediator::playerTitleChanged, this,
+        m_context, &Context::playerTitleChanged, this,
         [this] (const QString &name) { setWindowTitle(name + " - Memento"); },
         Qt::QueuedConnection
     );
 
     /* Show Windows */
     connect(
-        m_mediator, &GlobalMediator::showCritical,
+        m_context, &Context::showCritical,
         this, &MainWindow::showErrorMessage,
         Qt::QueuedConnection
     );
     connect(
-        m_mediator, &GlobalMediator::showInformation,
+        m_context, &Context::showInformation,
         this, &MainWindow::showInfoMessage,
         Qt::QueuedConnection
     );
     connect(
-        m_mediator, &GlobalMediator::menuShowOptions,
+        m_context, &Context::menuShowOptions,
         this, &MainWindow::showOptions,
         Qt::QueuedConnection
     );
     connect(
-        m_mediator, &GlobalMediator::menuShowAbout,
+        m_context, &Context::menuShowAbout,
         this, &MainWindow::showAbout,
         Qt::QueuedConnection
     );
@@ -237,10 +241,10 @@ void MainWindow::initWindow()
         showNormal();
     }
 
-    emit m_mediator->requestSubtitleListVisibility(
+    emit m_context->requestSubtitleListVisibility(
         settings.value(Constants::Settings::Window::SUBTITLE_LIST).toBool()
     );
-    emit m_mediator->requestSearchVisibility(
+    emit m_context->requestSearchVisibility(
         settings.value(Constants::Settings::Window::SEARCH).toBool()
     );
 }
@@ -387,7 +391,7 @@ void MainWindow::initTheme()
     IconFactory::create()->buildIcons();
 #endif
 
-    emit m_mediator->requestThemeRefresh();
+    emit m_context->requestThemeRefresh();
 
     /* Set QSplitter Stylesheet */
     bool customStylesEnabled = settings.value(
@@ -469,7 +473,7 @@ void MainWindow::showEvent(QShowEvent *event)
 #endif
 
     /* Check for installed dictionaries */
-    if (m_mediator->getDictionary()->getDictionaries().isEmpty())
+    if (m_context->getDictionary()->getDictionaries().isEmpty())
     {
         QMessageBox::information(0,
             "No Dictionaries Installed",
@@ -531,11 +535,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     switch (event->key())
     {
     case Qt::Key::Key_Delete:
-        emit m_mediator->windowOSCStateCycled();
+        emit m_context->windowOSCStateCycled();
         event->accept();
         break;
     default:
-        emit m_mediator->keyPressed(event);
+        emit m_context->keyPressed(event);
         break;
     }
 
@@ -553,7 +557,7 @@ void MainWindow::wheelEvent(QWheelEvent *event)
 {
     if (!m_ui->subtitleList->underMouse() && !m_overlay->underMouse())
     {
-        emit m_mediator->wheelMoved(event);
+        emit m_context->wheelMoved(event);
     }
 
     QMainWindow::wheelEvent(event);
@@ -582,7 +586,7 @@ void MainWindow::dropEvent(QDropEvent *event)
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     event->ignore();
-    emit m_mediator->requestDefinitionDelete();
+    emit m_context->requestDefinitionDelete();
     QMainWindow::mousePressEvent(event);
 }
 
@@ -591,7 +595,7 @@ void MainWindow::changeEvent(QEvent *event)
     QMainWindow::changeEvent(event);
     if (event->type() == QEvent::ActivationChange)
     {
-        emit m_mediator->windowFocusChanged(isActiveWindow());
+        emit m_context->windowFocusChanged(isActiveWindow());
     }
 #if defined(Q_OS_MACOS)
     else if (event->type() == QEvent::WindowStateChange)
@@ -767,7 +771,7 @@ void MainWindow::autoFitMedia(int width, int height)
 void MainWindow::toggleSubtitleListVisibility()
 {
     bool vis = m_ui->subtitleList->isVisibleTo(m_ui->splitterSearchList);
-    emit m_mediator->requestSubtitleListVisibility(!vis);
+    emit m_context->requestSubtitleListVisibility(!vis);
 }
 
 void MainWindow::updateSearchSubListSplitter()

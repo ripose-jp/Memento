@@ -22,7 +22,6 @@
 #include "ui_termwidget.h"
 
 #include <QClipboard>
-#include <QMenu>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -34,8 +33,8 @@
 #include "gui/widgets/definition/pitchwidget.h"
 #include "gui/widgets/definition/tagwidget.h"
 #include "gui/widgets/subtitlelistwidget.h"
+#include "player/playeradapter.h"
 #include "util/constants.h"
-#include "util/globalmediator.h"
 #include "util/iconfactory.h"
 #include "util/utils.h"
 
@@ -45,22 +44,22 @@ using AudioSource = DefinitionState::AudioSource;
  * Kanji stylesheet format string.
  * @param 1 The color of links. Should be the same as text color.
  */
-#define KANJI_STYLE_STRING      (QString(\
-        "<style>"\
-            "a {"\
-                "color: %1;"\
-                "border: 0;"\
-                "text-decoration: none;"\
-            "}"\
-        "</style>"\
-    ))
+static const QString KANJI_STYLE_STRING(\
+    "<style>"\
+        "a {"\
+            "color: %1;"\
+            "border: 0;"\
+            "text-decoration: none;"\
+        "}"\
+    "</style>"\
+);
 
 /**
  * Kanji link format string. Used for making kanji clickable.
  * @param 1 A single kanji such that when clicked, the kanji will be emitted in
  *          in the linkActivated signal.
  */
-#define KANJI_FORMAT_STRING     (QString("<a href=\"%1\">%1</a>"))
+static const QString KANJI_FORMAT_STRING("<a href=\"%1\">%1</a>");
 
 /* Used for replace expressions with text in URLs */
 static constexpr const char *REPLACE_EXPRESSION = "{expression}";
@@ -69,28 +68,29 @@ static constexpr const char *REPLACE_EXPRESSION = "{expression}";
 static constexpr const char *REPLACE_READING = "{reading}";
 
 #if defined(Q_OS_MACOS)
-#define EXPRESSION_STYLE    (QString("QLabel { font-size: 30pt; }"))
-#define READING_STYLE       (QString("QLabel { font-size: 18pt; }"))
-#define CONJUGATION_STYLE   (QString("QLabel { font-size: 18pt; }"))
+static const QString EXPRESSION_STYLE("QLabel { font-size: 30pt; }");
+static const QString READING_STYLE("QLabel { font-size: 18pt; }");
+static const QString CONJUGATION_STYLE("QLabel { font-size: 18pt; }");
 #else
-#define EXPRESSION_STYLE    (QString("QLabel { font-size: 20pt; }"))
-#define READING_STYLE       (QString("QLabel { font-size: 12pt; }"))
-#define CONJUGATION_STYLE   (QString("QLabel { font-size: 12pt; }"))
+static const QString EXPRESSION_STYLE("QLabel { font-size: 20pt; }");
+static const QString READING_STYLE("QLabel { font-size: 12pt; }");
+static const QString CONJUGATION_STYLE("QLabel { font-size: 12pt; }");
 #endif
 
 /* Begin Constructor/Destructor */
 
 TermWidget::TermWidget(
+    QPointer<Context> context,
     std::shared_ptr<const Term> term,
     const DefinitionState &state,
-    QWidget *parent)
-    : QWidget(parent),
-      m_ui(new Ui::TermWidget),
-      m_term(term),
-      m_state(state),
-      m_client(GlobalMediator::getGlobalMediator()->getAnkiClient()),
-      m_sources(state.sources),
-      m_jsonSources(state.jsonSourceCount)
+    QWidget *parent) :
+    QWidget(parent),
+    m_ui(std::make_unique<Ui::TermWidget>()),
+    m_context(std::move(context)),
+    m_term(std::move(term)),
+    m_state(state),
+    m_sources(state.sources),
+    m_jsonSources(state.jsonSourceCount)
 {
     m_ui->setupUi(this);
 
@@ -136,12 +136,7 @@ TermWidget::TermWidget(
     m_ui->buttonAudio->setIcon(factory->getIcon(IconFactory::Icon::audio));
     m_ui->buttonAudio->setVisible(!m_sources.empty());
 
-    initUi(
-        *term,
-        m_state.searchModifier,
-        m_state.middleMouseScan,
-        m_state.glossaryStyle
-    );
+    initUi(*m_term);
 
     connect(
         m_ui->buttonCollapse, &QToolButton::clicked,
@@ -183,7 +178,7 @@ TermWidget::TermWidget(
 
 TermWidget::~TermWidget()
 {
-    delete m_ui;
+
 }
 
 void TermWidget::deleteWhenReady()
@@ -203,11 +198,7 @@ void TermWidget::deleteWhenReady()
 /* End Constructor/Destructor */
 /* Begin Initializers */
 
-void TermWidget::initUi(
-    const Term &term,
-    Qt::KeyboardModifier modifier,
-    bool middleMouseScan,
-    Constants::GlossaryStyle style)
+void TermWidget::initUi(const Term &term)
 {
     if (term.reading.isEmpty())
     {
@@ -264,12 +255,12 @@ void TermWidget::initUi(
         m_layoutTermTags->addWidget(tag);
     }
 
-    std::shared_ptr<const AnkiConfig> config = m_client->getConfig();
+    std::shared_ptr<const AnkiConfig> config =
+        m_context->getAnkiClient()->getConfig();
     for (int i = 0; i < term.definitions.size(); ++i)
     {
-        GlossaryWidget *g = new GlossaryWidget(
-            i + 1, term.definitions[i], modifier, middleMouseScan, style
-        );
+        GlossaryWidget *g =
+            new GlossaryWidget(m_context, m_state, term.definitions[i], i + 1);
         g->setChecked(
             !config->excludeGloss.contains(term.definitions[i].dictionary)
         );
@@ -304,12 +295,10 @@ std::unique_ptr<Term> TermWidget::initAnkiTerm() const
         }
     }
 
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-    PlayerAdapter *player = mediator->getPlayerAdapter();
-    SubtitleListWidget *subList = mediator->getSubtitleListWidget();
-    double delay =
-        mediator->getPlayerAdapter()->getSubDelay() -
-        mediator->getPlayerAdapter()->getAudioDelay();
+    PlayerAdapter *player = m_context->getPlayerAdapter();
+    SubtitleListWidget *subList = m_context->getSubtitleListWidget();
+
+    double delay = player->getSubDelay() - player->getAudioDelay();
     term->clipboard = QGuiApplication::clipboard()->text();
     term->title = player->getTitle();
     term->sentence = player->getSubtitle(true);
@@ -396,11 +385,10 @@ QCoro::Task<void> TermWidget::addNote(const AudioSource &src)
     m_ankiTerm->audioSkipHash = src.md5;
 
     AnkiReply<int> addNoteResult =
-        co_await m_client->addNote(std::move(m_ankiTerm));
+        co_await m_context->getAnkiClient()->addNote(std::move(m_ankiTerm));
     if (!addNoteResult.error.isEmpty())
     {
-        emit GlobalMediator::getGlobalMediator()
-            ->showCritical("Error Adding Note", addNoteResult.error);
+        emit m_context->showCritical("Error Adding Note", addNoteResult.error);
         co_return;
     }
     m_ui->buttonAnkiOpen->show();
@@ -414,10 +402,10 @@ QCoro::Task<void> TermWidget::addNote(const AudioSource &src)
 QCoro::Task<void> TermWidget::searchAnki()
 {
     AnkiReply<QList<int>> openBrowseResult =
-        co_await m_client->openDuplicates(initAnkiTerm());
+        co_await m_context->getAnkiClient()->openDuplicates(initAnkiTerm());
     if (!openBrowseResult.error.isEmpty())
     {
-        emit GlobalMediator::getGlobalMediator()->showCritical(
+        emit m_context->showCritical(
             "Error Opening Anki", openBrowseResult.error
         );
     }
@@ -456,17 +444,16 @@ void TermWidget::playAudio()
 void TermWidget::playAudio(const AudioSource &src)
 {
     m_ui->buttonAudio->setEnabled(false);
-    AudioPlayerReply *reply =
-        GlobalMediator::getGlobalMediator()->getAudioPlayer()->playAudio(
-            QString(src.url)
-                .replace(REPLACE_EXPRESSION, m_term->expression)
-                .replace(
-                    REPLACE_READING,
-                    m_term->reading.isEmpty() ?
-                        m_term->expression : m_term->reading
-                ),
-            src.md5
-        );
+    AudioPlayerReply *reply = m_context->getAudioPlayer()->playAudio(
+        QString(src.url)
+            .replace(REPLACE_EXPRESSION, m_term->expression)
+            .replace(
+                REPLACE_READING,
+                m_term->reading.isEmpty() ?
+                    m_term->expression : m_term->reading
+            ),
+        src.md5
+    );
     m_ui->buttonAudio->setEnabled(reply == nullptr);
 
     if (reply)
@@ -527,9 +514,7 @@ void TermWidget::showAddableAudioSources(const QPoint &pos)
 
 void TermWidget::searchKanji(const QString &ch)
 {
-    SharedKanji kanji(
-        GlobalMediator::getGlobalMediator()->getDictionary()->searchKanji(ch)
-    );
+    SharedKanji kanji = m_context->getDictionary()->searchKanji(ch);
     if (kanji)
     {
         kanji->title       = m_term->title;

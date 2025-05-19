@@ -21,12 +21,17 @@
 #ifndef GLOSSARYLABEL_H
 #define GLOSSARYLABEL_H
 
+#include <QPointer>
 #include <QRunnable>
 #include <QTextEdit>
 
 #include "dict/expression.h"
-#include "util/constants.h"
+#include "gui/widgets/definition/definitionstate.h"
+#include "state/context.h"
 
+/**
+ * A label that models glossaries and supports recursive searches.
+ */
 class GlossaryLabel : public QTextEdit
 {
     Q_OBJECT
@@ -34,15 +39,13 @@ class GlossaryLabel : public QTextEdit
 public:
     /**
      * Creates a new glossary label.
-     * @param modifier        The modifier that triggers recursive searches.
-     * @param middleMouseScan The flag for triggering middle mouse scan.
-     * @param style           The style to display different definitions in.
-     * @param parent          The parent of this label.
+     * @param context The application context.
+     * @param state   The settings state object.
+     * @param parent  The parent of this label.
      */
     GlossaryLabel(
-        Qt::KeyboardModifier modifier = Qt::KeyboardModifier::ShiftModifier,
-        bool middleMouseScan = false,
-        Constants::GlossaryStyle style = Constants::GlossaryStyle::Bullet,
+        QPointer<Context> context,
+        const DefinitionState &state,
         QWidget *parent = nullptr);
     virtual ~GlossaryLabel();
 
@@ -207,15 +210,11 @@ private:
      */
     void findTerms(int position);
 
-    /* The modifier that triggers searches */
-    Qt::KeyboardModifier m_searchModifier = Qt::KeyboardModifier::ShiftModifier;
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
 
-    /* Determines if to scan content using middle mouse button*/
-    bool m_middleMouseScan = false;
-
-    /* The style of this label */
-    Constants::GlossaryStyle m_style =
-        Constants::Settings::Search::LIST_GLOSSARY_DEFAULT;
+    /* The state of this definition widget */
+    const DefinitionState &m_state;
 
     /* The index that is currently being searched */
     int m_currentIndex = -1;
@@ -231,17 +230,20 @@ class DictionaryWorker : public QObject, public QRunnable
 public:
     /**
      * Construct a new Dictionary Worker.
+     * @param context  The application context.
      * @param query    The query to search for.
      * @param sentence The sentence containing the query.
      * @param index    The position of the query in the sentence.
      * @param position The position of the query in the entire text.
      */
     DictionaryWorker(
+        QPointer<Context> context,
         const QString &query,
         const QString &sentence,
         int index,
-        int position
-    ) : QObject(nullptr),
+        int position) :
+        QObject(nullptr),
+        context(std::move(context)),
         query(query),
         sentence(sentence),
         index(index),
@@ -268,6 +270,9 @@ Q_SIGNALS:
         int length) const;
 
 private:
+    /* Thea application context */
+    QPointer<Context> context = nullptr;
+
     /* The query for this worker */
     const QString query;
 
@@ -275,10 +280,10 @@ private:
     const QString sentence;
 
     /* The index of the query in the sentence */
-    int index;
+    int index = 0;
 
     /* The position of the query in the entire text */
-    int position;
+    int position = 0;
 };
 
 #endif // GLOSSARYLABEL_H

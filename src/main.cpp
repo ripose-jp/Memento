@@ -37,12 +37,9 @@
 #include <QSurfaceFormat>
 #endif
 
-#include "audio/audioplayer.h"
-#include "dict/dictionary.h"
 #include "dict/expression.h"
 #include "gui/mainwindow.h"
 #include "util/constants.h"
-#include "util/globalmediator.h"
 #include "util/iconfactory.h"
 #include "util/utils.h"
 
@@ -121,7 +118,7 @@ void updateSettings()
 
         programDir.rename(".\\config", configDir.absolutePath());
 #endif
-        __attribute__((fallthrough));
+        [[fallthrough]];
     }
     case 2:
     {
@@ -257,18 +254,12 @@ int main(int argc, char **argv)
     registerMetaTypes();
     setlocale(LC_NUMERIC, "C"); // mpv requires this
 
-    GlobalMediator::createGlobalMediator();
-    GlobalMediator::getGlobalMediator()->setAudioPlayer(new AudioPlayer);
-
     MainWindow *main_window = new MainWindow;
     main_window->show();
     int ret = memento.exec();
 
     /* Deallocate shared resources */
     delete main_window;
-    delete GlobalMediator::getGlobalMediator()->getAudioPlayer();
-    delete GlobalMediator::getGlobalMediator()->getDictionary();
-    delete GlobalMediator::getGlobalMediator();
     IconFactory::destroy();
 
     return ret;

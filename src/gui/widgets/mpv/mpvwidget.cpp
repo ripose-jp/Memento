@@ -38,10 +38,7 @@
 #include <QtDBus>
 #endif
 
-#include "cursortimer.h"
-
 #include "util/constants.h"
-#include "util/globalmediator.h"
 
 /* Begin C functions */
 
@@ -71,20 +68,38 @@ static void onUpdate(void *ctx)
 /* End C functions */
 /* Begin Constructor/Destructor */
 
-MpvWidget::MpvWidget(QWidget *parent)
-    : QOpenGLWidget(parent),
-      m_height(height() * parent->screen()->devicePixelRatio()),
-      m_width(width() * parent->screen()->devicePixelRatio())
-{
-    /* Set the mediator player widget */
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-    mediator->setPlayerWidget(this);
+MpvWidget::MpvWidget(QWidget *parent) :
+    QOpenGLWidget(parent),
+    m_mpv(mpv_create()),
+    m_height(height() * parent->screen()->devicePixelRatio()),
+    m_width(width() * parent->screen()->devicePixelRatio())
 
-    /* Initialize mpv */
-    m_mpv = mpv_create();
-    if (!m_mpv)
+{
+
+}
+
+MpvWidget::~MpvWidget()
+{
+    disconnect();
+    makeCurrent();
+    m_cursorTimer.reset();
+    if (mpv_gl)
     {
-        emit GlobalMediator::getGlobalMediator()->showCritical(
+        mpv_render_context_free(mpv_gl);
+    }
+    mpv_terminate_destroy(m_mpv);
+}
+
+/* End Constructor/Destructor */
+/* Begin Initialization Functions */
+
+void MpvWidget::initialize(QPointer<Context> context)
+{
+    m_context = std::move(context);
+
+    if (m_mpv == nullptr)
+    {
+        emit m_context->showCritical(
             "Could not start mpv",
             "MpvWidget: Could not create mpv context"
         );
@@ -97,18 +112,18 @@ MpvWidget::MpvWidget(QWidget *parent)
         this, &MpvWidget::reportFrameSwap
     );
     connect(
-        mediator, &GlobalMediator::searchSettingsChanged,
+        m_context, &Context::searchSettingsChanged,
         this, &MpvWidget::initSubtitleRegex,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::behaviorSettingsChanged,
+        m_context, &Context::behaviorSettingsChanged,
         this, &MpvWidget::initTimer,
         Qt::QueuedConnection
     );
 #if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     connect(
-        mediator, &GlobalMediator::interfaceSettingsChanged,
+        m_context, &Context::interfaceSettingsChanged,
         this, &MpvWidget::initDimensions,
         Qt::QueuedConnection
     );
@@ -124,21 +139,6 @@ MpvWidget::MpvWidget(QWidget *parent)
     initDimensions();
 #endif
 }
-
-MpvWidget::~MpvWidget()
-{
-    disconnect();
-    makeCurrent();
-    delete m_cursorTimer;
-    if (mpv_gl)
-    {
-        mpv_render_context_free(mpv_gl);
-    }
-    mpv_terminate_destroy(m_mpv);
-}
-
-/* End Constructor/Destructor */
-/* Begin Initialization Functions */
 
 void MpvWidget::initScreenSignals()
 {
@@ -452,40 +452,36 @@ void MpvWidget::initDimensions()
 
 void MpvWidget::initTimer()
 {
+    QSettings settings;
+    settings.beginGroup(Constants::Settings::Behavior::GROUP);
+    bool useOSCTimer = settings.value(
+        Constants::Settings::Behavior::OSC_CURSOR_HIDE,
+        Constants::Settings::Behavior::OSC_CURSOR_HIDE_DEFAULT
+    ).toBool();
+    settings.endGroup();
+
+    if (useOSCTimer)
     {
-        QSettings settings;
-        settings.beginGroup(Constants::Settings::Behavior::GROUP);
-        bool useOSCTimer = settings.value(
-            Constants::Settings::Behavior::OSC_CURSOR_HIDE,
-            Constants::Settings::Behavior::OSC_CURSOR_HIDE_DEFAULT
-        ).toBool();
-        settings.endGroup();
-
-
-        delete m_cursorTimer;
-        if (useOSCTimer)
-        {
-            m_cursorTimer = new OSCTimer(this);
-        }
-        else
-        {
-            m_cursorTimer = new MpvTimer(m_mpv, this);
-        }
+        m_cursorTimer = std::make_unique<OSCTimer>(this);
+    }
+    else
+    {
+        m_cursorTimer = std::make_unique<MpvTimer>(m_mpv, this);
     }
 
     connect(
-        m_cursorTimer, &CursorTimer::showCursor,
+        m_cursorTimer.get(), &CursorTimer::showCursor,
         this, &MpvWidget::showCursor,
         Qt::DirectConnection
     );
     connect(
-        m_cursorTimer, &CursorTimer::hideCursor,
+        m_cursorTimer.get(), &CursorTimer::hideCursor,
         this, &MpvWidget::hideCursor,
         Qt::DirectConnection
     );
     connect(
-        GlobalMediator::getGlobalMediator(), &GlobalMediator::definitionsHidden,
-        m_cursorTimer, &CursorTimer::start,
+        m_context, &Context::definitionsHidden,
+        m_cursorTimer.get(), &CursorTimer::start,
         Qt::QueuedConnection
     );
 
@@ -594,7 +590,7 @@ void MpvWidget::initializeGL()
 
     if (mpv_render_context_create(&mpv_gl, m_mpv, params) < 0)
     {
-        emit GlobalMediator::getGlobalMediator()->showCritical(
+        emit m_context->showCritical(
             "Could not start mpv",
             "MpvWidget: Failed to initialize mpv GL context"
         );
@@ -677,7 +673,7 @@ void MpvWidget::resizeGL(int width, int height)
 {
     m_width = width * m_devicePixelRatio;
     m_height = height * m_devicePixelRatio;
-    emit GlobalMediator::getGlobalMediator()->playerResized();
+    emit m_context->playerResized();
 }
 
 void MpvWidget::screenChanged(QScreen *screen)

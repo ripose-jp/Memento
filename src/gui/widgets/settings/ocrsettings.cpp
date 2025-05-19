@@ -26,13 +26,13 @@
 #include <QSettings>
 
 #include "util/constants.h"
-#include "util/globalmediator.h"
 
 /* Begin Constructor/Destructor */
 
-OCRSettings::OCRSettings(QWidget *parent)
-    : QWidget(parent),
-      m_ui(new Ui::OCRSettings)
+OCRSettings::OCRSettings(QPointer<Context> context, QWidget *parent) :
+    QWidget(parent),
+    m_ui(std::make_unique<Ui::OCRSettings>()),
+    m_context(std::move(context))
 {
     m_ui->setupUi(this);
 
@@ -66,7 +66,6 @@ OCRSettings::OCRSettings(QWidget *parent)
 OCRSettings::~OCRSettings()
 {
     disconnect();
-    delete m_ui;
 }
 
 /* End Constructor/Destructor */
@@ -128,7 +127,7 @@ void OCRSettings::applySettings()
     );
     settings.endGroup();
 
-    emit GlobalMediator::getGlobalMediator()->ocrSettingsChanged();
+    emit m_context->ocrSettingsChanged();
 }
 
 /* End Button Box Handlers */

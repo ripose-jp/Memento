@@ -38,10 +38,10 @@ target_link_libraries(
     optionswindow
     PRIVATE anki
     PRIVATE dictionary_db
-    PRIVATE globalmediator
     PRIVATE playeradapter
     PRIVATE scrollcombobox
     PRIVATE scrolldoublespinbox
+    PUBLIC context
     PUBLIC QCoro6Core
     PUBLIC Qt6::Widgets
 )

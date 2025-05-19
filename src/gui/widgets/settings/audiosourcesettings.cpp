@@ -27,24 +27,26 @@
 #include <QSettings>
 
 #include "util/constants.h"
-#include "util/globalmediator.h"
 #include "util/iconfactory.h"
 
 /* Column indices */
-#define COL_NAME    0
-#define COL_URL     1
-#define COL_TYPE    2
-#define COL_MD5     3
+static constexpr int COL_NAME = 0;
+static constexpr int COL_URL = 1;
+static constexpr int COL_TYPE = 2;
+static constexpr int COL_MD5 = 3;
 
 /* Combo Box Type Names */
-#define TYPE_COMBO_BOX_FILE "File"
-#define TYPE_COMBO_BOX_JSON "JSON"
+constexpr const char *TYPE_COMBO_BOX_FILE = "File";
+constexpr const char *TYPE_COMBO_BOX_JSON = "JSON";
 
 /* Begin Constructor/Destructors */
 
-AudioSourceSettings::AudioSourceSettings(QWidget *parent)
-    : QWidget(parent),
-      m_ui(new Ui::AudioSourceSettings)
+AudioSourceSettings::AudioSourceSettings(
+    QPointer<Context> context,
+    QWidget *parent) :
+    QWidget(parent),
+    m_ui(std::make_unique<Ui::AudioSourceSettings>()),
+    m_context(std::move(context))
 {
     m_ui->setupUi(this);
 
@@ -57,25 +59,25 @@ AudioSourceSettings::AudioSourceSettings(QWidget *parent)
     /* Table Actions */
     connect(
         m_ui->table, &QTableWidget::cellChanged,
-        this,        &AudioSourceSettings::updateRows
+        this, &AudioSourceSettings::updateRows
     );
     connect(
         m_ui->table, &QTableWidget::currentCellChanged,
-        this,        &AudioSourceSettings::updateButtons
+        this, &AudioSourceSettings::updateButtons
     );
     connect(
         m_ui->table, &QTableWidget::cellChanged,
-        this,        &AudioSourceSettings::updateButtons
+        this, &AudioSourceSettings::updateButtons
     );
 
     /* Up/Down Buttons */
     connect(
         m_ui->buttonUp, &QToolButton::clicked,
-        this,           &AudioSourceSettings::moveUp
+        this, &AudioSourceSettings::moveUp
     );
     connect(
         m_ui->buttonDown, &QToolButton::clicked,
-        this,             &AudioSourceSettings::moveDown
+        this, &AudioSourceSettings::moveDown
     );
 
     /* Dialog Buttons */
@@ -113,7 +115,7 @@ AudioSourceSettings::AudioSourceSettings(QWidget *parent)
 
 AudioSourceSettings::~AudioSourceSettings()
 {
-    delete m_ui;
+
 }
 
 /* End Constructor/Destructors */
@@ -173,7 +175,7 @@ void AudioSourceSettings::applyChanges()
     }
     settings.endArray();
 
-    emit GlobalMediator::getGlobalMediator()->audioSourceSettingsChanged();
+    emit m_context->audioSourceSettingsChanged();
 }
 
 void AudioSourceSettings::restoreDefaults()

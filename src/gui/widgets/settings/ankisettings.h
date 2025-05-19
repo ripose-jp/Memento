@@ -23,12 +23,16 @@
 
 #include <QWidget>
 
+#include <memory>
+
 #include <QMutex>
+#include <QPointer>
 
 #include <qcoro/qcorotask.h>
 
 #include "anki/ankiconfig.h"
 #include "gui/widgets/settings/ankisettingshelp.h"
+#include "state/context.h"
 
 namespace Ui
 {
@@ -45,7 +49,7 @@ class AnkiSettings : public QWidget
     Q_OBJECT
 
 public:
-    AnkiSettings(QWidget *parent = nullptr);
+    AnkiSettings(QPointer<Context> context, QWidget *parent = nullptr);
     ~AnkiSettings();
 
 protected:
@@ -174,10 +178,13 @@ private:
     AnkiConfig::FileType stringToFileType(const QString &str);
 
     /* The UI object that holds all the widgets. */
-    Ui::AnkiSettings *m_ui;
+    std::unique_ptr<Ui::AnkiSettings> m_ui;
+
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
 
     /* The help window that explains what the card markers are. */
-    AnkiSettingsHelp *m_ankiSettingsHelp;
+    std::unique_ptr<AnkiSettingsHelp> m_ankiSettingsHelp = nullptr;
 
     /* A cached set of configs index by profile name. */
     QHash<QString, std::shared_ptr<AnkiConfig>> m_configs;

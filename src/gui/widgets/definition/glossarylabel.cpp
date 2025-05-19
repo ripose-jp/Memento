@@ -32,24 +32,21 @@
 
 #include "dict/dictionary.h"
 #include "util/constants.h"
-#include "util/globalmediator.h"
 #include "util/utils.h"
 
 /* The maximum allowed width of images. This is chosen with consideration of
  * DefinitionWidget's default 500px width. */
-#define MAX_WIDTH 350
+static constexpr int MAX_WIDTH = 350;
 
 /* Begin Constructor/Destructor */
 
 GlossaryLabel::GlossaryLabel(
-    Qt::KeyboardModifier modifier,
-    bool middleMouseScan,
-    Constants::GlossaryStyle style,
-    QWidget *parent)
-    : QTextEdit(parent),
-      m_searchModifier(modifier),
-      m_middleMouseScan(middleMouseScan),
-      m_style(style)
+    QPointer<Context> context,
+    const DefinitionState &state,
+    QWidget *parent) :
+    QTextEdit(parent),
+    m_context(std::move(context)),
+    m_state(state)
 {
     setTextInteractionFlags(
         Qt::TextSelectableByKeyboard |
@@ -121,7 +118,7 @@ void GlossaryLabel::setContents(const QJsonArray &definitions, QString basepath)
     basepath += '/';
 
     const bool shouldUseBullets =
-        m_style == Constants::GlossaryStyle::Bullet &&
+        m_state.glossaryStyle == Constants::GlossaryStyle::Bullet &&
         !containsStructuredContent(definitions);
 
     QString content = "<html><head/><body>";
@@ -179,11 +176,11 @@ void GlossaryLabel::setContents(const QJsonArray &definitions, QString basepath)
         {
             /* Avoid putting <br> or | after the fine line */
         }
-        else if (m_style == Constants::GlossaryStyle::LineBreak)
+        else if (m_state.glossaryStyle == Constants::GlossaryStyle::LineBreak)
         {
             content += "<br>";
         }
-        else if (m_style == Constants::GlossaryStyle::Pipe)
+        else if (m_state.glossaryStyle == Constants::GlossaryStyle::Pipe)
         {
             content += " | ";
         }
@@ -549,7 +546,8 @@ void GlossaryLabel::addText(const QJsonObject &obj, QString &out) const
         .toString()
         .replace(
             '\n',
-            m_style == Constants::GlossaryStyle::Bullet ? "</li><li>" : "<br>"
+            m_state.glossaryStyle == Constants::GlossaryStyle::Bullet ?
+                "</li><li>" : "<br>"
         );
 }
 
@@ -636,7 +634,7 @@ void GlossaryLabel::findTerms(int position)
 
     int index = position - start;
     DictionaryWorker *worker = new DictionaryWorker(
-        query, text, index, position
+        m_context, query, text, index, position
     );
     connect(
         worker, &DictionaryWorker::searchDone,
@@ -671,7 +669,7 @@ void GlossaryLabel::mouseMoveEvent(QMouseEvent *event)
 {
     QTextEdit::mouseMoveEvent(event);
 
-    if (!(QGuiApplication::keyboardModifiers() & m_searchModifier))
+    if (!(QGuiApplication::keyboardModifiers() & m_state.searchModifier))
     {
         return;
     }
@@ -686,7 +684,7 @@ void GlossaryLabel::mousePressEvent(QMouseEvent *event)
 {
     QTextEdit::mousePressEvent(event);
 
-    if (!m_middleMouseScan || event->button() != Qt::MiddleButton)
+    if (!m_state.middleMouseScan || event->button() != Qt::MiddleButton)
     {
         return;
     }
@@ -708,7 +706,7 @@ void GlossaryLabel::keyPressEvent(QKeyEvent *event)
 
 void DictionaryWorker::run()
 {
-    Dictionary *dict = GlobalMediator::getGlobalMediator()->getDictionary();
+    Dictionary *dict = context->getDictionary();
     SharedTermList terms = dict->searchTerms(query, sentence, index, &index);
 
     if (terms == nullptr)
@@ -723,7 +721,7 @@ void DictionaryWorker::run()
     SharedKanji kanji(nullptr);
     if (CharacterUtils::isKanji(query[0]))
     {
-        kanji = SharedKanji(dict->searchKanji(query[0]));
+        kanji = dict->searchKanji(query[0]);
         if (kanji)
         {
             kanji->sentence = sentence;

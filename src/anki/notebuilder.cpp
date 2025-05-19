@@ -29,7 +29,6 @@
 #include "anki/marker.h"
 #include "anki/markertokenizer.h"
 #include "player/playeradapter.h"
-#include "util/globalmediator.h"
 #include "util/utils.h"
 
 /**
@@ -1614,6 +1613,7 @@ static bool createAudio(
 
 /**
  * Create the audio media file and add it to the context.
+ * @param      appCtx   The context of the application.
  * @param      config   The config to use when generating the media file.
  * @param      exp      The expression to use when build the {audio-media}.
  * @param      fieldCtx The field context containing fields that include media.
@@ -1621,6 +1621,7 @@ static bool createAudio(
  * @return true if the media was added to the context, false otherwise.
  */
 static bool createAudioMedia(
+    QPointer<::Context> appCtx,
     const AnkiConfig &config,
     const CommonExpFields &exp,
     const FieldContext &fieldCtx,
@@ -1631,8 +1632,7 @@ static bool createAudioMedia(
         return false;
     }
 
-    PlayerAdapter *player =
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+    PlayerAdapter *player = appCtx->getPlayerAdapter();
 
     double startTime = exp.startTime - config.audioPadStart;
     double endTime = exp.endTime + config.audioPadEnd;
@@ -1668,6 +1668,7 @@ static bool createAudioMedia(
 
 /**
  * Create the audio context file and add it to the context.
+ * @param      appCtx   The context of the application.
  * @param      config   The config to use when generating the context file.
  * @param      exp      The expression to use when build the {audio-context}.
  * @param      fieldCtx The field context containing fields that include media.
@@ -1675,6 +1676,7 @@ static bool createAudioMedia(
  * @return true if the media was added to the context, false otherwise.
  */
 static bool createAudioContext(
+    QPointer<::Context> appCtx,
     const AnkiConfig &config,
     const CommonExpFields &exp,
     const FieldContext &fieldCtx,
@@ -1685,8 +1687,7 @@ static bool createAudioContext(
         return false;
     }
 
-    PlayerAdapter *player =
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+    PlayerAdapter *player = appCtx->getPlayerAdapter();
 
     double startTime = exp.startTimeContext - config.audioPadStart;
     double endTime = exp.endTimeContext + config.audioPadEnd;
@@ -1722,12 +1723,14 @@ static bool createAudioContext(
 
 /**
  * Create the {screenshot} image and add it to the context.
+ * @param      appCtx   The context of the application.
  * @param      config   The config to use when generating the context file.
  * @param      fieldCtx The field context containing fields that include media.
  * @param[out] ctx      The context to add the media to.
  * @return true if the media was added to the context, false otherwise.
  */
 static bool createScreenshot(
+    QPointer<::Context> appCtx,
     const AnkiConfig &config,
     const FieldContext &fieldCtx,
     Anki::Note::Context &ctx)
@@ -1737,8 +1740,7 @@ static bool createScreenshot(
         return false;
     }
 
-    PlayerAdapter *player =
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+    PlayerAdapter *player = appCtx->getPlayerAdapter();
     const QString imageExt = getImageFileExtension(config.screenshotType);
 
     QJsonObject image;
@@ -1760,12 +1762,14 @@ static bool createScreenshot(
 
 /**
  * Create the {screenshot-video} image and add it to the context.
+ * @param      appCtx   The context of the application.
  * @param      config   The config to use when generating the context file.
  * @param      fieldCtx The field context containing fields that include media.
  * @param[out] ctx      The context to add the media to.
  * @return true if the media was added to the context, false otherwise.
  */
 static bool createScreenshotVideo(
+    QPointer<::Context> appCtx,
     const AnkiConfig &config,
     const FieldContext &fieldCtx,
     Anki::Note::Context &ctx)
@@ -1775,8 +1779,7 @@ static bool createScreenshotVideo(
         return false;
     }
 
-    PlayerAdapter *player =
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+    PlayerAdapter *player = appCtx->getPlayerAdapter();
     const QString imageExt = getImageFileExtension(config.screenshotType);
 
     QString path = player->tempScreenshot(false, imageExt);
@@ -1795,9 +1798,12 @@ static bool createScreenshotVideo(
 /* Begin Public Functions */
 
 Anki::Note::Context Anki::Note::build(
-    const AnkiConfig &config, const Term &term, bool media)
+    QPointer<::Context> appCtx,
+    const AnkiConfig &config,
+    const Term &term,
+    bool media)
 {
-    Context ctx;
+    Anki::Note::Context ctx;
     ctx.setDeck(config.termDeck);
     ctx.setModel(config.termModel);
     ctx.setDuplicatePolicy(config.duplicatePolicy);
@@ -1854,10 +1860,10 @@ Anki::Note::Context Anki::Note::build(
     if (media)
     {
         createAudio(term, fieldCtx, ctx);
-        createAudioMedia(config, term, fieldCtx, ctx);
-        createAudioContext(config, term, fieldCtx, ctx);
-        createScreenshot(config, fieldCtx, ctx);
-        createScreenshotVideo(config, fieldCtx, ctx);
+        createAudioMedia(appCtx, config, term, fieldCtx, ctx);
+        createAudioContext(appCtx, config, term, fieldCtx, ctx);
+        createScreenshot(appCtx, config, fieldCtx, ctx);
+        createScreenshotVideo(appCtx, config, fieldCtx, ctx);
 
         ctx.fileMap.reserve(fieldCtx.files.size());
         for (const GlossaryBuilder::FileInfo &fileInfo : fieldCtx.files)
@@ -1870,9 +1876,12 @@ Anki::Note::Context Anki::Note::build(
 }
 
 Anki::Note::Context Anki::Note::build(
-    const AnkiConfig &config, const Kanji &kanji, bool media)
+    QPointer<::Context> appCtx,
+    const AnkiConfig &config,
+    const Kanji &kanji,
+    bool media)
 {
-    Context ctx;
+    Anki::Note::Context ctx;
     ctx.setDeck(config.kanjiDeck);
     ctx.setModel(config.kanjiModel);
     ctx.setDuplicatePolicy(config.duplicatePolicy);
@@ -1928,10 +1937,10 @@ Anki::Note::Context Anki::Note::build(
 
     if (media)
     {
-        createAudioMedia(config, kanji, fieldCtx, ctx);
-        createAudioContext(config, kanji, fieldCtx, ctx);
-        createScreenshot(config, fieldCtx, ctx);
-        createScreenshotVideo(config, fieldCtx, ctx);
+        createAudioMedia(appCtx, config, kanji, fieldCtx, ctx);
+        createAudioContext(appCtx, config, kanji, fieldCtx, ctx);
+        createScreenshot(appCtx, config, fieldCtx, ctx);
+        createScreenshotVideo(appCtx, config, fieldCtx, ctx);
 
         ctx.fileMap.reserve(fieldCtx.files.size());
         for (const GlossaryBuilder::FileInfo &fileInfo : fieldCtx.files)

@@ -28,7 +28,6 @@
 #include "anki/marker.h"
 #include "dict/dictionary.h"
 #include "util/constants.h"
-#include "util/globalmediator.h"
 #include "util/iconfactory.h"
 
 static constexpr int ROLE_DICTIONARY_ID{Qt::UserRole + 0};
@@ -36,10 +35,11 @@ static constexpr int ROLE_DICTIONARY_NAME{Qt::UserRole + 1};
 
 /* Begin Constructor/Destructors */
 
-AnkiSettings::AnkiSettings(QWidget *parent)
-    : QWidget(parent),
-      m_ui(new Ui::AnkiSettings),
-      m_ankiSettingsHelp(new AnkiSettingsHelp)
+AnkiSettings::AnkiSettings(QPointer<Context> context, QWidget *parent) :
+    QWidget(parent),
+    m_ui(std::make_unique<Ui::AnkiSettings>()),
+    m_context(std::move(context)),
+    m_ankiSettingsHelp(std::make_unique<AnkiSettingsHelp>(m_context))
 {
     m_ui->setupUi(this);
     m_ui->frameAdvanced->hide();
@@ -190,7 +190,7 @@ AnkiSettings::AnkiSettings(QWidget *parent)
     connect(
         m_ui->buttonBox->button(QDialogButtonBox::StandardButton::Help),
         &QPushButton::clicked,
-        m_ankiSettingsHelp,
+        m_ankiSettingsHelp.get(),
         &AnkiSettingsHelp::show
     );
 
@@ -210,8 +210,8 @@ AnkiSettings::AnkiSettings(QWidget *parent)
 
     /* Theme Changes */
     connect(
-        GlobalMediator::getGlobalMediator(),
-        &GlobalMediator::requestThemeRefresh,
+        m_context,
+        &Context::requestThemeRefresh,
         this,
         &AnkiSettings::initIcons
     );
@@ -220,8 +220,6 @@ AnkiSettings::AnkiSettings(QWidget *parent)
 AnkiSettings::~AnkiSettings()
 {
     disconnect();
-    delete m_ui;
-    delete m_ankiSettingsHelp;
 }
 
 /* End Constructor/Destructors */
@@ -241,7 +239,7 @@ void AnkiSettings::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
 
-    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
+    AnkiClient *client = m_context->getAnkiClient();
     m_ui->checkBoxEnabled->setChecked(client->isEnabled());
     m_configs = client->getConfigs();
     m_currentProfile = client->getProfile();
@@ -256,8 +254,7 @@ void AnkiSettings::hideEvent(QHideEvent *event)
 {
     QWidget::hideEvent(event);
 
-    AnkiClient *client =
-        GlobalMediator::getGlobalMediator()->getAnkiClient();
+    AnkiClient *client = m_context->getAnkiClient();
     std::shared_ptr<const AnkiConfig> config =
         client->getConfig(client->getProfile());
     client->setServer(config->address, config->port);
@@ -282,7 +279,7 @@ void AnkiSettings::applyChanges()
     applyToConfig(m_ui->comboBoxProfile->currentText());
 
     /* Apply changes to the client */
-    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
+    AnkiClient *client = m_context->getAnkiClient();
     client->setEnabled(m_ui->checkBoxEnabled->isChecked());
     client->clearProfiles();
     for (auto it = m_configs.constKeyValueBegin();
@@ -335,7 +332,7 @@ void AnkiSettings::restoreSaved()
 {
     m_configs.clear();
 
-    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
+    AnkiClient *client = m_context->getAnkiClient();
     m_configs = client->getConfigs();
 
     m_ui->comboBoxProfile->blockSignals(true);
@@ -361,7 +358,7 @@ QCoro::Task<void> AnkiSettings::connectToClient(const bool showErrors)
 {
     m_ui->buttonConnect->setEnabled(false);
 
-    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
+    AnkiClient *client = m_context->getAnkiClient();
     client->setServer(m_ui->lineEditHost->text(), m_ui->lineEditPort->text());
 
     AnkiReply<bool> testResult = co_await client->testConnection();
@@ -369,8 +366,7 @@ QCoro::Task<void> AnkiSettings::connectToClient(const bool showErrors)
     {
         if (showErrors)
         {
-            emit GlobalMediator::getGlobalMediator()
-                ->showCritical("Error", testResult.error);
+            emit m_context->showCritical("Error", testResult.error);
         }
         m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
         co_return;
@@ -381,8 +377,7 @@ QCoro::Task<void> AnkiSettings::connectToClient(const bool showErrors)
     {
         if (showErrors)
         {
-            emit GlobalMediator::getGlobalMediator()
-                ->showCritical("Error", deckNames.error);
+            emit m_context->showCritical("Error", deckNames.error);
         }
         m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
         co_return;
@@ -401,8 +396,7 @@ QCoro::Task<void> AnkiSettings::connectToClient(const bool showErrors)
     {
         if (showErrors)
         {
-            emit GlobalMediator::getGlobalMediator()
-                ->showCritical("Error", modelNames.error);
+            emit m_context->showCritical("Error", modelNames.error);
         }
         m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
         co_return;
@@ -428,7 +422,7 @@ QCoro::Task<void> AnkiSettings::updateModelFields(
     CardBuilder *cb, const QString &model)
 {
     m_mutexUpdateModelFields.lock();
-    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
+    AnkiClient *client = m_context->getAnkiClient();
     AnkiReply<QStringList> fieldNames = co_await client->getFieldNames(model);
     if (fieldNames.error.isEmpty())
     {
@@ -436,8 +430,7 @@ QCoro::Task<void> AnkiSettings::updateModelFields(
     }
     else
     {
-        emit GlobalMediator::getGlobalMediator()
-            ->showCritical("Error", fieldNames.error);
+        emit m_context->showCritical("Error", fieldNames.error);
     }
     m_mutexUpdateModelFields.unlock();
 }
@@ -462,7 +455,7 @@ void AnkiSettings::populateFields(
     const QString &profile,
     const AnkiConfig &config)
 {
-    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
+    AnkiClient *client = m_context->getAnkiClient();
 
     m_ui->comboBoxProfile->blockSignals(true);
     m_ui->comboBoxProfile->clear();
@@ -498,7 +491,7 @@ void AnkiSettings::populateFields(
     m_ui->doubleAudioDb->setValue(config.audioDb);
 
     m_ui->listIncludeGlossary->clear();
-    Dictionary *dict = GlobalMediator::getGlobalMediator()->getDictionary();
+    Dictionary *dict = m_context->getDictionary();
     QList<DictionaryInfo> dictionaries = dict->getDictionaries();
     for (const DictionaryInfo &info : dictionaries)
     {
@@ -560,7 +553,7 @@ void AnkiSettings::addProfile()
     QString profileName = m_ui->lineEditProfileName->text();
     if (m_configs.contains(profileName))
     {
-        emit GlobalMediator::getGlobalMediator()->showInformation(
+        emit m_context->showInformation(
             "Failed",
             "Profile with name " + profileName + " already exists."
         );
@@ -586,7 +579,7 @@ void AnkiSettings::deleteProfile()
     QString profile = m_ui->comboBoxProfile->currentText();
     if (profile == DEFAULT_PROFILE)
     {
-        emit GlobalMediator::getGlobalMediator()->showInformation(
+        emit m_context->showInformation(
             "Failed",
             "The Default profile cannot be deleted"
         );
@@ -613,7 +606,7 @@ void AnkiSettings::renameProfile(const QString &oldName, const QString &newName)
 
     if (oldName == DEFAULT_PROFILE)
     {
-        emit GlobalMediator::getGlobalMediator()->showInformation(
+        emit m_context->showInformation(
             "Info",
             "Default profile cannot be renamed"
         );
@@ -621,7 +614,7 @@ void AnkiSettings::renameProfile(const QString &oldName, const QString &newName)
     }
     else if (newName.isEmpty())
     {
-        emit GlobalMediator::getGlobalMediator()->showInformation(
+        emit m_context->showInformation(
             "Info",
             "Profile must have a name"
         );

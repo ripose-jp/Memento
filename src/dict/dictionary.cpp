@@ -29,35 +29,31 @@
 #include <QSettings>
 #include <QWriteLocker>
 
-#include "databasemanager.h"
-#include "deconjugationquerygenerator.h"
-#include "exactquerygenerator.h"
+#include "dict/deconjugationquerygenerator.h"
+#include "dict/exactquerygenerator.h"
+#include "util/constants.h"
+#include "util/utils.h"
 
 #ifdef MECAB_SUPPORT
-#include "mecabquerygenerator.h"
+#include "dict/mecabquerygenerator.h"
 #endif // MECAB_SUPPORT
-
-#include "util/constants.h"
-#include "util/globalmediator.h"
-#include "util/utils.h"
 
 /* Begin Constructor/Destructor */
 
-Dictionary::Dictionary(QObject *parent) : QObject(parent)
+Dictionary::Dictionary(QPointer<Context> context, QObject *parent) :
+    QObject(parent),
+    m_context(std::move(context)),
+    m_db(std::make_unique<DatabaseManager>(DirectoryUtils::getDictionaryDB()))
 {
-    m_db = std::make_unique<DatabaseManager>(DirectoryUtils::getDictionaryDB());
-
     initDictionaryOrder();
     initQueryGenerators();
 
-    GlobalMediator *med = GlobalMediator::getGlobalMediator();
-    med->setDictionary(this);
     connect(
-        med, &GlobalMediator::dictionaryOrderChanged,
+        m_context, &Context::dictionaryOrderChanged,
         this, &Dictionary::initDictionaryOrder
     );
     connect(
-        med, &GlobalMediator::searchSettingsChanged,
+        m_context, &Context::searchSettingsChanged,
         this, &Dictionary::initQueryGenerators
     );
 }
@@ -424,7 +420,7 @@ QString Dictionary::addDictionary(const QString &path)
     {
         return m_db->errorCodeToString(err);
     }
-    emit GlobalMediator::getGlobalMediator()->dictionariesChanged();
+    emit m_context->dictionariesChanged();
     return "";
 }
 
@@ -437,13 +433,12 @@ QString Dictionary::addDictionary(const QStringList &paths)
         {
             if (i > 0)
             {
-                emit GlobalMediator::getGlobalMediator()
-                    ->dictionariesChanged();
+                emit m_context->dictionariesChanged();
             }
             return m_db->errorCodeToString(err);
         }
     }
-    emit GlobalMediator::getGlobalMediator()->dictionariesChanged();
+    emit m_context->dictionariesChanged();
     return "";
 }
 
@@ -454,7 +449,7 @@ QString Dictionary::deleteDictionary(const QString &name)
     {
         return m_db->errorCodeToString(err);
     }
-    emit GlobalMediator::getGlobalMediator()->dictionariesChanged();
+    emit m_context->dictionariesChanged();
     return "";
 }
 

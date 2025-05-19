@@ -24,6 +24,9 @@
 #include <QWidget>
 
 #include <QMap>
+#include <QPointer>
+
+#include "state/context.h"
 
 namespace Ui
 {
@@ -38,8 +41,8 @@ class OptionsWindow : public QWidget
     Q_OBJECT
 
 public:
-    OptionsWindow(QWidget *parent = nullptr);
-    ~OptionsWindow();
+    OptionsWindow(QPointer<Context> context, QWidget *parent = nullptr);
+    virtual ~OptionsWindow();
 
 protected:
     /**
@@ -55,7 +58,7 @@ private:
      *               the list.
      * @param widget The settings widget to add.
      */
-    void addOption(const QString &name, QWidget *widget);
+    void addOption(const QString &name, QPointer<QWidget> widget);
 
     /**
      * Shows the widget that corresponds to the selected settings in the list.
@@ -63,10 +66,13 @@ private:
     void showSelectedOption();
 
     /* The UI object containing all the widgets. */
-    Ui::OptionsWindow *m_ui;
+    std::unique_ptr<Ui::OptionsWindow> m_ui;
+
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
 
     /* The widget currently being shown. */
-    QWidget *m_currentWidget;
+    QWidget *m_currentWidget = nullptr;
 
     /* Maps settings names to settings widgets. */
     QMap<QString, QWidget *> m_widgets;

@@ -24,16 +24,17 @@
 #include <QObject>
 
 #include <QList>
+#include <QPointer>
 #include <QReadWriteLock>
 #include <QString>
 
 #include <memory>
 #include <vector>
 
-#include "expression.h"
-#include "querygenerator.h"
-
-class DatabaseManager;
+#include "dict/databasemanager.h"
+#include "dict/expression.h"
+#include "dict/querygenerator.h"
+#include "state/context.h"
 
 /**
  * The intended API for interacting with the database.
@@ -43,7 +44,7 @@ class Dictionary : public QObject
     Q_OBJECT
 
 public:
-    Dictionary(QObject *parent = nullptr);
+    Dictionary(QPointer<Context> context, QObject *parent = nullptr);
     virtual ~Dictionary();
 
     /**
@@ -155,8 +156,11 @@ private:
      */
     void sortTags(QList<Tag> &tags) const;
 
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
+
     /* The DatabaseManager */
-    std::unique_ptr<DatabaseManager> m_db;
+    std::unique_ptr<DatabaseManager> m_db = nullptr;
 
     /* Mutex for the list of query generators */
     mutable QReadWriteLock m_generatorsMutex;

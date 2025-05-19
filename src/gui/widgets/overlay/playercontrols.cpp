@@ -26,17 +26,17 @@
 #include "gui/widgets/common/sliderjumpstyle.h"
 #include "player/playeradapter.h"
 #include "util/constants.h"
-#include "util/globalmediator.h"
 
 /* Begin Constructor/Destructor */
 
-PlayerControls::PlayerControls(QWidget *parent)
-    : QWidget(parent),
-      m_ui(new Ui::PlayerControls),
-      m_paused(true),
-      m_ignorePause(false)
+PlayerControls::PlayerControls(QPointer<Context> context, QWidget *parent) :
+    QWidget(parent),
+    m_ui(std::make_unique<Ui::PlayerControls>()),
+    m_context(std::move(context))
 {
     m_ui->setupUi(this);
+
+    m_ui->sliderProgress->initialize(m_context);
 
 #if defined(Q_OS_MACOS)
     m_ui->layoutButtons->setSpacing(2);
@@ -54,119 +54,119 @@ PlayerControls::PlayerControls(QWidget *parent)
     m_ui->buttonToggleOCR->hide();
 #endif
 
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-
     /* Signals */
-    connect(m_ui->sliderProgress, &QSlider::sliderPressed, this,
-        [this, mediator]
+    connect(
+        m_ui->sliderProgress, &QSlider::sliderPressed, this,
+        [this]
         {
             m_ignorePause = !m_paused;
-            emit mediator->controlsPause();
+            emit m_context->controlsPause();
         }
     );
-    connect(m_ui->sliderProgress, &QSlider::sliderReleased, this,
-        [this, mediator]
+    connect(
+        m_ui->sliderProgress, &QSlider::sliderReleased, this,
+        [this]
         {
             if (m_ignorePause)
             {
                 m_ignorePause = false;
-                emit mediator->controlsPlay();
+                emit m_context->controlsPlay();
             }
         }
     );
     connect(
         m_ui->sliderProgress, &QSlider::valueChanged,
-        mediator,             &GlobalMediator::controlsPositionChanged,
+        m_context, &Context::controlsPositionChanged,
         Qt::QueuedConnection
     );
     connect(
         m_ui->sliderVolume, &QSlider::valueChanged,
-        mediator,           &GlobalMediator::controlsVolumeChanged
+        m_context, &Context::controlsVolumeChanged
     );
 
     connect(
         m_ui->buttonPlay, &QToolButton::clicked,
-        this,             &PlayerControls::togglePause,
+        this, &PlayerControls::togglePause,
         Qt::QueuedConnection
     );
     connect(
         m_ui->buttonSeekForward, &QToolButton::clicked,
-        mediator,                &GlobalMediator::controlsSeekForward,
+        m_context, &Context::controlsSeekForward,
         Qt::QueuedConnection
     );
     connect(
         m_ui->buttonSeekBackward, &QToolButton::clicked,
-        mediator,                 &GlobalMediator::controlsSeekBackward,
+        m_context, &Context::controlsSeekBackward,
         Qt::QueuedConnection
     );
     connect(
         m_ui->buttonSkipForward, &QToolButton::clicked,
-        mediator,                &GlobalMediator::controlsSkipForward,
+        m_context, &Context::controlsSkipForward,
         Qt::QueuedConnection
     );
     connect(
         m_ui->buttonSkipBackward, &QToolButton::clicked,
-        mediator,                 &GlobalMediator::controlsSkipBackward,
+        m_context, &Context::controlsSkipBackward,
         Qt::QueuedConnection
     );
     connect(
         m_ui->buttonFullscreen, &QToolButton::clicked,
-        this,                   &PlayerControls::toggleFullscreen,
+        this, &PlayerControls::toggleFullscreen,
         Qt::QueuedConnection
     );
     connect(
         m_ui->buttonToggleSubList, &QToolButton::clicked,
-        mediator,                  &GlobalMediator::controlsSubtitleListToggled,
+        m_context, &Context::controlsSubtitleListToggled,
         Qt::QueuedConnection
     );
     connect(
-        m_ui->buttonToggleOCR,     &QToolButton::clicked,
-        mediator,                  &GlobalMediator::controlsOCRToggled,
+        m_ui->buttonToggleOCR, &QToolButton::clicked,
+        m_context, &Context::controlsOCRToggled,
         Qt::QueuedConnection
     );
 
     /* Slots */
     connect(
-        mediator, &GlobalMediator::playerPauseStateChanged,
-        this,     &PlayerControls::setPaused,
+        m_context, &Context::playerPauseStateChanged,
+        this, &PlayerControls::setPaused,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerFullscreenChanged,
-        this,     &PlayerControls::setFullscreen,
+        m_context, &Context::playerFullscreenChanged,
+        this, &PlayerControls::setFullscreen,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerVolumeChanged,
-        this,     &PlayerControls::setVolume
+        m_context, &Context::playerVolumeChanged,
+        this, &PlayerControls::setVolume
     );
     connect(
-        mediator, &GlobalMediator::playerMaxVolumeChanged,
-        this,     &PlayerControls::setVolumeLimit
+        m_context, &Context::playerMaxVolumeChanged,
+        this, &PlayerControls::setVolumeLimit
     );
     connect(
-        mediator, &GlobalMediator::playerDurationChanged,
-        this,     &PlayerControls::setDuration
+        m_context, &Context::playerDurationChanged,
+        this, &PlayerControls::setDuration
     );
     connect(
-        mediator, &GlobalMediator::playerPositionChanged,
-        this,     &PlayerControls::setPosition,
+        m_context, &Context::playerPositionChanged,
+        this, &PlayerControls::setPosition,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::requestThemeRefresh,
-        this,     &PlayerControls::initTheme,
+        m_context, &Context::requestThemeRefresh,
+        this, &PlayerControls::initTheme,
         Qt::QueuedConnection
     );
     connect(
-        mediator,             &GlobalMediator::playerChaptersChanged,
+        m_context, &Context::playerChaptersChanged,
         m_ui->sliderProgress, &ProgressSlider::setChapters
     );
 
 #ifdef OCR_SUPPORT
     connect(
-        mediator, &GlobalMediator::ocrSettingsChanged,
-        this,     &PlayerControls::initOCRSettings
+        m_context, &Context::ocrSettingsChanged,
+        this, &PlayerControls::initOCRSettings
     );
 #endif // OCR_SUPPORT
 }
@@ -174,7 +174,6 @@ PlayerControls::PlayerControls(QWidget *parent)
 PlayerControls::~PlayerControls()
 {
     disconnect();
-    delete m_ui;
 }
 
 /* End Constructor/Destructor */
@@ -248,13 +247,13 @@ void PlayerControls::initOCRSettings()
 void PlayerControls::hideEvent(QHideEvent *event)
 {
     QWidget::hideEvent(event);
-    emit GlobalMediator::getGlobalMediator()->controlsHidden();
+    emit m_context->controlsHidden();
 }
 
 void PlayerControls::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
-    emit GlobalMediator::getGlobalMediator()->controlsShown();
+    emit m_context->controlsShown();
 }
 
 /* End Event Handlers */
@@ -326,20 +325,19 @@ void PlayerControls::togglePause()
 {
     if (m_paused)
     {
-        emit GlobalMediator::getGlobalMediator()->controlsPlay();
+        emit m_context->controlsPlay();
     }
     else
     {
-        emit GlobalMediator::getGlobalMediator()->controlsPause();
+        emit m_context->controlsPause();
     }
 }
 
 
 void PlayerControls::toggleFullscreen()
 {
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-    bool fullscreen = mediator->getPlayerAdapter()->isFullscreen();
-    emit mediator->controlsFullscreenChanged(!fullscreen);
+    bool fullscreen = m_context->getPlayerAdapter()->isFullscreen();
+    emit m_context->controlsFullscreenChanged(!fullscreen);
 }
 
 /* End Button Implementations */

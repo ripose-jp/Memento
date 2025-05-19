@@ -24,12 +24,10 @@
 #include <QMouseEvent>
 #include <QSettings>
 #include <QThreadPool>
-#include <QVBoxLayout>
 
 #include "dict/dictionary.h"
 #include "gui/widgets/definition/definitionwidget.h"
 #include "util/constants.h"
-#include "util/globalmediator.h"
 #include "util/utils.h"
 
 /* Prevents large searches from being executed and freezing everything up */
@@ -99,14 +97,14 @@ void SearchEdit::mousePressEvent(QMouseEvent *event)
 /* End SearchEdit Class */
 /* Begin SearchWidget */
 
-SearchWidget::SearchWidget(QWidget *parent)
-    : QWidget(parent),
-      m_dictionary(GlobalMediator::getGlobalMediator()->getDictionary())
+SearchWidget::SearchWidget(QWidget *parent) : QWidget(parent)
 {
-    if (m_dictionary == nullptr)
-    {
-        m_dictionary = new Dictionary;
-    }
+
+}
+
+void SearchWidget::initialize(QPointer<Context> context)
+{
+    m_context = std::move(context);
 
     setWindowTitle("Term Search");
     setAutoFillBackground(true);
@@ -117,7 +115,7 @@ SearchWidget::SearchWidget(QWidget *parent)
     m_searchEdit->setPlaceholderText("Search");
     m_layoutParent->addWidget(m_searchEdit);
 
-    m_definition = new DefinitionWidget;
+    m_definition = new DefinitionWidget(m_context);
     m_definition->layout()->setContentsMargins(0, 0, 0, 0);
     m_definition->setMinimumSize(300, 300);
     m_definition->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
@@ -144,14 +142,13 @@ SearchWidget::SearchWidget(QWidget *parent)
         Qt::QueuedConnection
     );
 
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     connect(
-        mediator, &GlobalMediator::interfaceSettingsChanged,
+        m_context, &Context::interfaceSettingsChanged,
         this, [this] { updateSearch(m_searchEdit->text()); },
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::searchSettingsChanged,
+        m_context, &Context::searchSettingsChanged,
         this, &SearchWidget::initSettings,
         Qt::QueuedConnection
     );
@@ -215,13 +212,14 @@ void SearchWidget::updateSearch(QString text, const int index)
         [this, text, index]
         {
             const QString query = text.mid(index, MAX_SEARCH_SIZE);
-            SharedTermList terms =
-                m_dictionary->searchTerms(query, text, index, &index);
+            SharedTermList terms = m_context
+                ->getDictionary()
+                ->searchTerms(query, text, index, &index);
 
             SharedKanji kanji = nullptr;
             if (!query.isEmpty() && CharacterUtils::isKanji(query[0]))
             {
-                kanji = SharedKanji(m_dictionary->searchKanji(query[0]));
+                kanji = m_context->getDictionary()->searchKanji(query[0]);
             }
 
             emit searchUpdated(terms, kanji);

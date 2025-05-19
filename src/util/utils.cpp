@@ -37,8 +37,7 @@
 #include <windows.h>
 #endif
 
-#include "constants.h"
-#include "globalmediator.h"
+#include "util/constants.h"
 #include "version.h"
 
 /* Begin Directory Utils */
@@ -163,15 +162,15 @@ QString FileUtils::toBase64(QFile *file)
 /* End FileUtils */
 /* Begin NetworkUtils */
 
-void NetworkUtils::checkForUpdates()
+void NetworkUtils::checkForUpdates(QPointer<Context> context)
 {
     QNetworkAccessManager *manager = new QNetworkAccessManager;
     manager->setTransferTimeout();
     QNetworkRequest request({Constants::Links::GITHUB_API});
     QNetworkReply *reply = manager->get(request);
-    reply->connect(reply, &QNetworkReply::finished, reply,
+    reply->connect(
+        reply, &QNetworkReply::finished, reply,
         [=] {
-            GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
             QJsonDocument replyDoc;
             QJsonArray replyArr;
             QJsonValue replyVal;
@@ -182,7 +181,7 @@ void NetworkUtils::checkForUpdates()
             /* Make sure there weren't any errors */
             if (reply->error())
             {
-                emit mediator->showCritical(
+                emit context->showCritical(
                     "Error",
                     "Could not check for updates:\n" + reply->errorString()
                 );
@@ -206,7 +205,7 @@ void NetworkUtils::checkForUpdates()
             /* Get the url and tag */
             if (tag != QString("v") + Memento::VERSION)
             {
-                emit mediator->showInformation(
+                emit context->showInformation(
                     "Update Available",
                     QString("New version <a href='%1'>%2</a> available.")
                         .arg(url)
@@ -216,7 +215,7 @@ void NetworkUtils::checkForUpdates()
             }
 
             /* If reached, Memento was up to date */
-            emit mediator->showInformation(
+            emit context->showInformation(
                 "Up to Date", "Memento is up to date"
             );
 
@@ -226,7 +225,7 @@ void NetworkUtils::checkForUpdates()
             return;
 
         error:
-            emit mediator->showCritical(
+            emit context->showCritical(
                 "Error",
                 "Server did not send a valid reply.\n"
                 "Check manually <a href='" + QString(Constants::Links::GITHUB_RELEASES) +

@@ -29,20 +29,18 @@
 #include <QtConcurrent>
 
 #include "util/constants.h"
-#include "util/globalmediator.h"
 
 /* Begin Constructor/Destructor */
 
-OCROverlay::OCROverlay(QWidget *parent)
-    : QWidget(parent),
-      m_rubberBand(new QRubberBand(QRubberBand::Rectangle, this))
+OCROverlay::OCROverlay(QPointer<Context> context, QWidget *parent) :
+    QWidget(parent),
+    m_context(std::move(context)),
+    m_rubberBand(new QRubberBand(QRubberBand::Rectangle, this))
 {
     setCursor(Qt::CrossCursor);
     setAutoFillBackground(false);
 
     m_rubberBand->hide();
-
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     connect(
         &m_resultWatcher, &QFutureWatcher<QString>::finished,
@@ -50,12 +48,12 @@ OCROverlay::OCROverlay(QWidget *parent)
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::ocrSettingsChanged,
+        m_context, &Context::ocrSettingsChanged,
         this, &OCROverlay::initOCRSettings,
         Qt::DirectConnection
     );
     connect(
-        mediator, &GlobalMediator::keyPressed,
+        m_context, &Context::keyPressed,
         this, &OCROverlay::handleKeyPress,
         Qt::DirectConnection
     );
@@ -63,11 +61,6 @@ OCROverlay::OCROverlay(QWidget *parent)
     initOCRSettings();
 }
 
-OCROverlay::~OCROverlay()
-{
-    delete m_model;
-    m_model = nullptr;
-}
 /* End Constructor/Destructor */
 /* Begin Initializers */
 
@@ -75,8 +68,7 @@ void OCROverlay::initOCRSettings()
 {
     if (m_model)
     {
-        OCRModel *model = m_model;
-        m_model = nullptr;
+        OCRModel *model = m_model.release();
         QFuture<void> deleteFuture =
             QtConcurrent::run([model] { delete model; });
     }
@@ -101,7 +93,7 @@ void OCROverlay::initOCRSettings()
             Constants::Settings::OCR::ENABLE_GPU,
             Constants::Settings::OCR::ENABLE_GPU_DEFAULT
         ).toBool();
-    m_model = new OCRModel(model, useGPU);
+    m_model = std::make_unique<OCRModel>(model, useGPU);
 
     settings.endGroup();
 }

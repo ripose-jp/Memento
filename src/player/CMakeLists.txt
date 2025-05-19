@@ -28,8 +28,9 @@ target_compile_options(mpvadapter PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(mpvadapter PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     mpvadapter
-    PRIVATE globalmediator
+    PRIVATE constants
     PRIVATE mpv::mpv
     PRIVATE mpvwidget
+    PUBLIC context
     PUBLIC playeradapter
 )

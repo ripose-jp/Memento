@@ -23,6 +23,12 @@
 
 #include <QDialog>
 
+#include <memory>
+
+#include <QPointer>
+
+#include "state/context.h"
+
 namespace Ui
 {
     class AnkiSettingsHelp;
@@ -37,11 +43,15 @@ class AnkiSettingsHelp : public QDialog
     Q_OBJECT
 
 public:
-    AnkiSettingsHelp(QWidget *parent = 0);
-    ~AnkiSettingsHelp();
+    AnkiSettingsHelp(QPointer<Context> context, QWidget *parent = 0);
+    virtual ~AnkiSettingsHelp();
 
 private:
-    Ui::AnkiSettingsHelp *m_ui;
+    /* The UI elements defined for this widget */
+    std::unique_ptr<Ui::AnkiSettingsHelp> m_ui;
+
+    /* The application context */
+    QPointer<Context> m_context;
 };
 
 #endif // ANKISETTINGSHELP_H

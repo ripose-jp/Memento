@@ -23,6 +23,12 @@
 
 #include <QWidget>
 
+#include <memory>
+
+#include <QPointer>
+
+#include "state/context.h"
+
 namespace Ui
 {
     class SearchSettings;
@@ -36,8 +42,8 @@ class SearchSettings : public QWidget
     Q_OBJECT
 
 public:
-    SearchSettings(QWidget *parent = nullptr);
-    ~SearchSettings();
+    SearchSettings(QPointer<Context> context, QWidget *parent = nullptr);
+    virtual ~SearchSettings();
 
 protected:
     /**
@@ -70,7 +76,10 @@ private Q_SLOTS:
 
 private:
     /* The UI object containing all the widgets. */
-    Ui::SearchSettings *m_ui;
+    std::unique_ptr<Ui::SearchSettings> m_ui;
+
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
 };
 
 #endif // SEARCHSETTINGS_H

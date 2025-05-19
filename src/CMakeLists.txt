@@ -16,6 +16,7 @@ add_subdirectory(gui)
 add_subdirectory(macos)
 add_subdirectory(ocr)
 add_subdirectory(player)
+add_subdirectory(state)
 add_subdirectory(util)
 
 # Executable Targets
@@ -61,12 +62,12 @@ if(APPBUNDLE)
 	)
 	target_link_libraries(
 		${PROJECT_NAME}
-		PRIVATE audioplayer
+		PRIVATE constants
 		PRIVATE dictionary_db
-		PRIVATE globalmediator
 		PRIVATE iconfactory
 		PRIVATE mainwindow
 		PRIVATE Qt6::Svg
+		PRIVATE utils
 	)
 
 	# Add in the dylibs
@@ -224,12 +225,12 @@ elseif(WIN32)
 	target_include_directories(memento PRIVATE ${MEMENTO_INCLUDE_DIRS})
 	target_link_libraries(
 		memento
-		PRIVATE audioplayer
+		PRIVATE constants
 		PRIVATE dictionary_db
-		PRIVATE globalmediator
 		PRIVATE iconfactory
 		PRIVATE mainwindow
 		PRIVATE Qt6::Svg
+		PRIVATE utils
 	)
 
 	# This is a target that will create memento_debug.exe so that issues can be
@@ -245,12 +246,12 @@ elseif(WIN32)
 	target_include_directories(memento_debug PRIVATE ${MEMENTO_INCLUDE_DIRS})
 	target_link_libraries(
 		memento_debug
-		PRIVATE audioplayer
+		PRIVATE constants
 		PRIVATE dictionary_db
-		PRIVATE globalmediator
 		PRIVATE iconfactory
 		PRIVATE mainwindow
 		PRIVATE Qt6::Svg
+		PRIVATE utils
 	)
 elseif(UNIX)
 	add_executable(
@@ -263,12 +264,12 @@ elseif(UNIX)
 	target_include_directories(memento PRIVATE ${MEMENTO_INCLUDE_DIRS})
 	target_link_libraries(
 		memento
-		PRIVATE audioplayer
+		PRIVATE constants
 		PRIVATE dictionary_db
-		PRIVATE globalmediator
 		PRIVATE iconfactory
 		PRIVATE mainwindow
 		PRIVATE Qt6::Svg
+		PRIVATE utils
 	)
 else()
 	message(FATAL_ERROR "Unsupported operating system!")

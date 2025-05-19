@@ -31,11 +31,11 @@
 #include <QMultiMap>
 #include <QMutexLocker>
 #include <QSettings>
-#include <QShortcut>
 #include <QThreadPool>
 
+#include "anki/ankiclient.h"
+#include "player/playeradapter.h"
 #include "util/constants.h"
-#include "util/globalmediator.h"
 #include "util/iconfactory.h"
 #include "util/subtitleparser.h"
 #include "util/utils.h"
@@ -71,12 +71,44 @@ private:
 /* End Private Class */
 /* Begin Constructor/Destructors */
 
-SubtitleListWidget::SubtitleListWidget(QWidget *parent)
-    : QWidget(parent),
-      m_ui(new Ui::SubtitleListWidget),
-      m_client(GlobalMediator::getGlobalMediator()->getAnkiClient())
+SubtitleListWidget::SubtitleListWidget(QWidget *parent) :
+    QWidget(parent),
+    m_ui(std::make_unique<Ui::SubtitleListWidget>())
 {
     m_ui->setupUi(this);
+}
+
+SubtitleListWidget::~SubtitleListWidget()
+{
+    disconnect();
+    clearCachedSubtitles();
+    saveState();
+}
+
+void SubtitleListWidget::saveState()
+{
+    QSettings settings;
+    settings.beginGroup(Constants::Settings::SubtitleList::GROUP);
+
+    settings.setValue(
+        Constants::Settings::SubtitleList::IGNORE_WHITESPACE,
+        m_ui->checkIgnoreWhitespace->isChecked()
+    );
+    settings.setValue(
+        Constants::Settings::SubtitleList::AUTO_SEEK,
+        m_ui->checkAutoSeek->isChecked()
+    );
+
+    settings.endGroup();
+}
+
+/* End Constructor/Destructors */
+/* Begin Initializers */
+
+void SubtitleListWidget::initialize(QPointer<Context> context)
+{
+    m_context = std::move(context);
+
     m_ui->widgetFind->hide();
     m_ui->tabWidget->tabBar()->setDocumentMode(true);
     m_ui->tabWidget->tabBar()->setExpanding(true);
@@ -84,12 +116,17 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     m_primary.table = m_ui->tablePrim;
     m_secondary.table = m_ui->tableSec;
 
-    m_copyShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_C), this);
+    m_copyShortcut = std::make_unique<QShortcut>(
+        QKeySequence(Qt::CTRL | Qt::Key_C), this
+    );
     m_copyShortcut->setContext(Qt::WidgetWithChildrenShortcut);
-    m_copyAudioShortcut =
-        new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_C), this);
+    m_copyAudioShortcut = std::make_unique<QShortcut>(
+        QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_C), this
+    );
     m_copyAudioShortcut->setContext(Qt::WidgetWithChildrenShortcut);
-    m_findShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this);
+    m_findShortcut = std::make_unique<QShortcut>(
+        QKeySequence(Qt::CTRL | Qt::Key_F), this
+    );
     m_findShortcut->setContext(Qt::WidgetWithChildrenShortcut);
 
     initTheme();
@@ -97,16 +134,14 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     initState();
     hideSecondarySubs();
 
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-
     /* Signals */
     connect(
         m_ui->tablePrim, &QTableWidget::itemDoubleClicked,
-        this,            &SubtitleListWidget::seekToPrimarySubtitle
+        this, &SubtitleListWidget::seekToPrimarySubtitle
     );
     connect(
         m_ui->tableSec, &QTableWidget::itemDoubleClicked,
-        this,           &SubtitleListWidget::seekToSecondarySubtitle
+        this, &SubtitleListWidget::seekToSecondarySubtitle
     );
     connect(
         m_ui->tablePrim, &QTableWidget::customContextMenuRequested,
@@ -120,28 +155,28 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     );
     connect(
         m_ui->tabWidget, &QTabWidget::currentChanged,
-        this,            &SubtitleListWidget::fixTableDimensions,
+        this, &SubtitleListWidget::fixTableDimensions,
         Qt::QueuedConnection
     );
 
     connect(
-        mediator, &GlobalMediator::requestThemeRefresh,
-        this,     &SubtitleListWidget::initTheme,
+        m_context, &Context::requestThemeRefresh,
+        this, &SubtitleListWidget::initTheme,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::searchSettingsChanged,
-        this,     &SubtitleListWidget::initRegex,
+        m_context, &Context::searchSettingsChanged,
+        this, &SubtitleListWidget::initRegex,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerSubDelayChanged,
-        this,     &SubtitleListWidget::updatePrimaryTimestamps,
+        m_context, &Context::playerSubDelayChanged,
+        this, &SubtitleListWidget::updatePrimaryTimestamps,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerSecSubDelayChanged,
-        this,     &SubtitleListWidget::updateSecondaryTimestamps,
+        m_context, &Context::playerSecSubDelayChanged,
+        this, &SubtitleListWidget::updateSecondaryTimestamps,
         Qt::QueuedConnection
     );
     connect(
@@ -151,73 +186,73 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
     );
 
     connect(
-        mediator, &GlobalMediator::playerSubtitleChangedRaw,
-        this,     &SubtitleListWidget::updatePrimarySubtitle,
+        m_context, &Context::playerSubtitleChangedRaw,
+        this, &SubtitleListWidget::updatePrimarySubtitle,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerSubtitleTrackChanged,
-        this,     &SubtitleListWidget::handlePrimaryTrackChange,
+        m_context, &Context::playerSubtitleTrackChanged,
+        this, &SubtitleListWidget::handlePrimaryTrackChange,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerSubtitlesDisabled,
-        this,     &SubtitleListWidget::clearPrimarySubtitles,
+        m_context, &Context::playerSubtitlesDisabled,
+        this, &SubtitleListWidget::clearPrimarySubtitles,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::searchSettingsChanged,
-        this,     &SubtitleListWidget::clearPrimarySubtitles,
-        Qt::QueuedConnection
-    );
-
-    connect(
-        mediator, &GlobalMediator::playerSecSubtitleChanged,
-        this,     &SubtitleListWidget::updateSecondarySubtitle,
-        Qt::QueuedConnection
-    );
-    connect(
-        mediator, &GlobalMediator::playerSecondSubtitleTrackChanged,
-        this,     &SubtitleListWidget::handleSecondaryTrackChange,
-        Qt::QueuedConnection
-    );
-    connect(
-        mediator, &GlobalMediator::playerSecondSubtitlesDisabled,
-        this,     &SubtitleListWidget::clearSecondarySubtitles,
-        Qt::QueuedConnection
-    );
-    connect(
-        mediator, &GlobalMediator::playerSecondSubtitleTrackChanged,
-        this,     &SubtitleListWidget::showSecondarySubs,
-        Qt::QueuedConnection
-    );
-    connect(
-        mediator, &GlobalMediator::playerSecondSubtitlesDisabled,
-        this,     &SubtitleListWidget::hideSecondarySubs,
+        m_context, &Context::searchSettingsChanged,
+        this, &SubtitleListWidget::clearPrimarySubtitles,
         Qt::QueuedConnection
     );
 
     connect(
-        mediator, &GlobalMediator::playerFileChanged,
-        this,     &SubtitleListWidget::clearCachedSubtitles
+        m_context, &Context::playerSecSubtitleChanged,
+        this, &SubtitleListWidget::updateSecondarySubtitle,
+        Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerTracksChanged,
-        this,     &SubtitleListWidget::handleTracklistChange
+        m_context, &Context::playerSecondSubtitleTrackChanged,
+        this, &SubtitleListWidget::handleSecondaryTrackChange,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_context, &Context::playerSecondSubtitlesDisabled,
+        this, &SubtitleListWidget::clearSecondarySubtitles,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_context, &Context::playerSecondSubtitleTrackChanged,
+        this, &SubtitleListWidget::showSecondarySubs,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_context, &Context::playerSecondSubtitlesDisabled,
+        this, &SubtitleListWidget::hideSecondarySubs,
+        Qt::QueuedConnection
     );
 
     connect(
-        m_copyShortcut, &QShortcut::activated,
+        m_context, &Context::playerFileChanged,
+        this, &SubtitleListWidget::clearCachedSubtitles
+    );
+    connect(
+        m_context, &Context::playerTracksChanged,
+        this, &SubtitleListWidget::handleTracklistChange
+    );
+
+    connect(
+        m_copyShortcut.get(), &QShortcut::activated,
         this, &SubtitleListWidget::copyContext,
         Qt::QueuedConnection
     );
     connect(
-        m_copyAudioShortcut, &QShortcut::activated,
+        m_copyAudioShortcut.get(), &QShortcut::activated,
         this, &SubtitleListWidget::copyAudioContext,
         Qt::QueuedConnection
     );
     connect(
-        m_findShortcut, &QShortcut::activated,
+        m_findShortcut.get(), &QShortcut::activated,
         this, &SubtitleListWidget::findShow,
         Qt::QueuedConnection
     );
@@ -252,34 +287,6 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent)
         m_ui->widgetFind, &QWidget::hide
     );
 }
-
-SubtitleListWidget::~SubtitleListWidget()
-{
-    disconnect();
-    clearCachedSubtitles();
-    saveState();
-    delete m_ui;
-}
-
-void SubtitleListWidget::saveState()
-{
-    QSettings settings;
-    settings.beginGroup(Constants::Settings::SubtitleList::GROUP);
-
-    settings.setValue(
-        Constants::Settings::SubtitleList::IGNORE_WHITESPACE,
-        m_ui->checkIgnoreWhitespace->isChecked()
-    );
-    settings.setValue(
-        Constants::Settings::SubtitleList::AUTO_SEEK,
-        m_ui->checkAutoSeek->isChecked()
-    );
-
-    settings.endGroup();
-}
-
-/* End Constructor/Destructors */
-/* Begin Initializers */
 
 void SubtitleListWidget::initTheme()
 {
@@ -333,11 +340,10 @@ void SubtitleListWidget::initRegex()
     m_subRegexLock.unlock();
     settings.endGroup();
 
-    PlayerAdapter *player =
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter();
-    if (player)
+    if (m_context->getPlayerAdapter())
     {
-        QList<const Track *> tracks = player->getTracks();
+        QList<const Track *> tracks =
+            m_context->getPlayerAdapter()->getTracks();
         handleTracklistChange(tracks);
         for (const Track *track : tracks)
         {
@@ -487,15 +493,13 @@ void SubtitleListWidget::handleTracklistChange(
 
 void SubtitleListWidget::handleRefresh()
 {
-    PlayerAdapter *player =
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter();
-    int64_t sid = player->getSubtitleTrack();
+    int64_t sid = m_context->getPlayerAdapter()->getSubtitleTrack();
     if (sid > 0)
     {
         handlePrimaryTrackChange(sid);
     }
 
-    sid = player->getSecondarySubtitleTrack();
+    sid = m_context->getPlayerAdapter()->getSecondarySubtitleTrack();
     if (sid > 0)
     {
         handleSecondaryTrackChange(sid);
@@ -642,15 +646,11 @@ void SubtitleListWidget::handleTrackChange(SubtitleList &list, int64_t sid)
     double delay = 0;
     if constexpr (SUBTITLE_INDEX == 0)
     {
-        delay = GlobalMediator::getGlobalMediator()
-            ->getPlayerAdapter()
-            ->getSubDelay();
+        delay = m_context->getPlayerAdapter()->getSubDelay();
     }
     else if constexpr (SUBTITLE_INDEX == 1)
     {
-        delay = GlobalMediator::getGlobalMediator()
-            ->getPlayerAdapter()
-            ->getSecondarySubDelay();
+        delay = m_context->getPlayerAdapter()->getSecondarySubDelay();
     }
     m_subRegexLock.lock();
     for (const auto &info : *list.subList)
@@ -678,9 +678,7 @@ void SubtitleListWidget::selectSubtitles(SubtitleList &list,
 {
     constexpr double TIME_DELTA = 0.001;
 
-    PlayerAdapter *player =
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter();
-    double time = player->getTimePos() - delay;
+    double time = m_context->getPlayerAdapter()->getTimePos() - delay;
 
     list.table->clearSelection();
 
@@ -847,8 +845,7 @@ void SubtitleListWidget::seekToSubtitle(QTableWidgetItem *item,
 {
     constexpr double SEEK_ERROR = 0.028;
 
-    PlayerAdapter *player =
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+    PlayerAdapter *player = m_context->getPlayerAdapter();
 
     double delay = 0;
     if constexpr (SUBTITLE_INDEX == 0)
@@ -915,10 +912,9 @@ void SubtitleListWidget::handleContextMenu(
     QAction actionAlign("Align Delay", this);
     connect(
         &actionAlign, &QAction::triggered, this,
-        [&list, item] () -> void
+        [this, &list, item] () -> void
         {
-            PlayerAdapter *player =
-                GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+            PlayerAdapter *player = m_context->getPlayerAdapter();
             double currentPos = player->getTimePos();
             double currentStart = list.itemToSub[item]->start;
             double newDelay = currentPos - currentStart;
@@ -973,8 +969,7 @@ void SubtitleListWidget::copyAudioContext() const
         return;
     }
 
-    PlayerAdapter *player =
-        GlobalMediator::getGlobalMediator()->getPlayerAdapter();
+    PlayerAdapter *player = m_context->getPlayerAdapter();
     double delay = isPrimaryCurrent() ?
         player->getSubDelay() : player->getSecondarySubDelay();
     delay -= player->getAudioDelay();
@@ -983,9 +978,10 @@ void SubtitleListWidget::copyAudioContext() const
     bool normalize = false;
     double dbLevel = -20.0;
 
-    if (m_client->isEnabled())
+    if (m_context->getAnkiClient()->isEnabled())
     {
-        std::shared_ptr<const AnkiConfig> config = m_client->getConfig();
+        std::shared_ptr<const AnkiConfig> config =
+            m_context->getAnkiClient()->getConfig();
         start -= config->audioPadStart;
         end += config->audioPadEnd;
         normalize = config->audioNormalize;
@@ -993,8 +989,10 @@ void SubtitleListWidget::copyAudioContext() const
     }
 
     QThreadPool::globalInstance()->start(
-        [=] {
-            QString path = player->tempAudioClip(start, end, normalize, dbLevel);
+        [player, start, end, normalize, dbLevel] () -> void
+        {
+            QString path =
+                player->tempAudioClip(start, end, normalize, dbLevel);
             if (!QFile(path).exists())
             {
                 return;
@@ -1055,8 +1053,7 @@ void SubtitleListWidget::hideSecondarySubs()
 
 void SubtitleListWidget::showSecondarySubs()
 {
-    if (GlobalMediator::getGlobalMediator()
-        ->getPlayerAdapter()->canGetSecondarySubText())
+    if (m_context->getPlayerAdapter()->canGetSecondarySubText())
     {
         m_ui->tabWidget->setTabVisible(1, true);
         m_ui->tabWidget->tabBar()->show();

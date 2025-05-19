@@ -21,12 +21,14 @@ target_include_directories(playeroverlay PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     playeroverlay
     PRIVATE "$<$<BOOL:${OCR_SUPPORT}>:ocrmodel>"
+    PRIVATE constants
     PRIVATE definitionwidget
     PRIVATE dictionary_db
     PRIVATE hittestwidget
     PRIVATE iconfactory
     PRIVATE Qt6::Concurrent
     PRIVATE strokelabel
+    PUBLIC context
     PUBLIC playeradapter
     PUBLIC Qt6::OpenGLWidgets
     PUBLIC Qt6::Widgets

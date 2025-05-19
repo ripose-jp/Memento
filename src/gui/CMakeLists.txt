@@ -14,10 +14,14 @@ target_link_libraries(
     PRIVATE "$<$<BOOL:${APPLE}>:cocoa_event_handler>"
     PRIVATE "$<$<BOOL:${WIN32}>:Qt6::GuiPrivate>"
     PRIVATE aboutwindow
+    PRIVATE constants
     PRIVATE mpvadapter
     PRIVATE optionswindow
     PRIVATE playeroverlay
     PRIVATE searchwidget
     PUBLIC anki
+    PUBLIC audioplayer
+    PUBLIC context
+    PUBLIC dictionary_db
     PUBLIC Qt6::Widgets
 )

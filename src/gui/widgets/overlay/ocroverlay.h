@@ -23,11 +23,14 @@
 
 #include <QWidget>
 
+#include <memory>
+
 #include <QFutureWatcher>
+#include <QPointer>
+#include <QRubberBand>
 
 #include "ocr/ocrmodel.h"
-
-class QRubberBand;
+#include "state/context.h"
 
 /**
  * Widget for selecting an area of its parent and running OCR on it.
@@ -39,11 +42,11 @@ class OCROverlay : public QWidget
 public:
     /**
      * Construct a new OCROverlay widget.
-     * @param parent The parent that will have OCR run it.
+     * @param context The application context.
+     * @param parent  The parent that will have OCR run it.
      */
-    OCROverlay(QWidget *parent = nullptr);
-
-    virtual ~OCROverlay();
+    OCROverlay(QPointer<Context> context, QWidget *parent = nullptr);
+    virtual ~OCROverlay() = default;
 
 private Q_SLOTS:
     /**
@@ -102,14 +105,17 @@ private:
      */
     void getText(QRect rect);
 
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
+
     /* The OCR model */
-    OCRModel *m_model = nullptr;
+    std::unique_ptr<OCRModel> m_model = nullptr;
 
     /* Watches the last QFuture returned from OCRModel */
     QFutureWatcher<QString> m_resultWatcher;
 
     /* The QRubberBand widget that represents the selected area */
-    QRubberBand *m_rubberBand;
+    QRubberBand *m_rubberBand = nullptr;
 
     /* The point where the mouse was first pressed in the last search */
     QPoint m_startPoint;

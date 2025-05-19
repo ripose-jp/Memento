@@ -26,13 +26,13 @@
 #include <QSettings>
 
 #include "util/constants.h"
-#include "util/globalmediator.h"
 
 /* Begin Constructor/Destructor */
 
-BehaviorSettings::BehaviorSettings(QWidget *parent)
-    : QWidget(parent),
-      m_ui(new Ui::BehaviorSettings)
+BehaviorSettings::BehaviorSettings(QPointer<Context> context, QWidget *parent) :
+    QWidget(parent),
+    m_ui(std::make_unique<Ui::BehaviorSettings>()),
+    m_context(std::move(context))
 {
     m_ui->setupUi(this);
 
@@ -80,7 +80,6 @@ BehaviorSettings::BehaviorSettings(QWidget *parent)
 BehaviorSettings::~BehaviorSettings()
 {
     disconnect();
-    delete m_ui;
 }
 
 /* End Constructor/Destructor */
@@ -276,7 +275,7 @@ void BehaviorSettings::applySettings()
 
     settings.endGroup();
 
-    emit GlobalMediator::getGlobalMediator()->behaviorSettingsChanged();
+    emit m_context->behaviorSettingsChanged();
 }
 
 /* End Button Box Handlers */

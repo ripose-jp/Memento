@@ -96,10 +96,13 @@ endif()
 target_link_libraries(
     dictionary_db
     PRIVATE ${DICTIONARY_DB_GENERATOR_LIBS}
+    PRIVATE constants
     PRIVATE Qt6::Widgets
     PRIVATE querygenerator
     PRIVATE SQLite::SQLite3
+    PRIVATE utils
     PRIVATE yomidbbuilder
+    PUBLIC context
     PUBLIC Qt6::Core
 )
 unset(DICTIONARY_DB_GENERATOR_LIBS)

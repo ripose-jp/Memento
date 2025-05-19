@@ -25,11 +25,12 @@
 
 #include <memory>
 
+#include <QPointer>
+#include <QVBoxLayout>
 #include <QWheelEvent>
 
-class DefinitionWidget;
-class Dictionary;
-class QVBoxLayout;
+#include "state/context.h"
+#include "gui/widgets/definition/definitionwidget.h"
 
 struct Term;
 typedef std::shared_ptr<Term> SharedTerm;
@@ -113,6 +114,12 @@ class SearchWidget : public QWidget
 public:
     SearchWidget(QWidget *parent = nullptr);
 
+    /**
+     * Initializes the widget with the given context.
+     * @param context The application context.
+     */
+    void initialize(QPointer<Context> context);
+
 Q_SIGNALS:
     /**
      * Emitted when the widget is hidden.
@@ -187,17 +194,17 @@ protected:
         { QWidget::wheelEvent(event); event->accept(); }
 
 private:
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
+
     /* The parent layout */
-    QVBoxLayout *m_layoutParent;
+    QVBoxLayout *m_layoutParent = nullptr;
 
     /* The search box */
-    SearchEdit *m_searchEdit;
+    SearchEdit *m_searchEdit = nullptr;
 
     /* The definition widget */
-    DefinitionWidget *m_definition;
-
-    /* Pointer to the global dictionary */
-    Dictionary *m_dictionary;
+    DefinitionWidget *m_definition = nullptr;
 };
 
 #endif // SEARCHWIDGET_H

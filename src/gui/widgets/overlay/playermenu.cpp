@@ -32,8 +32,8 @@
 #include <QSettings>
 
 #include "anki/ankiclient.h"
+#include "state/context.h"
 #include "util/constants.h"
-#include "util/globalmediator.h"
 #include "util/utils.h"
 
 /* Begin MenuBar Proxy Style */
@@ -63,10 +63,10 @@ public:
 /* End MenuBar Proxy Style */
 /* Begin Constructor/Destructor */
 
-PlayerMenu::PlayerMenu(QWidget *parent)
-    : QWidget(parent),
-      m_ui(new Ui::PlayerMenu),
-      m_player(GlobalMediator::getGlobalMediator()->getPlayerAdapter())
+PlayerMenu::PlayerMenu(QPointer<Context> context, QWidget *parent) :
+    QWidget(parent),
+    m_ui(std::make_unique<Ui::PlayerMenu>()),
+    m_context(std::move(context))
 {
     m_ui->setupUi(this);
 
@@ -76,8 +76,8 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     m_actionGroupAnkiProfile = new QActionGroup(this);
     updateAnkiProfileMenu();
 
-    m_actionGroups.audio       = new QActionGroup(this);
-    m_actionGroups.subtitle    = new QActionGroup(this);
+    m_actionGroups.audio = new QActionGroup(this);
+    m_actionGroups.subtitle = new QActionGroup(this);
     m_actionGroups.subtitleTwo = new QActionGroup(this);
 
     m_ui->actionAudioNone->setActionGroup(m_actionGroups.audio);
@@ -89,8 +89,6 @@ PlayerMenu::PlayerMenu(QWidget *parent)
 #else
     m_ui->actionOCRMode->setVisible(false);
 #endif
-
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
 
     /* Open Signals */
     connect(
@@ -110,13 +108,13 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     );
     connect(
         m_ui->actionUpdate, &QAction::triggered,
-        this, &NetworkUtils::checkForUpdates,
+        this, [this] { NetworkUtils::checkForUpdates(m_context); },
         Qt::QueuedConnection
     );
 
     /* Track Signals */
     connect(
-        mediator, &GlobalMediator::playerTracksChanged,
+        m_context, &Context::playerTracksChanged,
         this, &PlayerMenu::setTracks
     );
 
@@ -134,36 +132,37 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     );
 
     connect(
-        mediator, &GlobalMediator::playerAudioTrackChanged,
+        m_context, &Context::playerAudioTrackChanged,
         this, &PlayerMenu::updateAudioAction
     );
     connect(
-        mediator, &GlobalMediator::playerSubtitleTrackChanged,
+        m_context, &Context::playerSubtitleTrackChanged,
         this, &PlayerMenu::updateSubtitleAction
     );
     connect(
-        mediator, &GlobalMediator::playerSecondSubtitleTrackChanged,
+        m_context, &Context::playerSecondSubtitleTrackChanged,
         this, &PlayerMenu::updateSecondarySubtitleAction
     );
 
     connect(
-        mediator, &GlobalMediator::playerAudioDisabled,
+        m_context, &Context::playerAudioDisabled,
         this, [this] { updateAudioAction(); }
     );
     connect(
-        mediator, &GlobalMediator::playerSubtitlesDisabled,
+        m_context, &Context::playerSubtitlesDisabled,
         this, [this] { updateSubtitleAction(); }
     );
     connect(
-        mediator, &GlobalMediator::playerSecondSubtitlesDisabled,
+        m_context, &Context::playerSecondSubtitlesDisabled,
         this, [this] { updateSecondarySubtitleAction(); }
     );
 
     connect(
-        mediator, &GlobalMediator::playerFileLoaded, this,
+        m_context, &Context::playerFileLoaded, this,
         [this]
         {
-            QList<const Track *> tracks = m_player->getTracks();
+            QList<const Track *> tracks =
+                m_context->getPlayerAdapter()->getTracks();
             setTracks(tracks);
             for (const Track *track : tracks)
             {
@@ -185,7 +184,7 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     );
     connect(
         m_ui->actionOCRMode, &QAction::triggered,
-        mediator, &GlobalMediator::menuEnterOCRMode,
+        m_context, &Context::menuEnterOCRMode,
         Qt::QueuedConnection
     );
     connect(
@@ -195,12 +194,12 @@ PlayerMenu::PlayerMenu(QWidget *parent)
     );
     connect(
         m_ui->actionOptions, &QAction::triggered,
-        mediator, &GlobalMediator::menuShowOptions,
+        m_context, &Context::menuShowOptions,
         Qt::QueuedConnection
     );
     connect(
         m_ui->actionAbout, &QAction::triggered,
-        mediator, &GlobalMediator::menuShowAbout,
+        m_context, &Context::menuShowAbout,
         Qt::QueuedConnection
     );
     connect(
@@ -209,60 +208,60 @@ PlayerMenu::PlayerMenu(QWidget *parent)
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::behaviorSettingsChanged,
+        m_context, &Context::behaviorSettingsChanged,
         this, &PlayerMenu::updateSubtitlePauseAction,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::ankiSettingsChanged,
+        m_context, &Context::ankiSettingsChanged,
         this, &PlayerMenu::updateAnkiProfileMenu,
         Qt::QueuedConnection
     );
     connect(
         m_ui->actionSubVis, &QAction::toggled,
-        mediator, &GlobalMediator::menuSubtitleVisibilityToggled,
+        m_context, &Context::menuSubtitleVisibilityToggled,
         Qt::QueuedConnection
     );
     connect(
         m_ui->actionIncreaseSize, &QAction::triggered,
-        mediator, &GlobalMediator::menuSubtitleSizeIncrease,
+        m_context, &Context::menuSubtitleSizeIncrease,
         Qt::QueuedConnection
     );
     connect(
         m_ui->actionDecreaseSize, &QAction::triggered,
-        mediator, &GlobalMediator::menuSubtitleSizeDecrease,
+        m_context, &Context::menuSubtitleSizeDecrease,
         Qt::QueuedConnection
     );
     connect(
         m_ui->actionMoveUp, &QAction::triggered,
-        mediator, &GlobalMediator::menuSubtitlesMoveUp,
+        m_context, &Context::menuSubtitlesMoveUp,
         Qt::QueuedConnection
     );
     connect(
         m_ui->actionMoveDown, &QAction::triggered,
-        mediator, &GlobalMediator::menuSubtitlesMoveDown,
+        m_context, &Context::menuSubtitlesMoveDown,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::searchWidgetHidden,
+        m_context, &Context::searchWidgetHidden,
         m_ui->actionShowSearch,
         [this] { m_ui->actionShowSearch->setChecked(false); },
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::searchWidgetShown,
+        m_context, &Context::searchWidgetShown,
         m_ui->actionShowSearch,
         [this] { m_ui->actionShowSearch->setChecked(true); },
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::subtitleListHidden,
+        m_context, &Context::subtitleListHidden,
         m_ui->actionShowSearch,
         [this] { m_ui->actionShowSubtitleList->setChecked(false); },
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::subtitleListShown,
+        m_context, &Context::subtitleListShown,
         m_ui->actionShowSearch,
         [this] { m_ui->actionShowSubtitleList->setChecked(true); },
         Qt::QueuedConnection
@@ -280,8 +279,8 @@ PlayerMenu::PlayerMenu(QWidget *parent)
 
 #ifdef OCR_SUPPORT
     connect(
-        mediator, &GlobalMediator::ocrSettingsChanged,
-        this,     &PlayerMenu::initOCRSettings
+        m_context, &Context::ocrSettingsChanged,
+        this, &PlayerMenu::initOCRSettings
     );
 #endif // OCR_SUPPORT
 }
@@ -289,7 +288,6 @@ PlayerMenu::PlayerMenu(QWidget *parent)
 PlayerMenu::~PlayerMenu()
 {
     clearTracks();
-    delete m_ui;
 }
 
 /* End Constructor/Destructor */
@@ -302,8 +300,9 @@ void PlayerMenu::initOCRSettings()
     settings.beginGroup(Constants::Settings::OCR::GROUP);
 
     bool enabled = settings.value(
-            Constants::Settings::OCR::ENABLED, Constants::Settings::OCR::ENABLED_DEFAULT
-        ).toBool();
+        Constants::Settings::OCR::ENABLED,
+        Constants::Settings::OCR::ENABLED_DEFAULT
+    ).toBool();
     m_ui->actionOCRMode->setVisible(enabled);
 
     settings.endGroup();
@@ -350,16 +349,17 @@ void PlayerMenu::showMenu()
 /* End Status Methods */
 /* Begin Track Methods */
 
-void PlayerMenu::clearTrack(QList<QAction *> &actions,
-                            QMenu            *menu,
-                            QActionGroup     *actionGroup,
-                            QAction          *actionDisable)
+void PlayerMenu::clearTrack(
+    QList<QAction *> &actions,
+    QMenu *menu,
+    QActionGroup *actionGroup,
+    QAction *actionDisable)
 {
     for (QAction *action : actions)
     {
         menu->removeAction(action);
         actionGroup->removeAction(action);
-        delete action;
+        action->deleteLater();
     }
     actions.clear();
 
@@ -532,11 +532,11 @@ void PlayerMenu::setAudioTrack(const int id)
 {
     if (id)
     {
-        m_player->setAudioTrack(id);
+        m_context->getPlayerAdapter()->setAudioTrack(id);
     }
     else
     {
-        m_player->disableAudio();
+        m_context->getPlayerAdapter()->disableAudio();
     }
 }
 
@@ -544,11 +544,11 @@ void PlayerMenu::setSubtitleTrack(const int id)
 {
     if (id)
     {
-        m_player->setSubtitleTrack(id);
+        m_context->getPlayerAdapter()->setSubtitleTrack(id);
     }
     else
     {
-        m_player->disableSubtitles();
+        m_context->getPlayerAdapter()->disableSubtitles();
     }
 }
 
@@ -556,11 +556,11 @@ void PlayerMenu::setSecondarySubtitleTrack(const int id)
 {
     if (id)
     {
-        m_player->setSubtitleTwoTrack(id);
+        m_context->getPlayerAdapter()->setSubtitleTwoTrack(id);
     }
     else
     {
-        m_player->disableSubtitleTwo();
+        m_context->getPlayerAdapter()->disableSubtitleTwo();
     }
 }
 
@@ -634,9 +634,10 @@ void PlayerMenu::openFile()
     );
     if (!files.isEmpty())
     {
-        m_player->stop();
-        m_player->open(files);
-        m_player->play();
+        PlayerAdapter *player = m_context->getPlayerAdapter();
+        player->stop();
+        player->open(files);
+        player->play();
     }
 }
 
@@ -652,9 +653,10 @@ void PlayerMenu::openUrl()
 
     if (res == QDialog::Accepted && !url.isEmpty())
     {
-        m_player->stop();
-        m_player->open(url);
-        m_player->play();
+        PlayerAdapter *player = m_context->getPlayerAdapter();
+        player->stop();
+        player->open(url);
+        player->play();
     }
 }
 
@@ -667,7 +669,7 @@ void PlayerMenu::openSubtitle()
     );
     if (!file.isEmpty())
     {
-        m_player->addSubtitle(file);
+        m_context->getPlayerAdapter()->addSubtitle(file);
     }
 }
 
@@ -707,7 +709,7 @@ void PlayerMenu::applySubtitlePauseSetting()
     );
     settings.endGroup();
 
-    emit GlobalMediator::getGlobalMediator()->behaviorSettingsChanged();
+    emit m_context->behaviorSettingsChanged();
 }
 /* End Playback Actions */
 /* Begin Anki Profile Handler */
@@ -724,7 +726,7 @@ void PlayerMenu::updateAnkiProfileMenu()
     }
 
     /* Get profiles in alphabetical order */
-    AnkiClient *anki = GlobalMediator::getGlobalMediator()->getAnkiClient();
+    AnkiClient *anki = m_context->getAnkiClient();
     QStringList profiles = anki->getProfiles();
     std::sort(profiles.begin(), profiles.end());
 
@@ -760,14 +762,14 @@ void PlayerMenu::updateAnkiProfileMenu()
 
 void PlayerMenu::handleToggleSearch()
 {
-    emit GlobalMediator::getGlobalMediator()->requestSearchVisibility(
+    emit m_context->requestSearchVisibility(
         m_ui->actionShowSearch->isChecked()
     );
 }
 
 void PlayerMenu::handleToggleSubtitleList()
 {
-    emit GlobalMediator::getGlobalMediator()->requestSubtitleListVisibility(
+    emit m_context->requestSubtitleListVisibility(
         m_ui->actionShowSubtitleList->isChecked()
     );
 }

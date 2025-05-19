@@ -23,6 +23,7 @@
 #include "anki/ankiconfig.h"
 #include "anki/glossarybuilder.h"
 #include "dict/expression.h"
+#include "state/context.h"
 
 namespace Anki
 {
@@ -73,25 +74,35 @@ struct Context
 
 /**
  * Creates an AnkiConnect compatible note JSON object with corresponding media.
- * @param config The configuration to build the note to.
- * @param term   The term to make the object from.
- * @param media  true if screenshots and audio should be included in the
- *               object, false otherwise.
+ * @param context The context for the program.
+ * @param config  The configuration to build the note to.
+ * @param term    The term to make the object from.
+ * @param media   true if screenshots and audio should be included in the
+ *                object, false otherwise.
  * @return A Context containing an Anki compatible JSON object.
  */
 [[nodiscard]]
-Context build(const AnkiConfig &config, const Term &term, bool media);
+Context build(
+    QPointer<::Context> context,
+    const AnkiConfig &config,
+    const Term &term,
+    bool media);
 
 /**
  * Creates an AnkiConnect compatible note JSON object with corresponding media.
- * @param config The configuration to build the note to.
- * @param kanji  The kanji to make the object from.
- * @param media  true if screenshots and audio should be included in the
- *               object, false otherwise.
+ * @param context The context for the program.
+ * @param config  The configuration to build the note to.
+ * @param kanji   The kanji to make the object from.
+ * @param media   true if screenshots and audio should be included in the
+ *                object, false otherwise.
  * @return A Context containing an Anki compatible JSON object.
  */
 [[nodiscard]]
-Context build(const AnkiConfig &config, const Kanji &kanji, bool media);
+Context build(
+    QPointer<::Context> context,
+    const AnkiConfig &config,
+    const Kanji &kanji,
+    bool media);
 
 }
 }

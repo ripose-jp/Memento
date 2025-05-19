@@ -28,7 +28,6 @@
 
 #include "anki/ankiconnect.h"
 #include "anki/notebuilder.h"
-#include "util/globalmediator.h"
 #include "util/utils.h"
 
 static constexpr int MIN_ANKICONNECT_VERSION = 6;
@@ -59,7 +58,10 @@ static constexpr const char *CONFIG_EXCLUDE_GLOSSARY = "ex-glos";
 
 /* Begin Constructor/Destructors */
 
-AnkiClient::AnkiClient(QObject *parent) : QObject(parent), m_manager(this)
+AnkiClient::AnkiClient(QPointer<Context> context, QObject *parent) :
+    QObject(parent),
+    m_context(std::move(context)),
+    m_manager(this)
 {
     m_manager.setTransferTimeout(TIMEOUT);
 
@@ -67,8 +69,6 @@ AnkiClient::AnkiClient(QObject *parent) : QObject(parent), m_manager(this)
     {
         setDefaultConfig();
     }
-
-    GlobalMediator::getGlobalMediator()->setAnkiClient(this);
 }
 
 void AnkiClient::clearProfiles()
@@ -388,7 +388,7 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
 void AnkiClient::writeChanges()
 {
     writeConfigToFile(CONFIG_FILE);
-    emit GlobalMediator::getGlobalMediator()->ankiSettingsChanged();
+    emit m_context->ankiSettingsChanged();
 }
 
 /* End Config File Methods */
@@ -558,7 +558,7 @@ QCoro::Task<AnkiReply<QList<bool>>> AnkiClient::notesAddable(
     QList<std::shared_ptr<const Term>> terms)
 {
     QJsonObject params = co_await QtConcurrent::run(
-        [currentConfig = m_currentConfig, terms] () -> QJsonObject
+        [this, currentConfig = m_currentConfig, terms] () -> QJsonObject
         {
             QJsonArray notes;
             for (std::shared_ptr<const Term> term : terms)
@@ -566,14 +566,16 @@ QCoro::Task<AnkiReply<QList<bool>>> AnkiClient::notesAddable(
                 /* Make sure to check for both reading as expression and not */
                 Term termCopy(*term);
                 termCopy.readingAsExpression = false;
-                Anki::Note::Context ctx =
-                    Anki::Note::build(*currentConfig, termCopy, false);
+                Anki::Note::Context ctx = Anki::Note::build(
+                    m_context, *currentConfig, termCopy, false
+                );
                 notes.append(ctx.ankiObject);
                 if (!term->reading.isEmpty())
                 {
                     termCopy.readingAsExpression = true;
-                    Anki::Note::Context ctx =
-                        Anki::Note::build(*currentConfig, termCopy, false);
+                    Anki::Note::Context ctx = Anki::Note::build(
+                        m_context, *currentConfig, termCopy, false
+                    );
                     notes.append(ctx.ankiObject);
                 }
             }
@@ -617,13 +619,13 @@ QCoro::Task<AnkiReply<QList<bool>>> AnkiClient::notesAddable(
     QList<std::shared_ptr<const Kanji>> kanji)
 {
     QJsonObject params = co_await QtConcurrent::run(
-        [currentConfig = m_currentConfig, kanji] () -> QJsonObject
+        [this, currentConfig = m_currentConfig, kanji] () -> QJsonObject
         {
             QJsonArray notes;
             for (std::shared_ptr<const Kanji> kanji : kanji)
             {
                 Anki::Note::Context ctx =
-                    Anki::Note::build(*currentConfig, *kanji, false);
+                    Anki::Note::build(m_context, *currentConfig, *kanji, false);
                 notes.append(ctx.ankiObject);
             }
             QJsonObject params;
@@ -639,11 +641,15 @@ QCoro::Task<AnkiReply<QList<bool>>> AnkiClient::notesAddable(
 QCoro::Task<AnkiReply<int>> AnkiClient::addNote(
     std::unique_ptr<const Term> term)
 {
+    std::shared_ptr<const AnkiConfig> currentConfig = m_currentConfig;
     Anki::Note::Context ctx = co_await QtConcurrent::run(
         static_cast<
-            Anki::Note::Context(*)(const AnkiConfig &, const Term &, bool)
+            Anki::Note::Context(*)(
+                QPointer<Context>, const AnkiConfig &, const Term &, bool
+            )
         >(&Anki::Note::build),
-        *m_currentConfig,
+        m_context,
+        *currentConfig,
         *term,
         true
     );
@@ -671,11 +677,15 @@ QCoro::Task<AnkiReply<int>> AnkiClient::addNote(
 QCoro::Task<AnkiReply<int>> AnkiClient::addNote(
     std::unique_ptr<const Kanji> kanji)
 {
+    std::shared_ptr<const AnkiConfig> currentConfig = m_currentConfig;
     Anki::Note::Context ctx = co_await QtConcurrent::run(
         static_cast<
-            Anki::Note::Context(*)(const AnkiConfig &, const Kanji &, bool)
+            Anki::Note::Context(*)(
+                QPointer<Context>, const AnkiConfig &, const Kanji &, bool
+            )
         >(&Anki::Note::build),
-        *m_currentConfig,
+        m_context,
+        *currentConfig,
         *kanji,
         true
     );
@@ -793,7 +803,9 @@ QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openBrowse(
 QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openDuplicates(
     std::unique_ptr<Term> term)
 {
-    AnkiReply fieldNames = co_await getFieldNames(m_currentConfig->termModel);
+    std::shared_ptr<const AnkiConfig> currentConfig = m_currentConfig;
+
+    AnkiReply fieldNames = co_await getFieldNames(currentConfig->termModel);
     if (!fieldNames.error.isEmpty())
     {
         co_return AnkiReply<QList<int>>{
@@ -814,9 +826,12 @@ QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openDuplicates(
     term->readingAsExpression = false;
     Anki::Note::Context ctx = co_await QtConcurrent::run(
         static_cast<
-            Anki::Note::Context(*)(const AnkiConfig &, const Term &, bool)
+            Anki::Note::Context(*)(
+                QPointer<Context>, const AnkiConfig &, const Term &, bool
+            )
         >(&Anki::Note::build),
-        *m_currentConfig,
+        m_context,
+        *currentConfig,
         *term,
         false
     );
@@ -832,9 +847,12 @@ QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openDuplicates(
         term->readingAsExpression = true;
         ctx = co_await QtConcurrent::run(
             static_cast<
-                Anki::Note::Context(*)(const AnkiConfig &, const Term &, bool)
+                Anki::Note::Context(*)(
+                    QPointer<Context>, const AnkiConfig &, const Term &, bool
+                )
             >(&Anki::Note::build),
-            *m_currentConfig,
+            m_context,
+            *currentConfig,
             *term,
             false
         );
@@ -846,13 +864,15 @@ QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openDuplicates(
             .arg(fieldValue.replace('\\', "\\\\").replace('"', "\\\""));
     }
 
-    co_return co_await openBrowse(m_currentConfig->termDeck, query);
+    co_return co_await openBrowse(currentConfig->termDeck, query);
 }
 
 QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openDuplicates(
     std::unique_ptr<Kanji> kanji)
 {
-    AnkiReply fieldNames = co_await getFieldNames(m_currentConfig->kanjiModel);
+    std::shared_ptr<const AnkiConfig> currentConfig = m_currentConfig;
+
+    AnkiReply fieldNames = co_await getFieldNames(currentConfig->kanjiModel);
     if (!fieldNames.error.isEmpty())
     {
         co_return AnkiReply<QList<int>>{
@@ -872,9 +892,12 @@ QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openDuplicates(
 
     Anki::Note::Context ctx = co_await QtConcurrent::run(
         static_cast<
-            Anki::Note::Context(*)(const AnkiConfig &, const Kanji &, bool)
+            Anki::Note::Context(*)(
+                QPointer<Context>, const AnkiConfig &, const Kanji &, bool
+            )
         >(&Anki::Note::build),
-        *m_currentConfig,
+        m_context,
+        *currentConfig,
         *kanji,
         false
     );
@@ -885,7 +908,7 @@ QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openDuplicates(
         .arg(fieldKey)
         .arg(fieldValue.replace('\\', "\\\\").replace('"', "\\\""));
 
-    co_return co_await openBrowse(m_currentConfig->kanjiDeck, query);
+    co_return co_await openBrowse(currentConfig->kanjiDeck, query);
 }
 
 /* End Commands */

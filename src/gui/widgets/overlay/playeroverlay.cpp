@@ -25,22 +25,23 @@
 #include <QPropertyAnimation>
 #include <QSettings>
 
-#ifdef OCR_SUPPORT
-#include "ocroverlay.h"
-#endif // OCR_SUPPORT
-#include "playercontrols.h"
-#include "playermenu.h"
-#include "subtitlewidget.h"
-
 #include "gui/widgets/common/hittestwidget.h"
 #include "gui/widgets/definition/definitionwidget.h"
+#include "gui/widgets/overlay/playercontrols.h"
+#include "gui/widgets/overlay/playermenu.h"
+#include "gui/widgets/overlay/subtitlewidget.h"
 #include "player/playeradapter.h"
 #include "util/constants.h"
-#include "util/globalmediator.h"
+
+#ifdef OCR_SUPPORT
+#include "gui/widgets/overlay/ocroverlay.h"
+#endif // OCR_SUPPORT
 
 /* Begin Constructor/Destructor */
 
-PlayerOverlay::PlayerOverlay(QWidget *parent) : QStackedLayout(parent)
+PlayerOverlay::PlayerOverlay(QPointer<Context> context, QWidget *parent) :
+    QStackedLayout(parent),
+    m_context(std::move(context))
 {
     /* Fix the margins */
     setSpacing(0);
@@ -56,11 +57,11 @@ PlayerOverlay::PlayerOverlay(QWidget *parent) : QStackedLayout(parent)
     addWidget(m_widgetOSC);
 
     /* Set up the definition widget */
-    m_definition = new DefinitionWidget(false, m_widgetOSC);
+    m_definition = new DefinitionWidget(m_context, false, m_widgetOSC);
     m_definition->hide();
 
     /* Add the menubar */
-    m_menu = new PlayerMenu;
+    m_menu = new PlayerMenu(m_context);
     m_menu->hideMenu();
     QGraphicsOpacityEffect *menuEffect = new QGraphicsOpacityEffect;
     menuEffect->setOpacity(0);
@@ -71,7 +72,7 @@ PlayerOverlay::PlayerOverlay(QWidget *parent) : QStackedLayout(parent)
     layoutContainer->addStretch();
 
     /* Add the subtitle */
-    m_subtitle = new SubtitleWidget;
+    m_subtitle = new SubtitleWidget(m_context);
     layoutContainer->addWidget(m_subtitle, 0, Qt::AlignmentFlag::AlignCenter);
 
     /* Add the generic widget spacer */
@@ -82,7 +83,7 @@ PlayerOverlay::PlayerOverlay(QWidget *parent) : QStackedLayout(parent)
     layoutContainer->addWidget(m_spacer);
 
     /* Add the player controls */
-    m_controls = new PlayerControls;
+    m_controls = new PlayerControls(m_context);
     m_controls->hide();
     m_controls->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     parentWidget()->setMinimumWidth(m_controls->minimumWidth());
@@ -93,45 +94,44 @@ PlayerOverlay::PlayerOverlay(QWidget *parent) : QStackedLayout(parent)
 
 #ifdef OCR_SUPPORT
     /* Add the OCR Overlay */
-    m_ocrOverlay = new OCROverlay;
+    m_ocrOverlay = new OCROverlay(m_context);
     m_ocrOverlay->hide();
     addWidget(m_ocrOverlay);
 #endif // OCR_SUPPORT
 
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     connect(
-        mediator, &GlobalMediator::interfaceSettingsChanged,
+        m_context, &Context::interfaceSettingsChanged,
         this, &PlayerOverlay::initSettings,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::behaviorSettingsChanged,
+        m_context, &Context::behaviorSettingsChanged,
         this, &PlayerOverlay::initSettings,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::windowOSCStateCycled,
+        m_context, &Context::windowOSCStateCycled,
         this, &PlayerOverlay::cycleOSCVisibility,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerResized,
+        m_context, &Context::playerResized,
         this, &PlayerOverlay::repositionSubtitles,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerMouseMoved,
+        m_context, &Context::playerMouseMoved,
         this, &PlayerOverlay::handleMouseMovement,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerFullscreenChanged,
+        m_context, &Context::playerFullscreenChanged,
         this, &PlayerOverlay::hideOverlay,
         Qt::QueuedConnection
     );
 #if defined(Q_OS_WIN)
     connect(
-        mediator, &GlobalMediator::playerFullscreenChanged,
+        m_context, &Context::playerFullscreenChanged,
         this, &PlayerOverlay::menuBarHandleStateChange,
         Qt::QueuedConnection
     );
@@ -143,62 +143,62 @@ PlayerOverlay::PlayerOverlay(QWidget *parent) : QStackedLayout(parent)
     );
 
     connect(
-        mediator, &GlobalMediator::menuSubtitleSizeIncrease,
+        m_context, &Context::menuSubtitleSizeIncrease,
         this, &PlayerOverlay::increaseSubScale,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::menuSubtitleSizeDecrease,
+        m_context, &Context::menuSubtitleSizeDecrease,
         this, &PlayerOverlay::decreaseSubScale,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::menuSubtitlesMoveUp,
+        m_context, &Context::menuSubtitlesMoveUp,
         this, &PlayerOverlay::moveSubsUp,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::menuSubtitlesMoveDown,
+        m_context, &Context::menuSubtitlesMoveDown,
         this, &PlayerOverlay::moveSubsDown,
         Qt::QueuedConnection
     );
 
     connect(
-        mediator, &GlobalMediator::termsChanged,
+        m_context, &Context::termsChanged,
         this, &PlayerOverlay::setTerms
     );
     connect(
-        mediator, &GlobalMediator::requestDefinitionDelete,
+        m_context, &Context::requestDefinitionDelete,
         m_definition, &DefinitionWidget::hide,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerSubtitleChanged,
+        m_context, &Context::playerSubtitleChanged,
         m_definition, &DefinitionWidget::hide,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerResized,
+        m_context, &Context::playerResized,
         m_definition, &DefinitionWidget::hide,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::subtitleExpired,
+        m_context, &Context::subtitleExpired,
         m_definition, &DefinitionWidget::hide,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::subtitleHidden,
+        m_context, &Context::subtitleHidden,
         m_definition, &DefinitionWidget::hide,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::controlsHidden,
+        m_context, &Context::controlsHidden,
         m_definition, &DefinitionWidget::hide,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::playerPauseStateChanged, this,
+        m_context, &Context::playerPauseStateChanged, this,
         [this] (const bool paused)
         {
             if (!paused)
@@ -211,12 +211,12 @@ PlayerOverlay::PlayerOverlay(QWidget *parent) : QStackedLayout(parent)
 
     connect(
         m_definition, &DefinitionWidget::widgetHidden,
-        mediator, &GlobalMediator::definitionsHidden,
+        m_context, &Context::definitionsHidden,
         Qt::QueuedConnection
     );
     connect(
         m_definition, &DefinitionWidget::widgetShown,
-        mediator, &GlobalMediator::definitionsShown,
+        m_context, &Context::definitionsShown,
         Qt::QueuedConnection
     );
     connect(
@@ -246,12 +246,12 @@ PlayerOverlay::PlayerOverlay(QWidget *parent) : QStackedLayout(parent)
 
 #ifdef OCR_SUPPORT
     connect(
-        mediator, &GlobalMediator::controlsOCRToggled,
+        m_context, &Context::controlsOCRToggled,
         this, &PlayerOverlay::startOCR,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::menuEnterOCRMode,
+        m_context, &Context::menuEnterOCRMode,
         this, &PlayerOverlay::startOCR,
         Qt::QueuedConnection
     );
@@ -261,13 +261,13 @@ PlayerOverlay::PlayerOverlay(QWidget *parent) : QStackedLayout(parent)
     );
     connect(
         m_ocrOverlay, &OCROverlay::finished,
-        mediator, &GlobalMediator::searchWidgetRequest,
+        m_context, &Context::searchWidgetRequest,
         Qt::QueuedConnection
     );
     connect(
         m_ocrOverlay, &OCROverlay::finished,
-        mediator,
-        [mediator] { emit mediator->requestSearchVisibility(true); },
+        this,
+        [this] { emit m_context->requestSearchVisibility(true); },
         Qt::QueuedConnection
     );
 #endif // OCR_SUPPORT
@@ -357,25 +357,22 @@ void PlayerOverlay::initSettings()
 
         m_widgetOSC->addRegion(
             area,
-            [] ()
+            [this] ()
             {
-                emit GlobalMediator::getGlobalMediator()
-                    ->requestSubtitleWidgetVisibility(true);
+                emit m_context->requestSubtitleWidgetVisibility(true);
             },
             HitTestWidget::MouseEventFlag::Enter
         );
         m_widgetOSC->addRegion(
             area,
-            [] ()
+            [this] ()
             {
-                emit GlobalMediator::getGlobalMediator()
-                    ->requestSubtitleWidgetVisibility(false);
+                emit m_context->requestSubtitleWidgetVisibility(false);
             },
             HitTestWidget::MouseEventFlag::Exit
         );
     }
-    emit GlobalMediator::getGlobalMediator()
-        ->requestSubtitleWidgetVisibility(!showPrimarySubtitles);
+    emit m_context->requestSubtitleWidgetVisibility(!showPrimarySubtitles);
 
     bool showSecondarySubtitles
     {
@@ -392,21 +389,17 @@ void PlayerOverlay::initSettings()
 
         m_widgetOSC->addRegion(
             area,
-            [] ()
+            [this] ()
             {
-                GlobalMediator::getGlobalMediator()
-                    ->getPlayerAdapter()
-                    ->setSecondarySubVisiblity(true);
+                m_context->getPlayerAdapter()->setSecondarySubVisiblity(true);
             },
             HitTestWidget::MouseEventFlag::Enter
         );
         m_widgetOSC->addRegion(
             area,
-            [] ()
+            [this] ()
             {
-                GlobalMediator::getGlobalMediator()
-                    ->getPlayerAdapter()
-                    ->setSecondarySubVisiblity(false);
+                m_context->getPlayerAdapter()->setSecondarySubVisiblity(false);
             },
             HitTestWidget::MouseEventFlag::Exit
         );
@@ -443,7 +436,7 @@ void PlayerOverlay::cycleOSCVisibility()
         hideOverlay();
         break;
     }
-    GlobalMediator::getGlobalMediator()->getPlayerAdapter()->showText(msg);
+    m_context->getPlayerAdapter()->showText(msg);
 }
 
 void PlayerOverlay::handleMouseMovement()
@@ -536,7 +529,7 @@ void PlayerOverlay::updateSubScale(const double inc)
         scale = 1.0;
     }
     settings.setValue(Constants::Settings::Interface::Subtitle::SCALE, scale);
-    emit GlobalMediator::getGlobalMediator()->interfaceSettingsChanged();
+    emit m_context->interfaceSettingsChanged();
 }
 
 void PlayerOverlay::increaseSubScale()
@@ -567,7 +560,7 @@ void PlayerOverlay::moveSubtitles(const double inc)
         offset = 1.0;
     }
     settings.setValue(Constants::Settings::Interface::Subtitle::OFFSET, offset);
-    emit GlobalMediator::getGlobalMediator()->interfaceSettingsChanged();
+    emit m_context->interfaceSettingsChanged();
 }
 
 void PlayerOverlay::moveSubsUp()

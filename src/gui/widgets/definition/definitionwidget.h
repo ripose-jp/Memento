@@ -34,6 +34,7 @@
 #include "gui/widgets/definition/definitionstate.h"
 #include "gui/widgets/definition/kanjiwidget.h"
 #include "gui/widgets/definition/termwidget.h"
+#include "state/context.h"
 
 enum class AudioSourceType;
 
@@ -52,13 +53,17 @@ class DefinitionWidget : public QWidget
 public:
     /**
      * Creates a empty DefinitionWidget.
+     * @param context        The application context.
      * @param showNavigation True if the navbar should be shown. False
      *                       otherwise.
      * @param parent         The parent of the widget. Widget will display over
      *                       its parent or its own window if now parent.
      */
-    DefinitionWidget(bool showNavigation = false, QWidget *parent = nullptr);
-    ~DefinitionWidget();
+    DefinitionWidget(
+        QPointer<Context> context,
+        bool showNavigation = false,
+        QWidget *parent = nullptr);
+    virtual ~DefinitionWidget();
 
 Q_SIGNALS:
     /**
@@ -210,10 +215,10 @@ protected:
 
 private:
     /* UI object containing all the widgets. */
-    Ui::DefinitionWidget *m_ui = nullptr;
+    std::unique_ptr<Ui::DefinitionWidget> m_ui;
 
-    /* The AnkiClient used for communicating with AnkiConnect. */
-    AnkiClient *m_client = nullptr;
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
 
     /* The shared definition state */
     DefinitionState m_state{};
@@ -242,7 +247,7 @@ private:
     int m_searchId = 0;
 
     /* The child definition widget */
-    QPointer<DefinitionWidget> m_child = nullptr;
+    DefinitionWidget *m_child = nullptr;
 
     /* Shortcut to skip to the previous entry */
     QShortcut *m_shortcutSkipPrev = nullptr;

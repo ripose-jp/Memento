@@ -23,7 +23,12 @@
 
 #include <QWidget>
 
+#include <memory>
+
+#include <QPointer>
+
 #include "player/playeradapter.h"
+#include "state/context.h"
 
 class QActionGroup;
 class QAction;
@@ -44,7 +49,7 @@ class PlayerMenu : public QWidget
     Q_OBJECT
 
 public:
-    PlayerMenu(QWidget *parent = nullptr);
+    PlayerMenu(QPointer<Context> context, QWidget *parent = nullptr);
     ~PlayerMenu();
 
     /**
@@ -180,10 +185,11 @@ private:
      * @param actionGroup   The action group the actions are members of.
      * @param actionDisable The disable actions. (e.g. m_ui->actionAudioNone)
      */
-    void clearTrack(QList<QAction *> &actions,
-                    QMenu            *menu,
-                    QActionGroup     *actionGroup,
-                    QAction          *actionDisable);
+    void clearTrack(
+        QList<QAction *> &actions,
+        QMenu *menu,
+        QActionGroup *actionGroup,
+        QAction *actionDisable);
 
     /**
      * Creates an action for a track. Helper method to setTracks().
@@ -203,19 +209,23 @@ private:
      */
     QString getOpenFilePath() const;
 
-    Ui::PlayerMenu *m_ui;
+    /* The user interface object for the PlayerMenu */
+    std::unique_ptr<Ui::PlayerMenu> m_ui;
+
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
 
     /* Contains all the information about menu items corresponding to tracks */
     struct ActionGroups
     {
         /* Action group for the tracks in the "Audio" menu */
-        QActionGroup *audio;
+        QActionGroup *audio = nullptr;
 
         /* Action group for the tracks in the "Subtitle" menu */
-        QActionGroup *subtitle;
+        QActionGroup *subtitle = nullptr;
 
         /* Action group for the tracks in the "Secondary Subtitle" menu */
-        QActionGroup *subtitleTwo;
+        QActionGroup *subtitleTwo = nullptr;
 
         /* List of audio QActions (excluding "None") */
         QList<QAction *> audioActions;
@@ -228,10 +238,7 @@ private:
     } m_actionGroups;
 
     /* Action group for Anki Integration profiles. */
-    QActionGroup *m_actionGroupAnkiProfile;
-
-    /* A saved pointer to the player */
-    PlayerAdapter *m_player;
+    QActionGroup *m_actionGroupAnkiProfile = nullptr;
 };
 
 #endif // PLAYERMENU_H

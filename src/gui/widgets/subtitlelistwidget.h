@@ -30,16 +30,17 @@
 #include <QMultiHash>
 #include <QMultiMap>
 #include <QMutex>
+#include <QPointer>
 #include <QRegularExpression>
+#include <QShortcut>
+#include <QTableWidget>
+#include <QTableWidgetItem>
 
-#include "anki/ankiclient.h"
-#include "player/playeradapter.h"
+#include "state/context.h"
 
-class QShortcut;
-class QTableWidget;
-class QTableWidgetItem;
 
 struct SubtitleInfo;
+struct Track;
 
 namespace Ui
 {
@@ -56,7 +57,13 @@ class SubtitleListWidget : public QWidget
 
 public:
     SubtitleListWidget(QWidget *parent = nullptr);
-    ~SubtitleListWidget();
+    virtual ~SubtitleListWidget();
+
+    /**
+     * Initializes the widget with the given context.
+     * @param context The application context.
+     */
+    void initialize(QPointer<Context> context);
 
     /**
      * Returns a string containing all the selected rows in the primary subtitle
@@ -175,10 +182,11 @@ private Q_SLOTS:
      * @param end      The end time of the subtitle.
      * @param delay    The signed delay of the subtitle.
      */
-    void updatePrimarySubtitle(const QString &subtitle,
-                               double start,
-                               double end,
-                               double delay);
+    void updatePrimarySubtitle(
+        const QString &subtitle,
+        double start,
+        double end,
+        double delay);
 
     /**
      * Updates the current secondary subtitle
@@ -189,10 +197,11 @@ private Q_SLOTS:
      * @param end      The end time of the subtitle.
      * @param delay    The signed delay of the subtitle.
      */
-    void updateSecondarySubtitle(const QString &subtitle,
-                                 double start,
-                                 double end,
-                                 double delay);
+    void updateSecondarySubtitle(
+        const QString &subtitle,
+        double start,
+        double end,
+        double delay);
 
     /**
      * Updates the primary timestamps of the subtitles with a new delay.
@@ -345,9 +354,10 @@ private:
      * @param end      The end time of the subtitle.
      * @param delay    The current subtitle delay.
      */
-    void selectSubtitles(SubtitleList &list,
-                         const QString &subtitle,
-                         double delay);
+    void selectSubtitles(
+        SubtitleList &list,
+        const QString &subtitle,
+        double delay);
 
     /**
      * Helper method for getting a context string from a subtitle list.
@@ -356,8 +366,9 @@ private:
      *                  newlines with.
      * @return A string containing all the selected rows in the table.
      */
-    QString getContext(const SubtitleList *list,
-                       const QString      &separator) const;
+    QString getContext(
+        const SubtitleList *list,
+        const QString &separator) const;
 
     /**
      * Gets the earliest start and latest end time of the selected subtitles in
@@ -376,11 +387,12 @@ private:
      * @param end
      * @param delay
      */
-    void selectParsedSubtitles(SubtitleList &list,
-                               const QString &subtitle,
-                               double start,
-                               double end,
-                               double delay);
+    void selectParsedSubtitles(
+        SubtitleList &list,
+        const QString &subtitle,
+        double start,
+        double end,
+        double delay);
 
     /**
      * Helper method for adding a subtitle to a table.
@@ -392,12 +404,13 @@ private:
      * @param regex    True if regex should be used to filter the subtitle,
      *                 false otherwise.
      */
-    void addSubtitle(SubtitleList &list,
-                     const QString &subtitle,
-                     double start,
-                     double end,
-                     double delay,
-                     bool regex = false);
+    void addSubtitle(
+        SubtitleList &list,
+        const QString &subtitle,
+        double start,
+        double end,
+        double delay,
+        bool regex = false);
 
     /**
      * Adds an item to a subtitle table. Assumes the subtitle is not already in
@@ -409,10 +422,11 @@ private:
      * @return The constructed QTableWidgetItem. Belongs to table. nullptr if
      *         regex is true and the text is empty.
      */
-    QTableWidgetItem *addTableItem(SubtitleList &list,
-                                   const std::shared_ptr<SubtitleInfo> &info,
-                                   double delay,
-                                   bool regex = false);
+    QTableWidgetItem *addTableItem(
+        SubtitleList &list,
+        const std::shared_ptr<SubtitleInfo> &info,
+        double delay,
+        bool regex = false);
 
     /**
      * Helper method that converts a time in seconds to a timecode string of the
@@ -489,16 +503,19 @@ private:
     bool isPrimaryCurrent() const;
 
     /* The UI item containing the widgets. */
-    Ui::SubtitleListWidget *m_ui;
+    std::unique_ptr<Ui::SubtitleListWidget> m_ui;
+
+    /* The global application context */
+    QPointer<Context> m_context = nullptr;
 
     /* Shortcut for copying the current context */
-    QShortcut *m_copyShortcut;
+    std::unique_ptr<QShortcut> m_copyShortcut = nullptr;
 
     /* Shortcut for copying the current context's audio */
-    QShortcut *m_copyAudioShortcut;
+    std::unique_ptr<QShortcut> m_copyAudioShortcut = nullptr;
 
     /* Shortcut for opening the find widget */
-    QShortcut *m_findShortcut;
+    std::unique_ptr<QShortcut> m_findShortcut = nullptr;
 
     /* Regular expression for filtering subtitles */
     QRegularExpression m_subRegex;
@@ -516,13 +533,10 @@ private:
     QHash<int64_t, std::shared_ptr<bool>> m_subtitleParsed;
 
     /* The primary subtitle list */
-    SubtitleList m_primary;
+    SubtitleList m_primary{};
 
     /* The secondary subtitle list */
-    SubtitleList m_secondary;
-
-    /* Saved pointer to the global AnkiClient. */
-    AnkiClient *m_client;
+    SubtitleList m_secondary{};
 };
 
 #endif // SUBTITLELISTWIDGET_H

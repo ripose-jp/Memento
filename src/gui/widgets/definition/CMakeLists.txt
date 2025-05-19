@@ -24,10 +24,16 @@ target_include_directories(definitionwidget PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     definitionwidget
     PRIVATE audioplayer
+    PRIVATE constants
     PRIVATE dictionary_db
     PRIVATE flowlayout
+    PRIVATE iconfactory
+    PRIVATE playeradapter
     PRIVATE Qt6::Network
+    PRIVATE subtitlelist
+    PRIVATE utils
     PUBLIC anki
+    PUBLIC context
     PUBLIC QCoro6Core
     PUBLIC Qt6::Widgets
 )

@@ -28,17 +28,19 @@
 
 #include "dict/dictionary.h"
 #include "util/constants.h"
-#include "util/globalmediator.h"
 #include "util/iconfactory.h"
 
-static constexpr int ROLE_DICTIONARY_ID{Qt::UserRole + 0};
-static constexpr int ROLE_DICTIONARY_NAME{Qt::UserRole + 1};
+static constexpr int ROLE_DICTIONARY_ID = Qt::UserRole + 0;
+static constexpr int ROLE_DICTIONARY_NAME = Qt::UserRole + 1;
 
 /* Begin Constructor/Destructor */
 
-DictionarySettings::DictionarySettings(QWidget *parent)
- : QWidget(parent),
-   m_ui(new Ui::DictionarySettings)
+DictionarySettings::DictionarySettings(
+    QPointer<Context> context,
+    QWidget *parent) :
+    QWidget(parent),
+    m_ui(std::make_unique<Ui::DictionarySettings>()),
+    m_context(std::move(context))
 {
     m_ui->setupUi(this);
 
@@ -64,36 +66,34 @@ DictionarySettings::DictionarySettings(QWidget *parent)
 
     connect(
         m_ui->buttonUp, &QToolButton::clicked,
-        this,           &DictionarySettings::moveUp
+        this, &DictionarySettings::moveUp
     );
     connect(
         m_ui->buttonDown, &QToolButton::clicked,
-        this,             &DictionarySettings::moveDown
+        this, &DictionarySettings::moveDown
     );
     connect(
         m_ui->buttonAdd, &QToolButton::clicked,
-        this,            &DictionarySettings::addDictionary
+        this, &DictionarySettings::addDictionary
     );
     connect(
         m_ui->buttonDelete, &QToolButton::clicked,
-        this,               &DictionarySettings::deleteDictionary
+        this, &DictionarySettings::deleteDictionary
     );
 
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     connect(
-        mediator, &GlobalMediator::dictionariesChanged,
-        this,     &DictionarySettings::restoreSaved
+        m_context, &Context::dictionariesChanged,
+        this, &DictionarySettings::restoreSaved
     );
     connect(
-        mediator, &GlobalMediator::requestThemeRefresh,
-        this,     &DictionarySettings::initIcons
+        m_context, &Context::requestThemeRefresh,
+        this, &DictionarySettings::initIcons
     );
 }
 
 DictionarySettings::~DictionarySettings()
 {
     disconnect();
-    delete m_ui;
 }
 
 /* End Constructor/Destructor */
@@ -135,8 +135,7 @@ void DictionarySettings::restoreSaved()
 
     setEnabled(false);
 
-    Dictionary *dict =
-        GlobalMediator::getGlobalMediator()->getDictionary();
+    Dictionary *dict = m_context->getDictionary();
     QList<DictionaryInfo> dicts = dict->getDictionaries();
     QList<DictionaryInfo> disabledNames =
         dict->getDisabledDictionaries();
@@ -191,10 +190,10 @@ void DictionarySettings::applySettings()
     }
     settings.endGroup();
 
-    Dictionary *dict = GlobalMediator::getGlobalMediator()->getDictionary();
+    Dictionary *dict = m_context->getDictionary();
     dict->disableDictionaries(dictionaries);
 
-    emit GlobalMediator::getGlobalMediator()->dictionaryOrderChanged();
+    emit m_context->dictionaryOrderChanged();
 }
 
 /* End Button Box Handlers */
@@ -238,14 +237,10 @@ void DictionarySettings::addDictionary()
     QThreadPool::globalInstance()->start(
         [this, files] {
             setEnabled(false);
-            Dictionary *dic =
-                GlobalMediator::getGlobalMediator()->getDictionary();
-            QString err = dic->addDictionary(files);
+            QString err = m_context->getDictionary()->addDictionary(files);
             if (!err.isEmpty())
             {
-                emit GlobalMediator::getGlobalMediator()->showCritical(
-                    "Error adding dictionary", err
-                );
+                emit m_context->showCritical("Error adding dictionary", err);
             }
             setEnabled(true);
         }
@@ -270,16 +265,12 @@ void DictionarySettings::deleteDictionary()
         [this, item]
         {
             setEnabled(false);
-            Dictionary *dic =
-                GlobalMediator::getGlobalMediator()->getDictionary();
-            QString err = dic->deleteDictionary(
+            QString err = m_context->getDictionary()->deleteDictionary(
                 item->data(ROLE_DICTIONARY_NAME).toString()
             );
             if (!err.isEmpty())
             {
-                emit GlobalMediator::getGlobalMediator()->showCritical(
-                    "Error deleting dictionary", err
-                );
+                emit m_context->showCritical("Error deleting dictionary", err);
             }
             delete item;
             setEnabled(true);
@@ -293,8 +284,8 @@ void DictionarySettings::deleteDictionary()
 void DictionarySettings::setButtonsEnabled(const bool value)
 {
     m_ui->buttonDelete->setEnabled(value);
-    m_ui->buttonDown  ->setEnabled(value);
-    m_ui->buttonUp    ->setEnabled(value);
+    m_ui->buttonDown->setEnabled(value);
+    m_ui->buttonUp->setEnabled(value);
 }
 
 /* End Helpers */

@@ -24,26 +24,24 @@
 #include <QDebug>
 #include <QGuiApplication>
 #include <QHBoxLayout>
-#include <QLabel>
-#include <QToolButton>
-#include <QVBoxLayout>
-
-#include "tagwidget.h"
 
 #include "anki/ankiclient.h"
 #include "gui/widgets/common/flowlayout.h"
+#include "gui/widgets/definition/tagwidget.h"
 #include "gui/widgets/subtitlelistwidget.h"
-#include "util/globalmediator.h"
+#include "player/playeradapter.h"
 #include "util/iconfactory.h"
 
 /* Begin Constructor/Destructor */
 
 KanjiWidget::KanjiWidget(
+    QPointer<Context> context,
     std::shared_ptr<const Kanji> kanji,
     bool showBack,
-    QWidget *parent)
-    : QWidget(parent),
-      m_kanji(kanji)
+    QWidget *parent) :
+    QWidget(parent),
+    m_context(std::move(context)),
+    m_kanji(std::move(kanji))
 {
     setFocusPolicy(Qt::ClickFocus);
 
@@ -68,7 +66,7 @@ KanjiWidget::KanjiWidget(
     }
 
     QLabel *labelKanjiStroke = new QLabel;
-    labelKanjiStroke->setText(kanji->character);
+    labelKanjiStroke->setText(m_kanji->character);
     labelKanjiStroke->setStyleSheet(
         "QLabel {"
             "font-family: \"KanjiStrokeOrders\", \"Noto Sans\", \"Noto Sans JP\", \"Noto Sans CJK JP\", sans-serif;"
@@ -99,7 +97,7 @@ KanjiWidget::KanjiWidget(
     m_shortcutAnkiAdd->setEnabled(false);
 
     FlowLayout *frequencies = new FlowLayout(-1, 6);
-    for (const Frequency &freq : kanji->frequencies)
+    for (const Frequency &freq : m_kanji->frequencies)
     {
         frequencies->addWidget(new TagWidget(freq));
     }
@@ -109,7 +107,7 @@ KanjiWidget::KanjiWidget(
     layoutParent->addLayout(layoutDefinitions);
 
     QFrame *line = nullptr;
-    for (const KanjiDefinition &def : kanji->definitions)
+    for (const KanjiDefinition &def : m_kanji->definitions)
     {
         if (line)
             layoutDefinitions->addWidget(line);
@@ -125,14 +123,14 @@ KanjiWidget::KanjiWidget(
         this, &KanjiWidget::addKanji
     );
 
-    AnkiClient *client = GlobalMediator::getGlobalMediator()->getAnkiClient();
-    if (!client->isEnabled())
+    if (!m_context->getAnkiClient()->isEnabled())
     {
         return;
     }
 
-    QCoro::Task<AnkiReply<QList<bool>>> reply =
-        client->notesAddable(QList<std::shared_ptr<const Kanji>>({m_kanji}));
+    QCoro::Task<AnkiReply<QList<bool>>> reply = m_context
+        ->getAnkiClient()
+        ->notesAddable(QList<std::shared_ptr<const Kanji>>({m_kanji}));
     QCoro::connect(
         std::move(reply),
         this,
@@ -265,13 +263,11 @@ QCoro::Task<void> KanjiWidget::addKanji()
     m_buttonAnkiAddOpen->setEnabled(false);
     m_shortcutAnkiAdd->setEnabled(false);
 
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-    AnkiClient *client = mediator->getAnkiClient();
-
-    AnkiReply<int> result = co_await client->addNote(initAnkiKanji());
+    AnkiReply<int> result =
+        co_await m_context->getAnkiClient()->addNote(initAnkiKanji());
     if (!result.error.isEmpty())
     {
-        emit mediator->showCritical("Error Adding Note", result.error);
+        emit m_context->showCritical("Error Adding Note", result.error);
         co_return;
     }
 
@@ -290,14 +286,11 @@ QCoro::Task<void> KanjiWidget::addKanji()
 
 QCoro::Task<void> KanjiWidget::openAnki()
 {
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-    AnkiClient *client = mediator->getAnkiClient();
-
     AnkiReply<QList<int>> result =
-        co_await client->openDuplicates(initAnkiKanji());
+        co_await m_context->getAnkiClient()->openDuplicates(initAnkiKanji());
     if (!result.error.isEmpty())
     {
-        emit mediator->showCritical("Error Opening Anki", result.error);
+        emit m_context->showCritical("Error Opening Anki", result.error);
     }
 }
 
@@ -348,14 +341,11 @@ QLayout *KanjiWidget::createKVLabel(const QString &key,
 
 std::unique_ptr<Kanji> KanjiWidget::initAnkiKanji() const
 {
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-    PlayerAdapter *player = mediator->getPlayerAdapter();
-    SubtitleListWidget *subList = mediator->getSubtitleListWidget();
+    PlayerAdapter *player = m_context->getPlayerAdapter();
+    SubtitleListWidget *subList = m_context->getSubtitleListWidget();
 
     std::unique_ptr<Kanji> kanji = std::make_unique<Kanji>(*m_kanji);
-    double delay =
-        mediator->getPlayerAdapter()->getSubDelay() -
-        mediator->getPlayerAdapter()->getAudioDelay();
+    double delay = player->getSubDelay() - player->getAudioDelay();
     kanji->clipboard = QGuiApplication::clipboard()->text();
     kanji->title = player->getTitle();
     kanji->sentence = player->getSubtitle(true);

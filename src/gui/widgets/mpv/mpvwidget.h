@@ -24,19 +24,20 @@
 #include <QHash>
 #include <QMouseEvent>
 #include <QOpenGLWidget>
+#include <QPointer>
 #include <QRegularExpression>
 #include <QTimer>
 
 #include <mpv/client.h>
 #include <mpv/render_gl.h>
 
+#include "gui/widgets/mpv/cursortimer.h"
+#include "state/context.h"
 #include "util/utils.h"
 
 #if defined(Q_OS_MACOS)
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #endif
-
-class CursorTimer;
 
 /**
  * Widget that displays the video output from mpv.
@@ -47,13 +48,20 @@ class MpvWidget : public QOpenGLWidget
 
 public:
     MpvWidget(QWidget *parent = nullptr);
-    ~MpvWidget();
+    virtual ~MpvWidget();
+
+    /**
+     * Initializes the widget with all needed information.
+     * @param context The context for the application.
+     */
+    void initialize(QPointer<Context> context);
 
     /**
      * Get the mpv client context
      * @return mpv_handle for the MpvWidget
      */
-    mpv_handle *getHandle() const { return m_mpv; }
+    [[nodiscard]]
+    constexpr mpv_handle *getHandle() const { return m_mpv; }
 
     /**
      * Returns the recommend size of the widget.
@@ -379,6 +387,9 @@ private:
      */
     bool propertyExists(const char *prop);
 
+    /* The context for the application */
+    QPointer<Context> m_context = nullptr;
+
     /* The mpv context */
     mpv_handle *m_mpv = nullptr;
 
@@ -404,7 +415,7 @@ private:
     QHash<QString, std::function<void(mpv_event_property *)>> m_propertyMap;
 
     /* Timer responsible for showing and hiding the cursor */
-    CursorTimer *m_cursorTimer = nullptr;
+    std::unique_ptr<CursorTimer> m_cursorTimer = nullptr;
 
     /* Regular expression used to filter subtitles */
     QRegularExpression m_regex;
@@ -414,7 +425,7 @@ private:
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
     /* The DBus cookie. Used for allowing the screen to dim again. */
-    uint32_t dbus_cookie;
+    uint32_t dbus_cookie = 0;
 #endif
 
 #if defined(Q_OS_MACOS)

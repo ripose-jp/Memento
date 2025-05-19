@@ -25,11 +25,13 @@
 
 #include <QCheckBox>
 #include <QLabel>
-
-#include "glossarylabel.h"
+#include <QPointer>
 
 #include "dict/expression.h"
 #include "gui/widgets/common/flowlayout.h"
+#include "gui/widgets/definition/definitionstate.h"
+#include "gui/widgets/definition/glossarylabel.h"
+#include "state/context.h"
 
 /**
  * Widget for displaying a TermDefinition.
@@ -49,11 +51,10 @@ public:
      * @param parent          The parent of the GlossaryWidget.
      */
     GlossaryWidget(
-        size_t number,
+        QPointer<Context> context,
+        const DefinitionState &state,
         const TermDefinition &def,
-        Qt::KeyboardModifier modifier,
-        bool middleMouseScan,
-        Constants::GlossaryStyle style,
+        size_t number,
         QWidget *parent = nullptr);
 
     /**
@@ -96,25 +97,31 @@ Q_SIGNALS:
     void contentSearched(SharedTermList terms, SharedKanji kanji);
 
 private:
+    /* The application context */
+    QPointer<Context> m_context;
+
+    /* The definition state for this definition widget */
+    const DefinitionState &m_state;
+
     /* The term definition this widget displays. */
     const TermDefinition &m_def;
 
     /* The parent layout of this widget. */
-    QVBoxLayout *m_parentLayout;
+    QVBoxLayout *m_parentLayout = nullptr;
 
     /* The layout of the first line of the definition. Includes checkbox, number
      * and tags.
      */
-    FlowLayout *m_layoutHeader;
+    FlowLayout *m_layoutHeader = nullptr;
 
     /* The checkbox in the header. */
-    QCheckBox *m_checkBoxAdd;
+    QCheckBox *m_checkBoxAdd = nullptr;
 
     /* The label that shows this term definition's number. */
-    QLabel *m_labelNumber;
+    QLabel *m_labelNumber = nullptr;
 
     /* The label showing the glossary entry of the term definition. */
-    GlossaryLabel *m_glossaryLabel;
+    GlossaryLabel *m_glossaryLabel = nullptr;
 };
 
 #endif // GLOSSARYWIDGET_H

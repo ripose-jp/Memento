@@ -22,8 +22,11 @@
 #define UTILS_H
 
 #include <QFile>
-#include <QString>
 #include <QImage>
+#include <QPointer>
+#include <QString>
+
+#include "state/context.h"
 
 namespace Constants
 {
@@ -41,10 +44,10 @@ namespace Constants
 #endif
 
 /* Dictionary database file name. */
-#define DICT_DB_FILE        "dictionaries.sqlite"
+static constexpr const char *DICT_DB_FILE = "dictionaries.sqlite";
 
 /* mpv input configuration file name. */
-#define MPV_INPUT_CONF_FILE "input.conf"
+static constexpr const char *MPV_INPUT_CONF_FILE = "input.conf";
 
 /**
  * Utilities for getting important program directories and files.
@@ -148,8 +151,9 @@ public:
     /**
      * Checks if there is a new version of Memento. Displays a dialog with a
      * link to a new version, one saying Memento is up to date, or an error.
+     * @param context The application context.
      */
-    static void checkForUpdates();
+    static void checkForUpdates(QPointer<Context> Context);
 };
 
 /**
@@ -166,10 +170,11 @@ public:
      * @param stroke   The stroke color of the graph.
      * @return The string representation of the SVG.
      */
-    static QString generatePitchGraph(const int      moraSize,
-                                      const uint8_t  pos,
-                                      const QString &fill,
-                                      const QString &stroke);
+    static QString generatePitchGraph(
+        const int moraSize,
+        const uint8_t pos,
+        const QString &fill,
+        const QString &stroke);
 
 private:
     GraphicUtils() {}

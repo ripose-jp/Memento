@@ -27,17 +27,20 @@
 #include <QScrollBar>
 #include <QSettings>
 
+#include "anki/ankiclient.h"
 #include "audio/audioplayer.h"
 #include "util/constants.h"
-#include "util/globalmediator.h"
 #include "util/iconfactory.h"
 
 /* Begin Constructor/Destructor */
 
-DefinitionWidget::DefinitionWidget(bool showNavigation, QWidget *parent)
-    : QWidget(parent),
-      m_ui(new Ui::DefinitionWidget),
-      m_client(GlobalMediator::getGlobalMediator()->getAnkiClient())
+DefinitionWidget::DefinitionWidget(
+    QPointer<Context> context,
+    bool showNavigation,
+    QWidget *parent) :
+    QWidget(parent),
+    m_ui(std::make_unique<Ui::DefinitionWidget>()),
+    m_context(std::move(context))
 {
     m_ui->setupUi(this);
     m_ui->widgetNav->setVisible(showNavigation);
@@ -63,7 +66,6 @@ DefinitionWidget::~DefinitionWidget()
         m_child->deleteLater();
         m_child = nullptr;
     }
-    delete m_ui;
 }
 
 void DefinitionWidget::clearTerms()
@@ -93,7 +95,7 @@ void DefinitionWidget::clearTerms()
         }
         delete item;
     }
-    GlobalMediator::getGlobalMediator()->getAudioPlayer()->clearFiles();
+    m_context->getAudioPlayer()->clearFiles();
 }
 
 /* Begin Constructor/Destructor */
@@ -239,19 +241,18 @@ void DefinitionWidget::initShortcuts()
 
 void DefinitionWidget::initSignals()
 {
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
     connect(
-        mediator, &GlobalMediator::interfaceSettingsChanged,
+        m_context, &Context::interfaceSettingsChanged,
         this, &DefinitionWidget::initTheme,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::searchSettingsChanged,
+        m_context, &Context::searchSettingsChanged,
         this, &DefinitionWidget::initSearch,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::audioSourceSettingsChanged,
+        m_context, &Context::audioSourceSettingsChanged,
         this, &DefinitionWidget::initAudioSources,
         Qt::QueuedConnection
     );
@@ -305,7 +306,7 @@ QCoro::Task<void> DefinitionWidget::setTerms(
             QSizePolicy::Preferred, QSizePolicy::Fixed
         );
         buttonShowMore->setText("Show More");
-        buttonShowMore->setEnabled(!m_client->isEnabled());
+        buttonShowMore->setEnabled(!m_context->getAnkiClient()->isEnabled());
         m_ui->scrollAreaContents->layout()->addWidget(buttonShowMore);
         connect(
             buttonShowMore, &QPushButton::clicked,
@@ -325,22 +326,23 @@ QCoro::Task<void> DefinitionWidget::setTerms(
 
     emit widgetShown();
 
-    if (!m_client->isEnabled())
+    if (!m_context->getAnkiClient()->isEnabled())
     {
         co_return;
     }
 
     /* Check if entries are addable to Anki */
     int searchId = m_searchId;
-    AnkiReply<QList<bool>> result = co_await m_client->notesAddable(m_terms);
+    AnkiReply<QList<bool>> result =
+        co_await m_context->getAnkiClient()->notesAddable(m_terms);
     if (result.error.isEmpty() && searchId == m_searchId)
     {
         m_addable = std::move(result.value);
         setAddable(0, m_state.resultLimit);
-        if (buttonShowMore)
-        {
-            buttonShowMore->setEnabled(true);
-        }
+    }
+    if (buttonShowMore)
+    {
+        buttonShowMore->setEnabled(true);
     }
 }
 
@@ -441,7 +443,8 @@ void DefinitionWidget::showTerms(const int start, const int end)
     int i;
     for (i = start; i < m_terms.size() && i < end; ++i)
     {
-        TermWidget *termWidget = new TermWidget(m_terms[i], m_state);
+        TermWidget *termWidget =
+            new TermWidget(m_context, m_terms[i], m_state);
         connect(
             termWidget, &TermWidget::kanjiSearched,
             this, &DefinitionWidget::showKanji
@@ -450,7 +453,7 @@ void DefinitionWidget::showTerms(const int start, const int end)
             termWidget, &TermWidget::contentSearched,
             this, &DefinitionWidget::showChild
         );
-        m_termWidgets.append(termWidget);
+        m_termWidgets.emplaceBack(termWidget);
         m_ui->scrollAreaContents->layout()->addWidget(termWidget);
 
         QFrame *line = new QFrame;
@@ -461,7 +464,7 @@ void DefinitionWidget::showTerms(const int start, const int end)
     }
     if (i < end && m_kanji != nullptr)
     {
-        KanjiWidget *kanjiWidget = new KanjiWidget(m_kanji);
+        KanjiWidget *kanjiWidget = new KanjiWidget(m_context, m_kanji);
         m_ui->scrollAreaContents->layout()->addWidget(kanjiWidget);
         /* An extra line is expected here */
         QFrame *line = new QFrame;
@@ -498,10 +501,10 @@ void DefinitionWidget::showKanji(const std::shared_ptr<const Kanji> &kanji)
             widget->hide();
         }
     }
-    KanjiWidget *kanjiWidget = new KanjiWidget(kanji, true);
+    KanjiWidget *kanjiWidget = new KanjiWidget(m_context, kanji, true);
     connect(
         kanjiWidget, &KanjiWidget::backPressed,
-        this,        &DefinitionWidget::hideKanji
+        this, &DefinitionWidget::hideKanji
     );
     m_ui->scrollAreaContents->layout()->addWidget(kanjiWidget);
     m_ui->scrollArea->verticalScrollBar()->setValue(0);
@@ -549,10 +552,11 @@ void DefinitionWidget::showChild(SharedTermList terms, SharedKanji kanji)
     }
     else if (m_child == nullptr)
     {
-        m_child = new DefinitionWidget(true, parentWidget());
+        m_child = new DefinitionWidget(m_context, true, parentWidget());
     }
 
-    QGraphicsDropShadowEffect *ge = new QGraphicsDropShadowEffect;
+    QGraphicsDropShadowEffect *ge =
+        new QGraphicsDropShadowEffect(m_child.get());
     ge->setBlurRadius(SHADOW_BLUR_RADIUS);
     ge->setOffset(0);
     m_child->setGraphicsEffect(ge);

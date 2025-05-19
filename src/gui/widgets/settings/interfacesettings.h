@@ -23,6 +23,10 @@
 
 #include <QWidget>
 
+#include <QPointer>
+
+#include "state/context.h"
+
 class QToolButton;
 
 namespace Ui
@@ -38,8 +42,8 @@ class InterfaceSettings : public QWidget
     Q_OBJECT
 
 public:
-    InterfaceSettings(QWidget *parent = nullptr);
-    ~InterfaceSettings();
+    InterfaceSettings(QPointer<Context> context, QWidget *parent = nullptr);
+    virtual ~InterfaceSettings();
 
 protected:
     /**
@@ -86,7 +90,10 @@ private:
     void setButtonColor(QToolButton *button, const QColor &color);
 
     /* The UI object containing all the widgets. */
-    Ui::InterfaceSettings *m_ui;
+    std::unique_ptr<Ui::InterfaceSettings> m_ui;
+
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
 
     /* Color of the subtitle. */
     QColor m_subColor;

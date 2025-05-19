@@ -25,16 +25,16 @@
 
 #include <memory>
 
+#include <QFrame>
+#include <QLabel>
 #include <QShortcut>
+#include <QToolButton>
+#include <QVBoxLayout>
 
 #include <qcoro/qcorotask.h>
 
 #include "dict/expression.h"
-
-class QFrame;
-class QLabel;
-class QToolButton;
-class QVBoxLayout;
+#include "state/context.h"
 
 /**
  * Widget for displaying kanji entries.
@@ -46,11 +46,13 @@ class KanjiWidget : public QWidget
 public:
     /**
      * Constructor for the Kanji Widget.
+     * @param context  The application context.
      * @param kanji    The kanji to display.
      * @param showBack true if the back button should be shown.
      * @param parent   The parent of the widget.
      */
     KanjiWidget(
+        QPointer<Context> context,
         std::shared_ptr<const Kanji> kanji,
         bool showBack = false,
         QWidget *parent = nullptr);
@@ -131,10 +133,13 @@ private:
     [[nodiscard]]
     std::unique_ptr<Kanji> initAnkiKanji() const;
 
-    /* The kanji that this widget is displaying. Has ownership. */
-    std::shared_ptr<const Kanji> m_kanji;
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
 
-    /* The button for adding or opening the kanji in Anki. */
+    /* The kanji that this widget is displaying */
+    std::shared_ptr<const Kanji> m_kanji = nullptr;
+
+    /* The button for adding or opening the kanji in Anki */
     QToolButton *m_buttonAnkiAddOpen = nullptr;
 
     /* The shortcut for adding to Anki */

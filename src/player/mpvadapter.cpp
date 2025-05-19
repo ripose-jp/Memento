@@ -27,42 +27,43 @@
 
 #include "gui/widgets/mpv/mpvwidget.h"
 #include "util/constants.h"
-#include "util/globalmediator.h"
 
-MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
-    : PlayerAdapter(parent),
-      m_mpv(mpv),
-      m_handle(mpv->getHandle())
+MpvAdapter::MpvAdapter(
+    QPointer<Context> context,
+    QPointer<MpvWidget> mpv,
+    QObject *parent) :
+    PlayerAdapter(parent),
+    m_context(std::move(context)),
+    m_mpv(std::move(mpv)),
+    m_handle(m_mpv->getHandle())
 {
-    GlobalMediator *mediator = GlobalMediator::getGlobalMediator();
-    GlobalMediator::getGlobalMediator()->setPlayerAdapter(this);
-
-    m_subExts << "utf"
-              << "utf8"
-              << "utf-8"
-              << "idx"
-              << "sub"
-              << "srt"
-              << "rt"
-              << "ssa"
-              << "ass"
-              << "mks"
-              << "vtt"
-              << "sup"
-              << "scc"
-              << "smi"
-              << "lrc"
-              << "pgs";
+    m_subExts
+        << "utf"
+        << "utf8"
+        << "utf-8"
+        << "idx"
+        << "sub"
+        << "srt"
+        << "rt"
+        << "ssa"
+        << "ass"
+        << "mks"
+        << "vtt"
+        << "sup"
+        << "scc"
+        << "smi"
+        << "lrc"
+        << "pgs";
 
     initRegex();
 
     /* Signals */
     connect(
         m_mpv, &MpvWidget::tracklistChanged, this,
-        [this, mediator] (const mpv_node *node)
+        [this] (const mpv_node *node)
         {
             QList<const Track *> tracks = processTracks(node);
-            emit mediator->playerTracksChanged(tracks);
+            emit m_context->playerTracksChanged(tracks);
             for (const Track *track : tracks)
             {
                 delete track;
@@ -71,178 +72,178 @@ MpvAdapter::MpvAdapter(MpvWidget *mpv, QObject *parent)
     );
     connect(
         m_mpv, &MpvWidget::chaptersChanged,
-        mediator, &GlobalMediator::playerChaptersChanged
+        m_context, &Context::playerChaptersChanged
     );
 
     connect(
-        m_mpv,    &MpvWidget::audioTrackChanged,
-        mediator, &GlobalMediator::playerAudioTrackChanged
+        m_mpv, &MpvWidget::audioTrackChanged,
+        m_context, &Context::playerAudioTrackChanged
     );
     connect(
-        m_mpv,    &MpvWidget::videoTrackChanged,
-        mediator, &GlobalMediator::playerVideoTrackChanged
+        m_mpv, &MpvWidget::videoTrackChanged,
+        m_context, &Context::playerVideoTrackChanged
     );
     connect(
-        m_mpv,    &MpvWidget::subtitleTrackChanged,
-        mediator, &GlobalMediator::playerSubtitleTrackChanged
+        m_mpv, &MpvWidget::subtitleTrackChanged,
+        m_context, &Context::playerSubtitleTrackChanged
     );
     connect(
-        m_mpv,    &MpvWidget::subtitleTwoTrackChanged,
-        mediator, &GlobalMediator::playerSecondSubtitleTrackChanged
-    );
-
-    connect(
-        m_mpv,    &MpvWidget::audioDisabled,
-        mediator, &GlobalMediator::playerAudioDisabled
-    );
-    connect(
-        m_mpv,    &MpvWidget::videoDisabled,
-        mediator, &GlobalMediator::playerVideoDisabled
-    );
-    connect(
-        m_mpv,    &MpvWidget::subtitleDisabled,
-        mediator, &GlobalMediator::playerSubtitlesDisabled
-    );
-    connect(
-        m_mpv,    &MpvWidget::subtitleTwoDisabled,
-        mediator, &GlobalMediator::playerSecondSubtitlesDisabled
+        m_mpv, &MpvWidget::subtitleTwoTrackChanged,
+        m_context, &Context::playerSecondSubtitleTrackChanged
     );
 
     connect(
-        m_mpv,    &MpvWidget::subtitleChanged,
-        mediator, &GlobalMediator::playerSubtitleChanged
+        m_mpv, &MpvWidget::audioDisabled,
+        m_context, &Context::playerAudioDisabled
     );
     connect(
-        m_mpv,    &MpvWidget::subtitleChangedRaw,
-        mediator, &GlobalMediator::playerSubtitleChangedRaw
+        m_mpv, &MpvWidget::videoDisabled,
+        m_context, &Context::playerVideoDisabled
     );
     connect(
-        m_mpv,    &MpvWidget::subtitleChangedSecondary,
-        mediator, &GlobalMediator::playerSecSubtitleChanged
+        m_mpv, &MpvWidget::subtitleDisabled,
+        m_context, &Context::playerSubtitlesDisabled
     );
     connect(
-        m_mpv,    &MpvWidget::subDelayChanged,
-        mediator, &GlobalMediator::playerSubDelayChanged
-    );
-    connect(
-        m_mpv,    &MpvWidget::secSubDelayChanged,
-        mediator, &GlobalMediator::playerSecSubDelayChanged
-    );
-    connect(
-        m_mpv,    &MpvWidget::durationChanged,
-        mediator, &GlobalMediator::playerDurationChanged
-    );
-    connect(
-        m_mpv,    &MpvWidget::positionChanged,
-        mediator, &GlobalMediator::playerPositionChanged
-    );
-    connect(
-        m_mpv,    &MpvWidget::pauseChanged,
-        mediator, &GlobalMediator::playerPauseStateChanged
-    );
-    connect(
-        m_mpv,    &MpvWidget::fullscreenChanged,
-        mediator, &GlobalMediator::playerFullscreenChanged
-    );
-    connect(
-        m_mpv,    &MpvWidget::volumeChanged,
-        mediator, &GlobalMediator::playerVolumeChanged
-    );
-    connect(
-        m_mpv,    &MpvWidget::volumeMaxChanged,
-        mediator, &GlobalMediator::playerMaxVolumeChanged
-    );
-    connect(
-        m_mpv,    &MpvWidget::titleChanged,
-        mediator, &GlobalMediator::playerTitleChanged
-    );
-    connect(
-        m_mpv,    &MpvWidget::fileChanged,
-        mediator, &GlobalMediator::playerFileChanged
+        m_mpv, &MpvWidget::subtitleTwoDisabled,
+        m_context, &Context::playerSecondSubtitlesDisabled
     );
 
     connect(
-        m_mpv,    &MpvWidget::mouseMoved,
-        mediator, &GlobalMediator::playerMouseMoved
+        m_mpv, &MpvWidget::subtitleChanged,
+        m_context, &Context::playerSubtitleChanged
     );
     connect(
-        m_mpv,    &MpvWidget::shutdown,
-        mediator, &GlobalMediator::playerClosed
+        m_mpv, &MpvWidget::subtitleChangedRaw,
+        m_context, &Context::playerSubtitleChangedRaw
     );
     connect(
-        m_mpv,    &MpvWidget::newFileLoaded,
-        mediator, &GlobalMediator::playerFileLoaded
+        m_mpv, &MpvWidget::subtitleChangedSecondary,
+        m_context, &Context::playerSecSubtitleChanged
+    );
+    connect(
+        m_mpv, &MpvWidget::subDelayChanged,
+        m_context, &Context::playerSubDelayChanged
+    );
+    connect(
+        m_mpv, &MpvWidget::secSubDelayChanged,
+        m_context, &Context::playerSecSubDelayChanged
+    );
+    connect(
+        m_mpv, &MpvWidget::durationChanged,
+        m_context, &Context::playerDurationChanged
+    );
+    connect(
+        m_mpv, &MpvWidget::positionChanged,
+        m_context, &Context::playerPositionChanged
+    );
+    connect(
+        m_mpv, &MpvWidget::pauseChanged,
+        m_context, &Context::playerPauseStateChanged
+    );
+    connect(
+        m_mpv, &MpvWidget::fullscreenChanged,
+        m_context, &Context::playerFullscreenChanged
+    );
+    connect(
+        m_mpv, &MpvWidget::volumeChanged,
+        m_context, &Context::playerVolumeChanged
+    );
+    connect(
+        m_mpv, &MpvWidget::volumeMaxChanged,
+        m_context, &Context::playerMaxVolumeChanged
+    );
+    connect(
+        m_mpv, &MpvWidget::titleChanged,
+        m_context, &Context::playerTitleChanged
+    );
+    connect(
+        m_mpv, &MpvWidget::fileChanged,
+        m_context, &Context::playerFileChanged
+    );
+
+    connect(
+        m_mpv, &MpvWidget::mouseMoved,
+        m_context, &Context::playerMouseMoved
+    );
+    connect(
+        m_mpv, &MpvWidget::shutdown,
+        m_context, &Context::playerClosed
+    );
+    connect(
+        m_mpv, &MpvWidget::newFileLoaded,
+        m_context, &Context::playerFileLoaded
     );
 
     /* Slots */
     connect(
-        mediator, &GlobalMediator::searchSettingsChanged,
+        m_context, &Context::searchSettingsChanged,
         this, &MpvAdapter::initRegex,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::controlsPlay,
+        m_context, &Context::controlsPlay,
         this, &PlayerAdapter::play,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::controlsPause,
+        m_context, &Context::controlsPause,
         this, &PlayerAdapter::pause,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::controlsPositionChanged,
+        m_context, &Context::controlsPositionChanged,
         this, &PlayerAdapter::seek,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::controlsSkipForward,
+        m_context, &Context::controlsSkipForward,
         this, &PlayerAdapter::skipForward,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::controlsSkipBackward,
+        m_context, &Context::controlsSkipBackward,
         this, &PlayerAdapter::skipBackward,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::controlsSeekForward,
+        m_context, &Context::controlsSeekForward,
         this, &PlayerAdapter::seekForward,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::controlsSeekBackward,
+        m_context, &Context::controlsSeekBackward,
         this, &PlayerAdapter::seekBackward,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::controlsFullscreenChanged,
+        m_context, &Context::controlsFullscreenChanged,
         this, &PlayerAdapter::setFullscreen,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::controlsVolumeChanged,
+        m_context, &Context::controlsVolumeChanged,
         this, &PlayerAdapter::setVolume,
         Qt::QueuedConnection
     );
     connect(
-        mediator, &GlobalMediator::controlsOCRToggled,
+        m_context, &Context::controlsOCRToggled,
         this, &PlayerAdapter::pause,
         Qt::DirectConnection
     );
     connect(
-        mediator, &GlobalMediator::menuEnterOCRMode,
+        m_context, &Context::menuEnterOCRMode,
         this, &PlayerAdapter::pause,
         Qt::DirectConnection
     );
 
     connect(
-        mediator, &GlobalMediator::wheelMoved,
+        m_context, &Context::wheelMoved,
         this, &PlayerAdapter::mouseWheelMoved
     );
 
     connect(
-        mediator, &GlobalMediator::requestSubtitleVisibility,
+        m_context, &Context::requestSubtitleVisibility,
         this, &PlayerAdapter::setSubVisiblity,
         Qt::QueuedConnection
     );

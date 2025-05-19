@@ -18,12 +18,14 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef GLOBALMEDIATOR_H
-#define GLOBALMEDIATOR_H
+#ifndef CONTEXT_H
+#define CONTEXT_H
 
 #include <QObject>
 
 #include <memory>
+
+#include <QPointer>
 
 #include "player/track.h"
 
@@ -46,29 +48,16 @@ struct Kanji;
 typedef std::shared_ptr<Kanji> SharedKanji;
 
 /**
- * A mediator that other objects can tap in to in order to send and receive
- * signals without having to know about eachother. Also contains pointers
- * to several shared objects.
+ * A context object that contains shared resources and signals to be shared
+ * through the whole application.
  */
-class GlobalMediator : public QObject
+class Context : public QObject
 {
     Q_OBJECT
 
 public:
-    ~GlobalMediator() {}
-
-    /**
-     * Unconditionally creates a new GlobalMediator that can be accessed by
-     * getGlobalMediator. This should only be called once, probably in main.
-     * @return The created GlobalMediator.
-     */
-    static GlobalMediator *createGlobalMediator();
-
-    /**
-     * Gets the shared GlobalMediator.
-     * @return The GlobalMediator, nullptr if it doesn't exist.
-     */
-    static GlobalMediator *getGlobalMediator();
+    using QObject::QObject;
+    virtual ~Context() = default;
 
     /**
      * Gets the AnkiClient object used for interacting with Anki.
@@ -110,44 +99,38 @@ public:
     /**
      * Sets the shared AnkiClient. Does not take ownership.
      * @param client The shared AnkiClient.
-     * @return The shared GlobalMediator, nullptr if it doesn't exist.
      */
-    GlobalMediator *setAnkiClient(AnkiClient *client);
+    void setAnkiClient(AnkiClient *client);
 
     /**
      * Sets the shared AudioPlayer. Does not take ownership.
      * @param audioPlayer The shared AudioPlayer.
-     * @return The shared GlobalMediator, nullptr if it doesn't exist.
      */
-    GlobalMediator *setAudioPlayer(AudioPlayer *audioPlayer);
+    void setAudioPlayer(AudioPlayer *audioPlayer);
 
     /**
      * Sets the shared Dictionary. Does not take ownership.
      * @param dictionary The shared Dictionary.
-     * @return The shared GlobalMediator, nullptr if it doesn't exist.
      */
-    GlobalMediator *setDictionary(Dictionary *dictionary);
+    void setDictionary(Dictionary *dictionary);
 
     /**
      * Sets the shared PlayerAdapter. Does not take ownership.
      * @param player The shared PlayerAdapter.
-     * @return The shared GlobalMediator, nullptr if it doesn't exist.
      */
-    GlobalMediator *setPlayerAdapter(PlayerAdapter *player);
+    void setPlayerAdapter(PlayerAdapter *player);
 
     /**
      * Sets the shared Player widget. Does not take ownership.
      * @param widget The shared widget displaying the player.
-     * @return The shared GlobalMediator, nullptr if it doesn't exist.
      */
-    GlobalMediator *setPlayerWidget (QWidget *widget);
+    void setPlayerWidget(QWidget *widget);
 
     /**
      * Sets the shared subtitle list. Does not take ownership.
      * @param player The shared subtitle list.
-     * @return The shared GlobalMediator, nullptr if it doesn't exist.
      */
-    GlobalMediator *setSubtitleList(SubtitleListWidget *subList);
+    void setSubtitleList(SubtitleListWidget *subList);
 
 Q_SIGNALS:
     /* Begin Dialog Boxes */
@@ -643,18 +626,12 @@ Q_SIGNALS:
     /* End Request Changes */
 
 private:
-    /* The saved GlobalMediator. */
-    inline static GlobalMediator *m_mediator = nullptr;
-
-    /* Mediator does not take ownership */
-    Dictionary         *m_dictionary;
-    AnkiClient         *m_ankiClient;
-    PlayerAdapter      *m_player;
-    QWidget            *m_playerWidget;
-    SubtitleListWidget *m_subList;
-    AudioPlayer        *m_audioPlayer;
-
-    GlobalMediator(QObject *parent = nullptr);
+    QPointer<AudioPlayer> m_audioPlayer;
+    QPointer<AnkiClient> m_ankiClient;
+    QPointer<Dictionary> m_dictionary;
+    QPointer<PlayerAdapter> m_player;
+    QPointer<QWidget> m_playerWidget;
+    QPointer<SubtitleListWidget> m_subList;
 };
 
-#endif // GLOBALMEDIATOR_H
+#endif // CONTEXT_H

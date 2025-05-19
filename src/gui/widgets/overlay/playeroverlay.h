@@ -29,6 +29,8 @@
 #include <QPropertyAnimation>
 #include <QTimer>
 
+#include "state/context.h"
+
 class DefinitionWidget;
 class HitTestWidget;
 class OCROverlay;
@@ -53,9 +55,10 @@ class PlayerOverlay : public QStackedLayout
 public:
     /**
      * Creates an overlay over the player.
-     * @param parent The player widget.
+     * @param context The application context.
+     * @param parent  The player widget.
      */
-    PlayerOverlay(QWidget *parent);
+    PlayerOverlay(QPointer<Context> context, QWidget *parent);
     virtual ~PlayerOverlay() override;
 
 public Q_SLOTS:
@@ -172,9 +175,12 @@ private:
      */
     void moveSubtitles(const double inc);
 
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
+
 #ifdef OCR_SUPPORT
     /* Saved pointer to the OCROverlay */
-    QPointer<OCROverlay> m_ocrOverlay;
+    OCROverlay *m_ocrOverlay = nullptr;
 #endif // OCR_SUPPORT
 
     /* The container widget that holds:
@@ -183,22 +189,22 @@ private:
      * * m_spacer
      * * m_controls
      */
-    QPointer<HitTestWidget> m_widgetOSC;
+    HitTestWidget *m_widgetOSC = nullptr;
 
     /* The menu widget */
-    QPointer<PlayerMenu> m_menu;
+    PlayerMenu *m_menu = nullptr;
 
     /* The subtitle widget */
-    QPointer<SubtitleWidget> m_subtitle;
+    SubtitleWidget *m_subtitle = nullptr;
 
     /* A generic spacer widget for position the subtitles */
-    QPointer<QWidget> m_spacer;
+    QWidget *m_spacer = nullptr;
 
     /* The widget containing the player controls */
-    QPointer<PlayerControls> m_controls;
+    PlayerControls *m_controls = nullptr;
 
     /* Saved pointer to the current definition widget. Has ownership. */
-    QPointer<DefinitionWidget> m_definition;
+    DefinitionWidget *m_definition = nullptr;
 
     /* The amount of time before the OSC should be hidden */
     QTimer m_hideTimer;
@@ -236,7 +242,7 @@ private:
         OSCVisibility visibility = OSCVisibility::Auto;
 
         /* Saved setting describing the subtitle offset from the bottom */
-        double subOffset;
+        double subOffset = 0.0;
 
 #if defined(Q_OS_WIN)
         /* true if the menubar should be shown in fullscreen on windows */

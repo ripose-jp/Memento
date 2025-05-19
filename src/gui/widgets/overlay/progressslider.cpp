@@ -28,9 +28,6 @@
 #include <QStyle>
 #include <QTextEdit>
 
-#include "gui/widgets/common/strokelabel.h"
-#include "util/globalmediator.h"
-
 /* Begin Constructor/Destructor */
 
 /**
@@ -38,44 +35,53 @@
  * @param 1 Background color
  * @param 2 Progress color
  */
-#define STYLESHEET_FORMAT (QString( \
-        "QSlider::groove:horizontal {" \
-	        "background: %1;" \
-        "}" \
-        "QSlider::sub-page:horizontal {" \
-	        "background: %2;" \
-        "}" \
-    ))
+static const QString STYLESHEET_FORMAT(
+    "QSlider::groove:horizontal {"
+	    "background: %1;"
+    "}"
+    "QSlider::sub-page:horizontal {"
+	    "background: %2;"
+    "}"
+);
 
 ProgressSlider::ProgressSlider(QWidget *parent) : QSlider(parent)
 {
+
+}
+
+ProgressSlider::~ProgressSlider()
+{
+    m_labelTimecode->deleteLater();
+}
+
+void ProgressSlider::initialize(QPointer<Context> context)
+{
+    m_context = std::move(context);
+
     setMouseTracking(true);
     setOrientation(Qt::Horizontal);
     setMinimum(0);
     setMaximum(0);
 
-    m_labelTimecode = new StrokeLabel(parent);
+    m_labelTimecode = new StrokeLabel(parentWidget());
     m_labelTimecode->hide();
 
     connect(
-        GlobalMediator::getGlobalMediator(),
-        &GlobalMediator::requestThemeRefresh,
-        this, &ProgressSlider::initTheme,
+        m_context,
+        &Context::requestThemeRefresh,
+        this,
+        &ProgressSlider::initTheme,
         Qt::QueuedConnection
     );
     connect(
-        GlobalMediator::getGlobalMediator(),
-        &GlobalMediator::windowFocusChanged,
-        this, &ProgressSlider::initStylesheet,
+        m_context,
+        &Context::windowFocusChanged,
+        this,
+        &ProgressSlider::initStylesheet,
         Qt::QueuedConnection
     );
 
     initTheme();
-}
-
-ProgressSlider::~ProgressSlider()
-{
-    delete m_labelTimecode;
 }
 
 void ProgressSlider::initTheme()
@@ -111,10 +117,10 @@ void ProgressSlider::hideEvent(QHideEvent *event)
     m_labelTimecode->hide();
 }
 
-#define MOUSE_OFFSET 20
-
 void ProgressSlider::mouseMoveEvent(QMouseEvent *event)
 {
+    constexpr int MOUSE_OFFSET = 20;
+
     QSlider::mouseMoveEvent(event);
 
     if (maximum() == 0)
@@ -147,8 +153,6 @@ void ProgressSlider::mouseMoveEvent(QMouseEvent *event)
         m_labelTimecode->show();
     }
 }
-
-#undef MOUSE_OFFSET
 
 void ProgressSlider::paintEvent(QPaintEvent* event)
 {
@@ -188,14 +192,15 @@ void ProgressSlider::leaveEvent(QEvent *event)
     m_labelTimecode->hide();
 }
 
-#define SECONDS_IN_MINUTE   60
-#define SECONDS_IN_HOUR     3600
-#define FILL_SPACES         2
-#define BASE_TEN            10
-#define FILL_CHAR           '0'
-
 QString ProgressSlider::formatTime(int64_t time)
 {
+
+    constexpr int SECONDS_IN_MINUTE = 60;
+    constexpr int SECONDS_IN_HOUR = 3600;
+    constexpr int FILL_SPACES = 2;
+    constexpr int BASE_TEN = 10;
+    constexpr char FILL_CHAR = '0';
+
     if (time < 0)
     {
         time = 0;
@@ -215,11 +220,5 @@ QString ProgressSlider::formatTime(int64_t time)
 
     return formatted;
 }
-
-#undef SECONDS_IN_MINUTE
-#undef SECONDS_IN_HOUR
-#undef FILL_SPACES
-#undef BASE_TEN
-#undef FILL_CHAR
 
 /* End Helpers */

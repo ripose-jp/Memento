@@ -23,10 +23,14 @@
 
 #include "gui/widgets/common/strokelabel.h"
 
+#include <memory>
+
 #include <QMouseEvent>
+#include <QPointer>
 #include <QTimer>
 
 #include "dict/dictionary.h"
+#include "state/context.h"
 
 /**
  * Widget used to display subtitle text and initiate searches.
@@ -36,8 +40,8 @@ class SubtitleWidget : public StrokeLabel
     Q_OBJECT
 
 public:
-    SubtitleWidget(QWidget *parent = 0);
-    ~SubtitleWidget();
+    SubtitleWidget(QPointer<Context> context, QWidget *parent = 0);
+    virtual ~SubtitleWidget();
 
 protected:
     /**
@@ -136,30 +140,30 @@ private Q_SLOTS:
     void selectText();
 
 private:
-    /* The dictionary object, used for query for terms. */
-    Dictionary *m_dictionary;
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
 
     /* Timer object used for starting searches when hover is enabled. */
-    QTimer *m_findDelay;
+    QTimer m_findDelay;
 
     /* The current index the cursor is over. -1 if not over anything. */
-    int m_currentIndex;
+    int m_currentIndex = -1;
 
     /* The index of the last emitted term list. */
-    int m_lastEmittedIndex;
+    int m_lastEmittedIndex = 0;
 
     /* The size of the last emitted term match. */
-    int m_lastEmittedSize;
+    int m_lastEmittedSize = 0;
 
     /* True if definitions are visible, false otherwise */
-    bool m_definitionsVisible{false};
+    bool m_definitionsVisible = false;
 
     /* Saved pause state of the player. */
-    bool m_paused;
+    bool m_paused = true;
 
     /* True if playback has already been paused for the current subtitle, false
      * otherwise. */
-    bool m_pausedForCurrentSubtitle{false};
+    bool m_pausedForCurrentSubtitle = false;
 
     /* Contains information about the current subtitle. */
     struct Subtitle
@@ -172,7 +176,7 @@ private:
 
         /* The end time of the current subtitle. */
         double endTime;
-    } m_subtitle;
+    } m_subtitle{};
 
     /* Saved setting relevant to the widget. */
     struct Settings
@@ -211,7 +215,7 @@ private:
 
         /* True if the subtitle should be visible if possible, false otherwise
          */
-        bool requestedVisibility{true};
+        bool requestedVisibility = true;
 
         /* true if playback should pause when the mouse moves over the
          * subtitle false otherwise */
@@ -231,7 +235,7 @@ private:
         /* True if playback should be paused for the current subtitle, false
          * otherwise. */
         bool pauseOnSubtitleEnd;
-    } m_settings;
+    } m_settings{};
 };
 
 #endif // SUBTITLEWIDGET_H

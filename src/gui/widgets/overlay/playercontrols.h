@@ -23,6 +23,9 @@
 
 #include <QWidget>
 
+#include <QPointer>
+
+#include "state/context.h"
 #include "util/iconfactory.h"
 
 namespace Ui
@@ -40,8 +43,8 @@ class PlayerControls : public QWidget
     Q_OBJECT
 
 public:
-    PlayerControls(QWidget *parent = nullptr);
-    ~PlayerControls();
+    PlayerControls(QPointer<Context> context, QWidget *parent = nullptr);
+    virtual ~PlayerControls();
 
 public Q_SLOTS:
     /**
@@ -118,18 +121,21 @@ private Q_SLOTS:
 
 private:
     /* UI object containing all the widgets. */
-    Ui::PlayerControls *m_ui;
+    std::unique_ptr<Ui::PlayerControls> m_ui;
+
+    /* The application context */
+    QPointer<Context> m_context = nullptr;
 
     /* Current pause state of the player. */
-    bool m_paused;
+    bool m_paused = true;
 
     /* Flag used to determine if the pause state should be ignored. Used for
      * slider signals.
      */
-    bool m_ignorePause;
+    bool m_ignorePause = false;
 
     /* The current duration of the media playing. */
-    double m_duration;
+    double m_duration = 0.0;
 };
 
 #endif // PLAYERCONTROLS_H
