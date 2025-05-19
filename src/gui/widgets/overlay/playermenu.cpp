@@ -514,6 +514,8 @@ void PlayerMenu::setTracks(const QList<Track> &tracks)
         }
 
         case Track::Type::video:
+        default:
+            action->deleteLater();
             break;
         }
     }
