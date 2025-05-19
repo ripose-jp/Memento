@@ -93,7 +93,7 @@ private Q_SLOTS:
      * Updates the menu with the currently available tracks.
      * @param tracks A list of the currently available tracks.
      */
-    void setTracks(const QList<const Track *> &tracks);
+    void setTracks(const QList<Track> &tracks);
 
     /**
      * Changes audio track to the one specified.
@@ -196,7 +196,7 @@ private:
      * @param track The track to create an action for.
      * @return A QAction corresponding to the track. Belongs to the caller.
      */
-    QAction *createTrackAction(const Track *track) const;
+    QAction *createTrackAction(const Track &track) const;
 
     /**
      * Toggles pausing on subtitle end in response to the menu option.

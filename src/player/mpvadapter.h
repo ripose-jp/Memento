@@ -66,7 +66,7 @@ public:
 
     double getAudioDelay() const override;
 
-    QList<const Track *> getTracks() override;
+    QList<Track> getTracks() override;
 
     int64_t getAudioTrack() const override;
 
@@ -147,7 +147,8 @@ private Q_SLOTS:
      * @param node The mpv_node containing the raw track-list.
      * @return A list containing the tracks.
      */
-    QList<const Track *> processTracks(const mpv_node *node);
+    [[nodiscard]]
+    static QList<Track> processTracks(const mpv_node *node);
 
 private:
     /* Node in the command line argument multi-tree. */

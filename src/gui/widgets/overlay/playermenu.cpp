@@ -161,13 +161,8 @@ PlayerMenu::PlayerMenu(QPointer<Context> context, QWidget *parent) :
         m_context, &Context::playerFileLoaded, this,
         [this]
         {
-            QList<const Track *> tracks =
-                m_context->getPlayerAdapter()->getTracks();
+            QList<Track> tracks = m_context->getPlayerAdapter()->getTracks();
             setTracks(tracks);
-            for (const Track *track : tracks)
-            {
-                delete track;
-            }
         }
     );
 
@@ -395,19 +390,19 @@ void PlayerMenu::clearTracks()
 
 #define MAX_LENGTH 45
 
-QAction *PlayerMenu::createTrackAction(const Track *track) const
+QAction *PlayerMenu::createTrackAction(const Track &track) const
 {
     QAction *action = new QAction;
     action->setCheckable(true);
 
-    QString actionText = "Track " + QString::number(track->id);
-    if (!track->lang.isEmpty())
+    QString actionText = "Track " + QString::number(track.id);
+    if (!track.lang.isEmpty())
     {
-        actionText += " [" + track->lang + "]";
+        actionText += " [" + track.lang + "]";
     }
-    if (!track->title.isEmpty())
+    if (!track.title.isEmpty())
     {
-        actionText += " - " + track->title;
+        actionText += " - " + track.title;
     }
     if (actionText.length() > MAX_LENGTH)
     {
@@ -421,7 +416,7 @@ QAction *PlayerMenu::createTrackAction(const Track *track) const
 
 #undef MAX_LENGTH
 
-void PlayerMenu::setTracks(const QList<const Track *> &tracks)
+void PlayerMenu::setTracks(const QList<Track> &tracks)
 {
     clearTracks();
 
@@ -429,18 +424,18 @@ void PlayerMenu::setTracks(const QList<const Track *> &tracks)
     m_actionGroups.subtitle->blockSignals(true);
     m_actionGroups.subtitleTwo->blockSignals(true);
 
-    for (const Track *track : tracks)
+    for (const Track &track : tracks)
     {
         QAction *action = createTrackAction(track);
-        const int64_t id = track->id;
-        switch (track->type)
+        const int64_t id = track.id;
+        switch (track.type)
         {
         case Track::Type::audio:
             m_ui->menuAudio->addAction(action);
             action->setActionGroup(m_actionGroups.audio);
             m_actionGroups.audioActions.append(action);
 
-            if (track->selected)
+            if (track.selected)
             {
                 action->setChecked(true);
                 m_ui->actionAudioNone->setChecked(false);
@@ -469,13 +464,13 @@ void PlayerMenu::setTracks(const QList<const Track *> &tracks)
             actionSubTwo->setActionGroup(m_actionGroups.subtitleTwo);
             m_actionGroups.subtitleTwoActions.append(actionSubTwo);
 
-            if (track->selected && track->mainSelection == 0)
+            if (track.selected && track.mainSelection == 0)
             {
                 action->setChecked(true);
                 m_ui->actionSubtitleNone->setChecked(false);
                 actionSubTwo->setEnabled(false);
             }
-            else if (track->selected && track->mainSelection == 1)
+            else if (track.selected && track.mainSelection == 1)
             {
                 actionSubTwo->setChecked(true);
                 m_ui->actionSubtitleTwoNone->setChecked(false);

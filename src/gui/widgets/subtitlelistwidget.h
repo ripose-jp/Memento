@@ -153,8 +153,9 @@ private Q_SLOTS:
 
     /**
      * Handles the track list changing.
+     * @param tracks The new tracklist.
      */
-    void handleTracklistChange(const QList<const Track *> &tracks);
+    void handleTracklistChange(const QList<Track> &tracks);
 
     /**
      * Refreshes the contents of the subtitle list.

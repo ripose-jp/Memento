@@ -342,13 +342,8 @@ void SubtitleListWidget::initRegex()
 
     if (m_context->getPlayerAdapter())
     {
-        QList<const Track *> tracks =
-            m_context->getPlayerAdapter()->getTracks();
+        QList<Track> tracks = m_context->getPlayerAdapter()->getTracks();
         handleTracklistChange(tracks);
-        for (const Track *track : tracks)
-        {
-            delete track;
-        }
     }
 }
 
@@ -417,33 +412,32 @@ void SubtitleListWidget::resizeEvent(QResizeEvent *event)
 /* End Event Handlers */
 /* Begin Adder Methods */
 
-void SubtitleListWidget::handleTracklistChange(
-    const QList<const Track *> &tracks)
+void SubtitleListWidget::handleTracklistChange(const QList<Track> &tracks)
 {
     int64_t primarySid = -1;
     int64_t secondarySid = -1;
     QStringList extTracks;
     QList<int64_t> extSids;
-    for (const Track *track : tracks)
+    for (const Track &track : tracks)
     {
-        if (track->type == Track::subtitle)
+        if (track.type == Track::subtitle)
         {
-            if (track->selected)
+            if (track.selected)
             {
-                if (track->mainSelection == 0)
+                if (track.mainSelection == 0)
                 {
-                    primarySid = track->id;
+                    primarySid = track.id;
                 }
                 else
                 {
-                    secondarySid = track->id;
+                    secondarySid = track.id;
                 }
             }
 
-            if (track->external)
+            if (track.external)
             {
-                extTracks << track->externalFilename;
-                extSids << track->id;
+                extTracks.emplaceBack(track.externalFilename);
+                extSids.emplaceBack(track.id);
             }
         }
     }

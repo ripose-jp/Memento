@@ -62,12 +62,8 @@ MpvAdapter::MpvAdapter(
         m_mpv, &MpvWidget::tracklistChanged, this,
         [this] (const mpv_node *node)
         {
-            QList<const Track *> tracks = processTracks(node);
+            QList<Track> tracks = processTracks(node);
             emit m_context->playerTracksChanged(tracks);
-            for (const Track *track : tracks)
-            {
-                delete track;
-            }
         }
     );
     connect(
@@ -493,15 +489,15 @@ double MpvAdapter::getAudioDelay() const
     return delay;
 }
 
-QList<const Track *> MpvAdapter::getTracks()
+QList<Track> MpvAdapter::getTracks()
 {
     mpv_node node;
     if (mpv_get_property(m_handle, "track-list", MPV_FORMAT_NODE, &node) < 0)
     {
         qDebug() << "Could not get track-list property";
-        return QList<const Track *>();
+        return {};
     }
-    QList<const Track *> tracks = processTracks(&node);
+    QList<Track> tracks = processTracks(&node);
     mpv_free_node_contents(&node);
     return tracks;
 }
@@ -1251,14 +1247,14 @@ void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
 
 /* Code modified from loadTracks() */
 /* https://github.com/u8sand/Baka-MPlayer/blob/master/src/mpvhandler.cpp */
-QList<const Track *> MpvAdapter::processTracks(const mpv_node *node)
+QList<Track> MpvAdapter::processTracks(const mpv_node *node)
 {
-    QList<const Track *> tracks;
+    QList<Track> tracks;
     if (node->format == MPV_FORMAT_NODE_ARRAY)
     {
         for (int i = 0; i < node->u.list->num; i++)
         {
-            Track *track = new Track;
+            tracks.emplaceBack(Track{});
             if (node->u.list->values[i].format == MPV_FORMAT_NODE_MAP)
             {
                 for (int n = 0; n < node->u.list->values[i].u.list->num; n++)
@@ -1266,7 +1262,7 @@ QList<const Track *> MpvAdapter::processTracks(const mpv_node *node)
                     if (QString(node->u.list->values[i].u.list->keys[n]) == "id")
                     {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_INT64)
-                            track->id = node->u.list->values[i].u.list->values[n].u.int64;
+                            tracks.back().id = node->u.list->values[i].u.list->values[n].u.int64;
                     }
                     else if (QString(node->u.list->values[i].u.list->keys[n]) == "type")
                     {
@@ -1274,65 +1270,90 @@ QList<const Track *> MpvAdapter::processTracks(const mpv_node *node)
                         {
                             QString type = node->u.list->values[i].u.list->values[n].u.string;
                             if (type == "audio")
-                                track->type = Track::Type::audio;
+                            {
+                                tracks.back().type = Track::Type::audio;
+                            }
                             else if (type == "video")
-                                track->type = Track::Type::video;
+                            {
+                                tracks.back().type = Track::Type::video;
+                            }
                             else if (type == "sub")
-                                track->type = Track::Type::subtitle;
+                            {
+                                tracks.back().type = Track::Type::subtitle;
+                            }
                         }
                     }
                     else if (QString(node->u.list->values[i].u.list->keys[n]) == "src-id")
                     {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_INT64)
-                            track->srcId = node->u.list->values[i].u.list->values[n].u.int64;
+                        {
+                            tracks.back().srcId = node->u.list->values[i].u.list->values[n].u.int64;
+                        }
                     }
                     else if (QString(node->u.list->values[i].u.list->keys[n]) == "title")
                     {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING)
-                            track->title = node->u.list->values[i].u.list->values[n].u.string;
+                        {
+                            tracks.back().title = node->u.list->values[i].u.list->values[n].u.string;
+                        }
                     }
                     else if (QString(node->u.list->values[i].u.list->keys[n]) == "lang")
                     {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING)
-                            track->lang = node->u.list->values[i].u.list->values[n].u.string;
+                        {
+                            tracks.back().lang = node->u.list->values[i].u.list->values[n].u.string;
+                        }
                     }
                     else if (QString(node->u.list->values[i].u.list->keys[n]) == "albumart")
                     {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_FLAG)
-                            track->albumart = node->u.list->values[i].u.list->values[n].u.flag != 0;
+                        {
+                            tracks.back().albumart = node->u.list->values[i].u.list->values[n].u.flag != 0;
+                        }
                     }
                     else if (QString(node->u.list->values[i].u.list->keys[n]) == "default")
                     {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_FLAG)
-                            track->def = node->u.list->values[i].u.list->values[n].u.flag != 0;
+                        {
+                            tracks.back().def = node->u.list->values[i].u.list->values[n].u.flag != 0;
+                        }
                     }
                     else if (QString(node->u.list->values[i].u.list->keys[n]) == "selected")
                     {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_FLAG)
-                            track->selected = node->u.list->values[i].u.list->values[n].u.flag != 0;
+                        {
+                            tracks.back().selected = node->u.list->values[i].u.list->values[n].u.flag != 0;
+                        }
                     }
                     else if (QString(node->u.list->values[i].u.list->keys[n]) == "main-selection")
                     {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_INT64)
-                            track->mainSelection = node->u.list->values[i].u.list->values[n].u.int64;
+                        {
+                            tracks.back().mainSelection = node->u.list->values[i].u.list->values[n].u.int64;
+                        }
                     }
                     else if (QString(node->u.list->values[i].u.list->keys[n]) == "external")
                     {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_FLAG)
-                            track->external = node->u.list->values[i].u.list->values[n].u.flag != 0;
+                        {
+                            tracks.back().external = node->u.list->values[i].u.list->values[n].u.flag != 0;
+                        }
                     }
                     else if (QString(node->u.list->values[i].u.list->keys[n]) == "external-filename")
                     {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING)
-                            track->externalFilename = node->u.list->values[i].u.list->values[n].u.string;
+                        {
+                            tracks.back().externalFilename = node->u.list->values[i].u.list->values[n].u.string;
+                        }
                     }
                     else if (QString(node->u.list->values[i].u.list->keys[n]) == "codec")
                     {
                         if (node->u.list->values[i].u.list->values[n].format == MPV_FORMAT_STRING)
-                            track->codec = node->u.list->values[i].u.list->values[n].u.string;
+                        {
+                            tracks.back().codec = node->u.list->values[i].u.list->values[n].u.string;
+                        }
                     }
                 }
-                tracks.push_back(track);
             }
         }
     }

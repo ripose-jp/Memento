@@ -109,9 +109,9 @@ public:
 
     /**
      * Returns a list of the current tracks.
-     * @return A list of the current tracks. Tracks belong to the callee.
+     * @return A list of the current tracks.
      */
-    virtual QList<const Track *> getTracks() = 0;
+    virtual QList<Track> getTracks() = 0;
 
     /**
      * Get the id of the current audio track starting.
