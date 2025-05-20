@@ -420,6 +420,53 @@ static bool createScreenshotHelper(
     return true;
 }
 
+/**
+ * Parses the frequency string into a double.
+ * @param frequency The string representation of the current frequency.
+ * @return Float value of the frequency, nullopt if it could not be parsed.
+ */
+[[nodiscard]]
+static std::optional<double> parseFrequencyValue(const QString &frequency)
+{
+    const QRegularExpression FLOAT_ONLY_REGEX(
+        "^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)"
+    );
+
+    QRegularExpressionMatch numberMatch = FLOAT_ONLY_REGEX.match(frequency);
+    if (!numberMatch.hasMatch())
+    {
+        if (frequency == "★")
+        {
+            return 20.0;
+        }
+        else if (frequency == "★★")
+        {
+            return 40.0;
+        }
+        else if (frequency == "★★★")
+        {
+            return 60.0;
+        }
+        else if (frequency == "★★★★")
+        {
+            return 80.0;
+        }
+        else if (frequency == "★★★★★")
+        {
+            return 100.0;
+        }
+        return {};
+    }
+
+    bool ok = false;
+    double frequencyValue = numberMatch.captured().toDouble(&ok);
+    if (!ok)
+    {
+        return {};
+    }
+    return frequencyValue;
+}
+
 /* End Helper Functions */
 /* Begin Marker Functions */
 
@@ -486,27 +533,92 @@ static QString getFuriganaPlain(const Term &term)
 /**
  * Builds the HTML string for the frequencies marker.
  * @param frequencies The frequencies to use.
+ * @param args Extended marker syntax args.
  * @return The string for the {frequency} marker.
  */
 [[nodiscard]]
-static QString buildFrequencies(const QList<Frequency> &frequencies)
+static QString buildFrequencies(
+    const QList<Frequency> &frequencies,
+    const QHash<QString, QString> &args)
 {
     if (frequencies.isEmpty())
     {
         return "";
     }
 
+    constexpr const char *VALUE_ONLY_KEY = "value-only";
+    constexpr const char *MIN_VALUE_KEY = "min-value";
+    constexpr const double MIN_VALUE_DEFAULT = 9999999.0;
+
+    bool valueOnly = false;
+    bool minValueOnly = false;
+
+    QString minFreqDictionary;
+    double minFreq = MIN_VALUE_DEFAULT;
+    QString minFreqStr;
+
+    if (args.contains(VALUE_ONLY_KEY))
+    {
+        valueOnly = QVariant(args[VALUE_ONLY_KEY]).toBool();
+    }
+    if (args.contains(MIN_VALUE_KEY))
+    {
+        minValueOnly = QVariant(args[MIN_VALUE_KEY]).toBool();
+    }
+
     QString freqStr;
-    freqStr += "<ul>";
+    if (!valueOnly)
+    {
+        freqStr += "<ul>";
+    }
     for (const Frequency &freq : frequencies)
     {
-        freqStr += "<li>";
-        freqStr += freq.dictionary;
-        freqStr += freq.dictionary.endsWith(':') ? " " : ": ";
+        if (!valueOnly)
+        {
+            freqStr += "<li>";
+            freqStr += freq.dictionary;
+            freqStr += freq.dictionary.endsWith(':') ? " " : ": ";
+        }
         freqStr += freq.freq;
-        freqStr += "</li>";
+        if (valueOnly)
+        {
+            freqStr += "<br>";
+        }
+        else
+        {
+            freqStr += "</li>";
+        }
+
+        std::optional<double> freqValue = parseFrequencyValue(freq.freq);
+        if (minValueOnly && freqValue && *freqValue < minFreq)
+        {
+            minFreq = *freqValue;
+            minFreqStr = freq.freq;
+            minFreqDictionary = freq.dictionary;
+            minFreqDictionary += freq.dictionary.endsWith(':') ? " " : ": ";
+        }
     }
-    freqStr += "</ul>";
+    if (!valueOnly)
+    {
+        freqStr += "</ul>";
+    }
+
+    if (minValueOnly)
+    {
+        if (!valueOnly)
+        {
+            freqStr = "<ul>";
+            freqStr += "<li>";
+            freqStr += minFreqDictionary;
+            freqStr += minFreqStr;
+            freqStr += "</li>";
+            freqStr += "</ul>";
+        }
+        else
+        {
+            freqStr = std::move(minFreqStr);
+        }
+    }
 
     if (freqStr == "<ul></ul>")
     {
@@ -1534,7 +1646,7 @@ static MarkerResult processMarkerCommon(
     }
     else if (marker.marker == Anki::Marker::FREQUENCIES)
     {
-        result.text = buildFrequencies(exp.frequencies);
+        result.text = buildFrequencies(exp.frequencies, marker.args);
         return result;
     }
     else if (marker.marker == Anki::Marker::FREQ_HARMONIC_RANK)

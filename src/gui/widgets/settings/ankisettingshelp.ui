@@ -1725,6 +1725,50 @@ These will expand to larger expressions in the final card.</string>
              </property>
             </widget>
            </item>
+           <item row="6" column="0" alignment="Qt::AlignmentFlag::AlignHCenter">
+            <widget class="QLabel" name="labelExtendedFrequencyMinValue">
+             <property name="font">
+              <font>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>min-value</string>
+             </property>
+             <property name="textInteractionFlags">
+              <set>Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="1">
+            <widget class="QLabel" name="labelExtendedFrequencyMinValueEx">
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Only export the lowest value frequency. Applies to marker &lt;span style=&quot; font-weight:700;&quot;&gt;{frequencies}&lt;/span&gt;. Default value: false.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0" alignment="Qt::AlignmentFlag::AlignHCenter">
+            <widget class="QLabel" name="labelExtendedFrequencyValueOnly">
+             <property name="font">
+              <font>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>value-only</string>
+             </property>
+             <property name="textInteractionFlags">
+              <set>Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="1">
+            <widget class="QLabel" name="labelExtendedFrequencyValueOnlyEx">
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Export frequency values without the dictionary names. Applies to marker &lt;span style=&quot; font-weight:700;&quot;&gt;{frequencies}&lt;/span&gt;. Default value: false.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </widget>
