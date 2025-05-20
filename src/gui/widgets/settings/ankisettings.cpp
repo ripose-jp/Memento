@@ -219,7 +219,7 @@ AnkiSettings::AnkiSettings(Context *context, QWidget *parent) :
 
 AnkiSettings::~AnkiSettings()
 {
-    disconnect();
+
 }
 
 /* End Constructor/Destructors */

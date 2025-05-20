@@ -79,7 +79,7 @@ BehaviorSettings::BehaviorSettings(Context *context, QWidget *parent) :
 
 BehaviorSettings::~BehaviorSettings()
 {
-    disconnect();
+
 }
 
 /* End Constructor/Destructor */

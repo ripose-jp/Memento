@@ -93,7 +93,7 @@ DictionarySettings::DictionarySettings(
 
 DictionarySettings::~DictionarySettings()
 {
-    disconnect();
+
 }
 
 /* End Constructor/Destructor */

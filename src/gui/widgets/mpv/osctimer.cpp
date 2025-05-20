@@ -45,7 +45,7 @@ OSCTimer::OSCTimer(QObject *parent) : CursorTimer(parent)
 
 OSCTimer::~OSCTimer()
 {
-    disconnect();
+
 }
 
 void OSCTimer::start()

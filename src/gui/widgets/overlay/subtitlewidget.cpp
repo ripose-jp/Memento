@@ -157,7 +157,7 @@ SubtitleWidget::SubtitleWidget(Context *context, QWidget *parent) :
 
 SubtitleWidget::~SubtitleWidget()
 {
-    disconnect();
+
 }
 
 /* End Constructor/Destructor */

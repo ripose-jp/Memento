@@ -60,7 +60,6 @@ DefinitionWidget::DefinitionWidget(
 DefinitionWidget::~DefinitionWidget()
 {
     clearTerms();
-    disconnect();
     if (m_child)
     {
         m_child->deleteLater();

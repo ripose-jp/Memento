@@ -84,7 +84,6 @@ MpvTimer::MpvTimer(mpv_handle *mpv, QObject *parent) : CursorTimer(parent)
 
 MpvTimer::~MpvTimer()
 {
-    disconnect();
     mpv_destroy(m_handle);
 }
 

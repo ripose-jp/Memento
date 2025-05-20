@@ -65,7 +65,7 @@ OCRSettings::OCRSettings(Context *context, QWidget *parent) :
 
 OCRSettings::~OCRSettings()
 {
-    disconnect();
+
 }
 
 /* End Constructor/Destructor */

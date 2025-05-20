@@ -84,7 +84,7 @@ SearchSettings::SearchSettings(Context *context, QWidget *parent) :
 
 SearchSettings::~SearchSettings()
 {
-    disconnect();
+
 }
 
 /* End Constructor/Destructor */

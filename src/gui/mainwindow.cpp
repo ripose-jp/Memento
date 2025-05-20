@@ -114,7 +114,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    disconnect();
+
 }
 
 /* End Constructor/Destructor */

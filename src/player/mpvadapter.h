@@ -42,7 +42,7 @@ public:
         Context *context,
         QPointer<MpvWidget> mpv,
         QObject *parent = nullptr);
-    virtual ~MpvAdapter() { disconnect(); }
+    virtual ~MpvAdapter() = default;
 
     void loadCommandLineArgs() override;
 

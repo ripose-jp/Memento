@@ -80,7 +80,6 @@ MpvWidget::MpvWidget(QWidget *parent) :
 
 MpvWidget::~MpvWidget()
 {
-    disconnect();
     makeCurrent();
     m_cursorTimer.reset();
     if (mpv_gl)

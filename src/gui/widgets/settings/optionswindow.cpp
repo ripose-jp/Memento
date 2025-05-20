@@ -76,7 +76,7 @@ OptionsWindow::OptionsWindow(Context *context, QWidget *parent) :
 
 OptionsWindow::~OptionsWindow()
 {
-    disconnect();
+
 }
 
 /* End Constructor/Destructor */

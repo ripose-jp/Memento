@@ -173,7 +173,7 @@ PlayerControls::PlayerControls(Context *context, QWidget *parent) :
 
 PlayerControls::~PlayerControls()
 {
-    disconnect();
+
 }
 
 /* End Constructor/Destructor */

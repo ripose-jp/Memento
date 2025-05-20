@@ -109,7 +109,7 @@ InterfaceSettings::InterfaceSettings(
 
 InterfaceSettings::~InterfaceSettings()
 {
-    disconnect();
+
 }
 
 /* End Constructor/Destructor */

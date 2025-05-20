@@ -80,7 +80,6 @@ SubtitleListWidget::SubtitleListWidget(QWidget *parent) :
 
 SubtitleListWidget::~SubtitleListWidget()
 {
-    disconnect();
     clearCachedSubtitles();
     saveState();
 }
