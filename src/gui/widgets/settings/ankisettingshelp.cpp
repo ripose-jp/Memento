@@ -23,7 +23,7 @@
 
 #include "player/playeradapter.h"
 
-AnkiSettingsHelp::AnkiSettingsHelp(QPointer<Context> context, QWidget *parent) :
+AnkiSettingsHelp::AnkiSettingsHelp(Context *context, QWidget *parent) :
     QDialog(parent),
     m_ui(std::make_unique<Ui::AnkiSettingsHelp>()),
     m_context(std::move(context))

@@ -23,8 +23,6 @@
 
 #include <QWidget>
 
-#include <QPointer>
-
 #include "state/context.h"
 #include "util/iconfactory.h"
 
@@ -43,7 +41,7 @@ class PlayerControls : public QWidget
     Q_OBJECT
 
 public:
-    PlayerControls(QPointer<Context> context, QWidget *parent = nullptr);
+    PlayerControls(Context *context, QWidget *parent = nullptr);
     virtual ~PlayerControls();
 
 public Q_SLOTS:
@@ -124,7 +122,7 @@ private:
     std::unique_ptr<Ui::PlayerControls> m_ui;
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* Current pause state of the player. */
     bool m_paused = true;

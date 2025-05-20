@@ -29,7 +29,7 @@
 
 /* Begin Constructor/Destructor */
 
-PlayerControls::PlayerControls(QPointer<Context> context, QWidget *parent) :
+PlayerControls::PlayerControls(Context *context, QWidget *parent) :
     QWidget(parent),
     m_ui(std::make_unique<Ui::PlayerControls>()),
     m_context(std::move(context))

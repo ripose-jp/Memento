@@ -23,8 +23,6 @@
 
 #include <QSlider>
 
-#include <QPointer>
-
 #include "gui/widgets/common/strokelabel.h"
 #include "state/context.h"
 
@@ -43,7 +41,7 @@ public:
      * Initializes this widget with the given context.
      * @param context The application context.
      */
-    void initialize(QPointer<Context> context);
+    void initialize(Context *context);
 
     /**
      * Creates an (HH):MM:SS timecode from the supplied time.
@@ -99,7 +97,7 @@ private Q_SLOTS:
 
 private:
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* The label used for displaying the timecode the mouse is hovering over. */
     StrokeLabel *m_labelTimecode = nullptr;

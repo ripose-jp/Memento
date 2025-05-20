@@ -26,7 +26,6 @@
 #include <memory>
 
 #include <QMouseEvent>
-#include <QPointer>
 #include <QTimer>
 
 #include "dict/dictionary.h"
@@ -40,7 +39,7 @@ class SubtitleWidget : public StrokeLabel
     Q_OBJECT
 
 public:
-    SubtitleWidget(QPointer<Context> context, QWidget *parent = 0);
+    SubtitleWidget(Context *context, QWidget *parent = 0);
     virtual ~SubtitleWidget();
 
 protected:
@@ -141,7 +140,7 @@ private Q_SLOTS:
 
 private:
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* Timer object used for starting searches when hover is enabled. */
     QTimer m_findDelay;

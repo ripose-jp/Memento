@@ -26,7 +26,6 @@
 #include <memory>
 
 #include <QComboBox>
-#include <QPointer>
 
 #include "state/context.h"
 
@@ -48,7 +47,7 @@ class AudioSourceSettings : public QWidget
     Q_OBJECT
 
 public:
-    AudioSourceSettings(QPointer<Context> context, QWidget *parent = nullptr);
+    AudioSourceSettings(Context *context, QWidget *parent = nullptr);
     virtual ~AudioSourceSettings();
 
 protected:
@@ -145,7 +144,7 @@ private:
     std::unique_ptr<Ui::AudioSourceSettings> m_ui;
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 };
 
 #endif // AUDIOSOURCESETTINGS_H

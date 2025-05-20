@@ -24,7 +24,6 @@
 #include <QObject>
 
 #include <QList>
-#include <QPointer>
 #include <QReadWriteLock>
 #include <QString>
 
@@ -44,7 +43,7 @@ class Dictionary : public QObject
     Q_OBJECT
 
 public:
-    Dictionary(QPointer<Context> context, QObject *parent = nullptr);
+    Dictionary(Context *context, QObject *parent = nullptr);
     virtual ~Dictionary();
 
     /**
@@ -157,7 +156,7 @@ private:
     void sortTags(QList<Tag> &tags) const;
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* The DatabaseManager */
     std::unique_ptr<DatabaseManager> m_db = nullptr;

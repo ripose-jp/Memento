@@ -35,7 +35,7 @@
 /* Begin Constructor/Destructor */
 
 KanjiWidget::KanjiWidget(
-    QPointer<Context> context,
+    Context *context,
     std::shared_ptr<const Kanji> kanji,
     bool showBack,
     QWidget *parent) :

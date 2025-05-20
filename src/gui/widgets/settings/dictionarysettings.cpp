@@ -36,7 +36,7 @@ static constexpr int ROLE_DICTIONARY_NAME = Qt::UserRole + 1;
 /* Begin Constructor/Destructor */
 
 DictionarySettings::DictionarySettings(
-    QPointer<Context> context,
+    Context *context,
     QWidget *parent) :
     QWidget(parent),
     m_ui(std::make_unique<Ui::DictionarySettings>()),

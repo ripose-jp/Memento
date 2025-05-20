@@ -21,7 +21,6 @@
 #ifndef GLOSSARYLABEL_H
 #define GLOSSARYLABEL_H
 
-#include <QPointer>
 #include <QRunnable>
 #include <QTextEdit>
 
@@ -44,7 +43,7 @@ public:
      * @param parent  The parent of this label.
      */
     GlossaryLabel(
-        QPointer<Context> context,
+        Context *context,
         const DefinitionState &state,
         QWidget *parent = nullptr);
     virtual ~GlossaryLabel();
@@ -211,7 +210,7 @@ private:
     void findTerms(int position);
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* The state of this definition widget */
     const DefinitionState &m_state;
@@ -237,7 +236,7 @@ public:
      * @param position The position of the query in the entire text.
      */
     DictionaryWorker(
-        QPointer<Context> context,
+        Context *context,
         const QString &query,
         const QString &sentence,
         int index,
@@ -271,7 +270,7 @@ Q_SIGNALS:
 
 private:
     /* Thea application context */
-    QPointer<Context> context = nullptr;
+    Context *context = nullptr;
 
     /* The query for this worker */
     const QString query;

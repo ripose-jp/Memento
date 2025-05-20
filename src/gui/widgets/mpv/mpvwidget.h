@@ -24,7 +24,6 @@
 #include <QHash>
 #include <QMouseEvent>
 #include <QOpenGLWidget>
-#include <QPointer>
 #include <QRegularExpression>
 #include <QTimer>
 
@@ -54,7 +53,7 @@ public:
      * Initializes the widget with all needed information.
      * @param context The context for the application.
      */
-    void initialize(QPointer<Context> context);
+    void initialize(Context *context);
 
     /**
      * Get the mpv client context
@@ -388,7 +387,7 @@ private:
     bool propertyExists(const char *prop);
 
     /* The context for the application */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* The mpv context */
     mpv_handle *m_mpv = nullptr;

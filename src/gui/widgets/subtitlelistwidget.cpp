@@ -105,7 +105,7 @@ void SubtitleListWidget::saveState()
 /* End Constructor/Destructors */
 /* Begin Initializers */
 
-void SubtitleListWidget::initialize(QPointer<Context> context)
+void SubtitleListWidget::initialize(Context *context)
 {
     m_context = std::move(context);
 

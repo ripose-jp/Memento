@@ -25,8 +25,6 @@
 
 #include <memory>
 
-#include <QPointer>
-
 #include "state/context.h"
 
 namespace Ui
@@ -42,7 +40,7 @@ class OCRSettings : public QWidget
     Q_OBJECT
 
 public:
-    OCRSettings(QPointer<Context> context, QWidget *parent = nullptr);
+    OCRSettings(Context *context, QWidget *parent = nullptr);
     ~OCRSettings();
 
 protected:
@@ -78,7 +76,7 @@ private:
     std::unique_ptr<Ui::OCRSettings> m_ui;
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 };
 
 #endif // OCRSETTINGS_H

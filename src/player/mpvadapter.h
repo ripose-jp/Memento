@@ -39,7 +39,7 @@ class MpvAdapter : public PlayerAdapter
 {
 public:
     MpvAdapter(
-        QPointer<Context> context,
+        Context *context,
         QPointer<MpvWidget> mpv,
         QObject *parent = nullptr);
     virtual ~MpvAdapter() { disconnect(); }
@@ -200,7 +200,7 @@ private:
     void loadFilesFromTree(const LoadFileNode &parent, QStringList &options);
 
     /* The application conext */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* The MpvWidget */
     QPointer<MpvWidget> m_mpv = nullptr;

@@ -93,7 +93,7 @@ MpvWidget::~MpvWidget()
 /* End Constructor/Destructor */
 /* Begin Initialization Functions */
 
-void MpvWidget::initialize(QPointer<Context> context)
+void MpvWidget::initialize(Context *context)
 {
     m_context = std::move(context);
 

@@ -39,7 +39,7 @@
 
 /* Begin Constructor/Destructor */
 
-PlayerOverlay::PlayerOverlay(QPointer<Context> context, QWidget *parent) :
+PlayerOverlay::PlayerOverlay(Context *context, QWidget *parent) :
     QStackedLayout(parent),
     m_context(std::move(context))
 {

@@ -29,7 +29,6 @@
 #include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <QPointer>
 #include <QString>
 #include <QStringList>
 
@@ -73,7 +72,7 @@ class AnkiClient : public QObject
     Q_OBJECT
 
 public:
-    AnkiClient(QPointer<Context> context, QObject *parent = nullptr);
+    AnkiClient(Context *context, QObject *parent = nullptr);
 
     /**
      * Destructor for all allocated AnkiConfigs.
@@ -352,7 +351,7 @@ private:
     QJsonObject processReply(QNetworkReply &reply, QString &error);
 
     /* The context object for this application */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* The Network Manager for this object */
     QNetworkAccessManager m_manager;

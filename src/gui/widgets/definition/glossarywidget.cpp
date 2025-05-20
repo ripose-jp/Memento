@@ -26,7 +26,7 @@
 #include "util/utils.h"
 
 GlossaryWidget::GlossaryWidget(
-    QPointer<Context> context,
+    Context *context,
     const DefinitionState &state,
     const TermDefinition &def,
     size_t number,

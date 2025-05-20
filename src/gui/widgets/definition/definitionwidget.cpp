@@ -35,7 +35,7 @@
 /* Begin Constructor/Destructor */
 
 DefinitionWidget::DefinitionWidget(
-    QPointer<Context> context,
+    Context *context,
     bool showNavigation,
     QWidget *parent) :
     QWidget(parent),

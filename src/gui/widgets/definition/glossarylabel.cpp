@@ -41,7 +41,7 @@ static constexpr int MAX_WIDTH = 350;
 /* Begin Constructor/Destructor */
 
 GlossaryLabel::GlossaryLabel(
-    QPointer<Context> context,
+    Context *context,
     const DefinitionState &state,
     QWidget *parent) :
     QTextEdit(parent),

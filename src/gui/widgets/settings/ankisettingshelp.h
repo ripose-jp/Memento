@@ -25,8 +25,6 @@
 
 #include <memory>
 
-#include <QPointer>
-
 #include "state/context.h"
 
 namespace Ui
@@ -43,7 +41,7 @@ class AnkiSettingsHelp : public QDialog
     Q_OBJECT
 
 public:
-    AnkiSettingsHelp(QPointer<Context> context, QWidget *parent = 0);
+    AnkiSettingsHelp(Context *context, QWidget *parent = 0);
     virtual ~AnkiSettingsHelp();
 
 private:
@@ -51,7 +49,7 @@ private:
     std::unique_ptr<Ui::AnkiSettingsHelp> m_ui;
 
     /* The application context */
-    QPointer<Context> m_context;
+    Context *m_context = nullptr;
 };
 
 #endif // ANKISETTINGSHELP_H

@@ -25,7 +25,6 @@
 
 #include <memory>
 
-#include <QPointer>
 #include <QShortcut>
 #include <QWheelEvent>
 
@@ -60,7 +59,7 @@ public:
      *                       its parent or its own window if now parent.
      */
     DefinitionWidget(
-        QPointer<Context> context,
+        Context *context,
         bool showNavigation = false,
         QWidget *parent = nullptr);
     virtual ~DefinitionWidget();
@@ -217,7 +216,7 @@ private:
     std::unique_ptr<Ui::DefinitionWidget> m_ui;
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* The shared definition state */
     DefinitionState m_state{};

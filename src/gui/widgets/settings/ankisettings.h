@@ -26,7 +26,6 @@
 #include <memory>
 
 #include <QMutex>
-#include <QPointer>
 
 #include <qcoro/qcorotask.h>
 
@@ -49,7 +48,7 @@ class AnkiSettings : public QWidget
     Q_OBJECT
 
 public:
-    AnkiSettings(QPointer<Context> context, QWidget *parent = nullptr);
+    AnkiSettings(Context *context, QWidget *parent = nullptr);
     ~AnkiSettings();
 
 protected:
@@ -181,7 +180,7 @@ private:
     std::unique_ptr<Ui::AnkiSettings> m_ui;
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* The help window that explains what the card markers are. */
     std::unique_ptr<AnkiSettingsHelp> m_ankiSettingsHelp = nullptr;

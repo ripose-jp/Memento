@@ -162,7 +162,7 @@ QString FileUtils::toBase64(QFile *file)
 /* End FileUtils */
 /* Begin NetworkUtils */
 
-void NetworkUtils::checkForUpdates(QPointer<Context> context)
+void NetworkUtils::checkForUpdates(Context *context)
 {
     QNetworkAccessManager *manager = new QNetworkAccessManager;
     manager->setTransferTimeout();

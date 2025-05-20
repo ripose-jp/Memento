@@ -23,7 +23,6 @@
 
 #include <QFile>
 #include <QImage>
-#include <QPointer>
 #include <QString>
 
 #include "state/context.h"
@@ -153,7 +152,7 @@ public:
      * link to a new version, one saying Memento is up to date, or an error.
      * @param context The application context.
      */
-    static void checkForUpdates(QPointer<Context> Context);
+    static void checkForUpdates(Context *Context);
 };
 
 /**

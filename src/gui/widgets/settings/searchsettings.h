@@ -25,8 +25,6 @@
 
 #include <memory>
 
-#include <QPointer>
-
 #include "state/context.h"
 
 namespace Ui
@@ -42,7 +40,7 @@ class SearchSettings : public QWidget
     Q_OBJECT
 
 public:
-    SearchSettings(QPointer<Context> context, QWidget *parent = nullptr);
+    SearchSettings(Context *context, QWidget *parent = nullptr);
     virtual ~SearchSettings();
 
 protected:
@@ -79,7 +77,7 @@ private:
     std::unique_ptr<Ui::SearchSettings> m_ui;
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 };
 
 #endif // SEARCHSETTINGS_H

@@ -45,7 +45,7 @@ class BehaviorSettings : public QWidget
     Q_OBJECT
 
 public:
-    BehaviorSettings(QPointer<Context> context, QWidget *parent = nullptr);
+    BehaviorSettings(Context *context, QWidget *parent = nullptr);
     virtual ~BehaviorSettings();
 
 protected:
@@ -87,7 +87,7 @@ private:
     std::unique_ptr<Ui::BehaviorSettings> m_ui;
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* Maps ComboBox options to their corresponding enum values */
     QMap<QString, Constants::FileOpenDirectory> m_fileOpenMap;

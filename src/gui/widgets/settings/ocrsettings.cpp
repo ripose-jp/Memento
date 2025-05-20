@@ -29,7 +29,7 @@
 
 /* Begin Constructor/Destructor */
 
-OCRSettings::OCRSettings(QPointer<Context> context, QWidget *parent) :
+OCRSettings::OCRSettings(Context *context, QWidget *parent) :
     QWidget(parent),
     m_ui(std::make_unique<Ui::OCRSettings>()),
     m_context(std::move(context))

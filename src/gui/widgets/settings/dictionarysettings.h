@@ -26,7 +26,6 @@
 #include <memory>
 
 #include <QMutex>
-#include <QPointer>
 
 #include "state/context.h"
 
@@ -43,7 +42,7 @@ class DictionarySettings : public QWidget
     Q_OBJECT
 
 public:
-    DictionarySettings(QPointer<Context> context, QWidget *parent = nullptr);
+    DictionarySettings(Context *context, QWidget *parent = nullptr);
     ~DictionarySettings();
 
 protected:
@@ -109,7 +108,7 @@ private:
     std::unique_ptr<Ui::DictionarySettings> m_ui;
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* Condition to prevent multiple restoreSaved thread from being fired */
     QMutex m_restoreSavedActive;

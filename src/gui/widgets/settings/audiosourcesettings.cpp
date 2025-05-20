@@ -42,7 +42,7 @@ constexpr const char *TYPE_COMBO_BOX_JSON = "JSON";
 /* Begin Constructor/Destructors */
 
 AudioSourceSettings::AudioSourceSettings(
-    QPointer<Context> context,
+    Context *context,
     QWidget *parent) :
     QWidget(parent),
     m_ui(std::make_unique<Ui::AudioSourceSettings>()),

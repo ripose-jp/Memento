@@ -26,7 +26,6 @@
 #include <QHash>
 #include <QMutex>
 #include <QNetworkAccessManager>
-#include <QPointer>
 #include <QTemporaryFile>
 
 #include "state/context.h"
@@ -58,7 +57,7 @@ class AudioPlayer : public QObject
 {
     Q_OBJECT
 public:
-    AudioPlayer(QPointer<Context> context, QObject *parent = nullptr);
+    AudioPlayer(Context *context, QObject *parent = nullptr);
     virtual ~AudioPlayer();
 
     /**
@@ -86,7 +85,7 @@ private:
     bool playFile(const QTemporaryFile *file);
 
     /* The context for this application */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* The network access manager used for fetching audio files. */
     QNetworkAccessManager m_manager;

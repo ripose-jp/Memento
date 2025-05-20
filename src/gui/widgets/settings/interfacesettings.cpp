@@ -31,7 +31,7 @@
 /* Begin Constructor/Destructor */
 
 InterfaceSettings::InterfaceSettings(
-    QPointer<Context> context,
+    Context *context,
     QWidget *parent) :
     QWidget(parent),
     m_ui(std::make_unique<Ui::InterfaceSettings>()),

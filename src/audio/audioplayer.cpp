@@ -35,7 +35,7 @@
 
 /* Begin Constructor/Destructor */
 
-AudioPlayer::AudioPlayer(QPointer<Context> context, QObject *parent) :
+AudioPlayer::AudioPlayer(Context *context, QObject *parent) :
     QObject(parent),
     m_context(std::move(context)),
     m_manager(this)

@@ -25,7 +25,6 @@
 
 #include <QCheckBox>
 #include <QLabel>
-#include <QPointer>
 
 #include "dict/expression.h"
 #include "gui/widgets/common/flowlayout.h"
@@ -51,7 +50,7 @@ public:
      * @param parent          The parent of the GlossaryWidget.
      */
     GlossaryWidget(
-        QPointer<Context> context,
+        Context *context,
         const DefinitionState &state,
         const TermDefinition &def,
         size_t number,
@@ -98,7 +97,7 @@ Q_SIGNALS:
 
 private:
     /* The application context */
-    QPointer<Context> m_context;
+    Context *m_context = nullptr;
 
     /* The definition state for this definition widget */
     const DefinitionState &m_state;

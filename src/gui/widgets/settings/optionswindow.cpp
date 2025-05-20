@@ -33,7 +33,7 @@
 
 /* Begin Constructor/Destructor */
 
-OptionsWindow::OptionsWindow(QPointer<Context> context, QWidget *parent) :
+OptionsWindow::OptionsWindow(Context *context, QWidget *parent) :
     QWidget(parent),
     m_ui(std::make_unique<Ui::OptionsWindow>()),
     m_context(std::move(context))

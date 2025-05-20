@@ -102,7 +102,7 @@ SearchWidget::SearchWidget(QWidget *parent) : QWidget(parent)
 
 }
 
-void SearchWidget::initialize(QPointer<Context> context)
+void SearchWidget::initialize(Context *context)
 {
     m_context = std::move(context);
 

@@ -25,7 +25,6 @@
 
 #include <memory>
 
-#include <QPointer>
 #include <QVBoxLayout>
 #include <QWheelEvent>
 
@@ -118,7 +117,7 @@ public:
      * Initializes the widget with the given context.
      * @param context The application context.
      */
-    void initialize(QPointer<Context> context);
+    void initialize(Context *context);
 
 Q_SIGNALS:
     /**
@@ -195,7 +194,7 @@ protected:
 
 private:
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* The parent layout */
     QVBoxLayout *m_layoutParent = nullptr;

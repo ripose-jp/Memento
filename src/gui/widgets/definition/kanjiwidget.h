@@ -52,7 +52,7 @@ public:
      * @param parent   The parent of the widget.
      */
     KanjiWidget(
-        QPointer<Context> context,
+        Context *context,
         std::shared_ptr<const Kanji> kanji,
         bool showBack = false,
         QWidget *parent = nullptr);
@@ -134,7 +134,7 @@ private:
     std::unique_ptr<Kanji> initAnkiKanji() const;
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* The kanji that this widget is displaying */
     std::shared_ptr<const Kanji> m_kanji = nullptr;

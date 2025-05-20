@@ -26,7 +26,6 @@
 #include <memory>
 
 #include <QFutureWatcher>
-#include <QPointer>
 #include <QRubberBand>
 
 #include "ocr/ocrmodel.h"
@@ -45,7 +44,7 @@ public:
      * @param context The application context.
      * @param parent  The parent that will have OCR run it.
      */
-    OCROverlay(QPointer<Context> context, QWidget *parent = nullptr);
+    OCROverlay(Context *context, QWidget *parent = nullptr);
     virtual ~OCROverlay() = default;
 
 private Q_SLOTS:
@@ -106,7 +105,7 @@ private:
     void getText(QRect rect);
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* The OCR model */
     std::unique_ptr<OCRModel> m_model = nullptr;

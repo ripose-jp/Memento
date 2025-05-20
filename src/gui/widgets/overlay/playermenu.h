@@ -25,8 +25,6 @@
 
 #include <memory>
 
-#include <QPointer>
-
 #include "player/playeradapter.h"
 #include "state/context.h"
 
@@ -49,7 +47,7 @@ class PlayerMenu : public QWidget
     Q_OBJECT
 
 public:
-    PlayerMenu(QPointer<Context> context, QWidget *parent = nullptr);
+    PlayerMenu(Context *context, QWidget *parent = nullptr);
     ~PlayerMenu();
 
     /**
@@ -213,7 +211,7 @@ private:
     std::unique_ptr<Ui::PlayerMenu> m_ui;
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* Contains all the information about menu items corresponding to tracks */
     struct ActionGroups

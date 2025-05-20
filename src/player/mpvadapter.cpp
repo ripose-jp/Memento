@@ -29,7 +29,7 @@
 #include "util/constants.h"
 
 MpvAdapter::MpvAdapter(
-    QPointer<Context> context,
+    Context *context,
     QPointer<MpvWidget> mpv,
     QObject *parent) :
     PlayerAdapter(parent),

@@ -63,7 +63,7 @@ public:
 /* End MenuBar Proxy Style */
 /* Begin Constructor/Destructor */
 
-PlayerMenu::PlayerMenu(QPointer<Context> context, QWidget *parent) :
+PlayerMenu::PlayerMenu(Context *context, QWidget *parent) :
     QWidget(parent),
     m_ui(std::make_unique<Ui::PlayerMenu>()),
     m_context(std::move(context))

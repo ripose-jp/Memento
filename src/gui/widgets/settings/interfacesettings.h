@@ -23,8 +23,6 @@
 
 #include <QWidget>
 
-#include <QPointer>
-
 #include "state/context.h"
 
 class QToolButton;
@@ -42,7 +40,7 @@ class InterfaceSettings : public QWidget
     Q_OBJECT
 
 public:
-    InterfaceSettings(QPointer<Context> context, QWidget *parent = nullptr);
+    InterfaceSettings(Context *context, QWidget *parent = nullptr);
     virtual ~InterfaceSettings();
 
 protected:
@@ -93,7 +91,7 @@ private:
     std::unique_ptr<Ui::InterfaceSettings> m_ui;
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* Color of the subtitle. */
     QColor m_subColor;

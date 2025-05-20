@@ -28,7 +28,6 @@
 #include <QLabel>
 #include <QMenu>
 #include <QMutex>
-#include <QPointer>
 #include <QShortcut>
 
 #include <qcoro/qcorotask.h>
@@ -59,7 +58,7 @@ public:
      * @param parent  The parent of this widget.
      */
     TermWidget(
-        QPointer<Context> context,
+        Context *context,
         std::shared_ptr<const Term> term,
         const DefinitionState &state,
         QWidget *parent = nullptr);
@@ -205,7 +204,7 @@ private:
     std::unique_ptr<Ui::TermWidget> m_ui;
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* The term this widget is displaying. */
     std::shared_ptr<const Term> m_term = nullptr;

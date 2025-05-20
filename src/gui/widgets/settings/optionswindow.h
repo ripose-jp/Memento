@@ -24,7 +24,6 @@
 #include <QWidget>
 
 #include <QMap>
-#include <QPointer>
 
 #include "state/context.h"
 
@@ -41,7 +40,7 @@ class OptionsWindow : public QWidget
     Q_OBJECT
 
 public:
-    OptionsWindow(QPointer<Context> context, QWidget *parent = nullptr);
+    OptionsWindow(Context *context, QWidget *parent = nullptr);
     virtual ~OptionsWindow();
 
 protected:
@@ -69,7 +68,7 @@ private:
     std::unique_ptr<Ui::OptionsWindow> m_ui;
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* The widget currently being shown. */
     QWidget *m_currentWidget = nullptr;

@@ -54,7 +54,7 @@ ProgressSlider::~ProgressSlider()
     m_labelTimecode->deleteLater();
 }
 
-void ProgressSlider::initialize(QPointer<Context> context)
+void ProgressSlider::initialize(Context *context)
 {
     m_context = std::move(context);
 

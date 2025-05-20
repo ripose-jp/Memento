@@ -40,7 +40,7 @@
 
 /* Begin Constructor/Destructor */
 
-Dictionary::Dictionary(QPointer<Context> context, QObject *parent) :
+Dictionary::Dictionary(Context *context, QObject *parent) :
     QObject(parent),
     m_context(std::move(context)),
     m_db(std::make_unique<DatabaseManager>(DirectoryUtils::getDictionaryDB()))

@@ -41,7 +41,7 @@ static constexpr double DOUBLE_DELTA = 0.001;
 
 /* Begin Constructor/Destructor */
 
-SubtitleWidget::SubtitleWidget(QPointer<Context> context, QWidget *parent) :
+SubtitleWidget::SubtitleWidget(Context *context, QWidget *parent) :
     StrokeLabel(parent),
     m_context(std::move(context)),
     m_findDelay(this)

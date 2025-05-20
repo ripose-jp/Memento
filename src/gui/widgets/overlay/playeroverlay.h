@@ -58,7 +58,7 @@ public:
      * @param context The application context.
      * @param parent  The player widget.
      */
-    PlayerOverlay(QPointer<Context> context, QWidget *parent);
+    PlayerOverlay(Context *context, QWidget *parent);
     virtual ~PlayerOverlay() override;
 
 public Q_SLOTS:
@@ -176,7 +176,7 @@ private:
     void moveSubtitles(const double inc);
 
     /* The application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
 #ifdef OCR_SUPPORT
     /* Saved pointer to the OCROverlay */

@@ -80,7 +80,7 @@ static const QString CONJUGATION_STYLE("QLabel { font-size: 12pt; }");
 /* Begin Constructor/Destructor */
 
 TermWidget::TermWidget(
-    QPointer<Context> context,
+    Context *context,
     std::shared_ptr<const Term> term,
     const DefinitionState &state,
     QWidget *parent) :

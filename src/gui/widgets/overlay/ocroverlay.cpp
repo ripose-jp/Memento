@@ -32,7 +32,7 @@
 
 /* Begin Constructor/Destructor */
 
-OCROverlay::OCROverlay(QPointer<Context> context, QWidget *parent) :
+OCROverlay::OCROverlay(Context *context, QWidget *parent) :
     QWidget(parent),
     m_context(std::move(context)),
     m_rubberBand(new QRubberBand(QRubberBand::Rectangle, this))

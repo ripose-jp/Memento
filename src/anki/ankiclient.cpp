@@ -58,7 +58,7 @@ static constexpr const char *CONFIG_EXCLUDE_GLOSSARY = "ex-glos";
 
 /* Begin Constructor/Destructors */
 
-AnkiClient::AnkiClient(QPointer<Context> context, QObject *parent) :
+AnkiClient::AnkiClient(Context *context, QObject *parent) :
     QObject(parent),
     m_context(std::move(context)),
     m_manager(this)

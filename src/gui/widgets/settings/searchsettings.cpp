@@ -28,7 +28,7 @@
 
 /* Begin Constructor/Destructor */
 
-SearchSettings::SearchSettings(QPointer<Context> context, QWidget *parent) :
+SearchSettings::SearchSettings(Context *context, QWidget *parent) :
     QWidget(parent),
     m_ui(std::make_unique<Ui::SearchSettings>()),
     m_context(std::move(context))

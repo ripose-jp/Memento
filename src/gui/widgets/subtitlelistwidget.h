@@ -30,7 +30,6 @@
 #include <QMultiHash>
 #include <QMultiMap>
 #include <QMutex>
-#include <QPointer>
 #include <QRegularExpression>
 #include <QShortcut>
 #include <QTableWidget>
@@ -63,7 +62,7 @@ public:
      * Initializes the widget with the given context.
      * @param context The application context.
      */
-    void initialize(QPointer<Context> context);
+    void initialize(Context *context);
 
     /**
      * Returns a string containing all the selected rows in the primary subtitle
@@ -507,7 +506,7 @@ private:
     std::unique_ptr<Ui::SubtitleListWidget> m_ui;
 
     /* The global application context */
-    QPointer<Context> m_context = nullptr;
+    Context *m_context = nullptr;
 
     /* Shortcut for copying the current context */
     std::unique_ptr<QShortcut> m_copyShortcut = nullptr;
