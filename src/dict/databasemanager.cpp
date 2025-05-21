@@ -755,6 +755,7 @@ int DatabaseManager::addFrequencies(
                 *(const uint64_t *)sqlite3_column_blob(stmt, 1)
             );
             break;
+
         case YOMI_BLOB_TYPE_OBJECT:
         {
             QJsonObject obj = QJsonDocument::fromJson(
@@ -777,7 +778,7 @@ int DatabaseManager::addFrequencies(
              */
             if (obj[OBJ_FREQ_KEY].isDouble())
             {
-                freqStr = QString::number(obj[OBJ_FREQ_KEY].toInt());
+                freqStr = QString::number(obj[OBJ_FREQ_KEY].toDouble());
             }
 
             /* Second scenario:
@@ -808,7 +809,7 @@ int DatabaseManager::addFrequencies(
                 }
                 else if (obj[OBJ_VALUE_KEY].isDouble())
                 {
-                    freqStr = QString::number(obj[OBJ_VALUE_KEY].toInt());
+                    freqStr = QString::number(obj[OBJ_VALUE_KEY].toDouble());
                 }
                 else
                 {
