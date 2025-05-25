@@ -65,18 +65,16 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     /**
-     * Adds the currently displayed kanji to Anki.
+     * Adds the currently displayed kanji to Anki and update the UI.
      * Shows a dialog on error.
-     * @return An awaitable task.
      */
-    QCoro::Task<void> addKanji();
+    void addAnki();
 
     /**
-     * Opens the Anki browser and searches for the kanji character in the deck
-     * AnkiClient is configured to add kanji cards to.
-     * @return An awaitable task.
+     * Opens the currently displayed kanji in Anki.
+     * Shows a dialog on error.
      */
-    QCoro::Task<void> openAnki();
+    void openAnki();
 
 private:
     /**
@@ -125,6 +123,27 @@ private:
      *          caller.
      */
     QLayout *createKVLabel(const QString &key, const QString &value) const;
+
+    /**
+     * Adds a Kanji to Anki in a static context. Shows a dialog on error.
+     * @param context The application context.
+     * @param kanji The kanji to add to Anki.
+     * @return An awaitable task. True on success, false otherwise.
+     */
+    static QCoro::Task<bool> addAnki(
+        Context *context,
+        std::unique_ptr<Kanji> kanji);
+
+    /**
+     * Opens the Anki browser and searches for the kanji character in the deck
+     * AnkiClient is configured to add kanji cards to.
+     * @param context The application context.
+     * @param kanji The kanji to open.
+     * @return An awaitable task. True on success, false otherwise.
+     */
+    static QCoro::Task<bool> openAnki(
+        Context *context,
+        std::unique_ptr<Kanji> kanji);
 
     /**
      * Creates an addable copy of the current Kanji object.

@@ -120,7 +120,7 @@ KanjiWidget::KanjiWidget(
 
     connect(
         m_shortcutAnkiAdd, &QShortcut::activated,
-        this, &KanjiWidget::addKanji
+        this, qOverload<>(&KanjiWidget::addAnki)
     );
 
     if (!m_context->getAnkiClient()->isEnabled())
@@ -149,7 +149,7 @@ KanjiWidget::KanjiWidget(
                 m_buttonAnkiAddOpen->setToolTip("Add Anki note");
                 connect(
                     m_buttonAnkiAddOpen, &QToolButton::clicked,
-                    this, &KanjiWidget::addKanji
+                    this, qOverload<>(&KanjiWidget::addAnki)
                 );
                 m_buttonAnkiAddOpen->show();
                 m_shortcutAnkiAdd->setEnabled(true);
@@ -162,7 +162,7 @@ KanjiWidget::KanjiWidget(
                 m_buttonAnkiAddOpen->setToolTip("Show in Anki");
                 connect(
                     m_buttonAnkiAddOpen, &QToolButton::clicked,
-                    this, &KanjiWidget::openAnki
+                    this, qOverload<>(&KanjiWidget::openAnki)
                 );
                 m_buttonAnkiAddOpen->show();
                 m_shortcutAnkiAdd->setEnabled(false);
@@ -258,40 +258,39 @@ void KanjiWidget::addKVSection(const QString &title,
 /* End Builders */
 /* Begin Button Handlers */
 
-QCoro::Task<void> KanjiWidget::addKanji()
+void KanjiWidget::addAnki()
 {
     m_buttonAnkiAddOpen->setEnabled(false);
     m_shortcutAnkiAdd->setEnabled(false);
 
-    AnkiReply<int> result =
-        co_await m_context->getAnkiClient()->addNote(initAnkiKanji());
-    if (!result.error.isEmpty())
-    {
-        emit m_context->showCritical("Error Adding Note", result.error);
-        co_return;
-    }
-
-    m_buttonAnkiAddOpen->disconnect();
-    m_buttonAnkiAddOpen->setIcon(
-        IconFactory::create()->getIcon(IconFactory::Icon::hamburger)
+    QCoro::Task<bool> addTask = addAnki(m_context, initAnkiKanji());
+    QCoro::connect(
+        std::move(addTask),
+        this,
+        [this] (bool success) -> void
+        {
+            if (!success)
+            {
+                return;
+            }
+            m_buttonAnkiAddOpen->disconnect();
+            m_buttonAnkiAddOpen->setIcon(
+                IconFactory::create()->getIcon(IconFactory::Icon::hamburger)
+            );
+            m_buttonAnkiAddOpen->setToolTip("Show in Anki");
+            connect(
+                m_buttonAnkiAddOpen, &QToolButton::clicked,
+                this, qOverload<>(&KanjiWidget::openAnki)
+            );
+            m_buttonAnkiAddOpen->setEnabled(true);
+            m_shortcutAnkiAdd->setEnabled(false);
+        }
     );
-    m_buttonAnkiAddOpen->setToolTip("Show in Anki");
-    connect(
-        m_buttonAnkiAddOpen, &QToolButton::clicked,
-        this, &KanjiWidget::openAnki
-    );
-    m_buttonAnkiAddOpen->setEnabled(true);
-    m_shortcutAnkiAdd->setEnabled(false);
 }
 
-QCoro::Task<void> KanjiWidget::openAnki()
+void KanjiWidget::openAnki()
 {
-    AnkiReply<QList<int>> result =
-        co_await m_context->getAnkiClient()->openDuplicates(initAnkiKanji());
-    if (!result.error.isEmpty())
-    {
-        emit m_context->showCritical("Error Opening Anki", result.error);
-    }
+    openAnki(m_context, initAnkiKanji());
 }
 
 /* End Button Handler */
@@ -361,3 +360,34 @@ std::unique_ptr<Kanji> KanjiWidget::initAnkiKanji() const
 }
 
 /* End Helpers */
+/* Begin Static Methods */
+
+QCoro::Task<bool> KanjiWidget::addAnki(
+    Context *context,
+    std::unique_ptr<Kanji> kanji)
+{
+    AnkiReply<int> result =
+        co_await context->getAnkiClient()->addNote(std::move(kanji));
+    if (!result.error.isEmpty())
+    {
+        emit context->showCritical("Error Adding Note", result.error);
+        co_return false;
+    }
+    co_return true;
+}
+
+QCoro::Task<bool> KanjiWidget::openAnki(
+    Context *context,
+    std::unique_ptr<Kanji> kanji)
+{
+    AnkiReply<QList<int>> result =
+        co_await context->getAnkiClient()->openDuplicates(std::move(kanji));
+    if (!result.error.isEmpty())
+    {
+        emit context->showCritical("Error Opening Anki", result.error);
+        co_return false;
+    }
+    co_return true;
+}
+
+/* End Static Methods */
