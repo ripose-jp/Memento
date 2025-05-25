@@ -25,6 +25,8 @@
 #include <QImage>
 #include <QString>
 
+#include <qcoro/qcorotask.h>
+
 #include "state/context.h"
 
 namespace Constants
@@ -151,8 +153,9 @@ public:
      * Checks if there is a new version of Memento. Displays a dialog with a
      * link to a new version, one saying Memento is up to date, or an error.
      * @param context The application context.
+     * @return An awaitable task.
      */
-    static void checkForUpdates(Context *Context);
+    static QCoro::Task<void> checkForUpdates(Context *Context);
 };
 
 /**

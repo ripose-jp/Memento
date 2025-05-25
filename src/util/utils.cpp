@@ -20,6 +20,8 @@
 
 #include "utils.h"
 
+#include <memory>
+
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDir>
@@ -32,6 +34,8 @@
 #include <QStandardPaths>
 #include <QStringList>
 #include <QTemporaryFile>
+
+#include <qcoro/network/qcoronetworkreply.h>
 
 #if defined(Q_OS_WIN)
 #include <windows.h>
@@ -162,79 +166,72 @@ QString FileUtils::toBase64(QFile *file)
 /* End FileUtils */
 /* Begin NetworkUtils */
 
-void NetworkUtils::checkForUpdates(Context *context)
+QCoro::Task<void> NetworkUtils::checkForUpdates(Context *context)
 {
-    QNetworkAccessManager *manager = new QNetworkAccessManager;
+    std::unique_ptr<QNetworkAccessManager> manager =
+        std::make_unique<QNetworkAccessManager>(context);
     manager->setTransferTimeout();
     QNetworkRequest request({Constants::Links::GITHUB_API});
-    QNetworkReply *reply = manager->get(request);
-    reply->connect(
-        reply, &QNetworkReply::finished, reply,
-        [=] {
-            QJsonDocument replyDoc;
-            QJsonArray replyArr;
-            QJsonValue replyVal;
-            QJsonObject replyObj;
-            QString tag;
-            QString url;
+    std::unique_ptr<QNetworkReply> reply{co_await manager->get(request)};
 
-            /* Make sure there weren't any errors */
-            if (reply->error())
-            {
-                emit context->showCritical(
-                    "Error",
-                    "Could not check for updates:\n" + reply->errorString()
-                );
-                goto cleanup;
-            }
+    QJsonDocument replyDoc;
+    QJsonArray replyArr;
+    QJsonValue replyVal;
+    QJsonObject replyObj;
+    QString tag;
+    QString url;
 
-            /* Error check the reply to make sure it was valid */
-            replyDoc = QJsonDocument::fromJson(reply->readAll());
-            if (replyDoc.isNull() || !replyDoc.isObject())
-            {
-                goto error;
-            }
-            replyObj = replyDoc.object();
-            tag = replyObj.value("tag_name").toString();
-            url = replyObj.value("html_url").toString();
-            if (tag.isEmpty() || url.isEmpty())
-            {
-                goto error;
-            }
+    /* Make sure there weren't any errors */
+    if (reply->error())
+    {
+        emit context->showCritical(
+            "Error",
+            "Could not check for updates:\n" + reply->errorString()
+        );
+        co_return;
+    }
 
-            /* Get the url and tag */
-            if (tag != QString("v") + Memento::VERSION)
-            {
-                emit context->showInformation(
-                    "Update Available",
-                    QString("New version <a href='%1'>%2</a> available.")
-                        .arg(url)
-                        .arg(tag)
-                );
-                goto cleanup;
-            }
-
-            /* If reached, Memento was up to date */
-            emit context->showInformation(
-                "Up to Date", "Memento is up to date"
-            );
-
-        cleanup:
-            reply->deleteLater();
-            manager->deleteLater();
-            return;
-
-        error:
-            emit context->showCritical(
-                "Error",
-                "Server did not send a valid reply.\n"
-                "Check manually <a href='" + QString(Constants::Links::GITHUB_RELEASES) +
+    /* Error check the reply to make sure it was valid */
+    auto showError = [context] () -> void
+    {
+        emit context->showCritical(
+            "Error",
+            "Server did not send a valid reply.\n"
+                "Check manually <a href='" +
+                QString(Constants::Links::GITHUB_RELEASES) +
                 "'>here</a>"
-            );
-            reply->deleteLater();
-            manager->deleteLater();
-        },
-        Qt::QueuedConnection
+        );
+    };
+    replyDoc = QJsonDocument::fromJson(reply->readAll());
+    if (replyDoc.isNull() || !replyDoc.isObject())
+    {
+        showError();
+        co_return;
+    }
+    replyObj = replyDoc.object();
+    tag = replyObj.value("tag_name").toString();
+    url = replyObj.value("html_url").toString();
+    if (tag.isEmpty() || url.isEmpty())
+    {
+        showError();
+        co_return;
+    }
+
+    /* Get the url and tag */
+    if (tag != QString("v") + Memento::VERSION)
+    {
+        emit context->showInformation(
+            "Update Available",
+            QString("New version <a href='%1'>%2</a> available.")
+                .arg(url)
+                .arg(tag)
+        );
+        co_return;
+    }
+
+    /* If reached, Memento was up to date */
+    emit context->showInformation(
+        "Up to Date", "Memento is up to date"
     );
 }
 
