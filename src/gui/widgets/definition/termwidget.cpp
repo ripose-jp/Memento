@@ -444,7 +444,7 @@ void TermWidget::playAudio()
 void TermWidget::playAudio(const AudioSource &src)
 {
     m_ui->buttonAudio->setEnabled(false);
-    AudioPlayerReply *reply = m_context->getAudioPlayer()->playAudio(
+    QCoro::Task<bool> audioTask = m_context->getAudioPlayer()->playAudio(
         QString(src.url)
             .replace(REPLACE_EXPRESSION, m_term->expression)
             .replace(
@@ -454,24 +454,21 @@ void TermWidget::playAudio(const AudioSource &src)
             ),
         src.md5
     );
-    m_ui->buttonAudio->setEnabled(reply == nullptr);
-
-    if (reply)
-    {
-        connect(reply, &AudioPlayerReply::result, this,
-            [this] (const bool success)
+    QCoro::connect(
+        std::move(audioTask),
+        this,
+        [this] (bool success) -> void
+        {
+            if (!success)
             {
-                if (!success)
-                {
-                    IconFactory *factory = IconFactory::create();
-                    m_ui->buttonAudio->setIcon(
-                        factory->getIcon(IconFactory::noaudio)
-                    );
-                }
-                m_ui->buttonAudio->setEnabled(true);
+                IconFactory *factory = IconFactory::create();
+                m_ui->buttonAudio->setIcon(
+                    factory->getIcon(IconFactory::noaudio)
+                );
             }
-        );
-    }
+            m_ui->buttonAudio->setEnabled(true);
+        }
+    );
 }
 
 void TermWidget::showPlayableAudioSources(const QPoint &pos)

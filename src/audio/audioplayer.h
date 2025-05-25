@@ -23,32 +23,19 @@
 
 #include <QObject>
 
+#include <memory>
+
 #include <QHash>
 #include <QMutex>
 #include <QNetworkAccessManager>
 #include <QTemporaryFile>
 
+#include <qcoro/network/qcoronetworkreply.h>
+#include <qcoro/qcorotask.h>
+
 #include "state/context.h"
 
 struct mpv_handle;
-
-/**
- * Returns an asynchronous replies from the AudioPlayer.
- */
-class AudioPlayerReply : public QObject
-{
-    Q_OBJECT
-
-public:
-    using QObject::QObject;
-
-Q_SIGNALS:
-    /**
-     * Emitted when a result is ready.
-     * @param success true on success, false otherwise.
-     */
-    void result(const bool success);
-};
 
 /**
  * Plays audio files from over the network.
@@ -69,12 +56,9 @@ public:
      * Plays the audio at the URL.
      * @param url  The url of the audio.
      * @param hash If the audio file matches this MD5, it is not played.
-     * @return AnkiPlayerReply that emits the result() signal with true on
-     *         success or false if the audio file could not be played/matches
-     *         the hash. The caller does not own this object. Returns nullptr if
-     *         the file is already cached.
+     * @return Returns true on a file successfully player, false otherwise.
      */
-    AudioPlayerReply *playAudio(QString url, QString hash = QString());
+    QCoro::Task<bool> playAudio(QString url, QString hash = QString());
 
 private:
     /**
@@ -94,7 +78,7 @@ private:
     mpv_handle *m_mpv = nullptr;
 
     /* Maps urls to cached files. */
-    QHash<QString, QTemporaryFile *> m_files;
+    QHash<QString, std::shared_ptr<QTemporaryFile>> m_files;
 
     /* Mutex that prevents the file cache from being modified concurrently. */
     QMutex m_fileLock;

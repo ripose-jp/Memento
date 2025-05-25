@@ -20,8 +20,6 @@
 
 #include "audioplayer.h"
 
-#include <cstdlib>
-
 #include <QCoreApplication>
 #include <QFileInfo>
 #include <QNetworkReply>
@@ -75,13 +73,8 @@ AudioPlayer::~AudioPlayer()
 
 void AudioPlayer::clearFiles()
 {
-    m_fileLock.lock();
-    for (QTemporaryFile *file : m_files)
-    {
-        delete file;
-    }
+    QMutexLocker fileLock(&m_fileLock);
     m_files.clear();
-    m_fileLock.unlock();
 }
 
 /* End Constructor/Destructor */
@@ -90,10 +83,12 @@ void AudioPlayer::clearFiles()
 bool AudioPlayer::playFile(const QTemporaryFile *file)
 {
     if (file == nullptr)
+    {
         return false;
+    }
 
     QByteArray fileName = QFileInfo(*file).absoluteFilePath().toUtf8();
-    const char *args[3] = {
+    const char *args[] = {
         "loadfile",
         fileName,
         NULL
@@ -107,87 +102,58 @@ bool AudioPlayer::playFile(const QTemporaryFile *file)
     return true;
 }
 
-AudioPlayerReply *AudioPlayer::playAudio(QString url, QString hash)
+QCoro::Task<bool> AudioPlayer::playAudio(QString url, QString hash)
 {
-    /* Check if the file exists */
-    m_fileLock.lock();
-    QTemporaryFile *file = m_files[url];
-    if (file)
     {
-        if (FileUtils::calculateMd5(file) != hash)
+        /* Check if the file exists */
+        QMutexLocker fileLock(&m_fileLock);
+        auto fileIt = m_files.find(url);
+        if (fileIt != std::end(m_files))
         {
-            playFile(file);
+            if (FileUtils::calculateMd5(fileIt->get()) != hash)
+            {
+                co_return playFile(fileIt->get());
+            }
+            co_return false;
         }
-        m_fileLock.unlock();
-        return nullptr;
     }
-    m_fileLock.unlock();
 
     /* File does not exist so fetch it */
-    AudioPlayerReply *audioReply = new AudioPlayerReply;
     QNetworkRequest req{QUrl(url)};
     req.setAttribute(
         QNetworkRequest::RedirectPolicyAttribute,
         QNetworkRequest::UserVerifiedRedirectPolicy
     );
-    QNetworkReply *reply = m_manager.get(std::move(req));
+    std::unique_ptr<QNetworkReply> reply{m_manager.get(std::move(req))};
     connect(
-        reply, &QNetworkReply::redirected,
-        reply, &QNetworkReply::redirectAllowed
+        reply.get(), &QNetworkReply::redirected,
+        reply.get(), &QNetworkReply::redirectAllowed
     );
-    connect(reply, &QNetworkReply::finished,  this,
-        [this, reply, audioReply, url, hash]
-        {
-            QTemporaryFile *file = nullptr;
-            bool res = false;
+    co_await reply.get();
 
-            if (reply->error() != QNetworkReply::NetworkError::NoError)
-            {
-                qDebug() << reply->errorString();
-                goto cleanup;
-            }
+    if (reply->error() != QNetworkReply::NetworkError::NoError)
+    {
+        qDebug() << reply->errorString();
+        co_return false;
+    }
 
-            /* Put the audio in a new temp file */
-            file = new QTemporaryFile;
-            if (!file->open())
-            {
-                qDebug() << "Could not open temp file";
-                goto cleanup;
-            }
-            file->write(reply->readAll());
-            file->close();
+    /* Put the audio in a new temp file */
+    std::shared_ptr<QTemporaryFile> file = std::make_shared<QTemporaryFile>();
+    if (!file->open())
+    {
+        qDebug() << "Could not open temp file";
+        co_return false;
+    }
+    file->write(reply->readAll());
+    file->close();
 
-            /* Add the file to the cache */
-            m_fileLock.lock();
-            delete m_files[url];
-            m_files[url] = file;
+    {
+        /* Add the file to the cache */
+        QMutexLocker fileLock(&m_fileLock);
+        m_files[url] = std::move(file);
+    }
 
-            /* Check the hash */
-            if (FileUtils::calculateMd5(file) == hash)
-            {
-                m_fileLock.unlock();
-                goto cleanup;
-            }
-
-            /* Play the file */
-            if (!playFile(file))
-            {
-                qDebug() << "Could not play audio file";
-                m_fileLock.unlock();
-                goto cleanup;
-            }
-
-            m_fileLock.unlock();
-
-            res = true;
-        cleanup:
-            emit audioReply->result(res);
-            reply->deleteLater();
-            audioReply->deleteLater();
-        }
-    );
-
-    return audioReply;
+    co_return co_await playAudio(url, hash);
 }
 
 /* End Implementations */
