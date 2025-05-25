@@ -29,6 +29,7 @@ target_link_libraries(
     PRIVATE flowlayout
     PRIVATE iconfactory
     PRIVATE playeradapter
+    PRIVATE QCoro6Network
     PRIVATE Qt6::Network
     PRIVATE subtitlelist
     PRIVATE utils

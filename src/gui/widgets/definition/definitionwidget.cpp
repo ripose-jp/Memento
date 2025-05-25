@@ -83,15 +83,7 @@ void DefinitionWidget::clearTerms()
     QLayoutItem *item;
     while ((item = m_ui->layoutScroll->takeAt(0)) != nullptr)
     {
-        TermWidget *term = qobject_cast<TermWidget *>(item->widget());
-        if (term)
-        {
-            term->deleteWhenReady();
-        }
-        else
-        {
-            delete item->widget();
-        }
+        delete item->widget();
         delete item;
     }
     m_context->getAudioPlayer()->clearFiles();

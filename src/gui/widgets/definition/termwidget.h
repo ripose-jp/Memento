@@ -24,6 +24,8 @@
 #include <QWidget>
 
 #include <memory>
+#include <optional>
+#include <vector>
 
 #include <QLabel>
 #include <QMenu>
@@ -71,11 +73,6 @@ public:
      */
     void setAddable(bool expression, bool reading);
 
-    /**
-     * Deletes this term once all outstanding network requests are finished.
-     */
-    void deleteWhenReady();
-
 public Q_SLOTS:
     /**
      * Plays the audio from the first available source.
@@ -101,13 +98,6 @@ Q_SIGNALS:
      */
     void audioSourcesLoaded() const;
 
-    /**
-     * A signal emitted when this widget is safe to delete.
-     * This is used to prevent terms from not being added to Anki while network
-     * requests are pending.
-     */
-    void safeToDelete() const;
-
 private Q_SLOTS:
     /**
      * Toggles the visibility of the glossary.
@@ -127,16 +117,8 @@ private Q_SLOTS:
     /**
      * Adds the term belonging to this widget to Anki.
      * @param src The audio source to add.
-     * @return An awaitable task.
      */
-    QCoro::Task<void> addNote(const DefinitionState::AudioSource &src);
-
-    /**
-     * Opens an Anki window searching the current configured term card deck for
-     * the expression of the current term.
-     * @return An awaitable task.
-     */
-    QCoro::Task<void> searchAnki();
+    void addNote(const DefinitionState::AudioSource &src);
 
     /**
      * Plays audio for the term from the audio source.
@@ -164,6 +146,16 @@ private Q_SLOTS:
      */
     void searchKanji(const QString &ch);
 
+    /**
+     * Updates the UI to reflect that a card is currently being added.
+     */
+    void setAdding();
+
+    /**
+     * Updates the UI to reflect that a note has been added.
+     */
+    void setAdded();
+
 private:
     /**
      * Puts term information into the UI.
@@ -179,11 +171,6 @@ private:
     std::unique_ptr<Term> initAnkiTerm() const;
 
     /**
-     * Loads all remote audio sources.
-     */
-    void loadAudioSources();
-
-    /**
      * Populates an audio source menu that calls the handler with the specific
      * audio source.
      * @param menu    The menu to populate.
@@ -195,10 +182,64 @@ private:
 
     /**
      * Returns the first valid file-type audio source.
-     * @return A pointer to the first file-type audio source. nullptr if all are
-     *         invalid;
+     * @param sources The list of audio sources to get from.
+     * @return A pointer to the first valid audio source, nullptr if there is no
+     * valid first audio source.
      */
-    DefinitionState::AudioSource *getFirstAudioSource();
+    static const DefinitionState::AudioSource *getFirstAudioSource(
+        const std::vector<DefinitionState::AudioSource> &sources);
+
+    /**
+     * Opens an Anki window searching the current configured term card deck for
+     * the expression of the current term. This method is safe to resume
+     * execution even after TermWidget hs been deleted.
+     * @param context The application context.
+     * @param term The term to search Anki for.
+     * @return An awaitable task.
+     */
+    static QCoro::Task<void> searchAnki(
+        Context *context,
+        std::unique_ptr<Term> term);
+
+    /**
+     * Create an audio source URL from the given term and format string.
+     * @param url The URL format string.
+     * @param term The term to generate the URL for.
+     * @return A URL to the term audio for the given term.
+     */
+    [[nodiscard]]
+    static QString makeAudioUrl(QString format, const Term &term);
+
+    /**
+     * Processes raw JSON audio sources into a list of audio sources.
+     * @param data The raw json.
+     * @param[out] src The audio source these audio sources belong to.
+     */
+    static void processAudioSourceJson(
+        const QByteArray &data, DefinitionState::AudioSource &src);
+
+    /**
+     * Loads audio sources in a static context. This method is safe to resume
+     * execution even after TermWidget has been deleted.
+     * @param sources The application context.
+     * @param term The term to add to Anki.
+     * @return An awaitable task.
+     */
+    static QCoro::Task<std::vector<DefinitionState::AudioSource>>
+    loadAudioSources(
+        std::vector<DefinitionState::AudioSource> sources,
+        std::shared_ptr<const Term> term);
+
+    /**
+     * Adds a note to Anki in a static context. This method is safe to resume
+     * execution even after the TermWidget has been deleted.
+     * @param context The application context.
+     * @param term The term to add to Anki.
+     * @return An awaitable task.
+     */
+    static QCoro::Task<void> addNote(
+        Context *context,
+        std::unique_ptr<const Term> term);
 
     /* UI object containing all the widgets */
     std::unique_ptr<Ui::TermWidget> m_ui;
@@ -212,27 +253,8 @@ private:
     /* The state of the parent definition widget */
     const DefinitionState &m_state;
 
-    /* This term is a copy m_term that is eventually passed to Anki to add.
-     * If this term is not nullptr, TermWidget is not safe to delete without
-     * losing this term. This is necessary because of the asynchronous nature
-     * of JSON audio sources.
-     */
-    std::unique_ptr<Term> m_ankiTerm = nullptr;
-
-    /* True if the TermWidget is safe to delete right now, false otherwise */
-    bool m_safeToDelete = true;
-
     /* The list of current audio sources */
-    std::vector<DefinitionState::AudioSource> m_sources;
-
-    /* Protects concurrent accesses to the m_sources list */
-    QMutex m_lockSources;
-
-    /* The number of json audio sources that haven't been parsed */
-    int m_jsonSources = 0;
-
-    /* Lock JSON sources */
-    QMutex m_lockJsonSources;
+    std::optional<std::vector<DefinitionState::AudioSource>> m_sources;
 
     /* Label used for displaying deconjugation information */
     QLabel *m_labelDeconj = nullptr;
