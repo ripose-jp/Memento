@@ -207,6 +207,53 @@ static QString replaceNewLines(QString str, const AnkiConfig &config)
 }
 
 /**
+ * Parses the frequency string into a double.
+ * @param frequency The string representation of the current frequency.
+ * @return Float value of the frequency, nullopt if it could not be parsed.
+ */
+[[nodiscard]]
+static std::optional<double> parseFrequencyValue(const QString &frequency)
+{
+    const QRegularExpression FLOAT_ONLY_REGEX(
+        "^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)"
+    );
+
+    QRegularExpressionMatch numberMatch = FLOAT_ONLY_REGEX.match(frequency);
+    if (!numberMatch.hasMatch())
+    {
+        if (frequency == "★")
+        {
+            return 20.0;
+        }
+        else if (frequency == "★★")
+        {
+            return 40.0;
+        }
+        else if (frequency == "★★★")
+        {
+            return 60.0;
+        }
+        else if (frequency == "★★★★")
+        {
+            return 80.0;
+        }
+        else if (frequency == "★★★★★")
+        {
+            return 100.0;
+        }
+        return {};
+    }
+
+    bool ok = false;
+    double frequencyValue = numberMatch.captured().toDouble(&ok);
+    if (!ok)
+    {
+        return {};
+    }
+    return frequencyValue;
+}
+
+/**
  * Extracts frequency numbers from a list of frequency tags.
  * @param frequencies A list of Frequency structs.
  * @return A vector of positive integers representing the frequency numbers.
@@ -214,35 +261,28 @@ static QString replaceNewLines(QString str, const AnkiConfig &config)
  *         avoid picking secondary frequencies like kana frequencies)
  */
 [[nodiscard]]
-static std::vector<int> getFrequencyNumbers(const QList<Frequency> &frequencies)
+static std::vector<double> getFrequencyNumbers(
+    const QList<Frequency> &frequencies)
 {
     QString previousDictionary;
-    std::vector<int> frequencyNumbers;
+    std::vector<double> frequencyNumbers;
 
     for (const Frequency &frequencyEntry : frequencies)
     {
         if (frequencyEntry.dictionary == previousDictionary ||
-            frequencyEntry.freq.isNull())
+            frequencyEntry.freq.isEmpty())
         {
             continue;
         }
         previousDictionary = frequencyEntry.dictionary;
 
-        /* This regular expression only catches numbers in base 10 and
-        * would not catch negative or decimal numbers because we make
-        * the assumption that these special types of numbers will not
-        * appear in frequency dictionaries. */
-        QRegularExpression numberPattern("\\d+");
-        QRegularExpressionMatch match =
-            numberPattern.match(frequencyEntry.freq);
-
-        if (match.hasMatch())
+        std::optional<double> value = parseFrequencyValue(frequencyEntry.freq);
+        if (value)
         {
             /* Only save the first number to avoid counting secondary frequency
             * information (e.g. frequency for the full kana orthography) in the
             * aggregate measures to align with Yomitan's behavior. */
-            frequencyNumbers.push_back(match.captured(0).toInt());
-            continue;
+            frequencyNumbers.push_back(*value);
         }
     }
 
@@ -420,53 +460,6 @@ static bool createScreenshotHelper(
     return true;
 }
 
-/**
- * Parses the frequency string into a double.
- * @param frequency The string representation of the current frequency.
- * @return Float value of the frequency, nullopt if it could not be parsed.
- */
-[[nodiscard]]
-static std::optional<double> parseFrequencyValue(const QString &frequency)
-{
-    const QRegularExpression FLOAT_ONLY_REGEX(
-        "^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)"
-    );
-
-    QRegularExpressionMatch numberMatch = FLOAT_ONLY_REGEX.match(frequency);
-    if (!numberMatch.hasMatch())
-    {
-        if (frequency == "★")
-        {
-            return 20.0;
-        }
-        else if (frequency == "★★")
-        {
-            return 40.0;
-        }
-        else if (frequency == "★★★")
-        {
-            return 60.0;
-        }
-        else if (frequency == "★★★★")
-        {
-            return 80.0;
-        }
-        else if (frequency == "★★★★★")
-        {
-            return 100.0;
-        }
-        return {};
-    }
-
-    bool ok = false;
-    double frequencyValue = numberMatch.captured().toDouble(&ok);
-    if (!ok)
-    {
-        return {};
-    }
-    return frequencyValue;
-}
-
 /* End Helper Functions */
 /* Begin Marker Functions */
 
@@ -636,7 +629,8 @@ static QString buildFrequencies(
 [[nodiscard]]
 static int getFrequencyHarmonic(const QList<Frequency> &frequencies)
 {
-    const std::vector<int> frequencyNumbers = getFrequencyNumbers(frequencies);
+    const std::vector<double> frequencyNumbers =
+        getFrequencyNumbers(frequencies);
 
     if (frequencyNumbers.empty())
     {
@@ -644,7 +638,7 @@ static int getFrequencyHarmonic(const QList<Frequency> &frequencies)
     }
 
     double total = 0.0;
-    for (int frequencyNum : frequencyNumbers)
+    for (double frequencyNum : frequencyNumbers)
     {
         if (frequencyNum != 0)
         {
@@ -663,7 +657,8 @@ static int getFrequencyHarmonic(const QList<Frequency> &frequencies)
 [[nodiscard]]
 static int getFrequencyAverage(const QList<Frequency> &frequencies)
 {
-    const std::vector<int> frequencyNumbers = getFrequencyNumbers(frequencies);
+    const std::vector<double> frequencyNumbers =
+        getFrequencyNumbers(frequencies);
 
     if (frequencyNumbers.empty())
     {
@@ -671,8 +666,11 @@ static int getFrequencyAverage(const QList<Frequency> &frequencies)
     }
 
     /* Sum the elements in the vector */
-    double total = std::accumulate(frequencyNumbers.begin(),
-            frequencyNumbers.end(), 0);
+    double total = std::accumulate(
+        std::begin(frequencyNumbers),
+        std::end(frequencyNumbers),
+        0.0
+    );
 
     return std::floor(total / frequencyNumbers.size());
 }
