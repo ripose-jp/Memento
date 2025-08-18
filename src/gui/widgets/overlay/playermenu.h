@@ -170,6 +170,33 @@ private Q_SLOTS:
      */
     void updateAnkiProfileMenu();
 
+private Q_SLOTS:
+    /**
+     * Loads recent files from disc into the menubar.
+     */
+    void loadRecentFiles();
+
+    /**
+     * Saves recent files from memory to disc.
+     */
+    void saveRecentFiles();
+
+    /**
+     * Saves recent files from memory to disc.
+     * @param path The path of the file to add.
+     */
+    void addRecentFile(const QString &path);
+
+    /**
+     * Clears recent files from the recent file menu.
+     */
+    void clearRecentFiles();
+
+    /**
+     * Refreshes the files in the recent file menu.
+     */
+    void refreshRecentFileMenu();
+
 private:
     /**
      * Clears all the tracks in the Audio and Subtitle menus.
@@ -237,6 +264,9 @@ private:
 
     /* Action group for Anki Integration profiles. */
     QActionGroup *m_actionGroupAnkiProfile = nullptr;
+
+    /* A list of the recent files */
+    QStringList m_recentFiles;
 };
 
 #endif // PLAYERMENU_H

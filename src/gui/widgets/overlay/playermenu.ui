@@ -17,7 +17,7 @@
    <bool>true</bool>
   </property>
   <property name="focusPolicy">
-   <enum>Qt::NoFocus</enum>
+   <enum>Qt::FocusPolicy::NoFocus</enum>
   </property>
   <property name="acceptDrops">
    <bool>true</bool>
@@ -56,8 +56,16 @@
       <property name="title">
        <string>Media</string>
       </property>
+      <widget class="QMenu" name="menuRecentFiles">
+       <property name="title">
+        <string>Open Recent</string>
+       </property>
+       <addaction name="separator"/>
+       <addaction name="actionClearRecents"/>
+      </widget>
       <addaction name="actionOpen"/>
       <addaction name="actionOpenUrl"/>
+      <addaction name="menuRecentFiles"/>
      </widget>
      <widget class="QMenu" name="menuAudio">
       <property name="minimumSize">
@@ -112,7 +120,7 @@
         <x>1033</x>
         <y>270</y>
         <width>200</width>
-        <height>211</height>
+        <height>184</height>
        </rect>
       </property>
       <property name="minimumSize">
@@ -129,8 +137,8 @@
         <rect>
          <x>1228</x>
          <y>274</y>
-         <width>144</width>
-         <height>64</height>
+         <width>140</width>
+         <height>52</height>
         </rect>
        </property>
        <property name="title">
@@ -337,6 +345,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="actionClearRecents">
+   <property name="text">
+    <string>Clear Recents</string>
    </property>
   </action>
  </widget>

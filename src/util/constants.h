@@ -73,10 +73,18 @@ namespace Constants
         namespace Window
         {
             constexpr const char *GROUP = "main-window";
+
             constexpr const char *GEOMETRY = "geometry";
             constexpr const char *MAXIMIZE = "maximize";
             constexpr const char *SUBTITLE_LIST = "subtitle-list";
             constexpr const char *SEARCH = "search";
+        }
+
+        namespace Recent
+        {
+            constexpr const char *GROUP = "recent";
+
+            constexpr const char *FILES = "files";
         }
 
         namespace SubtitleList

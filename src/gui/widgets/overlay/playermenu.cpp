@@ -84,6 +84,8 @@ PlayerMenu::PlayerMenu(Context *context, QWidget *parent) :
     m_ui->actionSubtitleNone->setActionGroup(m_actionGroups.subtitle);
     m_ui->actionSubtitleTwoNone->setActionGroup(m_actionGroups.subtitleTwo);
 
+    loadRecentFiles();
+
 #ifdef OCR_SUPPORT
     initOCRSettings();
 #else
@@ -109,6 +111,16 @@ PlayerMenu::PlayerMenu(Context *context, QWidget *parent) :
     connect(
         m_ui->actionUpdate, &QAction::triggered,
         this, [this] { NetworkUtils::checkForUpdates(m_context); },
+        Qt::QueuedConnection
+    );
+    connect(
+        m_ui->actionClearRecents, &QAction::triggered,
+        this, &PlayerMenu::clearRecentFiles,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_context, &Context::playerFileChanged,
+        this, &PlayerMenu::addRecentFile,
         Qt::QueuedConnection
     );
 
@@ -283,6 +295,7 @@ PlayerMenu::PlayerMenu(Context *context, QWidget *parent) :
 PlayerMenu::~PlayerMenu()
 {
     clearTracks();
+    saveRecentFiles();
 }
 
 /* End Constructor/Destructor */
@@ -342,6 +355,74 @@ void PlayerMenu::showMenu()
 }
 
 /* End Status Methods */
+/* Begin Recent File Methods */
+
+void PlayerMenu::loadRecentFiles()
+{
+    QSettings settings;
+    settings.beginGroup(Constants::Settings::Recent::GROUP);
+
+    m_recentFiles = settings.value(
+        Constants::Settings::Recent::FILES
+    ).toStringList();
+
+    settings.endGroup();
+
+    refreshRecentFileMenu();
+}
+
+void PlayerMenu::saveRecentFiles()
+{
+    QSettings settings;
+    settings.beginGroup(Constants::Settings::Recent::GROUP);
+
+    settings.setValue(Constants::Settings::Recent::FILES, m_recentFiles);
+
+    settings.endGroup();
+}
+
+void PlayerMenu::addRecentFile(const QString &path)
+{
+    constexpr qsizetype MAX_RECENT_FILES = 10;
+
+    m_recentFiles.removeAll(path);
+    m_recentFiles.prepend(path);
+    if (m_recentFiles.size() > MAX_RECENT_FILES)
+    {
+        m_recentFiles.pop_back();
+    }
+
+    refreshRecentFileMenu();
+}
+
+void PlayerMenu::clearRecentFiles()
+{
+    m_recentFiles.clear();
+    refreshRecentFileMenu();
+}
+
+void PlayerMenu::refreshRecentFileMenu()
+{
+    m_ui->menuRecentFiles->removeAction(m_ui->actionClearRecents);
+    m_ui->menuRecentFiles->clear();
+
+    for (const QString &path : m_recentFiles)
+    {
+        QAction *actionRecentFile = m_ui->menuRecentFiles->addAction(path);
+        connect(
+            actionRecentFile, &QAction::triggered,
+            this, [this, path] { m_context->getPlayerAdapter()->open(path); },
+            Qt::QueuedConnection
+        );
+    }
+
+    m_ui->menuRecentFiles->addSeparator();
+    m_ui->menuRecentFiles->addAction(m_ui->actionClearRecents);
+
+    m_ui->menuRecentFiles->setEnabled(!m_recentFiles.isEmpty());
+}
+
+/* End Recent File Methods */
 /* Begin Track Methods */
 
 void PlayerMenu::clearTrack(
