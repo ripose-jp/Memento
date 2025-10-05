@@ -966,26 +966,24 @@ void SubtitleListWidget::copyAudioContext() const
     double delay = isPrimaryCurrent() ?
         player->getSubDelay() : player->getSecondarySubDelay();
     delay -= player->getAudioDelay();
-    double start = times.first + delay;
-    double end = times.second + delay;
-    bool normalize = false;
-    double dbLevel = -20.0;
 
+    PlayerAdapter::AudioClipArgs args{};
+    args.start = times.first + delay;
+    args.end = times.second + delay;
     if (m_context->getAnkiClient()->isEnabled())
     {
         std::shared_ptr<const AnkiConfig> config =
             m_context->getAnkiClient()->getConfig();
-        start -= config->audioPadStart;
-        end += config->audioPadEnd;
-        normalize = config->audioNormalize;
-        dbLevel = config->audioDb;
+        args.start -= config->audioPadStart;
+        args.end += config->audioPadEnd;
+        args.normalize = config->audioNormalize;
+        args.db = config->audioDb;
     }
 
     QThreadPool::globalInstance()->start(
-        [player, start, end, normalize, dbLevel] () -> void
+        [player, args] () -> void
         {
-            QString path =
-                player->tempAudioClip(start, end, normalize, dbLevel);
+            QString path = player->tempAudioClip(args);
             if (!QFile(path).exists())
             {
                 return;

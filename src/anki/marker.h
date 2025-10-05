@@ -25,19 +25,19 @@ namespace Marker
 {
 
 /* Shared Markers */
-constexpr const char *AUDIO_MEDIA = "audio-media";
 constexpr const char *AUDIO_CONTEXT = "audio-context";
+constexpr const char *AUDIO_MEDIA = "audio-media";
 constexpr const char *CLIPBOARD = "clipboard";
 constexpr const char *CLOZE_BODY = "cloze-body";
 constexpr const char *CLOZE_PREFIX = "cloze-prefix";
 constexpr const char *CLOZE_SUFFIX = "cloze-suffix";
 constexpr const char *CONTEXT = "context";
 constexpr const char *CONTEXT_SEC = "context-2";
-constexpr const char *FREQUENCIES = "frequencies";
-constexpr const char *FREQ_HARMONIC_RANK = "frequency-harmonic-rank";
-constexpr const char *FREQ_HARMONIC_OCCU = "frequency-harmonic-occurrence";
-constexpr const char *FREQ_AVERAGE_RANK = "frequency-average-rank";
 constexpr const char *FREQ_AVERAGE_OCCU = "frequency-average-occurrence";
+constexpr const char *FREQ_AVERAGE_RANK = "frequency-average-rank";
+constexpr const char *FREQ_HARMONIC_OCCU = "frequency-harmonic-occurrence";
+constexpr const char *FREQ_HARMONIC_RANK = "frequency-harmonic-rank";
+constexpr const char *FREQUENCIES = "frequencies";
 constexpr const char *GLOSSARY = "glossary";
 constexpr const char *SCREENSHOT = "screenshot";
 constexpr const char *SCREENSHOT_VIDEO = "screenshot-video";
@@ -46,6 +46,7 @@ constexpr const char *SENTENCE_SEC = "sentence-2";
 constexpr const char *TAGS = "tags";
 constexpr const char *TAGS_BRIEF = "tags-brief";
 constexpr const char *TITLE = "title";
+constexpr const char *VIDEO = "video";
 
 /* Term Markers */
 constexpr const char *AUDIO = "audio";

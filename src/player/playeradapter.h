@@ -165,6 +165,77 @@ public:
      */
     virtual bool canGetSecondarySubText() const = 0;
 
+    /**
+     * Takes a screenshot of the player contents and stores the files in the
+     * temp directory.
+     * @param subtitles true to include the subtitles in the images, false
+     *                  otherwise.
+     * @param ext       The image format to use. '.jpg' by default.
+     * @return Path to the file.
+     */
+    virtual QString tempScreenshot(const bool subtitles,
+                                   const QString &ext = ".jpg") = 0;
+
+    /**
+     * Arguments for tempAudioClip.
+     */
+    struct AudioClipArgs
+    {
+        /* The start time of the clip */
+        double start = 0.0;
+
+        /* The end time of the clip */
+        double end = 0.0;
+
+        /* True to normalize audio, false otherwise */
+        bool normalize = false;
+
+        /* The decibels to normalize to */
+        double db = -20.0;
+
+        /* The file extension to write to */
+        QString extension = ".aac";
+    };
+
+    /**
+     * Creates an audio clip given a start and end time in the temporary
+     * directory.
+     * @param args The arguments to use to make the audio clip.
+     * @return Path to the file.
+     */
+    virtual QString tempAudioClip(const AudioClipArgs &args) = 0;
+
+    /**
+     * Arguments for tempVideoClip.
+     */
+    struct VideoClipArgs
+    {
+        /* The start time of the clip */
+        double start = 0.0;
+
+        /* The end time of the clip */
+        double end = 0.0;
+
+        /* True to include audio in the clip, false otherwise */
+        bool audio = true;
+
+        /* True to include subtitles, false otherwise */
+        bool subtitles = true;
+
+        /* True to normalize audio, false otherwise */
+        bool normalize = false;
+
+        /* The decibels to normalize to */
+        double db = -20.0;
+    };
+
+    /**
+     * Creates an H264 video clip in the temporary directory.
+     * @param args The arguments that specify how the video should be cut.
+     * @return Path to the file.
+     */
+    virtual QString tempVideoClip(const VideoClipArgs &args) = 0;
+
 public Q_SLOTS:
     /**
      * Opens the file.
@@ -319,35 +390,6 @@ public Q_SLOTS:
      * @param text The text to show.
      */
     virtual void showText(const QString &text) = 0;
-
-    /**
-     * Takes a screenshot of the player contents and stores the files in the
-     * temp directory.
-     * @param subtitles true to include the subtitles in the images, false
-     *                  otherwise.
-     * @param ext       The image format to use. '.jpg' by default.
-     * @return Path to the file.
-     */
-    virtual QString tempScreenshot(const bool subtitles,
-                                   const QString &ext = ".jpg") = 0;
-
-    /**
-     * Creates an audio clip given a start and end time in the temporary
-     * directory.
-     * @param start     The start time of the audio clip in seconds.
-     * @param end       The end time of the audio clip in seconds.
-     * @param normalize true if audio should be normalized to db, false
-     *                  otherwise.
-     * @param db        The decibel level to normalize to.
-     * @param ext       The extension of the audio file. Determines what codec
-     *                  is used. AAC is default.
-     * @return Path to the file.
-     */
-    virtual QString tempAudioClip(double start,
-                                  double end,
-                                  bool normalize = false,
-                                  double db = -20.0,
-                                  const QString &ext = ".aac") = 0;
 
     /**
      * Passes a keypress event to the player.

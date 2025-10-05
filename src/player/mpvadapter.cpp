@@ -925,12 +925,7 @@ QString MpvAdapter::tempScreenshot(const bool subtitles, const QString &ext)
     return filename;
 }
 
-QString MpvAdapter::tempAudioClip(
-    double start,
-    double end,
-    bool normalize,
-    double db,
-    const QString &ext)
+QString MpvAdapter::tempAudioClip(const PlayerAdapter::AudioClipArgs &args)
 {
     int64_t aid = getAudioTrack();
     if (aid == -1)
@@ -938,21 +933,88 @@ QString MpvAdapter::tempAudioClip(
         return "";
     }
 
+    QByteArray argString;
+    argString += QString("start=%1").arg(args.start, 0, 'f', 3).toUtf8();
+    argString += QString(",end=%1").arg(args.end, 0, 'f', 3).toUtf8();
+    argString += QString(",aid=%1").arg(aid).toUtf8();
+
+    QList<QPair<QByteArray, QByteArray>> options = {
+        {"vid", "no"},
+        {"aid", "yes"},
+        {"sid", "no"},
+        {"secondary-sid", "no"},
+    };
+    if (args.normalize)
+    {
+        QByteArray audioFilter;
+        audioFilter = "loudnorm=I=";
+        audioFilter += QByteArray::number(args.db, 'f', 1);
+        options.emplaceBack("af", std::move(audioFilter));
+    }
+
+    return encodeFile(argString, options, args.extension);
+}
+
+QString MpvAdapter::tempVideoClip(const PlayerAdapter::VideoClipArgs &args)
+{
+    constexpr const char *FILE_EXTENSION = ".mp4";
+
+    QByteArray input = getPath().toUtf8();
+    QByteArray argString;
+    argString += "ovc=libx264,oac=aac";
+    argString += QString(",start=%1").arg(args.start, 0, 'f', 3).toUtf8();
+    argString += QString(",end=%1").arg(args.end, 0, 'f', 3).toUtf8();
+    if (args.audio)
+    {
+        int64_t aid = getAudioTrack();
+        if (aid == -1)
+        {
+            return "";
+        }
+        argString += QString(",aid=%1").arg(aid).toUtf8();
+    }
+    if (args.subtitles)
+    {
+        int64_t sid = getSubtitleTrack();
+        if (sid == -1)
+        {
+            argString += QString(",sid=%1").arg(sid).toUtf8();
+        }
+    }
+
+    QList<QPair<QByteArray, QByteArray>> options = {
+        {"vid", "yes"},
+        {"aid", args.audio ? "yes" : "no"},
+        {"sid", args.subtitles ? "yes" : "no"},
+        {"secondary-sid", "no"},
+    };
+    if (args.normalize)
+    {
+        QByteArray audioFilter;
+        audioFilter = "loudnorm=I=";
+        audioFilter += QByteArray::number(args.db, 'f', 1);
+        options.emplaceBack("af", std::move(audioFilter));
+    }
+
+    return encodeFile(argString, options, FILE_EXTENSION);
+}
+
+QString MpvAdapter::encodeFile(
+    const QByteArray &argString,
+    const QList<QPair<QByteArray, QByteArray>> &options,
+    const QString &fileExtension)
+{
     // Get a temporary file name
     QTemporaryFile file;
     if (!file.open())
     {
         return "";
     }
-    QByteArray filename = (file.fileName() + ext).toUtf8();
+    QByteArray filename = (file.fileName() + fileExtension).toUtf8();
     file.close();
 
     QByteArray input = getPath().toUtf8();
-    QByteArray optionCmd;
-    optionCmd += QString("start=%1").arg(start, 0, 'f', 3).toUtf8();
-    optionCmd += QString(",end=%1").arg(end, 0, 'f', 3).toUtf8();
-    optionCmd += QString(",aid=%1").arg(aid).toUtf8();
-    char *argOpts = optionCmd.isEmpty() ? NULL : optionCmd.data();
+    const char *argOpts = argString.isEmpty() ? NULL : argString.data();
 
     bool isApi23 = mpv_client_api_version() >= MPV_MAKE_VERSION(2, 3);
     const char *args[] = {
@@ -974,21 +1036,15 @@ QString MpvAdapter::tempAudioClip(
         goto cleanup;
     }
 
+    for (const auto &[k, v] : options)
+    {
+        mpv_set_option_string(enc_h, k, v);
+    }
     mpv_set_option_string(enc_h, "cover-art-auto", "no");
     mpv_set_option_string(enc_h, "keep-open", "no");
-    mpv_set_option_string(enc_h, "vid", "no");
-    mpv_set_option_string(enc_h, "sid", "no");
-    mpv_set_option_string(enc_h, "secondary-sid", "no");
     mpv_set_option_string(enc_h, "ytdl", "yes");
     mpv_set_option_string(enc_h, "config", "no");
     mpv_set_option_string(enc_h, "o", filename);
-    if (normalize)
-    {
-        QByteArray audioFilter;
-        audioFilter = "loudnorm=I=";
-        audioFilter += QByteArray::number(db, 'f', 1);
-        mpv_set_option_string(enc_h, "af", audioFilter);
-    }
 
     /* This guarantees the correct version of youtube-dl is used. */
     script_opts = mpv_get_property_string(m_handle, "script-opts");

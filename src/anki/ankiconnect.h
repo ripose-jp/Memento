@@ -64,6 +64,7 @@ namespace AnkiConnect
         constexpr const char *OPTIONS = "options";
         constexpr const char *TAGS = "tags";
         constexpr const char *AUDIO = "audio";
+        constexpr const char *VIDEO = "video";
         constexpr const char *PICTURE = "picture";
         constexpr const char *DATA = "data";
         constexpr const char *URL = "url";

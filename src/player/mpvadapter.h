@@ -84,6 +84,11 @@ public:
 
     bool canGetSecondarySubText() const override;
 
+    QString tempScreenshot(const bool subtitles,
+                           const QString &ext = ".jpg") override;
+    QString tempAudioClip(const PlayerAdapter::AudioClipArgs &args) override;
+    QString tempVideoClip(const PlayerAdapter::VideoClipArgs &args) override;
+
 public Q_SLOTS:
     void open(const QString     &file,
               const bool         append = false,
@@ -124,14 +129,6 @@ public Q_SLOTS:
     void setVolume(const int64_t value)  override;
 
     void showText(const QString &text) override;
-
-    QString tempScreenshot(const bool subtitles,
-                           const QString &ext = ".jpg") override;
-    QString tempAudioClip(double start,
-                          double end,
-                          bool normalize = false,
-                          double db = -20.0,
-                          const QString &ext = ".aac") override;
 
     void keyPressed(QKeyEvent *event) override;
     void mouseWheelMoved(const QWheelEvent *event) override;
@@ -198,6 +195,18 @@ private:
      * @param options Options inherited by files at this level.
      */
     void loadFilesFromTree(const LoadFileNode &parent, QStringList &options);
+
+    /**
+     * Creates an mpv instance for encoding.
+     * @param argString The argument string to pass during loadfile.
+     * @param options The options to start the mpv handle with.
+     * @param fileExtension The file extension of the output file.
+     * @return The path to the file, empty string on failure.
+     */
+    QString encodeFile(
+        const QByteArray &argString,
+        const QList<QPair<QByteArray, QByteArray>> &options,
+        const QString &fileExtension);
 
     /* The application conext */
     Context *m_context = nullptr;

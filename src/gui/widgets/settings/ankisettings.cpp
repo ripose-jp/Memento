@@ -71,6 +71,7 @@ AnkiSettings::AnkiSettings(Context *context, QWidget *parent) :
         makeSuggestion(Anki::Marker::TAGS_BRIEF),
         makeSuggestion(Anki::Marker::TAGS),
         makeSuggestion(Anki::Marker::TITLE),
+        makeSuggestion(Anki::Marker::VIDEO),
 
         /* Term */
         makeSuggestion(Anki::Marker::AUDIO),
@@ -109,6 +110,7 @@ AnkiSettings::AnkiSettings(Context *context, QWidget *parent) :
         makeSuggestion(Anki::Marker::TAGS_BRIEF),
         makeSuggestion(Anki::Marker::TAGS),
         makeSuggestion(Anki::Marker::TITLE),
+        makeSuggestion(Anki::Marker::VIDEO),
 
         /* Kanji */
         makeSuggestion(Anki::Marker::CHARACTER),

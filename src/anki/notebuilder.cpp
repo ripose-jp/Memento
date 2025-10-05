@@ -32,6 +32,15 @@
 #include "util/utils.h"
 
 /**
+ * Enum representing possible timing sources.
+ */
+enum class TimingSource
+{
+    subtitle,
+    context,
+};
+
+/**
  * Holds parameters for a screenshot.
  */
 struct ScreenshotParams
@@ -44,6 +53,27 @@ struct ScreenshotParams
 
     /* true to keep the aspect ratio during resize, false otherwise */
     bool keepAspectRatio = true;
+};
+
+/**
+ * Holds parameters for a video.
+ */
+struct VideoParams
+{
+    /* The source of the timings */
+    TimingSource source = TimingSource::subtitle;
+
+    /* If the video should include audio */
+    bool audio = true;
+
+    /* True if subtitles should be burned in, false otherwise */
+    bool subtitles = true;
+
+    /* True to normalize audio, false to leave as is */
+    bool normalize = false;
+
+    /* The decibels to normalize the audio to */
+    double db = -20.0;
 };
 
 /**
@@ -65,6 +95,9 @@ struct FieldContext
 
     /* Fields that contain the {screenshot-video} marker */
     QHash<ScreenshotParams, QJsonArray> fieldsWithScreenshotVideo;
+
+    /* Fields that contain the {video} marker */
+    QHash<VideoParams, QJsonArray> fieldsWithVideo;
 
     /* Files to include in the note request */
     QSet<GlossaryBuilder::FileInfo> files;
@@ -141,6 +174,41 @@ inline size_t qHash(const ScreenshotParams &key, size_t seed)
     return qHash(key.maxWidth, seed) *
         qHash(key.maxHeight, seed) *
         qHash(key.keepAspectRatio, seed);
+}
+
+/* End ScreenshotParams Operators */
+/* Begin VideoParams Operators */
+
+/**
+ * Check for equality between VideoParams structs.
+ * @param rhs The left-hand side of the operator.
+ * @param lhs The right-hand side of the operator.
+ * @return true if VideoParams are equal, false otherwise.
+ */
+[[nodiscard]]
+inline bool operator==(const VideoParams &lhs, const VideoParams &rhs)
+{
+    return lhs.source == rhs.source &&
+        lhs.audio == rhs.audio &&
+        lhs.subtitles == rhs.subtitles &&
+        lhs.normalize == rhs.normalize &&
+        lhs.db == rhs.db;
+}
+
+/**
+ * Calculates a hash for a VideoParams.
+ * @param key  The VideoParams struct to hash.
+ * @param seed The seed to use in the hash function calculation.
+ * @return The value of the hash.
+ */
+[[nodiscard]]
+inline size_t qHash(const VideoParams &key, size_t seed)
+{
+    return qHash(static_cast<int>(key.source), seed) *
+        qHash(key.audio, seed) *
+        qHash(key.subtitles, seed) *
+        qHash(key.normalize, seed) *
+        qHash(key.db, seed);
 }
 
 /* End ScreenshotParams Operators */
@@ -399,6 +467,80 @@ static std::optional<ScreenshotParams> getScreenshotParams(
 }
 
 /**
+ * Creates a VideoParams from the given marker.
+ * @param marker The marker to create the params from.
+ * @param config The current AnkiConfig to grab global values from.
+ * @return A populated VideoParams if all arguments are valid, empty otherwise.
+ */
+[[nodiscard]]
+static std::optional<VideoParams> getVideoParams(
+    const Anki::Tokenizer::Marker &marker,
+    const AnkiConfig &config)
+{
+    constexpr const char *SOURCE_KEY = "source";
+    constexpr const char *AUDIO_KEY = "audio";
+    constexpr const char *SUBTITLES_KEY = "subtitles";
+    constexpr const char *NORMALIZE_KEY = "norm";
+    constexpr const char *DB_KEY = "db";
+
+    VideoParams params{};
+    if (marker.args.contains(SOURCE_KEY))
+    {
+        constexpr const char *SOURCE_VALUE_SUBTITLE = "subtitle";
+        constexpr const char *SOURCE_VALUE_CONTEXT = "context";
+
+        QString source = marker.args[SOURCE_KEY];
+        if (source == SOURCE_VALUE_SUBTITLE)
+        {
+            params.source = TimingSource::subtitle;
+        }
+        else if (source == SOURCE_VALUE_CONTEXT)
+        {
+            params.source = TimingSource::context;
+        }
+        else
+        {
+            return {};
+        }
+    }
+
+    if (marker.args.contains(AUDIO_KEY))
+    {
+        params.audio = QVariant(marker.args[AUDIO_KEY]).toBool();
+    }
+
+    if (marker.args.contains(SUBTITLES_KEY))
+    {
+        params.subtitles = QVariant(marker.args[SUBTITLES_KEY]).toBool();
+    }
+
+    if (marker.args.contains(NORMALIZE_KEY))
+    {
+        params.normalize = QVariant(marker.args[NORMALIZE_KEY]).toBool();
+    }
+    else
+    {
+        params.normalize = config.audioNormalize;
+    }
+
+    if (marker.args.contains(DB_KEY))
+    {
+        bool ok = false;
+        params.db = marker.args[DB_KEY].toDouble(&ok);
+        if (!ok)
+        {
+            return {};
+        }
+    }
+    else
+    {
+        params.db = config.audioDb;
+    }
+
+    return params;
+}
+
+/**
  * Adds a screenshot with the given params to the context object.
  * @param      path   The path of the of the image file to use.
  * @param      ext    The extension of the image file.
@@ -457,6 +599,73 @@ static bool createScreenshotHelper(
     {
         QFile(path).remove();
     }
+    return true;
+}
+
+/**
+ * Creates a video based on the given parameters.
+ * @param appCtx The application context.
+ * @param config The config to use when generating the file.
+ * @param exp The current expression object.
+ * @param params The parameters to create the video with.
+ * @param fields The fields the video belongs to.
+ * @param ctx The context to add the video to.
+ * @return True on success, false on failure.
+ */
+static bool createVideoHelper(
+    QPointer<::Context> appCtx,
+    const AnkiConfig &config,
+    const CommonExpFields &exp,
+    const VideoParams &params,
+    const QJsonArray &fields,
+    Anki::Note::Context &ctx)
+{
+    PlayerAdapter *player = appCtx->getPlayerAdapter();
+
+    PlayerAdapter::VideoClipArgs args{};
+    switch (params.source)
+    {
+        case TimingSource::subtitle:
+            args.start = exp.startTime - config.audioPadStart;
+            args.end = exp.endTime + config.audioPadEnd;
+            break;
+
+        case TimingSource::context:
+            args.start = exp.startTimeContext - config.audioPadStart;
+            args.end = exp.endTimeContext + config.audioPadEnd;
+            break;
+
+        default:
+            return false;
+    }
+    args.start = std::max(args.start, 0.0);
+    args.end = std::max(args.end, 0.0);
+    args.audio = params.audio;
+    args.normalize = params.normalize;
+    args.db = params.db;
+    args.subtitles = params.subtitles;
+
+    QString path;
+    if (args.start < args.end)
+    {
+        path = player->tempVideoClip(args);
+    }
+    if (path.isEmpty())
+    {
+        return false;
+    }
+
+    QJsonObject vidObj;
+    vidObj[AnkiConnect::Note::DATA] = FileUtils::toBase64(path);
+    QString filename = FileUtils::calculateMd5(path) + ".mp4";
+    vidObj[AnkiConnect::Note::FILENAME] = filename;
+    vidObj[AnkiConnect::Note::FIELDS] = fields;
+
+    QJsonArray video = ctx.ankiObject[AnkiConnect::Note::VIDEO].toArray();
+    video.append(vidObj);
+    ctx.ankiObject[AnkiConnect::Note::VIDEO] = video;
+
+    QFile(path).remove();
     return true;
 }
 
@@ -1597,6 +1806,18 @@ static MarkerResult processMarkerCommon(
         result.media = true;
         return result;
     }
+    else if (marker.marker == Anki::Marker::VIDEO)
+    {
+        std::optional<VideoParams> params = getVideoParams(marker, config);
+        if (!params)
+        {
+            result.handled = false;
+            return result;
+        }
+        fieldCtx.fieldsWithVideo[*params].append(field);
+        result.media = true;
+        return result;
+    }
     else if (marker.marker == Anki::Marker::TITLE)
     {
         result.text = replaceNewLines(exp.title, config);
@@ -1744,18 +1965,16 @@ static bool createAudioMedia(
 
     PlayerAdapter *player = appCtx->getPlayerAdapter();
 
-    double startTime = exp.startTime - config.audioPadStart;
-    double endTime = exp.endTime + config.audioPadEnd;
+    PlayerAdapter::AudioClipArgs args{};
+    args.start = std::max(exp.startTime - config.audioPadStart, 0.0);
+    args.end = std::max(exp.endTime + config.audioPadEnd, 0.0);
+    args.normalize = config.audioNormalize;
+    args.db = config.audioDb;
 
     QString path;
-    if (startTime >= 0 && endTime >= 0 && startTime < endTime)
+    if (args.start < args.end)
     {
-        path = player->tempAudioClip(
-            startTime,
-            endTime,
-            config.audioNormalize,
-            config.audioDb
-        );
+        path = player->tempAudioClip(args);
     }
     if (path.isEmpty())
     {
@@ -1799,18 +2018,16 @@ static bool createAudioContext(
 
     PlayerAdapter *player = appCtx->getPlayerAdapter();
 
-    double startTime = exp.startTimeContext - config.audioPadStart;
-    double endTime = exp.endTimeContext + config.audioPadEnd;
+    PlayerAdapter::AudioClipArgs args{};
+    args.start = std::max(exp.startTimeContext - config.audioPadStart, 0.0);
+    args.end = std::max(exp.endTimeContext + config.audioPadEnd, 0.0);
+    args.normalize = config.audioNormalize;
+    args.db = config.audioDb;
 
     QString path;
-    if (startTime >= 0 && endTime >= 0 && startTime < endTime)
+    if (args.start < args.end)
     {
-        path = player->tempAudioClip(
-            startTime,
-            endTime,
-            config.audioNormalize,
-            config.audioDb
-        );
+        path = player->tempAudioClip(args);
     }
     if (path.isEmpty())
     {
@@ -1904,6 +2121,37 @@ static bool createScreenshotVideo(
     return true;
 }
 
+/**
+ * Create the video file and add it to the context.
+ * @param      appCtx   The context of the application.
+ * @param      config   The config to use when generating the context file.
+ * @param      exp      The expression to use when build the {audio-context}.
+ * @param      fieldCtx The field context containing fields that include media.
+ * @param[out] ctx      The context to add the media to.
+ * @return true if the media was added to the context, false otherwise.
+ */
+static bool createVideo(
+    QPointer<::Context> appCtx,
+    const AnkiConfig &config,
+    const CommonExpFields &exp,
+    const FieldContext &fieldCtx,
+    Anki::Note::Context &ctx)
+{
+    if (fieldCtx.fieldsWithVideo.isEmpty())
+    {
+        return false;
+    }
+
+    bool success = true;
+    for (const auto &[params, fields] :
+            fieldCtx.fieldsWithVideo.asKeyValueRange())
+    {
+        success = success &&
+            createVideoHelper(appCtx, config, exp, params, fields, ctx);
+    }
+    return success;
+}
+
 /* End Media Functions */
 /* Begin Public Functions */
 
@@ -1974,6 +2222,7 @@ Anki::Note::Context Anki::Note::build(
         createAudioContext(appCtx, config, term, fieldCtx, ctx);
         createScreenshot(appCtx, config, fieldCtx, ctx);
         createScreenshotVideo(appCtx, config, fieldCtx, ctx);
+        createVideo(appCtx, config, term, fieldCtx, ctx);
 
         ctx.fileMap.reserve(fieldCtx.files.size());
         for (const GlossaryBuilder::FileInfo &fileInfo : fieldCtx.files)
@@ -2051,6 +2300,7 @@ Anki::Note::Context Anki::Note::build(
         createAudioContext(appCtx, config, kanji, fieldCtx, ctx);
         createScreenshot(appCtx, config, fieldCtx, ctx);
         createScreenshotVideo(appCtx, config, fieldCtx, ctx);
+        createVideo(appCtx, config, kanji, fieldCtx, ctx);
 
         ctx.fileMap.reserve(fieldCtx.files.size());
         for (const GlossaryBuilder::FileInfo &fileInfo : fieldCtx.files)
