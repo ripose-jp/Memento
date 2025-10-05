@@ -41,6 +41,21 @@ enum class TimingSource
 };
 
 /**
+ * Holds the parameters for an audio media clip.
+ */
+struct AudioMediaParams
+{
+    /* The source of the timings */
+    TimingSource source = TimingSource::subtitle;
+
+    /* True to normalize audio, false to leave as is */
+    bool normalize = false;
+
+    /* The decibels to normalize the audio to */
+    double db = -20.0;
+};
+
+/**
  * Holds parameters for a screenshot.
  */
 struct ScreenshotParams
@@ -84,11 +99,8 @@ struct FieldContext
     /* Fields that contain the {audio} marker */
     QJsonArray fieldsWithAudio;
 
-    /* Fields that contain {audio-media} marker*/
-    QJsonArray fieldsWithAudioMedia;
-
-    /* Fields that contain the {audio-context} marker */
-    QJsonArray fieldsWithAudioContext;
+    /* Fields that contain {audio-media} marker */
+    QHash<AudioMediaParams, QJsonArray> fieldsWithAudioMedia;
 
     /* Fields that contain the {screenshot} marker */
     QHash<ScreenshotParams, QJsonArray> fieldsWithScreenshot;
@@ -146,6 +158,37 @@ struct MarkerResult
     }
 };
 
+/* Begin AudioMediaParams Operators */
+
+/**
+ * Check for equality between AudioMediaParams structs.
+ * @param rhs The left-hand side of the operator.
+ * @param lhs The right-hand side of the operator.
+ * @return true if AudioMediaParams are equal, false otherwise.
+ */
+[[nodiscard]]
+inline bool operator==(const AudioMediaParams &lhs, const AudioMediaParams &rhs)
+{
+    return lhs.source == rhs.source &&
+        lhs.normalize == rhs.normalize &&
+        lhs.db == rhs.db;
+}
+
+/**
+ * Calculates a hash for a AudioMediaParams.
+ * @param key  The AudioMediaParams struct to hash.
+ * @param seed The seed to use in the hash function calculation.
+ * @return The value of the hash.
+ */
+[[nodiscard]]
+inline size_t qHash(const AudioMediaParams &key, size_t seed)
+{
+    return qHash(static_cast<int>(key.source), seed) *
+        qHash(key.normalize, seed) *
+        qHash(key.db, seed);
+}
+
+/* End AudioMediaParams Operators */
 /* Begin ScreenshotParams Operators */
 
 /**
@@ -427,6 +470,78 @@ static QString getImageFileExtension(const AnkiConfig::FileType &type)
 }
 
 /**
+ * Get the timing source from a string.
+ * @param source The string representation of the source.
+ * @return A timing source on success, nullopt on failure.
+ */
+[[nodiscard]]
+static std::optional<TimingSource> getTimingSource(const QString &source)
+{
+    constexpr const char *SOURCE_VALUE_SUBTITLE = "subtitle";
+    constexpr const char *SOURCE_VALUE_CONTEXT = "context";
+
+    if (source == SOURCE_VALUE_SUBTITLE)
+    {
+        return TimingSource::subtitle;
+    }
+    else if (source == SOURCE_VALUE_CONTEXT)
+    {
+        return TimingSource::context;
+    }
+    return {};
+}
+
+/**
+ * Creates a AudioMediaParams from the given marker.
+ * @param marker The marker to create the params from.
+ * @param config The current AnkiConfig to grab global values from.
+ * @return A populated AudioMediaParams if all arguments are valid, empty
+ *         otherwise.
+ */
+[[nodiscard]]
+static std::optional<AudioMediaParams> getAudioMediaParams(
+    const Anki::Tokenizer::Marker &marker,
+    const AnkiConfig &config)
+{
+    constexpr const char *SOURCE_KEY = "source";
+    constexpr const char *NORMALIZE_KEY = "norm";
+    constexpr const char *DB_KEY = "db";
+
+    AudioMediaParams params{};
+    if (marker.args.contains(SOURCE_KEY))
+    {
+        std::optional<TimingSource> source =
+            getTimingSource(marker.args[SOURCE_KEY]);
+        params.source = *source;
+    }
+
+    if (marker.args.contains(NORMALIZE_KEY))
+    {
+        params.normalize = QVariant(marker.args[NORMALIZE_KEY]).toBool();
+    }
+    else
+    {
+        params.normalize = config.audioNormalize;
+    }
+
+    if (marker.args.contains(DB_KEY))
+    {
+        bool ok = false;
+        params.db = marker.args[DB_KEY].toDouble(&ok);
+        if (!ok)
+        {
+            return {};
+        }
+    }
+    else
+    {
+        params.db = config.audioDb;
+    }
+
+    return params;
+}
+
+/**
  * Creates a ScreenshotParams from the given marker.
  * @param marker The marker to create the params from.
  * @return A populated ScreenshotParams if all arguments are valid, empty
@@ -486,22 +601,9 @@ static std::optional<VideoParams> getVideoParams(
     VideoParams params{};
     if (marker.args.contains(SOURCE_KEY))
     {
-        constexpr const char *SOURCE_VALUE_SUBTITLE = "subtitle";
-        constexpr const char *SOURCE_VALUE_CONTEXT = "context";
-
-        QString source = marker.args[SOURCE_KEY];
-        if (source == SOURCE_VALUE_SUBTITLE)
-        {
-            params.source = TimingSource::subtitle;
-        }
-        else if (source == SOURCE_VALUE_CONTEXT)
-        {
-            params.source = TimingSource::context;
-        }
-        else
-        {
-            return {};
-        }
+        std::optional<TimingSource> source =
+            getTimingSource(marker.args[SOURCE_KEY]);
+        params.source = *source;
     }
 
     if (marker.args.contains(AUDIO_KEY))
@@ -538,6 +640,71 @@ static std::optional<VideoParams> getVideoParams(
     }
 
     return params;
+}
+
+/**
+ * Creates an audio clip according to the given parameters.
+ * @param appCtx The application context.
+ * @param config The current Anki configuration.
+ * @param exp The current expression object.
+ * @param params The {audio-media} parameters.
+ * @param fields The fields this set of parameters appears in.
+ * @param ctx The note context to add to.
+ * @return True if the audio clip was added, false otherwise.
+ */
+static bool createAudioMediaHelper(
+    QPointer<::Context> appCtx,
+    const AnkiConfig &config,
+    const CommonExpFields &exp,
+    const AudioMediaParams &params,
+    const QJsonArray &fields,
+    Anki::Note::Context &ctx)
+{
+    PlayerAdapter *player = appCtx->getPlayerAdapter();
+
+    PlayerAdapter::AudioClipArgs args{};
+    switch (params.source)
+    {
+        case TimingSource::subtitle:
+            args.start = exp.startTime - config.audioPadStart;
+            args.end = exp.endTime + config.audioPadEnd;
+            break;
+
+        case TimingSource::context:
+            args.start = exp.startTimeContext - config.audioPadStart;
+            args.end = exp.endTimeContext + config.audioPadEnd;
+            break;
+
+        default:
+            return false;
+    }
+    args.start = std::max(args.start, 0.0);
+    args.end = std::max(args.end, 0.0);
+    args.normalize = params.normalize;
+    args.db = params.db;
+
+    QString path;
+    if (args.start < args.end)
+    {
+        path = player->tempAudioClip(args);
+    }
+    if (path.isEmpty())
+    {
+        return false;
+    }
+
+    QJsonObject audObj;
+    audObj[AnkiConnect::Note::DATA] = FileUtils::toBase64(path);
+    QString filename = FileUtils::calculateMd5(path) + args.extension;
+    audObj[AnkiConnect::Note::FILENAME] = filename;
+    audObj[AnkiConnect::Note::FIELDS] = fields;
+
+    QJsonArray audio = ctx.ankiObject[AnkiConnect::Note::AUDIO].toArray();
+    audio.append(audObj);
+    ctx.ankiObject[AnkiConnect::Note::AUDIO] = audio;
+
+    QFile(path).remove();
+    return true;
 }
 
 /**
@@ -1772,13 +1939,28 @@ static MarkerResult processMarkerCommon(
     result.handled = true;
     if (marker.marker == Anki::Marker::AUDIO_MEDIA)
     {
-        fieldCtx.fieldsWithAudioMedia.append(field);
+        std::optional<AudioMediaParams> params =
+            getAudioMediaParams(marker, config);
+        if (!params)
+        {
+            result.handled = false;
+            return result;
+        }
+        fieldCtx.fieldsWithAudioMedia[*params].append(field),
         result.media = true;
         return result;
     }
     else if (marker.marker == Anki::Marker::AUDIO_CONTEXT)
     {
-        fieldCtx.fieldsWithAudioContext.append(field);
+        std::optional<AudioMediaParams> params =
+            getAudioMediaParams(marker, config);
+        if (!params)
+        {
+            result.handled = false;
+            return result;
+        }
+        params->source = TimingSource::context;
+        fieldCtx.fieldsWithAudioMedia[*params].append(field);
         result.media = true;
         return result;
     }
@@ -1958,94 +2140,19 @@ static bool createAudioMedia(
     const FieldContext &fieldCtx,
     Anki::Note::Context &ctx)
 {
-    if (fieldCtx.fieldsWithAudio.isEmpty())
+    if (fieldCtx.fieldsWithAudioMedia.isEmpty())
     {
         return false;
     }
 
-    PlayerAdapter *player = appCtx->getPlayerAdapter();
-
-    PlayerAdapter::AudioClipArgs args{};
-    args.start = std::max(exp.startTime - config.audioPadStart, 0.0);
-    args.end = std::max(exp.endTime + config.audioPadEnd, 0.0);
-    args.normalize = config.audioNormalize;
-    args.db = config.audioDb;
-
-    QString path;
-    if (args.start < args.end)
+    bool success = true;
+    for (const auto &[params, fields] :
+            fieldCtx.fieldsWithAudioMedia.asKeyValueRange())
     {
-        path = player->tempAudioClip(args);
+        success = success &&
+            createAudioMediaHelper(appCtx, config, exp, params, fields, ctx);
     }
-    if (path.isEmpty())
-    {
-        return false;
-    }
-
-    QJsonObject audObj;
-    audObj[AnkiConnect::Note::DATA] = FileUtils::toBase64(path);
-    QString filename = FileUtils::calculateMd5(path) + ".aac";
-    audObj[AnkiConnect::Note::FILENAME] = filename;
-    audObj[AnkiConnect::Note::FIELDS] = fieldCtx.fieldsWithAudioMedia;
-
-    QJsonArray audio = ctx.ankiObject[AnkiConnect::Note::AUDIO].toArray();
-    audio.append(audObj);
-    ctx.ankiObject[AnkiConnect::Note::AUDIO] = audio;
-
-    QFile(path).remove();
-    return true;
-}
-
-/**
- * Create the audio context file and add it to the context.
- * @param      appCtx   The context of the application.
- * @param      config   The config to use when generating the context file.
- * @param      exp      The expression to use when build the {audio-context}.
- * @param      fieldCtx The field context containing fields that include media.
- * @param[out] ctx      The context to add the media to.
- * @return true if the media was added to the context, false otherwise.
- */
-static bool createAudioContext(
-    QPointer<::Context> appCtx,
-    const AnkiConfig &config,
-    const CommonExpFields &exp,
-    const FieldContext &fieldCtx,
-    Anki::Note::Context &ctx)
-{
-    if (fieldCtx.fieldsWithAudioContext.isEmpty())
-    {
-        return false;
-    }
-
-    PlayerAdapter *player = appCtx->getPlayerAdapter();
-
-    PlayerAdapter::AudioClipArgs args{};
-    args.start = std::max(exp.startTimeContext - config.audioPadStart, 0.0);
-    args.end = std::max(exp.endTimeContext + config.audioPadEnd, 0.0);
-    args.normalize = config.audioNormalize;
-    args.db = config.audioDb;
-
-    QString path;
-    if (args.start < args.end)
-    {
-        path = player->tempAudioClip(args);
-    }
-    if (path.isEmpty())
-    {
-        return false;
-    }
-
-    QJsonObject audObj;
-    audObj[AnkiConnect::Note::DATA] = FileUtils::toBase64(path);
-    QString filename = FileUtils::calculateMd5(path) + ".aac";
-    audObj[AnkiConnect::Note::FILENAME] = filename;
-    audObj[AnkiConnect::Note::FIELDS] = fieldCtx.fieldsWithAudioContext;
-
-    QJsonArray audio = ctx.ankiObject[AnkiConnect::Note::AUDIO].toArray();
-    audio.append(audObj);
-    ctx.ankiObject[AnkiConnect::Note::AUDIO] = audio;
-
-    QFile(path).remove();
-    return true;
+    return success;
 }
 
 /**
@@ -2219,7 +2326,6 @@ Anki::Note::Context Anki::Note::build(
     {
         createAudio(term, fieldCtx, ctx);
         createAudioMedia(appCtx, config, term, fieldCtx, ctx);
-        createAudioContext(appCtx, config, term, fieldCtx, ctx);
         createScreenshot(appCtx, config, fieldCtx, ctx);
         createScreenshotVideo(appCtx, config, fieldCtx, ctx);
         createVideo(appCtx, config, term, fieldCtx, ctx);
@@ -2297,7 +2403,6 @@ Anki::Note::Context Anki::Note::build(
     if (media)
     {
         createAudioMedia(appCtx, config, kanji, fieldCtx, ctx);
-        createAudioContext(appCtx, config, kanji, fieldCtx, ctx);
         createScreenshot(appCtx, config, fieldCtx, ctx);
         createScreenshotVideo(appCtx, config, fieldCtx, ctx);
         createVideo(appCtx, config, kanji, fieldCtx, ctx);
