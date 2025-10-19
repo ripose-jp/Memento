@@ -140,7 +140,7 @@ if(MECAB_SUPPORT)
 endif()
 find_package(mpv REQUIRED)
 find_package(SQLite3 REQUIRED)
-if (UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE) # Linux and Unix
 	find_package(
 		Qt6 REQUIRED
 		COMPONENTS
@@ -152,7 +152,19 @@ if (UNIX AND NOT APPLE)
 			Svg
 			Widgets
 	)
-else()
+elseif(WIN32) # Windows
+	find_package(
+		Qt6 REQUIRED
+		COMPONENTS
+			Concurrent
+			Gui
+			GuiPrivate
+			Network
+			OpenGLWidgets
+			Svg
+			Widgets
+	)
+else() # Apple
 	find_package(
 		Qt6 REQUIRED
 		COMPONENTS
