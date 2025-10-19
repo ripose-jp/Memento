@@ -542,7 +542,7 @@ cleanup:
     return ret;
 }
 
-#define YOMI_JSON_BUILDER_DEPTH 64
+#define YOMI_JSON_BUILDER_DEPTH 256
 
 /**
  * Parses a string into a JSON object.
