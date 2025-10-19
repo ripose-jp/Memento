@@ -76,6 +76,7 @@
 #define PRAGMA_SET_ERR              -22
 #define TRANSACTION_ERR             -23
 #define DB_ALTER_TABLE_ERR          -24
+#define JSON_PARSE_ERROR            -25
 
 typedef enum bank_type
 {
@@ -541,6 +542,38 @@ cleanup:
     return ret;
 }
 
+#define YOMI_JSON_BUILDER_DEPTH 64
+
+/**
+ * Parses a string into a JSON object.
+ * @param str The string to parse.
+ * @param len The length of the string including the nul terminator.
+ * @return The JSON object on success, NULL on failure.
+ */
+static json_object *tokenize_json(const char *str, size_t len)
+{
+    json_tokener            *tok   = NULL;
+    json_object             *obj   = NULL;
+    enum json_tokener_error  error = json_tokener_success;
+
+    tok = json_tokener_new_ex(YOMI_JSON_BUILDER_DEPTH);
+    obj = json_tokener_parse_ex(tok, str, len);
+    error = json_tokener_get_error(tok);
+    if (error != json_tokener_success)
+    {
+        fprintf(stderr, "Could not parse JSON: %s\n", json_tokener_error_desc(error));
+        goto cleanup;
+    }
+
+cleanup:
+    json_tokener_free(tok);
+    tok = NULL;
+
+    return obj;
+}
+
+#undef YOMI_JSON_BUILDER_DEPTH
+
 /**
  * Parse the file in the archive and returns its object representation
  * @param       archive  Archive containing the file
@@ -550,11 +583,11 @@ cleanup:
  */
 static int get_json_obj(zip_t *archive, const char *filename, json_object **obj)
 {
-    int              ret        = 0;
-    struct zip_stat  st;
-    char            *contents   = NULL;
-    struct zip_file *file       = NULL;
-    zip_int64_t      bytes_read = 0;
+    int                      ret        = 0;
+    struct zip_stat          st;
+    char                    *contents   = NULL;
+    struct zip_file         *file       = NULL;
+    zip_int64_t              bytes_read = 0;
 
     /* Get the size of the file */
     zip_stat_init(&st);
@@ -605,7 +638,12 @@ static int get_json_obj(zip_t *archive, const char *filename, json_object **obj)
     contents[st.size] = '\0';
 
     /* Parse the contents into a json object */
-    *obj = json_tokener_parse(contents);
+    *obj = tokenize_json(contents, st.size + 1);
+    if (obj == NULL)
+    {
+        ret = JSON_PARSE_ERROR;
+        goto cleanup;
+    }
 
 cleanup:
     free(contents);
@@ -1779,7 +1817,7 @@ static char *concat_paths(const char *start, const char *end)
     char   *path      = malloc(start_len + end_len + 2);
     strcpy(path, start);
 
-    /* Make sure the start path ends in a seperator */
+    /* Make sure the start path ends in a separator */
 #ifdef _WIN32
     if (start[start_len - 1] != '/' || start[start_len - 1] != '\\')
 #else
@@ -1925,8 +1963,27 @@ static int extract_resources(zip_t *dict_archive, const char *res_dir)
             goto cleanup;
         }
 
-        /* Open the system file */
+        /* Create the file path */
         char *file_path = concat_paths(base_path, file_name);
+        char *last_slash = file_path;
+        for (char *ptr = file_path; *ptr; ++ptr)
+        {
+            if (*ptr == '/')
+            {
+                last_slash = ptr;
+            }
+        }
+        *last_slash = '\0';
+        if ((ret = make_path(file_path)))
+        {
+            fprintf(stderr, "Could not create path: %s\n%s\n", file_path, strerror(ret));
+            free(file_path);
+            file_path = NULL;
+            goto cleanup;
+        }
+        *last_slash = '/';
+
+        /* Open the file */
 #ifdef _WIN32
         LPWSTR wFilePath = utf8_to_lpwstr(file_path);
         FILE *file = _wfopen(wFilePath, L"wb+");
