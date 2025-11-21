@@ -57,10 +57,11 @@ list(
 	"-Wall"
 	"-Wextra"
 	"-Wpedantic"
-	"$<$<BOOL:${APPIMAGE}>:-DAPPIMAGE=1>"
 	"$<$<BOOL:${APPBUNDLE}>:-DAPPBUNDLE=1>"
-	"$<$<BOOL:${OCR_SUPPORT}>:-DOCR_SUPPORT=1>"
+	"$<$<BOOL:${APPIMAGE}>:-DAPPIMAGE=1>"
 	"$<$<BOOL:${MECAB_SUPPORT}>:-DMECAB_SUPPORT=1>"
+	"$<$<BOOL:${OCR_SUPPORT}>:-DOCR_SUPPORT=1>"
+	"$<$<BOOL:${SYSTEM_QCORO}>:-DSYSTEM_QCORO=1>"
 )
 
 # Set Qt preprocessor settings
@@ -135,6 +136,9 @@ endif()
 # Dependencies
 find_package(JsonC REQUIRED)
 find_package(libzip REQUIRED)
+if(SYSTEM_QCORO)
+	find_package(QCoro6 REQUIRED COMPONENTS Core Network)
+endif()
 if(MECAB_SUPPORT)
 	find_package(MeCab REQUIRED)
 endif()

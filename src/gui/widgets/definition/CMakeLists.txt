@@ -23,18 +23,20 @@ target_compile_options(definitionwidget PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(definitionwidget PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     definitionwidget
+    PRIVATE "$<$<BOOL:${SYSTEM_QCORO}>:QCoro::Network>"
+    PRIVATE "$<$<NOT:$<BOOL:${SYSTEM_QCORO}>>:QCoro6Network>"
     PRIVATE audioplayer
     PRIVATE constants
     PRIVATE dictionary_db
     PRIVATE flowlayout
     PRIVATE iconfactory
     PRIVATE playeradapter
-    PRIVATE QCoro6Network
     PRIVATE Qt6::Network
     PRIVATE subtitlelist
     PRIVATE utils
+    PUBLIC "$<$<BOOL:${SYSTEM_QCORO}>:QCoro::Core>"
+    PUBLIC "$<$<NOT:$<BOOL:${SYSTEM_QCORO}>>:QCoro6Core>"
     PUBLIC anki
     PUBLIC context
-    PUBLIC QCoro6Core
     PUBLIC Qt6::Widgets
 )

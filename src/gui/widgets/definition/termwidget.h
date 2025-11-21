@@ -32,7 +32,11 @@
 #include <QMutex>
 #include <QShortcut>
 
+#ifdef SYSTEM_QCORO
+#include <QCoroTask>
+#else
 #include <qcoro/qcorotask.h>
+#endif // SYSTEM_QCORO
 
 #include "dict/expression.h"
 #include "gui/widgets/common/flowlayout.h"

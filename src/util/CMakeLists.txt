@@ -10,8 +10,9 @@ target_link_libraries(
     utils
     PRIVATE Qt6::Network
     PRIVATE version
+    PUBLIC "$<$<BOOL:${SYSTEM_QCORO}>:QCoro::Network>"
+    PUBLIC "$<$<NOT:$<BOOL:${SYSTEM_QCORO}>>:QCoro6Network>"
     PUBLIC context
-    PUBLIC QCoro6Network
     PUBLIC Qt6::Core
     PUBLIC Qt6::Gui
 )

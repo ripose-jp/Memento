@@ -41,7 +41,8 @@ target_link_libraries(
     PRIVATE playeradapter
     PRIVATE scrollcombobox
     PRIVATE scrolldoublespinbox
+    PUBLIC "$<$<BOOL:${SYSTEM_QCORO}>:QCoro::Core>"
+    PUBLIC "$<$<NOT:$<BOOL:${SYSTEM_QCORO}>>:QCoro6Core>"
     PUBLIC context
-    PUBLIC QCoro6Core
     PUBLIC Qt6::Widgets
 )

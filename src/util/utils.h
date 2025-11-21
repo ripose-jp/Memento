@@ -25,7 +25,11 @@
 #include <QImage>
 #include <QString>
 
+#ifdef SYSTEM_QCORO
+#include <QCoroTask>
+#else
 #include <qcoro/qcorotask.h>
+#endif // SYSTEM_QCORO
 
 #include "state/context.h"
 

@@ -31,7 +31,11 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#ifdef SYSTEM_QCORO
+#include <QCoroTask>
+#else
 #include <qcoro/qcorotask.h>
+#endif // SYSTEM_QCORO
 
 #include "dict/expression.h"
 #include "state/context.h"

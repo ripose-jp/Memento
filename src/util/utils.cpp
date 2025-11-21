@@ -35,7 +35,11 @@
 #include <QStringList>
 #include <QTemporaryFile>
 
+#ifdef SYSTEM_QCORO
+#include <QCoroNetworkReply>
+#else
 #include <qcoro/network/qcoronetworkreply.h>
+#endif // SYSTEM_QCORO
 
 #if defined(Q_OS_WIN)
 #include <windows.h>

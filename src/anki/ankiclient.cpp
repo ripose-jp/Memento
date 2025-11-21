@@ -24,7 +24,11 @@
 #include <QJsonArray>
 #include <QtConcurrent>
 
+#ifdef SYSTEM_QCORO
+#include <QCoroFuture>
+#else
 #include <qcoro/core/qcorofuture.h>
+#endif // SYSTEM_QCORO
 
 #include "anki/ankiconnect.h"
 #include "anki/notebuilder.h"

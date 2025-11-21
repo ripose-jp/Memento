@@ -32,8 +32,13 @@
 #include <QString>
 #include <QStringList>
 
+#ifdef SYSTEM_QCORO
+#include <QCoroNetworkReply>
+#include <QCoroTask>
+#else
 #include <qcoro/network/qcoronetworkreply.h>
 #include <qcoro/qcorotask.h>
+#endif // SYSTEM_QCORO
 
 #include "anki/ankiconfig.h"
 #include "anki/glossarybuilder.h"

@@ -30,8 +30,13 @@
 #include <QNetworkAccessManager>
 #include <QTemporaryFile>
 
+#ifdef SYSTEM_QCORO
+#include <QCoroNetworkReply>
+#include <QCoroTask>
+#else
 #include <qcoro/network/qcoronetworkreply.h>
 #include <qcoro/qcorotask.h>
+#endif // SYSTEM_QCORO
 
 #include "state/context.h"
 

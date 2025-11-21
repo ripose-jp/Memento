@@ -27,7 +27,11 @@
 
 #include <QMutex>
 
+#ifdef SYSTEM_QCORO
+#include <QCoroTask>
+#else
 #include <qcoro/qcorotask.h>
+#endif // SYSTEM_QCORO
 
 #include "anki/ankiconfig.h"
 #include "gui/widgets/settings/ankisettingshelp.h"

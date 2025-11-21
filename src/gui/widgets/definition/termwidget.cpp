@@ -27,7 +27,11 @@
 #include <QNetworkRequest>
 #include <QPointer>
 
+#ifdef SYSTEM_QCORO
+#include <QCoroNetworkReply>
+#else
 #include <qcoro/network/qcoronetworkreply.h>
+#endif // SYSTEM_QCORO
 
 #include "audio/audioplayer.h"
 #include "dict/dictionary.h"
