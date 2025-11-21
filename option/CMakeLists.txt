@@ -8,6 +8,7 @@ endif()
 option(MAC_CROSSCOMPILE_X86 "Enables ARM machines to cross compile for x86" OFF)
 option(RELEASE_BUILD "Toggle to build with release settings" OFF)
 
+option(SYSTEM_MOCR "Use the local installation of libmocr instead of FetchContent" OFF)
 option(SYSTEM_QCORO "Use the local installation of QCoro instead of FetchContent" OFF)
 
 option(OCR_SUPPORT "Support for OCR through MangaOCR" OFF)

@@ -22,7 +22,7 @@ if(NOT SYSTEM_QCORO)
     FetchContent_MakeAvailable(qcoro)
 endif()
 
-if(OCR_SUPPORT)
+if(OCR_SUPPORT AND NOT SYSTEM_MOCR)
     set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
     FetchContent_Declare(
         libmocr

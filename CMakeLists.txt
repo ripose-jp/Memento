@@ -136,12 +136,6 @@ endif()
 # Dependencies
 find_package(JsonC REQUIRED)
 find_package(libzip REQUIRED)
-if(SYSTEM_QCORO)
-	find_package(QCoro6 REQUIRED COMPONENTS Core Network)
-endif()
-if(MECAB_SUPPORT)
-	find_package(MeCab REQUIRED)
-endif()
 find_package(mpv REQUIRED)
 find_package(SQLite3 REQUIRED)
 if(UNIX AND NOT APPLE) # Linux and Unix
@@ -179,6 +173,15 @@ else() # Apple
 			Svg
 			Widgets
 	)
+endif()
+if(SYSTEM_QCORO)
+	find_package(QCoro6 REQUIRED COMPONENTS Core Network)
+endif()
+if(MECAB_SUPPORT)
+	find_package(MeCab REQUIRED)
+endif()
+if(OCR_SUPPORT AND SYSTEM_MOCR)
+	find_package(mocr REQUIRED)
 endif()
 
 # Include CMake Modules
