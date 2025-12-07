@@ -816,6 +816,33 @@ int DatabaseManager::addFrequencies(
                     continue;
                 }
             }
+
+            /* Fourth scenario:
+             * [
+             *      "<term>","freq",
+             *      {
+             *          "value": <number>,
+             *          "displayValue": "<stylized frequency string>"
+             *      }
+             * ]
+             */
+            else if (obj[OBJ_DISPLAY_KEY].isString() ||
+                obj[OBJ_VALUE_KEY].isDouble())
+            {
+                /* Check for the type that should be shown */
+                if (obj[OBJ_DISPLAY_KEY].isString())
+                {
+                    freqStr = obj[OBJ_DISPLAY_KEY].toString();
+                }
+                else if (obj[OBJ_VALUE_KEY].isDouble())
+                {
+                    freqStr = QString::number(obj[OBJ_VALUE_KEY].toDouble());
+                }
+                else
+                {
+                    continue;
+                }
+            }
             break;
         }
         default:
