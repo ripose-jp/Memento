@@ -103,6 +103,14 @@ if(APPBUNDLE)
 		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks"
 	)
 
+	# Fix duplicate LC_RPATH in libmpv.2.dylib (probably a Homebrew bug)
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND install_name_tool -delete_rpath "@executable_path/../Frameworks/" "libmpv.2.dylib"
+		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks"
+	)
+
 	# Run macdeployqt to pick up any plugins dylibbundler missed
 	# lib needs to be symlinked because of a bug in either macdeployqt or
 	# homebrew's packaging of it
@@ -124,6 +132,20 @@ if(APPBUNDLE)
 		POST_BUILD
 		COMMAND rm lib
 		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
+	)
+
+	# Copy libbrotlicommon which is missing for some reason
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND cp "${HOMEBREW_PREFIX_PATH}/lib/libbrotlicommon.1.dylib" .
+		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks"
+	)
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND install_name_tool -id "@executable_path/../Frameworks/libbrotlicommon.1.dylib" libbrotlicommon.1.dylib
+		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks"
 	)
 
 	# Copy QtDBus because the maintainers of Homebrew built it for some reason
@@ -182,6 +204,12 @@ if(APPBUNDLE)
 		POST_BUILD
 		COMMAND mkdir Python.framework && cp -RL "${PYTHON_FRAMEWORK_PATH}/*" "Python.framework" && chmod -R 755 Python.framework
 		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks"
+	)
+	add_custom_command(
+		TARGET ${PROJECT_NAME}
+		POST_BUILD
+		COMMAND chmod -R u+w "${PROJECT_NAME}.app"
+		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
 	)
 	add_custom_command(
 		TARGET ${PROJECT_NAME}
