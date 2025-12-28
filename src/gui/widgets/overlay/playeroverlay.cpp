@@ -417,22 +417,22 @@ void PlayerOverlay::cycleOSCVisibility()
 {
     m_definition->hide();
 
-    QString msg = "OSC Visibility: ";
+    QString msg = tr("OSC Visibility: ");
     switch (m_settings.visibility)
     {
     case OSCVisibility::Auto:
         m_settings.visibility = OSCVisibility::Visible;
-        msg += "visible";
+        msg += tr("visible");
         showOverlay();
         break;
     case OSCVisibility::Visible:
         m_settings.visibility = OSCVisibility::Hidden;
-        msg += "hidden";
+        msg += tr("hidden");
         hideOverlay();
         break;
     case OSCVisibility::Hidden:
         m_settings.visibility = OSCVisibility::Auto;
-        msg += "auto";
+        msg += tr("auto");
         hideOverlay();
         break;
     }

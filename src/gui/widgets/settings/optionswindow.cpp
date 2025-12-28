@@ -38,14 +38,14 @@ OptionsWindow::OptionsWindow(Context *context, QWidget *parent) :
     m_ui(std::make_unique<Ui::OptionsWindow>()),
     m_context(std::move(context))
 {
-    constexpr const char *NAME_ANKI = "Anki Integration";
-    constexpr const char *NAME_AUDIO_SOURCE = "Audio Sources";
-    constexpr const char *NAME_BEHAVIOR = "Behavior";
-    constexpr const char *NAME_DICTIONARIES = "Dictionaries";
-    constexpr const char *NAME_INTERFACE = "Interface";
-    constexpr const char *NAME_SEARCH = "Search";
+    static const QString NAME_ANKI = tr("Anki Integration");
+    static const QString NAME_AUDIO_SOURCE = tr("Audio Sources");
+    static const QString NAME_BEHAVIOR = tr("Behavior");
+    static const QString NAME_DICTIONARIES = tr("Dictionaries");
+    static const QString NAME_INTERFACE = tr("Interface");
+    static const QString NAME_SEARCH = tr("Search");
 #ifdef OCR_SUPPORT
-    constexpr const char *NAME_OCR = "OCR";
+    static const QString NAME_OCR = tr("OCR");
 #endif // OCR_SUPPORT
 
     m_ui->setupUi(this);

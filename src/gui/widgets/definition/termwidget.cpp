@@ -100,8 +100,8 @@ TermWidget::TermWidget(
         m_sources = m_state.sources;
     }
 
-    m_menuAdd = new QMenu("Play Audio Source", m_ui->buttonAddCard);
-    m_menuAudio = new QMenu("Add Audio Source", m_ui->buttonAudio);
+    m_menuAdd = new QMenu(tr("Play Audio Source"), m_ui->buttonAddCard);
+    m_menuAudio = new QMenu(tr("Add Audio Source"), m_ui->buttonAudio);
 
     m_ui->labelKanji->setStyleSheet(EXPRESSION_STYLE);
     m_ui->labelKana->setStyleSheet(READING_STYLE);
@@ -623,7 +623,7 @@ QCoro::Task<void> TermWidget::searchAnki(
     if (!openBrowseResult.error.isEmpty())
     {
         emit context->showCritical(
-            "Error Opening Anki", openBrowseResult.error
+            tr("Error Opening Anki"), openBrowseResult.error
         );
     }
 }
@@ -723,7 +723,9 @@ QCoro::Task<void> TermWidget::addNote(
         co_await context->getAnkiClient()->addNote(std::move(term));
     if (!addNoteResult.error.isEmpty())
     {
-        emit context->showCritical("Error Adding Note", addNoteResult.error);
+        emit context->showCritical(
+            tr("Error Adding Note"), addNoteResult.error
+        );
     }
 }
 

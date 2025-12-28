@@ -136,7 +136,7 @@ void OCRSettings::applySettings()
 void OCRSettings::setLocalModel()
 {
     QString file = QFileDialog::getOpenFileName(
-        this, "Choose a model", m_ui->lineEditModel->text()
+        this, tr("Choose a model"), m_ui->lineEditModel->text()
     );
     if (file.isEmpty())
     {

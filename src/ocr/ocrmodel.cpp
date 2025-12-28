@@ -28,7 +28,7 @@
 #ifdef Q_OS_DARWIN
 #include <pthread.h>
 
-#define APPLE_STACK_SIZE ((size_t)8388608)
+static constexpr size_t APPLE_STACK_SIZE = 8388608;
 #endif // Q_OS_DARWIN
 
 #ifdef Q_OS_DARWIN
@@ -109,7 +109,7 @@ QFuture<QString> OCRModel::getText(const QImage &image)
             mocr::model *model = getModel();
             if (!model->valid())
             {
-                qDebug() << "OCR model is invalid.";
+                qDebug() << tr("OCR model is invalid.");
                 return "";
             }
 

@@ -28,7 +28,7 @@
 AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
 {
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
-    setWindowTitle("About Memento");
+    setWindowTitle(tr("About Memento"));
 
     QVBoxLayout *parentLayout = new QVBoxLayout(this);
     parentLayout->setContentsMargins(20, 20, 20, 20);
@@ -51,8 +51,8 @@ AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
         version += '-';
         version += versionHash;
     }
-    labelInfo->setText(
-        "<b>Version</b>: " + version + "<br>"
+    labelInfo->setText(tr(
+        "<b>Version</b>: %1<br>"
         "<b>License</b>: GPLv2"
         "<br>"
         "<b>Website</b>: "
@@ -66,6 +66,6 @@ AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
             "</a>"
         "<br>"
         "Copyright Ripose 2020-2025"
-    );
+    ).arg(version));
     parentLayout->addWidget(labelInfo);
 }

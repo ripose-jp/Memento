@@ -144,7 +144,7 @@ void DictionarySettings::restoreSaved()
     for (const DictionaryInfo &info : dicts)
     {
         QListWidgetItem *item = new QListWidgetItem(
-            QString("%1 [%2]")
+            tr("%1 [%2]")
                 .arg(info.name)
                 .arg(info.id)
         );
@@ -227,7 +227,10 @@ void DictionarySettings::moveDown()
 void DictionarySettings::addDictionary()
 {
     QStringList files = QFileDialog::getOpenFileNames(
-        0, "Open Dictionaries", QString(), "Dictionaries (*.zip);;All Files (*)"
+        nullptr,
+        tr("Open Dictionaries"),
+        QString(),
+        tr("Dictionaries (*.zip);;All Files (*)")
     );
     if (files.isEmpty())
     {
@@ -240,7 +243,9 @@ void DictionarySettings::addDictionary()
             QString err = m_context->getDictionary()->addDictionary(files);
             if (!err.isEmpty())
             {
-                emit m_context->showCritical("Error adding dictionary", err);
+                emit m_context->showCritical(
+                    tr("Error adding dictionary"), err
+                );
             }
             setEnabled(true);
         }
@@ -270,7 +275,9 @@ void DictionarySettings::deleteDictionary()
             );
             if (!err.isEmpty())
             {
-                emit m_context->showCritical("Error deleting dictionary", err);
+                emit m_context->showCritical(
+                    tr("Error deleting dictionary"), err
+                );
             }
             delete item;
             setEnabled(true);

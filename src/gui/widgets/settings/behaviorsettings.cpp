@@ -38,11 +38,11 @@ BehaviorSettings::BehaviorSettings(Context *context, QWidget *parent) :
 
     /* Add the items to the File Open combo box */
     m_fileOpenMap = QMap<QString, Constants::FileOpenDirectory>({
-        {"Current", Constants::FileOpenDirectory::Current},
-        {"Home", Constants::FileOpenDirectory::Home},
-        {"Movies", Constants::FileOpenDirectory::Movies},
-        {"Documents", Constants::FileOpenDirectory::Documents},
-        {"Custom", Constants::FileOpenDirectory::Custom}
+        {tr("Current"), Constants::FileOpenDirectory::Current},
+        {tr("Home"), Constants::FileOpenDirectory::Home},
+        {tr("Movies"), Constants::FileOpenDirectory::Movies},
+        {tr("Documents"), Constants::FileOpenDirectory::Documents},
+        {tr("Custom"), Constants::FileOpenDirectory::Custom}
     });
     m_ui->comboFileOpenDir->addItems(QStringList(m_fileOpenMap.keys()));
 
@@ -291,7 +291,7 @@ void BehaviorSettings::handleFileOpenChange(const QString &text)
 void BehaviorSettings::setCustomDirectory()
 {
     QString dir = QFileDialog::getExistingDirectory(
-        this, "Choose a directory", m_ui->lineEditFileOpenCustom->text()
+        this, tr("Choose a directory"), m_ui->lineEditFileOpenCustom->text()
     );
     if (dir.isEmpty())
     {

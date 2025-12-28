@@ -368,7 +368,7 @@ QCoro::Task<void> AnkiSettings::connectToClient(const bool showErrors)
     {
         if (showErrors)
         {
-            emit m_context->showCritical("Error", testResult.error);
+            emit m_context->showCritical(tr("Error"), testResult.error);
         }
         m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
         co_return;
@@ -379,7 +379,7 @@ QCoro::Task<void> AnkiSettings::connectToClient(const bool showErrors)
     {
         if (showErrors)
         {
-            emit m_context->showCritical("Error", deckNames.error);
+            emit m_context->showCritical(tr("Error"), deckNames.error);
         }
         m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
         co_return;
@@ -398,7 +398,7 @@ QCoro::Task<void> AnkiSettings::connectToClient(const bool showErrors)
     {
         if (showErrors)
         {
-            emit m_context->showCritical("Error", modelNames.error);
+            emit m_context->showCritical(tr("Error"), modelNames.error);
         }
         m_ui->buttonConnect->setEnabled(m_ui->checkBoxEnabled->isChecked());
         co_return;
@@ -432,7 +432,7 @@ QCoro::Task<void> AnkiSettings::updateModelFields(
     }
     else
     {
-        emit m_context->showCritical("Error", fieldNames.error);
+        emit m_context->showCritical(tr("Error"), fieldNames.error);
     }
     m_mutexUpdateModelFields.unlock();
 }
@@ -556,8 +556,8 @@ void AnkiSettings::addProfile()
     if (m_configs.contains(profileName))
     {
         emit m_context->showInformation(
-            "Failed",
-            "Profile with name " + profileName + " already exists."
+            tr("Failed"),
+            tr("Profile with name %1 already exists.").arg(profileName)
         );
     }
     else
@@ -582,8 +582,8 @@ void AnkiSettings::deleteProfile()
     if (profile == DEFAULT_PROFILE)
     {
         emit m_context->showInformation(
-            "Failed",
-            "The Default profile cannot be deleted"
+            tr("Failed"),
+            tr("The Default profile cannot be deleted")
         );
     }
     else
@@ -609,16 +609,16 @@ void AnkiSettings::renameProfile(const QString &oldName, const QString &newName)
     if (oldName == DEFAULT_PROFILE)
     {
         emit m_context->showInformation(
-            "Info",
-            "Default profile cannot be renamed"
+            tr("Info"),
+            tr("Default profile cannot be renamed")
         );
         m_ui->lineEditProfileName->setText(DEFAULT_PROFILE);
     }
     else if (newName.isEmpty())
     {
         emit m_context->showInformation(
-            "Info",
-            "Profile must have a name"
+            tr("Info"),
+            tr("Profile must have a name")
         );
         m_ui->lineEditProfileName->setText(oldName);
     }
@@ -707,9 +707,9 @@ void AnkiSettings::applyToConfig(const QString &profile)
 /* End Cache Management */
 /* Begin Helpers */
 
-#define DUPLICATE_POLICY_NONE       "None"
-#define DUPLICATE_POLICY_DIFFERENT  "Allowed in Different Decks"
-#define DUPLICATE_POLICY_SAME       "Allowed in Same Deck"
+#define DUPLICATE_POLICY_NONE       tr("None")
+#define DUPLICATE_POLICY_DIFFERENT  tr("Allowed in Different Decks")
+#define DUPLICATE_POLICY_SAME       tr("Allowed in Same Deck")
 
 QString AnkiSettings::duplicatePolicyToString(
     AnkiConfig::DuplicatePolicy policy)
@@ -743,7 +743,7 @@ AnkiConfig::DuplicatePolicy AnkiSettings::stringToDuplicatePolicy(
         return AnkiConfig::DuplicatePolicy::SameDeck;
     }
 
-    qDebug() << "Invalid duplicate policy string:" << str;
+    qDebug() << tr("Invalid duplicate policy string:") << str;
     return DEFAULT_DUPLICATE_POLICY;
 }
 
@@ -751,9 +751,9 @@ AnkiConfig::DuplicatePolicy AnkiSettings::stringToDuplicatePolicy(
 #undef DUPLICATE_POLICY_DIFFERENT
 #undef DUPLICATE_POLICY_SAME
 
-#define SCREENSHOT_PNG  "PNG"
-#define SCREENSHOT_JPG  "JPG"
-#define SCREENSHOT_WEBP "WebP"
+#define SCREENSHOT_PNG  tr("PNG")
+#define SCREENSHOT_JPG  tr("JPG")
+#define SCREENSHOT_WEBP tr("WebP")
 
 QString AnkiSettings::fileTypeToString(AnkiConfig::FileType type)
 {
@@ -785,7 +785,7 @@ AnkiConfig::FileType AnkiSettings::stringToFileType(const QString &str)
         return AnkiConfig::FileType::webp;
     }
 
-    qDebug() << "Invalid file type string:" << str;
+    qDebug() << tr("Invalid file type string:") << str;
     return DEFAULT_SCREENSHOT;
 }
 

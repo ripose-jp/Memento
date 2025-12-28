@@ -886,7 +886,7 @@ void SubtitleListWidget::handleContextMenu(
 
     QMenu contextMenu(this);
 
-    QAction actionCopyText("Copy Text", this);
+    QAction actionCopyText(tr("Copy Text"), this);
     actionCopyText.setShortcut(m_copyShortcut->key());
     connect(
         &actionCopyText, &QAction::triggered,
@@ -894,7 +894,7 @@ void SubtitleListWidget::handleContextMenu(
     );
     contextMenu.addAction(&actionCopyText);
 
-    QAction actionCopyAudio("Copy Audio", this);
+    QAction actionCopyAudio(tr("Copy Audio"), this);
     actionCopyAudio.setShortcut(m_copyAudioShortcut->key());
     connect(
         &actionCopyAudio, &QAction::triggered,
@@ -902,7 +902,7 @@ void SubtitleListWidget::handleContextMenu(
     );
     contextMenu.addAction(&actionCopyAudio);
 
-    QAction actionAlign("Align Delay", this);
+    QAction actionAlign(tr("Align Delay"), this);
     connect(
         &actionAlign, &QAction::triggered, this,
         [this, &list, item] () -> void
@@ -1074,8 +1074,8 @@ void SubtitleListWidget::findShow()
     findText(m_ui->lineEditSearch->text());
 }
 
-#define MATCH_NONE      "No Matches"
-#define MATCH_FORMAT    QString("%1 of %2 Rows")
+#define MATCH_NONE      tr("No Matches")
+#define MATCH_FORMAT    tr("%1 of %2 Rows")
 
 template<int SUBTITLE_INDEX>
 void SubtitleListWidget::findTextHelper(SubtitleList &list, QString text)

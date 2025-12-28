@@ -476,8 +476,8 @@ void MainWindow::showEvent(QShowEvent *event)
     if (m_context->getDictionary()->getDictionaries().isEmpty())
     {
         QMessageBox::information(0,
-            "No Dictionaries Installed",
-            "No dictionaries are installed. For subtitle searching to work, "
+            tr("No Dictionaries Installed"),
+            tr("No dictionaries are installed. For subtitle searching to work, "
             "please install a dictionary."
             "<br>"
             "Dictionaries can be found "
@@ -491,6 +491,7 @@ void MainWindow::showEvent(QShowEvent *event)
 #else
             "To install a dictionary, go to Settings → Options → Dictionaries."
 #endif
+            )
         );
     }
 

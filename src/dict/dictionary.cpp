@@ -120,23 +120,25 @@ void Dictionary::initQueryGenerators()
             qDebug() << MeCab::getTaggerError();
             QMessageBox::critical(
                 nullptr,
-                "MeCab Error",
-                "Could not initialize MeCab.\n"
-                "Memento will still work, but search results will suffer.\n"
+                tr("MeCab Error"),
+                tr("Could not initialize MeCab.\n"
+                "Memento will still work, but search results will suffer.\n") +
 #if defined(Q_OS_WIN)
-                "Make sure that ipadic is present in\n" +
-                DirectoryUtils::getDictionaryDir()
+                tr("Make sure that ipadic is present in\n"
+                "%1")
+                    .arg(DirectoryUtils::getDictionaryDir())
 #elif defined(APPIMAGE)
-                "Please report this bug at "
-                "https://github.com/ripose-jp/Memento/issues"
+                tr("Please report this bug at "
+                "https://github.com/ripose-jp/Memento/issues")
 #elif defined(APPBUNDLE)
-                "The current dictionary directory\n" +
-                DirectoryUtils::getDictionaryDir() +
+                tr("The current dictionary directory\n"
+                "%1"
                 "\nIf there are spaces in this path, please move Memento to a "
-                "directory without spaces."
+                "directory without spaces.")
+                    .arg(DirectoryUtils::getDictionaryDir())
 #else
-                "Make sure you have a system dictionary installed by running "
-                "'mecab -D' from the command line."
+                tr("Make sure you have a system dictionary installed by "
+                "running 'mecab -D' from the command line.")
 #endif
             );
         }

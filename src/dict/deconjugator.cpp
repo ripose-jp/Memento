@@ -19,11 +19,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "deconjugator.h"
-#include <QString>
+
 #include <QList>
 #include <QMap>
-#include <QStack>
 #include <QPair>
+#include <QStack>
+#include <QString>
+
+#include "gui/widgets/definition/definitionwidget.h"
 
 struct Rule
 {
@@ -464,85 +467,85 @@ static QString wordFormToString(WordForm ruleType)
     switch (ruleType)
     {
     case WordForm::godanVerb:
-        return "godan verb";
+        return DefinitionWidget::tr("godan verb");
     case WordForm::ichidanVerb:
-        return "ichidan verb";
+        return DefinitionWidget::tr("ichidan verb");
     case WordForm::suruVerb:
-        return "suru verb";
+        return DefinitionWidget::tr("suru verb");
     case WordForm::kuruVerb:
-        return "kuru verb";
+        return DefinitionWidget::tr("kuru verb");
     case WordForm::adjective:
-        return "adjective";
+        return DefinitionWidget::tr("adjective");
     case WordForm::negative:
-        return "negative";
+        return DefinitionWidget::tr("negative");
     case WordForm::past:
-        return "past";
+        return DefinitionWidget::tr("past");
     case WordForm::te:
-        return "-te";
+        return DefinitionWidget::tr("-te");
     case WordForm::conjunctive:
-        return "masu stem";
+        return DefinitionWidget::tr("masu stem");
     case WordForm::volitional:
-        return "volitional";
+        return DefinitionWidget::tr("volitional");
     case WordForm::passive:
-        return "passive";
+        return DefinitionWidget::tr("passive");
     case WordForm::causative:
-        return "causative";
+        return DefinitionWidget::tr("causative");
     case WordForm::imperative:
-        return "imperative";
+        return DefinitionWidget::tr("imperative");
     case WordForm::potential:
-        return "potential";
+        return DefinitionWidget::tr("potential");
     case WordForm::potentialPassive:
-        return "potential or passive";
+        return DefinitionWidget::tr("potential or passive");
     case WordForm::imperativeNegative:
-        return "imperative negative";
+        return DefinitionWidget::tr("imperative negative");
     case WordForm::zaru:
-        return "-zaru";
+        return DefinitionWidget::tr("-zaru");
     case WordForm::neba:
-        return "-neba";
+        return DefinitionWidget::tr("-neba");
     case WordForm::zu:
-        return "-zu";
+        return DefinitionWidget::tr("-zu");
     case WordForm::nu:
-        return "-nu";
+        return DefinitionWidget::tr("-nu");
     case WordForm::ba:
-        return "-ba";
+        return DefinitionWidget::tr("-ba");
     case WordForm::tari:
-        return "-tari";
+        return DefinitionWidget::tr("-tari");
     case WordForm::shimau:
-        return "-shimau";
+        return DefinitionWidget::tr("-shimau");
     case WordForm::chau:
-        return "-chau";
+        return DefinitionWidget::tr("-chau");
     case WordForm::chimau:
-        return "-chimau";
+        return DefinitionWidget::tr("-chimau");
     case WordForm::polite:
-        return "polite";
+        return DefinitionWidget::tr("polite");
     case WordForm::tara:
-        return "-tara";
+        return DefinitionWidget::tr("-tara");
     case WordForm::tai:
-        return "-tai";
+        return DefinitionWidget::tr("-tai");
     case WordForm::nasai:
-        return "-nasai";
+        return DefinitionWidget::tr("-nasai");
     case WordForm::sugiru:
-        return "-sugiru";
+        return DefinitionWidget::tr("-sugiru");
     case WordForm::sou:
-        return "-sou";
+        return DefinitionWidget::tr("-sou");
     case WordForm::e:
-        return "-e";
+        return DefinitionWidget::tr("-e");
     case WordForm::ki:
-        return "-ki";
+        return DefinitionWidget::tr("-ki");
     case WordForm::toku:
-        return "-toku";
+        return DefinitionWidget::tr("-toku");
     case WordForm::colloquialNegative:
-        return "colloquial negative";
+        return DefinitionWidget::tr("colloquial negative");
     case WordForm::provisionalColloquialNegative:
-        return "provisional colloquial negative";
+        return DefinitionWidget::tr("provisional colloquial negative");
     case WordForm::continuous:
-        return "progressive or perfect";
+        return DefinitionWidget::tr("progressive or perfect");
     case WordForm::adverbial:
-        return "adv";
+        return DefinitionWidget::tr("adv");
     case WordForm::noun:
-        return "noun";
+        return DefinitionWidget::tr("noun");
     default:
-        return "unknown";
+        return DefinitionWidget::tr("unknown");
     }
 }
 

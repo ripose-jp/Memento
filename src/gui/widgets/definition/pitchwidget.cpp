@@ -71,7 +71,9 @@ PitchWidget::PitchWidget(const Pitch &pitch, QWidget *parent) : QWidget(parent)
 {
     if (pitch.mora.isEmpty())
     {
-        qDebug() << "Reading of empty size from dictionary" << pitch.dictionary;
+        qDebug()
+            << tr("Reading of empty size from dictionary")
+            << pitch.dictionary;
         return;
     }
 

@@ -23,6 +23,7 @@
 
 #ifdef OCR_SUPPORT
 
+#include <QCoreApplication>
 #include <QFuture>
 #include <QReadWriteLock>
 #include <QtGlobal>
@@ -37,6 +38,8 @@ namespace mocr
  */
 class OCRModel
 {
+    Q_DECLARE_TR_FUNCTIONS(OCRModel)
+
 public:
     /**
      * Initializes an OCRModel object.

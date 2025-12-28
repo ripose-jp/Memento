@@ -230,9 +230,10 @@ int main(int argc, char **argv)
     {
         QMessageBox message;
         message.critical(
-            0, "Error Creating Config Directory",
-            "Could not make configuration directory at " +
-            DirectoryUtils::getConfigDir()
+            nullptr,
+            message.tr("Error Creating Config Directory"),
+            message.tr("Could not make configuration directory at %1")
+                .arg(DirectoryUtils::getConfigDir())
         );
         return EXIT_FAILURE;
     }
@@ -243,9 +244,10 @@ int main(int argc, char **argv)
     {
         QMessageBox message;
         message.critical(
-            0, "Error Creating Resource Directory",
-            "Could not make resource directory at " +
-            DirectoryUtils::getDictionaryResourceDir()
+            nullptr,
+            message.tr("Error Creating Resource Directory"),
+            message.tr("Could not make resource directory at %1")
+                .arg(DirectoryUtils::getDictionaryResourceDir())
         );
         return EXIT_FAILURE;
     }

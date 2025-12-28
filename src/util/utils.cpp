@@ -189,8 +189,9 @@ QCoro::Task<void> NetworkUtils::checkForUpdates(Context *context)
     if (reply->error())
     {
         emit context->showCritical(
-            "Error",
-            "Could not check for updates:\n" + reply->errorString()
+            context->tr("Error"),
+            context->tr("Could not check for updates\n%1")
+                .arg(reply->errorString())
         );
         co_return;
     }
@@ -199,11 +200,11 @@ QCoro::Task<void> NetworkUtils::checkForUpdates(Context *context)
     auto showError = [context] () -> void
     {
         emit context->showCritical(
-            "Error",
-            "Server did not send a valid reply.\n"
-                "Check manually <a href='" +
-                QString(Constants::Links::GITHUB_RELEASES) +
-                "'>here</a>"
+            context->tr("Error"),
+            context->tr(
+                "Server did not send a valid reply.\n"
+                "Check manually <a href='%1'>here</a>"
+            ).arg(Constants::Links::GITHUB_RELEASES)
         );
     };
     replyDoc = QJsonDocument::fromJson(reply->readAll());
@@ -226,7 +227,7 @@ QCoro::Task<void> NetworkUtils::checkForUpdates(Context *context)
     {
         emit context->showInformation(
             "Update Available",
-            QString("New version <a href='%1'>%2</a> available.")
+            context->tr("New version <a href='%1'>%2</a> available.")
                 .arg(url)
                 .arg(tag)
         );
@@ -235,7 +236,7 @@ QCoro::Task<void> NetworkUtils::checkForUpdates(Context *context)
 
     /* If reached, Memento was up to date */
     emit context->showInformation(
-        "Up to Date", "Memento is up to date"
+        context->tr("Up to Date"), context->tr("Memento is up to date")
     );
 }
 

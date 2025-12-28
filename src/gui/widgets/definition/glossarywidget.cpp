@@ -60,7 +60,7 @@ GlossaryWidget::GlossaryWidget(
 #else
     m_checkBoxAdd->setText("");
 #endif
-    m_checkBoxAdd->setToolTip("Add this entry to an Anki note");
+    m_checkBoxAdd->setToolTip(tr("Add this entry to an Anki note"));
     m_checkBoxAdd->hide();
 
     m_labelNumber->setText(QString::number(number) + ".");

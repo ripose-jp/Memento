@@ -106,13 +106,13 @@ void SearchWidget::initialize(Context *context)
 {
     m_context = std::move(context);
 
-    setWindowTitle("Term Search");
+    setWindowTitle(tr("Term Search"));
     setAutoFillBackground(true);
 
     m_layoutParent = new QVBoxLayout(this);
 
     m_searchEdit = new SearchEdit;
-    m_searchEdit->setPlaceholderText("Search");
+    m_searchEdit->setPlaceholderText(tr("Search"));
     m_layoutParent->addWidget(m_searchEdit);
 
     m_definition = new DefinitionWidget(m_context);

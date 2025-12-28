@@ -25,6 +25,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSettings>
+#include <QTranslator>
 
 #include "util/constants.h"
 #include "util/iconfactory.h"
@@ -36,8 +37,8 @@ static constexpr int COL_TYPE = 2;
 static constexpr int COL_MD5 = 3;
 
 /* Combo Box Type Names */
-constexpr const char *TYPE_COMBO_BOX_FILE = "File";
-constexpr const char *TYPE_COMBO_BOX_JSON = "JSON";
+#define TYPE_COMBO_BOX_FILE tr("File")
+#define TYPE_COMBO_BOX_JSON tr("JSON")
 
 /* Begin Constructor/Destructors */
 
@@ -285,14 +286,14 @@ void AudioSourceSettings::restoreSaved()
 
 void AudioSourceSettings::showHelp()
 {
-    QMessageBox::information(this, "Audio Source Help",
-        "<b>Source Name</b>: The name of the audio source as it will appear in Memento."
+    QMessageBox::information(this, tr("Audio Source Help"),
+        tr("<b>Source Name</b>: The name of the audio source as it will appear in Memento."
         "<br><br>"
         "<b>URL</b>: The URL of the audio source. "
             "Supports inserting {expression} and {reading} markers into the URL. "
             "See Anki Integration Help for more information."
         "<br><br>"
-        "<b>MD5 Skip Hash</b>: Audio that matches this MD5 hash will be ignored."
+        "<b>MD5 Skip Hash</b>: Audio that matches this MD5 hash will be ignored.")
     );
 }
 
@@ -392,13 +393,13 @@ QString AudioSourceSettings::verifyNames() const
     {
         if (itemEmpty(i, COL_NAME))
         {
-            return QString("Missing name at row %1.").arg(i + 1);
+            return tr("Missing name at row %1.").arg(i + 1);
         }
 
         QString name = table->item(i, COL_NAME)->text();
         if (names.contains(name))
         {
-            return QString("Duplicate name at row %1.").arg(i + 1);
+            return tr("Duplicate name at row %1.").arg(i + 1);
         }
         names.insert(name);
     }

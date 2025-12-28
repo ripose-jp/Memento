@@ -295,7 +295,7 @@ void DefinitionWidget::setTerms(SharedTermList terms, SharedKanji kanji)
         buttonShowMore->setSizePolicy(
             QSizePolicy::Preferred, QSizePolicy::Fixed
         );
-        buttonShowMore->setText("Show More");
+        buttonShowMore->setText(tr("Show More"));
         buttonShowMore->setEnabled(!m_context->getAnkiClient()->isEnabled());
         m_ui->scrollAreaContents->layout()->addWidget(buttonShowMore);
         connect(

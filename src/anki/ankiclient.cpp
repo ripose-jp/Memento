@@ -95,7 +95,7 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
 
     if (!configFile.open(QIODevice::ReadOnly))
     {
-        qDebug() << "AnkiConnect config file exists, can't open it";
+        qDebug() << tr("AnkiConnect config file exists, can't open it");
         return false;
     }
 
@@ -106,12 +106,12 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
     /* Error check the JSON */
     if (jsonDoc.isNull())
     {
-        qDebug() << filename << "is not JSON";
+        qDebug() << tr("%1 is not JSON").arg(filename);
         return false;
     }
     else if (!jsonDoc.isObject())
     {
-        qDebug() << filename << "is not an object";
+        qDebug() << tr("%1 is not an object").arg(filename);
         return false;
     }
 
@@ -119,17 +119,17 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
     /* Error check the config */
     if (!jsonObj[CONFIG_ENABLED].isBool())
     {
-        qDebug() << CONFIG_ENABLED << "is not a boolean";
+        qDebug() << tr("%1 is not a boolean").arg(CONFIG_ENABLED);
         return false;
     }
     else if (!jsonObj[CONFIG_SET_PROFILE].isString())
     {
-        qDebug() << CONFIG_SET_PROFILE << "is not a string";
+        qDebug() << tr("%1 is not a sting").arg(CONFIG_SET_PROFILE);
         return false;
     }
     else if (!jsonObj[CONFIG_PROFILES].isArray())
     {
-        qDebug() << CONFIG_PROFILES << "is not an array";
+        qDebug() << tr("%1 is not an array").arg(CONFIG_PROFILES);
         return false;
     }
     QJsonArray profiles = jsonObj[CONFIG_PROFILES].toArray();
@@ -137,7 +137,7 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
     {
         if (!profiles[i].isObject())
         {
-            qDebug() << CONFIG_PROFILES << "element is not an object";
+            qDebug() << tr("%1 element is not an object").arg(CONFIG_PROFILES);
             return false;
         }
         QJsonObject profile = profiles[i].toObject();
@@ -203,70 +203,72 @@ bool AnkiClient::readConfigFromFile(const QString &filename)
         /* Error check values */
         if (!profile[CONFIG_NAME].isString())
         {
-            qDebug() << CONFIG_NAME << "is not a string";
+            qDebug() << tr("%1 is not a string").arg(CONFIG_NAME);
             return false;
         }
         else if (!profile[CONFIG_HOST].isString())
         {
-            qDebug() << CONFIG_HOST << "is not a string";
+            qDebug() << tr("%1 is not a string").arg(CONFIG_HOST);
             return false;
         }
         else if (!profile[CONFIG_PORT].isString())
         {
-            qDebug() << CONFIG_PORT << "is not a string";
+            qDebug() << tr("%1 is not a string").arg(CONFIG_PORT);
             return false;
         }
         else if (!profile[CONFIG_DUPLICATE].isDouble())
         {
-            qDebug() << CONFIG_DUPLICATE << "is not a double";
+            qDebug() << tr("%1 is not a double").arg(CONFIG_DUPLICATE);
             return false;
         }
         else if (!profile[CONFIG_NEWLINE_REPLACER].isString())
         {
-            qDebug() << CONFIG_NEWLINE_REPLACER << "is not a string";
+            qDebug() << tr("%1 is not a string").arg(CONFIG_NEWLINE_REPLACER);
             return false;
         }
         else if (!profile[CONFIG_SCREENSHOT].isDouble())
         {
-            qDebug() << CONFIG_SCREENSHOT << "is not a double";
+            qDebug() << tr("%1 is not a double").arg(CONFIG_SCREENSHOT);
             return false;
         }
         else if (!profile[CONFIG_AUDIO_PAD_START].isDouble())
         {
-            qDebug() << CONFIG_AUDIO_PAD_START << "is not a double";
+            qDebug() << tr("%1 is not a double").arg(CONFIG_AUDIO_PAD_START);
             return false;
         }
         else if (!profile[CONFIG_AUDIO_PAD_END].isDouble())
         {
-            qDebug() << CONFIG_AUDIO_PAD_END << "is not a double";
+            qDebug() << tr("%1 is not a double").arg(CONFIG_AUDIO_PAD_END);
             return false;
         }
         else if (!profile[CONFIG_AUDIO_NORMALIZE].isBool())
         {
-            qDebug() << CONFIG_AUDIO_NORMALIZE << "is not a bool";
+            qDebug() << tr("%1 is not a bool").arg(CONFIG_AUDIO_NORMALIZE);
+            return false;
         }
         else if (!profile[CONFIG_AUDIO_DB].isDouble())
         {
-            qDebug() << CONFIG_AUDIO_DB << "is not a double";
+            qDebug() << tr("%1 is not a double").arg(CONFIG_AUDIO_DB);
+            return false;
         }
         else if (!profile[CONFIG_TAGS].isArray())
         {
-            qDebug() << CONFIG_TAGS << "is not an array";
+            qDebug() << tr("%1 is not an array").arg(CONFIG_TAGS);
             return false;
         }
         else if (!profile[CONFIG_TERM].isObject())
         {
-            qDebug() << CONFIG_TERM << "is not an object";
+            qDebug() << tr("%1 is not an object").arg(CONFIG_TERM);
             return false;
         }
         else if (!profile[CONFIG_KANJI].isObject())
         {
-            qDebug() << CONFIG_KANJI << "is not an object";
+            qDebug() << tr("%1 is not an object").arg(CONFIG_KANJI);
             return false;
         }
         else if (!profile[CONFIG_EXCLUDE_GLOSSARY].isArray())
         {
-            qDebug() << CONFIG_EXCLUDE_GLOSSARY << "is not an array";
+            qDebug() << tr("%1 is not an array").arg(CONFIG_EXCLUDE_GLOSSARY);
             return false;
         }
     }
@@ -333,7 +335,7 @@ bool AnkiClient::writeConfigToFile(const QString &filename)
                          QIODevice::Truncate |
                          QIODevice::Text))
     {
-        qDebug() << "Could not open file" << filename;
+        qDebug() << tr("Could not open file %1").arg(filename);
         return false;
     }
 
@@ -519,14 +521,14 @@ QCoro::Task<AnkiReply<bool>> AnkiClient::testConnection()
     if (!replyObj[AnkiConnect::Req::RESULT].isDouble())
     {
         result.value = false;
-        result.error = "AnkiConnect result is not a number";
+        result.error = tr("AnkiConnect result is not a number");
         co_return result;
     }
 
     if (replyObj[AnkiConnect::Req::RESULT].toInt() < MIN_ANKICONNECT_VERSION)
     {
         result.value = false;
-        result.error = "AnkiConnect version %1 < %2";
+        result.error = tr("AnkiConnect version %1 < %2");
         result.error = result.error.arg(
             QString::number(replyObj[AnkiConnect::Req::RESULT].toInt()),
             QString::number(MIN_ANKICONNECT_VERSION)
@@ -734,7 +736,7 @@ QCoro::Task<AnkiReply<QStringList>> AnkiClient::addMedia(
 
     if (!multiResult[AnkiConnect::Req::RESULT].isArray())
     {
-        result.error = "Result is not an array";
+        result.error = tr("Result is not an array");
         co_return result;
     }
 
@@ -744,7 +746,7 @@ QCoro::Task<AnkiReply<QStringList>> AnkiClient::addMedia(
         if (!actionResult.isString())
         {
             result.value.clear();
-            result.error = "Result is not a string";
+            result.error = tr("Result is not a string");
             co_return result;
         }
         result.value.emplaceBack(actionResult.toString());
@@ -786,7 +788,7 @@ QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openBrowse(
 
     if (!replyObj[AnkiConnect::Req::RESULT].isArray())
     {
-        result.error = "Result is not an array";
+        result.error = tr("Result is not an array");
         co_return result;
     }
 
@@ -796,7 +798,7 @@ QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openBrowse(
         if (!addable.isDouble())
         {
             result.value.clear();
-            result.error = "Response was not an array of bool";
+            result.error = tr("Response was not an array of bool");
             co_return result;
         }
         result.value.emplaceBack(addable.toInt());
@@ -822,7 +824,7 @@ QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openDuplicates(
     {
         co_return AnkiReply<QList<int>>{
             .value = {},
-            .error = "The current model has no fields",
+            .error = tr("The current model has no fields"),
         };
     }
     QString fieldKey = fieldNames.value.front();
@@ -889,7 +891,7 @@ QCoro::Task<AnkiReply<QList<int>>> AnkiClient::openDuplicates(
     {
         co_return AnkiReply<QList<int>>{
             .value = {},
-            .error = "The current model has no fields",
+            .error = tr("The current model has no fields"),
         };
     }
     QString fieldKey = fieldNames.value.front();
@@ -933,7 +935,7 @@ QCoro::Task<AnkiReply<QStringList>> AnkiClient::requestStringList(
 
     if (!replyObj[AnkiConnect::Req::RESULT].isArray())
     {
-        result.error = "Result is not an array";
+        result.error = tr("Result is not an array");
         co_return result;
     }
 
@@ -960,7 +962,7 @@ QCoro::Task<AnkiReply<QList<bool>>> AnkiClient::requestBoolList(
 
     if (!replyObj[AnkiConnect::Req::RESULT].isArray())
     {
-        result.error = "Result is not an array";
+        result.error = tr("Result is not an array");
         co_return result;
     }
 
@@ -970,7 +972,7 @@ QCoro::Task<AnkiReply<QList<bool>>> AnkiClient::requestBoolList(
         if (!addable.isBool())
         {
             result.value.clear();
-            result.error = "Response was not an array of bool";
+            result.error = tr("Response was not an array of bool");
             co_return result;
         }
         result.value.emplaceBack(addable.toBool());
@@ -993,7 +995,7 @@ QCoro::Task<AnkiReply<int>> AnkiClient::requestInt(
 
     if (!replyObj[AnkiConnect::Req::RESULT].isDouble())
     {
-        result.error = "AnkiConnect result is not a double";
+        result.error = tr("AnkiConnect result is not a double");
         co_return result;
     }
 
@@ -1031,28 +1033,28 @@ QJsonObject AnkiClient::processReply(QNetworkReply &reply, QString &error)
         QJsonDocument replyDoc = QJsonDocument::fromJson(reply.readAll());
         if (replyDoc.isNull())
         {
-            error = "Reply was not JSON";
+            error = tr("Reply was not JSON");
             qDebug() << reply.readAll();
             return QJsonObject();
         }
         else if (!replyDoc.isObject())
         {
-            error = "Reply was not an object";
+            error = tr("Reply was not an object");
             return QJsonObject();
         }
 
         QJsonObject replyObj = replyDoc.object();
         if (replyObj.length() != 2)
         {
-            error = "Anki response has unexpected number of fields";
+            error = tr("Anki response has unexpected number of fields");
         }
         else if (!replyObj.contains(AnkiConnect::Reply::ERROR))
         {
-            error = "Anki response is missing error field";
+            error = tr("Anki response is missing error field");
         }
         else if (!replyObj.contains(AnkiConnect::Req::RESULT))
         {
-            error = "Anki response is missing result field";
+            error = tr("Anki response is missing result field");
         }
         else if (!replyObj[AnkiConnect::Reply::ERROR].isNull())
         {

@@ -360,13 +360,13 @@ void MpvAdapter::loadCommandLineArgs()
     QStringList args = QApplication::arguments();
     if (!commandLineArgsValid(args))
     {
-        qDebug() << "Invalid command line arguments.";
+        qDebug() << tr("Invalid command line arguments.");
         return;
     }
     struct LoadFileNode parent;
     if (buildArgsTree(args, 1, parent) == -1)
     {
-        qDebug() << "Maximum number of nested per-file arguments exceeded.";
+        qDebug() << tr("Maximum number of nested per-file arguments exceeded.");
         return;
     }
     QStringList emptyOpts;
@@ -378,7 +378,7 @@ int64_t MpvAdapter::getMaxVolume() const
     int64_t max;
     if (mpv_get_property(m_handle, "volume-max", MPV_FORMAT_INT64, &max) < 0)
     {
-        qDebug() << "Could not get volume-max property";
+        qDebug() << tr("Could not get volume-max property");
         return 0;
     }
     return max;
@@ -389,7 +389,7 @@ double MpvAdapter::getTimePos() const
     double timePos;
     if (mpv_get_property(m_handle, "time-pos", MPV_FORMAT_DOUBLE, &timePos) < 0)
     {
-        qDebug() << "Could not get time-pos property";
+        qDebug() << tr("Could not get time-pos property");
         return 0;
     }
     return timePos;
@@ -400,7 +400,6 @@ double MpvAdapter::getSubStart() const
     double start;
     if (mpv_get_property(m_handle, "sub-start", MPV_FORMAT_DOUBLE, &start) < 0)
     {
-        //qDebug() << "Could not get sub-start property";
         return 0;
     }
     return start;
@@ -411,7 +410,6 @@ double MpvAdapter::getSubEnd() const
     double end;
     if (mpv_get_property(m_handle, "sub-end", MPV_FORMAT_DOUBLE, &end) < 0)
     {
-        //qDebug() << "Could not get sub-end property";
         return 0;
     }
     return end;
@@ -422,7 +420,7 @@ double MpvAdapter::getSubDelay() const
     double delay;
     if (mpv_get_property(m_handle, "sub-delay", MPV_FORMAT_DOUBLE, &delay) < 0)
     {
-        qDebug() << "Could not get sub-delay property";
+        qDebug() << tr("Could not get sub-delay property");
         return 0;
     }
     return delay;
@@ -433,7 +431,7 @@ double MpvAdapter::getSecondarySubDelay() const
     double delay;
     if (mpv_get_property(m_handle, "secondary-sub-delay", MPV_FORMAT_DOUBLE, &delay) < 0)
     {
-        qDebug() << "Could not get secondary-sub-delay property, falling back to sub-delay";
+        qDebug() << tr("Could not get secondary-sub-delay property, falling back to sub-delay");
         return getSubDelay();
     }
     return delay;
@@ -472,7 +470,7 @@ bool MpvAdapter::getSubVisibility() const
     int flag;
     if (mpv_get_property(m_handle, "sub-visibility", MPV_FORMAT_FLAG, &flag) < 0)
     {
-        qDebug() << "Could not get mpv sub-visibility property";
+        qDebug() << tr("Could not get mpv sub-visibility property");
         return 0;
     }
     return flag;
@@ -483,7 +481,7 @@ double MpvAdapter::getAudioDelay() const
     double delay;
     if (mpv_get_property(m_handle, "audio-delay", MPV_FORMAT_DOUBLE, &delay) < 0)
     {
-        qDebug() << "Could not get mpv delay property";
+        qDebug() << tr("Could not get mpv delay property");
         return 0;
     }
     return delay;
@@ -494,7 +492,7 @@ QList<Track> MpvAdapter::getTracks()
     mpv_node node;
     if (mpv_get_property(m_handle, "track-list", MPV_FORMAT_NODE, &node) < 0)
     {
-        qDebug() << "Could not get track-list property";
+        qDebug() << tr("Could not get track-list property");
         return {};
     }
     QList<Track> tracks = processTracks(&node);
@@ -537,7 +535,7 @@ QString MpvAdapter::getPath() const
     char *path = NULL;
     if (mpv_get_property(m_handle, "stream-open-filename", MPV_FORMAT_STRING, &path) < 0)
     {
-        qDebug() << "Could not get mpv path property";
+        qDebug() << tr("Could not get mpv path property");
         return "";
     }
     QString path_str(path);
@@ -562,7 +560,7 @@ bool MpvAdapter::isFullscreen() const
     int flag;
     if (mpv_get_property(m_handle, "fullscreen", MPV_FORMAT_FLAG, &flag))
     {
-        qDebug() << "Could not get mpv property fullscreen";
+        qDebug() << tr("Could not get mpv fullscreen property");
         return false;
     }
     return flag;
@@ -573,7 +571,7 @@ bool MpvAdapter::isPaused() const
     int flag;
     if (mpv_get_property(m_handle, "pause", MPV_FORMAT_FLAG, &flag))
     {
-        qDebug() << "Could not get mpv property pause";
+        qDebug() << tr("Could not get mpv pause property");
         return false;
     }
     return flag;
@@ -617,7 +615,7 @@ void MpvAdapter::open(const QString     &file,
 
     if (mpv_command(m_handle, args) < 0)
     {
-        qDebug() << "Could not open file" << file;
+        qDebug() << tr("Could not open file %1").arg(file);
     }
 }
 
@@ -666,7 +664,7 @@ void MpvAdapter::addSubtitle(const QString &file)
     };
     if (mpv_command_async(m_handle, 0, args) < 0)
     {
-        qDebug() << "Could not add subtitle file" << file;
+        qDebug() << tr("Could not add subtitle file").arg(file);
     }
 }
 
@@ -681,7 +679,7 @@ void MpvAdapter::seek(const double time)
     };
     if (mpv_command_async(m_handle, 0, args) < 0)
     {
-        qDebug() << "Seeking failed";
+        qDebug() << tr("Seeking failed");
     }
 }
 
@@ -690,7 +688,7 @@ void MpvAdapter::play()
     int flag = 0;
     if (mpv_set_property(m_handle, "pause", MPV_FORMAT_FLAG, &flag) < 0)
     {
-        qDebug() << "Could not set mpv property pause to false";
+        qDebug() << "Could not set mpv pause property to false";
     }
 }
 
@@ -699,7 +697,7 @@ void MpvAdapter::pause()
     int flag = 1;
     if (mpv_set_property(m_handle, "pause", MPV_FORMAT_FLAG, &flag) < 0)
     {
-        qDebug() << "Could not set mpv property pause to true";
+        qDebug() << "Could not set mpv pause property to true";
     }
 }
 
@@ -711,7 +709,7 @@ void MpvAdapter::stop()
     };
     if (mpv_command(m_handle, args) < 0)
     {
-        qDebug() << "Could not stop mpv";
+        qDebug() << tr("Could not stop mpv");
     }
 }
 
@@ -724,7 +722,7 @@ void MpvAdapter::seekForward()
     };
     if (mpv_command_async(m_handle, 0, args) < 0)
     {
-        qDebug() << "Could not seek the next subtitle";
+        qDebug() << tr("Could not seek the next subtitle");
     }
 }
 
@@ -737,7 +735,7 @@ void MpvAdapter::seekBackward()
     };
     if (mpv_command_async(m_handle, 0, args) < 0)
     {
-        qDebug() << "Could not seek the last subtitle";
+        qDebug() << tr("Could not seek the last subtitle");
     }
 }
 
@@ -749,7 +747,7 @@ void MpvAdapter::skipForward()
     };
     if (mpv_command(m_handle, args) < 0)
     {
-        qDebug() << "Could not skip to the next file in the playlist";
+        qDebug() << tr("Could not skip to the next file in the playlist");
     }
 }
 
@@ -761,7 +759,7 @@ void MpvAdapter::skipBackward()
     };
     if (mpv_command(m_handle, args) < 0)
     {
-        qDebug() << "Could not skip to the next file in the playlist";
+        qDebug() << tr("Could not skip to the next file in the playlist");
     }
 }
 
@@ -770,7 +768,7 @@ void MpvAdapter::disableAudio()
     const char *value = "no";
     if (mpv_set_property_async(m_handle, 0, "aid", MPV_FORMAT_STRING, &value) < 0)
     {
-        qDebug() << "Could not set mpv property aid to no";
+        qDebug() << tr("Could not set mpv property aid to no");
     }
 }
 
@@ -779,7 +777,7 @@ void MpvAdapter::disableVideo()
     const char *value = "no";
     if (mpv_set_property_async(m_handle, 0, "vid", MPV_FORMAT_STRING, &value) < 0)
     {
-        qDebug() << "Could not set mpv property vid to no";
+        qDebug() << tr("Could not set mpv property vid to no");
     }
 }
 
@@ -788,7 +786,7 @@ void MpvAdapter::disableSubtitles()
     const char *value = "no";
     if (mpv_set_property_async(m_handle, 0, "sid", MPV_FORMAT_STRING, &value) < 0)
     {
-        qDebug() << "Could not set mpv property sid to no";
+        qDebug() << tr("Could not set mpv property sid to no");
     }
 }
 
@@ -797,7 +795,7 @@ void MpvAdapter::disableSubtitleTwo()
     const char *value = "no";
     if (mpv_set_property_async(m_handle, 0, "secondary-sid", MPV_FORMAT_STRING, &value) < 0)
     {
-        qDebug() << "Could not set mpv property secondary-sid to no";
+        qDebug() << tr("Could not set mpv property secondary-sid to no");
     }
 }
 
@@ -806,7 +804,8 @@ void MpvAdapter::setSubVisiblity(const bool visible)
     int flag = visible ? 1 : 0;
     if (mpv_set_property_async(m_handle, 0, "sub-visibility", MPV_FORMAT_FLAG, &flag) < 0)
     {
-        qDebug() << "Could not set mpv property sub-visibility to" << flag;
+        qDebug()
+            << tr("Could not set mpv property sub-visibility to %1").arg(flag);
     }
 }
 
@@ -815,7 +814,8 @@ void MpvAdapter::setSecondarySubVisiblity(const bool visible)
     int flag = visible ? 1 : 0;
     if (mpv_set_property_async(m_handle, 0, "secondary-sub-visibility", MPV_FORMAT_FLAG, &flag) < 0)
     {
-        qDebug() << "Could not set mpv property secondary-sub-visibility to" << flag;
+        qDebug()
+            << tr("Could not set mpv property secondary-sub-visibility to %1").arg(flag);
     }
 }
 
@@ -823,7 +823,7 @@ void MpvAdapter::setSubDelay(double delay)
 {
     if (mpv_set_property(m_handle, "sub-delay", MPV_FORMAT_DOUBLE, &delay) < 0)
     {
-        qDebug() << "Could not set mpv property sub-delay to" << delay;
+        qDebug() << tr("Could not set mpv property sub-delay to %1").arg(delay);
     }
 }
 
@@ -831,9 +831,9 @@ void MpvAdapter::setSecondarySubDelay(double delay)
 {
     if (mpv_set_property(m_handle, "secondary-sub-delay", MPV_FORMAT_DOUBLE, &delay) < 0)
     {
-        qDebug() << "Could not set mpv property secondary-sub-delay to"
-            << delay
-            << "falling back to sub-delay";
+        qDebug()
+            << tr("Could not set mpv property secondary-sub-delay to %1 falling back to sub-delay")
+                .arg(delay);
         setSubDelay(delay);
     }
 }
@@ -842,7 +842,7 @@ void MpvAdapter::setAudioTrack(int64_t id)
 {
     if (mpv_set_property_async(m_handle, 0, "aid", MPV_FORMAT_INT64, &id) < 0)
     {
-        qDebug() << "Could not set mpv property aid";
+        qDebug() << tr("Could not set mpv property aid");
     }
 }
 
@@ -850,7 +850,7 @@ void MpvAdapter::setVideoTrack(int64_t id)
 {
     if (mpv_set_property_async(m_handle, 0, "vid", MPV_FORMAT_INT64, &id) < 0)
     {
-        qDebug() << "Could not set mpv property vid";
+        qDebug() << tr("Could not set mpv property vid");
     }
 }
 
@@ -858,7 +858,7 @@ void MpvAdapter::setSubtitleTrack(int64_t id)
 {
     if (mpv_set_property_async(m_handle, 0, "sid", MPV_FORMAT_INT64, &id) < 0)
     {
-        qDebug() << "Could not set mpv property sid";
+        qDebug() << tr("Could not set mpv property sid");
     }
 }
 
@@ -866,7 +866,7 @@ void MpvAdapter::setSubtitleTwoTrack(int64_t id)
 {
     if (mpv_set_property_async(m_handle, 0, "secondary-sid", MPV_FORMAT_INT64, &id) < 0)
     {
-        qDebug() << "Could not set mpv property secondary-sid";
+        qDebug() << tr("Could not set mpv property secondary-sid");
     }
 }
 
@@ -875,7 +875,7 @@ void MpvAdapter::setFullscreen(bool value)
     int flag = value ? 1 : 0;
     if (mpv_set_property_async(m_handle, 0, "fullscreen", MPV_FORMAT_FLAG, &flag) < 0)
     {
-        qDebug() << "Could not set mpv property fullscreen";
+        qDebug() << tr("Could not set mpv property fullscreen");
     }
 }
 
@@ -883,7 +883,7 @@ void MpvAdapter::setVolume(int64_t value)
 {
     if (mpv_set_property_async(m_handle, 0, "volume", MPV_FORMAT_INT64, &value) < 0)
     {
-        qDebug() << "Could not set mpv property volume";
+        qDebug() << tr("Could not set mpv property volume");
     }
 }
 
@@ -897,7 +897,7 @@ void MpvAdapter::showText(const QString &text)
     };
     if (mpv_command(m_handle, command))
     {
-        qDebug() << "Could not show text" << text;
+        qDebug() << tr("Could not show text %1").arg(text);
     }
 }
 
@@ -918,7 +918,7 @@ QString MpvAdapter::tempScreenshot(const bool subtitles, const QString &ext)
     };
     if (mpv_command(m_handle, args) < 0)
     {
-        qDebug() << "Could not take temporary screenshot";
+        qDebug() << tr("Could not take temporary screenshot");
         return "";
     }
 
@@ -1031,7 +1031,7 @@ QString MpvAdapter::encodeFile(
     mpv_handle *enc_h = mpv_create();
     if (enc_h == NULL)
     {
-        qDebug() << "Error creating encoder handle";
+        qDebug() << tr("Error creating encoder handle");
         filename = "";
         goto cleanup;
     }
@@ -1075,14 +1075,14 @@ QString MpvAdapter::encodeFile(
 
     if (mpv_initialize(enc_h) < 0)
     {
-        qDebug() << "Could not initialize encoder";
+        qDebug() << tr("Could not initialize encoder");
         filename = "";
         goto cleanup;
     }
 
     if (mpv_command(enc_h, args) < 0)
     {
-        qDebug() << "Could not encode file";
+        qDebug() << tr("Could not encode file");
         filename = "";
         goto cleanup;
     }
@@ -1093,7 +1093,7 @@ QString MpvAdapter::encodeFile(
         if (event->event_id == MPV_EVENT_NONE ||
             event->event_id == MPV_EVENT_QUEUE_OVERFLOW)
         {
-            qDebug() << "mpv returned a bad event" << event->event_id;
+            qDebug() << tr("mpv returned a bad event: %1").arg(event->event_id);
             filename = "";
             goto cleanup;
         }
@@ -1236,7 +1236,7 @@ void MpvAdapter::keyPressed(QKeyEvent *event)
     };
     if (mpv_command_async(m_handle, 0, args) < 0)
     {
-        qDebug() << "Could not send keypress command for key" << key;
+        qDebug() << tr("Could not send keypress command for key: %1").arg(key);
     }
     else
     {
@@ -1296,8 +1296,9 @@ void MpvAdapter::mouseWheelMoved(const QWheelEvent *event)
     };
     if (mpv_command_async(m_handle, 0, args) < 0)
     {
-        qDebug() << "Could not send keypress command for direction"
-                 << input;
+        qDebug()
+            << tr("Could not send keypress command for direction: %1")
+                .arg(input);
     }
 }
 

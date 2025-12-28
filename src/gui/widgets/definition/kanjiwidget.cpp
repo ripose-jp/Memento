@@ -57,7 +57,7 @@ KanjiWidget::KanjiWidget(
         QToolButton *buttonBack = new QToolButton;
         buttonBack->setIcon(factory->getIcon(IconFactory::Icon::back));
         buttonBack->setMinimumSize(QSize(30, 30));
-        buttonBack->setToolTip("Return to search results");
+        buttonBack->setToolTip(tr("Return to search results"));
         connect(
             buttonBack, &QToolButton::clicked, this, &KanjiWidget::backPressed
         );
@@ -146,7 +146,7 @@ KanjiWidget::KanjiWidget(
                 m_buttonAnkiAddOpen->setIcon(
                     factory->getIcon(IconFactory::Icon::plus)
                 );
-                m_buttonAnkiAddOpen->setToolTip("Add Anki note");
+                m_buttonAnkiAddOpen->setToolTip(tr("Add Anki note"));
                 connect(
                     m_buttonAnkiAddOpen, &QToolButton::clicked,
                     this, qOverload<>(&KanjiWidget::addAnki)
@@ -159,7 +159,7 @@ KanjiWidget::KanjiWidget(
                 m_buttonAnkiAddOpen->setIcon(
                     factory->getIcon(IconFactory::Icon::hamburger)
                 );
-                m_buttonAnkiAddOpen->setToolTip("Show in Anki");
+                m_buttonAnkiAddOpen->setToolTip(tr("Show in Anki"));
                 connect(
                     m_buttonAnkiAddOpen, &QToolButton::clicked,
                     this, qOverload<>(&KanjiWidget::openAnki)
@@ -190,9 +190,9 @@ void KanjiWidget::buildDefinitionLabel(const KanjiDefinition &def,
     QGridLayout *layoutGLS = new QGridLayout;
     layout->addLayout(layoutGLS);
     layoutGLS->addWidget(createLine(), 0, 0, 1, -1);
-    layoutGLS->addWidget(createLabel("Glossary",   true), 1, 0);
-    layoutGLS->addWidget(createLabel("Reading",    true), 1, 1);
-    layoutGLS->addWidget(createLabel("Statistics", true), 1, 2);
+    layoutGLS->addWidget(createLabel(tr("Glossary"),   true), 1, 0);
+    layoutGLS->addWidget(createLabel(tr("Reading"),    true), 1, 1);
+    layoutGLS->addWidget(createLabel(tr("Statistics"), true), 1, 2);
     layoutGLS->addWidget(createLine(), 2, 0, 1, -1);
 
     /* Add Glossary Entries */
@@ -234,9 +234,9 @@ void KanjiWidget::buildDefinitionLabel(const KanjiDefinition &def,
     layoutStats->addStretch();
 
     /* Add Everything Else */
-    addKVSection("Classifications", def.clas, layout);
-    addKVSection("Codepoints", def.code, layout);
-    addKVSection("Dictionary Indices", def.index, layout);
+    addKVSection(tr("Classifications"), def.clas, layout);
+    addKVSection(tr("Codepoints"), def.code, layout);
+    addKVSection(tr("Dictionary Indices"), def.index, layout);
 }
 
 void KanjiWidget::addKVSection(const QString &title,
@@ -277,7 +277,7 @@ void KanjiWidget::addAnki()
             m_buttonAnkiAddOpen->setIcon(
                 IconFactory::create()->getIcon(IconFactory::Icon::hamburger)
             );
-            m_buttonAnkiAddOpen->setToolTip("Show in Anki");
+            m_buttonAnkiAddOpen->setToolTip(tr("Show in Anki"));
             connect(
                 m_buttonAnkiAddOpen, &QToolButton::clicked,
                 this, qOverload<>(&KanjiWidget::openAnki)
@@ -370,7 +370,7 @@ QCoro::Task<bool> KanjiWidget::addAnki(
         co_await context->getAnkiClient()->addNote(std::move(kanji));
     if (!result.error.isEmpty())
     {
-        emit context->showCritical("Error Adding Note", result.error);
+        emit context->showCritical(tr("Error Adding Note"), result.error);
         co_return false;
     }
     co_return true;
@@ -384,7 +384,7 @@ QCoro::Task<bool> KanjiWidget::openAnki(
         co_await context->getAnkiClient()->openDuplicates(std::move(kanji));
     if (!result.error.isEmpty())
     {
-        emit context->showCritical("Error Opening Anki", result.error);
+        emit context->showCritical(tr("Error Opening Anki"), result.error);
         co_return false;
     }
     co_return true;

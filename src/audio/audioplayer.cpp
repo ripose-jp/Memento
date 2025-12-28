@@ -42,8 +42,8 @@ AudioPlayer::AudioPlayer(Context *context, QObject *parent) :
     if (!m_mpv)
     {
         emit m_context->showCritical(
-            "Could not start mpv",
-            "AudioPlayer: Could not create mpv context"
+            tr("Could not start mpv"),
+            tr("AudioPlayer: Could not create mpv context")
         );
         QCoreApplication::exit(EXIT_FAILURE);
     }
@@ -58,8 +58,8 @@ AudioPlayer::AudioPlayer(Context *context, QObject *parent) :
     if (mpv_initialize(m_mpv) < 0)
     {
         emit m_context->showCritical(
-            "Could not start mpv",
-            "AudioPlayer: Failed to initialize mpv context"
+            tr("Could not start mpv"),
+            tr("AudioPlayer: Failed to initialize mpv context")
         );
         QCoreApplication::exit(EXIT_FAILURE);
     }
@@ -141,7 +141,7 @@ QCoro::Task<bool> AudioPlayer::playAudio(QString url, QString hash)
     std::shared_ptr<QTemporaryFile> file = std::make_shared<QTemporaryFile>();
     if (!file->open())
     {
-        qDebug() << "Could not open temp file";
+        qDebug() << tr("Could not open temp file");
         co_return false;
     }
     file->write(reply->readAll());

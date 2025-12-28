@@ -511,7 +511,7 @@ void InterfaceSettings::applyChanges()
 void InterfaceSettings::showHelp() const
 {
     QDesktopServices::openUrl(
-        QUrl("https://doc.qt.io/qt-5/stylesheet-reference.html")
+        QUrl("https://doc.qt.io/qt-6/stylesheet-reference.html")
     );
 }
 

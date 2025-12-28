@@ -708,7 +708,7 @@ QString PlayerMenu::getOpenFilePath() const
 void PlayerMenu::openFile()
 {
     QStringList files = QFileDialog::getOpenFileNames(
-        window(), "Open File(s)", getOpenFilePath()
+        window(), tr("Open File(s)"), getOpenFilePath()
     );
     if (!files.isEmpty())
     {
@@ -722,8 +722,8 @@ void PlayerMenu::openFile()
 void PlayerMenu::openUrl()
 {
     QInputDialog dialog(window(), Qt::Dialog);
-    dialog.setWindowTitle("Open Stream");
-    dialog.setLabelText("Enter URL");
+    dialog.setWindowTitle(tr("Open Stream"));
+    dialog.setLabelText(tr("Enter URL"));
     dialog.setTextValue(QGuiApplication::clipboard()->text());
     dialog.setStyleSheet("QLabel { min-width: 500px; }");
     int     res = dialog.exec();
@@ -741,9 +741,9 @@ void PlayerMenu::openUrl()
 void PlayerMenu::openSubtitle()
 {
     QString file = QFileDialog::getOpenFileName(
-        window(), "Open Subtitle", getOpenFilePath(),
-        "Subtitle Files (*.ass *.srt *.vtt *.utf *.utf8 *.utf-8 *.idx *.sub "
-        "*.rt *.ssa *.mks *.sup *.scc *.smi *.lrc *.pgs);;All Files (*)"
+        window(), tr("Open Subtitle"), getOpenFilePath(),
+        tr("Subtitle Files (*.ass *.srt *.vtt *.utf *.utf8 *.utf-8 *.idx *.sub "
+        "*.rt *.ssa *.mks *.sup *.scc *.smi *.lrc *.pgs);;All Files (*)")
     );
     if (!file.isEmpty())
     {
