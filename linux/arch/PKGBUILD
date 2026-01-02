@@ -1,28 +1,29 @@
 # Maintainer: Ripose <ripose@protonmail.com>
 pkgname=memento
-pkgver=1.6.0
+pkgver=1.7.0
 pkgrel=0
 pkgdesc="An mpv-based video player for studying Japanese."
-arch=('x86_64')
+arch=('x86_64' 'aarch64')
 url="https://ripose-jp.github.io/Memento/"
 license=('GPL2')
 depends=(
-    'mpv'
-    'qt6-base'
-    'qt6-svg'
-    'sqlite'
     'json-c'
     'libzip'
     'mecab-git'
     'mecab-ipadic'
+    'mpv'
+    'qcoro'
+    'qt6-base'
+    'qt6-svg'
+    'sqlite'
 )
 makedepends=('git' 'make' 'cmake' 'gcc')
 optdepends=(
-    'youtube-dl: streaming support'
+    'yt-dlp: streaming support'
     'noto-fonts-cjk: optimal font support'
 )
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/ripose-jp/Memento/archive/refs/tags/v${pkgver}.tar.gz")
-sha256sums=('2952d3a8afc0e80f9f6d60c71b56d243b847ad7c9c92f38f3aa7508964af8bf6')
+sha256sums=('41802772188478e3664b727ed044a39348d7add782abf795f5b7de716dd078d7')
 
 prepare() {
     mkdir -p ${srcdir}/build
@@ -33,6 +34,7 @@ build() {
     cmake -DCMAKE_INSTALL_PREFIX:PATH=${pkgdir}/usr \
           -DRELEASE_BUILD=ON \
           -DCMAKE_BUILD_TYPE=Release \
+          -DSYSTEM_QCORO=ON \
           -DMECAB_SUPPORT=ON \
           "${srcdir}/Memento-${pkgver}"
     cmake --build . -j $(grep -c ^processor /proc/cpuinfo)
