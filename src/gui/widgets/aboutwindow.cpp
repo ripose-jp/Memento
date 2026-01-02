@@ -65,7 +65,7 @@ AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
                 "https://github.com/ripose-jp/memento"
             "</a>"
         "<br>"
-        "Copyright Ripose 2020-2025"
+        "Copyright Ripose 2020-2026"
     ).arg(version));
     parentLayout->addWidget(labelInfo);
 }
