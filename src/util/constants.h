@@ -23,7 +23,7 @@
 
 #include <QtGlobal>
 
-#include "utils.h"
+#include "util/utils.h"
 
 namespace Constants
 {
@@ -32,6 +32,12 @@ namespace Constants
         constexpr const char *GITHUB_API = "https://api.github.com/repos/ripose-jp/memento/releases/latest";
         constexpr const char *GITHUB_RELEASES = "https://github.com/ripose-jp/memento/releases";
     }
+
+    enum class Language
+    {
+        English = 0,
+        Korean = 1,
+    };
 
     enum class AudioSourceType
     {
@@ -233,6 +239,9 @@ namespace Constants
         namespace Interface
         {
             constexpr const char *GROUP = "interface";
+
+            constexpr const char *UI_LANGUAGE = "ui-language";
+            constexpr Language UI_LANGUAGE_DEFAULT = Language::English;
 
             constexpr const char *THEME = "theme";
             constexpr Theme THEME_DEFAULT = Theme::System;

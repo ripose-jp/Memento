@@ -48,6 +48,38 @@
 #include "util/constants.h"
 #include "version.h"
 
+
+/* Begin Settings Utils */
+
+static constexpr const char *LANG_ENGLISH{"English"};
+static constexpr const char *LANG_KOREAN{"한국어"};
+
+Constants::Language SettingsUtils::languageConv(const QString &text)
+{
+    if (text == LANG_ENGLISH)
+    {
+        return Constants::Language::English;
+    }
+    else if (text == LANG_KOREAN)
+    {
+        return Constants::Language::Korean;
+    }
+    return Constants::Language::English;
+}
+
+QString SettingsUtils::languageConv(Constants::Language value)
+{
+    switch (value)
+    {
+        case Constants::Language::English:
+            return LANG_ENGLISH;
+        case Constants::Language::Korean:
+            return LANG_KOREAN;
+    }
+    return LANG_ENGLISH;
+}
+
+/* End Settings Utils */
 /* Begin Directory Utils */
 
 QString DirectoryUtils::getProgramDirectory()

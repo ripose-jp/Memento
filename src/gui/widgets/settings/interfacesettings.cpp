@@ -126,6 +126,12 @@ void InterfaceSettings::showEvent(QShowEvent *event)
 
 void InterfaceSettings::restoreDefaults()
 {
+    m_ui->comboLanguage->setCurrentText(
+        SettingsUtils::languageConv(
+            Constants::Settings::Interface::UI_LANGUAGE_DEFAULT
+        )
+    );
+
     m_ui->comboTheme->setCurrentIndex(
         static_cast<int>(Constants::Settings::Interface::THEME_DEFAULT)
     );
@@ -226,10 +232,22 @@ void InterfaceSettings::restoreSaved()
 {
     QSettings settings;
     settings.beginGroup(Constants::Settings::Interface::GROUP);
+
+    m_ui->comboLanguage->setCurrentText(
+        SettingsUtils::languageConv(
+            static_cast<Constants::Language>(
+                settings.value(
+                    Constants::Settings::Interface::UI_LANGUAGE,
+                    static_cast<int>(Constants::Settings::Interface::UI_LANGUAGE_DEFAULT)
+                ).toInt()
+            )
+        )
+    );
+
     m_ui->comboTheme->setCurrentIndex(
         settings.value(
             Constants::Settings::Interface::THEME,
-            (int)Constants::Settings::Interface::THEME_DEFAULT
+            static_cast<int>(Constants::Settings::Interface::THEME_DEFAULT)
         ).toInt()
     );
 #if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
@@ -388,6 +406,15 @@ void InterfaceSettings::applyChanges()
 {
     QSettings settings;
     settings.beginGroup(Constants::Settings::Interface::GROUP);
+
+    settings.setValue(
+        Constants::Settings::Interface::UI_LANGUAGE,
+        static_cast<int>(
+            SettingsUtils::languageConv(
+                m_ui->comboLanguage->currentText()
+            )
+        )
+    );
 
     settings.setValue(
         Constants::Settings::Interface::THEME,

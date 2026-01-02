@@ -36,6 +36,7 @@
 namespace Constants
 {
     enum class FileOpenDirectory;
+    enum class Language;
 }
 
 #if defined(Q_OS_WIN)
@@ -53,6 +54,33 @@ static constexpr const char *DICT_DB_FILE = "dictionaries.sqlite";
 
 /* mpv input configuration file name. */
 static constexpr const char *MPV_INPUT_CONF_FILE = "input.conf";
+
+/**
+ * Utilities for handing settings values.
+ */
+class SettingsUtils
+{
+public:
+    /**
+     * Converts language text into an enum value.
+     * @param text The name of the language (case-sensitive).
+     * @return The corresponding enum value, Constants::Language::English on
+     * failure.
+     */
+    [[nodiscard]]
+    static Constants::Language languageConv(const QString &text);
+
+    /**
+     * Converts language enums into a text value.
+     * @param value The enum value of the language.
+     * @return The corresponding text value, English on failure.
+     */
+    [[nodiscard]]
+    static QString languageConv(Constants::Language value);
+
+private:
+    SettingsUtils() {}
+};
 
 /**
  * Utilities for getting important program directories and files.

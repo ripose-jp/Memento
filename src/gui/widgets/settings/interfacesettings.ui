@@ -27,8 +27,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>729</width>
-        <height>2437</height>
+        <width>737</width>
+        <height>2521</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -44,6 +44,32 @@
        <property name="bottomMargin">
         <number>0</number>
        </property>
+       <item>
+        <widget class="QLabel" name="labelLanguage">
+         <property name="font">
+          <font>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Language</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboLanguage">
+         <item>
+          <property name="text">
+           <string notr="true">English</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string notr="true">한국어</string>
+          </property>
+         </item>
+        </widget>
+       </item>
        <item>
         <widget class="QLabel" name="labelTheme">
          <property name="font">

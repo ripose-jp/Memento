@@ -12,6 +12,7 @@ target_link_libraries(
     PRIVATE version
     PUBLIC "$<$<BOOL:${SYSTEM_QCORO}>:QCoro::Network>"
     PUBLIC "$<$<NOT:$<BOOL:${SYSTEM_QCORO}>>:QCoro6Network>"
+    PUBLIC constants
     PUBLIC context
     PUBLIC Qt6::Core
     PUBLIC Qt6::Gui
