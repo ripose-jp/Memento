@@ -36,9 +36,6 @@
 /* The maximum length of text that can be searched. */
 static constexpr int MAX_QUERY_LENGTH = 37;
 
-/* Prevents valid subtitles from being hidden due to double precision errors. */
-static constexpr double DOUBLE_DELTA = 0.001;
-
 /* Begin Constructor/Destructor */
 
 SubtitleWidget::SubtitleWidget(Context *context, QWidget *parent) :
@@ -543,15 +540,6 @@ void SubtitleWidget::positionChanged(const double value)
         m_context->getPlayerAdapter()->pause();
         m_pausedForCurrentSubtitle = true;
     }
-
-    if (value < m_subtitle.startTime - DOUBLE_DELTA ||
-        value > m_subtitle.endTime + DOUBLE_DELTA)
-    {
-        m_subtitle.rawText.clear();
-        clearText();
-        hide();
-        emit m_context->subtitleExpired();
-    }
 }
 
 void SubtitleWidget::setSubtitle(QString subtitle,
@@ -559,6 +547,14 @@ void SubtitleWidget::setSubtitle(QString subtitle,
                                  const double end,
                                  const double delay)
 {
+    if (subtitle.isEmpty())
+    {
+        m_subtitle.rawText.clear();
+        clearText();
+        hide();
+        emit m_context->subtitleExpired();
+    }
+
     m_subtitle.rawText = subtitle;
 
     /* Process the subtitle */

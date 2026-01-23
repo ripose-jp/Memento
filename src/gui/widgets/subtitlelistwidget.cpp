@@ -707,6 +707,10 @@ void SubtitleListWidget::updatePrimarySubtitle(const QString &subtitle,
                                                double end,
                                                double delay)
 {
+    if (subtitle.isEmpty())
+    {
+        return;
+    }
     if (!m_primary.lock.try_lock())
     {
         return;
@@ -727,6 +731,10 @@ void SubtitleListWidget::updateSecondarySubtitle(const QString &subtitle,
                                                  double end,
                                                  double delay)
 {
+    if (subtitle.isEmpty())
+    {
+        return;
+    }
     if (!m_secondary.lock.try_lock())
     {
         return;

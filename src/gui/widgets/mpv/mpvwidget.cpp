@@ -360,25 +360,22 @@ void MpvWidget::initPropertyMap()
         {
             QString subtitle = *(const char **)prop->data;
             subtitle.remove(m_regex);
-            if (!subtitle.isEmpty())
-            {
-                double delay, start, end;
 
-                mpv_get_property(
-                    m_mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
-                );
-                mpv_get_property(
-                    m_mpv, "sub-start", MPV_FORMAT_DOUBLE, &start
-                );
-                mpv_get_property(
-                    m_mpv, "sub-end",   MPV_FORMAT_DOUBLE, &end
-                );
+            double delay, start, end;
+            mpv_get_property(
+                m_mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
+            );
+            mpv_get_property(
+                m_mpv, "sub-start", MPV_FORMAT_DOUBLE, &start
+            );
+            mpv_get_property(
+                m_mpv, "sub-end",   MPV_FORMAT_DOUBLE, &end
+            );
 
-                emit subtitleChanged(subtitle, start, end, delay);
-                emit subtitleChangedRaw(
-                    *(const char **)prop->data, start, end, delay
-                );
-            }
+            emit subtitleChanged(subtitle, start, end, delay);
+            emit subtitleChangedRaw(
+                *(const char **)prop->data, start, end, delay
+            );
         }
     };
 
@@ -387,24 +384,21 @@ void MpvWidget::initPropertyMap()
         if (prop->format == MPV_FORMAT_STRING)
         {
             const char **subtitle = (const char **)prop->data;
-            if (strcmp(*subtitle, ""))
-            {
-                double start, end, delay;
 
-                mpv_get_property(
-                    m_mpv, "secondary-sub-start", MPV_FORMAT_DOUBLE, &start
-                );
-                mpv_get_property(
-                    m_mpv, "secondary-sub-end", MPV_FORMAT_DOUBLE, &end
-                );
-                mpv_get_property(
-                    m_mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
-                );
+            double start, end, delay;
+            mpv_get_property(
+                m_mpv, "secondary-sub-start", MPV_FORMAT_DOUBLE, &start
+            );
+            mpv_get_property(
+                m_mpv, "secondary-sub-end", MPV_FORMAT_DOUBLE, &end
+            );
+            mpv_get_property(
+                m_mpv, "sub-delay", MPV_FORMAT_DOUBLE, &delay
+            );
 
-                emit subtitleChangedSecondary(
-                    *subtitle, start, end, delay
-                );
-            }
+            emit subtitleChangedSecondary(
+                *subtitle, start, end, delay
+            );
         }
     };
 }
