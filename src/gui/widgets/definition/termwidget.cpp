@@ -409,7 +409,7 @@ void TermWidget::playAudio()
     }
 
     const AudioSource *src = getFirstAudioSource(*m_sources);
-    if (src != nullptr)
+    if (src == nullptr)
     {
         return;
     }
