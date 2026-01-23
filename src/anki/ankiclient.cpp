@@ -462,6 +462,7 @@ void AnkiClient::setDefaultConfig()
     config->address         = DEFAULT_HOST;
     config->port            = DEFAULT_PORT;
     config->duplicatePolicy = DEFAULT_DUPLICATE_POLICY;
+    config->newlineReplacer = DEFAULT_NEWLINE_REPLACER;
     config->screenshotType  = DEFAULT_SCREENSHOT;
     config->audioPadStart   = DEFAULT_AUDIO_PAD_START;
     config->audioPadEnd     = DEFAULT_AUDIO_PAD_END;
