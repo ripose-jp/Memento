@@ -120,12 +120,12 @@ SubtitleWidget::SubtitleWidget(Context *context, QWidget *parent) :
     );
     connect(
         m_context, &Context::playerSubtitlesDisabled,
-        this, [this] { positionChanged(-1); },
+        this, &SubtitleWidget::clearSubtitle,
         Qt::QueuedConnection
     );
     connect(
         m_context, &Context::playerSubtitleTrackChanged,
-        this, [this] { positionChanged(-1); },
+        this, &SubtitleWidget::pullSubtitle,
         Qt::QueuedConnection
     );
     connect(
@@ -549,10 +549,7 @@ void SubtitleWidget::setSubtitle(QString subtitle,
 {
     if (subtitle.isEmpty())
     {
-        m_subtitle.rawText.clear();
-        clearText();
-        hide();
-        emit m_context->subtitleExpired();
+        clearSubtitle();
     }
 
     m_subtitle.rawText = subtitle;
@@ -581,6 +578,25 @@ void SubtitleWidget::setSubtitle(QString subtitle,
 void SubtitleWidget::selectText()
 {
     StrokeLabel::selectText(m_lastEmittedIndex, m_lastEmittedSize);
+}
+
+void SubtitleWidget::clearSubtitle()
+{
+    m_subtitle.rawText.clear();
+    clearText();
+    hide();
+    emit m_context->subtitleExpired();
+}
+
+void SubtitleWidget::pullSubtitle()
+{
+    PlayerAdapter *player = m_context->getPlayerAdapter();
+    setSubtitle(
+        player->getSubtitle(true),
+        player->getSubStart(),
+        player->getSubEnd(),
+        player->getSubDelay()
+    );
 }
 
 /* End General Slots */

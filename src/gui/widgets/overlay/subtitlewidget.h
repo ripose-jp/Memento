@@ -138,6 +138,16 @@ private Q_SLOTS:
      */
     void selectText();
 
+    /**
+     * Clears out the subtitle text.
+     */
+    void clearSubtitle();
+
+    /**
+     * Pulls the current subtitle from the player and displays it.
+     */
+    void pullSubtitle();
+
 private:
     /* The application context */
     Context *m_context = nullptr;
