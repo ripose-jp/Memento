@@ -1,3 +1,5 @@
+add_subdirectory(data)
+
 add_library(searchquery INTERFACE searchquery.h)
 target_compile_features(searchquery INTERFACE cxx_std_20)
 target_compile_options(searchquery INTERFACE ${MEMENTO_COMPILER_FLAGS})
@@ -14,22 +16,9 @@ target_link_libraries(
     INTERFACE searchquery
 )
 
-add_library(
-    exactquerygenerator STATIC
-    exactquerygenerator.cpp
-    exactquerygenerator.h
-)
-target_compile_features(exactquerygenerator PRIVATE cxx_std_20)
-target_compile_options(exactquerygenerator PRIVATE ${MEMENTO_COMPILER_FLAGS})
-target_include_directories(exactquerygenerator PRIVATE ${MEMENTO_INCLUDE_DIRS})
-target_link_libraries(
-    exactquerygenerator
-    PUBLIC querygenerator
-)
-
-if(MECAB_SUPPORT)
+if(MEMENTO_MECAB_SUPPORT)
     add_library(
-        mecabquerygenerator STATIC
+        mecabquerygenerator
         mecabquerygenerator.cpp
         mecabquerygenerator.h
     )
@@ -49,14 +38,11 @@ if(MECAB_SUPPORT)
 endif()
 
 add_library(
-    yomidbbuilder STATIC
+    yomidbbuilder
     yomidbbuilder.c
     yomidbbuilder.h
 )
-target_compile_features(
-    yomidbbuilder
-    PUBLIC c_std_99
-)
+target_compile_features(yomidbbuilder PRIVATE c_std_99)
 target_compile_options(
     yomidbbuilder
     PRIVATE ${MEMENTO_COMPILER_FLAGS}
@@ -68,41 +54,43 @@ target_link_libraries(
     PRIVATE "$<$<BOOL:${WIN32}>:-lregex>"
     PRIVATE JsonC::JsonC
     PRIVATE libzip::libzip
-    PRIVATE SQLite::SQLite3
+    PRIVATE SQLite3::SQLite3
 )
 
 add_library(
-    dictionary_db STATIC
+    dictionary
     databasemanager.cpp
     databasemanager.h
-    dictionary.cpp
-    dictionary.h
-    expression.h
-    deconjugator.cpp
-    deconjugator.h
     deconjugationquerygenerator.cpp
     deconjugationquerygenerator.h
+    deconjugator.cpp
+    deconjugator.h
+    dictionary.cpp
+    dictionary.h
+    dictionarycontroller.cpp
+    dictionarycontroller.h
+    dictionaryinfomodel.cpp
+    dictionaryinfomodel.h
+    dictionarysearch.cpp
+    dictionarysearch.h
+    exactquerygenerator.cpp
+    exactquerygenerator.h
 )
-target_compile_features(dictionary_db PUBLIC cxx_std_20)
-target_compile_options(dictionary_db PRIVATE ${MEMENTO_COMPILER_FLAGS})
-target_include_directories(dictionary_db PRIVATE ${MEMENTO_INCLUDE_DIRS})
-set(
-    DICTIONARY_DB_GENERATOR_LIBS
-    exactquerygenerator
-)
-if(MECAB_SUPPORT)
-    list(APPEND DICTIONARY_DB_GENERATOR_LIBS mecabquerygenerator)
-endif()
+target_compile_features(dictionary PUBLIC cxx_std_20)
+target_compile_options(dictionary PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_include_directories(dictionary PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
-    dictionary_db
-    PRIVATE ${DICTIONARY_DB_GENERATOR_LIBS}
-    PRIVATE constants
-    PRIVATE Qt6::Widgets
+    dictionary
+    PRIVATE "$<$<BOOL:${MEMENTO_MECAB_SUPPORT}>:mecabquerygenerator>"
+    PRIVATE Qt6::Concurrent
     PRIVATE querygenerator
-    PRIVATE SQLite::SQLite3
+    PRIVATE SQLite3::SQLite3
     PRIVATE utils
     PRIVATE yomidbbuilder
-    PUBLIC context
+    PUBLIC "$<$<BOOL:${MEMENTO_SYSTEM_QCORO}>:QCoro::Coro>"
+    PUBLIC "$<$<NOT:$<BOOL:${MEMENTO_SYSTEM_QCORO}>>:QCoro6Coro>"
+    PUBLIC dictionary_data
     PUBLIC Qt6::Core
+    PUBLIC Qt6::Qml
+    PUBLIC settings
 )
-unset(DICTIONARY_DB_GENERATOR_LIBS)

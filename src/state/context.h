@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2021 Ripose
+// Copyright (c) 2026 Ripose
 //
 // This file is part of Memento.
 //
@@ -18,619 +18,114 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CONTEXT_H
-#define CONTEXT_H
+#pragma once
 
 #include <QObject>
 
-#include <memory>
-
-#include <QPointer>
-
-#include "player/track.h"
-
-class AnkiClient;
-class AudioPlayer;
-class Dictionary;
-class PlayerAdapter;
-class QWidget;
-class SubtitleListWidget;
-
-class QKeyEvent;
-class QMouseEvent;
-class QWheelEvent;
-
-struct Term;
-typedef std::shared_ptr<Term> SharedTerm;
-typedef std::shared_ptr<QList<SharedTerm>> SharedTermList;
-
-struct Kanji;
-typedef std::shared_ptr<Kanji> SharedKanji;
+#include "anki/ankiclient.h"
+#include "anki/ankiconfig.h"
+#include "audio/audioplayer.h"
+#include "dict/dictionarycontroller.h"
+#include "player/mpvplayer.h"
+#include "setting/settings.h"
+#include "subtitle/subtitlelists.h"
+#include "util/utils.h"
 
 /**
- * A context object that contains shared resources and signals to be shared
- * through the whole application.
+ * Holds shared application resources.
  */
 class Context : public QObject
 {
     Q_OBJECT
 
 public:
-    using QObject::QObject;
-    virtual ~Context() = default;
+    Context(QObject *parent = nullptr);
+    virtual ~Context();
 
     /**
-     * Gets the AnkiClient object used for interacting with Anki.
-     * @return The AnkiClient object, nullptr if it doesn't exist.
+     * @brief Get the global application settings.
+     *
+     * @return The global application settings.
      */
-    AnkiClient *getAnkiClient() const;
+    [[nodiscard]]
+    Settings *settings() const noexcept;
 
     /**
-     * Gets the AudioPlayer object used for playing audio files from URLs.
-     * @return The AudioPlayer object, nullptr if it doesn't exist.
+     * @brief Get the global Anki configuration.
+     *
+     * @return The global Anki config.
      */
-    AudioPlayer *getAudioPlayer() const;
+    AnkiConfig *ankiConfig() const noexcept;
 
     /**
-     * Gets the shared Dictionary object for accessing the dictionary database.
-     * @return The Dictionary object, nullptr if it doesn't exist.
+     * @brief Get the global Anki client.
+     *
+     * @return The global Anki client.
      */
-    Dictionary *getDictionary() const;
+    AnkiClient *ankiClient() const noexcept;
 
     /**
-     * Gets the shared PlayerAdapter object for accessing the player.
-     * @return The PlayerAdapter object, nullptr if it doesn't exist.
+     * @brief Get the global audio player.
+     *
+     * @return The global audio player.
      */
-    PlayerAdapter *getPlayerAdapter() const;
+    [[nodiscard]]
+    AudioPlayer *audioPlayer() const noexcept;
 
     /**
-     * Gets the PlayerWidget for accessing general information about the widget.
-     * DO NOT CAST THIS.
-     * @return The PlayerWidget object, nullptr if it doesn't exist.
+     * @brief Get the global subtitle lists.
+     *
+     * @return The global subtitle lists.
      */
-    QWidget *getPlayerWidget() const;
+    [[nodiscard]]
+    SubtitleLists *subtitleLists() const noexcept;
 
     /**
-     * Gets the SubtitleListWidget for accessing general information it has.
-     * @return The SubtitleListWidget object, nullptr if it doesn't exist.
+     * @brief Get the global dictionary controller.
+     *
+     * @return The global dictionary controller.
      */
-    SubtitleListWidget *getSubtitleListWidget() const;
+    [[nodiscard]]
+    DictionaryController *dictionaryController() const noexcept;
 
     /**
-     * Sets the shared AnkiClient. Does not take ownership.
-     * @param client The shared AnkiClient.
+     * @brief Get the application MpvPlayer instance.
+     *
+     * @return The MpvPlayer instance.
      */
-    void setAnkiClient(AnkiClient *client);
+    [[nodiscard]]
+    MpvPlayer *player() const noexcept;
 
     /**
-     * Sets the shared AudioPlayer. Does not take ownership.
-     * @param audioPlayer The shared AudioPlayer.
+     * @brief Set the player instance. Does not take ownership.
+     *
+     * @param player The player instance.
      */
-    void setAudioPlayer(AudioPlayer *audioPlayer);
-
-    /**
-     * Sets the shared Dictionary. Does not take ownership.
-     * @param dictionary The shared Dictionary.
-     */
-    void setDictionary(Dictionary *dictionary);
-
-    /**
-     * Sets the shared PlayerAdapter. Does not take ownership.
-     * @param player The shared PlayerAdapter.
-     */
-    void setPlayerAdapter(PlayerAdapter *player);
-
-    /**
-     * Sets the shared Player widget. Does not take ownership.
-     * @param widget The shared widget displaying the player.
-     */
-    void setPlayerWidget(QWidget *widget);
-
-    /**
-     * Sets the shared subtitle list. Does not take ownership.
-     * @param player The shared subtitle list.
-     */
-    void setSubtitleList(SubtitleListWidget *subList);
-
-Q_SIGNALS:
-    /* Begin Dialog Boxes */
-
-    /**
-     * Shows an information dialog box.
-     * @param title   The title of the dialog box.
-     * @param content The content of the dialog box.
-     */
-    void showInformation(QString title, QString content) const;
-
-    /**
-     * Shows a critical dialog box.
-     * @param title   The title of the dialog box.
-     * @param content The content of the dialog box.
-     */
-    void showCritical(QString title, QString content) const;
-
-    /* End Dialog Boxes */
-    /* Begin Interrupts */
-
-    /**
-     * Emitted when MainWindow detects a keypress.
-     * @param event The key press event.
-     */
-    void keyPressed(QKeyEvent *event) const;
-
-    /**
-     * Emitted when MainWindow detects a mouse wheel movement.
-     * @param event The mouse wheel event.
-     */
-    void wheelMoved(const QWheelEvent *event) const;
-
-    /**
-     * Emitted when the window focus changes.
-     * @param inFocus true if the window is in focus, false otherwise.
-     */
-    void windowFocusChanged(bool inFocus) const;
-
-    /* End Interrupts */
-    /* Begin Player State Changes */
-
-    /**
-     * Emitted when the player tracks change.
-     * @param tracks A list of player tracks.
-     */
-    void playerTracksChanged(const QList<Track> &tracks) const;
-
-    /**
-     * Emitted when the player chapters change.
-     * @param chapters A list of the chapter start times in seconds.
-     */
-    void playerChaptersChanged(QList<double> chapters) const;
-
-    /**
-     * Emitted when the current audio track is changed.
-     * @param id The id of the audio track.
-     */
-    void playerAudioTrackChanged(const int64_t id) const;
-
-    /**
-     * Emitted when the current video track is changed.
-     * @param id The id of the video track.
-     */
-    void playerVideoTrackChanged(const int64_t id) const;
-
-    /**
-     * Emitted when the current subtitle track is changed.
-     * @param id The id of the subtitle track.
-     */
-    void playerSubtitleTrackChanged(const int64_t id) const;
-
-    /**
-     * Emitted when the current secondary subtitle track is changed.
-     * @param id The id of the secondary subtitle track.
-     */
-    void playerSecondSubtitleTrackChanged(const int64_t id) const;
-
-    /**
-     * Emitted when the player's audio is disabled.
-     */
-    void playerAudioDisabled() const;
-
-    /**
-     * Emitted when the player's video is disabled.
-     */
-    void playerVideoDisabled() const;
-
-    /**
-     * Emitted when the player's subtitles are disabled.
-     */
-    void playerSubtitlesDisabled() const;
-
-    /**
-     * Emitted when the player's secondary subtitle are disabled.
-     */
-    void playerSecondSubtitlesDisabled() const;
-
-    /**
-     * Emitted when the current subtitle changes.
-     * @param subtitle The text of the subtitle.
-     * @param start    The start time in seconds of the subtitle.
-     * @param end      The end time in seconds of the subtitle.
-     * @param delay    The delay in seconds of the subtitle.
-     */
-    void playerSubtitleChanged(const QString &subtitle,
-                               const double start,
-                               const double end,
-                               const double delay) const;
-
-    /**
-     * Emitted when the current subtitle changes. This signal is unfiltered by
-     * regex.
-     * @param subtitle The text of the subtitle.
-     * @param start    The start time in seconds of the subtitle.
-     * @param end      The end time in seconds of the subtitle.
-     * @param delay    The delay in seconds of the subtitle.
-     */
-    void playerSubtitleChangedRaw(const QString &subtitle,
-                                  const double start,
-                                  const double end,
-                                  const double delay) const;
-
-    /**
-     * Emitted when the current secondary subtitle changes.
-     * @param subtitle The text of the secondary subtitle.
-     * @param start    The start time in seconds of the subtitle.
-     * @param end      The end time in seconds of the subtitle.
-     * @param delay    The delay in seconds of the subtitle.
-     */
-    void playerSecSubtitleChanged(const QString &subtitle,
-                                  const double start,
-                                  const double end,
-                                  const double delay) const;
-
-    /**
-     * Emitted when the subtitle delay changes.
-     * @param delay The subtitle delay in seconds.
-     */
-    void playerSubDelayChanged(const double delay) const;
-
-    /**
-     * Emitted when the secondary subtitle delay changes.
-     * @param delay The secondary subtitle delay in seconds.
-     */
-    void playerSecSubDelayChanged(const double delay) const;
-
-    /**
-     * Emitted when the duration of the media being played changes.
-     * @param value The duration in seconds.
-     */
-    void playerDurationChanged(const double value) const;
-
-    /**
-     * Emitted when the current position of the video is changed.
-     * @param value The current position in seconds.
-     */
-    void playerPositionChanged(const double value) const;
-
-    /**
-     * Emitted when the player is paused/unpaused.
-     * @param paused true if paused, false otherwise.
-     */
-    void playerPauseStateChanged(const bool paused) const;
-
-    /**
-     * Emitted when the fullscreen state of the player is changed.
-     * @param full true if fullscreen, false otherwise.
-     */
-    void playerFullscreenChanged(const bool full) const;
-
-    /**
-     * Emitted when the maximum volume of the player changes.
-     * @param value The maximum volume of the player.
-     */
-    void playerMaxVolumeChanged(const int64_t value) const;
-
-    /**
-     * Emitted when the volume of the player changes.
-     * @param value The current volume of the player.
-     */
-    void playerVolumeChanged(const int64_t value) const;
-
-    /**
-     * Emitted when the title of the media changes.
-     * @param title The title of the currently playing media, filename if none
-     *              exists.
-     */
-    void playerTitleChanged(QString title) const;
-
-    /**
-     * Emitted when the file being played changes.
-     * @param path The path of the file.
-     */
-    void playerFileChanged(QString path) const;
-
-    /**
-     * Emitted when the mouse is moved over the player.
-     */
-    void playerMouseMoved() const;
-
-    /**
-     * Emitted when the player loads a new file.
-     * @param width  The width of the file.
-     * @param height The height of the file.
-     */
-    void playerFileLoaded(int width, int height) const;
-
-    /**
-     * Emitted when the player terminates.
-     */
-    void playerClosed() const;
-
-    /**
-     * Emitted when the widget housing the player is resized.
-     */
-    void playerResized() const;
-
-    /* End Player State Changes */
-    /* Begin Settings Signals */
-
-    /**
-     * Emitted when Anki integration settings are changed.
-     */
-    void ankiSettingsChanged() const;
-
-    /**
-     * Emitted when Audio source settings are changed.
-     */
-    void audioSourceSettingsChanged() const;
-
-    /**
-     * Emitted when behavior settings are changed.
-     */
-    void behaviorSettingsChanged() const;
-
-    /**
-     * Emitted when search settings are changed.
-     */
-    void searchSettingsChanged() const;
-
-    /**
-     * Emitted when interface settings are changed.
-     */
-    void interfaceSettingsChanged() const;
-
-    /**
-     * Emitted when OCR settings are changed.
-     */
-    void ocrSettingsChanged() const;
-
-    /* End Settings Signals */
-    /* Begin Menu Signals */
-
-    /**
-     * Emitted when subtitle visibility should be toggled.
-     * @param visible true if subtitles should be visible, false otherwise.
-     */
-    void menuSubtitleVisibilityToggled(bool visible) const;
-
-    /**
-     * Emitted when the action for increasing the size of the subtitles is
-     * triggered.
-     */
-    void menuSubtitleSizeIncrease() const;
-
-    /**
-     * Emitted when the action for decreasing the size of the subtitles is
-     * triggered.
-     */
-    void menuSubtitleSizeDecrease() const;
-
-    /**
-     * Emitted when the action for moving the subtitles up is triggered.
-     */
-    void menuSubtitlesMoveUp() const;
-
-    /**
-     * Emitted when the action for moving the subtitles down is triggered.
-     */
-    void menuSubtitlesMoveDown() const;
-
-    /**
-     * Emitted when the action for entering OCR mode is triggered.
-     */
-    void menuEnterOCRMode() const;
-
-    /**
-     * Emitted when the menu action for showing options is triggered.
-     */
-    void menuShowOptions() const;
-
-    /**
-     * Emitted when the menu action for showing the about page is triggered.
-     */
-    void menuShowAbout() const;
-
-    /* End Menu Signals */
-    /* Begin Player Control Signals */
-
-    /**
-     * Emitted when the play button is pressed.
-     */
-    void controlsPlay() const;
-
-    /**
-     * Emitted when the pause button is pressed.
-     */
-    void controlsPause() const;
-
-    /**
-     * Emitted when the seek forward button is pressed.
-     */
-    void controlsSeekForward() const;
-
-    /**
-     * Emitted when the seek backward button is pressed.
-     */
-    void controlsSeekBackward() const;
-
-    /**
-     * Emitted when the skip forward button is pressed.
-     */
-    void controlsSkipForward() const;
-
-    /**
-     * Emitted when the skip backward button is pressed.
-     */
-    void controlsSkipBackward() const;
-
-    /**
-     * Emitted when the controls are hidden.
-     */
-    void controlsHidden() const;
-
-    /**
-     * Emitted when the controls are shown.
-     */
-    void controlsShown() const;
-
-    /**
-     * Emitted when the subtitle list visibility button is pressed
-     */
-    void controlsSubtitleListToggled() const;
-
-    /**
-     * Emitted when the OCR button is pressed.
-     */
-    void controlsOCRToggled() const;
-
-    /**
-     * Emitted when the position of the control slider is changed.
-     * @param value The position, in seconds, of the slider.
-     */
-    void controlsPositionChanged(const int value) const;
-
-    /**
-     * Emitted when the volume slider is changed.
-     * @param value The value of the slider.
-     */
-    void controlsVolumeChanged(const int value) const;
-
-    /**
-     * Emitted when the fullscreen button is pressed.
-     * @param value true if fullscreen, false otherwise.
-     */
-    void controlsFullscreenChanged(const bool value) const;
-
-    /* End Player Control Signals */
-    /* Begin Window Signals */
-
-    /**
-     * Emitted when the OSC state is cycled.
-     */
-    void windowOSCStateCycled() const;
-
-    /* End Window Signals */
-    /* Begin Subtitle Widget Signals */
-
-    /**
-     * Emitted when the list of terms changes.
-     * @param terms The list of terms if found, nullptr otherwise.
-     * @param kanji The kanji if found, nullptr otherwise.
-     */
-    void termsChanged(SharedTermList terms, SharedKanji kanji) const;
-
-    /**
-     * Emitted when the subtitle changes or passes its end time.
-     */
-    void subtitleExpired() const;
-
-    /**
-     * Emitted when the subtitle search is hidden.
-     */
-    void subtitleHidden() const;
-
-    /* End Subtitle Widget Signals */
-    /* Begin Definition Signals */
-
-    /**
-     * Emitted when the definition widget is hidden.
-     */
-    void definitionsHidden() const;
-
-    /**
-     * Emitted when the definition widget is shown.
-     */
-    void definitionsShown() const;
-
-    /* End Definition Signals */
-    /* Begin Subtitle List Signals */
-
-    /**
-     * Emitted when the subtitle list is hidden.
-     */
-    void subtitleListHidden() const;
-
-    /**
-     * Emitted when the subtitle list is shown.
-     */
-    void subtitleListShown() const;
-
-    /* End Subtitle List Signals */
-    /* Begin Search Widget Signals */
-
-    /**
-     * Emitted when the search widget is hidden.
-     */
-    void searchWidgetHidden() const;
-
-    /**
-     * Emitted when the search widget is shown.
-     */
-    void searchWidgetShown() const;
-
-    /**
-     * Emitted when it is requested for the search widget to execute a query.
-     * @param query The text to search.
-     */
-    void searchWidgetRequest(const QString &query) const;
-
-    /* End Search Widget Signals */
-    /* Begin Dictionary Signals */
-
-    /**
-     * Emitted when a dictionary is added or removed.
-     */
-    void dictionariesChanged() const;
-
-    /**
-     * Emitted when the order of dictionaries is changed.
-     */
-    void dictionaryOrderChanged() const;
-
-    /* End Dictionary Signals */
-    /* Begin Request Changes */
-
-    /**
-     * Requests that player subtitle visibility change. May be ignored.
-     * @param value true to show subtitles, false otherwise.
-     */
-    void requestSubtitleVisibility(const bool value) const;
-
-    /**
-     * Requests subtitle widget visibility be changed. May be ignored.
-     * @param value true to show subtitles, false otherwise.
-     */
-    void requestSubtitleWidgetVisibility(const bool value) const;
-
-    /**
-     * Requests that the subtitle list visibility be changed.
-     * @param value true to show the subtitle list, false to hide it.
-     */
-    void requestSubtitleListVisibility(const bool value) const;
-
-    /**
-     * Requests that the search widget visibility be changed.
-     * @param value true to show the search widget, false to hide.
-     */
-    void requestSearchVisibility(const bool value) const;
-
-    /**
-     * Requests that the definiton widget be deleted.
-     */
-    void requestDefinitionDelete() const;
-
-    /**
-     * Requests a global theme refresh.
-     */
-    void requestThemeRefresh() const;
-
-    /* End Request Changes */
+    void setPlayer(MpvPlayer *player) noexcept;
 
 private:
-    QPointer<AudioPlayer> m_audioPlayer;
-    QPointer<AnkiClient> m_ankiClient;
-    QPointer<Dictionary> m_dictionary;
-    QPointer<PlayerAdapter> m_player;
-    QPointer<QWidget> m_playerWidget;
-    QPointer<SubtitleListWidget> m_subList;
-};
+    /* The application settings instance. Has ownership. */
+    Settings *m_settings{new Settings(this)};
 
-#endif // CONTEXT_H
+    /* The application Anki configuration */
+    AnkiConfig *m_ankiConfig{
+        new AnkiConfig(DirectoryUtils::getAnkiConfig(), this)
+    };
+
+    /* The application Anki client */
+    AnkiClient *m_ankiClient{new AnkiClient(this, this)};
+
+    /* The application audio player. Has ownership. */
+    AudioPlayer *m_audioPlayer{new AudioPlayer(this)};
+
+    /* The application subtitle list. Has ownership. */
+    SubtitleLists *m_subtitleLists{new SubtitleLists(this)};
+
+    /* The application dictionary controller */
+    DictionaryController *m_dictionaryController{
+        new DictionaryController(m_settings, this)
+    };
+
+    /* The main application MpvPlayer. Does not have ownership. */
+    MpvPlayer *m_player{nullptr};
+};

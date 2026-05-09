@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2021 Ripose
+// Copyright (c) 2026 Ripose
 //
 // This file is part of Memento.
 //
@@ -18,164 +18,66 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef DICTIONARY_H
-#define DICTIONARY_H
+#pragma once
 
 #include <QObject>
 
-#include <QList>
-#include <QReadWriteLock>
-#include <QString>
-
-#include <memory>
-#include <vector>
-
 #include "dict/databasemanager.h"
-#include "dict/expression.h"
-#include "dict/querygenerator.h"
-#include "state/context.h"
 
 /**
- * The intended API for interacting with the database.
+ * @brief A common class to handle dictionary database interaction.
  */
 class Dictionary : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(
+        bool modifyingDatabase
+        READ modifyingDatabase
+        NOTIFY modifyingDatabaseChanged
+    )
+
 public:
-    Dictionary(Context *context, QObject *parent = nullptr);
+    Dictionary(QObject *parent = nullptr);
     virtual ~Dictionary();
 
     /**
-     * Searches for all terms in the query.
-     * @param query        The query to look for terms in. Only matches terms
-     *                     that start from the beginning of the query.
-     * @param subtitle     The subtitle the query appears in.
-     * @param index        The index into the subtitle where the query begins.
-     * @param currentIndex A pointer to the current index. If this value is no
-     *                     different from the index before this method is done,
-     *                     the search is aborted.
-     * @return A list of all the terms found, nullptr if the search was aborted.
-     *         Belongs to the caller.
+     * @brief Get the database instance.
+     *
+     * @param parent The parent to give the database if it doesn't exist.
+     * @return The pointer to the database instance.
      */
-    SharedTermList searchTerms(
-        const QString query,
-        const QString subtitle,
-        const int index,
-        const int *currentIndex);
+    static DatabaseManager *databaseInstance(QObject *parent = nullptr);
 
     /**
-     * Searches for a single kanji.
-     * @param character The kanji to search for. Should be a single character.
-     * @return A kanji containing all the information that was found.
-     */
-    SharedKanji searchKanji(const QString character);
-
-    /**
-     * Adds a dictionary.
-     * @param path The path to the dictionary.
-     * @return Empty string on success, error string on error.
-     */
-    QString addDictionary(const QString &path);
-
-    /**
-     * Adds multiple dictionaries.
-     * @param paths The paths to the dictionaries.
-     * @return Empty string on success, error string on error.
-     */
-    QString addDictionary(const QStringList &paths);
-
-    /**
-     * Deletes a dictionary.
-     * @param name The name of the dictionary.
-     * @return Empty string on success, error string on error.
-     */
-    QString deleteDictionary(const QString &name);
-
-    /**
-     * Sets the set of disabled dictionaries to the provided list.
-     * @param dictionaries The list of dictionaries.
-     * @return Empty string on success, error string on error.
-     */
-    QString disableDictionaries(const QStringList &dictionaries);
-
-    /**
-     * Gets a list of dictionaries ordered by user preference.
-     * @return A list of dictionaries ordered by user preference.
-     */
-    QList<DictionaryInfo> getDictionaries() const;
-
-    /**
-     * Gets the list of disabled dictionaries.
-     * @return The names of all disabled dictionaries.
-     */
-    QList<DictionaryInfo> getDisabledDictionaries() const;
-
-private Q_SLOTS:
-    /**
-     * Populates the dictionary order map.
-     */
-    void initDictionaryOrder();
-
-    /**
-     * Populates the list of QueryGenerators.
-     */
-    void initQueryGenerators();
-
-private:
-    /**
-     * Generate queries from text.
-     * @param text The text to generate queries from.
-     * @return The list of SearchQuery.
+     * @brief Get if the database is being modified.
+     *
+     * @return true if the database is being modified,
+     * @return false otherwise.
      */
     [[nodiscard]]
-    std::vector<SearchQuery> generateQueries(const QString &text) const;
+    bool modifyingDatabase() const noexcept;
 
+protected slots:
     /**
-     * Sorties queries in order from ascending length of the surface.
-     * @param[out] queries The list of queries to sort.
+     * @brief Set if the database is being modified.
+     *
+     * @param value true if the database is being modified, false otherwise.
      */
-    static void sortQueries(std::vector<SearchQuery> &queries);
+    void setModifyingDatabase(bool value);
 
+signals:
     /**
-     * Filters out duplicates from the queries vector.
-     * @param[out] queries The queries to filter duplicates from.
+     * @brief Emitted when the database modification state changes.
+     *
+     * @param value true if the database is being modified, false otherwise.
      */
-    static void filterDuplicates(std::vector<SearchQuery> &queries);
+    void modifyingDatabaseChanged(bool value);
 
-    /**
-     * Sort the term list by priority and length.
-     * @param[out] terms The term list to sort.
-     */
-    void sortTerms(SharedTermList &terms) const;
+protected:
+    /* The shared database instance of Dictionaries */
+    static inline DatabaseManager *m_db{nullptr};
 
-    /**
-     * Sorts tag by descending order, breaking ties on ascending score.
-     * @param[out] tags The list of tags to sort.
-     */
-    void sortTags(QList<Tag> &tags) const;
-
-    /* The application context */
-    Context *m_context = nullptr;
-
-    /* The DatabaseManager */
-    std::unique_ptr<DatabaseManager> m_db = nullptr;
-
-    /* Mutex for the list of query generators */
-    mutable QReadWriteLock m_generatorsMutex;
-
-    /* List of QueryGenerators */
-    std::vector<std::unique_ptr<QueryGenerator>> m_generators;
-
-    /* Contains dictionary priority information. */
-    struct DictOrder
-    {
-        /* Maps dictionary names to priorities. */
-        QHash<int, int> map;
-
-        /* Used for locking for reading and writing. */
-        mutable QReadWriteLock lock;
-    } m_dicOrder;
+    /* True if modifying the database, false otherwise */
+    bool m_modifyingDatabase{false};
 };
-
-#endif // DICTIONARY_H

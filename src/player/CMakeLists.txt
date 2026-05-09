@@ -1,36 +1,28 @@
-add_library(track INTERFACE track.h)
-target_compile_features(track INTERFACE cxx_std_20)
-target_compile_options(track INTERFACE ${MEMENTO_COMPILER_FLAGS})
-target_include_directories(track INTERFACE ${MEMENTO_INCLUDE_DIRS})
-target_link_libraries(
-    track
-    INTERFACE Qt6::Core
-)
-
-add_library(playeradapter STATIC playeradapter.h)
-target_compile_features(playeradapter PUBLIC cxx_std_20)
-target_compile_options(playeradapter PRIVATE ${MEMENTO_COMPILER_FLAGS})
-target_include_directories(playeradapter PRIVATE ${MEMENTO_INCLUDE_DIRS})
-target_link_libraries(
-    playeradapter
-    PUBLIC Qt6::Core
-    PUBLIC Qt6::Gui
-    PUBLIC track
-)
-
 add_library(
-    mpvadapter STATIC
-    mpvadapter.cpp
-    mpvadapter.h
+    mpvplayer
+    mpvcontroller.cpp
+    mpvcontroller.h
+    mpvplayer.cpp
+    mpvplayer.h
+    mpvrenderer.cpp
+    mpvrenderer.h
+    mpvstate.cpp
+    mpvstate.h
+    mpvsubtitle.cpp
+    mpvsubtitle.h
+    mpvtrack.cpp
+    mpvtrack.h
 )
-target_compile_features(mpvadapter PUBLIC cxx_std_20)
-target_compile_options(mpvadapter PRIVATE ${MEMENTO_COMPILER_FLAGS})
-target_include_directories(mpvadapter PRIVATE ${MEMENTO_INCLUDE_DIRS})
+target_compile_features(mpvplayer PRIVATE cxx_std_20)
+target_include_directories(mpvplayer PRIVATE ${MEMENTO_INCLUDE_DIRS})
+target_compile_options(mpvplayer PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_link_libraries(
-    mpvadapter
-    PRIVATE constants
-    PRIVATE mpv::mpv
-    PRIVATE mpvwidget
-    PUBLIC context
-    PUBLIC playeradapter
+    mpvplayer
+    PRIVATE Qt6::Gui
+    PRIVATE utils
+    PUBLIC mpv::mpv
+    PUBLIC Qt6::Core
+    PUBLIC Qt6::OpenGL
+    PUBLIC Qt6::Qml
+    PUBLIC Qt6::Quick
 )

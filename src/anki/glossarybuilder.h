@@ -18,19 +18,21 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef GLOSSARYBUILDER_H
-#define GLOSSARYBUILDER_H
+#pragma once
 
 #include <QString>
 #include <QPair>
 #include <QList>
 #include <QJsonArray>
 
+/**
+ * @brief Builds Anki-compatible glossaries.
+ */
 class GlossaryBuilder
 {
 public:
     /**
-     * A struct containing info about a files.
+     * @brief A struct containing info about a files.
      */
     struct FileInfo
     {
@@ -42,12 +44,14 @@ public:
     };
 
     /**
-     * Sets the contents of this label.
-     * @param      definitions The definitions to add to this label.
-     * @param      basepath    The path where all external resources begin.
-     * @param[out] fileMap     A mapping of files to file names.
+     * @brief Generate an Anki glossary HTML.
+     *
+     * @param definitions The definitions to add to this glossary.
+     * @param basepath The path where all external resources begin.
+     * @param[out] fileMap A mapping of files to file names.
      * @return A list of HTML formatted glossary entries.
      */
+    [[nodiscard]]
     static QStringList buildGlossary(
         const QJsonArray &definitions,
         QString basepath,
@@ -57,32 +61,36 @@ private:
     GlossaryBuilder() {}
 
     /**
-     * Adds structured data attributes to the string.
+     * @brief Add structured data attributes to the string.
+     *
      * @param      obj The structured data attributes to parse.
      * @param[out] out The string to append the data attributes to.
      */
     static void addStructuredData(const QJsonObject &obj, QString &out);
 
     /**
-     * @brief Adds structured style objects.
-     * @param      obj The structured style object.
+     * @brief Add structured style objects.
+     *
+     * @param obj The structured style object.
      * @param[out] out The string this style will be appended to.
      */
     static void addStructuredStyle(const QJsonObject &obj, QString &out);
 
     /**
-     * Adds string structured content.
-     * @param      str The string to add.
+     * @brief Add string structured content.
+     *
+     * @param str The string to add.
      * @param[out] out The string this string will be appended to.
      */
     static void addStructuredContentHelper(const QString &str, QString &out);
 
     /**
-     * Adds an array of structured content.
-     * @param      arr      The array of structured content.
-     * @param      basepath The base of the image path.
-     * @param[out] out      The string this content will be appended to.
-     * @param[out] fileMap  A mapping of files to filenames.
+     * @brief Add an array of structured content.
+     *
+     * @param arr The array of structured content.
+     * @param basepath The base of the image path.
+     * @param[out] out The string this content will be appended to.
+     * @param[out] fileMap A mapping of files to filenames.
      */
     static void addStructuredContentHelper(
         const QJsonArray &arr,
@@ -91,11 +99,12 @@ private:
         QSet<FileInfo> &fileMap);
 
     /**
-     * Adds an object of structured content.
-     * @param      obj      The object of structured content.
-     * @param      basepath The base of the image path.
-     * @param[out] out      The string this content will be appended to.
-     * @param[out] fileMap  A mapping of files to filenames.
+     * @brief Add an object of structured content.
+     *
+     * @param obj The object of structured content.
+     * @param basepath The base of the image path.
+     * @param[out] out The string this content will be appended to.
+     * @param[out] fileMap A mapping of files to filenames.
      */
     static void addStructuredContentHelper(
         const QJsonObject &obj,
@@ -104,12 +113,12 @@ private:
         QSet<FileInfo> &fileMap);
 
     /**
-     * Parses and outputs structured content to HTML.
-     * The root of the structured content add parser.
-     * @param      val      The JSON value of the structured content.
-     * @param      basepath The base of the image path.
-     * @param[out] out      The string this content will be appended to.
-     * @param[out] fileMap  A mapping of files to filenames.
+     * @brief Parses and outputs structured content to HTML.
+     *
+     * @param val The JSON value of the structured content.
+     * @param basepath The base of the image path.
+     * @param[out] out The string this content will be appended to.
+     * @param[out] fileMap A mapping of files to filenames.
      */
     static void addStructuredContent(
         const QJsonValue &val,
@@ -118,11 +127,12 @@ private:
         QSet<FileInfo> &fileMap);
 
     /**
-     * Displays an image type object.
-     * @param      obj      The image object.
-     * @param      basepath The base of the image path.
-     * @param[out] out      The string this image will be appended to.
-     * @param[out] fileMap  A mapping of files to filenames.
+     * @brief Add an image type object.
+     *
+     * @param obj The image object.
+     * @param basepath The base of the image path.
+     * @param[out] out The string this image will be appended to.
+     * @param[out] fileMap A mapping of files to filenames.
      */
     static void addImage(
         const QJsonObject &obj,
@@ -131,17 +141,19 @@ private:
         QSet<FileInfo> &fileMap);
 
     /**
-     * Adds a text object to the HTML document.
-     * @param      obj The text object.
+     * @brief Add a text object to the HTML document.
+     *
+     * @param obj The text object.
      * @param[out] out The string the formatted text will be appended to.
      */
     static void addText(const QJsonObject &obj, QString &out);
 
     /**
-     * Adds a file to the file map and returns its mapped filename.
-     * @param      basepath The base path all files will be found at.
-     * @param      path     The relative path of the file to add.
-     * @param[out] fileMap  The map to add the file to.
+     * @brief Add a file to the file map and returns its mapped filename.
+     *
+     * @param basepath The base path all files will be found at.
+     * @param path The relative path of the file to add.
+     * @param[out] fileMap The map to add the file to.
      */
     static QString addFile(
         QString basepath,
@@ -160,5 +172,3 @@ inline size_t qHash(const GlossaryBuilder::FileInfo &key, size_t seed)
 {
     return qHash(key.path, seed);
 }
-
-#endif // GLOSSARYLABEL_H

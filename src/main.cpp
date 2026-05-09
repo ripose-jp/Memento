@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 Ripose
+// Copyright (c) 2026 Ripose
 //
 // This file is part of Memento.
 //
@@ -18,156 +18,64 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <cstring>
+#include <clocale>
 #include <iostream>
 
+#ifdef MEMENTO_QAPPLICATION
 #include <QApplication>
+#else
+#include <QGuiApplication>
+#endif // MEMENTO_QAPPLICATION
+
 #include <QDir>
-#include <QFile>
-#include <QFontDatabase>
-#include <QMessageBox>
-#include <QSettings>
+#include <QQmlApplicationEngine>
+#include <QQuickStyle>
+#include <QQuickWindow>
 
-#if defined(Q_OS_WIN)
-#include <QStandardPaths>
-#endif
-
-#if defined(Q_OS_MACOS)
-#include <locale.h>
+#ifdef Q_OS_MACOS
 #include <QSurfaceFormat>
-#endif
+#endif // Q_OS_MACOS
 
-#include "dict/expression.h"
-#include "gui/mainwindow.h"
-#include "util/constants.h"
-#include "util/iconfactory.h"
+#ifdef MEMENTO_SYSTEM_QCORO
+#include <QCoroQml>
+#else
+#include <qcoro/qml/qcoroqml.h>
+#endif // MEMENTO_SYSTEM_QCORO
+
+#include "anki/ankiclient.h"
+#include "anki/ankiconfig.h"
+#include "anki/ankifieldlistmodel.h"
+#include "anki/ankiprofile.h"
+#include "audio/audioplayer.h"
+#include "definition/structuredcontent.h"
+#include "dict/dictionary.h"
+#include "dict/dictionarycontroller.h"
+#include "dict/dictionaryinfomodel.h"
+#include "dict/dictionarysearch.h"
+#include "manager/mainmanager.h"
+#include "os/screensaver.h"
+#include "player/mpvplayer.h"
+#include "quick/clipboard.h"
+#include "quick/coloredsvgprovider.h"
+#include "quick/keytracker.h"
+#include "quick/paths.h"
+#include "setting/settings.h"
+#include "state/context.h"
+#include "subtitle/subtitlelistmodel.h"
+#include "subtitle/subtitlelists.h"
 #include "util/utils.h"
 
-/**
- * Makes sure nothing compiles on unsupported OSes
- */
-#if !(defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)) && !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
-#error "OS not supported"
-#endif
-
-Q_DECLARE_METATYPE(SharedTerm)
-Q_DECLARE_METATYPE(SharedTermList)
-Q_DECLARE_METATYPE(SharedKanji)
+static constexpr const char *MEMENTO_URI{"Ripose.Memento"};
 
 /**
- * Updates the QSettings before the MainWindow is created.
- * This is used during updates to make sure that configurations for old versions
- * don't cause problems.
- */
-void updateSettings()
-{
-    QSettings settings;
-    uint version = settings.value(Constants::Settings::Version::VERSION, 0).toUInt();
-    if (version == Constants::Settings::Version::CURRENT)
-    {
-        return;
-    }
-    else if (version > Constants::Settings::Version::CURRENT)
-    {
-        QMessageBox message;
-        message.critical(
-            0, "Settings From a Newer Version Found",
-            "The Memento settings found belong to a newer version.\n"
-            "No guarantees can be made that nothing will break or get lost."
-        );
-    }
-
-    /* Migrate the settings */
-    switch(version)
-    {
-    case 0:
-    {
-        settings.beginGroup(Constants::Settings::Interface::GROUP);
-        settings.remove(Constants::Settings::Interface::Style::SUBTITLE_LIST);
-        settings.endGroup();
-        __attribute__((fallthrough));
-    }
-    case 1:
-    {
-        /* These paths are hardcoded because DirectoryUtils may change in the
-         * future. */
-#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
-        QDir configDir(QString(getenv("HOME")) + "/.config/memento");
-        configDir.rename("./dict/dictionaries.sqlite", "./dictionaries.sqlite");
-
-        QDir dictDir(configDir.absolutePath() + "/dict");
-        dictDir.removeRecursively();
-#elif defined(Q_OS_WIN)
-        QDir programDir(DirectoryUtils::getProgramDirectory());
-        programDir.rename(
-            ".\\config\\dict\\dictionaries.sqlite",
-            ".\\config\\dictionaries.sqlite"
-        );
-
-        QDir dictDir(DirectoryUtils::getProgramDirectory() + "config\\dict");
-        dictDir.removeRecursively();
-
-        QString configPath = QDir::toNativeSeparators(
-                QStandardPaths::writableLocation(
-                    QStandardPaths::AppConfigLocation
-                )
-            );
-        configPath.chop(sizeof("memento") - 1);
-        QDir configDir(configPath);
-        configDir.removeRecursively();
-
-        programDir.rename(".\\config", configDir.absolutePath());
-#endif
-        [[fallthrough]];
-    }
-    case 2:
-    {
-        settings.beginGroup(Constants::Settings::Search::GROUP);
-        bool list = settings.value(
-                Constants::Settings::Search::LIST_GLOSSARY,
-                true
-            ).toBool();
-        settings.setValue(
-            Constants::Settings::Search::LIST_GLOSSARY,
-            static_cast<int>(
-                list ?
-                    Constants::GlossaryStyle::Bullet :
-                    Constants::GlossaryStyle::LineBreak
-            )
-        );
-        settings.endGroup();
-    }
-    }
-
-    /* Remove saved window configurations just to be safe */
-    settings.beginGroup(Constants::Settings::Window::GROUP);
-    settings.remove("");
-    settings.endGroup();
-
-    /* Set the version */
-    settings.setValue(
-        Constants::Settings::Version::VERSION,
-        Constants::Settings::Version::CURRENT
-    );
-}
-
-/**
- * Registers MetaTypes for use with signals and slots.
- */
-static void registerMetaTypes()
-{
-    qRegisterMetaType<SharedTerm>("SharedTerm");
-    qRegisterMetaType<SharedTermList>("SharedTermList");
-    qRegisterMetaType<SharedKanji>("SharedKanji");
-}
-
-/**
- * Checks if the --help command line arg was passed in
+ * @brief Check if the --help command line arg was passed in.
+ *
  * @param argc The number of command line arguments
  * @param argv The values of the command line arguments
- * @return true if the help message should be shown
+ * @return true if the help message should be shown,
  * @return false otherwise
  */
+[[nodiscard]]
 static inline bool showHelpMessage(int argc, char **argv)
 {
     for (int i = 1; i < argc; ++i)
@@ -181,21 +89,183 @@ static inline bool showHelpMessage(int argc, char **argv)
     return false;
 }
 
-int main(int argc, char **argv)
+/**
+ * @brief Create the Memento config directory if it doesn't already exist.
+ *
+ * @return true if the directory was created or already existed,
+ * @return false otherwise.
+ */
+[[nodiscard]]
+static bool makeConfigDirectory()
+{
+    QDir dir;
+    return dir.mkpath(DirectoryUtils::getConfigDir());
+}
+
+/**
+ * @brief Register all types for use in QML.
+ *
+ * @param context The application context.
+ */
+static void registerQmlTypes(Context &context)
+{
+    /* QCoro Types */
+
+    QCoro::Qml::registerTypes();
+
+    /* Anki Types */
+
+    qmlRegisterType<AnkiFieldListModel>(
+        MEMENTO_URI, 1, 0, "AnkiFieldListModel"
+    );
+    qmlRegisterType<AnkiProfile>(MEMENTO_URI, 1, 0, "AnkiProfile");
+    qmlRegisterSingletonInstance<AnkiConfig>(
+        MEMENTO_URI, 1, 0, "AnkiConfig", context.ankiConfig()
+    );
+    qmlRegisterUncreatableMetaObject(
+        Anki::staticMetaObject,
+        MEMENTO_URI, 1, 0, "AnkiSetting",
+        "AnkiSetting is an enums only namespace"
+    );
+    qmlRegisterSingletonInstance<AnkiClient>(
+        MEMENTO_URI, 1, 0, "AnkiClient", context.ankiClient()
+    );
+
+    /* Audio Types */
+
+    qmlRegisterSingletonInstance<AudioPlayer>(
+        MEMENTO_URI, 1, 0, "AudioPlayer", context.audioPlayer()
+    );
+
+    /* Dictionary Types */
+
+    qmlRegisterType<DictionaryInfo>(MEMENTO_URI, 1, 0, "DictionaryInfo");
+    qmlRegisterType<Expression>(MEMENTO_URI, 1, 0, "Expression");
+    qmlRegisterType<Frequency>(MEMENTO_URI, 1, 0, "Frequency");
+    qmlRegisterType<Kanji>(MEMENTO_URI, 1, 0, "Kanji");
+    qmlRegisterType<KanjiDefinition>(MEMENTO_URI, 1, 0, "KanjiDefinition");
+    qmlRegisterType<Pitch>(MEMENTO_URI, 1, 0, "Pitch");
+    qmlRegisterType<Tag>(MEMENTO_URI, 1, 0, "Tag");
+    qmlRegisterType<Term>(MEMENTO_URI, 1, 0, "Term");
+    qmlRegisterType<TermDefinition>(MEMENTO_URI, 1, 0, "TermDefinition");
+
+    qmlRegisterType<Dictionary>(MEMENTO_URI, 1, 0, "Dictionary");
+    qmlRegisterUncreatableType<DictionaryInfoModel>(
+        MEMENTO_URI, 1, 0, "DictionaryItemModel",
+        "DictionaryItemModel should only be created by DictionaryController"
+    );
+    qmlRegisterType<DictionarySearch>(
+        MEMENTO_URI, 1, 0, "DictionarySearch"
+    );
+    qmlRegisterSingletonInstance<DictionaryController>(
+        MEMENTO_URI, 1, 0, "DictionaryController",
+        context.dictionaryController()
+    );
+
+    /* Definition Types */
+
+    qmlRegisterSingletonInstance<StructuredContent>(
+        MEMENTO_URI, 1, 0, "StructuredContent", new StructuredContent(&context)
+    );
+
+    /* OS Types */
+
+    qmlRegisterType<Screensaver>(MEMENTO_URI, 1, 0, "Screensaver");
+
+    /* Player Types */
+
+    qmlRegisterType<MpvPlayer>(MEMENTO_URI, 1, 0, "MpvPlayer");
+    qmlRegisterUncreatableType<MpvState>(
+        MEMENTO_URI, 1, 0, "MpvState",
+        "MpvState cannot be created directly from QML. "
+            "Create an MpvPlayer instead."
+    );
+    qmlRegisterUncreatableType<MpvSubtitle>(
+        MEMENTO_URI, 1, 0, "MpvSubtitle",
+        "MpvSubtitle cannot be created directly from QML. "
+            "Create an MpvPlayer instead."
+    );
+    qmlRegisterUncreatableType<MpvTrack>(
+        MEMENTO_URI, 1, 0, "MpvTrack",
+        "MpvSubtitle cannot be created directly from QML. "
+            "Create an MpvPlayer instead."
+    );
+    qmlRegisterUncreatableType<MpvController>(
+        MEMENTO_URI, 1, 0, "MpvController",
+        "MpvController cannot be created directly from QML. "
+            "Create an MpvPlayer instead."
+    );
+    qmlRegisterType<MpvAudioClipArgs>(
+        MEMENTO_URI, 1, 0, "mpvAudioClipArgs"
+    );
+    qmlRegisterType<MpvVideoClipArgs>(
+        MEMENTO_URI, 1, 0, "mpvVideoClipArgs"
+    );
+
+    /* Setting Types */
+
+    qmlRegisterSingletonInstance<Settings>(
+        MEMENTO_URI, 1, 0, "MementoSettings", context.settings()
+    );
+    qmlRegisterUncreatableType<AudioSourceModel>(
+        MEMENTO_URI, 1, 0, "AudioSourceModel",
+        "AudioSourceModel should only be created by MementoSettings"
+    );
+    qmlRegisterUncreatableType<KeybindProfile>(
+        MEMENTO_URI, 1, 0, "KeybindProfile",
+        "KeybindProfile should only be created by MementoSettings"
+    );
+    qmlRegisterUncreatableType<KeybindProfileModel>(
+        MEMENTO_URI, 1, 0, "KeybindProfileModel",
+        "KeybindProfileModel should only be created by MementoSettings"
+    );
+    qmlRegisterUncreatableMetaObject(
+        Setting::staticMetaObject,
+        MEMENTO_URI, 1, 0, "MementoSetting",
+        "MementoSetting is an enums only namespace"
+    );
+
+    /* Quick Types */
+
+    qmlRegisterType<Clipboard>(MEMENTO_URI, 1, 0, "Clipboard");
+    qmlRegisterSingletonInstance<KeyTracker>(
+        MEMENTO_URI, 1, 0, "KeyTracker", new KeyTracker(&context)
+    );
+    qmlRegisterSingletonInstance<Paths>(
+        MEMENTO_URI, 1, 0, "MementoPaths", new Paths(&context)
+    );
+
+    /* Subtitle Types */
+
+    qmlRegisterUncreatableType<SubtitleListModel>(
+        MEMENTO_URI, 1, 0, "SubtitleListModel",
+        "SubtitleListModel should only be created by SubtitleLists"
+    );
+    qmlRegisterSingletonInstance<SubtitleLists>(
+        MEMENTO_URI, 1, 0, "SubtitleLists", context.subtitleLists()
+    );
+}
+
+/**
+ * @brief Register all image providers with the QML application engine.
+ *
+ * @param engine The QML application engine.
+ */
+static void registerImageProviders(QQmlApplicationEngine &engine)
+{
+    engine.addImageProvider("svgicon", new ColoredSvgProvider);
+}
+
+int main(int argc, char *argv[])
 {
     if (showHelpMessage(argc, argv))
     {
-        std::cout << "Usage:\t memento [options] [url|path]\n"
+        std::cout << "Usage: memento [options] [url|path]\n"
             << "\n"
-            << "For more information about command line arguments, see "
+            << "For more information about commandline arguments, see "
                "https://mpv.io/manual/\n";
         return 0;
     }
-
-#if defined(Q_OS_WIN)
-    /* Image Formats Windows */
-    QCoreApplication::addLibraryPath(DirectoryUtils::getProgramDirectory());
-#endif
 
     /* Organization Info */
     QCoreApplication::setOrganizationName("memento");
@@ -205,64 +275,62 @@ int main(int argc, char **argv)
     /* Make the icon show up on Wayland */
     QGuiApplication::setDesktopFileName("memento");
 
-    /* Construct the application */
-    QApplication memento(argc, argv);
+    /* Make sure to use OpenGL */
+    QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
 
-#if defined(Q_OS_MACOS)
-    /* Change the OpenGL version to 4.1 on macOS */
-    QSurfaceFormat qSurfaceFormat;
-    qSurfaceFormat.setMajorVersion(4);
-    qSurfaceFormat.setMinorVersion(1);
-    qSurfaceFormat.setProfile(QSurfaceFormat::CoreProfile);
-    QSurfaceFormat::setDefaultFormat(qSurfaceFormat);
-#endif
+#ifdef Q_OS_MACOS
+    /* Use the latest version of OpenGL available on macOS */
+    QSurfaceFormat format;
+    format.setVersion(4, 1);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    format.setOption(QSurfaceFormat::DeprecatedFunctions, false);
+    QSurfaceFormat::setDefaultFormat(format);
+#endif // Q_OS_MACOS
 
-#if !defined(Q_OS_MACOS)
-    /* Set the window icon */
-    QGuiApplication::setWindowIcon(QIcon(":memento.svg"));
-#endif
+#ifdef MEMENTO_QAPPLICATION
+    QApplication app(argc, argv);
+#else
+    QGuiApplication app(argc, argv);
+#endif // MEMENTO_QAPPLICATION
 
-    updateSettings();
-
-    /* Create the configuration directory if it doesn't exist */
-    if (!QDir(DirectoryUtils::getConfigDir()).exists() &&
-        !QDir().mkdir(DirectoryUtils::getConfigDir()))
+    if (!makeConfigDirectory())
     {
-        QMessageBox message;
-        message.critical(
-            nullptr,
-            message.tr("Error Creating Config Directory"),
-            message.tr("Could not make configuration directory at %1")
-                .arg(DirectoryUtils::getConfigDir())
-        );
-        return EXIT_FAILURE;
+        qFatal("Could not make config directory");
     }
 
-    /* Create the resource directory if it doesn't exist */
-    if (!QDir(DirectoryUtils::getDictionaryResourceDir()).exists() &&
-        !QDir().mkdir(DirectoryUtils::getDictionaryResourceDir()))
-    {
-        QMessageBox message;
-        message.critical(
-            nullptr,
-            message.tr("Error Creating Resource Directory"),
-            message.tr("Could not make resource directory at %1")
-                .arg(DirectoryUtils::getDictionaryResourceDir())
-        );
-        return EXIT_FAILURE;
-    }
+    std::setlocale(LC_NUMERIC, "C");
 
-    /* General Setup */
-    registerMetaTypes();
-    setlocale(LC_NUMERIC, "C"); // mpv requires this
+#if defined(Q_OS_WIN)
+    app.setWindowIcon(QIcon(":/memento.ico"));
+#endif // defined(Q_OS_WIN)
 
-    MainWindow *main_window = new MainWindow;
-    main_window->show();
-    int ret = memento.exec();
+#if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
+    QQuickStyle::setStyle(QStringLiteral("FluentWinUI3"));
+#endif // defined(Q_OS_MACOS) || defined(Q_OS_WIN)
 
-    /* Deallocate shared resources */
-    delete main_window;
-    IconFactory::destroy();
+    QQmlApplicationEngine engine;
+#if defined(Q_OS_WIN)
+    engine.addImportPath(QCoreApplication::applicationDirPath() + "/qml");
+#endif // defined(Q_OS_WIN)
+    QObject::connect(
+        &engine,
+        &QQmlApplicationEngine::objectCreationFailed,
+        &app,
+        [] () { QCoreApplication::exit(-1); },
+        Qt::QueuedConnection
+    );
 
-    return ret;
+    Context context(&engine);
+    QQmlApplicationEngine::setObjectOwnership(
+        &context, QQmlEngine::CppOwnership
+    );
+
+    registerQmlTypes(context);
+    registerImageProviders(engine);
+
+    MainManager mainManager(&engine, &context, &engine);
+
+    engine.loadFromModule(MEMENTO_URI, "Main");
+
+    return app.exec();
 }

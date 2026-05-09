@@ -1,5 +1,5 @@
 add_library(
-    audioplayer STATIC
+    audioplayer
     audioplayer.cpp
     audioplayer.h
 )
@@ -10,9 +10,12 @@ target_link_libraries(
     audioplayer
     PRIVATE mpv::mpv
     PRIVATE utils
+    PUBLIC "$<$<BOOL:${MEMENTO_SYSTEM_QCORO}>:QCoro::Coro>"
+    PUBLIC "$<$<BOOL:${MEMENTO_SYSTEM_QCORO}>:QCoro::Qml>"
     PUBLIC "$<$<BOOL:${SYSTEM_QCORO}>:QCoro::Network>"
+    PUBLIC "$<$<NOT:$<BOOL:${MEMENTO_SYSTEM_QCORO}>>:QCoro6Coro>"
+    PUBLIC "$<$<NOT:$<BOOL:${MEMENTO_SYSTEM_QCORO}>>:QCoro6Qml>"
     PUBLIC "$<$<NOT:$<BOOL:${SYSTEM_QCORO}>>:QCoro6Network>"
-    PUBLIC context
     PUBLIC Qt6::Core
     PUBLIC Qt6::Network
 )

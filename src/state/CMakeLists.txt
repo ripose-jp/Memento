@@ -1,18 +1,19 @@
 add_library(
-    context STATIC
+    context
     context.cpp
     context.h
 )
-target_compile_features(context PUBLIC cxx_std_20)
-target_compile_options(context PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_compile_features(context PRIVATE cxx_std_20)
 target_include_directories(context PRIVATE ${MEMENTO_INCLUDE_DIRS})
+target_compile_options(context PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_link_libraries(
     context
-    PRIVATE anki
-    PRIVATE audioplayer
-    PRIVATE dictionary_db
-    PRIVATE playeradapter
-    PRIVATE subtitlelist
+    PUBLIC anki
+    PUBLIC audioplayer
+    PUBLIC dictionary
+    PUBLIC mpvplayer
     PUBLIC Qt6::Core
-    PUBLIC track
+    PUBLIC settings
+    PUBLIC subtitle
+    PUBLIC utils
 )

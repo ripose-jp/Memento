@@ -18,11 +18,11 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef YOMIDBBUILDER_H
-#define YOMIDBBUILDER_H
+#pragma once
 
 #include <sqlite3.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,29 +71,36 @@ int yomi_prepare_db(const char *db_file, sqlite3 **db);
  *                  stored in. Must already exist, will not be created.
  * @return Error code
  */
-int yomi_process_dictionary(const char *dict_file, const char *db_file, const char *res_dir);
+int yomi_process_dictionary(
+    const char *dict_file, const char *db_file, const char *res_dir);
 
 /**
  * Remove a dictionary from a database if it exists
- * @param dict_name Name of the dictionary to remove
- * @param db_file   The location of the database file
- * @param res_dir   The directory additional dictionary resources are stored in.
- *                  Must already exist, will not be created.
+ * @param dic_id  ID of the dictionary to remove.
+ * @param db_file The location of the database file
+ * @param res_dir The directory additional dictionary resources are stored in.
+ *                Must already exist, will not be created.
  * @return Error code
  */
-int yomi_delete_dictionary(const char *dict_name, const char *db_file, const char *res_dir);
+int yomi_delete_dictionary(
+    int64_t dic_id, const char *db_file, const char *res_dir);
 
 /**
- * Disables all the named dictionaries.
- * @param dict_name An array of dictionary names
- * @param len       The length of the dictionary array
- * @param db_file   The location of the database file
+ * Disables a dictionary
+ * @param dic_id  The ID of the dictionary to remove
+ * @param db_file The location of the database file
  * @return Error code
  */
-int yomi_disable_dictionaries(const char **dict_name, size_t len, const char *db_file);
+int yomi_disable_dictionary(int64_t dic_id, const char *db_file);
+
+/**
+ * Enables a dictionary
+ * @param dic_id  The ID of the dictionary to remove
+ * @param db_file The location of the database file
+ * @return Error code
+ */
+int yomi_enable_dictionary(int64_t dic_id, const char *db_file);
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif // YOMIDBBUILDER_H

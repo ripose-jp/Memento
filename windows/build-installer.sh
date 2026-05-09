@@ -3,7 +3,7 @@
 # Exit on error
 set -e
 
-./windows/build.sh $1
+./windows/build.sh "$@"
 cp -p ./windows/installer.nsi ./build/.
 cp -p ./windows/license.rtf ./build/.
 cp -p ./windows/logo.ico ./build/.

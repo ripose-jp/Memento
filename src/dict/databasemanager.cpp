@@ -18,107 +18,132 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "databasemanager.h"
+#include "dict/databasemanager.h"
 
-#include <QApplication>
+#include <QCoreApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QMessageBox>
-#include <QVector>
 
-#include "yomidbbuilder.h"
-
+#include "dict/yomidbbuilder.h"
 #include "util/utils.h"
 
 /* Begin Constructor/Destructor */
 
-DatabaseManager::DatabaseManager(const QString &path)
-    : m_dbpath(path.toUtf8())
+DatabaseManager::DatabaseManager(
+    const QString &path,
+    QObject *parent) :
+    QObject(parent),
+    m_dbpath(path.toUtf8())
 {
     if (!sqlite3_threadsafe())
     {
-        QMessageBox::critical(
-            0, "SQLite Error",
+        qCritical(
             "The version of SQLite on this system is not threadsafe.\n "
             "Because of this, Memento will not work.\n Please install a "
             "version SQLite compiled with SQLITE_THREADSAFE=1 or 2."
         );
-        QApplication::exit(EXIT_FAILURE);
+        return;
     }
 
-    if (yomi_prepare_db(m_dbpath, NULL) ||
+    if (yomi_prepare_db(m_dbpath, nullptr) ||
         sqlite3_open_v2(
             m_dbpath,
             &m_db,
             SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX,
-            NULL
+            nullptr
         ) != SQLITE_OK)
     {
         m_db = nullptr;
-        qDebug() << "Could not open dictionary database";
+        qCritical("Could not open dictionary database");
+        return;
     }
 
-    m_moraSkipChar << "ぁ"
-                   << "ぃ"
-                   << "ぅ"
-                   << "ぇ"
-                   << "ぉ"
-                   << "ゃ"
-                   << "ゅ"
-                   << "ょ"
-                   << "ァ"
-                   << "ィ"
-                   << "ゥ"
-                   << "ェ"
-                   << "ォ"
-                   << "ャ"
-                   << "ュ"
-                   << "ョ";
+    m_moraSkipChar = {
+        "ぁ",
+        "ぃ",
+        "ぅ",
+        "ぇ",
+        "ぉ",
+        "ゃ",
+        "ゅ",
+        "ょ",
+        "ァ",
+        "ィ",
+        "ゥ",
+        "ェ",
+        "ォ",
+        "ャ",
+        "ュ",
+        "ョ",
+    };
 
     initCache();
 }
 
 DatabaseManager::~DatabaseManager()
 {
+    QWriteLocker lock{&m_dbLock};
+    clearTagCache();
+    clearDictionaryCache();
     sqlite3_close_v2(m_db);
 }
 
 /* End Constructor/Destructor */
 /* Begin Initializers */
 
-#define QUERY_DICTIONARY    "SELECT dic_id, title FROM directory;"
-#define QUERY_TAGS          "SELECT dic_id, category, name, ord, notes, score " \
-                                "FROM tag_bank;"
-
-#define COLUMN_DIC_ID       0
-#define COLUMN_CATEGORY     1
-#define COLUMN_NAME         2
-#define COLUMN_ORDER        3
-#define COLUMN_NOTES        4
-#define COLUMN_SCORE        5
-
 int DatabaseManager::initCache()
 {
-    int           ret  = 0;
-    sqlite3_stmt *stmt = NULL;
-    int           step = 0;
+    constexpr const char *QUERY_DICTIONARY =
+        "SELECT dic_id, title, "
+            "EXISTS ("
+                "SELECT 1 "
+                "FROM dict_disabled "
+                "WHERE dict_disabled.dic_id == directory.dic_id"
+            ") AS disabled "
+        "FROM directory;";
+
+    constexpr int COLUMN_DICTIONARY_DIC_ID = 0;
+    constexpr int COLUMN_DICTIONARY_TITLE = 1;
+    constexpr int COLUMN_DICTIONARY_DISABLED = 2;
+
+    constexpr const char *QUERY_TAGS =
+        "SELECT dic_id, category, name, ord, notes, score "
+            "FROM tag_bank;";
+
+    constexpr int COLUMN_TAG_DIC_ID = 0;
+    constexpr int COLUMN_TAG_CATEGORY = 1;
+    constexpr int COLUMN_TAG_NAME = 2;
+    constexpr int COLUMN_TAG_ORDER = 3;
+    constexpr int COLUMN_TAG_NOTES = 4;
+    constexpr int COLUMN_TAG_SCORE = 5;
+
+    int ret = 0;
+    sqlite3_stmt *stmt = nullptr;
+    int step = 0;
 
     /* Empty the cache */
-    m_tagCache.clear();
-    m_dictionaryCache.clear();
+    clearTagCache();
+    clearDictionaryCache();
 
     /* Build dictionary cache */
-    if (sqlite3_prepare_v2(m_db, QUERY_DICTIONARY, -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_prepare_v2(m_db, QUERY_DICTIONARY, -1, &stmt, nullptr) != SQLITE_OK)
     {
         ret = -1;
         goto cleanup;
     }
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
-        uint64_t id   = sqlite3_column_int64(stmt, 0);
-        QString title = (const char *)sqlite3_column_text(stmt, 1);
-        m_dictionaryCache.insert(id, title);
+        DictionaryInfo *info = new DictionaryInfo;
+        info->setId(sqlite3_column_int64(stmt, COLUMN_DICTIONARY_DIC_ID));
+        info->setName(reinterpret_cast<const char *>(
+            sqlite3_column_text(stmt, COLUMN_DICTIONARY_TITLE)
+        ));
+        info->setEnabled(
+            !sqlite3_column_int64(stmt, COLUMN_DICTIONARY_DISABLED)
+        );
+
+        m_dictionaryCache.insert(info->id(), info);
     }
     if (isStepError(step))
     {
@@ -126,30 +151,33 @@ int DatabaseManager::initCache()
         goto cleanup;
     }
     sqlite3_finalize(stmt);
-    stmt = NULL;
+    stmt = nullptr;
 
     /* Build tag cache */
-    if (sqlite3_prepare_v2(m_db, QUERY_TAGS, -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_prepare_v2(m_db, QUERY_TAGS, -1, &stmt, nullptr) != SQLITE_OK)
     {
         ret = -1;
         goto cleanup;
     }
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
-        uint64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
-        QHash<QString, Tag> &tags = m_tagCache[id];
+        uint64_t id = sqlite3_column_int64(stmt, COLUMN_TAG_DIC_ID);
 
-        Tag tag;
-        tag.dictionaryId = id;
-        tag.dictionary = m_dictionaryCache[id],
-        tag.name = (const char *)sqlite3_column_text(stmt, COLUMN_NAME),
-        tag.category = (const char *)sqlite3_column_text(stmt, COLUMN_CATEGORY),
-        tag.notes = (const char *)sqlite3_column_text(stmt, COLUMN_NOTES),
-        tag.order = sqlite3_column_int(stmt, COLUMN_ORDER),
-        tag.score = sqlite3_column_int(stmt, COLUMN_SCORE),
-        tags.insert(tag.name, tag);
+        Tag *tag = new Tag;
+        tag->setDictionaryInfo(getDictionary(id)->clone(tag));
+        tag->setName(reinterpret_cast<const char *>(
+            sqlite3_column_text(stmt, COLUMN_TAG_NAME)
+        ));
+        tag->setCategory(reinterpret_cast<const char *>(
+            sqlite3_column_text(stmt, COLUMN_TAG_CATEGORY)
+        ));
+        tag->setNotes(reinterpret_cast<const char *>(
+            sqlite3_column_text(stmt, COLUMN_TAG_NOTES)
+        ));
+        tag->setOrder(sqlite3_column_int(stmt, COLUMN_TAG_ORDER));
+        tag->setScore(sqlite3_column_int(stmt, COLUMN_TAG_SCORE));
 
-        m_tagCache[id] = tags;
+        m_tagCache[id].insert(tag->name(), tag);
     }
     if (isStepError(step))
     {
@@ -163,177 +191,161 @@ cleanup:
     return ret;
 }
 
-#undef QUERY_DICTIONARY
-#undef QUERY_TAGS
+void DatabaseManager::clearDictionaryCache()
+{
+    for (DictionaryInfo *info : m_dictionaryCache)
+    {
+        info->deleteLater();
+    }
+    m_dictionaryCache.clear();
+}
 
-#undef COLUMN_DIC_ID
-#undef COLUMN_CATEGORY
-#undef COLUMN_NAME
-#undef COLUMN_ORDER
-#undef COLUMN_NOTES
-#undef COLUMN_SCORE
+void DatabaseManager::clearTagCache()
+{
+    for (QHash<QString, Tag *> &tagDict : m_tagCache)
+    {
+        for (Tag *tag : tagDict)
+        {
+            tag->deleteLater();
+        }
+    }
+    m_tagCache.clear();
+}
 
 /* End Initializers */
+/* Begin Properties */
+
+bool DatabaseManager::modifyingDatabase() const noexcept
+{
+    return m_modifyingDatabase;
+}
+
+void DatabaseManager::setModifyingDatabase(bool value)
+{
+    if (m_modifyingDatabase == value)
+    {
+        return;
+    }
+    m_modifyingDatabase = value;
+    emit modifyingDatabaseChanged(value);
+}
+
+/* End Properties */
 /* Begin Dictionary Database Modifiers */
 
-int DatabaseManager::addDictionary(const QString &path)
+int DatabaseManager::addDictionary(QString path)
 {
-    m_dbLock.lockForWrite();
+    QWriteLocker lock{&m_dbLock};
+
+    setModifyingDatabase(true);
     QByteArray cpath = path.toUtf8();
     QByteArray respath = DirectoryUtils::getDictionaryResourceDir().toUtf8();
     int ret = yomi_process_dictionary(cpath, m_dbpath, respath);
     initCache();
-    m_dbLock.unlock();
+    setModifyingDatabase(false);
+
     return ret;
 }
 
-int DatabaseManager::deleteDictionary(const QString &name)
+int DatabaseManager::deleteDictionary(int64_t id)
 {
-    m_dbLock.lockForWrite();
-    QByteArray cname = name.toUtf8();
+    QWriteLocker lock{&m_dbLock};
+
+    setModifyingDatabase(true);
     QByteArray respath = DirectoryUtils::getDictionaryResourceDir().toUtf8();
-    int ret = yomi_delete_dictionary(cname, m_dbpath, respath);
+    int ret = yomi_delete_dictionary(id, m_dbpath, respath);
     initCache();
-    m_dbLock.unlock();
+    setModifyingDatabase(false);
+
     return ret;
 }
 
-int DatabaseManager::disableDictionaries(const QStringList &dicts)
+int DatabaseManager::enableDictionary(int64_t id)
 {
-    QVector<QByteArray> byteDicts;
-    for (const QString &dict : dicts)
-    {
-        byteDicts << dict.toUtf8();
-    }
-    QVector<const char *> cDicts;
-    for (const QByteArray &dict : byteDicts)
-    {
-        cDicts << dict.data();
-    }
+    QWriteLocker lock{&m_dbLock};
 
-    m_dbLock.lockForWrite();
-    int ret = yomi_disable_dictionaries(cDicts.data(), cDicts.size(), m_dbpath);
-    m_dbLock.unlock();
+    setModifyingDatabase(true);
+    int ret = yomi_enable_dictionary(id, m_dbpath);
+    initCache();
+    setModifyingDatabase(false);
+
+    return ret;
+}
+
+
+int DatabaseManager::disableDictionary(int64_t id)
+{
+    QWriteLocker lock{&m_dbLock};
+
+    setModifyingDatabase(true);
+    int ret = yomi_disable_dictionary(id, m_dbpath);
+    initCache();
+    setModifyingDatabase(false);
+
     return ret;
 }
 
 /* End Dictionary Database Modifiers */
 /* Begin Database Getters */
 
-#define QUERY   "SELECT dic_id, title FROM directory;"
-
-QList<DictionaryInfo> DatabaseManager::getDictionaries() const
+QList<DictionaryInfo *> DatabaseManager::getDictionaries(QObject *parent) const
 {
-    constexpr int COLUMN_DIC_ID = 0;
-    constexpr int COLUMN_TITLE = 1;
+    QReadLocker lock{&m_dbLock};
 
-    m_dbLock.lockForRead();
-
-    QList<DictionaryInfo>  dictionaries;
-    sqlite3_stmt          *stmt  = NULL;
-    int                    step  = 0;
-
-    if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+    QList<DictionaryInfo *> infos;
+    infos.reserve(m_dictionaryCache.size());
+    for (DictionaryInfo *info : m_dictionaryCache)
     {
-        goto cleanup;
+        infos.emplaceBack(info->clone(parent));
     }
-    while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
-    {
-        DictionaryInfo info{};
-        info.id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
-        info.name = (const char *)sqlite3_column_text(stmt, COLUMN_TITLE);
-        dictionaries.emplaceBack(std::move(info));
-    }
-
-cleanup:
-    sqlite3_finalize(stmt);
-    m_dbLock.unlock();
-
-    return dictionaries;
+    return infos;
 }
 
-#undef QUERY
-
-#define QUERY   "SELECT dic_id FROM dict_disabled;"
-
-QList<DictionaryInfo> DatabaseManager::getDisabledDictionaries() const
+QList<Term *> DatabaseManager::queryTerms(
+    QString query, QObject *parent, QString *error) const
 {
-    m_dbLock.lockForRead();
+    constexpr const char *QUERY =
+        "SELECT DISTINCT expression, reading "
+            "FROM term_bank "
+            "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND "
+            "(expression = ? OR reading = ?);";
 
-    QList<DictionaryInfo>  dictionaries;
-    sqlite3_stmt          *stmt  = NULL;
-    int                    step  = 0;
+    constexpr const char *QUERY_WITH_KATAKANA =
+        "SELECT DISTINCT expression, reading "
+            "FROM term_bank "
+            "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND "
+                "(expression = ? OR reading = ? OR "
+                "expression = ? OR reading = ?);";
 
-    if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
-    {
-        goto cleanup;
-    }
-    while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
-    {
-        DictionaryInfo info{};
-        info.id = sqlite3_column_int64(stmt, 0);
-        info.name = getDictionary(info.id);
-        dictionaries.emplaceBack(std::move(info));
-    }
+    constexpr const char *QUERY_WITH_HALFWIDTH =
+        "SELECT DISTINCT expression, reading "
+            "FROM term_bank "
+            "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND "
+                "(expression = ? OR reading = ? OR "
+                "expression = ? OR reading = ? OR "
+                "expression = ? OR reading = ?);";
 
-cleanup:
-    sqlite3_finalize(stmt);
-    m_dbLock.unlock();
+    constexpr int QUERY_RAW_EXPRESSION_IDX = 1;
+    constexpr int QUERY_RAW_READING_IDX = 2;
+    constexpr int QUERY_KATA_EXPRESSION_IDX = 3;
+    constexpr int QUERY_KATA_READING_IDX = 4;
+    constexpr int QUERY_HALF_EXPRESSION_IDX = 5;
+    constexpr int QUERY_HALF_READING_IDX = 6;
 
-    return dictionaries;
-}
+    constexpr int COLUMN_EXPRESSION = 0;
+    constexpr int COLUMN_READING = 1;
 
-#undef QUERY
+    QReadLocker lock{&m_dbLock};
 
-#define QUERY               "SELECT DISTINCT expression, reading "\
-                                "FROM term_bank "\
-                                "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND " \
-                                    "(expression = ? OR reading = ?);"
-#define QUERY_WITH_KATAKANA "SELECT DISTINCT expression, reading "\
-                                "FROM term_bank "\
-                                "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND " \
-                                    "(expression = ? OR reading = ? OR " \
-                                     "expression = ? OR reading = ?);"
-#define QUERY_WITH_HALFWIDTH "SELECT DISTINCT expression, reading "\
-                                "FROM term_bank "\
-                                "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND " \
-                                    "(expression = ? OR reading = ? OR " \
-                                     "expression = ? OR reading = ? OR " \
-                                     "expression = ? OR reading = ?);"
-
-#define QUERY_RAW_EXPRESSION_IDX    1
-#define QUERY_RAW_READING_IDX       2
-#define QUERY_KATA_EXPRESSION_IDX   3
-#define QUERY_KATA_READING_IDX      4
-#define QUERY_HALF_EXPRESSION_IDX   5
-#define QUERY_HALF_READING_IDX      6
-
-#define COLUMN_EXPRESSION       0
-#define COLUMN_READING          1
-
-QString DatabaseManager::queryTerms(const QString &query, QList<SharedTerm> &terms) const
-{
-    if (m_db == nullptr)
-    {
-        return "Database is invalid";
-    }
-
-    /* Try to acquire the database lock, early return if we can't */
-    if (!m_dbLock.tryLockForRead())
-    {
-        return "";
-    }
-
-    QString       ret;
-    QByteArray    exp          = query.toUtf8();
-    QByteArray    katakana     = halfToFull(query).toUtf8();
-    bool          containsHalf = katakana != exp;
-    QByteArray    hiragana     = kataToHira(katakana).toUtf8();
-    bool          containsKata = hiragana != katakana;
-    sqlite3_stmt *stmt         = NULL;
-    const char   *sql_query    = NULL;
-    int           step         = 0;
-    QList<SharedTerm> termList;
+    QByteArray exp = query.toUtf8();
+    QByteArray katakana = halfToFull(query).toUtf8();
+    bool containsHalf = katakana != exp;
+    QByteArray hiragana = kataToHira(katakana).toUtf8();
+    bool containsKata = hiragana != katakana;
+    sqlite3_stmt *stmt = nullptr;
+    const char *sql_query = nullptr;
+    int step = 0;
+    QList<Term *> terms;
 
     if (containsHalf)
     {
@@ -349,295 +361,329 @@ QString DatabaseManager::queryTerms(const QString &query, QList<SharedTerm> &ter
     }
 
     /* Query for all the different terms in the database */
-    if (sqlite3_prepare_v2(m_db, sql_query, -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_prepare_v2(m_db, sql_query, -1, &stmt, nullptr) != SQLITE_OK)
     {
-        ret = "Could not prepare database query";
+        if (error)
+        {
+            *error = tr("Could not prepare database query");
+        }
         goto error;
     }
-    if (sqlite3_bind_text(stmt, QUERY_RAW_EXPRESSION_IDX, exp, -1, NULL) != SQLITE_OK ||
-        sqlite3_bind_text(stmt, QUERY_RAW_READING_IDX,    exp, -1, NULL) != SQLITE_OK)
+    if (sqlite3_bind_text(stmt, QUERY_RAW_EXPRESSION_IDX, exp, -1, nullptr) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, QUERY_RAW_READING_IDX,    exp, -1, nullptr) != SQLITE_OK)
     {
-        ret = "Could not bind values to statement";
+        if (error)
+        {
+            *error = tr("Could not bind values to statement");
+        }
         goto error;
     }
     if (containsKata &&
         (
-            sqlite3_bind_text(stmt, QUERY_KATA_EXPRESSION_IDX, hiragana, -1, NULL) != SQLITE_OK ||
-            sqlite3_bind_text(stmt, QUERY_KATA_READING_IDX,    hiragana, -1, NULL) != SQLITE_OK
+            sqlite3_bind_text(stmt, QUERY_KATA_EXPRESSION_IDX, hiragana, -1, nullptr) != SQLITE_OK ||
+            sqlite3_bind_text(stmt, QUERY_KATA_READING_IDX,    hiragana, -1, nullptr) != SQLITE_OK
         ))
     {
-        ret = "Could not bind values to statement";
+        if (error)
+        {
+            *error = tr("Could not bind values to statement");
+        }
         goto error;
     }
     if (containsHalf &&
         (
-            sqlite3_bind_text(stmt, QUERY_HALF_EXPRESSION_IDX, katakana, -1, NULL) != SQLITE_OK ||
-            sqlite3_bind_text(stmt, QUERY_HALF_READING_IDX,    katakana, -1, NULL) != SQLITE_OK
+            sqlite3_bind_text(stmt, QUERY_HALF_EXPRESSION_IDX, katakana, -1, nullptr) != SQLITE_OK ||
+            sqlite3_bind_text(stmt, QUERY_HALF_READING_IDX,    katakana, -1, nullptr) != SQLITE_OK
         ))
     {
-        ret = "Could not bind values to statement";
+        if (error)
+        {
+            *error = tr("Could not bind values to statement");
+        }
         goto error;
     }
 
     /* Create a term for each entry */
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
-        SharedTerm term(new Term);
-        term->expression = (const char *)sqlite3_column_text(stmt, COLUMN_EXPRESSION);
-        term->reading    = (const char *)sqlite3_column_text(stmt, COLUMN_READING);
-        if (addFrequencies(*term))
-            qDebug() << "Could not add frequencies for" << term->expression;
-        if (addPitches(*term))
-            qDebug() << "Could not add pitches for" << term->expression;
-        termList.append(term);
+        Term *term = new Term(parent);
+        term->setExpression(reinterpret_cast<const char *>(
+            sqlite3_column_text(stmt, COLUMN_EXPRESSION)
+        ));
+        term->setReading(reinterpret_cast<const char *>(
+            sqlite3_column_text(stmt, COLUMN_READING)
+        ));
+        if (addFrequencies(term))
+        {
+            qDebug(
+                "Could not add frequencies for %s",
+                qUtf8Printable(term->expression())
+            );
+        }
+        if (addPitches(term))
+        {
+            qDebug(
+                "Could not add pitches for %s",
+                qUtf8Printable(term->expression())
+            );
+        }
+        terms.emplaceBack(term);
     }
     if (isStepError(step))
     {
-        ret = "Error when executing sqlite query. Code " + QString::number(step);
+        if (error)
+        {
+            *error = tr("Error when executing sqlite query. Code %1").arg(step);
+        }
         goto error;
     }
 
     /* Add data to each term */
-    if (populateTerms(termList))
+    if (populateTerms(terms))
     {
-        ret = "Error getting term information";
+        if (error)
+        {
+            *error = tr("Error getting term information");
+        }
         goto error;
     }
 
     /* Return results on success */
     sqlite3_finalize(stmt);
-    m_dbLock.unlock();
-    terms.append(termList);
 
-    return ret;
+    return terms;
 
 error:
     /* Free up memory on failure */
-    m_dbLock.unlock();
     sqlite3_finalize(stmt);
+    qDeleteAll(terms);
+    terms.clear();
 
-    return ret;
+    return {};
 }
 
-#undef QUERY
-#undef QUERY_WITH_KATAKANA
-#undef QUERY_WITH_HALFWIDTH
-
-#undef QUERY_RAW_EXPRESSION_IDX
-#undef QUERY_RAW_READING_IDX
-#undef QUERY_KATA_EXPRESSION_IDX
-#undef QUERY_KATA_READING_IDX
-#undef QUERY_HALF_EXPRESSION_IDX
-#undef QUERY_HALF_READING_IDX
-
-#undef COLUMN_EXPRESSION
-#undef COLUMN_READING
-
-#define QUERY   "SELECT dic_id, onyomi, kunyomi, tags, meanings, stats FROM kanji_bank "\
-                    "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND (char = ?);"
-
-#define COLUMN_DIC_ID       0
-#define COLUMN_ONYOMI       1
-#define COLUMN_KUNYOMI      2
-#define COLUMN_TAGS         3
-#define COLUMN_MEANINGS     4
-#define COLUMN_STATS        5
-
-#define TAG_NAME_STATS      "misc"
-#define TAG_NAME_CLAS       "class"
-#define TAG_NAME_CODE       "code"
-#define TAG_NAME_INDEX      "index"
-
-QString DatabaseManager::queryKanji(const QString &query, Kanji &kanji) const
+Kanji *DatabaseManager::queryKanji(
+    QString query, QObject *parent, QString *error) const
 {
-    if (m_db == nullptr)
-    {
-        return "Database is invalid";
-    }
+    constexpr const char *QUERY =
+        "SELECT dic_id, onyomi, kunyomi, tags, meanings, stats FROM kanji_bank "
+            "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND (char = ?);";
 
-    /* Try to acquire the database lock, early return if we can't */
-    if (!m_dbLock.tryLockForRead())
-    {
-        return "";
-    }
+    constexpr int COLUMN_DIC_ID = 0;
+    constexpr int COLUMN_ONYOMI = 1;
+    constexpr int COLUMN_KUNYOMI = 2;
+    constexpr int COLUMN_TAGS = 3;
+    constexpr int COLUMN_MEANINGS = 4;
+    constexpr int COLUMN_STATS = 5;
 
-    QString       ret;
-    QByteArray    ch   = query.toUtf8();
-    sqlite3_stmt *stmt = NULL;
-    int           step = 0;
+    constexpr const char *TAG_NAME_STATS = "misc";
+    constexpr const char *TAG_NAME_CLAS = "class";
+    constexpr const char *TAG_NAME_CODE = "code";
+    constexpr const char *TAG_NAME_INDEX = "index";
 
-    kanji.character = query;
+    QReadLocker lock{&m_dbLock};
+
+    Kanji *kanji = new Kanji(parent);
+    kanji->setCharacter(query);
     addFrequencies(kanji);
 
+    QByteArray ch = query.toUtf8();
+    sqlite3_stmt *stmt = nullptr;
+    int step = 0;
+
     /* Query for the database for the definitions */
-    if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, nullptr) != SQLITE_OK)
     {
-        ret = "Could not prepare database query";
-        goto cleanup;
+        if (error)
+        {
+            *error = tr("Could not prepare database query");
+        }
+        goto error;
     }
-    if (sqlite3_bind_text(stmt, 1, ch, -1, NULL) != SQLITE_OK)
+    if (sqlite3_bind_text(stmt, 1, ch, -1, nullptr) != SQLITE_OK)
     {
-        ret = "Could not bind values to statement";
-        goto cleanup;
+        if (error)
+        {
+            *error = tr("Could not bind values to statement");
+        }
+        goto error;
     }
     while ((step = sqlite3_step(stmt)) != SQLITE_DONE)
     {
-        uint64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
+        int64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
 
-        KanjiDefinition def;
-        def.dictionaryId = id;
-        def.dictionary = getDictionary(id),
-        def.onyomi = QString(
-                (const char *)sqlite3_column_text(stmt, COLUMN_ONYOMI)
-            ).split(' '),
-        def.kunyomi = QString(
-                (const char *)sqlite3_column_text(stmt, COLUMN_KUNYOMI)
-            ).split(' '),
-        def.glossary = jsonArrayToStringList(
-                (const char *)sqlite3_column_text(stmt, COLUMN_MEANINGS)
-            );
-        addTags(
-            id, (const char *)sqlite3_column_text(stmt, COLUMN_TAGS), def.tags
+        KanjiDefinition *def = new KanjiDefinition(kanji);
+
+        def->setDictionaryInfo(getDictionary(id)->clone(def));
+        def->setOnyomi(QString(
+            reinterpret_cast<const char *>(
+                sqlite3_column_text(stmt, COLUMN_ONYOMI)
+            )
+        ).split(' '));
+        def->setKunyomi(QString(
+            reinterpret_cast<const char *>(
+                sqlite3_column_text(stmt, COLUMN_KUNYOMI)
+            )
+        ).split(' '));
+        def->setGlossary(jsonArrayToStringList(
+            reinterpret_cast<const char *>(
+                sqlite3_column_text(stmt, COLUMN_MEANINGS)
+            )
+        ));
+        def->setTags(
+            getTags(
+                id,
+                reinterpret_cast<const char *>(
+                    sqlite3_column_text(stmt, COLUMN_TAGS)
+                ),
+                kanji
+            )
         );
 
         QVariantMap map = QJsonDocument::fromJson(
-                (const char *)sqlite3_column_text(stmt, COLUMN_STATS)
-            ).toVariant().toMap();
-        for (auto it = map.constKeyValueBegin();
-             it != map.constKeyValueEnd();
-             ++it)
+            reinterpret_cast<const char *>(
+                sqlite3_column_text(stmt, COLUMN_STATS)
+            )
+        ).toVariant().toMap();
+        for (const auto &[key, value] : map.asKeyValueRange())
         {
-            Tag tag = m_tagCache[id][it->first];
-            QList<QPair<Tag, QString>> *list = nullptr;
-            if (tag.category == TAG_NAME_INDEX)
+            Tag *tag = m_tagCache[id][key]->clone(def);
+            tag->setValue(value.toString());
+            if (tag->category() == TAG_NAME_INDEX)
             {
-                list = &def.index;
+                def->appendIndices(tag);
             }
-            else if (tag.category == TAG_NAME_STATS)
+            else if (tag->category() == TAG_NAME_STATS)
             {
-                list = &def.stats;
+                def->appendStats(tag);
             }
-            else if (tag.category == TAG_NAME_CLAS)
+            else if (tag->category() == TAG_NAME_CLAS)
             {
-                list = &def.clas;
+                def->appendClasses(tag);
             }
-            else if (tag.category == TAG_NAME_CODE)
+            else if (tag->category() == TAG_NAME_CODE)
             {
-                list = &def.code;
+                def->appendCodes(tag);
             }
             else
             {
+                tag->deleteLater();
+                tag = nullptr;
                 continue;
             }
-            list->append(
-                QPair<Tag, QString>(std::move(tag), it->second.toString())
-            );
         }
 
-        kanji.definitions.append(def);
+        kanji->appendDefinitions(def);
     }
     if (isStepError(step))
     {
-        ret = "Error while executing kanji query";
-        goto cleanup;
+        if (error)
+        {
+            *error = tr("Error while executing kanji query");
+        }
+        goto error;
     }
 
-cleanup:
     sqlite3_finalize(stmt);
-    m_dbLock.unlock();
 
-    return ret;
+    return kanji;
+
+error:
+    sqlite3_finalize(stmt);
+    kanji->deleteLater();
+
+    return nullptr;
 }
-
-#undef QUERY
-
-#undef COLUMN_DIC_ID
-#undef COLUMN_ONYOMI
-#undef COLUMN_KUNYOMI
-#undef COLUMN_TAGS
-#undef COLUMN_MEANINGS
-#undef COLUMN_STATS
-
-#undef TAG_NAME_STATS
-#undef TAG_NAME_CLAS
-#undef TAG_NAME_CODE
-#undef TAG_NAME_INDEX
 
 /* End Database Getters */
 /* Begin Query Helpers */
 
-#define QUERY   "SELECT dic_id, score, def_tags, glossary, rules, term_tags "\
-                    "FROM term_bank "\
-                    "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND " \
-                        "(expression = ? AND reading = ?);"
-
-#define QUERY_EXP_IDX       1
-#define QUERY_READING_IDX   2
-
-#define COLUMN_DIC_ID       0
-#define COLUMN_SCORE        1
-#define COLUMN_DEF_TAGS     2
-#define COLUMN_GLOSSARY     3
-#define COLUMN_RULES        4
-#define COLUMN_TERM_TAGS    5
-
-int DatabaseManager::populateTerms(const QList<SharedTerm> &terms) const
+int DatabaseManager::populateTerms(const QList<Term *> &terms) const
 {
-    int           ret     = 0;
-    sqlite3_stmt *stmt    = NULL;
-    int           step    = 0;
-    QByteArray    exp;
-    QByteArray    reading;
+    constexpr const char *QUERY =
+        "SELECT dic_id, score, def_tags, glossary, rules, term_tags "
+            "FROM term_bank "
+            "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND "
+                "(expression = ? AND reading = ?);";
 
-    for (SharedTerm term : terms)
+    constexpr int QUERY_EXP_IDX = 1;
+    constexpr int QUERY_READING_IDX = 2;
+
+    constexpr int COLUMN_DIC_ID = 0;
+    constexpr int COLUMN_SCORE = 1;
+    constexpr int COLUMN_DEF_TAGS = 2;
+    constexpr int COLUMN_GLOSSARY = 3;
+    constexpr int COLUMN_RULES = 4;
+    constexpr int COLUMN_TERM_TAGS = 5;
+
+    int ret = 0;
+    sqlite3_stmt *stmt = nullptr;
+    int step = 0;
+    QByteArray exp;
+    QByteArray reading;
+
+    for (Term *term : terms)
     {
-        exp     = term->expression.toUtf8();
-        reading = term->reading.toUtf8();
+        exp = term->expression().toUtf8();
+        reading = term->reading().toUtf8();
 
-        if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+        if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, nullptr) != SQLITE_OK)
         {
             ret = -1;
             goto cleanup;
         }
-        if (sqlite3_bind_text(stmt, QUERY_EXP_IDX,     exp,     -1, NULL) != SQLITE_OK ||
-            sqlite3_bind_text(stmt, QUERY_READING_IDX, reading, -1, NULL) != SQLITE_OK)
+        if (sqlite3_bind_text(stmt, QUERY_EXP_IDX,     exp,     -1, nullptr) != SQLITE_OK ||
+            sqlite3_bind_text(stmt, QUERY_READING_IDX, reading, -1, nullptr) != SQLITE_OK)
         {
             ret = -1;
             goto cleanup;
         }
 
+        QList<Tag *> tags;
         while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
         {
-            const uint64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
+            const int64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
 
-            term->score += sqlite3_column_int(stmt, COLUMN_SCORE);
-            addTags(
+            /* These fields are accumulated */
+            term->setScore(
+                term->score() + sqlite3_column_int(stmt, COLUMN_SCORE)
+            );
+            accumulateTags(
                 id,
-                (const char *)sqlite3_column_text(stmt, COLUMN_TERM_TAGS),
-                term->tags
+                reinterpret_cast<const char *>(
+                    sqlite3_column_text(stmt, COLUMN_TERM_TAGS)
+                ),
+                tags,
+                term
             );
 
-            TermDefinition def;
-            def.dictionaryId = id;
-            def.dictionary = getDictionary(id);
-            def.glossary = QJsonDocument::fromJson(
-                (const char *)sqlite3_column_text(stmt, COLUMN_GLOSSARY)
-            ).array();
-            def.score = sqlite3_column_int(stmt, COLUMN_SCORE);
-            addTags(
-                id,
-                (const char *)sqlite3_column_text(stmt, COLUMN_DEF_TAGS),
-                def.tags
+            TermDefinition *def = new TermDefinition(term);
+            def->setDictionaryInfo(getDictionary(id)->clone(def));
+            def->setGlossary(QJsonDocument::fromJson(
+                reinterpret_cast<const char *>(
+                    sqlite3_column_text(stmt, COLUMN_GLOSSARY)
+                )
+            ).array());
+            def->setScore(sqlite3_column_int(stmt, COLUMN_SCORE));
+            def->setTags(
+                getTags(
+                    id,
+                    reinterpret_cast<const char *>(
+                        sqlite3_column_text(stmt, COLUMN_DEF_TAGS)
+                    ),
+                    term
+                )
             );
-            QStringList rules = QString(
-                (const char *)sqlite3_column_text(stmt, COLUMN_RULES)
-            ).split(' ');
-            def.rules = {
-                std::move_iterator{std::begin(rules)},
-                std::move_iterator{std::end(rules)}
-            };
-            term->definitions.append(def);
+            def->setRules(QString(
+                reinterpret_cast<const char *>(
+                    sqlite3_column_text(stmt, COLUMN_RULES)
+                )
+            ).split(' '));
+
+            term->appendDefinitions(def);
         }
+        term->setTags(tags);
+
         if (isStepError(step))
         {
             ret = -1;
@@ -645,7 +691,7 @@ int DatabaseManager::populateTerms(const QList<SharedTerm> &terms) const
         }
 
         sqlite3_finalize(stmt);
-        stmt = NULL;
+        stmt = nullptr;
     }
 
 cleanup:
@@ -654,112 +700,168 @@ cleanup:
     return ret;
 }
 
-#undef QUERY
-
-#undef QUERY_EXP_IDX
-#undef QUERY_READING_IDX
-
-#undef COLUMN_DIC_ID
-#undef COLUMN_SCORE
-#undef COLUMN_DEF_TAGS
-#undef COLUMN_GLOSSARY
-#undef COLUMN_RULES
-#undef COLUMN_TERM_TAGS
-
-QString DatabaseManager::getDictionary(const uint64_t id) const
+DictionaryInfo *DatabaseManager::getDictionary(const int64_t id) const
 {
     return m_dictionaryCache[id];
 }
 
-void DatabaseManager::addTags(const uint64_t  id,
-                              const QString  &tagStr,
-                              QList<Tag>     &tags) const
+QList<Tag *> DatabaseManager::getTags(
+    const int64_t id,
+    const QString &tagStr,
+    QObject *parent) const
+{
+    QStringList tagList = tagStr.split(" ");
+
+    QList<Tag *> tags;
+    tags.reserve(tagList.size());
+    for (const QString &tagName : tagList)
+    {
+        if (tagName.isEmpty())
+        {
+            continue;
+        }
+        const Tag *tag = m_tagCache[id][tagName];
+        if (tag == nullptr)
+        {
+            continue;
+        }
+        else if (tag->name().isEmpty())
+        {
+            continue;
+        }
+        tags.emplaceBack(tag->clone(parent));
+    }
+    return tags;
+}
+
+void DatabaseManager::accumulateTags(
+    const int64_t id,
+    const QString &tagStr,
+    QList<Tag *> &tags,
+    QObject *parent) const
 {
     QStringList tagList = tagStr.split(" ");
 
     for (const QString &tagName : tagList)
     {
-        const Tag &tag = m_tagCache[id][tagName];
-        if (!tag.name.isEmpty() && !tags.contains(tag))
+        if (tagName.isEmpty())
         {
-            tags.append(tag);
+            continue;
         }
+        const Tag *tag = m_tagCache[id][tagName];
+        if (tag == nullptr)
+        {
+            continue;
+        }
+        else if (tag->name().isEmpty())
+        {
+            continue;
+        }
+
+        bool exists = std::any_of(
+            std::begin(tags), std::end(tags),
+            [tag] (const Tag *other) -> bool
+            {
+                return tag->dictionaryInfo()->id() == other->dictionaryInfo()->id() &&
+                    tag->name() == other->name() &&
+                    tag->category() == other->category() &&
+                    tag->notes() == other->notes() &&
+                    tag->order() == other->order() &&
+                    tag->score() == other->score();
+            }
+        );
+        if (exists)
+        {
+            continue;
+        }
+
+        tags.emplaceBack(tag->clone(parent));
     }
 }
 
-#define QUERY   "SELECT dic_id, data, type "\
-                    "FROM term_meta_bank "\
-                    "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND " \
-                        "(expression = ? AND mode = 'freq');"
-
-int DatabaseManager::addFrequencies(Term &term) const
+int DatabaseManager::addFrequencies(Term *term) const
 {
-    return addFrequencies(
-        QUERY, term.expression, term.frequencies, term.reading
+    constexpr const char *QUERY =
+        "SELECT dic_id, data, type "
+            "FROM term_meta_bank "
+            "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND "
+                "(expression = ? AND mode = 'freq');";
+
+    int error{0};
+    term->setFrequencies(
+        getFrequencies(QUERY, term->expression(), term->reading(), term, &error)
     );
+    return error;
 }
 
-#undef QUERY
-
-#define QUERY   "SELECT dic_id, data, type "\
-                    "FROM kanji_meta_bank "\
-                    "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND " \
-                        "(expression = ? AND mode = 'freq');"
-
-int DatabaseManager::addFrequencies(Kanji &kanji) const
+int DatabaseManager::addFrequencies(Kanji *kanji) const
 {
-    return addFrequencies(QUERY, kanji.character, kanji.frequencies);
+    constexpr const char *QUERY =
+        "SELECT dic_id, data, type "
+            "FROM kanji_meta_bank "
+            "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND "
+                "(expression = ? AND mode = 'freq');";
+
+    int error{0};
+    kanji->setFrequencies(
+        getFrequencies(QUERY, kanji->character(), "", kanji, &error)
+    );
+    return error;
 }
 
-#undef QUERY
-
-#define OBJ_READING_KEY     "reading"
-#define OBJ_FREQ_KEY        "frequency"
-#define OBJ_VALUE_KEY       "value"
-#define OBJ_DISPLAY_KEY     "displayValue"
-
-int DatabaseManager::addFrequencies(
+QList<Frequency *> DatabaseManager::getFrequencies(
     const char *query,
     const QString &expression,
-    QList<Frequency> &freq,
-    const QString &reading) const
+    const QString &reading,
+    QObject *parent,
+    int *error) const
 {
-    int           ret  = 0;
-    sqlite3_stmt *stmt = NULL;
-    int           step = 0;
-    QByteArray    exp  = expression.toUtf8();
+    constexpr const char *OBJ_READING_KEY = "reading";
+    constexpr const char *OBJ_FREQ_KEY = "frequency";
+    constexpr const char *OBJ_VALUE_KEY = "value";
+    constexpr const char *OBJ_DISPLAY_KEY = "displayValue";
 
-    if (sqlite3_prepare_v2(m_db, query, -1, &stmt, NULL) != SQLITE_OK)
+    int ret = 0;
+    sqlite3_stmt *stmt = nullptr;
+    int step = 0;
+    QByteArray exp = expression.toUtf8();
+    QList<Frequency *> frequencies;
+
+    if (sqlite3_prepare_v2(m_db, query, -1, &stmt, nullptr) != SQLITE_OK)
     {
-        qDebug() << "Could not prepare frequency query";
+        qDebug("Could not prepare frequency query");
         ret = -1;
         goto cleanup;
     }
-    if (sqlite3_bind_text(stmt, 1, exp, -1, NULL) != SQLITE_OK)
+    if (sqlite3_bind_text(stmt, 1, exp, -1, nullptr) != SQLITE_OK)
     {
-        qDebug() << "Error binding expression to frequency query";
+        qDebug("Error binding expression to frequency query");
         ret = -1;
         goto cleanup;
     }
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
         QString freqStr;
-        switch ((yomi_blob_t)sqlite3_column_int(stmt, 2))
+        switch (static_cast<yomi_blob_t>(sqlite3_column_int(stmt, 2)))
         {
         case YOMI_BLOB_TYPE_STRING:
-            freqStr = (const char *)sqlite3_column_blob(stmt, 1);
+            freqStr = reinterpret_cast<const char *>(
+                sqlite3_column_blob(stmt, 1)
+            );
             break;
 
         case YOMI_BLOB_TYPE_INT:
             freqStr = QString::number(
-                *(const uint64_t *)sqlite3_column_blob(stmt, 1)
+                *reinterpret_cast<const uint64_t *>(
+                    sqlite3_column_blob(stmt, 1)
+                )
             );
             break;
 
         case YOMI_BLOB_TYPE_OBJECT:
         {
             QJsonObject obj = QJsonDocument::fromJson(
-                (const char *)sqlite3_column_blob(stmt, 1)
+                reinterpret_cast<const char *>(sqlite3_column_blob(stmt, 1))
             ).object();
 
             /* Check if this frequency is dependant on reading */
@@ -845,105 +947,117 @@ int DatabaseManager::addFrequencies(
             }
             break;
         }
+
         default:
             continue;
         }
 
-        Frequency f;
-        f.dictionaryId = sqlite3_column_int64(stmt, 0);
-        f.dictionary = getDictionary(f.dictionaryId);
-        f.freq = freqStr;
-        freq.emplaceBack(std::move(f));
+        int64_t id = sqlite3_column_int64(stmt, 0);
+
+        Frequency *f = new Frequency(parent);
+        f->setDictionaryInfo(getDictionary(id)->clone(f));
+        f->setFrequency(freqStr);
+        frequencies.emplaceBack(f);
     }
     if (isStepError(step))
     {
-        qDebug() << "Error executing sqlite frequency query";
+        qDebug("Error executing sqlite frequency query");
         ret = -1;
         goto cleanup;
     }
 
 cleanup:
     sqlite3_finalize(stmt);
+    if (ret)
+    {
+        qDeleteAll(frequencies);
+        frequencies.clear();
+    }
+    if (error)
+    {
+        *error = ret;
+    }
 
-    return ret;
+    return frequencies;
 }
 
-#undef OBJ_READING_KEY
-#undef OBJ_FREQ_KEY
-#undef OBJ_VALUE_KEY
-#undef OBJ_DISPLAY_KEY
-
-#define QUERY   "SELECT dic_id, data "\
-                    "FROM term_meta_bank "\
-                    "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND " \
-                        "(expression = ? AND mode = 'pitch');"
-
-#define OBJ_READING_KEY     "reading"
-#define OBJ_PITCHES_KEY     "pitches"
-#define OBJ_POSITION_KEY    "position"
-
-int DatabaseManager::addPitches(Term &term) const
+int DatabaseManager::addPitches(Term *term) const
 {
-    int           ret  = 0;
-    sqlite3_stmt *stmt = NULL;
-    int           step = 0;
-    QByteArray    exp  = term.expression.toUtf8();
+    constexpr const char *QUERY =
+        "SELECT dic_id, data "
+            "FROM term_meta_bank "
+            "WHERE dic_id NOT IN (SELECT dic_id FROM dict_disabled) AND "
+                "(expression = ? AND mode = 'pitch');";
 
-    if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
+    constexpr const char *OBJ_READING_KEY = "reading";
+    constexpr const char *OBJ_PITCHES_KEY = "pitches";
+    constexpr const char *OBJ_POSITION_KEY = "position";
+
+    int ret = 0;
+    sqlite3_stmt *stmt = nullptr;
+    int step = 0;
+    QByteArray exp = term->expression().toUtf8();
+
+    if (sqlite3_prepare_v2(m_db, QUERY, -1, &stmt, nullptr) != SQLITE_OK)
     {
-        qDebug() << "Could not prepare pitch query";
+        qDebug("Could not prepare pitch query");
         ret = -1;
         goto cleanup;
     }
-    if (sqlite3_bind_text(stmt, 1, exp, -1, NULL) != SQLITE_OK)
+    if (sqlite3_bind_text(stmt, 1, exp, -1, nullptr) != SQLITE_OK)
     {
-        qDebug() << "Error binding expression to pitch query";
+        qDebug("Error binding expression to pitch query");
         ret = -1;
         goto cleanup;
     }
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
         QJsonObject obj = QJsonDocument::fromJson(
-                (const char *)sqlite3_column_blob(stmt, 1)
-            ).object();
+            reinterpret_cast<const char *>(sqlite3_column_blob(stmt, 1))
+        ).object();
         const QString reading = obj[OBJ_READING_KEY].toString();
-        if (reading != term.reading && reading != term.expression)
+        if (reading != term->reading() && reading != term->expression())
         {
             continue;
         }
 
-        Pitch pitch;
-        pitch.dictionaryId = sqlite3_column_int64(stmt, 0);
-        pitch.dictionary = getDictionary(pitch.dictionaryId);
+        int64_t id = sqlite3_column_int64(stmt, 0);
+
+        Pitch *pitch = new Pitch(term);
+        pitch->setDictionaryInfo(getDictionary(id)->clone(pitch));
 
         /* Add mora */
+        QStringList mora;
         QString currentMora;
         for (const QChar &ch : reading)
         {
             if (!currentMora.isEmpty() && !m_moraSkipChar.contains(ch))
             {
-                pitch.mora.append(currentMora);
+                mora.emplaceBack(currentMora);
                 currentMora.clear();
             }
             currentMora += ch;
         }
         if (!currentMora.isEmpty())
         {
-            pitch.mora.append(currentMora);
+            mora.append(currentMora);
         }
+        pitch->setMora(mora);
 
         /* Add pitch positions */
+        QList<int> positions;
         QJsonArray arr = obj[OBJ_PITCHES_KEY].toArray();
         for (const QJsonValue &val : arr)
         {
-            pitch.position.append(val.toObject()[OBJ_POSITION_KEY].toInt());
+            positions.emplaceBack(val.toObject()[OBJ_POSITION_KEY].toInt());
         }
+        pitch->setPositions(positions);
 
-        term.pitches.append(pitch);
+        term->appendPitches(pitch);
     }
     if (isStepError(step))
     {
-        qDebug() << "Error executing sqlite pitch query";
+        qDebug("Error executing sqlite pitch query");
         ret = -1;
         goto cleanup;
     }
@@ -953,12 +1067,6 @@ cleanup:
 
     return ret;
 }
-
-#undef QUERY
-
-#undef OBJ_READING_KEY
-#undef OBJ_PITCHES_KEY
-#undef OBJ_POSITION_KEY
 
 /* End Query Helpers */
 /* Begin Helpers */
@@ -968,41 +1076,41 @@ QString DatabaseManager::errorCodeToString(const int code) const
     switch (code)
     {
     case YOMI_ERR_ADDING_INDEX:
-        return "Could not add index.json";
+        return tr("Could not add index.json");
     case YOMI_ERR_ADDING_KANJI:
-        return "Could not add kanji terms";
+        return tr("Could not add kanji terms");
     case YOMI_ERR_ADDING_KANJI_META:
-        return "Could not add kanji metadata";
+        return tr("Could not add kanji metadata");
     case YOMI_ERR_ADDING_TAGS:
-        return "Could not add tags";
+        return tr("Could not add tags");
     case YOMI_ERR_ADDING_TERMS:
-        return "Could not add terms";
+        return tr("Could not add terms");
     case YOMI_ERR_ADDING_TERMS_META:
-        return "Could not add term metadata";
+        return tr("Could not add term metadata");
     case YOMI_ERR_DB:
-        return "Could not open database";
+        return tr("Could not open database");
     case YOMI_ERR_NEWER_VERSION:
-        return "Database is of a newer version";
+        return tr("Database is of a newer version");
     case YOMI_ERR_OPENING_DIC:
-        return "Could not open dictionary file";
+        return tr("Could not open dictionary file");
     case YOMI_ERR_DELETE:
-        return "Could not execute delete query on database";
+        return tr("Could not execute delete query on database");
     case YOMI_ERR_EXTRACTING_RESOURCES:
-        return "Could not extract dictionary resources";
+        return tr("Could not extract dictionary resources");
     case YOMI_ERR_REMOVING_RESOURCES:
-        return "Could not remove dictionary resources";
+        return tr("Could not remove dictionary resources");
     default:
-        return "Unknown error";
+        return tr("Unknown error");
     }
 }
 
-static const QChar HALFWIDTH_LOW(0xFF61);
-static const QChar HALFWIDTH_HIGH(0xFF9F);
-static const QChar HALFWIDTH_VOICED(0xFF9E);
-static const QChar HALFWIDTH_SEMI_VOICED(0xFF9F);
-
-QString DatabaseManager::halfToFull(const QString &query) const
+QString DatabaseManager::halfToFull(const QString &query)
 {
+    static const QChar HALFWIDTH_LOW(0xFF61);
+    static const QChar HALFWIDTH_HIGH(0xFF9F);
+    static const QChar HALFWIDTH_VOICED(0xFF9E);
+    static const QChar HALFWIDTH_SEMI_VOICED(0xFF9F);
+
     /* While initializing a new map every time this conversion is done seems and
      * is stupid, QMap is not thread safe. An older version of Memento used to
      * disregarded this and it led to a horrible bug that caused CPU usage to
@@ -1105,7 +1213,7 @@ QString DatabaseManager::halfToFull(const QString &query) const
     };
 
     QString res;
-    int i;
+    qsizetype i{0};
     for (i = 0; i < query.size() - 1; ++i)
     {
         if (HALFWIDTH_LOW <= query[i] && query[i] <= HALFWIDTH_HIGH)
@@ -1142,25 +1250,26 @@ QString DatabaseManager::halfToFull(const QString &query) const
     return res;
 }
 
-static const QChar KATAKANA_LOW(0x30A1);
-static const QChar KATAKANA_HIGH(0x30F6);
-static const QChar HIRAGANA_LOW(0x3041);
-[[maybe_unused]] static const QChar HIRAGANA_HIGH(0x3096);
-
-QString DatabaseManager::kataToHira(QString query) const
+QString DatabaseManager::kataToHira(QString query)
 {
+    static const QChar KATAKANA_LOW(0x30A1);
+    static const QChar KATAKANA_HIGH(0x30F6);
+    static const QChar HIRAGANA_LOW(0x3041);
+    [[maybe_unused]] static const QChar HIRAGANA_HIGH(0x3096);
+
     for (QChar &ch : query)
     {
         ushort code = ch.unicode();
         if (code >= KATAKANA_LOW && code <= KATAKANA_HIGH)
         {
-            ch = QChar(HIRAGANA_LOW.unicode() + (code - KATAKANA_LOW.unicode()));
+            ch = QChar(HIRAGANA_LOW.unicode() +
+                (code - KATAKANA_LOW.unicode()));
         }
     }
     return query;
 }
 
-QStringList DatabaseManager::jsonArrayToStringList(const char *jsonstr) const
+QStringList DatabaseManager::jsonArrayToStringList(const char *jsonstr)
 {
     QJsonDocument document = QJsonDocument::fromJson(jsonstr);
     QJsonArray array = document.array();

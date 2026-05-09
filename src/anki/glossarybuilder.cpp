@@ -18,28 +18,27 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "glossarybuilder.h"
+#include "anki/glossarybuilder.h"
 
-#include <QAbstractTextDocumentLayout>
+#include <QDir>
 #include <QJsonObject>
-#include <QTextBlock>
 
 #include "util/utils.h"
 
 /* Begin Public Methods */
-
-#define KEY_TYPE                        "type"
-#define KEY_CONTENT                     "content"
-#define VALUE_TYPE_IMAGE                "image"
-#define VALUE_TYPE_STRUCTURED_CONTENT   "structured-content"
-#define VALUE_TYPE_TEXT                 "text"
 
 QStringList GlossaryBuilder::buildGlossary(
     const QJsonArray &definitions,
     QString basepath,
     QSet<FileInfo> &fileMap)
 {
-    basepath += SLASH;
+    constexpr const char *KEY_TYPE = "type";
+    constexpr const char *KEY_CONTENT = "content";
+    constexpr const char *VALUE_TYPE_IMAGE = "image";
+    constexpr const char *VALUE_TYPE_STRUCTURED_CONTENT = "structured-content";
+    constexpr const char *VALUE_TYPE_TEXT = "text";
+
+    basepath += QDir::separator();
     QStringList glossaries;
 
     for (int i = 0; i < definitions.size(); ++i)
@@ -79,12 +78,6 @@ QStringList GlossaryBuilder::buildGlossary(
     return glossaries;
 }
 
-#undef KEY_TYPE
-#undef KEY_CONTENT
-#undef VALUE_TYPE_IMAGE
-#undef VALUE_TYPE_STRUCTURED_CONTENT
-#undef VALUE_TYPE_TEXT
-
 /* End Public Methods */
 /* Begin Structured Content Parsing */
 
@@ -105,19 +98,19 @@ void GlossaryBuilder::addStructuredData(const QJsonObject &obj, QString &out)
     }
 }
 
-#define KEY_FONT_STYLE      "fontStyle"
-#define KEY_FONT_WEIGHT     "fontWeight"
-#define KEY_FONT_SIZE       "fontSize"
-#define KEY_TEXT_DECORATION "textDecorationLine"
-#define KEY_VERTICAL_ALIGN  "verticalAlign"
-#define KEY_MARGIN_TOP      "marginTop"
-#define KEY_MARGIN_LEFT     "marginLeft"
-#define KEY_MARGIN_RIGHT    "marginRight"
-#define KEY_MARGIN_BOTTOM   "marginBottom"
-
 void GlossaryBuilder::addStructuredStyle(
     const QJsonObject &obj, QString &out)
 {
+    constexpr const char *KEY_FONT_STYLE = "fontStyle";
+    constexpr const char *KEY_FONT_WEIGHT = "fontWeight";
+    constexpr const char *KEY_FONT_SIZE = "fontSize";
+    constexpr const char *KEY_TEXT_DECORATION = "textDecorationLine";
+    constexpr const char *KEY_VERTICAL_ALIGN = "verticalAlign";
+    constexpr const char *KEY_MARGIN_TOP = "marginTop";
+    constexpr const char *KEY_MARGIN_LEFT = "marginLeft";
+    constexpr const char *KEY_MARGIN_RIGHT = "marginRight";
+    constexpr const char *KEY_MARGIN_BOTTOM = "marginBottom";
+
     if (obj[KEY_FONT_STYLE].isString())
     {
         out += "font-style: ";
@@ -166,41 +159,39 @@ void GlossaryBuilder::addStructuredStyle(
     if (obj[KEY_MARGIN_TOP].isDouble())
     {
         out += "margin-top: ";
-        out += QString::number((int)obj[KEY_MARGIN_TOP].toDouble(0.0));
+        out += QString::number(
+            static_cast<int>(obj[KEY_MARGIN_TOP].toDouble(0.0))
+        );
         out += "px;";
     }
 
     if (obj[KEY_MARGIN_LEFT].isDouble())
     {
         out += "margin-left: ";
-        out += QString::number((int)obj[KEY_MARGIN_LEFT].toDouble(0.0));
+        out += QString::number(
+            static_cast<int>(obj[KEY_MARGIN_LEFT].toDouble(0.0))
+        );
         out += "px;";
     }
 
     if (obj[KEY_MARGIN_RIGHT].isDouble())
     {
         out += "margin-right: ";
-        out += QString::number((int)obj[KEY_MARGIN_RIGHT].toDouble(0.0));
+        out += QString::number(
+            static_cast<int>(obj[KEY_MARGIN_RIGHT].toDouble(0.0))
+        );
         out += "px;";
     }
 
     if (obj[KEY_MARGIN_BOTTOM].isDouble())
     {
         out += "margin-bottom: ";
-        out += QString::number((int)obj[KEY_MARGIN_BOTTOM].toDouble(0.0));
+        out += QString::number(
+            static_cast<int>(obj[KEY_MARGIN_BOTTOM].toDouble(0.0))
+        );
         out += "px;";
     }
 }
-
-#undef KEY_FONT_STYLE
-#undef KEY_FONT_WEIGHT
-#undef KEY_FONT_SIZE
-#undef KEY_TEXT_DECORATION
-#undef KEY_VERTICAL_ALIGN
-#undef KEY_MARGIN_TOP
-#undef KEY_MARGIN_LEFT
-#undef KEY_MARGIN_RIGHT
-#undef KEY_MARGIN_BOTTOM
 
 void GlossaryBuilder::addStructuredContentHelper(
     const QString &str, QString &out)
@@ -220,29 +211,29 @@ void GlossaryBuilder::addStructuredContentHelper(
     }
 }
 
-#define KEY_TAG                     "tag"
-#define KEY_CONTENT                 "content"
-#define KEY_DATA                    "data"
-#define KEY_STYLE                   "style"
-#define KEY_PATH                    "path"
-#define KEY_TITLE                   "title"
-#define KEY_WIDTH                   "width"
-#define KEY_HEIGHT                  "height"
-#define KEY_RENDERING               "imageRendering"
-#define KEY_APPEARANCE              "appearance"
-#define KEY_UNITS                   "sizeUnits"
-#define KEY_VERT_ALIGN              "verticalAlign"
-#define KEY_COLSPAN                 "colSpan"
-#define KEY_ROWSPAN                 "rowSpan"
-
-#define VALUE_RENDERING_MONOCHROME  "monochrome"
-
 void GlossaryBuilder::addStructuredContentHelper(
     const QJsonObject &obj,
     const QString &basepath,
     QString &out,
     QSet<FileInfo> &fileMap)
 {
+    constexpr const char *KEY_TAG = "tag";
+    constexpr const char *KEY_CONTENT = "content";
+    constexpr const char *KEY_DATA = "data";
+    constexpr const char *KEY_STYLE = "style";
+    constexpr const char *KEY_PATH = "path";
+    constexpr const char *KEY_TITLE = "title";
+    constexpr const char *KEY_WIDTH = "width";
+    constexpr const char *KEY_HEIGHT = "height";
+    constexpr const char *KEY_RENDERING = "imageRendering";
+    constexpr const char *KEY_APPEARANCE = "appearance";
+    constexpr const char *KEY_UNITS = "sizeUnits";
+    constexpr const char *KEY_VERT_ALIGN = "verticalAlign";
+    constexpr const char *KEY_COLSPAN = "colSpan";
+    constexpr const char *KEY_ROWSPAN = "rowSpan";
+
+    constexpr const char *VALUE_RENDERING_MONOCHROME = "monochrome";
+
     QString tag = obj[KEY_TAG].toString();
     if (tag.isEmpty())
     {
@@ -331,13 +322,17 @@ void GlossaryBuilder::addStructuredContentHelper(
         if (obj[KEY_COLSPAN].isDouble())
         {
             out += " colspan=\"";
-            out += QString::number((int)obj[KEY_COLSPAN].toDouble());
+            out += QString::number(
+                static_cast<int>(obj[KEY_COLSPAN].toDouble())
+            );
             out += '"';
         }
         if (obj[KEY_ROWSPAN].isDouble())
         {
             out += " rowspan=\"";
-            out += QString::number((int)obj[KEY_ROWSPAN].toDouble());
+            out += QString::number(
+                static_cast<int>(obj[KEY_ROWSPAN].toDouble())
+            );
             out += '"';
         }
         if (obj[KEY_STYLE].isObject())
@@ -366,23 +361,6 @@ void GlossaryBuilder::addStructuredContentHelper(
     }
 }
 
-#undef KEY_TAG
-#undef KEY_CONTENT
-#undef KEY_DATA
-#undef KEY_STYLE
-#undef KEY_PATH
-#undef KEY_TITLE
-#undef KEY_WIDTH
-#undef KEY_HEIGHT
-#undef KEY_RENDERING
-#undef KEY_APPEARANCE
-#undef KEY_UNITS
-#undef KEY_VERT_ALIGN
-#undef KEY_COLSPAN
-#undef KEY_ROWSPAN
-
-#undef VALUE_RENDERING_MONOCHROME
-
 void GlossaryBuilder::addStructuredContent(
     const QJsonValue &val,
     const QString &basepath,
@@ -408,22 +386,20 @@ void GlossaryBuilder::addStructuredContent(
 /* End Structured Content Parsing */
 /* Begin Other Object Parsers */
 
-#define KEY_IMAGE       "image"
-#define KEY_PATH        "path"
-#define KEY_WIDTH       "width"
-#define KEY_HEIGHT      "height"
-#define KEY_TITLE       "title"
-#define KEY_RENDERING   "imageRendering"
-#define KEY_DESCRIPTION "description"
-#define KEY_COLLAPSED   "collapsed"
-#define KEY_COLLAPSIBLE "collapsible"
-
 void GlossaryBuilder::addImage(
     const QJsonObject &obj,
     const QString &basepath,
     QString &out,
     QSet<FileInfo> &fileMap)
 {
+    constexpr const char *KEY_PATH = "path";
+    constexpr const char *KEY_WIDTH = "width";
+    constexpr const char *KEY_HEIGHT = "height";
+    constexpr const char *KEY_TITLE = "title";
+    constexpr const char *KEY_RENDERING = "imageRendering";
+    constexpr const char *KEY_DESCRIPTION = "description";
+    constexpr const char *KEY_COLLAPSED = "collapsed";
+
     bool collapsed = obj[KEY_COLLAPSED].toBool(false);
     bool collapseable = obj[KEY_COLLAPSED].toBool(true);
 
@@ -487,24 +463,11 @@ void GlossaryBuilder::addImage(
     }
 }
 
-#undef KEY_IMAGE
-#undef KEY_PATH
-#undef KEY_WIDTH
-#undef KEY_HEIGHT
-#undef KEY_TITLE
-#undef KEY_RENDERING
-#undef KEY_DESCRIPTION
-#undef KEY_COLLAPSED
-#undef KEY_COLLAPSIBLE
-
-#define KEY_TEXT "text"
-
 void GlossaryBuilder::addText(const QJsonObject &obj, QString &out)
 {
+    constexpr const char *KEY_TEXT = "text";
     out += obj[KEY_TEXT].toString().trimmed().replace('\n', "<br>");
 }
-
-#undef KEY_TEXT
 
 /* End Other Object Parsers */
 /* Begin Helpers */
@@ -515,7 +478,7 @@ QString GlossaryBuilder::addFile(
     QSet<FileInfo> &fileMap)
 {
 #if defined(Q_OS_WIN)
-    basepath += QString(path).replace('/', SLASH);
+    basepath += QDir::toNativeSeparators(path);
 #else
     basepath += path;
 #endif

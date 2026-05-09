@@ -18,10 +18,9 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef EXACTQUERYGENERATOR_H
-#define EXACTQUERYGENERATOR_H
+#pragma once
 
-#include "querygenerator.h"
+#include "dict/querygenerator.h"
 
 class ExactQueryGenerator final : public QueryGenerator
 {
@@ -60,5 +59,3 @@ public:
     std::vector<SearchQuery> generateQueries(
         const QString &text) const override;
 };
-
-#endif // EXACTQUERYGENERATOR_H

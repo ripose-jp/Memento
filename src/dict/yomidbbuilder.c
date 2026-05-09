@@ -18,7 +18,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "yomidbbuilder.h"
+#include "dict/yomidbbuilder.h"
 
 #include <errno.h>
 #include <json-c/json.h>
@@ -1805,10 +1805,10 @@ cleanup:
 #endif
 
 /**
- * Concatenates two paths and normalizes all seperators to use /.
+ * Concatenates two paths and normalizes all separators to use /.
  * @param start The begining of the path.
  * @param end   The ending of the path.
- * @return The two paths concatinated. Must be freed with free().
+ * @return The two paths concatenated. Must be freed with free().
  */
 static char *concat_paths(const char *start, const char *end)
 {
@@ -2034,6 +2034,56 @@ cleanup:
 
 #undef REGEX_SKIP_FILE
 
+/**
+ * Modifies the dict_disabled table with a given query.
+ * @param dic_id  The ID to bind to the query.
+ * @param db_file The path to the database file.
+ * @param query   The query to execute. Must contain an ID bind.
+ * @return Error code
+ */
+static int modify_dict_disabled(int64_t dic_id, const char *db_file, const char *query)
+{
+    int           ret  = 0;
+    sqlite3      *db   = NULL;
+    sqlite3_stmt *stmt = NULL;
+    int           step = 0;
+    char         *path = NULL;
+
+    /* Open or create the database */
+    if ((ret = yomi_prepare_db(db_file, &db)))
+    {
+        goto cleanup;
+    }
+
+    /* Remove the dictionary from the  */
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, NULL) != SQLITE_OK)
+    {
+        fprintf(stderr, "Could not prepare sqlite statement\n");
+        fprintf(stderr, "Query: %s\n", query);
+        ret = STATEMENT_PREPARE_ERR;
+        goto cleanup;
+    }
+    if (sqlite3_bind_int(stmt, 1, dic_id) != SQLITE_OK)
+    {
+        fprintf(stderr, "Could not bind values to sqlite statement\n");
+        ret = STATEMENT_BIND_ERR;
+        goto cleanup;
+    }
+    if ((step = sqlite3_step(stmt)) != SQLITE_DONE)
+    {
+        fprintf(stderr, "Could not commit to database, sqlite3 error code %d\n", step);
+        ret = STATEMENT_STEP_ERR;
+        goto cleanup;
+    }
+
+cleanup:
+    sqlite3_finalize(stmt);
+    sqlite3_close_v2(db);
+    free(path);
+
+    return ret;
+}
+
 int yomi_prepare_db(const char *db_file, sqlite3 **db)
 {
     int      ret          = 0;
@@ -2064,7 +2114,9 @@ int yomi_prepare_db(const char *db_file, sqlite3 **db)
 cleanup:
     sqlite3_close_v2(db_loc);
     if (db)
+    {
         *db = NULL;
+    }
 
     return ret;
 }
@@ -2163,13 +2215,15 @@ error:
     return ret;
 }
 
-int yomi_delete_dictionary(const char *dict_name, const char *db_file, const char *res_dir)
+#define QUERY "DELETE FROM directory WHERE (dic_id = ?) RETURNING title;"
+
+int yomi_delete_dictionary(int64_t dic_id, const char *db_file, const char *res_dir)
 {
-    int            ret  = 0;
-    sqlite3       *db   = NULL;
-    sqlite3_stmt  *stmt = NULL;
-    int            step = 0;
-    char          *path = NULL;
+    int           ret       = 0;
+    sqlite3      *db        = NULL;
+    sqlite3_stmt *stmt      = NULL;
+    int           step      = 0;
+    char         *path      = NULL;
 
     /* Open or create the database */
     if ((ret = yomi_prepare_db(db_file, &db)))
@@ -2178,29 +2232,35 @@ int yomi_delete_dictionary(const char *dict_name, const char *db_file, const cha
     }
 
     /* Remove the dictionary from the index */
-    if (sqlite3_prepare_v2(db, "DELETE FROM directory WHERE (title = ?);", -1, &stmt, NULL) != SQLITE_OK)
+    if (sqlite3_prepare_v2(db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
     {
         ret = YOMI_ERR_DELETE;
         goto cleanup;
     }
-    if (sqlite3_bind_text(stmt, 1, dict_name, -1, NULL) != SQLITE_OK)
+    if (sqlite3_bind_int(stmt, 1, dic_id) != SQLITE_OK)
     {
         ret = YOMI_ERR_DELETE;
         goto cleanup;
     }
-    if ((step = sqlite3_step(stmt)) != SQLITE_DONE)
+    if ((step = sqlite3_step(stmt)) != SQLITE_ROW)
     {
         ret = YOMI_ERR_DELETE;
         goto cleanup;
     }
 
     /* Remove any resources */
-    path = concat_paths(res_dir, dict_name);
+    path = concat_paths(res_dir, (const char *)sqlite3_column_text(stmt, 0));
     ret = remove_path(path);
     ret = ret && ret != ENOENT ? ret : 0;
     if (ret)
     {
         ret = YOMI_ERR_REMOVING_RESOURCES;
+        goto cleanup;
+    }
+
+    if ((step = sqlite3_step(stmt)) != SQLITE_DONE)
+    {
+        ret = YOMI_ERR_DELETE;
         goto cleanup;
     }
 
@@ -2212,80 +2272,22 @@ cleanup:
     return ret;
 }
 
-#define QUERY   "INSERT INTO dict_disabled " \
-                    "SELECT dic_id FROM directory WHERE title = ?;"
+#undef QUERY
 
-int yomi_disable_dictionaries(const char **dict_name, size_t len, const char *db_file)
+int yomi_disable_dictionary(int64_t dic_id, const char *db_file)
 {
-    int           ret    = 0;
-    sqlite3      *db     = NULL;
-    sqlite3_stmt *stmt   = NULL;
-    char         *errmsg = NULL;
-    int           step   = 0;
+    return modify_dict_disabled(
+        dic_id,
+        db_file,
+        "INSERT OR IGNORE INTO dict_disabled (dic_id) VALUES (?);"
+    );
+}
 
-    /* Open or create the database */
-    if ((ret = yomi_prepare_db(db_file, &db)))
-    {
-        goto error;
-    }
-
-    /* Begin the transaction */
-    if ((ret = begin_transaction(db)))
-    {
-        goto error;
-    }
-
-    /* Drop all rows in the table */
-    sqlite3_exec(db, "DELETE FROM dict_disabled;", NULL, NULL, &errmsg);
-    if (errmsg)
-    {
-        fprintf(stderr, "Could not delete rows from dict_disabled table.\nError: %s", errmsg);
-        sqlite3_free(errmsg);
-        ret = YOMI_ERR_DELETE;
-        goto error;
-    }
-
-    /* Add all disabled dictionaries */
-    for (size_t i = 0; i < len; ++i)
-    {
-        if (sqlite3_prepare_v2(db, QUERY, -1, &stmt, NULL) != SQLITE_OK)
-        {
-            fprintf(stderr, "Could not prepare sqlite statement\n");
-            fprintf(stderr, "Query: %s\n", QUERY);
-            ret = STATEMENT_PREPARE_ERR;
-            goto error;
-        }
-
-        if (sqlite3_bind_text(stmt, 1, dict_name[i], -1, NULL) != SQLITE_OK)
-        {
-            fprintf(stderr, "Could not bind values to sqlite statement\n");
-            ret = STATEMENT_BIND_ERR;
-            goto error;
-        }
-
-        if ((step = sqlite3_step(stmt)) != SQLITE_DONE)
-        {
-            fprintf(stderr, "Could not commit to database, sqlite3 error code %d\n", step);
-            ret = STATEMENT_STEP_ERR;
-            goto error;
-        }
-    }
-
-    /* Commit the transaction */
-    if ((ret = commit_transaction(db)))
-    {
-        goto error;
-    }
-
-    sqlite3_finalize(stmt);
-    sqlite3_close_v2(db);
-
-    return ret;
-
-error:
-    rollback_transaction(db);
-    sqlite3_finalize(stmt);
-    sqlite3_close_v2(db);
-
-    return ret;
+int yomi_enable_dictionary(int64_t dic_id, const char *db_file)
+{
+    return modify_dict_disabled(
+        dic_id,
+        db_file,
+        "DELETE FROM dict_disabled WHERE dic_id = ?;"
+    );
 }

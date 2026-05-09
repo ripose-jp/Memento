@@ -18,11 +18,11 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "deconjugationquerygenerator.h"
-#include "deconjugator.h"
+#include "dict/deconjugationquerygenerator.h"
 
 #include <QList>
 
+#include "dict/deconjugator.h"
 #include "util/utils.h"
 
 /* Begin Query Generator */

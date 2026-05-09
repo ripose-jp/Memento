@@ -5,54 +5,35 @@
 # Exit on error
 set -e
 
-if [[ $1 == 'x86_64' ]]; then
-arch=x86_64
-elif [[ $1 == 'i686' ]]; then
-arch=i686
-else
-echo "Please specify either x86_64 or i686 architecture."
-exit;
-fi
-
-# Exit on error
-set -e
-
-if [[ $arch == 'x86_64' ]]; then
-PREFIX=/mingw64
+ARCH=x86_64
+PREFIX=/ucrt64
 LIBGCC=libgcc_s_seh-1.dll
-else
-PREFIX=/mingw32
-LIBGCC=libgcc_s_dw2-1.dll
-fi
 
 # build Memento
 mkdir -p build
 cd build
-$PREFIX/bin/cmake -DCMAKE_BUILD_TYPE=Release ${CMAKE_ARGS} ..
+$PREFIX/bin/cmake "$@" ..
 $PREFIX/bin/cmake --build . -- -j$(nproc)
 
 # move DLLs and exe to a new directory
-mkdir -p Memento_$arch
-rm -rf Memento_$arch/memento.exe
-cp src/memento.exe Memento_$arch
-rm -rf Memento_$arch/memento_debug.exe
-cp src/memento_debug.exe Memento_$arch
-if [[ "${CMAKE_ARGS}" == *'-DMECAB_SUPPORT=ON'* ]]
+mkdir -p Memento_$ARCH
+rm -rf Memento_$ARCH/memento.exe
+cp memento.exe Memento_$ARCH
+if [[ " $@ " =~ ' -DMEMENTO_MECAB_SUPPORT=ON ' ]]
 then
-    cp -r ../dic Memento_$arch
+    cp -r ../dic Memento_$ARCH
 fi
-if [[ "${CMAKE_ARGS}" == *'-DOCR_SUPPORT=ON'*  ]]
+if [[ " $@ " =~ ' -DMEMENTO_OCR_SUPPORT=ON '  ]]
 then
-    cp _deps/libmocr-src/build/libmocr.dll Memento_$arch
-    cp _deps/libmocr-src/build/libmocr++.dll Memento_$arch
+    cp _deps/libmocr-src/build/libmocr.dll Memento_$ARCH
+    cp _deps/libmocr-src/build/libmocr++.dll Memento_$ARCH
 fi
 
-python3 ../windows/mingw-bundledlls.py --copy ./Memento_$arch/memento.exe
-cp $PREFIX/bin/libssl-*.dll ./Memento_$arch
+python3 ../windows/mingw-bundledlls.py --copy ./Memento_$ARCH/memento.exe
+cp $PREFIX/bin/libssl-*.dll ./Memento_$ARCH
 
-cd Memento_$arch
-windeployqt6 memento.exe
-rm -rf translations
+cd Memento_$ARCH
+PATH="${PREFIX}/share/qt6/bin:$PATH" windeployqt --qmldir ../../src/qml memento.exe
 
 # Get the latest youtube-dl
-curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe -o youtube-dl.exe
+curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe -o yt-dlp.exe

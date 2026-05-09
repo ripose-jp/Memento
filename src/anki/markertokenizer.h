@@ -18,6 +18,8 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+#pragma once
+
 #include <QHash>
 #include <QString>
 #include <QList>
@@ -28,7 +30,7 @@ namespace Tokenizer
 {
 
 /**
- * Holds the information of a marker.
+ * @brief Holds the information of a marker.
  */
 struct Marker
 {
@@ -40,7 +42,7 @@ struct Marker
 };
 
 /**
- * Represents a text token.
+ * @brief Represents a text token.
  */
 struct Token
 {
@@ -52,7 +54,8 @@ struct Token
 };
 
 /**
- * Returns a list of tokens found in the text.
+ * @brief Get a list of tokens found in the text.
+ *
  * @param text The text to parse for tokens.
  * @return A list of tokens found in the text.
  */

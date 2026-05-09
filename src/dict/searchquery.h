@@ -18,8 +18,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef SEARCHQUERY_H
-#define SEARCHQUERY_H
+#pragma once
 
 #include <QSet>
 #include <QString>
@@ -56,5 +55,3 @@ struct SearchQuery
      * conjugated. */
     QString conjugationExplanation;
 };
-
-#endif // SEARCHQUERY_H

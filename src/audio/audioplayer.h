@@ -18,27 +18,24 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef AUDIOPLAYER_H
-#define AUDIOPLAYER_H
+#pragma once
 
 #include <QObject>
-
-#include <memory>
 
 #include <QHash>
 #include <QMutex>
 #include <QNetworkAccessManager>
 #include <QTemporaryFile>
 
-#ifdef SYSTEM_QCORO
+#ifdef MEMENTO_SYSTEM_QCORO
 #include <QCoroNetworkReply>
+#include <QCoroQmlTask>
 #include <QCoroTask>
 #else
 #include <qcoro/network/qcoronetworkreply.h>
 #include <qcoro/qcorotask.h>
-#endif // SYSTEM_QCORO
-
-#include "state/context.h"
+#include <qcoro/qml/qcoroqmltask.h>
+#endif // MEMENTO_SYSTEM_QCORO
 
 struct mpv_handle;
 
@@ -48,22 +45,33 @@ struct mpv_handle;
 class AudioPlayer : public QObject
 {
     Q_OBJECT
+
 public:
-    AudioPlayer(Context *context, QObject *parent = nullptr);
+    AudioPlayer(QObject *parent = nullptr);
     virtual ~AudioPlayer();
 
     /**
      * Clears all files in the cache.
      */
-    void clearFiles();
+    Q_INVOKABLE void clearFiles();
 
     /**
      * Plays the audio at the URL.
-     * @param url  The url of the audio.
+     * @param url The url of the audio.
      * @param hash If the audio file matches this MD5, it is not played.
      * @return Returns true on a file successfully player, false otherwise.
      */
-    QCoro::Task<bool> playAudio(QString url, QString hash = QString());
+    [[nodiscard]]
+    Q_INVOKABLE QCoro::QmlTask play(QString url, QString hash = QString());
+
+    /**
+     * Plays the audio at the URL.
+     * @param url The url of the audio.
+     * @param hash If the audio file matches this MD5, it is not played.
+     * @return Returns true on a file successfully player, false otherwise.
+     */
+    [[nodiscard]]
+    QCoro::Task<bool> playAsync(QString url, QString hash = QString());
 
 private:
     /**
@@ -71,22 +79,18 @@ private:
      * @param file The file for mpv to play.
      * @return true if it was played, false on error.
      */
+    [[nodiscard]]
     bool playFile(const QTemporaryFile *file);
 
-    /* The context for this application */
-    Context *m_context = nullptr;
+    /* The network access manager used for fetching audio files */
+    QNetworkAccessManager m_manager{this};
 
-    /* The network access manager used for fetching audio files. */
-    QNetworkAccessManager m_manager;
+    /* The mpv context. Used for playing audio */
+    mpv_handle *m_mpv{nullptr};
 
-    /* The mpv context. Used for playing audio. */
-    mpv_handle *m_mpv = nullptr;
+    /* Mutex that prevents the file cache from being modified concurrently */
+    QMutex m_fileMutex;
 
-    /* Maps urls to cached files. */
-    QHash<QString, std::shared_ptr<QTemporaryFile>> m_files;
-
-    /* Mutex that prevents the file cache from being modified concurrently. */
-    QMutex m_fileLock;
+    /* Maps urls to cached files */
+    QHash<QString, QTemporaryFile *> m_files;
 };
-
-#endif // AUDIOPLAYER_H

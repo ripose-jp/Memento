@@ -18,101 +18,81 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "audioplayer.h"
+#include "audio/audioplayer.h"
 
 #include <QCoreApplication>
 #include <QFileInfo>
 #include <QNetworkReply>
 #include <QNetworkRequest>
-#include <QThreadPool>
 
 #include <mpv/client.h>
 
-#include "state/context.h"
 #include "util/utils.h"
 
 /* Begin Constructor/Destructor */
 
-AudioPlayer::AudioPlayer(Context *context, QObject *parent) :
-    QObject(parent),
-    m_context(std::move(context)),
-    m_manager(this)
+AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent)
 {
-    m_mpv = mpv_create();
+    m_mpv = ::mpv_create();
     if (!m_mpv)
     {
-        emit m_context->showCritical(
-            tr("Could not start mpv"),
-            tr("AudioPlayer: Could not create mpv context")
-        );
-        QCoreApplication::exit(EXIT_FAILURE);
+        qCritical("AudioPlayer: Could not create mpv context");
+        QCoreApplication::exit(-1);
     }
 
-    mpv_set_option_string(m_mpv, "config",         "no");
-    mpv_set_option_string(m_mpv, "terminal",       "no");
-    mpv_set_option_string(m_mpv, "force-window",   "no");
-    mpv_set_option_string(m_mpv, "input-terminal", "no");
-    mpv_set_option_string(m_mpv, "cover-art-auto", "no");
-    mpv_set_option_string(m_mpv, "vid",            "no");
+    ::mpv_set_option_string(m_mpv, "config",         "no");
+    ::mpv_set_option_string(m_mpv, "terminal",       "no");
+    ::mpv_set_option_string(m_mpv, "force-window",   "no");
+    ::mpv_set_option_string(m_mpv, "input-terminal", "no");
+    ::mpv_set_option_string(m_mpv, "cover-art-auto", "no");
+    ::mpv_set_option_string(m_mpv, "vid",            "no");
 
-    if (mpv_initialize(m_mpv) < 0)
+    if (::mpv_initialize(m_mpv) < 0)
     {
-        emit m_context->showCritical(
-            tr("Could not start mpv"),
-            tr("AudioPlayer: Failed to initialize mpv context")
-        );
-        QCoreApplication::exit(EXIT_FAILURE);
+        qCritical("AudioPlayer: Failed to initialize mpv context");
+        QCoreApplication::exit(-1);
     }
 }
 
 AudioPlayer::~AudioPlayer()
 {
-    mpv_terminate_destroy(m_mpv);
+    ::mpv_terminate_destroy(m_mpv);
     clearFiles();
 }
 
 void AudioPlayer::clearFiles()
 {
-    QMutexLocker fileLock(&m_fileLock);
+    QMutexLocker lock{&m_fileMutex};
+    qDeleteAll(m_files);
     m_files.clear();
 }
 
 /* End Constructor/Destructor */
 /* Begin Implementations */
 
-bool AudioPlayer::playFile(const QTemporaryFile *file)
+QCoro::QmlTask AudioPlayer::play(QString url, QString hash)
 {
-    if (file == nullptr)
-    {
-        return false;
-    }
-
-    QByteArray fileName = QFileInfo(*file).absoluteFilePath().toUtf8();
-    const char *args[] = {
-        "loadfile",
-        fileName,
-        NULL
-    };
-
-    if (mpv_command(m_mpv, args) < 0)
-    {
-        return false;
-    }
-
-    return true;
+    return playAsync(std::move(url), std::move(hash));
 }
 
-QCoro::Task<bool> AudioPlayer::playAudio(QString url, QString hash)
+QCoro::Task<bool> AudioPlayer::playAsync(QString url, QString hash)
 {
+    constexpr qsizetype MAX_CACHE_SIZE{10};
+
+    if (m_mpv == nullptr)
+    {
+        co_return false;
+    }
+
     {
         /* Check if the file exists */
-        QMutexLocker fileLock(&m_fileLock);
+        QMutexLocker lock{&m_fileMutex};
         auto fileIt = m_files.find(url);
         if (fileIt != std::end(m_files))
         {
-            if (FileUtils::calculateMd5(fileIt->get()) != hash)
+            if (FileUtils::calculateMd5(*fileIt) != hash)
             {
-                co_return playFile(fileIt->get());
+                co_return playFile(*fileIt);
             }
             co_return false;
         }
@@ -133,15 +113,15 @@ QCoro::Task<bool> AudioPlayer::playAudio(QString url, QString hash)
 
     if (reply->error() != QNetworkReply::NetworkError::NoError)
     {
-        qDebug() << reply->errorString();
+        qDebug("AudioPlayer: %s", qUtf8Printable(reply->errorString()));
         co_return false;
     }
 
     /* Put the audio in a new temp file */
-    std::shared_ptr<QTemporaryFile> file = std::make_shared<QTemporaryFile>();
+    QTemporaryFile *file = new QTemporaryFile(this);
     if (!file->open())
     {
-        qDebug() << tr("Could not open temp file");
+        qDebug("AudioPlayer: Could not open temp file");
         co_return false;
     }
     file->write(reply->readAll());
@@ -149,11 +129,38 @@ QCoro::Task<bool> AudioPlayer::playAudio(QString url, QString hash)
 
     {
         /* Add the file to the cache */
-        QMutexLocker fileLock(&m_fileLock);
+        QMutexLocker lock{&m_fileMutex};
+        if (m_files.size() >= MAX_CACHE_SIZE)
+        {
+            qDeleteAll(m_files);
+            m_files.clear();
+        }
         m_files[url] = std::move(file);
     }
 
-    co_return co_await playAudio(url, hash);
+    co_return co_await playAsync(url, hash);
+}
+
+bool AudioPlayer::playFile(const QTemporaryFile *file)
+{
+    if (file == nullptr)
+    {
+        return false;
+    }
+
+    QByteArray fileName = QFileInfo(*file).absoluteFilePath().toUtf8();
+    const char *args[] = {
+        "loadfile",
+        fileName,
+        nullptr
+    };
+
+    if (::mpv_command(m_mpv, args) < 0)
+    {
+        return false;
+    }
+
+    return true;
 }
 
 /* End Implementations */

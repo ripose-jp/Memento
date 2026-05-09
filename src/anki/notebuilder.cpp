@@ -18,21 +18,21 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "notebuilder.h"
+#include "anki/notebuilder.h"
 
 #include <optional>
 
+#include <QDir>
 #include <QHash>
 
 #include "anki/ankiconnect.h"
-#include "anki/glossarybuilder.h"
 #include "anki/marker.h"
 #include "anki/markertokenizer.h"
-#include "player/playeradapter.h"
+#include "state/context.h"
 #include "util/utils.h"
 
 /**
- * Enum representing possible timing sources.
+ * @brief Enum representing possible timing sources.
  */
 enum class TimingSource
 {
@@ -41,7 +41,7 @@ enum class TimingSource
 };
 
 /**
- * Holds the parameters for an audio media clip.
+ * @brief Holds the parameters for an audio media clip.
  */
 struct AudioMediaParams
 {
@@ -56,7 +56,7 @@ struct AudioMediaParams
 };
 
 /**
- * Holds parameters for a screenshot.
+ * @brief Holds parameters for a screenshot.
  */
 struct ScreenshotParams
 {
@@ -71,7 +71,7 @@ struct ScreenshotParams
 };
 
 /**
- * Holds parameters for a video.
+ * @brief Holds parameters for a video.
  */
 struct VideoParams
 {
@@ -92,7 +92,7 @@ struct VideoParams
 };
 
 /**
- * Holds all the fields that contain media.
+ * @brief Holds all the fields that contain media.
  */
 struct FieldContext
 {
@@ -116,7 +116,7 @@ struct FieldContext
 };
 
 /**
- * Holds are data related to glossary entries.
+ * @brief Holds are data related to glossary entries.
  */
 struct GlossaryData
 {
@@ -134,7 +134,7 @@ struct GlossaryData
 };
 
 /**
- * Holds information about Anki marker data.
+ * @brief Holds information about Anki marker data.
  */
 struct MarkerResult
 {
@@ -161,10 +161,12 @@ struct MarkerResult
 /* Begin AudioMediaParams Operators */
 
 /**
- * Check for equality between AudioMediaParams structs.
+ * @brief Check for equality between AudioMediaParams structs.
+ *
  * @param rhs The left-hand side of the operator.
  * @param lhs The right-hand side of the operator.
- * @return true if AudioMediaParams are equal, false otherwise.
+ * @return true if AudioMediaParams are equal,
+ * @return false otherwise.
  */
 [[nodiscard]]
 inline bool operator==(const AudioMediaParams &lhs, const AudioMediaParams &rhs)
@@ -175,8 +177,9 @@ inline bool operator==(const AudioMediaParams &lhs, const AudioMediaParams &rhs)
 }
 
 /**
- * Calculates a hash for a AudioMediaParams.
- * @param key  The AudioMediaParams struct to hash.
+ * @brief Calculates a hash for a AudioMediaParams.
+ *
+ * @param key The AudioMediaParams struct to hash.
  * @param seed The seed to use in the hash function calculation.
  * @return The value of the hash.
  */
@@ -192,10 +195,12 @@ inline size_t qHash(const AudioMediaParams &key, size_t seed)
 /* Begin ScreenshotParams Operators */
 
 /**
- * Check for equality between ScreenshotParams structs.
+ * @brief Check for equality between ScreenshotParams structs.
+ *
  * @param rhs The left-hand side of the operator.
  * @param lhs The right-hand side of the operator.
- * @return true if ScreenshotParams are equal, false otherwise.
+ * @return true if ScreenshotParams are equal,
+ * @return false otherwise.
  */
 [[nodiscard]]
 inline bool operator==(const ScreenshotParams &lhs, const ScreenshotParams &rhs)
@@ -206,7 +211,8 @@ inline bool operator==(const ScreenshotParams &lhs, const ScreenshotParams &rhs)
 }
 
 /**
- * Calculates a hash for a ScreenshotParams.
+ * @brief Calculates a hash for a ScreenshotParams.
+ *
  * @param key  The ScreenshotParams struct to hash.
  * @param seed The seed to use in the hash function calculation.
  * @return The value of the hash.
@@ -223,10 +229,12 @@ inline size_t qHash(const ScreenshotParams &key, size_t seed)
 /* Begin VideoParams Operators */
 
 /**
- * Check for equality between VideoParams structs.
+ * @brief Check for equality between VideoParams structs.
+ *
  * @param rhs The left-hand side of the operator.
  * @param lhs The right-hand side of the operator.
- * @return true if VideoParams are equal, false otherwise.
+ * @return true if VideoParams are equal,
+ * @return false otherwise.
  */
 [[nodiscard]]
 inline bool operator==(const VideoParams &lhs, const VideoParams &rhs)
@@ -239,8 +247,9 @@ inline bool operator==(const VideoParams &lhs, const VideoParams &rhs)
 }
 
 /**
- * Calculates a hash for a VideoParams.
- * @param key  The VideoParams struct to hash.
+ * @brief Calculates a hash for a VideoParams.
+ *
+ * @param key The VideoParams struct to hash.
  * @param seed The seed to use in the hash function calculation.
  * @return The value of the hash.
  */
@@ -267,21 +276,26 @@ void Anki::Note::Context::setModel(const QString &model)
     ankiObject[AnkiConnect::Note::MODEL] = model;
 }
 
-void Anki::Note::Context::setTags(const QJsonArray &tags)
+void Anki::Note::Context::setTags(const QStringList &tags)
 {
-    ankiObject[AnkiConnect::Note::TAGS] = tags;
+    QJsonArray tagsJson;
+    for (const QString &tag : tags)
+    {
+        tagsJson.append(tag);
+    }
+    ankiObject[AnkiConnect::Note::TAGS] = tagsJson;
 }
 
-void Anki::Note::Context::setDuplicatePolicy(AnkiConfig::DuplicatePolicy policy)
+void Anki::Note::Context::setDuplicatePolicy(Anki::DuplicatePolicy policy)
 {
     switch (policy)
     {
-    case AnkiConfig::DuplicatePolicy::None:
+    case Anki::DuplicatePolicyNone:
         ankiObject[AnkiConnect::Note::OPTIONS] = QJsonObject{
             {AnkiConnect::Note::Option::ALLOW_DUP, false},
         };
         break;
-    case AnkiConfig::DuplicatePolicy::DifferentDeck:
+    case Anki::DuplicatePolicyDifferentDeck:
         ankiObject[AnkiConnect::Note::OPTIONS] = QJsonObject{
             {
                 AnkiConnect::Note::Option::SCOPE,
@@ -289,7 +303,7 @@ void Anki::Note::Context::setDuplicatePolicy(AnkiConfig::DuplicatePolicy policy)
             }
         };
         break;
-    case AnkiConfig::DuplicatePolicy::SameDeck:
+    case Anki::DuplicatePolicySameDeck:
         ankiObject[AnkiConnect::Note::OPTIONS] = QJsonObject{
             {AnkiConnect::Note::Option::ALLOW_DUP, true}
         };
@@ -306,19 +320,21 @@ void Anki::Note::Context::setFields(const QJsonValue &fields)
 /* Begin Helper Functions */
 
 /**
- * Replaces new line characters with the replacement value.
- * @param str    The string to replace new lines in.
+ * @brief Replaces new line characters with the replacement value.
+ *
+ * @param str The string to replace new lines in.
  * @param config The Anki configuration to replace new lines with.
  * @return The string with the new lines replaced.
  */
 [[nodiscard]]
-static QString replaceNewLines(QString str, const AnkiConfig &config)
+static QString replaceNewLines(QString str, const AnkiProfile &profile)
 {
-    return str.replace('\n', config.newlineReplacer);
+    return str.replace('\n', profile.newlineReplacer());
 }
 
 /**
- * Parses the frequency string into a double.
+ * @brief Parses the frequency string into a double.
+ *
  * @param frequency The string representation of the current frequency.
  * @return Float value of the frequency, nullopt if it could not be parsed.
  */
@@ -365,34 +381,36 @@ static std::optional<double> parseFrequencyValue(const QString &frequency)
 }
 
 /**
- * Extracts frequency numbers from a list of frequency tags.
+ * @brief Extracts frequency numbers from a list of frequency tags.
+ *
  * @param frequencies A list of Frequency structs.
  * @return A vector of positive integers representing the frequency numbers.
- *         (Only selecting the first frequency displayed by a dictionary, to
- *         avoid picking secondary frequencies like kana frequencies)
+ * (Only selecting the first frequency displayed by a dictionary, to avoid
+ * picking secondary frequencies like kana frequencies)
  */
 [[nodiscard]]
 static std::vector<double> getFrequencyNumbers(
-    const QList<Frequency> &frequencies)
+    const QList<Frequency *> &frequencies)
 {
     QString previousDictionary;
     std::vector<double> frequencyNumbers;
 
-    for (const Frequency &frequencyEntry : frequencies)
+    for (const Frequency *frequencyEntry : frequencies)
     {
-        if (frequencyEntry.dictionary == previousDictionary ||
-            frequencyEntry.freq.isEmpty())
+        if (frequencyEntry->dictionaryInfo()->name() == previousDictionary ||
+            frequencyEntry->frequency().isEmpty())
         {
             continue;
         }
-        previousDictionary = frequencyEntry.dictionary;
+        previousDictionary = frequencyEntry->dictionaryInfo()->name();
 
-        std::optional<double> value = parseFrequencyValue(frequencyEntry.freq);
+        std::optional<double> value =
+            parseFrequencyValue(frequencyEntry->frequency());
         if (value)
         {
             /* Only save the first number to avoid counting secondary frequency
-            * information (e.g. frequency for the full kana orthography) in the
-            * aggregate measures to align with Yomitan's behavior. */
+             * information (e.g. frequency for the full kana orthography) in the
+             * aggregate measures to align with Yomitan's behavior. */
             frequencyNumbers.push_back(*value);
         }
     }
@@ -401,10 +419,11 @@ static std::vector<double> getFrequencyNumbers(
 }
 
 /**
- * Converts an integer to a string or a default value if negative.
- * @param value        The value to convert to a string.
+ * @brief Converts an integer to a string or a default value if negative.
+ *
+ * @param value The value to convert to a string.
  * @param defaultValue The value to default to if value is negative.
- * @return value as a string if value > 0, otherwise defaultValue.
+ * @return Value as a string if value > 0, otherwise defaultValue.
  */
 [[nodiscard]]
 static QString positiveIntToQString(int value, int defaultValue)
@@ -413,19 +432,21 @@ static QString positiveIntToQString(int value, int defaultValue)
 }
 
 /**
- * Helper method to determine if the kifuku pitch accent pattern is potentially
- * applicable to a term, by checking its part-of-speech.
+ * @brief Helper method to determine if the kifuku pitch accent pattern is
+ * potentially applicable to a term, by checking its part-of-speech.
+ *
  * @param defs The definitions of the term.
- * @return True if kifuku is applicable, false otherwise.
+ * @return true if kifuku is applicable,
+ * @return false otherwise.
  */
 [[nodiscard]]
-static bool isKifukuApplicable(const QList<TermDefinition> &defs)
+static bool isKifukuApplicable(const QList<TermDefinition *> &defs)
 {
     bool canBeKifuku{false};
 
-    for (const TermDefinition &def : defs)
+    for (const TermDefinition *def : defs)
     {
-        for (const QString &rule : def.rules)
+        for (const QString &rule : def->rules())
         {
             /* See http://www.edrdg.org/jmwsgi/edhelp.py?svc=jmdict&sid=#kw_pos
              * for more information on the meaning of JMDict part-of-speech tags
@@ -450,27 +471,29 @@ static bool isKifukuApplicable(const QList<TermDefinition> &defs)
 }
 
 /**
- * Get the image file extension from a FileType.
+ * @brief Get the image file extension from a FileType.
+ *
  * @param type The file type of the extension.
  * @return The extension of the image type.
  */
 [[nodiscard]]
-static QString getImageFileExtension(const AnkiConfig::FileType &type)
+static QString getImageFileExtension(const Anki::FileType type)
 {
     switch (type)
     {
-    case AnkiConfig::FileType::png:
+    case Anki::FileTypePng:
         return ".png";
-    case AnkiConfig::FileType::webp:
+    case Anki::FileTypeWebp:
         return ".webp";
-    case AnkiConfig::FileType::jpg:
+    case Anki::FileTypeJpeg:
     default:
         return ".jpg";
     }
 }
 
 /**
- * Get the timing source from a string.
+ * @brief Get the timing source from a string.
+ *
  * @param source The string representation of the source.
  * @return A timing source on success, nullopt on failure.
  */
@@ -492,16 +515,17 @@ static std::optional<TimingSource> getTimingSource(const QString &source)
 }
 
 /**
- * Creates a AudioMediaParams from the given marker.
+ * @brief Create a AudioMediaParams from the given marker.
+ *
  * @param marker The marker to create the params from.
- * @param config The current AnkiConfig to grab global values from.
+ * @param profile The current profile to grab values from.
  * @return A populated AudioMediaParams if all arguments are valid, empty
- *         otherwise.
+ * otherwise.
  */
 [[nodiscard]]
 static std::optional<AudioMediaParams> getAudioMediaParams(
     const Anki::Tokenizer::Marker &marker,
-    const AnkiConfig &config)
+    const AnkiProfile &profile)
 {
     constexpr const char *SOURCE_KEY = "source";
     constexpr const char *NORMALIZE_KEY = "norm";
@@ -521,7 +545,7 @@ static std::optional<AudioMediaParams> getAudioMediaParams(
     }
     else
     {
-        params.normalize = config.audioNormalize;
+        params.normalize = profile.audioNormalize();
     }
 
     if (marker.args.contains(DB_KEY))
@@ -535,17 +559,18 @@ static std::optional<AudioMediaParams> getAudioMediaParams(
     }
     else
     {
-        params.db = config.audioDb;
+        params.db = profile.audioDb();
     }
 
     return params;
 }
 
 /**
- * Creates a ScreenshotParams from the given marker.
+ * @brief Create a ScreenshotParams from the given marker.
+ *
  * @param marker The marker to create the params from.
  * @return A populated ScreenshotParams if all arguments are valid, empty
- *         otherwise.
+ * otherwise.
  */
 [[nodiscard]]
 static std::optional<ScreenshotParams> getScreenshotParams(
@@ -582,15 +607,16 @@ static std::optional<ScreenshotParams> getScreenshotParams(
 }
 
 /**
- * Creates a VideoParams from the given marker.
+ * @brief Create a VideoParams from the given marker.
+ *
  * @param marker The marker to create the params from.
- * @param config The current AnkiConfig to grab global values from.
+ * @param profile The current profile to grab values from.
  * @return A populated VideoParams if all arguments are valid, empty otherwise.
  */
 [[nodiscard]]
 static std::optional<VideoParams> getVideoParams(
     const Anki::Tokenizer::Marker &marker,
-    const AnkiConfig &config)
+    const AnkiProfile &profile)
 {
     constexpr const char *SOURCE_KEY = "source";
     constexpr const char *AUDIO_KEY = "audio";
@@ -622,7 +648,7 @@ static std::optional<VideoParams> getVideoParams(
     }
     else
     {
-        params.normalize = config.audioNormalize;
+        params.normalize = profile.audioNormalize();
     }
 
     if (marker.args.contains(DB_KEY))
@@ -636,43 +662,43 @@ static std::optional<VideoParams> getVideoParams(
     }
     else
     {
-        params.db = config.audioDb;
+        params.db = profile.audioDb();
     }
 
     return params;
 }
 
 /**
- * Creates an audio clip according to the given parameters.
+ * @brief Create an audio clip according to the given parameters.
+ *
  * @param appCtx The application context.
- * @param config The current Anki configuration.
+ * @param profile The current Anki profile.
  * @param exp The current expression object.
  * @param params The {audio-media} parameters.
  * @param fields The fields this set of parameters appears in.
  * @param ctx The note context to add to.
- * @return True if the audio clip was added, false otherwise.
+ * @return true if the audio clip was added,
+ * @return false otherwise.
  */
 static bool createAudioMediaHelper(
-    QPointer<::Context> appCtx,
-    const AnkiConfig &config,
-    const CommonExpFields &exp,
+    const ::Context &appCtx,
+    const AnkiProfile &profile,
+    const Expression &exp,
     const AudioMediaParams &params,
     const QJsonArray &fields,
     Anki::Note::Context &ctx)
 {
-    PlayerAdapter *player = appCtx->getPlayerAdapter();
-
-    PlayerAdapter::AudioClipArgs args{};
+    MpvAudioClipArgs args{};
     switch (params.source)
     {
         case TimingSource::subtitle:
-            args.start = exp.startTime - config.audioPadStart;
-            args.end = exp.endTime + config.audioPadEnd;
+            args.start = exp.startTime() - profile.audioPadStart();
+            args.end = exp.endTime() + profile.audioPadEnd();
             break;
 
         case TimingSource::context:
-            args.start = exp.startTimeContext - config.audioPadStart;
-            args.end = exp.endTimeContext + config.audioPadEnd;
+            args.start = exp.contextStartTime() - profile.audioPadStart();
+            args.end = exp.contextEndTime() + profile.audioPadEnd();
             break;
 
         default:
@@ -683,11 +709,11 @@ static bool createAudioMediaHelper(
     args.normalize = params.normalize;
     args.db = params.db;
 
-    QString path;
-    if (args.start < args.end)
+    if (args.start >= args.end)
     {
-        path = player->tempAudioClip(args);
+        return false;
     }
+    QString path = appCtx.player()->controller()->tempAudioClip(args);
     if (path.isEmpty())
     {
         return false;
@@ -708,13 +734,15 @@ static bool createAudioMediaHelper(
 }
 
 /**
- * Adds a screenshot with the given params to the context object.
- * @param      path   The path of the of the image file to use.
- * @param      ext    The extension of the image file.
- * @param      params The parameters to use to manipulate the file.
- * @param      fields The fields this image appears in.
- * @param[out] ctx    The context to add the image to.
- * @return true if the image was added to the context, false otherwise.
+ * @brief Add a screenshot with the given params to the context object.
+ *
+ * @param path The path of the of the image file to use.
+ * @param ext The extension of the image file.
+ * @param params The parameters to use to manipulate the file.
+ * @param fields The fields this image appears in.
+ * @param[out] ctx The context to add the image to.
+ * @return true if the image was added to the context,
+ * @return false otherwise.
  */
 static bool createScreenshotHelper(
     QString path,
@@ -740,7 +768,7 @@ static bool createScreenshotHelper(
         }
         else
         {
-            qDebug() << "Could not resize screenshot";
+            qWarning("Could not resize screenshot");
         }
     }
 
@@ -770,36 +798,36 @@ static bool createScreenshotHelper(
 }
 
 /**
- * Creates a video based on the given parameters.
+ * @brief Create a video based on the given parameters.
+ *
  * @param appCtx The application context.
- * @param config The config to use when generating the file.
+ * @param profile The profile to use when generating the file.
  * @param exp The current expression object.
  * @param params The parameters to create the video with.
  * @param fields The fields the video belongs to.
  * @param ctx The context to add the video to.
- * @return True on success, false on failure.
+ * @return true on success,
+ * @return false on failure.
  */
 static bool createVideoHelper(
-    QPointer<::Context> appCtx,
-    const AnkiConfig &config,
-    const CommonExpFields &exp,
+    const ::Context &appCtx,
+    const AnkiProfile &profile,
+    const Expression &exp,
     const VideoParams &params,
     const QJsonArray &fields,
     Anki::Note::Context &ctx)
 {
-    PlayerAdapter *player = appCtx->getPlayerAdapter();
-
-    PlayerAdapter::VideoClipArgs args{};
+    MpvVideoClipArgs args{};
     switch (params.source)
     {
         case TimingSource::subtitle:
-            args.start = exp.startTime - config.audioPadStart;
-            args.end = exp.endTime + config.audioPadEnd;
+            args.start = exp.startTime() - profile.audioPadStart();
+            args.end = exp.endTime() + profile.audioPadEnd();
             break;
 
         case TimingSource::context:
-            args.start = exp.startTimeContext - config.audioPadStart;
-            args.end = exp.endTimeContext + config.audioPadEnd;
+            args.start = exp.contextStartTime() - profile.audioPadStart();
+            args.end = exp.contextEndTime() + profile.audioPadEnd();
             break;
 
         default:
@@ -812,11 +840,11 @@ static bool createVideoHelper(
     args.db = params.db;
     args.subtitles = params.subtitles;
 
-    QString path;
-    if (args.start < args.end)
+    if (args.start >= args.end)
     {
-        path = player->tempVideoClip(args);
+        return false;
     }
+    QString path = appCtx.player()->controller()->tempVideoClip(args);
     if (path.isEmpty())
     {
         return false;
@@ -840,40 +868,43 @@ static bool createVideoHelper(
 /* Begin Marker Functions */
 
 /**
- * Gets the value of the {expression} marker.
+ * @brief Get the value of the {expression} marker.
+ *
  * @param term The term to get the expression from.
  * @return The expression if readAsExpression is false, reading otherwise.
  */
 [[nodiscard]]
 static QString getExpression(const Term &term)
 {
-    return term.readingAsExpression ? term.reading : term.expression;
+    return term.readingAsExpression() ? term.reading() : term.expression();
 }
 
 /**
- * Gets the value of the {reading} marker.
+ * @brief Get the value of the {reading} marker.
+ *
  * @param term The term to get the reading from.
  * @return The value of the {reading} marker.
  */
 [[nodiscard]]
 static QString getReading(const Term &term)
 {
-    if (term.reading.isEmpty() || term.readingAsExpression)
+    if (term.reading().isEmpty() || term.readingAsExpression())
     {
         return getExpression(term);
     }
-    return term.reading;
+    return term.reading();
 }
 
 /**
- * Gets the value of the {furigana} marker.
+ * @brief Get the value of the {furigana} marker.
+ *
  * @param term The term to get the furigana from.
  * @return The value of the {furigana} marker.
  */
 [[nodiscard]]
 static QString getFurigana(const Term &term)
 {
-    if (term.reading.isEmpty() || term.readingAsExpression)
+    if (term.reading().isEmpty() || term.readingAsExpression())
     {
         return getExpression(term);
     }
@@ -883,14 +914,15 @@ static QString getFurigana(const Term &term)
 }
 
 /**
- * Gets the value of the {furigana-plain} marker.
+ * @brief Get the value of the {furigana-plain} marker.
+ *
  * @param term The term to get the furigana from.
  * @return The value of the {furigana-plain} marker.
  */
 [[nodiscard]]
 static QString getFuriganaPlain(const Term &term)
 {
-    if (term.reading.isEmpty() || term.readingAsExpression)
+    if (term.reading().isEmpty() || term.readingAsExpression())
     {
         return getExpression(term);
     }
@@ -907,12 +939,12 @@ static QString getFuriganaPlain(const Term &term)
  */
 [[nodiscard]]
 static QString buildFrequencies(
-    const QList<Frequency> &frequencies,
+    const QList<Frequency *> &frequencies,
     const QHash<QString, QString> &args)
 {
     if (frequencies.isEmpty())
     {
-        return "";
+        return {};
     }
 
     constexpr const char *VALUE_ONLY_KEY = "value-only";
@@ -940,15 +972,16 @@ static QString buildFrequencies(
     {
         freqStr += "<ul>";
     }
-    for (const Frequency &freq : frequencies)
+    for (const Frequency *freq : frequencies)
     {
         if (!valueOnly)
         {
             freqStr += "<li>";
-            freqStr += freq.dictionary;
-            freqStr += freq.dictionary.endsWith(':') ? " " : ": ";
+            freqStr += freq->dictionaryInfo()->name();
+            freqStr +=
+                freq->dictionaryInfo()->name().endsWith(':') ? " " : ": ";
         }
-        freqStr += freq.freq;
+        freqStr += freq->frequency();
         if (valueOnly)
         {
             freqStr += "<br>";
@@ -958,13 +991,15 @@ static QString buildFrequencies(
             freqStr += "</li>";
         }
 
-        std::optional<double> freqValue = parseFrequencyValue(freq.freq);
+        std::optional<double> freqValue =
+            parseFrequencyValue(freq->frequency());
         if (minValueOnly && freqValue && *freqValue < minFreq)
         {
             minFreq = *freqValue;
-            minFreqStr = freq.freq;
-            minFreqDictionary = freq.dictionary;
-            minFreqDictionary += freq.dictionary.endsWith(':') ? " " : ": ";
+            minFreqStr = freq->frequency();
+            minFreqDictionary = freq->dictionaryInfo()->name();
+            minFreqDictionary +=
+                freq->dictionaryInfo()->name().endsWith(':') ? " " : ": ";
         }
     }
     if (!valueOnly)
@@ -998,12 +1033,13 @@ static QString buildFrequencies(
 }
 
 /**
- * Function to calculate the harmonic mean of frequencies.
+ * @brief Function to calculate the harmonic mean of frequencies.
+ *
  * @param frequencies A list of Frequency structs.
  * @return The harmonic mean as an integer, or -1 if the list is empty.
  */
 [[nodiscard]]
-static int getFrequencyHarmonic(const QList<Frequency> &frequencies)
+static int getFrequencyHarmonic(const QList<Frequency *> &frequencies)
 {
     const std::vector<double> frequencyNumbers =
         getFrequencyNumbers(frequencies);
@@ -1026,12 +1062,13 @@ static int getFrequencyHarmonic(const QList<Frequency> &frequencies)
 }
 
 /**
- * Function to calculate the arithmetic average of frequencies.
+ * @brief Function to calculate the arithmetic average of frequencies.
+ *
  * @param frequencies A list of Frequency structs.
  * @return The arithmetic average as an integer, or -1 if the list is empty.
  */
 [[nodiscard]]
-static int getFrequencyAverage(const QList<Frequency> &frequencies)
+static int getFrequencyAverage(const QList<Frequency *> &frequencies)
 {
     const std::vector<double> frequencyNumbers =
         getFrequencyNumbers(frequencies);
@@ -1052,13 +1089,15 @@ static int getFrequencyAverage(const QList<Frequency> &frequencies)
 }
 
 /**
- * Build the text for {glossary}, {glossary-brief}, and {glossary-compact}.
+ * @brief Build the text for {glossary}, {glossary-brief}, and
+ * {glossary-compact}.
+ *
  * @param definitions The definitions to build the glossary from.
  * @return The text and files for {glossary}, {glossary-brief}, and
- *         {glossary-compact}.
+ * {glossary-compact}.
  */
 [[nodiscard]]
-static GlossaryData getGlossary(const QList<TermDefinition> &definitions)
+static GlossaryData getGlossary(const QList<TermDefinition *> &definitions)
 {
     if (definitions.empty())
     {
@@ -1067,34 +1106,44 @@ static GlossaryData getGlossary(const QList<TermDefinition> &definitions)
 
     GlossaryData data;
 
-    QString basepath = DirectoryUtils::getDictionaryResourceDir() + SLASH;
+    QString basepath =
+        DirectoryUtils::getDictionaryResourceDir() + QDir::separator();
 
     data.glossary += "<div style=\"text-align: left;\"><ol>";
     data.glossaryBrief += "<div style=\"text-align: left;\"><ol>";
     data.glossaryCompact += "<div style=\"text-align: left;\"><ol>";
 
-    for (const TermDefinition &def : definitions)
+    for (const TermDefinition *def : definitions)
     {
-        data.glossary += "<li data-dictionary=\"" + def.dictionary + "\">";
-        data.glossaryCompact += "<li data-dictionary=\"" + def.dictionary + "\">";
+        if (!def->selected())
+        {
+            continue;
+        }
+
+        data.glossary +=
+            "<li data-dictionary=\"" + def->dictionaryInfo()->name() + "\">";
+        data.glossaryCompact +=
+            "<li data-dictionary=\"" + def->dictionaryInfo()->name() + "\">";
 
         data.glossary += "<i>(";
         data.glossaryCompact += "<i>(";
-        for (const Tag &tag : def.tags)
+        for (const Tag *tag : def->tags())
         {
-            data.glossary += tag.name + ", ";
-            data.glossaryCompact += tag.name + ", ";
+            data.glossary += tag->name() + ", ";
+            data.glossaryCompact += tag->name() + ", ";
         }
-        data.glossary += def.dictionary;
+        data.glossary += def->dictionaryInfo()->name();
         data.glossary += ")</i>";
-        data.glossaryCompact += def.dictionary;
+        data.glossaryCompact += def->dictionaryInfo()->name();
         data.glossaryCompact += ")</i>";
 
         data.glossary += "<ul>";
         data.glossaryCompact += ' ';
 
         QStringList items = GlossaryBuilder::buildGlossary(
-            def.glossary, basepath + def.dictionary, data.files
+            def->glossary(),
+            basepath + def->dictionaryInfo()->name(),
+            data.files
         );
         for (const QString &item : items)
         {
@@ -1119,15 +1168,17 @@ static GlossaryData getGlossary(const QList<TermDefinition> &definitions)
 }
 
 /**
- * Build the text for {glossary}, {glossary-brief}, and {glossary-compact}.
+ * @brief Build the text for {glossary}, {glossary-brief}, and
+ * {glossary-compact}.
+ *
  * @param definitions The definitions to build the glossary from.
- * @param args        The extender marker arguments.
+ * @param args The extender marker arguments.
  * @return The text and files for {glossary}, {glossary-brief}, and
- *         {glossary-compact}.
+ * {glossary-compact}.
  */
 [[nodiscard]]
 static GlossaryData getGlossary(
-    const QList<TermDefinition> &definitions,
+    const QList<TermDefinition *> &definitions,
     const QHash<QString, QString> &args)
 {
     constexpr const char *ARG_DICTIONARY = "dict";
@@ -1148,14 +1199,14 @@ static GlossaryData getGlossary(
         return data;
     }
 
-    QList<TermDefinition> filteredDefinitions;
+    QList<TermDefinition *> filteredDefinitions;
     std::copy_if(
         std::begin(definitions),
         std::end(definitions),
         std::back_inserter(filteredDefinitions),
-        [dicId] (const TermDefinition &td) -> bool
+        [dicId] (const TermDefinition *td) -> bool
         {
-            return td.dictionaryId == dicId;
+            return td->dictionaryInfo()->id() == dicId;
         }
     );
 
@@ -1163,12 +1214,13 @@ static GlossaryData getGlossary(
 }
 
 /**
- * Build the {pitch} marker.
+ * @brief Build the {pitch} marker.
+ *
  * @param pitches The pitches to use.
  * @return The HTML of the {pitch} marker.
  */
 [[nodiscard]]
-static QString getPitch(const QList<Pitch> &pitches)
+static QString getPitch(const QList<Pitch *> &pitches)
 {
     if (pitches.isEmpty())
     {
@@ -1188,14 +1240,14 @@ static QString getPitch(const QList<Pitch> &pitches)
         pitch += "<ul>";
     }
 
-    for (const Pitch &p : pitches)
+    for (const Pitch *p : pitches)
     {
-        const bool multiplePitches = p.position.size() > 1;
+        const bool multiplePitches = p->positions().size() > 1;
 
         /* Header */
         if (multipleDicts)
         {
-            pitch += "<li><i>" + p.dictionary + "</i>";
+            pitch += "<li><i>" + p->dictionaryInfo()->name() + "</i>";
         }
         if(multiplePitches)
         {
@@ -1203,9 +1255,9 @@ static QString getPitch(const QList<Pitch> &pitches)
         }
 
         /* Body */
-        for (const uint8_t pos : p.position)
+        for (const uint8_t pos : p->positions())
         {
-            if (p.mora.isEmpty())
+            if (p->mora().isEmpty())
             {
                 continue;
             }
@@ -1218,31 +1270,33 @@ static QString getPitch(const QList<Pitch> &pitches)
             switch (pos)
             {
             case 0:
-                pitch += p.mora.first();
-                if (p.mora.size() > 1)
+                pitch += p->mora().first();
+                if (p->mora().size() > 1)
                 {
                     pitch += PITCH_FORMAT
                         .arg(H_STYLE)
-                        .arg(p.mora.join("")
-                        .remove(0, p.mora.first().size()));
+                        .arg(p->mora().join("")
+                        .remove(0, p->mora().first().size()));
                 }
                 break;
             case 1:
-                pitch += PITCH_FORMAT.arg(HL_STYLE).arg(p.mora.first());
-                if (p.mora.size() > 1)
+                pitch += PITCH_FORMAT.arg(HL_STYLE).arg(p->mora().first());
+                if (p->mora().size() > 1)
                 {
-                    pitch += p.mora.join("").remove(0, p.mora.first().size());
+                    pitch += p->mora()
+                        .join("")
+                        .remove(0, p->mora().first().size());
                 }
                 break;
             default:
             {
-                QString text = p.mora.first();
+                QString text = p->mora().first();
                 pitch += text;
 
                 text.clear();
                 for (size_t i = 1; i < pos; ++i)
                 {
-                    text += p.mora[i];
+                    text += p->mora()[i];
                 }
                 if (!text.isEmpty())
                 {
@@ -1250,9 +1304,9 @@ static QString getPitch(const QList<Pitch> &pitches)
                 }
 
                 text.clear();
-                for (int i = pos; i < p.mora.size(); ++i)
+                for (int i = pos; i < p->mora().size(); ++i)
                 {
-                    text += p.mora[i];
+                    text += p->mora()[i];
                 }
                 if (!text.isEmpty())
                 {
@@ -1289,12 +1343,13 @@ static QString getPitch(const QList<Pitch> &pitches)
 }
 
 /**
- * Get the {pitch-graph} marker.
+ * @brief Get the {pitch-graph} marker.
+ *
  * @param pitches The pitches to use to build the marker.
  * @return The SVGs for the {pitch-graph} marker.
  */
 [[nodiscard]]
-static QString getPitchGraph(const QList<Pitch> &pitches)
+static QString getPitchGraph(const QList<Pitch *> &pitches)
 {
     if (pitches.isEmpty())
     {
@@ -1310,14 +1365,14 @@ static QString getPitchGraph(const QList<Pitch> &pitches)
         pitchGraph += "<ul>";
     }
 
-    for (const Pitch &p : pitches)
+    for (const Pitch *p : pitches)
     {
-        const bool multiplePitches = p.position.size() > 1;
+        const bool multiplePitches = p->positions().size() > 1;
 
         /* Header */
         if (multipleDicts)
         {
-            pitchGraph += "<li><i>" + p.dictionary + "</i>";
+            pitchGraph += "<li><i>" + p->dictionaryInfo()->name() + "</i>";
         }
         if(multiplePitches)
         {
@@ -1325,9 +1380,9 @@ static QString getPitchGraph(const QList<Pitch> &pitches)
         }
 
         /* Body */
-        for (const uint8_t pos : p.position)
+        for (const uint8_t pos : p->positions())
         {
-            if (p.mora.isEmpty())
+            if (p->mora().isEmpty())
             {
                 continue;
             }
@@ -1337,8 +1392,8 @@ static QString getPitchGraph(const QList<Pitch> &pitches)
                 pitchGraph += "<li>";
             }
 
-            pitchGraph += GraphicUtils::generatePitchGraph(
-                p.mora.size(), pos, "rgba(0,0,0,0)", "currentColor"
+            pitchGraph += ImageUtils::generatePitchGraph(
+                p->mora().size(), pos, "rgba(0,0,0,0)", "currentColor"
             );
 
             if (multiplePitches)
@@ -1350,11 +1405,11 @@ static QString getPitchGraph(const QList<Pitch> &pitches)
         /* Trailer */
         if(multiplePitches)
         {
-            pitchGraph    += "</ol>";
+            pitchGraph += "</ol>";
         }
         if (multipleDicts)
         {
-            pitchGraph    += "</li>";
+            pitchGraph += "</li>";
         }
     }
 
@@ -1369,12 +1424,13 @@ static QString getPitchGraph(const QList<Pitch> &pitches)
 }
 
 /**
- * Get the marker for {pitch-position}.
+ * @brief Get the marker for {pitch-position}.
+ *
  * @param pitches The pitches to use.
  * @return The text for {pitch-position}.
  */
 [[nodiscard]]
-static QString getPitchPosition(const QList<Pitch> &pitches)
+static QString getPitchPosition(const QList<Pitch *> &pitches)
 {
     if (pitches.isEmpty())
     {
@@ -1390,14 +1446,14 @@ static QString getPitchPosition(const QList<Pitch> &pitches)
         pitchPosition += "<ul>";
     }
 
-    for (const Pitch &p : pitches)
+    for (const Pitch *p : pitches)
     {
-        const bool multiplePitches = p.position.size() > 1;
+        const bool multiplePitches = p->positions().size() > 1;
 
         /* Header */
         if (multipleDicts)
         {
-            pitchPosition += "<li><i>" + p.dictionary + "</i>";
+            pitchPosition += "<li><i>" + p->dictionaryInfo()->name() + "</i>";
         }
         if(multiplePitches)
         {
@@ -1405,9 +1461,9 @@ static QString getPitchPosition(const QList<Pitch> &pitches)
         }
 
         /* Body */
-        for (const uint8_t pos : p.position)
+        for (const uint8_t pos : p->positions())
         {
-            if (p.mora.isEmpty())
+            if (p->mora().isEmpty())
             {
                 continue;
             }
@@ -1447,25 +1503,26 @@ static QString getPitchPosition(const QList<Pitch> &pitches)
 }
 
 /**
- * Get the {pitch-categories} for a term.
+ * @brief Get the {pitch-categories} for a term.
+ *
  * @param term The term to get the categories from.
  * @return The text of the {pitch-categories} marker.
  */
 [[nodiscard]]
 static QString getPitchCategories(const Term &term)
 {
-    if (term.pitches.isEmpty())
+    if (term.pitches().isEmpty())
     {
         return {};
     }
 
-    const bool canBeKifuku = isKifukuApplicable(term.definitions);
+    const bool canBeKifuku = isKifukuApplicable(term.definitions());
     QSet<QString> pitchCategoriesSet{};
-    for (const Pitch &p : term.pitches)
+    for (const Pitch *p : term.pitches())
     {
-        for (const uint8_t pos : p.position)
+        for (const uint8_t pos : p->positions())
         {
-            if (p.mora.isEmpty())
+            if (p->mora().isEmpty())
             {
                 continue;
             }
@@ -1481,7 +1538,7 @@ static QString getPitchCategories(const Term &term)
                 break;
 
             default:
-                if (p.mora.size() == pos)
+                if (p->mora().size() == pos)
                 {
                     pitchCategoriesSet.insert("odaka");
                 }
@@ -1507,7 +1564,8 @@ static QString getPitchCategories(const Term &term)
 }
 
 /**
- * Helper method for building the {selection} list.
+ * @brief Helper method for building the {selection} list.
+ *
  * @param selections The list of text selections.
  * @return HTML string encoding the selected text.
  */
@@ -1536,12 +1594,13 @@ QString getSelection(const QStringList &selections)
 }
 
 /**
- * Builds the {tags} marker.
+ * @brief Build the {tags} marker.
+ *
  * @param tags The tags to use.
  * @return The HTML for the {tags} marker.
  */
 [[nodiscard]]
-QString getTags(const QList<Tag> &tags)
+QString getTags(const QList<Tag *> &tags)
 {
     if (tags.isEmpty())
     {
@@ -1549,14 +1608,14 @@ QString getTags(const QList<Tag> &tags)
     }
 
     QString tagStr = "<ul>";
-    for (const Tag &tag : tags)
+    for (const Tag *tag : tags)
     {
         tagStr += "<li>";
-        tagStr += tag.name;
-        if (!tag.notes.isEmpty())
+        tagStr += tag->name();
+        if (!tag->notes().isEmpty())
         {
             tagStr += ": ";
-            tagStr += tag.notes;
+            tagStr += tag->notes();
         }
         tagStr += "</li>";
     }
@@ -1565,12 +1624,13 @@ QString getTags(const QList<Tag> &tags)
 }
 
 /**
- * Builds the {tags-brief} marker.
+ * @brief Build the {tags-brief} marker.
+ *
  * @param tags The tags to use.
  * @return The HTML for the {tags-brief} marker.
  */
 [[nodiscard]]
-QString getTagsBrief(const QList<Tag> &tags)
+QString getTagsBrief(const QList<Tag *> &tags)
 {
     if (tags.isEmpty())
     {
@@ -1578,10 +1638,10 @@ QString getTagsBrief(const QList<Tag> &tags)
     }
 
     QString tagBriefStr = "<ul>";
-    for (const Tag &tag : tags)
+    for (const Tag *tag : tags)
     {
         tagBriefStr += "<li>";
-        tagBriefStr += tag.name;
+        tagBriefStr += tag->name();
         tagBriefStr += "</li>";
     }
     tagBriefStr += "</ul>";
@@ -1589,12 +1649,13 @@ QString getTagsBrief(const QList<Tag> &tags)
 }
 
 /**
- * Get the {kunyomi} marker of the kanji.
+ * @brief Get the {kunyomi} marker of the kanji.
+ *
  * @param definitions The definitions to get the kunyomi from.
  * @return The HTML for the {kunyomi} marker.
  */
 [[nodiscard]]
-static QString getKunyomi(const QList<KanjiDefinition> &definitions)
+static QString getKunyomi(const QList<KanjiDefinition *> &definitions)
 {
     if (definitions.isEmpty())
     {
@@ -1602,9 +1663,9 @@ static QString getKunyomi(const QList<KanjiDefinition> &definitions)
     }
 
     QString kunyomi;
-    for (const KanjiDefinition &def : definitions)
+    for (const KanjiDefinition *def : definitions)
     {
-        for (const QString &str : def.kunyomi)
+        for (const QString &str : def->kunyomi())
         {
             kunyomi += str;
             kunyomi += ", ";
@@ -1615,12 +1676,13 @@ static QString getKunyomi(const QList<KanjiDefinition> &definitions)
 }
 
 /**
- * Get the {onyomi} marker of the kanji.
+ * @brief Get the {onyomi} marker of the kanji.
+ *
  * @param definitions The definitions to get the onyomi from.
  * @return The HTML for the {onyomi} marker.
  */
 [[nodiscard]]
-static QString getOnyomi(const QList<KanjiDefinition> &definitions)
+static QString getOnyomi(const QList<KanjiDefinition *> &definitions)
 {
     if (definitions.isEmpty())
     {
@@ -1628,9 +1690,9 @@ static QString getOnyomi(const QList<KanjiDefinition> &definitions)
     }
 
     QString onyomi;
-    for (const KanjiDefinition &def : definitions)
+    for (const KanjiDefinition *def : definitions)
     {
-        for (const QString &str : def.onyomi)
+        for (const QString &str : def->onyomi())
         {
             onyomi += str;
             onyomi += ", ";
@@ -1641,25 +1703,26 @@ static QString getOnyomi(const QList<KanjiDefinition> &definitions)
 }
 
 /**
- * Get the {stroke-count} marker text.
+ * @brief Get the {stroke-count} marker text.
+ *
  * @param definitions The definitions to use to get the marker.
  * @return The HTML of the {stroke-count} marker.
  */
 [[nodiscard]]
-static QString getStrokeCount(const QList<KanjiDefinition> &definitions)
+static QString getStrokeCount(const QList<KanjiDefinition *> &definitions)
 {
     if (definitions.isEmpty())
     {
         return {};
     }
 
-    for (const KanjiDefinition &def : definitions)
+    for (const KanjiDefinition *def : definitions)
     {
-        for (const QPair<Tag, QString> &pair : def.stats)
+        for (const Tag *tag : def->stats())
         {
-            if (pair.first.notes == "Stroke count")
+            if (tag->notes() == "Stroke count")
             {
-                return pair.second;
+                return tag->value();
             }
         }
     }
@@ -1667,12 +1730,13 @@ static QString getStrokeCount(const QList<KanjiDefinition> &definitions)
 }
 
 /**
- * Get the kanji {glossary} marker.
+ * @brief Get the kanji {glossary} marker.
+ *
  * @param definitions The definitions to build the glossary from.
  * @return The HTML for the {glossary} marker.
  */
 [[nodiscard]]
-static QString getGlossary(const QList<KanjiDefinition> &definitions)
+static QString getGlossary(const QList<KanjiDefinition *> &definitions)
 {
     if (definitions.empty())
     {
@@ -1680,22 +1744,22 @@ static QString getGlossary(const QList<KanjiDefinition> &definitions)
     }
 
     QString glossary = "<ol>";
-    for (const KanjiDefinition &def : definitions)
+    for (const KanjiDefinition *def : definitions)
     {
-        if (def.glossary.isEmpty())
+        if (def->glossary().isEmpty())
         {
             continue;
         }
         glossary += "<li><i>(";
-        for (const Tag &tag : def.tags)
+        for (const Tag *tag : def->tags())
         {
-            glossary += tag.name;
+            glossary += tag->name();
             glossary += ", ";
         }
-        glossary += def.dictionary;
+        glossary += def->dictionaryInfo()->name();
         glossary += ")</i></li>";
         glossary += "<ol>";
-        for (const QString &glos : def.glossary)
+        for (const QString &glos : def->glossary())
         {
             glossary += "<li>";
             glossary += glos;
@@ -1714,12 +1778,13 @@ static QString getGlossary(const QList<KanjiDefinition> &definitions)
 }
 
 /**
- * Gets the kanji {tags} marker text.
+ * @brief Get the kanji {tags} marker text.
+ *
  * @param definitions The definitions to get the tags from.
  * @return The HTML for the kanji {tags} marker.
  */
 [[nodiscard]]
-static QString getTags(const QList<KanjiDefinition> &definitions)
+static QString getTags(const QList<KanjiDefinition *> &definitions)
 {
     if (definitions.isEmpty())
     {
@@ -1727,20 +1792,21 @@ static QString getTags(const QList<KanjiDefinition> &definitions)
     }
 
     QString tags;
-    for (const KanjiDefinition &def : definitions)
+    for (const KanjiDefinition *def : definitions)
     {
-        tags += getTags(def.tags);
+        tags += getTags(def->tags());
     }
     return tags;
 }
 
 /**
- * Gets the kanji {tags-brief} marker
+ * @brief Get the kanji {tags-brief} marker
+ *
  * @param definitions The definitions to get the tags from.
  * @return The HTML for the kanji {tags-brief} marker.
  */
 [[nodiscard]]
-static QString getTagsBrief(const QList<KanjiDefinition> &definitions)
+static QString getTagsBrief(const QList<KanjiDefinition *> &definitions)
 {
     if (definitions.isEmpty())
     {
@@ -1748,17 +1814,18 @@ static QString getTagsBrief(const QList<KanjiDefinition> &definitions)
     }
 
     QString tagsBrief;
-    for (const KanjiDefinition &def : definitions)
+    for (const KanjiDefinition *def : definitions)
     {
-        tagsBrief += getTagsBrief(def.tags);
+        tagsBrief += getTagsBrief(def->tags());
     }
     return tagsBrief;
 }
 
 /**
- * Processes kanji specific markers.
- * @param kanji         The kanji to build the token with.
- * @param marker        The marker to handle.
+ * @brief Processes kanji specific markers.
+ *
+ * @param kanji The kanji to build the token with.
+ * @param marker The marker to handle.
  * @return A token result containing information for the token.
  */
 [[nodiscard]]
@@ -1770,37 +1837,37 @@ static MarkerResult processMarker(
     result.handled = true;
     if (marker.marker == Anki::Marker::CHARACTER)
     {
-        result.text = kanji.character;
+        result.text = kanji.character();
         return result;
     }
     else if (marker.marker == Anki::Marker::KUNYOMI)
     {
-        result.text = getKunyomi(kanji.definitions);
+        result.text = getKunyomi(kanji.definitions());
         return result;
     }
     else if (marker.marker == Anki::Marker::ONYOMI)
     {
-        result.text = getOnyomi(kanji.definitions);
+        result.text = getOnyomi(kanji.definitions());
         return result;
     }
     else if (marker.marker == Anki::Marker::STROKE_COUNT)
     {
-        result.text = getStrokeCount(kanji.definitions);
+        result.text = getStrokeCount(kanji.definitions());
         return result;
     }
     else if (marker.marker == Anki::Marker::GLOSSARY)
     {
-        result.text = getGlossary(kanji.definitions);
+        result.text = getGlossary(kanji.definitions());
         return result;
     }
     else if (marker.marker == Anki::Marker::TAGS)
     {
-        result.text = getTags(kanji.definitions);
+        result.text = getTags(kanji.definitions());
         return result;
     }
     else if (marker.marker == Anki::Marker::TAGS_BRIEF)
     {
-        result.text = getTagsBrief(kanji.definitions);
+        result.text = getTagsBrief(kanji.definitions());
         return result;
     }
     result.handled = false;
@@ -1808,17 +1875,18 @@ static MarkerResult processMarker(
 }
 
 /**
- * Processes term specific markers.
- * @param config        The config
- * @param term          The term to build the token with.
- * @param marker        The marker to handle.
- * @param field         The field this token belongs to.
+ * @brief Process term specific markers.
+ *
+ * @param profile The profile to use.
+ * @param term The term to build the token with.
+ * @param marker The marker to handle.
+ * @param field The field this token belongs to.
  * @param[out] fieldCtx The field context to update.
  * @return A token result containing information for the token.
  */
 [[nodiscard]]
 static MarkerResult processMarker(
-    const AnkiConfig &config,
+    const AnkiProfile &profile,
     const Term &term,
     const Anki::Tokenizer::Marker &marker,
     const QString &field,
@@ -1854,38 +1922,38 @@ static MarkerResult processMarker(
     }
     else if (marker.marker == Anki::Marker::GLOSSARY)
     {
-        GlossaryData data = getGlossary(term.definitions, marker.args);
+        GlossaryData data = getGlossary(term.definitions(), marker.args);
         result.text = data.glossary;
         fieldCtx.files.unite(data.files);
         return result;
     }
     else if (marker.marker == Anki::Marker::GLOSSARY_BRIEF)
     {
-        GlossaryData data = getGlossary(term.definitions, marker.args);
+        GlossaryData data = getGlossary(term.definitions(), marker.args);
         result.text = data.glossaryBrief;
         fieldCtx.files.unite(data.files);
         return result;
     }
     else if (marker.marker == Anki::Marker::GLOSSARY_COMPACT)
     {
-        GlossaryData data = getGlossary(term.definitions, marker.args);
+        GlossaryData data = getGlossary(term.definitions(), marker.args);
         result.text = data.glossaryCompact;
         fieldCtx.files.unite(data.files);
         return result;
     }
     else if (marker.marker == Anki::Marker::PITCH)
     {
-        result.text = getPitch(term.pitches);
+        result.text = getPitch(term.pitches());
         return result;
     }
-    else if (marker.marker == Anki::Marker::PITCH_GRAPHS)
+    else if (marker.marker == Anki::Marker::PITCH_GRAPH)
     {
-        result.text = getPitchGraph(term.pitches);
+        result.text = getPitchGraph(term.pitches());
         return result;
     }
     else if (marker.marker == Anki::Marker::PITCH_POSITION)
     {
-        result.text = getPitchPosition(term.pitches);
+        result.text = getPitchPosition(term.pitches());
         return result;
     }
     else if (marker.marker == Anki::Marker::PITCH_CATEGORIES)
@@ -1895,17 +1963,17 @@ static MarkerResult processMarker(
     }
     else if (marker.marker == Anki::Marker::SELECTION)
     {
-        result.text = replaceNewLines(getSelection(term.selection), config);
+        result.text = replaceNewLines(getSelection(term.selection()), profile);
         return result;
     }
     else if (marker.marker == Anki::Marker::TAGS)
     {
-        result.text = getTags(term.tags);
+        result.text = getTags(term.tags());
         return result;
     }
     else if (marker.marker == Anki::Marker::TAGS_BRIEF)
     {
-        result.text = getTagsBrief(term.tags);
+        result.text = getTagsBrief(term.tags());
         return result;
     }
     result.handled = false;
@@ -1913,18 +1981,19 @@ static MarkerResult processMarker(
 }
 
 /**
- * Handles common markers for a value.
- * @param      config   The current AnkiConfig to build to.
- * @param      exp      The details of the current expression.
- * @param      marker   The marker to process in the field.
- * @param      field    The name of the field.
+ * @brief Handle common markers for a value.
+ *
+ * @param profile The profile to build to.
+ * @param exp The details of the current expression.
+ * @param marker The marker to process in the field.
+ * @param field The name of the field.
  * @param[out] fieldCtx The context containing all the media fields.
  * @return A token result containing information for the token.
  */
 [[nodiscard]]
 static MarkerResult processMarkerCommon(
-    const AnkiConfig &config,
-    const CommonExpFields &exp,
+    const AnkiProfile &profile,
+    const Expression &exp,
     const Anki::Tokenizer::Marker &marker,
     const QString &field,
     FieldContext &fieldCtx)
@@ -1940,7 +2009,7 @@ static MarkerResult processMarkerCommon(
     if (marker.marker == Anki::Marker::AUDIO_MEDIA)
     {
         std::optional<AudioMediaParams> params =
-            getAudioMediaParams(marker, config);
+            getAudioMediaParams(marker, profile);
         if (!params)
         {
             result.handled = false;
@@ -1953,7 +2022,7 @@ static MarkerResult processMarkerCommon(
     else if (marker.marker == Anki::Marker::AUDIO_CONTEXT)
     {
         std::optional<AudioMediaParams> params =
-            getAudioMediaParams(marker, config);
+            getAudioMediaParams(marker, profile);
         if (!params)
         {
             result.handled = false;
@@ -1990,7 +2059,7 @@ static MarkerResult processMarkerCommon(
     }
     else if (marker.marker == Anki::Marker::VIDEO)
     {
-        std::optional<VideoParams> params = getVideoParams(marker, config);
+        std::optional<VideoParams> params = getVideoParams(marker, profile);
         if (!params)
         {
             result.handled = false;
@@ -2002,79 +2071,81 @@ static MarkerResult processMarkerCommon(
     }
     else if (marker.marker == Anki::Marker::TITLE)
     {
-        result.text = replaceNewLines(exp.title, config);
+        result.text = replaceNewLines(exp.title(), profile);
         return result;
     }
     else if (marker.marker == Anki::Marker::CLIPBOARD)
     {
-        result.text = replaceNewLines(exp.clipboard, config);
+        result.text = replaceNewLines(exp.clipboard(), profile);
         return result;
     }
     else if (marker.marker == Anki::Marker::CLOZE_BODY)
     {
-        result.text = replaceNewLines(exp.clozeBody, config);
+        result.text = replaceNewLines(exp.clozeBody(), profile);
         return result;
     }
     else if (marker.marker == Anki::Marker::CLOZE_PREFIX)
     {
-        result.text = replaceNewLines(exp.clozePrefix, config);
+        result.text = replaceNewLines(exp.clozePrefix(), profile);
         return result;
     }
     else if (marker.marker == Anki::Marker::CLOZE_SUFFIX)
     {
-        result.text = replaceNewLines(exp.clozeSuffix, config);
+        result.text = replaceNewLines(exp.clozeSuffix(), profile);
         return result;
     }
-    else if (marker.marker == Anki::Marker::SENTENCE)
+    else if (marker.marker == Anki::Marker::SUBTITLE ||
+        marker.marker == Anki::Marker::SUBTITLE_ALT)
     {
-        result.text = replaceNewLines(exp.sentence, config);
+        result.text = replaceNewLines(exp.subtitle(), profile);
         return result;
     }
-    else if (marker.marker == Anki::Marker::SENTENCE_SEC)
+    else if (marker.marker == Anki::Marker::SUBTITLE_SEC ||
+        marker.marker == Anki::Marker::SUBTITLE_SEC_ALT)
     {
-        result.text = replaceNewLines(exp.sentence2, config);
+        result.text = replaceNewLines(exp.subtitle2(), profile);
         return result;
     }
     else if (marker.marker == Anki::Marker::CONTEXT)
     {
-        result.text = replaceNewLines(exp.context, config);
+        result.text = replaceNewLines(exp.context(), profile);
         return result;
     }
     else if (marker.marker == Anki::Marker::CONTEXT_SEC)
     {
-        result.text = replaceNewLines(exp.context2, config);
+        result.text = replaceNewLines(exp.context2(), profile);
         return result;
     }
     else if (marker.marker == Anki::Marker::FREQUENCIES)
     {
-        result.text = buildFrequencies(exp.frequencies, marker.args);
+        result.text = buildFrequencies(exp.frequencies(), marker.args);
         return result;
     }
     else if (marker.marker == Anki::Marker::FREQ_HARMONIC_RANK)
     {
         result.text = positiveIntToQString(
-            getFrequencyHarmonic(exp.frequencies), DEFAULT_FREQ_RANK
+            getFrequencyHarmonic(exp.frequencies()), DEFAULT_FREQ_RANK
         );
         return result;
     }
     else if (marker.marker == Anki::Marker::FREQ_HARMONIC_OCCU)
     {
         result.text = positiveIntToQString(
-            getFrequencyHarmonic(exp.frequencies), DEFAULT_FREQ_OCCURRENCE
+            getFrequencyHarmonic(exp.frequencies()), DEFAULT_FREQ_OCCURRENCE
         );
         return result;
     }
     else if (marker.marker == Anki::Marker::FREQ_AVERAGE_RANK)
     {
         result.text = positiveIntToQString(
-            getFrequencyAverage(exp.frequencies), DEFAULT_FREQ_RANK
+            getFrequencyAverage(exp.frequencies()), DEFAULT_FREQ_RANK
         );
         return result;
     }
     else if (marker.marker == Anki::Marker::FREQ_AVERAGE_OCCU)
     {
         result.text = positiveIntToQString(
-            getFrequencyAverage(exp.frequencies), DEFAULT_FREQ_OCCURRENCE
+            getFrequencyAverage(exp.frequencies()), DEFAULT_FREQ_OCCURRENCE
         );
         return result;
     }
@@ -2086,10 +2157,13 @@ static MarkerResult processMarkerCommon(
 /* Begin Media Functions */
 
 /**
- * Add the {audio} files to the context.
- * @param      term     The term to use to create audio parameters.
- * @param      fieldCtx The field context to get data from.
- * @param[out] ctx      The note context to add the audio to.
+ * @brief Add the {audio} files to the context.
+ *
+ * @param term The term to use to create audio parameters.
+ * @param fieldCtx The field context to get data from.
+ * @param[out] ctx The note context to add the audio to.
+ * @return true if audio was added to the context,
+ * @return false otherwise.
  */
 static bool createAudio(
     const Term &term,
@@ -2106,16 +2180,16 @@ static bool createAudio(
     const QString AUDIO_FILENAME_FORMAT_STRING = "memento_%1_%2_%3.mp3";
 
     QJsonObject audObj;
-    audObj[AnkiConnect::Note::URL] = QString(term.audioURL)
+    audObj[AnkiConnect::Note::URL] = QString(term.audioUrl())
         .replace(REPLACE_EXPRESSION, getExpression(term))
         .replace(REPLACE_READING, getReading(term));
     audObj[AnkiConnect::Note::FILENAME] = AUDIO_FILENAME_FORMAT_STRING
-        .arg(term.audioSrcName)
-        .arg(term.reading)
-        .arg(term.expression)
+        .arg(term.audioSourceName())
+        .arg(term.reading())
+        .arg(term.expression())
         .replace(' ', '_');
     audObj[AnkiConnect::Note::FIELDS] = fieldCtx.fieldsWithAudio;
-    audObj[AnkiConnect::Note::SKIPHASH] = term.audioSkipHash;
+    audObj[AnkiConnect::Note::SKIPHASH] = term.audioSkipHash();
 
     QJsonArray audio = ctx.ankiObject[AnkiConnect::Note::AUDIO].toArray();
     audio.append(audObj);
@@ -2125,18 +2199,20 @@ static bool createAudio(
 }
 
 /**
- * Create the audio media file and add it to the context.
- * @param      appCtx   The context of the application.
- * @param      config   The config to use when generating the media file.
- * @param      exp      The expression to use when build the {audio-media}.
- * @param      fieldCtx The field context containing fields that include media.
- * @param[out] ctx      The context to add the media to.
- * @return true if the media was added to the context, false otherwise.
+ * @brief Create the audio media file and add it to the context.
+ *
+ * @param appCtx The context of the application.
+ * @param profile The profile to use when generating the media file.
+ * @param exp The expression to use when build the {audio-media}.
+ * @param fieldCtx The field context containing fields that include media.
+ * @param[out] ctx The context to add the media to.
+ * @return true if the media was added to the context,
+ * @return false otherwise.
  */
 static bool createAudioMedia(
-    QPointer<::Context> appCtx,
-    const AnkiConfig &config,
-    const CommonExpFields &exp,
+    const ::Context &appCtx,
+    const AnkiProfile &profile,
+    const Expression &exp,
     const FieldContext &fieldCtx,
     Anki::Note::Context &ctx)
 {
@@ -2150,22 +2226,24 @@ static bool createAudioMedia(
             fieldCtx.fieldsWithAudioMedia.asKeyValueRange())
     {
         success = success &&
-            createAudioMediaHelper(appCtx, config, exp, params, fields, ctx);
+            createAudioMediaHelper(appCtx, profile, exp, params, fields, ctx);
     }
     return success;
 }
 
 /**
- * Create the {screenshot} image and add it to the context.
- * @param      appCtx   The context of the application.
- * @param      config   The config to use when generating the context file.
- * @param      fieldCtx The field context containing fields that include media.
- * @param[out] ctx      The context to add the media to.
- * @return true if the media was added to the context, false otherwise.
+ * @brief Create the {screenshot} image and add it to the context.
+ *
+ * @param appCtx The context of the application.
+ * @param profile The profile to use when generating the context file.
+ * @param fieldCtx The field context containing fields that include media.
+ * @param[out] ctx The context to add the media to.
+ * @return true if the media was added to the context,
+ * @return false otherwise.
  */
 static bool createScreenshot(
-    QPointer<::Context> appCtx,
-    const AnkiConfig &config,
+    const ::Context &appCtx,
+    const AnkiProfile &profile,
     const FieldContext &fieldCtx,
     Anki::Note::Context &ctx)
 {
@@ -2174,15 +2252,13 @@ static bool createScreenshot(
         return false;
     }
 
-    PlayerAdapter *player = appCtx->getPlayerAdapter();
-    const QString imageExt = getImageFileExtension(config.screenshotType);
+    const QString imageExt = getImageFileExtension(profile.screenshotType());
 
-    QJsonObject image;
-
-    const bool visibility = player->getSubVisibility();
-    player->setSubVisiblity(true);
-    QString path = player->tempScreenshot(true, imageExt);
-    player->setSubVisiblity(visibility);
+    const bool visibility = appCtx.player()->state()->subtitle()->visible();
+    appCtx.player()->controller()->setSubtitleVisibility(true);
+    QString path =
+        appCtx.player()->controller()->tempScreenshot(true, imageExt);
+    appCtx.player()->controller()->setSubtitleVisibility(visibility);
 
     for (const auto &[params, fields] :
         fieldCtx.fieldsWithScreenshot.asKeyValueRange())
@@ -2195,16 +2271,18 @@ static bool createScreenshot(
 }
 
 /**
- * Create the {screenshot-video} image and add it to the context.
- * @param      appCtx   The context of the application.
- * @param      config   The config to use when generating the context file.
- * @param      fieldCtx The field context containing fields that include media.
- * @param[out] ctx      The context to add the media to.
- * @return true if the media was added to the context, false otherwise.
+ * @brief Create the {screenshot-video} image and add it to the context.
+ *
+ * @param appCtx The context of the application.
+ * @param profile The profile to use when generating the context file.
+ * @param fieldCtx The field context containing fields that include media.
+ * @param[out] ctx The context to add the media to.
+ * @return true if the media was added to the context,
+ * @return false otherwise.
  */
 static bool createScreenshotVideo(
-    QPointer<::Context> appCtx,
-    const AnkiConfig &config,
+    const ::Context &appCtx,
+    const AnkiProfile &profile,
     const FieldContext &fieldCtx,
     Anki::Note::Context &ctx)
 {
@@ -2213,11 +2291,10 @@ static bool createScreenshotVideo(
         return false;
     }
 
-    PlayerAdapter *player = appCtx->getPlayerAdapter();
-    const QString imageExt = getImageFileExtension(config.screenshotType);
+    const QString imageExt = getImageFileExtension(profile.screenshotType());
 
-    QString path = player->tempScreenshot(false, imageExt);
-
+    QString path =
+        appCtx.player()->controller()->tempScreenshot(false, imageExt);
     for (const auto &[params, fields] :
         fieldCtx.fieldsWithScreenshotVideo.asKeyValueRange())
     {
@@ -2229,18 +2306,20 @@ static bool createScreenshotVideo(
 }
 
 /**
- * Create the video file and add it to the context.
- * @param      appCtx   The context of the application.
- * @param      config   The config to use when generating the context file.
- * @param      exp      The expression to use when build the {audio-context}.
- * @param      fieldCtx The field context containing fields that include media.
- * @param[out] ctx      The context to add the media to.
- * @return true if the media was added to the context, false otherwise.
+ * @brief Create the video file and add it to the context.
+ *
+ * @param appCtx The context of the application.
+ * @param profile The profile to use when generating the context file.
+ * @param exp The expression to use when build the {audio-context}.
+ * @param fieldCtx The field context containing fields that include media.
+ * @param[out] ctx The context to add the media to.
+ * @return true if the media was added to the context,
+ * @return false otherwise.
  */
 static bool createVideo(
-    QPointer<::Context> appCtx,
-    const AnkiConfig &config,
-    const CommonExpFields &exp,
+    const ::Context &appCtx,
+    const AnkiProfile &profile,
+    const Expression &exp,
     const FieldContext &fieldCtx,
     Anki::Note::Context &ctx)
 {
@@ -2251,10 +2330,10 @@ static bool createVideo(
 
     bool success = true;
     for (const auto &[params, fields] :
-            fieldCtx.fieldsWithVideo.asKeyValueRange())
+        fieldCtx.fieldsWithVideo.asKeyValueRange())
     {
         success = success &&
-            createVideoHelper(appCtx, config, exp, params, fields, ctx);
+            createVideoHelper(appCtx, profile, exp, params, fields, ctx);
     }
     return success;
 }
@@ -2263,24 +2342,24 @@ static bool createVideo(
 /* Begin Public Functions */
 
 Anki::Note::Context Anki::Note::build(
-    QPointer<::Context> appCtx,
-    const AnkiConfig &config,
+    const ::Context &appCtx,
+    const AnkiProfile &profile,
     const Term &term,
     bool media)
 {
     Anki::Note::Context ctx;
-    ctx.setDeck(config.termDeck);
-    ctx.setModel(config.termModel);
-    ctx.setDuplicatePolicy(config.duplicatePolicy);
-    ctx.setTags(config.tags);
+    ctx.setDeck(profile.termDeck());
+    ctx.setModel(profile.termModel());
+    ctx.setDuplicatePolicy(profile.duplicatePolicy());
+    ctx.setTags(profile.tags());
 
     FieldContext fieldCtx;
 
     QJsonObject fieldsObj =
         ctx.ankiObject[AnkiConnect::Note::FIELDS].toObject();
-    for (const QString &field : config.termFields.keys())
+    for (const AnkiField &field : profile.termFields()->items())
     {
-        QString value = config.termFields[field].toString();
+        QString value = field.value;
         QList<Anki::Tokenizer::Token> tokens = Anki::Tokenizer::tokenize(value);
         for (const Anki::Tokenizer::Token &token : tokens)
         {
@@ -2288,7 +2367,7 @@ Anki::Note::Context Anki::Note::build(
             for (const Anki::Tokenizer::Marker &marker : token.markers)
             {
                 MarkerResult result = processMarkerCommon(
-                    config, term, marker, field, fieldCtx
+                    profile, term, marker, field.name, fieldCtx
                 );
                 if (!result.isEmpty())
                 {
@@ -2301,7 +2380,9 @@ Anki::Note::Context Anki::Note::build(
                     continue;
                 }
 
-                result = processMarker(config, term, marker, field, fieldCtx);
+                result = processMarker(
+                    profile, term, marker, field.name, fieldCtx
+                );
                 if (!result.isEmpty())
                 {
                     finalResult = std::move(result);
@@ -2318,17 +2399,17 @@ Anki::Note::Context Anki::Note::build(
                 value.replace(token.raw, finalResult.text);
             }
         }
-        fieldsObj[field] = value;
+        fieldsObj[field.name] = value;
     }
     ctx.setFields(fieldsObj);
 
     if (media)
     {
         createAudio(term, fieldCtx, ctx);
-        createAudioMedia(appCtx, config, term, fieldCtx, ctx);
-        createScreenshot(appCtx, config, fieldCtx, ctx);
-        createScreenshotVideo(appCtx, config, fieldCtx, ctx);
-        createVideo(appCtx, config, term, fieldCtx, ctx);
+        createAudioMedia(appCtx, profile, term, fieldCtx, ctx);
+        createScreenshot(appCtx, profile, fieldCtx, ctx);
+        createScreenshotVideo(appCtx, profile, fieldCtx, ctx);
+        createVideo(appCtx, profile, term, fieldCtx, ctx);
 
         ctx.fileMap.reserve(fieldCtx.files.size());
         for (const GlossaryBuilder::FileInfo &fileInfo : fieldCtx.files)
@@ -2341,24 +2422,24 @@ Anki::Note::Context Anki::Note::build(
 }
 
 Anki::Note::Context Anki::Note::build(
-    QPointer<::Context> appCtx,
-    const AnkiConfig &config,
+    const ::Context &appCtx,
+    const AnkiProfile &profile,
     const Kanji &kanji,
     bool media)
 {
     Anki::Note::Context ctx;
-    ctx.setDeck(config.kanjiDeck);
-    ctx.setModel(config.kanjiModel);
-    ctx.setDuplicatePolicy(config.duplicatePolicy);
-    ctx.setTags(config.tags);
+    ctx.setDeck(profile.kanjiDeck());
+    ctx.setModel(profile.kanjiModel());
+    ctx.setDuplicatePolicy(profile.duplicatePolicy());
+    ctx.setTags(profile.tags());
 
     FieldContext fieldCtx;
 
     QJsonObject fieldsObj =
         ctx.ankiObject[AnkiConnect::Note::FIELDS].toObject();
-    for (const QString &field : config.kanjiFields.keys())
+    for (const AnkiField &field : profile.kanjiFields()->items())
     {
-        QString value = config.kanjiFields[field].toString();
+        QString value = field.value;
         QList<Anki::Tokenizer::Token> tokens = Anki::Tokenizer::tokenize(value);
         for (const Anki::Tokenizer::Token &token : tokens)
         {
@@ -2366,7 +2447,7 @@ Anki::Note::Context Anki::Note::build(
             for (const Anki::Tokenizer::Marker &marker : token.markers)
             {
                 MarkerResult result = processMarkerCommon(
-                    config, kanji, marker, field, fieldCtx
+                    profile, kanji, marker, field.name, fieldCtx
                 );
                 if (!result.isEmpty())
                 {
@@ -2396,16 +2477,16 @@ Anki::Note::Context Anki::Note::build(
                 value.replace(token.raw, finalResult.text);
             }
         }
-        fieldsObj[field] = value;
+        fieldsObj[field.name] = value;
     }
     ctx.setFields(fieldsObj);
 
     if (media)
     {
-        createAudioMedia(appCtx, config, kanji, fieldCtx, ctx);
-        createScreenshot(appCtx, config, fieldCtx, ctx);
-        createScreenshotVideo(appCtx, config, fieldCtx, ctx);
-        createVideo(appCtx, config, kanji, fieldCtx, ctx);
+        createAudioMedia(appCtx, profile, kanji, fieldCtx, ctx);
+        createScreenshot(appCtx, profile, fieldCtx, ctx);
+        createScreenshotVideo(appCtx, profile, fieldCtx, ctx);
+        createVideo(appCtx, profile, kanji, fieldCtx, ctx);
 
         ctx.fileMap.reserve(fieldCtx.files.size());
         for (const GlossaryBuilder::FileInfo &fileInfo : fieldCtx.files)

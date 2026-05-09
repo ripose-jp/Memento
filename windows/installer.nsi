@@ -4,9 +4,9 @@
 !define COMPANYNAME "Ripose"
 !define DESCRIPTION "An mpv-based video player for studying Japanese."
 # These three must be integers
-!define VERSIONMAJOR 0
-!define VERSIONMINOR 5
-!define VERSIONBUILD 6
+!define VERSIONMAJOR 2
+!define VERSIONMINOR 0
+!define VERSIONBUILD 0
 !define VERSIONREVISION 0
 # These will be displayed by the "Click here for support information" link in "Add/Remove Programs"
 # It is possible to use "mailto:" links in here to open the email client

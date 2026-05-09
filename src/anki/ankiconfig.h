@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2021 Ripose
+// Copyright (c) 2026 Ripose
 //
 // This file is part of Memento.
 //
@@ -18,136 +18,253 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef ANKICONFIG_H
-#define ANKICONFIG_H
+#pragma once
 
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QSet>
-#include <QString>
-#include <QStringList>
+#include <QObject>
+
+#include <QQmlListProperty>
+
+#include "anki/ankiconfigkeys.h"
+#include "anki/ankiprofile.h"
 
 /**
- * Representation of a single Anki Integration configuration profile.
+ * @brief Manages read and writing Anki configuration files as well as modeling
+ * their contents.
  */
-struct AnkiConfig
+class AnkiConfig : public QObject
 {
-    AnkiConfig() = default;
+    Q_OBJECT
 
-    AnkiConfig(const AnkiConfig &config)
-    {
-        *this = config;
-    }
+    Q_PROPERTY(
+        bool valid
+        READ valid
+        NOTIFY validChanged
+    )
+
+    Q_PROPERTY(
+        QString error
+        READ error
+        NOTIFY errorChanged
+    )
+
+    Q_PROPERTY(
+        bool enabled
+        READ enabled
+        WRITE setEnabled
+        NOTIFY enabledChanged
+    )
+
+    Q_PROPERTY(
+        QQmlListProperty<AnkiProfile> profiles
+        READ profiles
+        NOTIFY profilesChanged
+    )
+
+    Q_PROPERTY(
+        AnkiProfile *profile
+        READ profile
+        NOTIFY profileChanged
+    )
+
+public:
+    /**
+     * @brief Construct a new AnkiConfig.
+     *
+     * @param path The path to the config file. It will be created if it doesn't
+     * exist.
+     * @param parent The parent of this object.
+     */
+    AnkiConfig(const QString &path, QObject *parent = nullptr);
+    virtual ~AnkiConfig();
 
     /**
-     * The duplicate different duplicate policies available.
+     * @brief Load settings from the given config file.
+     *
+     * @return true if the config was loaded,
+     * @return false on error.
      */
-    enum DuplicatePolicy
-    {
-        /* Duplicates cannot be across all decks. */
-        None = 0,
-
-        /* Duplicates cannot be in the same deck, but can be in different decks.
-         */
-        DifferentDeck = 1,
-
-        /* Duplicates can be in the same deck. */
-        SameDeck = 2
-    };
+    Q_INVOKABLE bool load();
 
     /**
-     * The file type to save images as.
+     * @brief Write setting to the given config file.
+     *
+     * @return true if the config was written,
+     * @return false on error.
      */
-    enum FileType
-    {
-        jpg = 0,
-        png = 1,
-        webp = 2
-    };
+    Q_INVOKABLE bool write();
 
-    /* The address of the AnkiConnect server. */
-    QString address;
-
-    /* The port of the AnkiConnect server. */
-    QString port;
-
-    /* The duplicate policy of this profile. */
-    DuplicatePolicy duplicatePolicy;
-
-    /* The string to replace new lines with */
-    QString newlineReplacer;
-
-    /* The file type to save screenshots as. */
-    FileType screenshotType;
-
-    /* The amount of padding to add (in seconds) to the start of an audio clip.
-     * Used for the {audio-media} marker.
+    /**
+     * @brief Get if this config is valid.
+     *
+     * @return true if this config is valid,
+     * @return false otherwise.
      */
-    double audioPadStart;
+    [[nodiscard]]
+    bool valid() const noexcept;
 
-    /* The amount of padding to add (in seconds) to the end of an audio clip.
-     * Used for the {audio-media} marker.
+private:
+    /**
+     * @brief Set if this config is valid.
+     *
+     * @param value true if this config is valid, false otherwise.
      */
-    double audioPadEnd;
+    void setValid(bool value);
 
-    /* true if audio should be normalized, false otherwise */
-    bool audioNormalize;
-
-    /* The dB value audio should be normalized to */
-    double audioDb;
-
-    /* The set of dictionaries that should not be added to Anki by default */
-    QSet<QString> excludeGloss;
-
-    /* A list of tags to add to Anki notes. */
-    QJsonArray tags;
-
-    /* The name of the deck to add term cards to. */
-    QString termDeck;
-
-    /* The name of the model to create term cards with. */
-    QString termModel;
-
-    /* A JSON object mapping the field names to their raw, user-defined values
-     * for term cards.
+public:
+    /**
+     * @brief Get the current human-readable error.
+     *
+     * @return The current human-readable error.
      */
-    QJsonObject termFields;
+    [[nodiscard]]
+    const QString &error() const noexcept;
 
-    /* The name of the deck to add kanji cards to. */
-    QString kanjiDeck;
-
-    /* The name of the model to create kanji cards with. */
-    QString kanjiModel;
-
-    /* A JSON object mapping the field names to their raw, user-defined values
-     * for kanji cards.
+private:
+    /**
+     * @brief Set the current human-readable error.
+     *
+     * @param value The new human-readable error.
      */
-    QJsonObject kanjiFields;
+    void setError(const QString &value);
 
-    AnkiConfig &operator=(const AnkiConfig &rhs)
-    {
-        address         = rhs.address;
-        port            = rhs.port;
-        duplicatePolicy = rhs.duplicatePolicy;
-        newlineReplacer = rhs.newlineReplacer;
-        screenshotType  = rhs.screenshotType;
-        audioPadStart   = rhs.audioPadStart;
-        audioPadEnd     = rhs.audioPadEnd;
-        audioNormalize  = rhs.audioNormalize;
-        audioDb         = rhs.audioDb;
-        tags            = rhs.tags;
-        excludeGloss    = rhs.excludeGloss;
+public:
+    /**
+     * @brief Set if Anki Integration is enabled.
+     *
+     * @return true if enabled,
+     * @return false otherwise.
+     */
+    [[nodiscard]]
+    bool enabled() const noexcept;
 
-        termDeck        = rhs.termDeck;
-        termModel       = rhs.termModel;
-        termFields      = rhs.termFields;
+    /**
+     * @brief Set if Anki Integration is enabled.
+     *
+     * @param value true if enabled, false otherwise.
+     */
+    void setEnabled(bool value);
 
-        kanjiDeck       = rhs.kanjiDeck;
-        kanjiModel      = rhs.kanjiModel;
-        kanjiFields     = rhs.kanjiFields;
+    /**
+     * @brief Get the current list of profiles.
+     *
+     * @return The current list of profiles.
+     */
+    [[nodiscard]]
+    QQmlListProperty<AnkiProfile> profiles();
 
-        return *this;
-    }
+    /**
+     * @brief Get the index of a profile.
+     *
+     * @param name The name of the profile.
+     * @return The index of the profile if it exists, -1 if it doesn't.
+     */
+    [[nodiscard]]
+    Q_INVOKABLE qsizetype profileIndex(const QString &name) const;
+
+    /**
+     * @brief Get if a profile with the given name exists.
+     *
+     * @param name The name to look for.
+     * @return true if the profile exists,
+     * @return false if the profile does not exist.
+     */
+    [[nodiscard]]
+    Q_INVOKABLE bool profileExists(const QString &name) const;
+
+    /**
+     * @brief Add a profile to the config.
+     *
+     * @param name The name of the profile to add.
+     * @param profile The profile to copy settings from. nullptr to default use
+     * default values.
+     * @return true if the profile was added,
+     * @return false if it already exists.
+     */
+    Q_INVOKABLE bool addProfile(
+        const QString &name, AnkiProfile *profile = nullptr);
+
+    /**
+     * @brief Remove a profile from the config.
+     *
+     * @param name The name of the profile to remove.
+     * @return true if the profile was removed.
+     * @return false if the profile never existed.
+     */
+    Q_INVOKABLE bool removeProfile(const QString &name);
+
+    /**
+     * @brief Get the currently set profile.
+     *
+     * @return The current profile.
+     */
+    [[nodiscard]]
+    AnkiProfile *profile() const noexcept;
+
+    /**
+     * @brief Set the current profile.
+     *
+     * @param name The name of the current profile to set
+     * @return true if the profile exists and was set,
+     * @return false otherwise.
+     */
+    Q_INVOKABLE bool setProfile(const QString &name);
+
+signals:
+    /**
+     * @brief Emitted when config validity changes.
+     *
+     * @param value The new validity value.
+     */
+    void validChanged(bool value);
+
+    /**
+     * @brief Emitted when a new error string is available.
+     *
+     * @param value The latest error.
+     */
+    void errorChanged(const QString &value);
+
+    /**
+     * @brief Emitted when Anki integration enabled is changed.
+     *
+     * @param value The new enabled value.
+     */
+    void enabledChanged(bool value);
+
+    /**
+     * @brief Emitted when the profile set changes.
+     */
+    void profilesChanged();
+
+    /**
+     * @brief Emitted when the current profile changes.
+     *
+     * @param value The new current profile.
+     */
+    void profileChanged(AnkiProfile *value);
+
+private slots:
+    /**
+     * @brief Resorts all profiles.
+     */
+    void sortProfiles();
+
+private:
+    /* Path to the config file */
+    const QString m_path;
+
+    /* true if loaded successfully loaded, false if error */
+    bool m_valid{false};
+
+    /* The last error string */
+    QString m_error;
+
+    /* true if Anki integration is enabled */
+    bool m_enabled{Anki::Keys::ENABLED_DEFAULT};
+
+    /* All available Anki profiles */
+    QList<AnkiProfile *> m_profiles = {new AnkiProfile(this)};
+
+    /* The current active Anki profile */
+    AnkiProfile *m_profile{m_profiles.first()};
 };
-
-#endif // ANKICONFIG_H

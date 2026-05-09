@@ -18,10 +18,9 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef DECONJUGATIONQUERYGENERATOR_H
-#define DECONJUGATIONQUERYGENERATOR_H
+#pragma once
 
-#include "querygenerator.h"
+#include "dict/querygenerator.h"
 
 /**
  * Query generator that uses look up tables to deconjugate phrases.
@@ -51,5 +50,3 @@ public:
     std::vector<SearchQuery> generateQueries(
         const QString &text) const override;
 };
-
-#endif // DECONJUGATIONQUERYGENERATOR_H

@@ -18,8 +18,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef DECONJUGATOR_H
-#define DECONJUGATOR_H
+#pragma once
 
 #include <QString>
 #include <QList>
@@ -99,5 +98,3 @@ struct ConjugationInfo
  */
 QList<ConjugationInfo> deconjugate(
     const QString query, bool sentenceMode = true);
-
-#endif // DECONJUGATOR_H

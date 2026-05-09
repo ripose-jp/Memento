@@ -18,7 +18,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "deconjugator.h"
+#include "dict/deconjugator.h"
 
 #include <QList>
 #include <QMap>
@@ -26,7 +26,7 @@
 #include <QStack>
 #include <QString>
 
-#include "gui/widgets/definition/definitionwidget.h"
+#include "dict/dictionarysearch.h"
 
 struct Rule
 {
@@ -467,85 +467,85 @@ static QString wordFormToString(WordForm ruleType)
     switch (ruleType)
     {
     case WordForm::godanVerb:
-        return DefinitionWidget::tr("godan verb");
+        return DictionarySearch::tr("godan verb");
     case WordForm::ichidanVerb:
-        return DefinitionWidget::tr("ichidan verb");
+        return DictionarySearch::tr("ichidan verb");
     case WordForm::suruVerb:
-        return DefinitionWidget::tr("suru verb");
+        return DictionarySearch::tr("suru verb");
     case WordForm::kuruVerb:
-        return DefinitionWidget::tr("kuru verb");
+        return DictionarySearch::tr("kuru verb");
     case WordForm::adjective:
-        return DefinitionWidget::tr("adjective");
+        return DictionarySearch::tr("adjective");
     case WordForm::negative:
-        return DefinitionWidget::tr("negative");
+        return DictionarySearch::tr("negative");
     case WordForm::past:
-        return DefinitionWidget::tr("past");
+        return DictionarySearch::tr("past");
     case WordForm::te:
-        return DefinitionWidget::tr("-te");
+        return DictionarySearch::tr("-te");
     case WordForm::conjunctive:
-        return DefinitionWidget::tr("masu stem");
+        return DictionarySearch::tr("masu stem");
     case WordForm::volitional:
-        return DefinitionWidget::tr("volitional");
+        return DictionarySearch::tr("volitional");
     case WordForm::passive:
-        return DefinitionWidget::tr("passive");
+        return DictionarySearch::tr("passive");
     case WordForm::causative:
-        return DefinitionWidget::tr("causative");
+        return DictionarySearch::tr("causative");
     case WordForm::imperative:
-        return DefinitionWidget::tr("imperative");
+        return DictionarySearch::tr("imperative");
     case WordForm::potential:
-        return DefinitionWidget::tr("potential");
+        return DictionarySearch::tr("potential");
     case WordForm::potentialPassive:
-        return DefinitionWidget::tr("potential or passive");
+        return DictionarySearch::tr("potential or passive");
     case WordForm::imperativeNegative:
-        return DefinitionWidget::tr("imperative negative");
+        return DictionarySearch::tr("imperative negative");
     case WordForm::zaru:
-        return DefinitionWidget::tr("-zaru");
+        return DictionarySearch::tr("-zaru");
     case WordForm::neba:
-        return DefinitionWidget::tr("-neba");
+        return DictionarySearch::tr("-neba");
     case WordForm::zu:
-        return DefinitionWidget::tr("-zu");
+        return DictionarySearch::tr("-zu");
     case WordForm::nu:
-        return DefinitionWidget::tr("-nu");
+        return DictionarySearch::tr("-nu");
     case WordForm::ba:
-        return DefinitionWidget::tr("-ba");
+        return DictionarySearch::tr("-ba");
     case WordForm::tari:
-        return DefinitionWidget::tr("-tari");
+        return DictionarySearch::tr("-tari");
     case WordForm::shimau:
-        return DefinitionWidget::tr("-shimau");
+        return DictionarySearch::tr("-shimau");
     case WordForm::chau:
-        return DefinitionWidget::tr("-chau");
+        return DictionarySearch::tr("-chau");
     case WordForm::chimau:
-        return DefinitionWidget::tr("-chimau");
+        return DictionarySearch::tr("-chimau");
     case WordForm::polite:
-        return DefinitionWidget::tr("polite");
+        return DictionarySearch::tr("polite");
     case WordForm::tara:
-        return DefinitionWidget::tr("-tara");
+        return DictionarySearch::tr("-tara");
     case WordForm::tai:
-        return DefinitionWidget::tr("-tai");
+        return DictionarySearch::tr("-tai");
     case WordForm::nasai:
-        return DefinitionWidget::tr("-nasai");
+        return DictionarySearch::tr("-nasai");
     case WordForm::sugiru:
-        return DefinitionWidget::tr("-sugiru");
+        return DictionarySearch::tr("-sugiru");
     case WordForm::sou:
-        return DefinitionWidget::tr("-sou");
+        return DictionarySearch::tr("-sou");
     case WordForm::e:
-        return DefinitionWidget::tr("-e");
+        return DictionarySearch::tr("-e");
     case WordForm::ki:
-        return DefinitionWidget::tr("-ki");
+        return DictionarySearch::tr("-ki");
     case WordForm::toku:
-        return DefinitionWidget::tr("-toku");
+        return DictionarySearch::tr("-toku");
     case WordForm::colloquialNegative:
-        return DefinitionWidget::tr("colloquial negative");
+        return DictionarySearch::tr("colloquial negative");
     case WordForm::provisionalColloquialNegative:
-        return DefinitionWidget::tr("provisional colloquial negative");
+        return DictionarySearch::tr("provisional colloquial negative");
     case WordForm::continuous:
-        return DefinitionWidget::tr("progressive or perfect");
+        return DictionarySearch::tr("progressive or perfect");
     case WordForm::adverbial:
-        return DefinitionWidget::tr("adv");
+        return DictionarySearch::tr("adv");
     case WordForm::noun:
-        return DefinitionWidget::tr("noun");
+        return DictionarySearch::tr("noun");
     default:
-        return DefinitionWidget::tr("unknown");
+        return DictionarySearch::tr("unknown");
     }
 }
 

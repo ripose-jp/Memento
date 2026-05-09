@@ -1,273 +1,142 @@
-# Create version header
-configure_file(
-    "${PROJECT_SOURCE_DIR}/src/version.h.in"
-    "${PROJECT_BINARY_DIR}/src/version.h"
-)
-add_library(version STATIC "${PROJECT_BINARY_DIR}/src/version.h")
-target_compile_features(version PUBLIC cxx_std_20)
-target_compile_options(version PRIVATE ${MEMENTO_COMPILER_FLAGS})
-target_include_directories(version PUBLIC "${PROJECT_BINARY_DIR}/src")
-
 # Add subdirectories
 add_subdirectory(anki)
 add_subdirectory(audio)
+add_subdirectory(constant)
+add_subdirectory(definition)
 add_subdirectory(dict)
-add_subdirectory(gui)
-add_subdirectory(macos)
-add_subdirectory(ocr)
+add_subdirectory(manager)
+add_subdirectory(os)
 add_subdirectory(player)
+add_subdirectory(quick)
+add_subdirectory(setting)
 add_subdirectory(state)
+add_subdirectory(subtitle)
 add_subdirectory(util)
 
 # Executable Targets
-if(APPBUNDLE)
-	# Get the Homebrew install path
-	execute_process(
-		COMMAND uname -m
-		OUTPUT_VARIABLE MEMENTO_MACOS_ARCH
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-	if(MEMENTO_MACOS_ARCH STREQUAL "x86_64" OR MAC_CROSSCOMPILE_X86)
-		set(HOMEBREW_PREFIX_PATH "/usr/local")
-	else()
-		set(HOMEBREW_PREFIX_PATH "/opt/homebrew")
-	endif()
+qt_add_executable(
+    memento
+    "$<$<BOOL:${WIN32}>:${PROJECT_SOURCE_DIR}/res/appicon.rc>"
+    main.cpp
+)
+configure_file(
+    qml/util/Features.qml.in
+    "${PROJECT_SOURCE_DIR}/src/qml/util/Features.qml"
+)
+set_source_files_properties(
+    qml/util/AnkiMarkers.qml
+    qml/util/Features.qml
+    qml/util/MementoPalette.qml
+    qml/util/Utils.qml
+    PROPERTIES
+        QT_QML_SINGLETON_TYPE TRUE
+)
+qt_add_qml_module(
+    memento
+    URI Ripose.Memento
+    VERSION 1.0
+    QML_FILES
+        qml/controls/AnkiFieldTextArea.qml
+        qml/controls/AnkiMarkerDescription.qml
+        qml/controls/AnkiNoteBox.qml
+        qml/controls/KeybindCommand.qml
+        qml/controls/ManualSearchPage.qml
+        qml/controls/Player.qml
+        qml/controls/PlayerControls.qml
+        qml/controls/PlayerMenu.qml
+        qml/controls/PlayerSlider.qml
+        qml/controls/SearchableText.qml
+        qml/controls/SelectableLabel.qml
+        qml/controls/SettingsBox.qml
+        qml/controls/SettingsBoxSeparator.qml
+        qml/controls/SideBarList.qml
+        qml/controls/StrokeLabel.qml
+        qml/controls/SubtitleList.qml
+        qml/controls/SubtitleListPage.qml
+        qml/controls/SubtitleListTabButton.qml
+        qml/controls/SubtitleText.qml
+        qml/definition/DefinitionList.qml
+        qml/definition/DefinitionPage.qml
+        qml/definition/DefinitionPopup.qml
+        qml/definition/DictionaryLabel.qml
+        qml/definition/ExpressionLabel.qml
+        qml/definition/FrequencyLabel.qml
+        qml/definition/GlossaryText.qml
+        qml/definition/KanjiEntry.qml
+        qml/definition/KanjiValueTag.qml
+        qml/definition/MetaLabel.qml
+        qml/definition/TagLabel.qml
+        qml/definition/TermEntry.qml
+        qml/definition/TermGlossary.qml
+        qml/definition/TermPitch.qml
+        qml/Main.qml
+        qml/objects/AudioFiles.qml
+        qml/objects/CursorTimer.qml
+        qml/objects/MoveTimer.qml
+        qml/options/AnkiIntegrationHelpWindow.qml
+        qml/options/AnkiIntegrationPage.qml
+        qml/options/AudioSourcesPage.qml
+        qml/options/BehaviorPage.qml
+        qml/options/DictionaryPage.qml
+        qml/options/InterfacePage.qml
+        qml/options/KeybindsPage.qml
+        qml/options/OcrPage.qml
+        qml/options/OptionsWindow.qml
+        qml/options/SearchPage.qml
+        qml/util/AnkiMarkers.qml
+        qml/util/Features.qml
+        qml/util/MementoPalette.qml
+        qml/util/Utils.qml
+)
+target_compile_features(memento PRIVATE cxx_std_20)
+target_include_directories(memento PRIVATE ${MEMENTO_INCLUDE_DIRS})
+target_compile_options(memento PRIVATE ${MEMENTO_COMPILER_FLAGS})
+set_target_properties(
+    memento PROPERTIES
+    MACOSX_BUNDLE_GUI_IDENTIFIER io.ripose_jp.Memento
+    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+    MACOSX_BUNDLE TRUE
+    WIN32_EXECUTABLE ${MEMENTO_WIN32_EXECUTABLE}
+)
+target_link_libraries(
+    memento
+    PRIVATE "$<$<BOOL:${MEMENTO_QAPPLICATION}>:Qt6::Widgets>"
+    PRIVATE "$<$<BOOL:${MEMENTO_SYSTEM_QCORO}>:QCoro::Qml>"
+    PRIVATE "$<$<NOT:$<BOOL:${MEMENTO_SYSTEM_QCORO}>>:QCoro6Qml>"
+    PRIVATE anki
+    PRIVATE audioplayer
+    PRIVATE clipboard
+    PRIVATE coloredsvgprovider
+    PRIVATE definition
+    PRIVATE dictionary
+    PRIVATE keytracker
+    PRIVATE managers
+    PRIVATE mpvplayer
+    PRIVATE Qt6::Quick
+    PRIVATE Qt6::QuickControls2
+    PRIVATE Qt6::Svg
+    PRIVATE quickpaths
+    PRIVATE screensaver
+    PRIVATE settings
+    PRIVATE subtitle
+    PRIVATE utils
+)
 
-	set(MEMENTO_ICON_FILE "memento.icns")
-	set(MEMENTO_ICON_PATH "${PROJECT_SOURCE_DIR}/res/${MEMENTO_ICON_FILE}")
-
-	# Create the executable target
-	add_executable(
-		${PROJECT_NAME} MACOSX_BUNDLE
-		main.cpp
-		"${PROJECT_SOURCE_DIR}/res/resources.qrc"
-		"${MEMENTO_ICON_PATH}"
-	)
-	target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
-	target_compile_options(${PROJECT_NAME} PRIVATE ${MEMENTO_COMPILER_FLAGS})
-	target_include_directories(${PROJECT_NAME} PRIVATE ${MEMENTO_INCLUDE_DIRS})
-	set_target_properties(
-		${PROJECT_NAME} PROPERTIES
-		BUNDLE True
-		MACOSX_BUNDLE_BUNDLE_NAME ${PROJECT_NAME}
-		MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
-		MACOSX_BUNDLE_COPYRIGHT "2020 - 2026 Ripose"
-		MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.ripose-jp.memento"
-		MACOSX_BUNDLE_ICON_FILE ${MEMENTO_ICON_FILE}
-		MACOSX_BUNDLE_INFO_STRING ${PROJECT_DESCRIPTION}
-		MACOSX_BUNDLE_LONG_VERSION_STRING ${PROJECT_VERSION}
-		MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
-		MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/macos/MementoInfo.plist.in"
-		RESOURCE ${MEMENTO_ICON_PATH}
-	)
-	target_link_libraries(
-		${PROJECT_NAME}
-		PRIVATE constants
-		PRIVATE dictionary_db
-		PRIVATE iconfactory
-		PRIVATE mainwindow
-		PRIVATE Qt6::Svg
-		PRIVATE utils
-	)
-
-	# Add in the dylibs
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND dylibbundler -od -b -x ./MacOS/Memento -d ./Frameworks -p @executable_path/../Frameworks
-		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents"
-	)
-
-	# Manually add Python
-	# Get the path to vapoursynth-script
-	execute_process(
-		COMMAND ./getlib.sh "${mpv_LIBRARY}" vapoursynth-script
-		OUTPUT_VARIABLE OTOOL_VAPOURSYNTH_SCRIPT
-		WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/macos"
-	)
-	# Get the filename of vapoursynth-script mpv is linked to
-	string(REGEX MATCH "[^/]*$" VAPOURSYNTH_SCRIPT_NAME ${OTOOL_VAPOURSYNTH_SCRIPT})
-	# Get the otool path of Python vapoursynth-script is linked to
-	execute_process(
-		COMMAND ./getlib.sh "${OTOOL_VAPOURSYNTH_SCRIPT}" Python
-		OUTPUT_VARIABLE OTOOL_PYTHON
-		WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/macos"
-	)
-	# Get the python framework paths
-	string(REGEX MATCH ".*Python\.framework/Versions/.*/" PYTHON_FRAMEWORK_PATH ${OTOOL_PYTHON})
-	# Change the path in vapoursynth-script
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND install_name_tool -change "${OTOOL_PYTHON}" "@executable_path/../Frameworks/Python.framework/Python" "${VAPOURSYNTH_SCRIPT_NAME}"
-		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks"
-	)
-
-	# Fix duplicate LC_RPATH in libmpv.2.dylib (probably a Homebrew bug)
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND install_name_tool -delete_rpath "@executable_path/../Frameworks/" "libmpv.2.dylib"
-		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks"
-	)
-
-	# Run macdeployqt to pick up any plugins dylibbundler missed
-	# lib needs to be symlinked because of a bug in either macdeployqt or
-	# homebrew's packaging of it
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND ln -s "${HOMEBREW_PREFIX_PATH}/lib" lib
-		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
-	)
-	set(MACDEPLOYQT_BIN "${HOMEBREW_PREFIX_PATH}/opt/qt6/bin/macdeployqt")
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND ${MACDEPLOYQT_BIN} ${PROJECT_NAME}.app
-		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
-	)
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND rm lib
-		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
-	)
-
-	# Copy libbrotlicommon which is missing for some reason
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND cp "${HOMEBREW_PREFIX_PATH}/lib/libbrotlicommon.1.dylib" .
-		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks"
-	)
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND install_name_tool -id "@executable_path/../Frameworks/libbrotlicommon.1.dylib" libbrotlicommon.1.dylib
-		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks"
-	)
-
-	# Copy python. This need to happen here because Python confuses codesign
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND mkdir Python.framework && cp -RL "${PYTHON_FRAMEWORK_PATH}/*" "Python.framework" && chmod -R 755 Python.framework
-		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src/${PROJECT_NAME}.app/Contents/Frameworks"
-	)
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND chmod -R u+w "${PROJECT_NAME}.app"
-		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
-	)
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND xattr -cr "${PROJECT_NAME}.app"
-		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
-	)
-
-	# Copy ipadic if necessary
-	if(MECAB_SUPPORT)
-		add_custom_command(
-			TARGET ${PROJECT_NAME}
-			POST_BUILD
-			COMMAND mkdir -p "${PROJECT_NAME}.app/Contents/Frameworks/mecab"
-			WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
-		)
-		add_custom_command(
-			TARGET ${PROJECT_NAME}
-			POST_BUILD
-			COMMAND cp -r "${PROJECT_SOURCE_DIR}/dic" "${PROJECT_NAME}.app/Contents/Frameworks/mecab"
-			WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
-		)
-	endif()
-
-	# Sign the code
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND codesign -s '${CERT}' --deep -f ${PROJECT_NAME}.app
-		WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/src"
-	)
-elseif(WIN32)
-	add_executable(
-		memento WIN32
-		main.cpp
-		"${PROJECT_SOURCE_DIR}/res/resources.qrc"
-		"${PROJECT_SOURCE_DIR}/res/appicon.rc"
-	)
-	target_compile_features(memento PUBLIC cxx_std_20)
-	target_compile_options(memento PRIVATE ${MEMENTO_COMPILER_FLAGS})
-	target_include_directories(memento PRIVATE ${MEMENTO_INCLUDE_DIRS})
-	target_link_libraries(
-		memento
-		PRIVATE constants
-		PRIVATE dictionary_db
-		PRIVATE iconfactory
-		PRIVATE mainwindow
-		PRIVATE Qt6::Svg
-		PRIVATE utils
-	)
-
-	# This is a target that will create memento_debug.exe so that issues can be
-	# debugged easier on Windows
-	add_executable(
-		memento_debug
-		main.cpp
-		"${PROJECT_SOURCE_DIR}/res/resources.qrc"
-		"${PROJECT_SOURCE_DIR}/res/appicon.rc"
-	)
-	target_compile_features(memento_debug PUBLIC cxx_std_20)
-	target_compile_options(memento_debug PRIVATE ${MEMENTO_COMPILER_FLAGS})
-	target_include_directories(memento_debug PRIVATE ${MEMENTO_INCLUDE_DIRS})
-	target_link_libraries(
-		memento_debug
-		PRIVATE constants
-		PRIVATE dictionary_db
-		PRIVATE iconfactory
-		PRIVATE mainwindow
-		PRIVATE Qt6::Svg
-		PRIVATE utils
-	)
-elseif(UNIX)
-	add_executable(
-		memento
-		main.cpp
-		"${PROJECT_SOURCE_DIR}/res/resources.qrc"
-	)
-	target_compile_features(memento PUBLIC cxx_std_20)
-	target_compile_options(memento PRIVATE ${MEMENTO_COMPILER_FLAGS})
-	target_include_directories(memento PRIVATE ${MEMENTO_INCLUDE_DIRS})
-	target_link_libraries(
-		memento
-		PRIVATE constants
-		PRIVATE dictionary_db
-		PRIVATE iconfactory
-		PRIVATE mainwindow
-		PRIVATE Qt6::Svg
-		PRIVATE utils
-	)
-else()
-	message(FATAL_ERROR "Unsupported operating system!")
-endif()
-
-# Install targets
-if(NOT APPBUNDLE AND NOT APPIMAGE)
-	install(
-		TARGETS memento
-		DESTINATION bin
-		COMPONENT binaries
-	)
-endif()
+include(GNUInstallDirs)
+install(
+    TARGETS memento
+    BUNDLE DESTINATION .
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 if(UNIX AND NOT APPLE)
 	install(
 		FILES "${PROJECT_SOURCE_DIR}/res/memento.desktop"
-		DESTINATION share/applications
+		DESTINATION ${CMAKE_INSTALL_DATADIR}/applications
 	)
 	install(
 		FILES "${PROJECT_SOURCE_DIR}/res/memento.svg"
-		DESTINATION share/icons/hicolor/scalable/apps
+		DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps
 	)
 endif()

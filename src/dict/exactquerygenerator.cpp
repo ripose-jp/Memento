@@ -18,7 +18,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "exactquerygenerator.h"
+#include "dict/exactquerygenerator.h"
 
 std::vector<SearchQuery> ExactQueryGenerator::generateQueries(
     const QString &text) const

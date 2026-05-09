@@ -31,9 +31,8 @@ import shutil
 # The mingw path matches where Fedora 21 installs mingw32; this is the default
 # fallback if no other search path is specified in $MINGW_BUNDLEDLLS_SEARCH_PATH
 DEFAULT_PATH_PREFIXES = [
-    "", "/usr/bin", "/usr/i686-w64-mingw32/sys-root/mingw/bin", "/mingw64/bin",
-    "/usr/i686-w64-mingw32/sys-root/mingw/lib",
-    "C:\\msys64\\mingw64\\bin"
+    "",
+    "C:\\msys64\\ucrt64\\bin\\",
 ]
 
 env_path_prefixes = os.environ.get('MINGW_BUNDLEDLLS_SEARCH_PATH', None)
@@ -41,23 +40,6 @@ if env_path_prefixes is not None:
     path_prefixes = [path for path in env_path_prefixes.split(os.pathsep) if path]
 else:
     path_prefixes = DEFAULT_PATH_PREFIXES
-
-# This blacklist may need extending
-blacklist = [
-    "advapi32.dll", "kernel32.dll", "msvcrt.dll", "ole32.dll", "user32.dll",
-    "ws2_32.dll", "comdlg32.dll", "gdi32.dll", "imm32.dll", "oleaut32.dll",
-    "shell32.dll", "winmm.dll", "winspool.drv", "wldap32.dll",
-    "ntdll.dll", "d3d9.dll", "mpr.dll", "crypt32.dll", "dnsapi.dll",
-    "shlwapi.dll", "version.dll", "iphlpapi.dll", "msimg32.dll", "setupapi.dll",
-    "opengl32.dll", "dwmapi.dll", "uxtheme.dll", "secur32.dll", "gdiplus.dll",
-    "usp10.dll", "comctl32.dll", "wsock32.dll", "netapi32.dll", "userenv.dll",
-    "avicap32.dll", "avrt.dll", "psapi.dll", "mswsock.dll", "glu32.dll",
-    "bcrypt.dll", "rpcrt4.dll", "mfplat.dll", "cfgmgr32.dll", "ncrypt.dll",
-    "d3d11.dll", "dxgi.dll", "dwrite.dll", "api-ms-win-core-path-l1-1-0.dll",
-    "api-ms-win-crt-math-l1-1-0.dll", "authz.dll", "api-ms-win-core-synch-l1-2-0.dll",
-    "d3d12.dll", "winhttp.dll", "bcryptprimitives.dll", "shcore.dll",
-    "libmocr.dll", "libmocr++.dll"
-]
 
 
 def find_full_path(filename, path_prefixes):
@@ -68,13 +50,8 @@ def find_full_path(filename, path_prefixes):
             return path
         if os.path.exists(path_low):
             return path_low
-
     else:
-        raise RuntimeError(
-            "Can't find " + filename + ". If it is an inbuilt Windows DLL, "
-            "please add it to the blacklist variable in the script and send "
-            "a pull request!"
-        )
+        return None
 
 
 def gather_deps(path, path_prefixes, seen):
@@ -88,13 +65,12 @@ def gather_deps(path, path_prefixes, seen):
         dep = line.split("DLL Name: ")[1].strip()
         ldep = dep.lower()
 
-        if ldep in blacklist:
-            continue
-
         if ldep in seen:
             continue
 
         dep_path = find_full_path(dep, path_prefixes)
+        if dep_path == None:
+            continue
         seen.add(ldep)
         subdeps = gather_deps(dep_path, path_prefixes, seen)
         ret.extend(subdeps)

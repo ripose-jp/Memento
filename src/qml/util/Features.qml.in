@@ -1,0 +1,49 @@
+pragma Singleton
+
+import QtQml
+
+QtObject {
+    id: root
+
+    enum Platform {
+        Unknown = 0,
+        Windows = 1,
+        Linux = 2,
+        MacOS = 3
+    }
+
+    /* true if this a Windows platform */
+    readonly property bool windows: "@WIN32@" !== ""
+
+    /* true if this a Unix platform */
+    readonly property bool unix: "@UNIX@" !== ""
+
+    /* true if this an Apple platform */
+    readonly property bool apple: "@APPLE@" !== ""
+
+    /* The platform Memento is running on */
+    readonly property int platform: {
+        if (root.windows)
+        {
+            return Features.Platform.Windows;
+        }
+        else if (root.apple)
+        {
+            return Features.Platform.MacOS
+        }
+        else if (root.unix)
+        {
+            return Features.Platform.Linux;
+        }
+        return Features.Platform.Unknown;
+    }
+
+    /* Memento was built with MeCab */
+    readonly property bool mecab: "@MEMENTO_MECAB_SUPPORT@" === "ON"
+
+    /* Memento was built with OCR */
+    readonly property bool ocr: "@MEMENTO_OCR_SUPPORT@" === "ON"
+
+    /* Memento was built as a QApplication */
+    readonly property bool qApplication: "@MEMENTO_QAPPLICATION@" === "ON"
+}

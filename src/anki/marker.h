@@ -18,6 +18,8 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+#pragma once
+
 namespace Anki
 {
 
@@ -41,8 +43,10 @@ constexpr const char *FREQUENCIES = "frequencies";
 constexpr const char *GLOSSARY = "glossary";
 constexpr const char *SCREENSHOT = "screenshot";
 constexpr const char *SCREENSHOT_VIDEO = "screenshot-video";
-constexpr const char *SENTENCE = "sentence";
-constexpr const char *SENTENCE_SEC = "sentence-2";
+constexpr const char *SUBTITLE = "subtitle";
+constexpr const char *SUBTITLE_ALT = "sentence";
+constexpr const char *SUBTITLE_SEC = "subtitle-2";
+constexpr const char *SUBTITLE_SEC_ALT = "sentence-2";
 constexpr const char *TAGS = "tags";
 constexpr const char *TAGS_BRIEF = "tags-brief";
 constexpr const char *TITLE = "title";
@@ -57,7 +61,7 @@ constexpr const char *GLOSSARY_BRIEF = "glossary-brief";
 constexpr const char *GLOSSARY_COMPACT = "glossary-compact";
 constexpr const char *PITCH = "pitch";
 constexpr const char *PITCH_CATEGORIES = "pitch-categories";
-constexpr const char *PITCH_GRAPHS = "pitch-graph";
+constexpr const char *PITCH_GRAPH = "pitch-graph";
 constexpr const char *PITCH_POSITION = "pitch-position";
 constexpr const char *READING = "reading";
 constexpr const char *SELECTION = "selection";

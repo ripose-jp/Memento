@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2025 Ripose
+// Copyright (c) 2026 Ripose
 //
 // This file is part of Memento.
 //
@@ -18,77 +18,54 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "context.h"
+#include "state/context.h"
 
-#include "anki/ankiclient.h"
-#include "audio/audioplayer.h"
-#include "dict/dictionary.h"
-#include "gui/widgets/subtitlelistwidget.h"
-#include "player/playeradapter.h"
+Context::Context(QObject *parent) : QObject(parent)
+{
 
-/* Begin Getters */
+}
 
-AnkiClient *Context::getAnkiClient() const
+Context::~Context()
+{
+
+}
+
+Settings *Context::settings() const noexcept
+{
+    return m_settings;
+}
+
+AnkiConfig *Context::ankiConfig() const noexcept
+{
+    return m_ankiConfig;
+}
+
+AnkiClient *Context::ankiClient() const noexcept
 {
     return m_ankiClient;
 }
 
-AudioPlayer *Context::getAudioPlayer() const
+AudioPlayer *Context::audioPlayer() const noexcept
 {
     return m_audioPlayer;
 }
 
-Dictionary *Context::getDictionary() const
+SubtitleLists *Context::subtitleLists() const noexcept
 {
-    return m_dictionary;
+    return m_subtitleLists;
 }
 
-PlayerAdapter *Context::getPlayerAdapter() const
+DictionaryController *Context::dictionaryController() const noexcept
+{
+    return m_dictionaryController;
+}
+
+MpvPlayer *Context::player() const noexcept
 {
     return m_player;
 }
 
-QWidget *Context::getPlayerWidget() const
-{
-    return m_playerWidget;
-}
-
-SubtitleListWidget *Context::getSubtitleListWidget() const
-{
-    return m_subList;
-}
-
-/* End Getters */
-/* Begin Setters */
-
-void Context::setAnkiClient(AnkiClient *client)
-{
-    m_ankiClient = client;
-}
-
-void Context::setAudioPlayer(AudioPlayer *audioPlayer)
-{
-    m_audioPlayer = audioPlayer;
-}
-
-void Context::setDictionary(Dictionary *dictionary)
-{
-    m_dictionary = dictionary;
-}
-
-void Context::setPlayerAdapter(PlayerAdapter *player)
+void Context::setPlayer(MpvPlayer *player) noexcept
 {
     m_player = player;
 }
-
-void Context::setPlayerWidget(QWidget *widget)
-{
-    m_playerWidget = widget;
-}
-
-void Context::setSubtitleList(SubtitleListWidget *subList)
-{
-    m_subList = subList;
-}
-
-/* End Setters */

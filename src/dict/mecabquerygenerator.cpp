@@ -18,9 +18,10 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "mecabquerygenerator.h"
+#include "dict/mecabquerygenerator.h"
 
 #include <QDebug>
+#include <QDir>
 #include <QtGlobal>
 
 #include "util/utils.h"
@@ -76,10 +77,10 @@ static QByteArray genMecabArg()
 {
     QByteArray arg = "-r ";
     arg += toWindowsShortPath(
-        DirectoryUtils::getDictionaryDir() + "ipadic" + SLASH + "dicrc"
+        DirectoryUtils::getMecabDictionary() + "ipadic" + QDir::separator() + "dicrc"
     );
     arg += " -d ";
-    arg += toWindowsShortPath(DirectoryUtils::getDictionaryDir() + "ipadic");
+    arg += toWindowsShortPath(DirectoryUtils::getMecabDictionary() + "ipadic");
     return arg;
 }
 #endif
@@ -91,10 +92,10 @@ MeCabQueryGenerator::MeCabQueryGenerator()
 {
 #if defined(Q_OS_WIN)
     QByteArray mecabArg = genMecabArg();
-#elif defined(APPIMAGE) || defined(APPBUNDLE)
+#elif defined(MEMENTO_APPBUNDLE)
     QByteArray mecabArg = ( \
-        "-r " + DirectoryUtils::getDictionaryDir() + "ipadic" + SLASH + "dicrc " \
-        "-d " + DirectoryUtils::getDictionaryDir() + "ipadic" \
+        "-r " + DirectoryUtils::getMecabDictionary() + "ipadic" + QDir::separator() + "dicrc " \
+        "-d " + DirectoryUtils::getMecabDictionary() + "ipadic" \
     ).toUtf8();
 #else
     QByteArray mecabArg = "";
@@ -102,7 +103,7 @@ MeCabQueryGenerator::MeCabQueryGenerator()
     m_tagger.reset(MeCab::createTagger(mecabArg));
     if (m_tagger == nullptr)
     {
-        qDebug() << MeCab::getTaggerError();
+        qWarning("Could not create MeCab::Tagger: %s", MeCab::getTaggerError());
     }
 }
 
@@ -122,8 +123,7 @@ std::vector<SearchQuery> MeCabQueryGenerator::generateQueries(
     lattice->set_sentence(textArr);
     if (!m_tagger->parse(lattice.get()))
     {
-        qDebug() << "Cannot access MeCab";
-        qDebug() << MeCab::getLastError();
+        qWarning("Cannot access MeCab: %s", MeCab::getLastError());
         return {};
     }
     std::vector<MeCabQuery> mecabQueries =

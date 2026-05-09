@@ -18,10 +18,9 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef MECABQUERYGENERATOR_H
-#define MECABQUERYGENERATOR_H
+#pragma once
 
-#include "querygenerator.h"
+#include "dict/querygenerator.h"
 
 #include <memory>
 
@@ -104,5 +103,3 @@ private:
     /* The object used for interacting with MeCab */
     std::unique_ptr<MeCab::Tagger> m_tagger{nullptr};
 };
-
-#endif // MECABQUERYGENERATOR_H

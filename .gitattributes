@@ -1,0 +1,4 @@
+# Specify MeCab dictionary files are binary
+*.bin binary
+*.def binary
+*.dic binary

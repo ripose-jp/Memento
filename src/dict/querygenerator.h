@@ -18,12 +18,11 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef QUERYGENERATOR_H
-#define QUERYGENERATOR_H
+#pragma once
 
 #include <vector>
 
-#include "searchquery.h"
+#include "dict/searchquery.h"
 
 /**
  * Interface class for generating search queries from text.
@@ -62,5 +61,3 @@ public:
     virtual std::vector<SearchQuery> generateQueries(
         const QString &text) const = 0;
 };
-
-#endif // QUERYGENERATOR_H

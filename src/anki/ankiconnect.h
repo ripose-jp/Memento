@@ -18,6 +18,11 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+#pragma once
+
+/**
+ * @brief Namespace holding AnkiConnect field values and commands.
+ */
 namespace AnkiConnect
 {
     namespace Req
@@ -78,7 +83,6 @@ namespace AnkiConnect
             constexpr const char *ALLOW_DUP = "allowDuplicate";
             constexpr const char *SCOPE = "duplicateScope";
             constexpr const char *SCOPE_CHECK_DECK = "deck";
-
         }
     }
 }

@@ -1,15 +1,11 @@
-cmake_minimum_required(VERSION 3.15...3.25)
-
-if(${CMAKE_VERSION} VERSION_LESS 3.12)
-    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
-endif()
+cmake_minimum_required(VERSION 3.16)
 
 project(
-	Memento
-	VERSION 1.7.2
-	DESCRIPTION "An mpv-based video player for studying Japanese"
+    Memento
+    VERSION 0.0.0
+    DESCRIPTION "An mpv-based video player for studying Japanese"
 	HOMEPAGE_URL "https://ripose-jp.github.io/Memento"
-	LANGUAGES CXX C
+    LANGUAGES C CXX
 )
 
 # Set the default build type
@@ -33,15 +29,11 @@ if(EXISTS "${LOC_PATH}")
     message(FATAL_ERROR "You cannot build in a source directory (or any directory with a CMakeLists.txt file). Please make a build subdirectory. Feel free to remove CMakeCache.txt and CMakeFiles.")
 endif()
 
-# Options
 add_subdirectory(option)
 
 # Check that dangerous options have no been toggled
-if(NOT APPLE AND APPBUNDLE)
-	message(FATAL_ERROR "You cannot set the APPBUNDLE option to ON on non-Apple platforms.")
-endif()
-if(UNIX AND NOT APPLE AND APPIMAGE)
-	message(FATAL_ERROR "You cannot set the APPIMAGE option to ON on non-Unix or Apple platforms.")
+if(NOT APPLE AND MEMENTO_APPBUNDLE)
+	message(FATAL_ERROR "You cannot set the MEMENTO_APPBUNDLE option to ON on non-Apple platforms.")
 endif()
 
 # Set the module path
@@ -57,17 +49,17 @@ list(
 	"-Wall"
 	"-Wextra"
 	"-Wpedantic"
-	"$<$<BOOL:${APPBUNDLE}>:-DAPPBUNDLE=1>"
-	"$<$<BOOL:${APPIMAGE}>:-DAPPIMAGE=1>"
-	"$<$<BOOL:${MECAB_SUPPORT}>:-DMECAB_SUPPORT=1>"
-	"$<$<BOOL:${OCR_SUPPORT}>:-DOCR_SUPPORT=1>"
-	"$<$<BOOL:${SYSTEM_QCORO}>:-DSYSTEM_QCORO=1>"
+	"$<$<BOOL:${MEMENTO_APPBUNDLE}>:-DMEMENTO_APPBUNDLE=1>"
+	"$<$<BOOL:${MEMENTO_ASAN}>:-fsanitize=address>"
+	"$<$<BOOL:${MEMENTO_MECAB_SUPPORT}>:-DMEMENTO_MECAB_SUPPORT=1>"
+	"$<$<BOOL:${MEMENTO_OCR_SUPPORT}>:-DMEMENTO_OCR_SUPPORT=1>"
+	"$<$<BOOL:${MEMENTO_QAPPLICATION}>:-DMEMENTO_QAPPLICATION=1>"
+	"$<$<BOOL:${MEMENTO_SYSTEM_QCORO}>:-DMEMENTO_SYSTEM_QCORO=1>"
+	"$<$<BOOL:${MEMENTO_WERROR}>:-Werror>"
 )
-
-# Set Qt preprocessor settings
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
+if(MEMENTO_ASAN)
+	add_link_options(-fsanitize=address)
+endif()
 
 # Get the Git version hash
 if(NOT RELEASE_BUILD)
@@ -82,20 +74,15 @@ if(NOT RELEASE_BUILD)
 	endif()
 endif()
 
-# Set macOS deployment target
-if(RELEASE_BUILD AND APPLE)
-	set(MACOSX_DEPLOYMENT_TARGET "11.0")
-endif()
-
 # Set the proper variables for macOS cross compilation
-if(MAC_CROSSCOMPILE_X86)
+if(MEMENTO_MAC_CROSSCOMPILE_X86)
 	set(CMAKE_OSX_ARCHITECTURES "x86_64")
 endif()
 
 # Generate include directories
-if(APPLE AND NOT MAC_CROSSCOMPILE_X86)
+if(APPLE AND NOT MEMENTO_MAC_CROSSCOMPILE_X86)
 	# This makes sure Memento builds on whatever arch is native
-	# The order of directories MATTERS because M1 users may crosscompile but
+	# The order of directories MATTERS because M1 users may cross compile but
 	# x86_64 users will not
 	set(
 		MEMENTO_INCLUDE_DIRS
@@ -108,8 +95,8 @@ if(APPLE AND NOT MAC_CROSSCOMPILE_X86)
 		"/usr/local/opt/qt6/include/"
 		"/usr/local/include"
 	)
-elseif(APPLE AND MAC_CROSSCOMPILE_X86)
-	# This is a crosscomile target, x86_64 users shouldn't need to use this
+elseif(APPLE AND MEMENTO_MAC_CROSSCOMPILE_X86)
+	# This is a cross compile target, x86_64 users shouldn't need to use this
 	set(
 		MEMENTO_INCLUDE_DIRS
 		"/usr/local/opt/qt6/include/"
@@ -119,7 +106,7 @@ endif()
 list(PREPEND MEMENTO_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src")
 
 # Set prefix path for macOS
-if(APPLE AND NOT MAC_CROSSCOMPILE_X86)
+if(APPLE AND NOT MEMENTO_MAC_CROSSCOMPILE_X86)
 	# x86_64 locations
 	list(PREPEND CMAKE_PREFIX_PATH "/usr/local/opt")
 	list(PREPEND CMAKE_PREFIX_PATH "/usr/local/")
@@ -127,66 +114,51 @@ if(APPLE AND NOT MAC_CROSSCOMPILE_X86)
 	# arm64 locations
 	list(PREPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt")
 	list(PREPEND CMAKE_PREFIX_PATH "/opt/homebrew")
-elseif(APPLE AND MAC_CROSSCOMPILE_X86)
+elseif(APPLE AND MEMENTO_MAC_CROSSCOMPILE_X86)
 	# x86_64 locations
 	list(PREPEND CMAKE_PREFIX_PATH "/usr/local/opt")
 	list(PREPEND CMAKE_PREFIX_PATH "/usr/local/")
 endif()
 
-# Dependencies
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 find_package(JsonC REQUIRED)
 find_package(libzip REQUIRED)
 find_package(mpv REQUIRED)
 find_package(SQLite3 REQUIRED)
-if(UNIX AND NOT APPLE) # Linux and Unix
-	find_package(
-		Qt6 REQUIRED
-		COMPONENTS
-			Concurrent
-			DBus
-			Gui
-			Network
-			OpenGLWidgets
-			Svg
-			Widgets
-	)
-elseif(WIN32) # Windows
-	find_package(
-		Qt6 REQUIRED
-		COMPONENTS
-			Concurrent
-			Gui
-			GuiPrivate
-			Network
-			OpenGLWidgets
-			Svg
-			Widgets
-	)
-else() # Apple
-	find_package(
-		Qt6 REQUIRED
-		COMPONENTS
-			Concurrent
-			Gui
-			Network
-			OpenGLWidgets
-			Svg
-			Widgets
-	)
+if(MEMENTO_SYSTEM_QCORO)
+	find_package(QCoro6 REQUIRED COMPONENTS Core Network Qml)
 endif()
-if(SYSTEM_QCORO)
-	find_package(QCoro6 REQUIRED COMPONENTS Core Network)
-endif()
-if(MECAB_SUPPORT)
+if(MEMENTO_MECAB_SUPPORT)
 	find_package(MeCab REQUIRED)
 endif()
-if(OCR_SUPPORT AND SYSTEM_MOCR)
+if(MEMENTO_OCR_SUPPORT AND MEMENTO_SYSTEM_MOCR)
 	find_package(mocr REQUIRED)
 endif()
 
-# Include CMake Modules
-include(FetchContent)
+set(
+	MEMENTO_QT_COMPONENTS
+	Concurrent
+	Core
+	Gui
+	Network
+	OpenGL
+	Qml
+	Quick
+	QuickControls2
+	Svg
+)
+if(UNIX AND NOT APPLE)
+	list(APPEND MEMENTO_QT_COMPONENTS DBus)
+endif()
+if(MEMENTO_QAPPLICATION)
+	list(APPEND MEMENTO_QT_COMPONENTS Widgets)
+endif()
+find_package(Qt6 REQUIRED COMPONENTS ${MEMENTO_QT_COMPONENTS})
+unset(MEMENTO_QT_COMPONENTS)
 
-# Subdirectories
+qt_standard_project_setup(REQUIRES 6.8)
+
 add_subdirectory(extern)
 add_subdirectory(src)
+add_subdirectory(res)
