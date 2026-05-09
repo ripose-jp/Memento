@@ -366,7 +366,6 @@ Page {
             SettingsBox {
                 id: searchBox
                 Layout.preferredWidth: root.preferredWidth
-                Layout.topMargin: root.groupSpacing
                 Layout.alignment: Qt.AlignHCenter
                 title: qsTr("Search")
 
