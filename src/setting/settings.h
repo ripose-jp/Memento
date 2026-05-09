@@ -355,13 +355,6 @@ class Settings : public QObject
     )
 
     Q_PROPERTY(
-        bool interfaceMenubarFullscreen
-        READ interfaceMenubarFullscreen
-        WRITE setInterfaceMenubarFullscreen
-        NOTIFY interfaceMenubarFullscreenChanged
-    )
-
-    Q_PROPERTY(
         int interfacePopupWidth
         READ interfacePopupWidth
         WRITE setInterfacePopupWidth
@@ -1405,24 +1398,6 @@ public:
         const QColor &value = Keys::Interface::Subtitle::STROKE_COLOR_DEFAULT);
 
     /**
-     * @brief Gets if the menubar should be shown in fullscreen mode.
-     *
-     * @return true if the menubar should be shown in fullscreen mode,
-     * @return false to hide the menubar in fullscreen mode.
-     */
-    [[nodiscard]]
-    bool interfaceMenubarFullscreen() const noexcept;
-
-    /**
-     * @brief Sets if the menubar should be shown in fullscreen mode.
-     *
-     * @param value true to show the menubar in fullscreen mode, false
-     * to hide the menubar in fullscreen mode.
-     */
-    void setInterfaceMenubarFullscreen(
-        bool value = Keys::Interface::MENUBAR_FULLSCREEN_DEFAULT);
-
-    /**
      * @brief Gets the search popup width.
      *
      * @return The search popup width.
@@ -2086,13 +2061,6 @@ signals:
     void interfaceSubtitleStrokeColorChanged(const QColor &value);
 
     /**
-     * @brief Emitted when the interface menubar fullscreen setting is changed.
-     *
-     * @param value The new value.
-     */
-    void interfaceMenubarFullscreenChanged(bool value);
-
-    /**
      * @brief Emitted when the interface popup width setting is changed.
      *
      * @param value The new value.
@@ -2462,9 +2430,6 @@ private:
         QColor subtitleStrokeColor{
             Keys::Interface::Subtitle::STROKE_COLOR_DEFAULT
         };
-
-        /* true if the menubar should be visible in fullscreen */
-        bool menubarFullscreen{Keys::Interface::MENUBAR_FULLSCREEN_DEFAULT};
 
         /* The width of the search popup */
         int popupWidth{Keys::Interface::POPUP_WIDTH_DEFAULT};

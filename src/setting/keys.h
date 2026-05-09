@@ -254,9 +254,6 @@ namespace Keys
             constexpr const char *STROKE_COLOR_DEFAULT = "#FF000000";
         }
 
-        constexpr const char *MENUBAR_FULLSCREEN = "menubar-fullscreen";
-        constexpr bool MENUBAR_FULLSCREEN_DEFAULT = true;
-
         constexpr const char *POPUP_WIDTH = "sub-popup-width";
         constexpr int POPUP_WIDTH_DEFAULT = 500;
 

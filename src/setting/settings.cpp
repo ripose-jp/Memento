@@ -688,12 +688,6 @@ void Settings::loadInterfaceSettings()
             Keys::Interface::SEARCH_WINDOW_DEFAULT
         ).toBool()
     );
-    setInterfaceMenubarFullscreen(
-        s.value(
-            Keys::Interface::MENUBAR_FULLSCREEN,
-            Keys::Interface::MENUBAR_FULLSCREEN_DEFAULT
-        ).toBool()
-    );
     setInterfacePopupWidth(
         s.value(
             Keys::Interface::POPUP_WIDTH,
@@ -848,10 +842,6 @@ void Settings::writeInterfaceSettings()
         interfaceSubtitleStrokeColor().name(QColor::HexArgb)
     );
     s.setValue(
-        Keys::Interface::MENUBAR_FULLSCREEN,
-        interfaceMenubarFullscreen()
-    );
-    s.setValue(
         Keys::Interface::POPUP_WIDTH,
         interfacePopupWidth()
     );
@@ -938,7 +928,6 @@ void Settings::defaultInterfaceSettings()
     setInterfaceSubtitleColor();
     setInterfaceSubtitleBackground();
     setInterfaceSubtitleStrokeColor();
-    setInterfaceMenubarFullscreen();
     setInterfacePopupWidth();
     setInterfacePopupHeight();
     setInterfaceSearchWindow();
@@ -1966,21 +1955,6 @@ void Settings::setInterfaceSubtitleStrokeColor(const QColor &value)
     }
     m_interface.subtitleStrokeColor = value;
     emit interfaceSubtitleStrokeColorChanged(m_interface.subtitleStrokeColor);
-}
-
-bool Settings::interfaceMenubarFullscreen() const noexcept
-{
-    return m_interface.menubarFullscreen;
-}
-
-void Settings::setInterfaceMenubarFullscreen(bool value)
-{
-    if (m_interface.menubarFullscreen == value)
-    {
-        return;
-    }
-    m_interface.menubarFullscreen = value;
-    emit interfaceMenubarFullscreenChanged(m_interface.menubarFullscreen);
 }
 
 int Settings::interfacePopupWidth() const noexcept
