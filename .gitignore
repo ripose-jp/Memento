@@ -82,7 +82,7 @@ CMakeLists.txt.user*
 /build*/
 
 # User Entires
-.vscode
-.qtcreator
 .cache
+.qtcreator
+.vscode
 src/qml/util/Features.qml

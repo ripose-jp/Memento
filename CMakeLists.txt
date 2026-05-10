@@ -159,6 +159,10 @@ unset(MEMENTO_QT_COMPONENTS)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
+if(WIN32)
+	add_subdirectory(windows)
+endif()
+
 add_subdirectory(extern)
 add_subdirectory(src)
 add_subdirectory(res)
