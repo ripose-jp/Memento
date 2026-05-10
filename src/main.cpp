@@ -305,10 +305,14 @@ int main(int argc, char *argv[])
 #endif // defined(Q_OS_WIN)
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
-    QQuickStyle::setStyle(QStringLiteral("FluentWinUI3"));
+    if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE"))
+    {
+        QQuickStyle::setStyle(QStringLiteral("FluentWinUI3"));
+    }
 #else
     /* Try to avoid overriding the default theme unless it's org.kde.desktop */
-    if (QQuickStyle::name() == "org.kde.desktop")
+    if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE") &&
+        QQuickStyle::name() == "org.kde.desktop")
     {
         QQuickStyle::setStyle(QStringLiteral("org.kde.breeze"));
         QQuickStyle::setFallbackStyle(QStringLiteral("org.kde.desktop"));
