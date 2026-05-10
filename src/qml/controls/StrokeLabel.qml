@@ -12,7 +12,7 @@ Item {
     property real strokeSize: 1.0
     property real lineSpacing: 0
 
-    readonly property real margin: root.strokeSize
+    readonly property real margin: root.strokeSize / 2
 
     /**
      * Creates a JSON model for a given string where each \n is it's own object.
@@ -45,47 +45,41 @@ Item {
         /* This is a hack to force redraws of text when one property changes */
         Connections {
             target: root
-            function onTextChanged()
-            {
+            function onTextChanged() {
                 repeaterShape.model = root.makeTextModel(root.text);
             }
         }
         Connections {
             target: root
-            function onFontChanged()
-            {
+            function onFontChanged() {
                 repeaterShape.model = [];
                 repeaterShape.model = root.makeTextModel(root.text);
             }
         }
         Connections {
             target: root
-            function onColorChanged()
-            {
+            function onColorChanged() {
                 repeaterShape.model = [];
                 repeaterShape.model = root.makeTextModel(root.text);
             }
         }
         Connections {
             target: root
-            function onBackgroundChanged()
-            {
+            function onBackgroundChanged() {
                 repeaterShape.model = [];
                 repeaterShape.model = root.makeTextModel(root.text);
             }
         }
         Connections {
             target: root
-            function onStrokeChanged()
-            {
+            function onStrokeChanged() {
                 repeaterShape.model = [];
                 repeaterShape.model = root.makeTextModel(root.text);
             }
         }
         Connections {
             target: root
-            function onStrokeSizeChanged()
-            {
+            function onStrokeSizeChanged() {
                 repeaterShape.model = [];
                 repeaterShape.model = root.makeTextModel(root.text);
             }
@@ -97,9 +91,6 @@ Item {
             model: root.makeTextModel(root.text)
             delegate: Shape {
                 id: shape
-
-                width: pathTextStroke.implicitWidth
-                height: pathTextStroke.implicitHeight
                 anchors.horizontalCenter: parent.horizontalCenter
                 layer.enabled: true
                 layer.samples: 8

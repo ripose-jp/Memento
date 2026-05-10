@@ -19,7 +19,7 @@ Item {
     readonly property string selectedText: root.text.substring(
                                                root.selectionStart, root.selectionEnd)
 
-    readonly property real margin: root.strokeSize
+    readonly property real margin: root.strokeSize / 2
 
     signal clicked()
     signal doubleClicked()
@@ -97,47 +97,41 @@ Item {
         /* This is a hack to force redraws of text when one property changes */
         Connections {
             target: root
-            function onTextChanged()
-            {
+            function onTextChanged() {
                 repeaterShape.model = root.makeTextModel(root.text);
             }
         }
         Connections {
             target: root
-            function onFontChanged()
-            {
+            function onFontChanged() {
                 repeaterShape.model = [];
                 repeaterShape.model = root.makeTextModel(root.text);
             }
         }
         Connections {
             target: root
-            function onColorChanged()
-            {
+            function onColorChanged() {
                 repeaterShape.model = [];
                 repeaterShape.model = root.makeTextModel(root.text);
             }
         }
         Connections {
             target: root
-            function onBackgroundChanged()
-            {
+            function onBackgroundChanged() {
                 repeaterShape.model = [];
                 repeaterShape.model = root.makeTextModel(root.text);
             }
         }
         Connections {
             target: root
-            function onStrokeChanged()
-            {
+            function onStrokeChanged() {
                 repeaterShape.model = [];
                 repeaterShape.model = root.makeTextModel(root.text);
             }
         }
         Connections {
             target: root
-            function onStrokeSizeChanged()
-            {
+            function onStrokeSizeChanged() {
                 repeaterShape.model = [];
                 repeaterShape.model = root.makeTextModel(root.text);
             }
@@ -149,9 +143,6 @@ Item {
             model: root.makeTextModel(root.text)
             delegate: Shape {
                 id: shape
-
-                width: pathTextStroke.implicitWidth
-                height: pathTextStroke.implicitHeight
                 anchors.horizontalCenter: parent.horizontalCenter
                 layer.enabled: true
                 layer.samples: 8
@@ -194,8 +185,6 @@ Item {
 
                     strokeWidth: 0
                     fillColor: MementoPalette.highlight
-                    startX: root.margin + selectionPath.area.x
-                    startY: 0
 
                     readonly property rect area: selectionPath.getSelectionBounds(
                                                      root.selectionStart, root.selectionEnd)
@@ -226,27 +215,18 @@ Item {
                         const startRect = shadowText.positionToRectangle(start);
                         const endRect = shadowText.positionToRectangle(end);
 
-                        const startX = startRect.x;
-                        const endX = endRect.x + endRect.width;
-
-                        return Qt.rect(startX, 0, endX - startX, shape.height);
+                        const startX = root.margin + startRect.x;
+                        const endX = root.margin + endRect.x + endRect.width;
+                        const startY = 0
+                        const endY = shape.height;
+                        return Qt.rect(startX, startY, endX - startX, endY - startY);
                     }
 
-                    PathLine {
-                        x: selectionPath.startX + selectionPath.area.width
-                        y: 0
-                    }
-                    PathLine {
-                        x: selectionPath.startX + selectionPath.area.width
-                        y: shape.height
-                    }
-                    PathLine {
-                        x: selectionPath.startX
-                        y: shape.height
-                    }
-                    PathLine {
-                        x: selectionPath.startX
-                        y: 0
+                    PathRectangle {
+                        x: selectionPath.area.x
+                        y: selectionPath.area.y
+                        width: selectionPath.area.width
+                        height: selectionPath.area.height
                     }
                 }
 
@@ -257,6 +237,7 @@ Item {
                     fillRule: ShapePath.WindingFill
 
                     PathText {
+                        id: pathTextFill
                         x: root.margin
                         y: root.margin
                         font: root.font
