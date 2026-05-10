@@ -3,30 +3,37 @@ name: Build CI
 on:
   push:
     branches:
-      - master
-      - dev
+      - v2.0.0-testing
   pull_request:
     branches:
-      - master
-      - dev
+      - v2.0.0-testing
 
 jobs:
   linux:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout Repository
+      uses: actions/checkout@v4
 
     - name: Install Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install qt6-base-dev libqt6svg6-dev libmpv-dev libsqlite3-dev libmecab-dev mecab-ipadic libjson-c-dev libzip-dev mesa-common-dev python3-dev
+        sudo apt-get install libmpv-dev libsqlite3-dev libmecab-dev mecab-ipadic libjson-c-dev libzip-dev mesa-common-dev
+
+    - name: Install Qt 6.9
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.9.*'
+        host: 'linux'
+        target: 'desktop'
+        install-deps: 'true'
 
     - name: CMake Build
       run: |
         mkdir build
         cd build
-        cmake .. -DOCR_SUPPORT=ON -DMEMENTO_COMPILER_FLAGS=-Werror
+        cmake .. -DMEMENTO_OCR_SUPPORT=OFF -DMEMENTO_MECAB_SUPPORT=ON -DMEMENTO_WERROR=ON -DQT_NO_PRIVATE_MODULE_WARNING=OFF
         cmake --build . -j $(nproc)
 
   windows:
@@ -59,7 +66,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake .. -DOCR_SUPPORT=ON -DMEMENTO_COMPILER_FLAGS=-Werror
+        cmake .. -DMEMENTO_OCR_SUPPORT=OFF -DMEMENTO_MECAB_SUPPORT=ON -DMEMENTO_WERROR=ON
         cmake --build . -j $(nproc)
 
   macos:
@@ -77,5 +84,5 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake .. -DOCR_SUPPORT=ON -DMEMENTO_COMPILER_FLAGS=-Werror
+        cmake .. -DMEMENTO_OCR_SUPPORT=OFF -DMEMENTO_MECAB_SUPPORT=ON -DMEMENTO_WERROR=ON
         cmake --build . -j $(nproc)
