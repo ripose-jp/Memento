@@ -306,6 +306,13 @@ int main(int argc, char *argv[])
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
     QQuickStyle::setStyle(QStringLiteral("FluentWinUI3"));
+#else
+    /* Try to avoid overriding the default theme unless it's org.kde.desktop */
+    if (QQuickStyle::name() == "org.kde.desktop")
+    {
+        QQuickStyle::setStyle(QStringLiteral("org.kde.breeze"));
+        QQuickStyle::setFallbackStyle(QStringLiteral("org.kde.desktop"));
+    }
 #endif // defined(Q_OS_MACOS) || defined(Q_OS_WIN)
 
     QQmlApplicationEngine engine;
