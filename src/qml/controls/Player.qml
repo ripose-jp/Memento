@@ -406,20 +406,19 @@ MpvPlayer {
          * Starts the search timer and sets start state.
          */
         function startSearchTimer() {
-            if (!root.state.pause)
+            if (subtitleText.hoverIndex === definitionPopup.lastHoverIndex)
             {
                 return;
             }
-            else if (subtitleText.hoverIndex < 0)
-            {
-                return;
-            }
-            else if (subtitleText.hoverIndex === definitionPopup.lastHoverIndex)
-            {
-                return;
-            }
-
             definitionPopup.lastHoverIndex = subtitleText.hoverIndex;
+            if (subtitleText.hoverIndex < 0)
+            {
+                return;
+            }
+            else if (!root.state.pause)
+            {
+                return;
+            }
             definitionPopupTimer.restart();
         }
 
