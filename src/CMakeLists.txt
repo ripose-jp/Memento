@@ -69,6 +69,7 @@ qt_add_qml_module(
         qml/definition/TermEntry.qml
         qml/definition/TermGlossary.qml
         qml/definition/TermPitch.qml
+        qml/dialogs/UpdateDialog.qml
         qml/Main.qml
         qml/objects/AudioFiles.qml
         qml/objects/CursorTimer.qml

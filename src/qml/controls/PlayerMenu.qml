@@ -491,6 +491,11 @@ MenuBar {
                              Qt.openUrlExternally(`file:///${MementoPaths.config}`) :
                              Qt.openUrlExternally(`file://${MementoPaths.config}`)
         }
+
+        Action {
+            text: qsTr("&Check for Updates")
+            onTriggered: updateDialog.check(false);
+        }
     }
 
     FileDialog {
@@ -537,6 +542,10 @@ MenuBar {
         ]
         title: qsTr("Select Subtitle File")
         onAccepted: root.player.controller.loadSubtitle(selectedFile)
+    }
+
+    UpdateDialog {
+        id: updateDialog
     }
 
     OptionsWindow {
