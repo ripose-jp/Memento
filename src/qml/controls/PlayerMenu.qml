@@ -494,7 +494,12 @@ MenuBar {
 
         Action {
             text: qsTr("&Check for Updates")
-            onTriggered: updateDialog.check(false);
+            onTriggered: updateDialog.check(false)
+        }
+
+        Action {
+            text: qsTr("&About Memento")
+            onTriggered: aboutWindow.show()
         }
     }
 
@@ -550,5 +555,9 @@ MenuBar {
 
     OptionsWindow {
         id: optionsWindow
+    }
+
+    AboutWindow {
+        id: aboutWindow
     }
 }

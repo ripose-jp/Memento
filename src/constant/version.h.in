@@ -18,8 +18,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef VERSION_H
-#define VERSION_H
+#pragma once
 
 namespace Memento
 {
@@ -32,14 +31,9 @@ namespace Memento
     /* Patch version number */
     constexpr unsigned int VERSION_PATCH{@PROJECT_VERSION_PATCH@};
 
-    /* Tweak version number */
-    constexpr unsigned int VERSION_TWEAK{@PROJECT_VERSION_TWEAK@};
-
     /* Complete version string. Does not contain v */
     constexpr const char *VERSION{"@PROJECT_VERSION@"};
 
     /* Git version hash. Empty if RELEASE_BUILD=ON. */
     constexpr const char *VERSION_HASH{"@MEMENTO_VERSION_HASH@"};
 }
-
-#endif // VERSION_H

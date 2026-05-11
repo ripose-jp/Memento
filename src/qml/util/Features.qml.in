@@ -5,6 +5,21 @@ import QtQml
 QtObject {
     id: root
 
+    /* Major version number */
+    readonly property int versionMajor: @PROJECT_VERSION_MAJOR@
+
+    /* Minor version number */
+    readonly property int versionMinor: @PROJECT_VERSION_MINOR@
+
+    /* Patch version number */
+    readonly property int versionPatch: @PROJECT_VERSION_PATCH@
+
+    /* Complete version string. Does not contain v */
+    readonly property string version: "@PROJECT_VERSION@"
+
+    /* Git version hash. Empty if RELEASE_BUILD=ON. */
+    readonly property string versionHash: "@MEMENTO_VERSION_HASH@"
+
     enum Platform {
         Unknown = 0,
         Windows = 1,

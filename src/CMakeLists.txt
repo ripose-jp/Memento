@@ -88,6 +88,7 @@ qt_add_qml_module(
         qml/util/Features.qml
         qml/util/MementoPalette.qml
         qml/util/Utils.qml
+        qml/windows/AboutWindow.qml
 )
 target_compile_features(memento PRIVATE cxx_std_20)
 target_include_directories(memento PRIVATE ${MEMENTO_INCLUDE_DIRS})
