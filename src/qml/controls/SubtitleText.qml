@@ -49,6 +49,7 @@ Item {
             return;
         }
 
+        root.clearSelection();
         root.selectionStart = start;
         root.selectionEnd = end;
     }
@@ -144,8 +145,10 @@ Item {
             delegate: Shape {
                 id: shape
                 anchors.horizontalCenter: parent.horizontalCenter
+                antialiasing: true
                 layer.enabled: true
-                layer.samples: 8
+                layer.samples: 4
+                layer.smooth: true
 
                 // This draws the background
                 ShapePath {
@@ -212,8 +215,8 @@ Item {
                             return Qt.rect(0, 0, 0, 0);
                         }
 
-                        const startRect = shadowText.positionToRectangle(start);
-                        const endRect = shadowText.positionToRectangle(end);
+                        const startRect = textEdit.positionToRectangle(start);
+                        const endRect = textEdit.positionToRectangle(end);
 
                         const startX = root.margin + startRect.x;
                         const endX = root.margin + endRect.x + endRect.width;
@@ -247,10 +250,10 @@ Item {
 
                 // This text edit is only used for hit testing, it is not shown
                 TextEdit {
-                    id: shadowText
+                    id: textEdit
 
-                    x: root.margin // This centers the text horizontally perfectly
-                    anchors.verticalCenter: shape.verticalCenter
+                    x: root.margin
+                    y: root.margin - (textMetrics.tightBoundingRect.y - textMetrics.boundingRect.y)
                     font: root.font
                     color: "transparent"
                     readOnly: true
@@ -259,42 +262,53 @@ Item {
                     wrapMode: TextEdit.NoWrap
                     text: modelData.text
 
+                    TextMetrics {
+                        id: textMetrics
+                        font: textEdit.font
+                        text: textEdit.text
+                        renderType: textEdit.renderType
+                    }
+
                     /**
                      * Returns the index into the root.text property for the
                      * given x-coordinate.
-                     * @param x The x-coordinate in shadowText space.
+                     * @param x The x-coordinate in textEdit space.
                      * @return The index of the given coordinates in root.text.
                      */
                     function getCharacterIndexAt(x) {
-                        const pos = shadowText.positionAt(x, 0);
-                        const rect = shadowText.positionToRectangle(pos);
+                        const pos = textEdit.positionAt(x, 0);
+                        const rect = textEdit.positionToRectangle(pos);
                         const actualIndex = (x < rect.x) ? pos - 1 : pos;
-                        const lineIndex = Math.max(0, Math.min(shadowText.text.length - 1, actualIndex));
+                        const lineIndex = Math.max(0, Math.min(textEdit.text.length - 1, actualIndex));
                         return lineIndex + modelData.offset;
                     }
+                }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
-                        cursorShape: root.cursorShape
-                        onPositionChanged: function(mouse) {
-                            let index = shadowText.getCharacterIndexAt(mouse.x);
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+                    cursorShape: root.cursorShape
+                    onPositionChanged: function(mouse) {
+                        let x = mouse.x - root.margin;
+                        if (x >= 0)
+                        {
+                            let index = textEdit.getCharacterIndexAt(x);
                             root.hoverIndex = index;
                         }
-                        onClicked: function(event) {
-                            if (event.button === Qt.LeftButton)
-                            {
-                                root.clicked();
-                            }
-                            else if (event.button === Qt.MiddleButton)
-                            {
-                                root.middleClicked();
-                            }
-                        }
-                        onDoubleClicked: root.doubleClicked()
-                        onExited: root.hoverIndex = -1
                     }
+                    onClicked: function(event) {
+                        if (event.button === Qt.LeftButton)
+                        {
+                            root.clicked();
+                        }
+                        else if (event.button === Qt.MiddleButton)
+                        {
+                            root.middleClicked();
+                        }
+                    }
+                    onDoubleClicked: root.doubleClicked()
+                    onExited: root.hoverIndex = -1
                 }
             }
         }

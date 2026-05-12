@@ -92,8 +92,10 @@ Item {
             delegate: Shape {
                 id: shape
                 anchors.horizontalCenter: parent.horizontalCenter
+                antialiasing: true
                 layer.enabled: true
-                layer.samples: 8
+                layer.samples: 4
+                layer.smooth: true
 
                 // This draws the background
                 ShapePath {
