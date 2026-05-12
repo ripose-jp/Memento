@@ -339,13 +339,13 @@ namespace Keys
             constexpr const char *TEXT_COLOR_DEFAULT = "#FFFFFFFF";
 
             constexpr const char *HOVER_COLOR = "sub-list-hover-color";
-            constexpr const char *HOVER_COLOR_DEFAULT = "#FF1A1A1A";
+            constexpr const char *HOVER_COLOR_DEFAULT = "#FF1A3B5C";
 
             constexpr const char *SELECTED_COLOR = "sub-list-selected-color";
-            constexpr const char *SELECTED_COLOR_DEFAULT = "#FF333333";
+            constexpr const char *SELECTED_COLOR_DEFAULT = "#FF295A8A";
 
             constexpr const char *SELECTED_HOVER_COLOR = "sub-list-selected-hover-color";
-            constexpr const char *SELECTED_HOVER_COLOR_DEFAULT = "#FF474747";
+            constexpr const char *SELECTED_HOVER_COLOR_DEFAULT = "#FF3F576E";
 
             constexpr const char *PRIMARY_FONT = "sub-list-primary-font";
             const QFont PRIMARY_FONT_DEFAULT(
