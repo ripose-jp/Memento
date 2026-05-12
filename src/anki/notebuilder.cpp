@@ -1133,12 +1133,12 @@ static GlossaryData getGlossary(const QList<TermDefinition *> &definitions)
             data.glossaryCompact += tag->name() + ", ";
         }
         data.glossary += def->dictionaryInfo()->name();
-        data.glossary += ")</i>";
+        data.glossary += ")</i> ";
         data.glossaryCompact += def->dictionaryInfo()->name();
-        data.glossaryCompact += ")</i>";
+        data.glossaryCompact += ")</i> ";
 
-        data.glossary += "<ul>";
-        data.glossaryCompact += ' ';
+        data.glossary += "<span><ul>";
+        data.glossaryCompact += "<span>";
 
         QStringList items = GlossaryBuilder::buildGlossary(
             def->glossary(),
@@ -1157,8 +1157,8 @@ static GlossaryData getGlossary(const QList<TermDefinition *> &definitions)
         }
         data.glossaryCompact += items.join(" | ");
 
-        data.glossary += "</ul></li>";
-        data.glossaryCompact += "</li>";
+        data.glossary += "</ul></span></li>";
+        data.glossaryCompact += "</span></li>";
     }
 
     data.glossary += "</ol></div>";
