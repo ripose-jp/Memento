@@ -12,7 +12,7 @@ Item {
     property real strokeSize: 1.0
     property real lineSpacing: 0
 
-    readonly property real margin: root.strokeSize / 2
+    readonly property int margin: Math.ceil(root.strokeSize / 2.0)
 
     /**
      * Creates a JSON model for a given string where each \n is it's own object.

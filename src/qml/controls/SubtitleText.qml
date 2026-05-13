@@ -19,7 +19,7 @@ Item {
     readonly property string selectedText: root.text.substring(
                                                root.selectionStart, root.selectionEnd)
 
-    readonly property real margin: root.strokeSize / 2
+    readonly property int margin: Math.ceil(root.strokeSize / 2.0)
 
     signal clicked()
     signal doubleClicked()
@@ -142,131 +142,107 @@ Item {
             id: repeaterShape
 
             model: root.makeTextModel(root.text)
-            delegate: Shape {
-                id: shape
+            delegate: Item {
+                id: delegateItem
                 anchors.horizontalCenter: parent.horizontalCenter
-                antialiasing: true
-                layer.enabled: true
-                layer.samples: 4
-                layer.smooth: true
+                width: Math.max(shape.width, textMetrics.tightBoundingRect.width)
+                height: Math.max(shape.height, textMetrics.tightBoundingRect.height)
+                clip: true
 
-                // This draws the background
-                ShapePath {
-                    fillColor: root.background
-                    strokeColor: "transparent"
-                    strokeWidth: 0
-
-                    PathRectangle {
-                        x: 0
-                        y: 0
-                        width: shape.width
-                        height: shape.height
-                    }
+                TextMetrics {
+                    id: textMetrics
+                    font: textEdit.font
+                    text: textEdit.text
+                    renderType: textEdit.renderType
                 }
 
-                // This draws the text stroke
-                ShapePath {
-                    strokeWidth: root.strokeSize
-                    strokeColor: root.stroke
-                    fillColor: "transparent"
-                    fillRule: ShapePath.WindingFill
-                    joinStyle: ShapePath.RoundJoin
-                    capStyle: ShapePath.RoundCap
+                Shape {
+                    id: shape
+                    antialiasing: true
+                    layer.enabled: true
+                    layer.samples: 4
+                    layer.smooth: true
 
-                    PathText {
-                        id: pathTextStroke
-                        x: root.margin
-                        y: root.margin
-                        font: root.font
-                        text: modelData.text
-                    }
-                }
+                    // This draws the background
+                    ShapePath {
+                        fillColor: root.background
+                        strokeColor: "transparent"
+                        strokeWidth: 0
 
-                // This draws the selection if there is one
-                ShapePath {
-                    id: selectionPath
-
-                    strokeWidth: 0
-                    fillColor: MementoPalette.highlight
-
-                    readonly property rect area: selectionPath.getSelectionBounds(
-                                                     root.selectionStart, root.selectionEnd)
-
-                    /**
-                     * Returns a rectangle of the area to draw.
-                     * @param start The starting index in root.text (inclusive)
-                     * @param end The ending index in root.text (exclusive)
-                     * @return A rect representing the area to draw on this line
-                     */
-                    function getSelectionBounds(start, end) {
-                        const minIndex = modelData.offset;
-                        const maxIndex = minIndex + modelData.text.length;
-
-                        const overlap = minIndex <= end && start <= maxIndex;
-                        if (!overlap)
-                        {
-                            return Qt.rect(0, 0, 0, 0);
+                        PathRectangle {
+                            x: 0
+                            y: 0
+                            width: shape.width
+                            height: shape.height
                         }
+                    }
 
-                        start = Math.max(start - minIndex, 0);
-                        end = Math.min(end - minIndex, modelData.text.length);
-                        if (start >= end)
-                        {
-                            return Qt.rect(0, 0, 0, 0);
+                    // This draws the text stroke
+                    ShapePath {
+                        strokeWidth: root.strokeSize
+                        strokeColor: root.stroke
+                        fillColor: "transparent"
+                        fillRule: ShapePath.WindingFill
+                        joinStyle: ShapePath.RoundJoin
+                        capStyle: ShapePath.RoundCap
+
+                        PathText {
+                            id: pathTextStroke
+                            x: root.margin
+                            y: root.margin
+                            font: root.font
+                            text: modelData.text
                         }
-
-                        const startRect = textEdit.positionToRectangle(start);
-                        const endRect = textEdit.positionToRectangle(end);
-
-                        const startX = root.margin + startRect.x;
-                        const endX = root.margin + endRect.x + endRect.width;
-                        const startY = 0
-                        const endY = shape.height;
-                        return Qt.rect(startX, startY, endX - startX, endY - startY);
-                    }
-
-                    PathRectangle {
-                        x: selectionPath.area.x
-                        y: selectionPath.area.y
-                        width: selectionPath.area.width
-                        height: selectionPath.area.height
                     }
                 }
 
-                // This fills in the text on top of the stroke layer
-                ShapePath {
-                    strokeWidth: 0
-                    fillColor: root.color
-                    fillRule: ShapePath.WindingFill
-
-                    PathText {
-                        id: pathTextFill
-                        x: root.margin
-                        y: root.margin
-                        font: root.font
-                        text: modelData.text
-                    }
-                }
-
-                // This text edit is only used for hit testing, it is not shown
                 TextEdit {
                     id: textEdit
 
                     x: root.margin
                     y: root.margin - (textMetrics.tightBoundingRect.y - textMetrics.boundingRect.y)
                     font: root.font
-                    color: "transparent"
+                    color: root.color
                     readOnly: true
                     selectByMouse: false
                     selectByKeyboard: false
+                    selectionColor: MementoPalette.highlight
                     wrapMode: TextEdit.NoWrap
                     text: modelData.text
 
-                    TextMetrics {
-                        id: textMetrics
-                        font: textEdit.font
-                        text: textEdit.text
-                        renderType: textEdit.renderType
+                    Connections {
+                        target: root
+                        function onSelectionStartChanged() {
+                            textEdit.updateSelection();
+                        }
+                    }
+                    Connections {
+                        target: root
+                        function onSelectionEndChanged() {
+                            textEdit.updateSelection();
+                        }
+                    }
+
+                    /**
+                     * Update the selection with the new selectionStart and selectionEnd values.
+                     */
+                    function updateSelection() {
+                        if (root.selectionStart < 0 || root.selectionEnd < 0)
+                        {
+                            textEdit.deselect();
+                            return;
+                        }
+
+                        let start = root.selectionStart - modelData.offset;
+                        start = Math.max(start, 0);
+                        let end = root.selectionEnd - modelData.offset;
+                        end = Math.min(end, textEdit.text.length);
+                        if (start >= end)
+                        {
+                            textEdit.deselect();
+                            return;
+                        }
+                        textEdit.select(start, end);
                     }
 
                     /**
@@ -291,7 +267,7 @@ Item {
                     cursorShape: root.cursorShape
                     onPositionChanged: function(mouse) {
                         let x = mouse.x - root.margin;
-                        if (x >= 0)
+                        if (x >= 0 && x < textEdit.width)
                         {
                             let index = textEdit.getCharacterIndexAt(x);
                             root.hoverIndex = index;

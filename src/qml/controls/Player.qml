@@ -465,19 +465,23 @@ MpvPlayer {
             root.controller.setSubtitleVisibility(!subtitleText.visible);
         }
 
-        anchors.horizontalCenter: root.horizontalCenter
-        /* Makes sure UI elements don't obscure the subtitles or that they go offscreen */
-        y: {
-            let minValue = controls.visible ? controls.height : 0;
-            let maxValue = root.height - subtitleText.height;
-            if (Features.platform !== Features.MacOS && menu.visible)
-            {
-                maxValue -= menu.height;
+        anchors {
+            horizontalCenter: root.horizontalCenter
+            bottom: root.bottom
+
+            /* Makes sure UI elements don't obscure the subtitles or that they go offscreen */
+            bottomMargin: {
+                let minValue = controls.visible ? controls.height : 0;
+                let maxValue = root.height - subtitleText.height;
+                if (Features.platform !== Features.MacOS && menu.visible)
+                {
+                    maxValue -= menu.height;
+                }
+                let margin = root.height * MementoSettings.interfaceSubtitleOffset;
+                margin = Math.max(margin, minValue);
+                margin = Math.min(margin, maxValue);
+                return margin;
             }
-            let margin = root.height * MementoSettings.interfaceSubtitleOffset;
-            margin = Math.max(margin, minValue);
-            margin = Math.min(margin, maxValue);
-            return Math.round(root.height - (subtitleText.height + margin));
         }
 
         /* Prevents text from being wider than the window */
