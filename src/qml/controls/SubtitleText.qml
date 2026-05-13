@@ -95,59 +95,17 @@ Item {
         anchors.centerIn: parent
         spacing: root.lineSpacing
 
-        /* This is a hack to force redraws of text when one property changes */
-        Connections {
-            target: root
-            function onTextChanged() {
-                repeaterShape.model = root.makeTextModel(root.text);
-            }
-        }
-        Connections {
-            target: root
-            function onFontChanged() {
-                repeaterShape.model = [];
-                repeaterShape.model = root.makeTextModel(root.text);
-            }
-        }
-        Connections {
-            target: root
-            function onColorChanged() {
-                repeaterShape.model = [];
-                repeaterShape.model = root.makeTextModel(root.text);
-            }
-        }
-        Connections {
-            target: root
-            function onBackgroundChanged() {
-                repeaterShape.model = [];
-                repeaterShape.model = root.makeTextModel(root.text);
-            }
-        }
-        Connections {
-            target: root
-            function onStrokeChanged() {
-                repeaterShape.model = [];
-                repeaterShape.model = root.makeTextModel(root.text);
-            }
-        }
-        Connections {
-            target: root
-            function onStrokeSizeChanged() {
-                repeaterShape.model = [];
-                repeaterShape.model = root.makeTextModel(root.text);
-            }
-        }
-
         Repeater {
             id: repeaterShape
 
             model: root.makeTextModel(root.text)
-            delegate: Item {
-                id: delegateItem
+            delegate: Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
-                width: Math.max(shape.width, textMetrics.tightBoundingRect.width)
-                height: Math.max(shape.height, textMetrics.tightBoundingRect.height)
+                width: Math.max(strokeShape.width, textMetrics.tightBoundingRect.width)
+                height: Math.max(strokeShape.height, textMetrics.tightBoundingRect.height)
                 clip: true
+
+                color: root.background
 
                 TextMetrics {
                     id: textMetrics
@@ -157,27 +115,12 @@ Item {
                 }
 
                 Shape {
-                    id: shape
+                    id: strokeShape
                     antialiasing: true
                     layer.enabled: true
                     layer.samples: 4
                     layer.smooth: true
 
-                    // This draws the background
-                    ShapePath {
-                        fillColor: root.background
-                        strokeColor: "transparent"
-                        strokeWidth: 0
-
-                        PathRectangle {
-                            x: 0
-                            y: 0
-                            width: shape.width
-                            height: shape.height
-                        }
-                    }
-
-                    // This draws the text stroke
                     ShapePath {
                         strokeWidth: root.strokeSize
                         strokeColor: root.stroke
