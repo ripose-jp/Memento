@@ -208,6 +208,7 @@ Item {
                     selectByKeyboard: false
                     selectionColor: MementoPalette.highlight
                     wrapMode: TextEdit.NoWrap
+                    renderType: TextEdit.QtRendering
                     text: modelData.text
 
                     Connections {
