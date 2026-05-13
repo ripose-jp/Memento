@@ -31,7 +31,7 @@
 #include "dict/data/data.h"
 
 /**
- * Manages all interaction with the dictionary database on the backend.
+ * @brief Manages all interaction with the dictionary database on the backend.
  */
 class DatabaseManager : public QObject
 {
@@ -39,8 +39,8 @@ class DatabaseManager : public QObject
 
 public:
     /**
-     * Constructs a database manager with the specified database. Creates the
-     * database if it doesn't already exist.
+     * @brief Constructs a database manager with the specified database. Creates
+     * the database if it doesn't already exist.
      *
      * @param path The path to the dictionary database.
      * @param parent The parent of this manager.
@@ -49,7 +49,7 @@ public:
     virtual ~DatabaseManager();
 
     /**
-     * Get if the database is being modified.
+     * @brief Get if the database is being modified.
      *
      * @return true if the data is being modified,
      * @return false otherwise.
@@ -58,7 +58,7 @@ public:
     bool modifyingDatabase() const noexcept;
 
     /**
-     * Adds a dictionary to the database.
+     * @brief Adds a dictionary to the database.
      *
      * @param path Path to the dictionary.
      * @return Error code. Can be turned into a string with a call to
@@ -67,7 +67,7 @@ public:
     int addDictionary(QString path);
 
     /**
-     * Deletes a dictionary from the database.
+     * @brief Deletes a dictionary from the database.
      *
      * @param id The id of the dictionary.
      * @return Error code. Can be turned into a string with a call to
@@ -76,7 +76,7 @@ public:
     int deleteDictionary(int64_t id);
 
     /**
-     * Enables a dictionary.
+     * @brief Enables a dictionary.
      *
      * @param id The id of the dictionary.
      * @return Error code. Can be turned into a string with a call to
@@ -85,7 +85,7 @@ public:
     int enableDictionary(int64_t id);
 
     /**
-     * Disables a dictionary.
+     * @brief Disables a dictionary.
      *
      * @param id The id of the dictionary.
      * @return Error code. Can be turned into a string with a call to
@@ -94,7 +94,8 @@ public:
     int disableDictionary(int64_t id);
 
     /**
-     * Get the list of dictionaries in the database. Belongs to the caller.
+     * @brief Get the list of dictionaries in the database. Belongs to the
+     * caller.
      *
      * @param parent The parent of the DictionaryInfos.
      * @return A list of dictionary metadata.
@@ -103,8 +104,9 @@ public:
     QList<DictionaryInfo *> getDictionaries(QObject *parent = nullptr) const;
 
     /**
-     * Searches for terms that exactly match the query. Does automatic
+     * @brief Searches for terms that exactly match the query. Does automatic
      * conversion from katakana to hiragana.
+     *
      * @param query The term to query for.
      * @param parent The parent of the terms.
      * @param[out] error The reason for failure on error. Empty on success.
@@ -117,7 +119,7 @@ public:
         QString *error = nullptr) const;
 
     /**
-     * Searches for kanji that exactly match the query.
+     * @brief Searches for kanji that exactly match the query.
      *
      * @param query The kanji to look for. Should be a single character.
      * @param parent The parent of the kanji.
@@ -131,7 +133,7 @@ public:
         QString *error = nullptr) const;
 
     /**
-     * Translates an error code to a human readable string.
+     * @brief Translates an error code to a human readable string.
      *
      * @param code The error code.
      * @return A string describing the error.
@@ -141,7 +143,7 @@ public:
 
 signals:
     /**
-     * Emitted when the modifying database property is updated.
+     * @brief Emitted when the modifying database property is updated.
      *
      * @param value true if modifying the database, false otherwise.
      */
@@ -149,18 +151,18 @@ signals:
 
 private:
     /**
-     * Initializes the dictionary cache so IDs can be quickly mapped to
+     * @brief Initializes the dictionary cache so IDs can be quickly mapped to
      * DictionaryInfo.
      */
     int initCache();
 
     /**
-     * Clears the dictionary cache.
+     * @brief Clears the dictionary cache.
      */
     void clearDictionaryCache();
 
     /**
-     * Clears the tag cache.
+     * @brief Clears the tag cache.
      */
     void clearTagCache();
 
@@ -172,7 +174,7 @@ private:
     void setModifyingDatabase(bool value);
 
     /**
-     * Get the dictionary that corresponds to the ID.
+     * @brief Get the dictionary that corresponds to the ID.
      *
      * @param id The id of the dictionary to look for.
      * @return The DictionaryInfo if found, nullptr if not.
@@ -181,7 +183,7 @@ private:
     DictionaryInfo *getDictionary(int64_t id) const;
 
     /**
-     * Populates term information for queryTerms.
+     * @brief Populates term information for queryTerms.
      *
      * @param[out] terms A list of Term objects with the expression and reading
      * fields populated.
@@ -190,7 +192,7 @@ private:
     int populateTerms(const QList<Term *> &terms) const;
 
     /**
-     * Helper method for retrieving tag information.
+     * @brief Helper method for retrieving tag information.
      *
      * @param id The id of the dictionary the tag comes from.
      * @param tagStr The name of the tag.
@@ -219,7 +221,7 @@ private:
         QObject *parent = nullptr) const;
 
     /**
-     * Adds term frequencies to a Term struct.
+     * @brief Adds term frequencies to a Term struct.
      *
      * @param[out] term The term struct to add frequencies to.
      * @return An SQLite error code on failure.
@@ -227,7 +229,7 @@ private:
     int addFrequencies(Term *term) const;
 
     /**
-     * Adds kanji frequencies to a Kanji struct.
+     * @brief Adds kanji frequencies to a Kanji struct.
      *
      * @param[out] kanji The kanji struct to add frequencies to.
      * @return An SQLite error code on failure.
@@ -235,8 +237,8 @@ private:
     int addFrequencies(Kanji *kanji) const;
 
     /**
-     * Adds frequencies to a frequency list. Should probably not be called
-     * directly.
+     * @brief Adds frequencies to a frequency list. Should probably not be
+     * called directly.
      *
      * @param query The sql query to use on the database. Must take
      * one bind.
@@ -254,7 +256,7 @@ private:
         int *error = nullptr) const;
 
     /**
-     * Helper method for adding pitch accents to a Term.
+     * @brief Helper method for adding pitch accents to a Term.
      *
      * @param[out] term The term to add pitch accents to. Must have the
      * expression field set.
@@ -263,7 +265,7 @@ private:
     int addPitches(Term *term) const;
 
     /**
-     * Converts half-width katakana to full-width katakana.
+     * @brief Converts half-width katakana to full-width katakana.
      *
      * @param query The query string to convert.
      */
@@ -271,7 +273,8 @@ private:
     static QString halfToFull(const QString &query);
 
     /**
-     * Converts all the katakana in a string to their equivalent hiragana.
+     * @brief Converts all the katakana in a string to their equivalent
+     * hiragana.
      *
      * @param query The string to convert.
      * @return Query with all the katakana replaced with hiragana.
@@ -280,7 +283,7 @@ private:
     static QString kataToHira(QString query);
 
     /**
-     * Converts a raw JSON array of strings to a QStringList.
+     * @brief Converts a raw JSON array of strings to a QStringList.
      *
      * @param jsonstr A raw JSON string representing an array of strings.
      * @return The QStringList containing all the elements of the JSON string.
@@ -289,7 +292,9 @@ private:
     static QStringList jsonArrayToStringList(const char *jsonstr);
 
     /**
-     * Helper method for determining if an SQLite step resulted in an error.
+     * @brief Helper method for determining if an SQLite step resulted in an
+     * error.
+     *
      * @param step The value returned form sqlite3_step().
      * @return true if code is an error, false otherwise.
      */

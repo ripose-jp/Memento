@@ -23,7 +23,7 @@
 #include "dict/querygenerator.h"
 
 /**
- * Query generator that uses look up tables to deconjugate phrases.
+ * @brief Query generator that uses look up tables to deconjugate phrases.
  */
 class DeconjugationQueryGenerator final : public QueryGenerator
 {
@@ -31,7 +31,8 @@ public:
     virtual ~DeconjugationQueryGenerator() = default;
 
     /**
-     * Returns if the query generator is valid.
+     * @brief Returns if the query generator is valid.
+     *
      * @return true if the generator is valid,
      * @return false otherwise.
      */
@@ -42,7 +43,8 @@ public:
     }
 
     /**
-     * Generates queries from a given text string.
+     * @brief Generates queries from a given text string.
+     *
      * @param text The text string to generate queries from.
      * @return The list of generated queries.
      */

@@ -23,6 +23,9 @@
 #include <QString>
 #include <QList>
 
+/**
+ * @brief Describes all possible word forms.
+ */
 enum class WordForm
 {
     godanVerb,
@@ -71,7 +74,7 @@ enum class WordForm
 };
 
 /**
- * A struct that contains the results of a deconjugation
+ * @brief A struct that contains the results of a deconjugation.
  */
 struct ConjugationInfo
 {
@@ -90,11 +93,12 @@ struct ConjugationInfo
 };
 
 /**
- * Attempts to deconjugate a word
- * @param query         The query to attempt to deconjugate
- * @param sentenceMode  If enabled, treats the query as a sentence and will
- *                      find potential words by trimming the query
+ * @brief Attempts to deconjugate a word
+ *
+ * @param query The query to attempt to deconjugate
+ * @param sentenceMode If enabled, treats the query as a sentence and will find
+ * potential words by trimming the query
  * @return A list of all the potential deconjugations found
  */
 QList<ConjugationInfo> deconjugate(
-    const QString query, bool sentenceMode = true);
+    QString query, bool sentenceMode = true);

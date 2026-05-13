@@ -24,7 +24,7 @@
 #include <QString>
 
 /**
- * A pair to search for. The deconjugated string is used for querying the
+ * @brief A pair to search for. The deconjugated string is used for querying the
  * database and the surface string is used for cloze generation.
  */
 struct SearchQuery

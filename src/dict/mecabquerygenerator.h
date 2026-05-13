@@ -27,7 +27,7 @@
 #include <mecab.h>
 
 /**
- * Query generator that uses MeCab backed by ipadic to deconjugate text.
+ * @brief Query generator that uses MeCab backed by IPAdic to deconjugate text.
  */
 class MeCabQueryGenerator final : public QueryGenerator
 {
@@ -36,7 +36,8 @@ public:
     virtual ~MeCabQueryGenerator() = default;
 
     /**
-     * Returns if the query generator is valid.
+     * @brief Returns if the query generator is valid.
+     *
      * @return true if the generator is valid,
      * @return false otherwise.
      */
@@ -47,7 +48,8 @@ public:
     }
 
     /**
-     * Generates queries from a given text string.
+     * @brief Generates queries from a given text string.
+     *
      * @param text The text string to generate queries from.
      * @return The list of generated queries.
      */
@@ -57,8 +59,8 @@ public:
 
 private:
     /**
-     * A special SearchPair that contains additional information needed by
-     * MeCab.
+     * @brief A special SearchPair that contains additional information needed
+     * by MeCab.
      */
     struct MeCabQuery : public SearchQuery
     {
@@ -67,9 +69,9 @@ private:
     };
 
     /**
-     * Recursively generates queries and surface strings from a node.
+     * @brief Recursively generates queries and surface strings from a node.
      * @param node The node to start at. Usually the next node after the BOS
-     *             node. Is nullptr safe.
+     * node. Is nullptr safe.
      * @return A list of conjugated string and surface (raw) strings.
      */
     [[nodiscard]]
@@ -77,7 +79,8 @@ private:
         const MeCab::Node *node);
 
     /**
-     * Gets the deconjugated word from a MeCab node.
+     * @brief Gets the deconjugated word from a MeCab node.
+     *
      * @param node The node to get the deconjugation from.
      * @return The deconjugated word, * if there was an error.
      */
@@ -85,7 +88,8 @@ private:
     static inline QString extractDeconjugation(const MeCab::Node *node);
 
     /**
-     * Gets the surface string including whitespace from a MeCab node.
+     * @brief Gets the surface string including whitespace from a MeCab node.
+     *
      * @param node The MeCab node to get the surface from.
      * @return The surface string including whitespace.
      */
@@ -93,7 +97,8 @@ private:
     static inline QString extractSurface(const MeCab::Node *node);
 
     /**
-     * Gets the surface string without whitespace from a MeCab node.
+     * @brief Gets the surface string without whitespace from a MeCab node.
+     *
      * @param node The MeCab node to get the surface from.
      * @return The surface string without whitespace.
      */

@@ -22,13 +22,18 @@
 
 #include "dict/querygenerator.h"
 
+/**
+ * @brief A class that generates queries from substrings exactly as they appear
+ * in the source text.
+ */
 class ExactQueryGenerator final : public QueryGenerator
 {
 public:
     virtual ~ExactQueryGenerator() = default;
 
     /**
-     * ExactQueryGenerator is always valid.
+     * @brief ExactQueryGenerator is always valid.
+     *
      * @return Always returns true.
      */
     [[nodiscard]]
@@ -38,7 +43,7 @@ public:
     }
 
     /**
-     * Generates a list of queries from the given text.
+     * @brief Generates a list of queries from the given text.
      * For a query like 昨日すき焼きを食べました, return results are like
      * 昨日すき焼きを食べました
      * 昨日すき焼きを食べまし
@@ -52,6 +57,7 @@ public:
      * 昨日す
      * 昨日
      * 昨
+     *
      * @param text The text to turn into queries
      * @return The list of generated queries
      */
