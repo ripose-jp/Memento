@@ -672,20 +672,36 @@ static QString formatDerivation(QList<WordForm> derivations)
 
 QList<ConjugationInfo> deconjugate(const QString query, bool sentenceMode)
 {
+    static const QRegularExpression WHITESPACE_REGEX("\\s");
+
     QList<ConjugationInfo> results;
     if (sentenceMode)
     {
-        QString word = query;
-        while (!word.isEmpty())
+        QString conjugated = query;
+        while (!conjugated.isEmpty())
         {
-            ConjugationInfo detail = { word, word, QList<WordForm>(), "" };
+            QString word = conjugated;
+            word.remove(WHITESPACE_REGEX);
+            ConjugationInfo detail = {
+                word, conjugated, QList<WordForm>(), ""
+            };
             deconjugateRecursive(detail, results);
-            word.chop(1);
+            do
+            {
+                conjugated.chop(1);
+            }
+            while (
+                !conjugated.isEmpty() &&
+                WHITESPACE_REGEX.match(conjugated.back()).hasMatch()
+            );
+
         }
     }
     else
     {
-        ConjugationInfo detail = { query, query, QList<WordForm>(), ""};
+        QString word = query;
+        word.remove(WHITESPACE_REGEX);
+        ConjugationInfo detail = { word, query, QList<WordForm>(), ""};
         deconjugateRecursive(detail, results);
     }
 

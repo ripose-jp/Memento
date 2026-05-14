@@ -22,6 +22,8 @@
 
 #include "dict/querygenerator.h"
 
+#include <QRegularExpression>
+
 /**
  * @brief A class that generates queries from substrings exactly as they appear
  * in the source text.
@@ -64,4 +66,7 @@ public:
     [[nodiscard]]
     std::vector<SearchQuery> generateQueries(
         const QString &text) const override;
+
+private:
+    const QRegularExpression m_whitespaceRegex{"\\s"};
 };
