@@ -37,6 +37,7 @@ std::vector<SearchQuery> ExactQueryGenerator::generateQueries(
         sq.deconj.remove(m_whitespaceRegex);
         if (sq.deconj != query)
         {
+            sq.surface = query.trimmed();
             queries.emplace_back(std::move(sq));
         }
 
