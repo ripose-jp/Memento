@@ -63,18 +63,13 @@ SettingsBox {
             Layout.fillWidth: true
         }
 
-        Rectangle {
+        Frame {
             Layout.fillWidth: true
             Layout.preferredHeight: 400
-            color: "transparent"
-            border.color: MementoPalette.border
-            border.width: 1
-            radius: root.radius
 
             ListView {
                 id: fieldListView
                 anchors.fill: parent
-                anchors.margins: 5
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
                 ScrollBar.vertical: ScrollBar {
