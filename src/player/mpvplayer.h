@@ -20,7 +20,11 @@
 
 #pragma once
 
+#ifdef Q_OS_MACOS
+#include <QQuickItem>
+#else
 #include <QQuickFramebufferObject>
+#endif // Q_OS_MACOS
 
 #include <mpv/client.h>
 #include <mpv/render_gl.h>
@@ -28,10 +32,17 @@
 #include "player/mpvcontroller.h"
 #include "player/mpvstate.h"
 
+#ifdef Q_OS_MACOS
+class MpvMetalRenderer;
+using MpvPlayerBase = QQuickItem;
+#else
+using MpvPlayerBase = QQuickFramebufferObject;
+#endif // Q_OS_MACOS
+
 /**
  * @brief A component that creates an instance of mpv in QML.
  */
-class MpvPlayer : public QQuickFramebufferObject
+class MpvPlayer : public MpvPlayerBase
 {
     Q_OBJECT
 
@@ -74,12 +85,22 @@ public:
     void createRenderContext();
 
     /**
+     * @brief Destroys the mpv render context.
+     *
+     * The OpenGL context that was current when createRenderContext() was called
+     * must be current before this function is called.
+     */
+    void destroyRenderContext();
+
+    /**
      * @brief Creates a QQuickFramebufferObject::Renderer
      *
      * @return A pointer to the newly created renderer.
      */
+#ifndef Q_OS_MACOS
     [[nodiscard]]
     virtual Renderer *createRenderer() const;
+#endif // Q_OS_MACOS
 
     /**
      * @brief Gets the state object tracked by this mpv context.
@@ -204,4 +225,42 @@ private:
 
     /* The state object tracking this mpv player */
     MpvController *m_controller{new MpvController(this)};
+
+#ifdef Q_OS_MACOS
+protected:
+    /**
+     * @brief Called when the Qt Scene graph wants an update from the player.
+     *
+     * @param oldNode The current node in use. May be nullptr.
+     * @return The new node with the frame rendered.
+     */
+    [[nodiscard]]
+    QSGNode *updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *) override;
+
+    /**
+     * @brief Called when the player's geometry changes. Forces an update.
+     *
+     * @param newGeometry The new geometry of the Item.
+     * @param oldGeometry The new geometry of the Item.
+     */
+    void geometryChange(
+        const QRectF &newGeometry, const QRectF &oldGeometry) override;
+
+    /**
+     * @brief Called when something about this Item changes.
+     *
+     * Used to check for window changes so a new screen can be connected to.
+     *
+     * @param change The change in the item.
+     * @param value The new value.
+     */
+    void itemChange(ItemChange change, const ItemChangeData &value) override;
+
+private:
+    /* The Metal-OpenGL bridge renderer for macOS */
+    std::unique_ptr<MpvMetalRenderer> m_renderer;
+
+    /* The connection managing the screen change */
+    QMetaObject::Connection m_screenChangedConnection;
+#endif // Q_OS_MACOS
 };

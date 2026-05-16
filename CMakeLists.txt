@@ -8,6 +8,10 @@ project(
     LANGUAGES C CXX
 )
 
+if(APPLE)
+    enable_language(OBJCXX)
+endif()
+
 # Set the default build type
 set(default_build_type "RelWithDebInfo")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -151,12 +155,16 @@ set(
 	QuickControls2
 	Svg
 )
+if(APPLE)
+	list(APPEND MEMENTO_QT_COMPONENTS QuickPrivate)
+endif()
 if(UNIX AND NOT APPLE)
 	list(APPEND MEMENTO_QT_COMPONENTS DBus)
 endif()
 if(MEMENTO_QAPPLICATION)
 	list(APPEND MEMENTO_QT_COMPONENTS Widgets)
 endif()
+set(QT_NO_PRIVATE_MODULE_WARNING ON CACHE BOOL "Suppress Qt private module warning" FORCE)
 find_package(Qt6 REQUIRED COMPONENTS ${MEMENTO_QT_COMPONENTS})
 unset(MEMENTO_QT_COMPONENTS)
 

@@ -26,6 +26,12 @@
 #include "player/mpvrenderer.h"
 #include "util/utils.h"
 
+#ifdef Q_OS_MACOS
+#include <QSGSimpleTextureNode>
+
+#include "player/mpvmetalrenderer.h"
+#endif // Q_OS_MACOS
+
 /* Begin Static Callbacks */
 
 static void on_mpv_events(void *ctx)
@@ -53,7 +59,7 @@ static void *get_proc_address_mpv([[maybe_unused]] void *ctx, const char *name)
 /* End Static Callbacks */
 /* Begin Constructor/Deconstructor */
 
-MpvPlayer::MpvPlayer(QQuickItem *parent) : QQuickFramebufferObject(parent)
+MpvPlayer::MpvPlayer(QQuickItem *parent) : MpvPlayerBase(parent)
 {
     m_mpv = ::mpv_create();
     if (m_mpv == nullptr)
@@ -78,15 +84,23 @@ MpvPlayer::MpvPlayer(QQuickItem *parent) : QQuickFramebufferObject(parent)
         this, &MpvPlayer::doUpdate,
         Qt::QueuedConnection
     );
+    ::mpv_set_wakeup_callback(m_mpv, on_mpv_events, this);
+
+#ifdef Q_OS_MACOS
+    setFlag(ItemHasContents, true);
+    m_renderer = std::make_unique<MpvMetalRenderer>(this);
+#endif // Q_OS_MACOS
 }
 
 MpvPlayer::~MpvPlayer()
 {
-    if (m_mpv_gl)
-    {
-        mpv_render_context_free(m_mpv_gl);
-    }
-    mpv_terminate_destroy(m_mpv);
+#ifdef Q_OS_MACOS
+    m_renderer.reset();
+#else
+    destroyRenderContext();
+#endif // Q_OS_MACOS
+    ::mpv_set_wakeup_callback(m_mpv, nullptr, nullptr);
+    ::mpv_terminate_destroy(m_mpv);
 }
 
 /* End Constructor/Deconstructor */
@@ -599,25 +613,112 @@ void MpvPlayer::createRenderContext()
     emit renderContextCreated();
 }
 
+void MpvPlayer::destroyRenderContext()
+{
+    if (m_mpv_gl == nullptr)
+    {
+        return;
+    }
+
+    ::mpv_render_context_set_update_callback(m_mpv_gl, nullptr, nullptr);
+    ::mpv_render_context_free(m_mpv_gl);
+    m_mpv_gl = nullptr;
+}
+
+#ifndef Q_OS_MACOS
 QQuickFramebufferObject::Renderer *MpvPlayer::createRenderer() const
 {
-    /* This needs to be called from the thread the render was created on */
-    ::mpv_set_wakeup_callback(
-        m_mpv, on_mpv_events, const_cast<MpvPlayer *>(this)
-    );
-
     window()->setPersistentGraphics(true);
     window()->setPersistentSceneGraph(true);
     return new MpvRenderer(const_cast<MpvPlayer *>(this));
 }
+#endif // Q_OS_MACOS
 
 /* End mpv context methods */
 /* Begin Mpv Event Slots */
 
 void MpvPlayer::doUpdate()
 {
+#ifdef Q_OS_MACOS
+    if (m_renderer)
+    {
+        m_renderer->requestRender();
+    }
+#endif // Q_OS_MACOS
     update();
 }
+
+#ifdef Q_OS_MACOS
+QSGNode *MpvPlayer::updatePaintNode(
+    QSGNode *oldNode, [[maybe_unused]] UpdatePaintNodeData *data)
+{
+    QSGSimpleTextureNode *node = static_cast<QSGSimpleTextureNode *>(oldNode);
+    if (window() == nullptr || width() <= 0 || height() <= 0)
+    {
+        delete node;
+        return nullptr;
+    }
+
+    if (node == nullptr)
+    {
+        node = new QSGSimpleTextureNode;
+        node->setOwnsTexture(false);
+        node->setFiltering(QSGTexture::Linear);
+        node->setTextureCoordinatesTransform(QSGSimpleTextureNode::NoTransform);
+    }
+
+    const qreal dpr = window()->effectiveDevicePixelRatio();
+    const QSize pixelSize{
+        qMax(1, qRound(width() * dpr)),
+        qMax(1, qRound(height() * dpr))
+    };
+    m_renderer->setPixelSize(pixelSize);
+    if (QSGTexture *texture = m_renderer->texture(window()))
+    {
+        if (node->texture() != texture)
+        {
+            node->setTexture(texture);
+        }
+    }
+    node->setRect(boundingRect());
+    return node;
+}
+
+void MpvPlayer::geometryChange(
+    const QRectF &newGeometry, const QRectF &oldGeometry)
+{
+    MpvPlayerBase::geometryChange(newGeometry, oldGeometry);
+    if (newGeometry.size() != oldGeometry.size())
+    {
+        update();
+    }
+}
+
+void MpvPlayer::itemChange(ItemChange change, const ItemChangeData &value)
+{
+    MpvPlayerBase::itemChange(change, value);
+    if (change != ItemSceneChange)
+    {
+        return;
+    }
+
+    if (m_screenChangedConnection)
+    {
+        disconnect(m_screenChangedConnection);
+    }
+
+    if (QQuickWindow *newWindow = value.window)
+    {
+        newWindow->setPersistentGraphics(true);
+        newWindow->setPersistentSceneGraph(true);
+        m_screenChangedConnection = connect(
+            newWindow, &QWindow::screenChanged,
+            this, &MpvPlayer::update
+        );
+    }
+    update();
+}
+#endif // Q_OS_MACOS
 
 void MpvPlayer::handleMpvEvents()
 {

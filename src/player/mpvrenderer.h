@@ -26,6 +26,7 @@
 #include <mpv/render_gl.h>
 
 #include "player/mpvplayer.h"
+#include "player/mpvframebackend.h"
 
 /**
  * @brief The mpv render that allows mpv to render to the QML framebuffer.
@@ -59,4 +60,7 @@ public:
 private:
     /* The player that created this framebuffer */
     MpvPlayer *m_player{nullptr};
+
+    /* Shared mpv render core */
+    MpvFrameBackend m_frameBackend;
 };

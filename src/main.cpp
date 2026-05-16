@@ -32,10 +32,6 @@
 #include <QQuickStyle>
 #include <QQuickWindow>
 
-#ifdef Q_OS_MACOS
-#include <QSurfaceFormat>
-#endif // Q_OS_MACOS
-
 #ifdef MEMENTO_SYSTEM_QCORO
 #include <QCoroQml>
 #else
@@ -275,16 +271,9 @@ int main(int argc, char *argv[])
     /* Make the icon show up on Wayland */
     QGuiApplication::setDesktopFileName("memento");
 
-    /* Make sure to use OpenGL */
+#ifndef Q_OS_MACOS
+    /* mpv uses OpenGL on these platforms, so Qt Quick must share that API. */
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
-
-#ifdef Q_OS_MACOS
-    /* Use the latest version of OpenGL available on macOS */
-    QSurfaceFormat format;
-    format.setVersion(4, 1);
-    format.setProfile(QSurfaceFormat::CoreProfile);
-    format.setOption(QSurfaceFormat::DeprecatedFunctions, false);
-    QSurfaceFormat::setDefaultFormat(format);
 #endif // Q_OS_MACOS
 
 #ifdef MEMENTO_QAPPLICATION

@@ -2,6 +2,8 @@ add_library(
     mpvplayer
     mpvcontroller.cpp
     mpvcontroller.h
+    mpvframebackend.cpp
+    mpvframebackend.h
     mpvplayer.cpp
     mpvplayer.h
     mpvrenderer.cpp
@@ -13,6 +15,21 @@ add_library(
     mpvtrack.cpp
     mpvtrack.h
 )
+if(APPLE)
+    target_sources(
+        mpvplayer
+        PRIVATE mpvmetalrenderer.h
+        PRIVATE mpvmetalrenderer.mm
+    )
+    target_link_libraries(
+        mpvplayer
+        PRIVATE "-framework CoreVideo"
+        PRIVATE "-framework IOSurface"
+        PRIVATE "-framework Metal"
+        PRIVATE "-framework OpenGL"
+        PRIVATE Qt6::QuickPrivate
+    )
+endif()
 target_compile_features(mpvplayer PRIVATE cxx_std_20)
 target_include_directories(mpvplayer PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_compile_options(mpvplayer PRIVATE ${MEMENTO_COMPILER_FLAGS})

@@ -18,34 +18,32 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "player/mpvrenderer.h"
+#include "player/mpvframebackend.h"
 
-#include <QQuickWindow>
-#include <QOpenGLFramebufferObject>
+#include <mpv/render_gl.h>
 
-MpvRenderer::MpvRenderer(MpvPlayer *player) :
-    m_player{player},
-    m_frameBackend{player}
+#include "player/mpvplayer.h"
+
+MpvFrameBackend::MpvFrameBackend(MpvPlayer *player) : m_player{player}
 {
 
 }
 
-QOpenGLFramebufferObject *MpvRenderer::createFramebufferObject(
-    const QSize &size)
+void MpvFrameBackend::renderToFramebuffer(
+    unsigned int framebuffer, const QSize &size)
 {
-    if (m_player->renderContext() == nullptr)
-    {
-        m_player->createRenderContext();
-    }
-    return QQuickFramebufferObject::Renderer::createFramebufferObject(size);
-}
+    mpv_opengl_fbo mpfbo{
+        .fbo = static_cast<int>(framebuffer),
+        .w = size.width(),
+        .h = size.height(),
+        .internal_format = 0
+    };
+    int flipY{0};
 
-void MpvRenderer::render()
-{
-    m_player->window()->beginExternalCommands();
-
-    QOpenGLFramebufferObject *fbo = framebufferObject();
-    m_frameBackend.renderToFramebuffer(fbo->handle(), fbo->size());
-
-    m_player->window()->endExternalCommands();
+    mpv_render_param params[]{
+        {MPV_RENDER_PARAM_OPENGL_FBO, &mpfbo},
+        {MPV_RENDER_PARAM_FLIP_Y, &flipY},
+        {MPV_RENDER_PARAM_INVALID, nullptr}
+    };
+    ::mpv_render_context_render(m_player->renderContext(), params);
 }
