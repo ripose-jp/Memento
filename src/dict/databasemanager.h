@@ -42,10 +42,14 @@ public:
      * @brief Constructs a database manager with the specified database. Creates
      * the database if it doesn't already exist.
      *
-     * @param path The path to the dictionary database.
+     * @param dbPath The path to the dictionary database.
+     * @param resourcePath Path to the resource directory.
      * @param parent The parent of this manager.
      */
-    DatabaseManager(const QString &path, QObject *parent = nullptr);
+    DatabaseManager(
+        const QString &dbPath,
+        const QString &resourcePath,
+        QObject *parent = nullptr);
     virtual ~DatabaseManager();
 
     /**
@@ -150,6 +154,13 @@ signals:
     void modifyingDatabaseChanged(bool value);
 
 private:
+    /**
+     * @brief Load dictionary assets into the dictionary info.
+     *
+     * @param info The info to load assets into.
+     */
+    void loadDictionaryAssets(DictionaryInfo *info) const;
+
     /**
      * @brief Initializes the dictionary cache so IDs can be quickly mapped to
      * DictionaryInfo.
@@ -301,8 +312,11 @@ private:
     [[nodiscard]]
     static bool inline isStepError(const int step);
 
-    /* Saved path to the database. */
-    const QByteArray m_dbpath;
+    /* Saved path to the database */
+    const QByteArray m_dbPath;
+
+    /* Saved path to the resource directory */
+    const QString m_resourcePath;
 
     /* A readonly connection to the dictionary database. */
     sqlite3 *m_db{nullptr};

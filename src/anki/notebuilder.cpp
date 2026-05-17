@@ -24,6 +24,7 @@
 
 #include <QDir>
 #include <QHash>
+#include <QSet>
 
 #include "anki/ankiconnect.h"
 #include "anki/marker.h"
@@ -536,6 +537,10 @@ static std::optional<AudioMediaParams> getAudioMediaParams(
     {
         std::optional<TimingSource> source =
             getTimingSource(marker.args[SOURCE_KEY]);
+        if (!source)
+        {
+            return {};
+        }
         params.source = *source;
     }
 
@@ -629,6 +634,10 @@ static std::optional<VideoParams> getVideoParams(
     {
         std::optional<TimingSource> source =
             getTimingSource(marker.args[SOURCE_KEY]);
+        if (!source)
+        {
+            return {};
+        }
         params.source = *source;
     }
 
@@ -1099,31 +1108,71 @@ static int getFrequencyAverage(const QList<Frequency *> &frequencies)
 [[nodiscard]]
 static GlossaryData getGlossary(const QList<TermDefinition *> &definitions)
 {
+    constexpr const char *GLOSSARY_OPEN =
+        "<div class=\"yomitan-glossary memento-glossary\">"
+            "<ol>";
+    constexpr const char *GLOSSARY_CLOSE =
+        "<style>"
+            ".memento-glossary {"
+                "text-align: left;"
+            "}"
+
+            ".memento-glossary img {"
+                "display: inline-block;"
+            "}"
+
+            ".memento-glossary table {"
+                "table-layout: auto;"
+                "border-collapse: collapse;"
+            "}"
+
+            ".memento-glossary th {"
+                "font-weight: bold;"
+                "border-style: solid;"
+                "padding: 0.25em;"
+                "vertical-align: top;"
+                "border-width: 1px;"
+                "border-color: currentColor;"
+            "}"
+
+            ".memento-glossary td {"
+                "border-style: solid;"
+                "padding: 0.25em;"
+                "vertical-align: top;"
+                "border-width: 1px;"
+                "border-color: currentColor;"
+            "}"
+        "</style></ol></div>";
+    static const QString LIST_ITEM_DICTIONARY = "<li data-dictionary=\"%1\">";
+
     if (definitions.empty())
     {
         return {};
     }
 
     GlossaryData data;
+    QSet<int64_t> dictionariesWithStyles;
 
     QString basepath =
         DirectoryUtils::getDictionaryResourceDir() + QDir::separator();
 
-    data.glossary += "<div style=\"text-align: left;\"><ol>";
-    data.glossaryBrief += "<div style=\"text-align: left;\"><ol>";
-    data.glossaryCompact += "<div style=\"text-align: left;\"><ol>";
+    data.glossary += GLOSSARY_OPEN;
+    data.glossaryBrief += GLOSSARY_OPEN;
+    data.glossaryCompact += GLOSSARY_OPEN;
 
-    for (const TermDefinition *def : definitions)
+    for (qsizetype i = 0; i < definitions.size(); ++i)
     {
+        const TermDefinition *def = definitions[i];
+
         if (!def->selected())
         {
             continue;
         }
 
         data.glossary +=
-            "<li data-dictionary=\"" + def->dictionaryInfo()->name() + "\">";
+            LIST_ITEM_DICTIONARY.arg(def->dictionaryInfo()->name());
         data.glossaryCompact +=
-            "<li data-dictionary=\"" + def->dictionaryInfo()->name() + "\">";
+            LIST_ITEM_DICTIONARY.arg(def->dictionaryInfo()->name());
 
         data.glossary += "<i>(";
         data.glossaryCompact += "<i>(";
@@ -1137,7 +1186,7 @@ static GlossaryData getGlossary(const QList<TermDefinition *> &definitions)
         data.glossaryCompact += def->dictionaryInfo()->name();
         data.glossaryCompact += ")</i> ";
 
-        data.glossary += "<span><ul>";
+        data.glossary += "<span>";
         data.glossaryCompact += "<span>";
 
         QStringList items = GlossaryBuilder::buildGlossary(
@@ -1147,9 +1196,7 @@ static GlossaryData getGlossary(const QList<TermDefinition *> &definitions)
         );
         for (const QString &item : items)
         {
-            data.glossary += "<li>";
             data.glossary += item;
-            data.glossary += "</li>";
 
             data.glossaryBrief += "<li>";
             data.glossaryBrief += item;
@@ -1157,13 +1204,31 @@ static GlossaryData getGlossary(const QList<TermDefinition *> &definitions)
         }
         data.glossaryCompact += items.join(" | ");
 
-        data.glossary += "</ul></span></li>";
+        data.glossary += "</span></li>";
         data.glossaryCompact += "</span></li>";
+
+        if (!def->dictionaryInfo()->styles().isEmpty() &&
+            !dictionariesWithStyles.contains(def->dictionaryInfo()->id()))
+        {
+            dictionariesWithStyles.insert(def->dictionaryInfo()->id());
+
+            data.glossary += "<style>";
+            data.glossary += def->dictionaryInfo()->styles();
+            data.glossary += "</style>";
+
+            data.glossaryBrief += "<style>";
+            data.glossaryBrief += def->dictionaryInfo()->styles();
+            data.glossaryBrief += "</style>";
+
+            data.glossaryCompact += "<style>";
+            data.glossaryCompact += def->dictionaryInfo()->styles();
+            data.glossaryCompact += "</style>";
+        }
     }
 
-    data.glossary += "</ol></div>";
-    data.glossaryBrief += "</ol></div>";
-    data.glossaryCompact += "</ol></div>";
+    data.glossary += GLOSSARY_CLOSE;
+    data.glossaryBrief += GLOSSARY_CLOSE;
+    data.glossaryCompact += GLOSSARY_CLOSE;
     return data;
 }
 

@@ -20,10 +20,12 @@
 
 #pragma once
 
-#include <QString>
-#include <QPair>
-#include <QList>
 #include <QJsonArray>
+#include <QJsonObject>
+#include <QList>
+#include <QPair>
+#include <QSet>
+#include <QString>
 
 /**
  * @brief Builds Anki-compatible glossaries.
@@ -59,6 +61,33 @@ public:
 
 private:
     GlossaryBuilder() {}
+
+    /**
+     * @brief Escape a string for use in HTML.
+     *
+     * @param str The string to escape.
+     * @return An HTML escaped string.
+     */
+    [[nodiscard]]
+    static QString escapeHtml(const QString &str);
+
+    /**
+     * @brief Convert a structured data key to an HTML data attribute name.
+     *
+     * @param key The structured data key.
+     * @return The HTML data attribute name.
+     */
+    [[nodiscard]]
+    static QString structuredDataAttributeName(const QString &key);
+
+    /**
+     * @brief Check if a structured content tag is supported.
+     *
+     * @param tag The structured content tag to check.
+     * @return true if the tag is supported, false otherwise.
+     */
+    [[nodiscard]]
+    static bool isSupportedStructuredTag(const QString &tag);
 
     /**
      * @brief Add structured data attributes to the string.

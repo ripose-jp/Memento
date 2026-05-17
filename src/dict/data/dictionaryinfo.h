@@ -52,6 +52,13 @@ class DictionaryInfo : public QObject
         NOTIFY enabledChanged
     )
 
+    Q_PROPERTY(
+        QString styles
+        READ styles
+        WRITE setStyles
+        NOTIFY stylesChanged
+    )
+
     friend class DictionarySearch;
 
 public:
@@ -59,7 +66,7 @@ public:
     virtual ~DictionaryInfo();
 
     /**
-     * @brief Creates a deep copy of this object.
+     * @brief Create a deep copy of this object.
      *
      * @param parent The parent of the new object.
      * @return The cloned DictionaryInfo.
@@ -67,7 +74,7 @@ public:
     DictionaryInfo *clone(QObject *parent = nullptr) const;
 
     /**
-     * @brief Gets the ID of the dictionary.
+     * @brief Get the ID of the dictionary.
      *
      * @return The dictionary id.
      */
@@ -75,14 +82,14 @@ public:
     int64_t id() const noexcept;
 
     /**
-     * @brief Sets the ID of the dictionary.
+     * @brief Set the ID of the dictionary.
      *
      * @param value The new ID of the dictionary.
      */
     void setId(int64_t value);
 
     /**
-     * @brief Gets the name of the dictionary.
+     * @brief Get the name of the dictionary.
      *
      * @return The name of the dictionary.
      */
@@ -90,14 +97,14 @@ public:
     const QString &name() const noexcept;
 
     /**
-     * @brief Sets the name of the dictionary.
+     * @brief Set the name of the dictionary.
      *
      * @param value The new name of the dictionary.
      */
     void setName(const QString &value);
 
     /**
-     * @brief Gets if the dictionary is enabled.
+     * @brief Get if the dictionary is enabled.
      *
      * @return true if the dictionary is enabled,
      * @return false otherwise.
@@ -106,11 +113,26 @@ public:
     bool enabled() const noexcept;
 
     /**
-     * @brief Sets if the dictionary is enabled.
+     * @brief Set if the dictionary is enabled.
      *
      * @param value true if the dictionary should be enabled, false otherwise.
      */
     void setEnabled(bool value);
+
+    /**
+     * @brief Get the CSS stylesheet for this dictionary.
+     *
+     * @return The CSS stylesheet for this dictionary.
+     */
+    [[nodiscard]]
+    const QString &styles() const noexcept;
+
+    /**
+     * @brief Set the CSS stylesheet for this dictionary.
+     *
+     * @param value The CSS stylesheet for this dictionary.
+     */
+    void setStyles(const QString &value);
 
 signals:
     /**
@@ -134,6 +156,13 @@ signals:
      */
     void enabledChanged(bool value);
 
+    /**
+     * @brief Emitted when the CSS stylesheet is changed.
+     *
+     * @param value The new stylesheet.
+     */
+    void stylesChanged(const QString &value);
+
 protected:
     /* ID of the dictionary */
     int64_t m_id{0};
@@ -143,4 +172,7 @@ protected:
 
     /* true if this dictionary is enabled, false otherwise */
     bool m_enabled{false};
+
+    /* The CSS stylesheet of this dictionary */
+    QString m_styles;
 };

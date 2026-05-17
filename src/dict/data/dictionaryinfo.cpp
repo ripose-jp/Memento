@@ -36,6 +36,7 @@ DictionaryInfo *DictionaryInfo::clone(QObject *parent) const
     copy->setId(id());
     copy->setName(name());
     copy->setEnabled(enabled());
+    copy->setStyles(styles());
     return copy;
 }
 
@@ -82,4 +83,19 @@ void DictionaryInfo::setEnabled(bool value)
     }
     m_enabled = value;
     emit enabledChanged(m_enabled);
+}
+
+const QString &DictionaryInfo::styles() const noexcept
+{
+    return m_styles;
+}
+
+void DictionaryInfo::setStyles(const QString &value)
+{
+    if (m_styles == value)
+    {
+        return;
+    }
+    m_styles = value;
+    emit stylesChanged(m_styles);
 }

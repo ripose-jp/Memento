@@ -42,7 +42,11 @@ DatabaseManager *Dictionary::databaseInstance(QObject *parent)
 {
     if (m_db == nullptr)
     {
-        m_db = new DatabaseManager(DirectoryUtils::getDictionaryDb(), parent);
+        m_db = new DatabaseManager(
+            DirectoryUtils::getDictionaryDb(),
+            DirectoryUtils::getDictionaryResourceDir(),
+            parent
+        );
     }
     return m_db;
 }

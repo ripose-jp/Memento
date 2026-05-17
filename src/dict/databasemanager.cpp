@@ -24,6 +24,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QDir>
 
 #include "dict/yomidbbuilder.h"
 #include "util/utils.h"
@@ -31,10 +32,12 @@
 /* Begin Constructor/Destructor */
 
 DatabaseManager::DatabaseManager(
-    const QString &path,
+    const QString &dbPath,
+    const QString &resourcePath,
     QObject *parent) :
     QObject(parent),
-    m_dbpath(path.toUtf8())
+    m_dbPath(dbPath.toUtf8()),
+    m_resourcePath(resourcePath)
 {
     if (!sqlite3_threadsafe())
     {
@@ -46,9 +49,9 @@ DatabaseManager::DatabaseManager(
         return;
     }
 
-    if (yomi_prepare_db(m_dbpath, nullptr) ||
+    if (yomi_prepare_db(m_dbPath, nullptr) ||
         sqlite3_open_v2(
-            m_dbpath,
+            m_dbPath,
             &m_db,
             SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX,
             nullptr
@@ -91,6 +94,29 @@ DatabaseManager::~DatabaseManager()
 
 /* End Constructor/Destructor */
 /* Begin Initializers */
+
+void DatabaseManager::loadDictionaryAssets(DictionaryInfo *info) const
+{
+    constexpr const char *STYLE_FILENAME = "styles.css";
+
+    QString stylePath = m_resourcePath;
+    stylePath += QDir::separator();
+    stylePath += info->name();
+    stylePath += QDir::separator();
+    stylePath += STYLE_FILENAME;
+
+    if (!QFile::exists(stylePath))
+    {
+        return;
+    }
+    QFile styleFile(stylePath);
+    if (!styleFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        return;
+    }
+    info->setStyles(styleFile.readAll());
+    styleFile.close();
+}
 
 int DatabaseManager::initCache()
 {
@@ -142,6 +168,7 @@ int DatabaseManager::initCache()
         info->setEnabled(
             !sqlite3_column_int64(stmt, COLUMN_DICTIONARY_DISABLED)
         );
+        loadDictionaryAssets(info);
 
         m_dictionaryCache.insert(info->id(), info);
     }
@@ -239,8 +266,8 @@ int DatabaseManager::addDictionary(QString path)
 
     setModifyingDatabase(true);
     QByteArray cpath = path.toUtf8();
-    QByteArray respath = DirectoryUtils::getDictionaryResourceDir().toUtf8();
-    int ret = yomi_process_dictionary(cpath, m_dbpath, respath);
+    QByteArray resPath = m_resourcePath.toUtf8();
+    int ret = yomi_process_dictionary(cpath, m_dbPath, resPath);
     initCache();
     setModifyingDatabase(false);
 
@@ -252,8 +279,8 @@ int DatabaseManager::deleteDictionary(int64_t id)
     QWriteLocker lock{&m_dbLock};
 
     setModifyingDatabase(true);
-    QByteArray respath = DirectoryUtils::getDictionaryResourceDir().toUtf8();
-    int ret = yomi_delete_dictionary(id, m_dbpath, respath);
+    QByteArray resPath = m_resourcePath.toUtf8();
+    int ret = yomi_delete_dictionary(id, m_dbPath, resPath);
     initCache();
     setModifyingDatabase(false);
 
@@ -265,7 +292,7 @@ int DatabaseManager::enableDictionary(int64_t id)
     QWriteLocker lock{&m_dbLock};
 
     setModifyingDatabase(true);
-    int ret = yomi_enable_dictionary(id, m_dbpath);
+    int ret = yomi_enable_dictionary(id, m_dbPath);
     initCache();
     setModifyingDatabase(false);
 
@@ -278,7 +305,7 @@ int DatabaseManager::disableDictionary(int64_t id)
     QWriteLocker lock{&m_dbLock};
 
     setModifyingDatabase(true);
-    int ret = yomi_disable_dictionary(id, m_dbpath);
+    int ret = yomi_disable_dictionary(id, m_dbPath);
     initCache();
     setModifyingDatabase(false);
 
