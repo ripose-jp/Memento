@@ -28,6 +28,9 @@
 
 #include "setting/keys.h"
 
+/**
+ * @brief Parses structred content into Qt friendly rich text.
+ */
 class StructuredContent : public QObject
 {
     Q_OBJECT
@@ -36,8 +39,18 @@ public:
     StructuredContent(QObject *parent = nullptr);
     virtual ~StructuredContent();
 
+    /**
+     * @brief Parse structred content into Qt rich text.
+     *
+     * @param name The name of the dictionary.
+     * @param content The structured content to parse.
+     * @param style The glossary style to display.
+     * @param font The font in use.
+     * @return A string containing the structured content as rich text.
+     */
     [[nodiscard]]
     Q_INVOKABLE static QString parse(
+        const QString &name,
         const QJsonArray &content,
         Setting::GlossaryStyle style,
         const QFont &font);

@@ -4,8 +4,7 @@ import Ripose.Memento
 SearchableText {
     id: root
 
-    /* The array of glossary content */
-    property var content: []
+    property TermDefinition definition: null
 
     cursorShape: Qt.IBeamCursor
     textFormat: TextEdit.RichText
@@ -27,5 +26,9 @@ SearchableText {
     font.hintingPreference: MementoSettings.interfaceSearchGlossaryFont.hintingPreference
     font.styleName: MementoSettings.interfaceSearchGlossaryFont.styleName
 
-    text: StructuredContent.parse(root.content, MementoSettings.searchGlossaryStyle, root.font)
+    text: StructuredContent.parse(
+              root.definition?.dictionaryInfo?.name ?? "",
+              root.definition?.glossary ?? [],
+              MementoSettings.searchGlossaryStyle,
+              root.font)
 }

@@ -84,6 +84,6 @@ ColumnLayout {
         id: glossaryText
         Layout.fillWidth: true
         persistentSelection: true
-        content: root.definition?.glossary
+        definition: root.definition
     }
 }

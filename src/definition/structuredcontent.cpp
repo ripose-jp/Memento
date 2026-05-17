@@ -39,7 +39,10 @@ StructuredContent::~StructuredContent()
 }
 
 QString StructuredContent::parse(
-    const QJsonArray &content, Setting::GlossaryStyle style, const QFont &font)
+    const QString &name,
+    const QJsonArray &content,
+    Setting::GlossaryStyle style,
+    const QFont &font)
 {
     constexpr const char *KEY_TYPE = "type";
     constexpr const char *KEY_CONTENT = "content";
@@ -53,6 +56,8 @@ QString StructuredContent::parse(
     basepath.replace('\\', '/');
 #endif
     basepath.prepend("file://");
+    basepath += '/';
+    basepath += name;
     basepath += '/';
 
     bool shouldUseBullets =
