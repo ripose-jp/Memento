@@ -1,6 +1,6 @@
 # Apple Build Options
-option(MEMENTO_APPBUNDLE "Toggle when building macOS AppBundles" OFF)
-option(MEMENTO_CERT "Certificate name used to sign the AppBundle" "")
+option(MEMENTO_BUNDLE "Toggle when building macOS Bundles" OFF)
+set(MEMENTO_CODESIGN_IDENTITY "" CACHE STRING "macOS code signing identity for the Bundle")
 
 # Release Options
 option(MEMENTO_RELEASE_BUILD "Toggle to build with release settings" OFF)

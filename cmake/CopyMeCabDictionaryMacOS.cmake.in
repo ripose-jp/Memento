@@ -1,0 +1,19 @@
+if(NOT DEFINED MEMENTO_BUNDLE_PATH)
+    set(MEMENTO_BUNDLE_PATH "${CMAKE_INSTALL_PREFIX}/Memento.app")
+endif()
+
+if(NOT EXISTS "${MEMENTO_BUNDLE_PATH}")
+    message(FATAL_ERROR
+        "Cannot copy MeCab dictionary: ${MEMENTO_BUNDLE_PATH} does not exist."
+    )
+endif()
+
+set(MEMENTO_MECAB_DICTIONARY_DESTINATION
+    "${MEMENTO_BUNDLE_PATH}/Contents/Resources/mecab/dic"
+)
+
+file(MAKE_DIRECTORY "${MEMENTO_MECAB_DICTIONARY_DESTINATION}")
+file(COPY
+    "@PROJECT_SOURCE_DIR@/dic/"
+    DESTINATION "${MEMENTO_MECAB_DICTIONARY_DESTINATION}"
+)

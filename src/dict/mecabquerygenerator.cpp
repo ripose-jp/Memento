@@ -92,7 +92,7 @@ MeCabQueryGenerator::MeCabQueryGenerator()
 {
 #if defined(Q_OS_WIN)
     QByteArray mecabArg = genMecabArg();
-#elif defined(MEMENTO_APPBUNDLE)
+#elif defined(MEMENTO_BUNDLE)
     QByteArray mecabArg = ( \
         "-r " + DirectoryUtils::getMecabDictionary() + "ipadic" + QDir::separator() + "dicrc " \
         "-d " + DirectoryUtils::getMecabDictionary() + "ipadic" \

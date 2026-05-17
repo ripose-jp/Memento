@@ -1,0 +1,67 @@
+if(NOT DEFINED MEMENTO_BUNDLE_PATH)
+    set(MEMENTO_BUNDLE_PATH "${CMAKE_INSTALL_PREFIX}/Memento.app")
+endif()
+set(MEMENTO_CODESIGN_IDENTITY "@MEMENTO_CODESIGN_IDENTITY@")
+
+if(NOT EXISTS "${MEMENTO_BUNDLE_PATH}")
+    message(FATAL_ERROR
+        "Cannot sign app bundle: ${MEMENTO_BUNDLE_PATH} does not exist."
+    )
+endif()
+
+file(GLOB MEMENTO_FRAMEWORKS
+    LIST_DIRECTORIES true
+    "${MEMENTO_BUNDLE_PATH}/Contents/Frameworks/*.framework"
+)
+file(GLOB_RECURSE MEMENTO_DYLIBS
+    LIST_DIRECTORIES false
+    "${MEMENTO_BUNDLE_PATH}/Contents/Frameworks/*.dylib"
+    "${MEMENTO_BUNDLE_PATH}/Contents/PlugIns/*.dylib"
+)
+list(SORT MEMENTO_DYLIBS)
+list(SORT MEMENTO_FRAMEWORKS)
+
+foreach(MEMENTO_CODE_ITEM IN LISTS MEMENTO_DYLIBS)
+    if(IS_SYMLINK "${MEMENTO_CODE_ITEM}")
+        continue()
+    endif()
+    execute_process(
+        COMMAND /usr/bin/codesign --force --sign "${MEMENTO_CODESIGN_IDENTITY}" "${MEMENTO_CODE_ITEM}"
+        RESULT_VARIABLE MEMENTO_CODESIGN_RESULT
+    )
+    if(NOT MEMENTO_CODESIGN_RESULT EQUAL 0)
+        message(FATAL_ERROR
+            "Failed to sign nested code item: ${MEMENTO_CODE_ITEM}"
+        )
+    endif()
+endforeach()
+
+foreach(MEMENTO_CODE_ITEM IN LISTS MEMENTO_FRAMEWORKS)
+    execute_process(
+        COMMAND /usr/bin/codesign --force --sign "${MEMENTO_CODESIGN_IDENTITY}" "${MEMENTO_CODE_ITEM}"
+        RESULT_VARIABLE MEMENTO_CODESIGN_RESULT
+    )
+    if(NOT MEMENTO_CODESIGN_RESULT EQUAL 0)
+        message(FATAL_ERROR
+            "Failed to sign framework: ${MEMENTO_CODE_ITEM}"
+        )
+    endif()
+endforeach()
+
+execute_process(
+    COMMAND /usr/bin/codesign --force --sign "${MEMENTO_CODESIGN_IDENTITY}" "${MEMENTO_BUNDLE_PATH}"
+    RESULT_VARIABLE MEMENTO_CODESIGN_RESULT
+)
+if(NOT MEMENTO_CODESIGN_RESULT EQUAL 0)
+    message(FATAL_ERROR "Failed to sign app bundle: ${MEMENTO_BUNDLE_PATH}")
+endif()
+
+execute_process(
+    COMMAND /usr/bin/codesign --verify --strict --verbose=2 "${MEMENTO_BUNDLE_PATH}"
+    RESULT_VARIABLE MEMENTO_CODESIGN_VERIFY_RESULT
+)
+if(NOT MEMENTO_CODESIGN_VERIFY_RESULT EQUAL 0)
+    message(FATAL_ERROR
+        "Signed app bundle failed verification: ${MEMENTO_BUNDLE_PATH}"
+    )
+endif()

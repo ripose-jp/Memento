@@ -16,9 +16,24 @@ add_subdirectory(util)
 # Executable Targets
 qt_add_executable(
     memento
-    "$<$<BOOL:${WIN32}>:${PROJECT_SOURCE_DIR}/res/appicon.rc>"
     main.cpp
 )
+if(WIN32)
+    target_sources(
+        memento
+        PRIVATE "${PROJECT_SOURCE_DIR}/res/appicon.rc"
+    )
+endif()
+if(APPLE AND MEMENTO_BUNDLE)
+    target_sources(
+        memento
+        PRIVATE ${PROJECT_SOURCE_DIR}/res/memento.icns
+    )
+    set_source_files_properties(
+        "${PROJECT_SOURCE_DIR}/res/memento.icns"
+        PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
+    )
+endif()
 configure_file(
     qml/util/Features.qml.in
     "${PROJECT_SOURCE_DIR}/src/qml/util/Features.qml"
@@ -95,10 +110,13 @@ target_include_directories(memento PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_compile_options(memento PRIVATE ${MEMENTO_COMPILER_FLAGS})
 set_target_properties(
     memento PROPERTIES
+    OUTPUT_NAME "$<$<BOOL:${MEMENTO_BUNDLE}>:Memento>$<$<NOT:$<BOOL:${MEMENTO_BUNDLE}>>:memento>"
+    MACOSX_BUNDLE_BUNDLE_NAME Memento
     MACOSX_BUNDLE_GUI_IDENTIFIER io.ripose_jp.Memento
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-    MACOSX_BUNDLE TRUE
+    MACOSX_BUNDLE ${MEMENTO_BUNDLE}
+    MACOSX_BUNDLE_ICON_FILE memento.icns
     WIN32_EXECUTABLE ${MEMENTO_WIN32_EXECUTABLE}
 )
 target_link_libraries(
@@ -132,6 +150,104 @@ install(
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+if(APPLE AND MEMENTO_BUNDLE)
+    # BundleUtilities walks the actual linked dependency graph from the bundle.
+    # These directories are only search hints so it can resolve @rpath entries
+    # back to the exact libraries CMake found on this machine.
+    set(
+        MEMENTO_BUNDLE_LIBRARY_HINTS
+        "${JsonC_LIBRARY}"
+        "${libzip_LIBRARY}"
+        "${mpv_LIBRARY}"
+    )
+    if(MEMENTO_MECAB_SUPPORT)
+        list(APPEND MEMENTO_BUNDLE_LIBRARY_HINTS "${MeCab_LIBRARY}")
+    endif()
+    if(MEMENTO_OCR_SUPPORT AND MEMENTO_SYSTEM_MOCR)
+        list(APPEND MEMENTO_BUNDLE_LIBRARY_HINTS "${mocr_LIBRARY}" "${mocrxx_LIBRARY}")
+    endif()
+    list(REMOVE_DUPLICATES MEMENTO_BUNDLE_LIBRARY_HINTS)
+
+    set(MEMENTO_BUNDLE_LIBRARY_DIRS "")
+    foreach(MEMENTO_BUNDLE_LIBRARY_HINT IN LISTS MEMENTO_BUNDLE_LIBRARY_HINTS)
+        get_filename_component(
+            MEMENTO_BUNDLE_LIBRARY_DIR "${MEMENTO_BUNDLE_LIBRARY_HINT}" DIRECTORY
+        )
+        list(APPEND MEMENTO_BUNDLE_LIBRARY_DIRS "${MEMENTO_BUNDLE_LIBRARY_DIR}")
+    endforeach()
+    list(REMOVE_DUPLICATES MEMENTO_BUNDLE_LIBRARY_DIRS)
+
+    # On macOS, use macdeployqt directly.  It is the native Qt deployment tool
+    # for bundles and, unlike the generic install helper, copies QML plugins
+    # into their final bundle layout instead of relying on staging symlinks.
+    find_program(MEMENTO_MACDEPLOYQT_EXECUTABLE macdeployqt REQUIRED)
+    configure_file(
+        "${PROJECT_SOURCE_DIR}/cmake/DeployQtMacOS.cmake.in"
+        "${PROJECT_BINARY_DIR}/DeployQtMacOS.cmake"
+        @ONLY
+    )
+    install(SCRIPT "${PROJECT_BINARY_DIR}/DeployQtMacOS.cmake")
+
+    configure_file(
+        "${PROJECT_SOURCE_DIR}/cmake/BundleMacOS.cmake.in"
+        "${PROJECT_BINARY_DIR}/BundleMacOS.cmake"
+        @ONLY
+    )
+    install(SCRIPT "${PROJECT_BINARY_DIR}/BundleMacOS.cmake")
+
+    if(MEMENTO_MECAB_SUPPORT)
+        configure_file(
+            "${PROJECT_SOURCE_DIR}/cmake/CopyMeCabDictionaryMacOS.cmake.in"
+            "${PROJECT_BINARY_DIR}/CopyMeCabDictionaryMacOS.cmake"
+            @ONLY
+        )
+        install(SCRIPT "${PROJECT_BINARY_DIR}/CopyMeCabDictionaryMacOS.cmake")
+    endif()
+
+    add_custom_target(
+        memento_bundle
+        COMMAND
+            "${CMAKE_COMMAND}"
+            -DMEMENTO_BUNDLE_PATH=$<TARGET_BUNDLE_DIR:memento>
+            -P "${PROJECT_BINARY_DIR}/DeployQtMacOS.cmake"
+        COMMAND
+            "${CMAKE_COMMAND}"
+            -DMEMENTO_BUNDLE_PATH=$<TARGET_BUNDLE_DIR:memento>
+            -P "${PROJECT_BINARY_DIR}/BundleMacOS.cmake"
+        DEPENDS memento
+        COMMENT "Bundling dependencies into Memento.app"
+        VERBATIM
+    )
+    if(MEMENTO_MECAB_SUPPORT)
+        add_custom_command(
+            TARGET memento_bundle
+            POST_BUILD
+            COMMAND
+                "${CMAKE_COMMAND}"
+                -DMEMENTO_BUNDLE_PATH=$<TARGET_BUNDLE_DIR:memento>
+                -P "${PROJECT_BINARY_DIR}/CopyMeCabDictionaryMacOS.cmake"
+            VERBATIM
+        )
+    endif()
+
+    if(MEMENTO_CODESIGN_IDENTITY)
+        configure_file(
+            "${PROJECT_SOURCE_DIR}/cmake/SignMacOS.cmake.in"
+            "${PROJECT_BINARY_DIR}/SignMacOS.cmake"
+            @ONLY
+        )
+        install(SCRIPT "${PROJECT_BINARY_DIR}/SignMacOS.cmake")
+        add_custom_command(
+            TARGET memento_bundle
+            POST_BUILD
+            COMMAND
+                "${CMAKE_COMMAND}"
+                -DMEMENTO_BUNDLE_PATH=$<TARGET_BUNDLE_DIR:memento>
+                -P "${PROJECT_BINARY_DIR}/SignMacOS.cmake"
+            VERBATIM
+        )
+    endif()
+endif()
 if(UNIX AND NOT APPLE)
 	install(
 		FILES "${PROJECT_SOURCE_DIR}/res/memento.desktop"

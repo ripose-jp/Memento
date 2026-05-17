@@ -146,7 +146,7 @@ sudo cmake --build . --target install
    ```
 1. Install the necessary tools and dependencies:
    ```
-   brew install git cmake sqlite3 qt6 mpv mecab mecab-ipadic json-c libzip
+   brew install git cmake sqlite3 qt6 qcoro6 mpv mecab mecab-ipadic json-c libzip
    ```
 1. Clone the repository:
    ```
@@ -162,9 +162,28 @@ sudo cmake --build . --target install
    ```
 1. The resulting executable will be:
    ```
-   Memento/build/src/memento.app/Contents/MacOS/memento
+   Memento/build/src/memento
    ```
 
+### macOS Bundle
+
+1. Follow steps 1 - 3 of the macOS build instructions.
+1. Open the **Keychain Access** app.
+1. Go to **Keychain Access** > **Certificate Assistant** >
+   **Create a Certificate...** in the menubar.
+1. Put the name of your certificate in the 'Name' field, set the
+   'Certificate Type' to 'Code Signing', and click 'Create'.
+1. Return to your terminal and input:
+    ```
+    cd Memento
+    mkdir build
+    cmake -S . -B build -DMEMENTO_CODESIGN_IDENTITY="<certificate name>" -DMEMENTO_BUNDLE=ON -DCMAKE_BUILD_TYPE=Release -DMEMENTO_MECAB_SUPPORT=ON -DMEMENTO_SYSTEM_QCORO=ON
+    cmake --build build --target memento_bundle -j$(sysctl -n hw.ncpu)
+    ```
+1. The resulting app bundle will located at:
+    ```
+    Memento/build/src/Memento.app
+    ```
 
 ## Configuration
 

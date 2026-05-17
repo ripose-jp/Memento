@@ -25,6 +25,7 @@
 #include <QTemporaryFile>
 
 #include "player/mpvplayer.h"
+#include "util/directoryutils.h"
 
 MpvController::MpvController(MpvPlayer *parent) : QObject(parent)
 {
@@ -861,15 +862,15 @@ QString MpvController::encodeFile(
     {
         ::mpv_set_option_string(enc_h, "script-opts", script_opts);
     }
-#if MEMENTO_APPBUNDLE
+#if MEMENTO_BUNDLE
     else
     {
         QByteArray ytdlPath = "ytdl_hook-ytdl_path=";
-        char *config_dir = ::mpv_get_property_string(m_handle, "config-dir");
+        char *config_dir = ::mpv_get_property_string(handle(), "config-dir");
         if (config_dir)
         {
             ytdlPath += config_dir;
-            ytdlPath += SLASH;
+            ytdlPath += '/';
         }
         else
         {
@@ -879,7 +880,7 @@ QString MpvController::encodeFile(
         ytdlPath += "youtube-dl";
         ::mpv_set_option_string(enc_h, "script-opts", ytdlPath);
     }
-#endif
+#endif // MEMENTO_BUNDLE
     ::mpv_free(script_opts);
 
     if (::mpv_initialize(enc_h) < 0)

@@ -1,0 +1,26 @@
+if(NOT DEFINED MEMENTO_BUNDLE_PATH)
+    set(MEMENTO_BUNDLE_PATH "${CMAKE_INSTALL_PREFIX}/Memento.app")
+endif()
+
+if(NOT EXISTS "${MEMENTO_BUNDLE_PATH}")
+    message(FATAL_ERROR
+        "Cannot deploy Qt dependencies: ${MEMENTO_BUNDLE_PATH} does not exist."
+    )
+endif()
+
+message(STATUS "Deploying Qt macOS dependencies into ${MEMENTO_BUNDLE_PATH}")
+execute_process(
+    COMMAND
+        "@MEMENTO_MACDEPLOYQT_EXECUTABLE@"
+        "${MEMENTO_BUNDLE_PATH}"
+        "-qmldir=@PROJECT_SOURCE_DIR@/src/qml"
+        -always-overwrite
+    RESULT_VARIABLE MEMENTO_MACDEPLOYQT_RESULT
+)
+if(NOT MEMENTO_MACDEPLOYQT_RESULT EQUAL 0)
+    message(WARNING
+        "macdeployqt reported errors while staging ${MEMENTO_BUNDLE_PATH}; "
+        "the final BundleUtilities pass will re-scan and verify the complete "
+        "bundle."
+    )
+endif()

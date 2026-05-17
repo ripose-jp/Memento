@@ -36,8 +36,8 @@ endif()
 add_subdirectory(option)
 
 # Check that dangerous options have no been toggled
-if(NOT APPLE AND MEMENTO_APPBUNDLE)
-	message(FATAL_ERROR "You cannot set the MEMENTO_APPBUNDLE option to ON on non-Apple platforms.")
+if(NOT APPLE AND MEMENTO_BUNDLE)
+	message(FATAL_ERROR "You cannot set the MEMENTO_BUNDLE option to ON on non-Apple platforms.")
 endif()
 
 # Set the module path
@@ -53,7 +53,7 @@ list(
 	"-Wall"
 	"-Wextra"
 	"-Wpedantic"
-	"$<$<BOOL:${MEMENTO_APPBUNDLE}>:-DMEMENTO_APPBUNDLE=1>"
+	"$<$<BOOL:${MEMENTO_BUNDLE}>:-DMEMENTO_BUNDLE=1>"
 	"$<$<BOOL:${MEMENTO_ASAN}>:-fsanitize=address>"
 	"$<$<BOOL:${MEMENTO_MECAB_SUPPORT}>:-DMEMENTO_MECAB_SUPPORT=1>"
 	"$<$<BOOL:${MEMENTO_OCR_SUPPORT}>:-DMEMENTO_OCR_SUPPORT=1>"

@@ -24,8 +24,8 @@ target_compile_options(anki PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_include_directories(anki PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_link_libraries(
     anki
-    PRIVATE "$<$<BOOL:${SYSTEM_QCORO}>:QCoro::Network>"
-    PRIVATE "$<$<NOT:$<BOOL:${SYSTEM_QCORO}>>:QCoro6Network>"
+    PRIVATE "$<$<BOOL:${MEMENTO_SYSTEM_QCORO}>:QCoro::Network>"
+    PRIVATE "$<$<NOT:$<BOOL:${MEMENTO_SYSTEM_QCORO}>>:QCoro6Network>"
     PRIVATE context
     PRIVATE Qt6::Concurrent
     PRIVATE utils

@@ -1,0 +1,49 @@
+include(BundleUtilities)
+
+# BundleUtilities normally copies framework resources together with the
+# framework binary. Keep that behavior so copied frameworks remain valid code
+# bundles for codesign, but drop Homebrew Python's nested Python.app helper
+# afterward. That helper is not needed by Memento and points back to Homebrew,
+# which otherwise makes bundle verification fail.
+function(copy_resolved_framework_into_bundle resolved_item resolved_embedded_item)
+    get_filename_component(resolved_dir "${resolved_item}" DIRECTORY)
+    get_filename_component(resolved_dir "${resolved_dir}/../.." ABSOLUTE)
+    get_filename_component(
+        resolved_embedded_dir "${resolved_embedded_item}" DIRECTORY
+    )
+    get_filename_component(
+        resolved_embedded_dir "${resolved_embedded_dir}/../.." ABSOLUTE
+    )
+    if(NOT EXISTS "${resolved_embedded_dir}")
+        file(COPY "${resolved_dir}" DESTINATION "${resolved_embedded_dir}/..")
+    endif()
+
+    if(resolved_embedded_item MATCHES "/Python\\.framework/")
+        get_filename_component(
+            python_framework_version_dir "${resolved_embedded_item}" DIRECTORY
+        )
+        file(REMOVE_RECURSE
+            "${python_framework_version_dir}/Resources/Python.app"
+            "${python_framework_version_dir}/bin"
+            "${python_framework_version_dir}/lib"
+        )
+    endif()
+endfunction()
+
+if(NOT DEFINED MEMENTO_BUNDLE_PATH)
+    set(MEMENTO_BUNDLE_PATH "${CMAKE_INSTALL_PREFIX}/Memento.app")
+endif()
+set(MEMENTO_BUNDLE_LIBRARY_DIRS "@MEMENTO_BUNDLE_LIBRARY_DIRS@")
+
+if(NOT EXISTS "${MEMENTO_BUNDLE_PATH}")
+    message(FATAL_ERROR
+        "Cannot bundle dependencies: ${MEMENTO_BUNDLE_PATH} does not exist."
+    )
+endif()
+
+message(STATUS "Bundling macOS dependencies into ${MEMENTO_BUNDLE_PATH}")
+fixup_bundle(
+    "${MEMENTO_BUNDLE_PATH}"
+    ""
+    "${MEMENTO_BUNDLE_LIBRARY_DIRS}"
+)

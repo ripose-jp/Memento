@@ -79,7 +79,7 @@ jobs:
     - name: Install Dependencies
       run: |
         brew update || true
-        brew install cmake sqlite3 qt6 mpv mecab mecab-ipadic json-c libzip python || true
+        brew install git cmake sqlite3 qt6 qcoro6 mpv mecab mecab-ipadic json-c libzip || true
 
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -88,5 +88,5 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake .. -DMEMENTO_OCR_SUPPORT=OFF -DMEMENTO_MECAB_SUPPORT=ON -DMEMENTO_WERROR=ON
-        cmake --build . -j $(nproc)
+        cmake .. -DMEMENTO_OCR_SUPPORT=OFF -DMEMENTO_MECAB_SUPPORT=ON -DMEMENTO_SYSTEM_QCORO=ON -DMEMENTO_BUNDLE=ON -DMEMENTO_WERROR=ON
+        cmake --build . --target memento_bundle -j$(sysctl -n hw.ncpu)

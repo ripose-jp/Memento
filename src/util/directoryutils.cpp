@@ -47,9 +47,9 @@ QString DirectoryUtils::getConfigDir()
 QString DirectoryUtils::getMecabDictionary()
 {
 #if defined(Q_OS_WIN)
-    return getProgramDirectory() + "dic\\";
-#elif defined(MEMENTO_APPBUNDLE)
-    return getProgramDirectory() + "/../Frameworks/mecab/dic/";
+    return getProgramDirectory() + "dic" + QDir::separator();
+#elif defined(MEMENTO_BUNDLE)
+    return getProgramDirectory() + "/../Resources/mecab/dic/";
 #else
     return "";
 #endif
