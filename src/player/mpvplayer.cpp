@@ -649,8 +649,7 @@ void MpvPlayer::doUpdate()
 }
 
 #ifdef Q_OS_MACOS
-QSGNode *MpvPlayer::updatePaintNode(
-    QSGNode *oldNode, [[maybe_unused]] UpdatePaintNodeData *data)
+QSGNode *MpvPlayer::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
 {
     QSGSimpleTextureNode *node = static_cast<QSGSimpleTextureNode *>(oldNode);
     if (window() == nullptr || width() <= 0 || height() <= 0)
@@ -679,6 +678,10 @@ QSGNode *MpvPlayer::updatePaintNode(
         {
             node->setTexture(texture);
         }
+    }
+    else
+    {
+        return MpvPlayerBase::updatePaintNode(node, data);
     }
     node->setRect(boundingRect());
     return node;
