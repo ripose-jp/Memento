@@ -491,6 +491,11 @@ void DictionarySearch::handleSettingsChanged()
         this, &DictionarySearch::updateGenerators,
         Qt::QueuedConnection
     );
+    connect(
+        settings(), &Settings::dictionaryOrderChanged,
+        this, &DictionarySearch::updateDictionaryOrder,
+        Qt::QueuedConnection
+    );
 #ifdef MEMENTO_MECAB_SUPPORT
     connect(
         settings(), &Settings::searchMatcherMecabIpadicChanged,
@@ -537,6 +542,16 @@ void DictionarySearch::updateDictionaryOrder()
     QWriteLocker lock{&m_dictionaryOrderMutex};
 
     m_dictionaryOrder.clear();
+    if (settings() == nullptr)
+    {
+        return;
+    }
+
+    const QList<int64_t> &order = settings()->dictionaryOrder();
+    for (qsizetype i{0}; i < order.size(); ++i)
+    {
+        m_dictionaryOrder.emplace(order[i], i);
+    }
 }
 
 /* End Handlers */
