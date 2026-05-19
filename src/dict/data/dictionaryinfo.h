@@ -20,9 +20,12 @@
 
 #pragma once
 
+#include <memory>
+
 #include <QObject>
 
 class DictionarySearch;
+class DictionaryStylesheet;
 
 /**
  * @brief Describes dictionary metadata.
@@ -134,6 +137,15 @@ public:
      */
     void setStyles(const QString &value);
 
+    /**
+     * @brief Get the immutable parsed dictionary stylesheet.
+     *
+     * @return The shared parsed stylesheet.
+     */
+    [[nodiscard]]
+    const std::shared_ptr<const DictionaryStylesheet> &stylesheet()
+        const noexcept;
+
 signals:
     /**
      * @brief Emitted when the ID of the dictionary changes.
@@ -173,6 +185,6 @@ protected:
     /* true if this dictionary is enabled, false otherwise */
     bool m_enabled{false};
 
-    /* The CSS stylesheet of this dictionary */
-    QString m_styles;
+    /* The immutable parsed stylesheet shared by dictionary-info clones. */
+    std::shared_ptr<const DictionaryStylesheet> m_stylesheet;
 };

@@ -41,7 +41,7 @@ DictionarySearch::DictionarySearch(QObject *parent) : Dictionary(parent)
     connect(
         this, &DictionarySearch::settingsChanged,
         this, &DictionarySearch::handleSettingsChanged,
-        Qt::QueuedConnection
+        Qt::DirectConnection
     );
 }
 

@@ -80,6 +80,9 @@ qt_add_qml_module(
         qml/definition/KanjiEntry.qml
         qml/definition/KanjiValueTag.qml
         qml/definition/MetaLabel.qml
+        qml/definition/StructuredContentChild.qml
+        qml/definition/StructuredContentNode.qml
+        qml/definition/StructuredContentText.qml
         qml/definition/TagLabel.qml
         qml/definition/TermEntry.qml
         qml/definition/TermGlossary.qml

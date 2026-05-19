@@ -20,7 +20,13 @@
 
 #include "dict/data/dictionaryinfo.h"
 
-DictionaryInfo::DictionaryInfo(QObject *parent) : QObject(parent)
+#include <memory>
+
+#include "dict/data/dictionarystylesheet.h"
+
+DictionaryInfo::DictionaryInfo(QObject *parent) :
+    QObject(parent),
+    m_stylesheet{std::make_shared<const DictionaryStylesheet>()}
 {
 
 }
@@ -36,7 +42,7 @@ DictionaryInfo *DictionaryInfo::clone(QObject *parent) const
     copy->setId(id());
     copy->setName(name());
     copy->setEnabled(enabled());
-    copy->setStyles(styles());
+    copy->m_stylesheet = m_stylesheet;
     return copy;
 }
 
@@ -87,15 +93,22 @@ void DictionaryInfo::setEnabled(bool value)
 
 const QString &DictionaryInfo::styles() const noexcept
 {
-    return m_styles;
+    return m_stylesheet->source();
 }
 
 void DictionaryInfo::setStyles(const QString &value)
 {
-    if (m_styles == value)
+    if (styles() == value)
     {
         return;
     }
-    m_styles = value;
-    emit stylesChanged(m_styles);
+    m_stylesheet =
+        std::make_shared<const DictionaryStylesheet>(value);
+    emit stylesChanged(styles());
+}
+
+const std::shared_ptr<const DictionaryStylesheet> &
+DictionaryInfo::stylesheet() const noexcept
+{
+    return m_stylesheet;
 }

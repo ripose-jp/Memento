@@ -25,123 +25,50 @@
 #include <QFont>
 #include <QJsonArray>
 #include <QString>
+#include <QVariantMap>
 
 #include "setting/keys.h"
 
+class DictionaryInfo;
+
 /**
- * @brief Parses structred content into Qt friendly rich text.
+ * @brief Parses glossary content into a native QML document description.
+ *
+ * The parser intentionally supports only the subset of CSS that maps cleanly to
+ * native Qt Quick items. Unsupported declarations are ignored so dictionaries
+ * still render with sensible structural defaults instead of requiring a browser
+ * engine.
  */
 class StructuredContent : public QObject
 {
     Q_OBJECT
 
 public:
+    /**
+     * @brief Construct a StructuredContent helper.
+     *
+     * @param parent The parent of this object.
+     */
     StructuredContent(QObject *parent = nullptr);
+
+    /**
+     * @brief Destroy this StructuredContent helper.
+     */
     virtual ~StructuredContent();
 
     /**
-     * @brief Parse structred content into Qt rich text.
+     * @brief Parse glossary data into a native document description.
      *
-     * @param name The name of the dictionary.
-     * @param content The structured content to parse.
-     * @param style The glossary style to display.
-     * @param font The font in use.
-     * @return A string containing the structured content as rich text.
+     * @param dictionaryInfo The dictionary metadata.
+     * @param content The glossary content to parse.
+     * @param glossaryStyle The requested glossary display style.
+     * @param font The base glossary font.
+     * @return A nested QVariantMap document suitable for QML rendering.
      */
     [[nodiscard]]
-    Q_INVOKABLE static QString parse(
-        const QString &name,
+    Q_INVOKABLE static QVariantMap document(
+        DictionaryInfo *dictionaryInfo,
         const QJsonArray &content,
-        Setting::GlossaryStyle style,
+        Setting::GlossaryStyle glossaryStyle,
         const QFont &font);
-
-private:
-    /**
-     * @brief Adds structured style objects.
-     * @param obj The structured style object.
-     * @param[out] out The string this style will be appended to.
-     */
-    static void addStructuredStyle(const QJsonObject &obj, QString &out);
-
-    /**
-     * Adds string structured content.
-     * @param str The string to add.
-     * @param[out] out The string this string will be appended to.
-     */
-    static void addStructuredContentHelper(
-        const QString &str, QString &out);
-
-    /**
-     * Adds an array of structured content.
-     * @param arr The array of structured content.
-     * @param basepath The base of the image path.
-     * @param font The font being used.
-     * @param[out] out The string this content will be appended to.
-     */
-    static void addStructuredContentHelper(
-        const QJsonArray &arr,
-        const QString &basepath,
-        const QFont &font,
-        QString &out);
-
-    /**
-     * Adds an object of structured content.
-     * @param obj The object of structured content.
-     * @param basepath The base of the image path.
-     * @param font The font being used.
-     * @param[out] out The string this content will be appended to.
-     */
-    static void addStructuredContentHelper(
-        const QJsonObject &obj,
-        const QString &basepath,
-        const QFont &font,
-        QString &out);
-
-    /**
-     * Parses and outputs structured content to HTML.
-     * The root of the structured content add parser.
-     * @param val The JSON value of the structured content.
-     * @param basepath The base of the image path.
-     * @param font The font being used.
-     * @param[out] out The string this content will be appended to.
-     */
-    static void addStructuredContent(
-        const QJsonValue &val,
-        const QString &basepath,
-        const QFont &font,
-        QString &out);
-
-    /**
-     * Displays an image type object.
-     * @param obj The image object.
-     * @param basepath The base of the image path.
-     * @param[out] out The string this image will be appended to.
-     */
-    static void addImage(
-        const QJsonObject &obj, const QString &basepath, QString &out);
-
-    /**
-     * Adds a text object to the HTML document.
-     * @param obj The text object.
-     * @param style The style of glossaries.
-     * @param[out] out The string the formatted text will be appended to.
-     */
-    static void addText(
-        const QJsonObject &obj, Setting::GlossaryStyle style, QString &out);
-
-    /**
-     * Converts point size to pixel size.
-     * @param pointSize The point size of the text.
-     * @return The equivalent pixel size for the window.
-     */
-    [[nodiscard]]
-    static int pointSizeToPixelSize(double pointSize);
-
-    /**
-     * Determines if an array contains structured content.
-     * @param definitions The array of definitions.
-     * @return True if the array contains structured content, false otherwise.
-     */
-    [[nodiscard]]
-    static bool containsStructuredContent(const QJsonArray &definitions);
 };

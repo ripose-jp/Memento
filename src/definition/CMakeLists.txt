@@ -10,5 +10,6 @@ target_link_libraries(
     definition
     PRIVATE utils
     PUBLIC Qt6::Core
+    PUBLIC dictionary_data
     PUBLIC settings
 )
