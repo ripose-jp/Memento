@@ -12,6 +12,8 @@ add_library(
     mpvstate.h
     mpvsubtitle.cpp
     mpvsubtitle.h
+    mpvthumbnail.cpp
+    mpvthumbnail.h
     mpvtrack.cpp
     mpvtrack.h
 )

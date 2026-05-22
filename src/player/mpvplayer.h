@@ -177,6 +177,14 @@ signals:
      */
     void controllerChanged();
 
+protected:
+    /**
+     * @brief Initializes mpv options and command line arguments.
+     *
+     * Can be overwritten to be initialized with different options.
+     */
+    virtual void initOptions();
+
 private slots:
     /**
      * @brief Initializes mpv.
@@ -205,11 +213,6 @@ private:
      * @brief Initializes the property map with all the mpv event handlers.
      */
     void initPropertyMap();
-
-    /**
-     * @brief Initializes mpv options and command line arguments.
-     */
-    void initOptions();
 
     /* The mpv context */
     mpv_handle *m_mpv{nullptr};

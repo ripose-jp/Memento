@@ -133,8 +133,10 @@ public:
      * @param append True to append to the playlist, false to replace the
      * playlist.
      * @param options Options to pass to loadfile.
+     * @return true if the file was loaded,
+     * @return false otherwise.
      */
-    Q_INVOKABLE void loadFile(
+    Q_INVOKABLE bool loadFile(
         const QString &file,
         bool append = false,
         const QStringList &options = {});
@@ -152,8 +154,10 @@ public:
      * @brief Loads a subtitle file for the currently playing media.
      *
      * @param file The path to the subtitle file.
+     * @param true if the subtitle was loaded,
+     * @param false otherwise.
      */
-    Q_INVOKABLE void loadSubtitle(const QString &file);
+    Q_INVOKABLE bool loadSubtitle(const QString &file);
 
     /**
      * @brief Seeks to the specified time.

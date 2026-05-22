@@ -143,6 +143,9 @@ namespace Keys
         constexpr const char *OSC_MIN_MOVE = "osc-min-move";
         constexpr int OSC_MIN_MOVE_DEFAULT = 0;
 
+        constexpr const char *OSC_PREVIEW_THUMBNAILS = "osc-preview-thumbnails";
+        constexpr bool OSC_PREVIEW_THUMBNAILS_DEFAULT = true;
+
         constexpr const char *SUBTITLE_PAUSE = "subtitle-pause";
         constexpr bool SUBTITLE_PAUSE_DEFAULT = false;
 

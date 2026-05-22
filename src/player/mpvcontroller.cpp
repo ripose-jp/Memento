@@ -68,7 +68,7 @@ void MpvController::setPlayer(MpvPlayer *value)
     emit playerChanged();
 }
 
-void MpvController::loadFile(
+bool MpvController::loadFile(
     const QString &file,
     bool append,
     const QStringList &options)
@@ -80,13 +80,12 @@ void MpvController::loadFile(
 
     if (file.isEmpty())
     {
-        return;
+        return false;
     }
 
     if (isSubtitleFile(file))
     {
-        loadSubtitle(file);
-        return;
+        return loadSubtitle(file);
     }
 
     QByteArray path = file.toUtf8();
@@ -102,10 +101,17 @@ void MpvController::loadFile(
         nullptr
     };
 
-    if (::mpv_command(handle(), args) < 0)
+    int ret = ::mpv_command(handle(), args);
+    if (ret < 0)
     {
-        qWarning("Could not open file '%s'", qUtf8Printable(file));
+        qWarning(
+            "Could not open file '%s': %s",
+            qUtf8Printable(file),
+            ::mpv_error_string(ret)
+        );
+        return false;
     }
+    return true;
 }
 
 bool MpvController::loadArgs(const QStringList &args)
@@ -156,11 +162,11 @@ void MpvController::loadFile(const QStringList &files, bool append)
     }
 }
 
-void MpvController::loadSubtitle(const QString &file)
+bool MpvController::loadSubtitle(const QString &file)
 {
     if (file.isEmpty())
     {
-        return;
+        return false;
     }
 
     QByteArray path = file.toUtf8();
@@ -169,10 +175,17 @@ void MpvController::loadSubtitle(const QString &file)
         path,
         nullptr
     };
-    if (::mpv_command_async(handle(), 0, args) < 0)
+    int ret = ::mpv_command_async(handle(), 0, args);
+    if (ret < 0)
     {
-        qWarning("Could not add subtitle file '%s'", qUtf8Printable(file));
+        qWarning(
+            "Could not add subtitle file '%s': %s",
+            qUtf8Printable(file),
+            ::mpv_error_string(ret)
+        );
+        return false;
     }
+    return true;
 }
 
 void MpvController::seek(double time)

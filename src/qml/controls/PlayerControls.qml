@@ -161,4 +161,20 @@ Rectangle {
             onClicked: root.player.controller.setFullscreen(false)
         }
     }
+
+    Loader {
+        anchors.bottom: root.top
+        anchors.bottomMargin: 5
+        x: durationSlider.x + durationSlider.xPosition - width / 2
+
+        active: MementoSettings.behaviorOscPreviewThumbnails
+        sourceComponent: Component {
+            PlayerThumbnail {
+                visible: durationSlider.hovered && !durationSlider.pressed
+                opacity: active ? 1 : 0
+                path: root.player.state.path
+                position: durationSlider.cursorValue
+            }
+        }
+    }
 }

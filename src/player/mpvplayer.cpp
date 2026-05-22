@@ -437,12 +437,6 @@ void MpvPlayer::initializeMpv()
 {
     initOptions();
 
-    QByteArray configDir = DirectoryUtils::getConfigDir().toUtf8();
-    mpv_set_option_string(m_mpv, "config-dir", configDir);
-
-    QByteArray inputFile = DirectoryUtils::getMpvInputConfig().toUtf8();
-    mpv_set_option_string(m_mpv, "input-conf", inputFile);
-
     if (mpv_initialize(m_mpv) < 0)
     {
         throw std::runtime_error("MpvPlayer: Failed to initialize mpv context");
@@ -486,7 +480,6 @@ void MpvPlayer::initializeMpv()
     emit initialized();
 }
 
-
 void MpvPlayer::initOptions()
 {
     /* Hardcoded options */
@@ -498,6 +491,12 @@ void MpvPlayer::initOptions()
     mpv_set_option_string(m_mpv, "vo",                     "libmpv");
     mpv_set_option_string(m_mpv, "ytdl",                   "yes");
     mpv_set_option_string(m_mpv, "pause",                  "yes");
+
+    QByteArray configDir = DirectoryUtils::getConfigDir().toUtf8();
+    mpv_set_option_string(m_mpv, "config-dir", configDir);
+
+    QByteArray inputFile = DirectoryUtils::getMpvInputConfig().toUtf8();
+    mpv_set_option_string(m_mpv, "input-conf", inputFile);
 
     /* Commandline options */
     QStringList args = QCoreApplication::arguments();
@@ -764,7 +763,6 @@ void MpvPlayer::handleMpvEvent(mpv_event *event)
         int64_t h = 0;
         ::mpv_get_property(m_mpv, "video-params/h", MPV_FORMAT_INT64, &h);
         emit fileLoaded(w, h);
-        controller()->play();
         break;
     }
 

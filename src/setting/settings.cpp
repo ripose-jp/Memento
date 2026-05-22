@@ -294,6 +294,12 @@ void Settings::loadBehaviorSettings()
             Keys::Behavior::OSC_MIN_MOVE_DEFAULT
         ).toInt()
     );
+    setBehaviorOscPreviewThumbnails(
+        s.value(
+            Keys::Behavior::OSC_PREVIEW_THUMBNAILS,
+            Keys::Behavior::OSC_PREVIEW_THUMBNAILS_DEFAULT
+        ).toBool()
+    );
     setBehaviorSubtitlePause(
         s.value(
             Keys::Behavior::SUBTITLE_PAUSE,
@@ -358,6 +364,10 @@ void Settings::writeBehaviorSettings()
         behaviorOscMinMove()
     );
     s.setValue(
+        Keys::Behavior::OSC_PREVIEW_THUMBNAILS,
+        behaviorOscPreviewThumbnails()
+    );
+    s.setValue(
         Keys::Behavior::SUBTITLE_PAUSE,
         behaviorSubtitlePause()
     );
@@ -389,6 +399,7 @@ void Settings::defaultBehaviorSettings()
     setBehaviorOscDuration();
     setBehaviorOscFadeDuration();
     setBehaviorOscMinMove();
+    setBehaviorOscPreviewThumbnails();
     setBehaviorSubtitlePause();
     setBehaviorSubtitleCursorShow();
     setBehaviorSecondarySubtitleCursorShow();
@@ -1497,6 +1508,21 @@ void Settings::setBehaviorOscMinMove(int value)
     }
     m_behavior.oscMinMove = value;
     emit behaviorOscMinMoveChanged(m_behavior.oscMinMove);
+}
+
+bool Settings::behaviorOscPreviewThumbnails() const noexcept
+{
+    return m_behavior.oscPreviewThumbnails;
+}
+
+void Settings::setBehaviorOscPreviewThumbnails(bool value)
+{
+    if (m_behavior.oscPreviewThumbnails == value)
+    {
+        return;
+    }
+    m_behavior.oscPreviewThumbnails = value;
+    emit behaviorOscPreviewThumbnailsChanged(m_behavior.oscPreviewThumbnails);
 }
 
 bool Settings::behaviorSubtitlePause() const noexcept

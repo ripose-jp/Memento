@@ -60,6 +60,7 @@ qt_add_qml_module(
         qml/controls/PlayerControls.qml
         qml/controls/PlayerMenu.qml
         qml/controls/PlayerSlider.qml
+        qml/controls/PlayerThumbnail.qml
         qml/controls/SearchableText.qml
         qml/controls/SelectableLabel.qml
         qml/controls/SettingsBox.qml

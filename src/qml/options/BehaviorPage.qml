@@ -204,6 +204,23 @@ Page {
                             onClicked: MementoSettings.behaviorOscMpvCursor = checked
                         }
                     }
+
+                    SettingsBoxSeparator {
+                        Layout.fillWidth: true
+                    }
+
+                    RowLayout {
+                        Label {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignLeft
+                            text: qsTr("Show preview thumbnails")
+                        }
+                        Switch {
+                            Layout.alignment: Qt.AlignRight
+                            checked: MementoSettings.behaviorOscPreviewThumbnails
+                            onClicked: MementoSettings.behaviorOscPreviewThumbnails = checked
+                        }
+                    }
                 }
             }
 

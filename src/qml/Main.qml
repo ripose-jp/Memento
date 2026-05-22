@@ -175,6 +175,8 @@ ApplicationWindow {
                 }
 
                 MementoSettings.recentFilesAdd(player.state.path);
+
+                player.controller.play();
             }
 
             DropArea {

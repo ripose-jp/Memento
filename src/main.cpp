@@ -51,6 +51,7 @@
 #include "manager/mainmanager.h"
 #include "os/screensaver.h"
 #include "player/mpvplayer.h"
+#include "player/mpvthumbnail.h"
 #include "quick/clipboard.h"
 #include "quick/coloredsvgprovider.h"
 #include "quick/keytracker.h"
@@ -171,6 +172,7 @@ static void registerQmlTypes(Context &context)
     /* Player Types */
 
     qmlRegisterType<MpvPlayer>(MEMENTO_URI, 1, 0, "MpvPlayer");
+    qmlRegisterType<MpvThumbnail>(MEMENTO_URI, 1, 0, "MpvThumbnail");
     qmlRegisterUncreatableType<MpvState>(
         MEMENTO_URI, 1, 0, "MpvState",
         "MpvState cannot be created directly from QML. "

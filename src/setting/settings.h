@@ -132,6 +132,13 @@ class Settings : public QObject
     )
 
     Q_PROPERTY(
+        bool behaviorOscPreviewThumbnails
+        READ behaviorOscPreviewThumbnails
+        WRITE setBehaviorOscPreviewThumbnails
+        NOTIFY behaviorOscPreviewThumbnailsChanged
+    )
+
+    Q_PROPERTY(
         bool behaviorSubtitlePause
         READ behaviorSubtitlePause
         WRITE setBehaviorSubtitlePause
@@ -878,6 +885,23 @@ public:
      */
     void setBehaviorOscMinMove(
         int value = Keys::Behavior::OSC_MIN_MOVE_DEFAULT);
+
+    /**
+     * @brief Gets the preview thumbnails are enabled.
+     *
+     * @return true if preview thumbnails are enabled,
+     * @return false otherwise.
+     */
+    [[nodiscard]]
+    bool behaviorOscPreviewThumbnails() const noexcept;
+
+    /**
+     * @brief Sets the preview thumbnails are enabled.
+     *
+     * @param value true if preview thumbnails are enabled, false otherwise.
+     */
+    void setBehaviorOscPreviewThumbnails(
+        bool value = Keys::Behavior::OSC_PREVIEW_THUMBNAILS_DEFAULT);
 
     /**
      * @brief Gets the subtitle pause behavior setting.
@@ -1845,6 +1869,13 @@ signals:
     void behaviorOscMinMoveChanged(int value);
 
     /**
+     * @brief Emitted when the OSC preview thumbnails enabled is changed.
+     *
+     * @param value The new value.
+     */
+    void behaviorOscPreviewThumbnailsChanged(bool value);
+
+    /**
      * @brief Emitted when the subtitle pause behavior setting is changed.
      *
      * @param value The new value.
@@ -2301,6 +2332,11 @@ private:
 
         /* Number of pixels the cursor has to move to be registered as active */
         int oscMinMove{Keys::Behavior::OSC_MIN_MOVE_DEFAULT};
+
+        /* true if preview thumbnails should be shown */
+        bool oscPreviewThumbnails{
+            Keys::Behavior::OSC_PREVIEW_THUMBNAILS_DEFAULT
+        };
 
         /* true if the player should pause at the end of each subtitle */
         bool subtitlePause{Keys::Behavior::SUBTITLE_PAUSE_DEFAULT};
