@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
         QQuickStyle::name() == "org.kde.desktop")
     {
         QQuickStyle::setStyle(QStringLiteral("org.kde.breeze"));
-        QQuickStyle::setFallbackStyle(QStringLiteral("org.kde.desktop"));
+        QQuickStyle::setFallbackStyle(QStringLiteral("Fusion"));
     }
 #endif // defined(Q_OS_MACOS) || defined(Q_OS_WIN)
 
