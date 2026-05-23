@@ -1,12 +1,12 @@
 import QtQuick
-import QtQuick.Controls
 import Ripose.Memento
 
-Frame {
+Rectangle {
     id: root
 
     property int maxWidth: 16 * 13
     property int maxHeight: 9 * 13
+    property int margin: 15
     property string path: ""
     property real position: 0
 
@@ -22,6 +22,13 @@ Frame {
         return /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(path)
             && !path.startsWith("file://")
     }
+
+    width: thumbnail.implicitWidth + root.margin * 2
+    height: thumbnail.implicitHeight + root.margin * 2
+    color: MementoPalette.window
+    border.color: MementoPalette.border
+    border.width: 1
+    radius: 10
 
     onActiveChanged: {
         if (!root.active)
@@ -60,6 +67,7 @@ Frame {
 
         property bool initialized: false
 
+        anchors.centerIn: parent
         implicitWidth: root.maxWidth
         implicitHeight: root.maxHeight
 
