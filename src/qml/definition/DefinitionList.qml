@@ -9,6 +9,7 @@ ListView {
     required property var terms
     required property Kanji kanji
 
+    signal searchRequested(query: string, wildcards: bool)
     signal kanjiClicked(ch: string)
 
     /**
@@ -147,6 +148,7 @@ ListView {
             Layout.fillWidth: true
             Layout.margins: 10
             term: termLayout.index < root.terms.length ? root.terms[termLayout.index] : null
+            onSearchRequested: (query, wildcards) => root.searchRequested(query, wildcards)
             onKanjiClicked: (ch) => root.kanjiClicked(ch)
         }
 

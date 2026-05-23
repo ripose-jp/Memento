@@ -357,6 +357,14 @@ void DictionarySearch::filterDuplicates(std::vector<SearchQuery> &queries)
         }
     );
     queries.erase(last, std::end(queries));
+
+    std::erase_if(
+        queries,
+        [] (const SearchQuery &query) -> bool
+        {
+            return query.deconj.isEmpty();
+        }
+    );
 }
 
 void DictionarySearch::sortTerms(QList<Term *> &terms) const

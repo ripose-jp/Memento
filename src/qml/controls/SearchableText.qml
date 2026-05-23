@@ -30,8 +30,8 @@ TextEdit {
      * Executes a search at a given plain text index.
      * @param index The index into plain text to search.
      */
-    function search(index) {
-        if (root.hoverIndex < 0 || root.hoverIndex >= root.length)
+    function searchIndex(index) {
+        if (index < 0 || index >= root.length)
         {
             return;
         }
@@ -53,17 +53,17 @@ TextEdit {
         const MAX_SEARCH_LENGTH = 40;
 
         popupLoader.item.search.searchTerms(
-                    root.plainText.substring(root.hoverIndex, root.hoverIndex + MAX_SEARCH_LENGTH),
+                    root.plainText.substring(index, index + MAX_SEARCH_LENGTH),
                     root.plainText,
-                    root.hoverIndex);
+                    index);
         popupLoader.item.search.searchKanji(
-                    root.plainText.charAt(root.hoverIndex),
+                    root.plainText.charAt(index),
                     root.plainText,
-                    root.hoverIndex);
+                    index);
 
         popupLoader.item.parent = Overlay.overlay;
 
-        const rect = root.mapToItem(null, root.positionToRectangle(root.hoverIndex));
+        const rect = root.mapToItem(null, root.positionToRectangle(index));
         let x = rect.x - (popupLoader.item.width / 2);
         x = Math.max(x, 0);
         x = Math.min(x, Overlay.overlay.width - popupLoader.item.width);
@@ -85,10 +85,12 @@ TextEdit {
 
     Connections {
         target: popupLoader.item?.search ?? null
+
         function onTermsChanged() {
             root.select(root.hoverIndex,
                         root.hoverIndex + popupLoader.item.matchLength);
         }
+
         function onKanjiChanged() {
             root.select(root.hoverIndex,
                         root.hoverIndex + popupLoader.item.matchLength);
@@ -107,7 +109,7 @@ TextEdit {
         {
             return;
         }
-        root.search(root.hoverIndex);
+        root.searchIndex(root.hoverIndex);
     }
 
     MouseArea {
@@ -129,7 +131,7 @@ TextEdit {
                 event.accepted = false;
                 return;
             }
-            root.search(root.hoverIndex);
+            root.searchIndex(root.hoverIndex);
         }
 
         onExited: root.hoverIndex = -1
@@ -139,6 +141,6 @@ TextEdit {
         id: popupLoader
         active: false
         source: "qrc:/qt/qml/Ripose/Memento/qml/definition/DefinitionPopup.qml"
-        onLoaded: Qt.callLater(root.search, root.hoverIndex)
+        onLoaded: Qt.callLater(root.searchIndex, root.hoverIndex)
     }
 }

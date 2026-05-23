@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2022 Ripose
+// Copyright (c) 2026 Ripose
 //
 // This file is part of Memento.
 //
@@ -18,31 +18,90 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "anki/glossarybuilder.h"
+#include "definition/structuredrichtext.h"
 
-#include <QDir>
+#include <algorithm>
+#include <cmath>
+
+#include <QJsonObject>
+#include <QQuickWindow>
 
 #include "util/utils.h"
 
+/* Begin Constructor/Destructor */
+
+StructuredRichText::StructuredRichText(QObject *parent) : QObject(parent)
+{
+
+}
+
+StructuredRichText::~StructuredRichText()
+{
+
+}
+
+/* End Constructor/Destructor */
 /* Begin Public Methods */
 
-QStringList GlossaryBuilder::buildGlossary(
-    const QJsonArray &definitions,
-    QString basepath,
-    QSet<FileInfo> &fileMap)
+QString StructuredRichText::parse(
+    const DictionaryInfo *info,
+    const QJsonArray &content,
+    Setting::GlossaryStyle style,
+    const QQuickItem *item,
+    const QFont &font) const
+
 {
+    if (info == nullptr)
+    {
+        return "";
+    }
+
     constexpr const char *KEY_TYPE = "type";
     constexpr const char *KEY_CONTENT = "content";
     constexpr const char *VALUE_TYPE_IMAGE = "image";
     constexpr const char *VALUE_TYPE_STRUCTURED_CONTENT = "structured-content";
     constexpr const char *VALUE_TYPE_TEXT = "text";
 
-    basepath += QDir::separator();
-    QStringList glossaries;
-
-    for (const QJsonValue &val : definitions)
+    StructuredRichText::Context ctx;
+    ctx.info = info;
+    ctx.style = style;
+    if (item && item->window())
     {
-        QString glossary;
+        ctx.screen = item->window()->screen();
+    }
+    ctx.font = font;
+    ctx.rootFontPixelSize = fontPixelSize(font, ctx.screen);
+    ctx.parentFontPixelSize = ctx.rootFontPixelSize;
+    ctx.basepath = DirectoryUtils::getDictionaryResourceDir();
+#if defined(Q_OS_WIN)
+    ctx.basepath.prepend('/');
+    ctx.basepath.replace('\\', '/');
+#endif
+    ctx.basepath.prepend("file://");
+    ctx.basepath += '/';
+    ctx.basepath += info->name();
+    ctx.basepath += '/';
+
+    const bool containsSc = containsStructuredContent(content);
+    const bool shouldUseBullets =
+        style == Setting::GlossaryStyleBullet && !containsSc;
+
+    QString glossary = "<html><head></head><body>";
+
+    if (shouldUseBullets)
+    {
+        glossary += "<ul>";
+    }
+
+    for (qsizetype i = 0; i < content.size(); ++i)
+    {
+        const QJsonValue &val = content[i];
+
+        if (shouldUseBullets)
+        {
+            glossary += "<li>";
+        }
+
         switch (val.type())
         {
             case QJsonValue::Type::String:
@@ -57,13 +116,11 @@ QStringList GlossaryBuilder::buildGlossary(
                 QJsonObject obj = val.toObject();
                 if (obj[KEY_TYPE] == VALUE_TYPE_STRUCTURED_CONTENT)
                 {
-                    addStructuredContent(
-                        obj[KEY_CONTENT], basepath, glossary, fileMap
-                    );
+                    addStructuredContent(obj[KEY_CONTENT], ctx, glossary);
                 }
                 else if (obj[KEY_TYPE] == VALUE_TYPE_IMAGE)
                 {
-                    addImage(obj, basepath, glossary, fileMap);
+                    addImage(obj, ctx, glossary);
                 }
                 else if (obj[KEY_TYPE] == VALUE_TYPE_TEXT)
                 {
@@ -73,51 +130,46 @@ QStringList GlossaryBuilder::buildGlossary(
             }
 
             default:
-                continue;
+                break;
         }
-        glossaries.emplaceBack(std::move(glossary));
+
+        if (containsSc)
+        {
+            /* Ignore this check if structured content is detected */
+        }
+        else if (shouldUseBullets)
+        {
+            glossary += "</li>";
+        }
+        else if (i >= content.size() - 1)
+        {
+            /* Avoid putting <br> or | after the fine line */
+        }
+        else if (style == Setting::GlossaryStyleLineBreak)
+        {
+            glossary += "<br>";
+        }
+        else if (style == Setting::GlossaryStylePipe)
+        {
+            glossary += " | ";
+        }
     }
 
-    return glossaries;
+    if (shouldUseBullets)
+    {
+        glossary += "</ul>";
+    }
+
+    glossary += "</body></html>";
+
+    return glossary;
 }
 
 /* End Public Methods */
 /* Begin Structured Content Parsing */
 
-QString GlossaryBuilder::escapeHtml(const QString &str)
-{
-    return str.toHtmlEscaped();
-}
-
-QString GlossaryBuilder::structuredDataAttributeName(const QString &key)
-{
-    QString out = "data-sc-";
-    for (const QChar ch : key)
-    {
-        if (ch.isUpper())
-        {
-            out += '-';
-            out += ch.toLower();
-        }
-        else
-        {
-            out += ch;
-        }
-    }
-    return out;
-}
-
-bool GlossaryBuilder::isSupportedStructuredTag(const QString &tag)
-{
-    static const QSet<QString> TAGS = {
-        "br", "ruby", "rt", "rp", "table", "thead", "tbody", "tfoot",
-        "tr", "td", "th", "span", "div", "ol", "ul", "li", "details",
-        "summary", "img", "a"
-    };
-    return TAGS.contains(tag);
-}
-
-void GlossaryBuilder::addStructuredData(const QJsonObject &obj, QString &out)
+void StructuredRichText::addStructuredData(
+    const QJsonObject &obj, QString &out) const
 {
     for (const QString &key : obj.keys())
     {
@@ -134,8 +186,10 @@ void GlossaryBuilder::addStructuredData(const QJsonObject &obj, QString &out)
     }
 }
 
-void GlossaryBuilder::addStructuredStyle(
-    const QJsonObject &obj, QString &out)
+double StructuredRichText::addStructuredStyle(
+    const QJsonObject &obj,
+    StructuredRichText::Context &ctx,
+    QString &out) const
 {
     constexpr const char *KEY_FONT_STYLE = "fontStyle";
     constexpr const char *KEY_FONT_WEIGHT = "fontWeight";
@@ -173,6 +227,8 @@ void GlossaryBuilder::addStructuredStyle(
     constexpr const char QUOTE_SEARCH = '"';
     constexpr const char QUOTE_ESCAPE = '\'';
 
+    double currentFontPixelSize = ctx.parentFontPixelSize;
+
     if (obj[KEY_FONT_STYLE].isString())
     {
         out += "font-style: ";
@@ -191,9 +247,26 @@ void GlossaryBuilder::addStructuredStyle(
 
     if (obj[KEY_FONT_SIZE].isString())
     {
-        out += "font-size: ";
-        out += obj[KEY_FONT_SIZE].toString("medium")
+        const QString fontSize = obj[KEY_FONT_SIZE].toString("medium")
             .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
+        const double fontPixelSize = cssFontSizeToPixels(
+            fontSize,
+            ctx.screen,
+            ctx.parentFontPixelSize,
+            ctx.rootFontPixelSize
+        );
+
+        out += "font-size: ";
+        if (fontPixelSize >= 0)
+        {
+            currentFontPixelSize = fontPixelSize;
+            out += formatPixelSize(fontPixelSize);
+            out += "px";
+        }
+        else
+        {
+            out += fontSize;
+        }
         out += ';';
     }
 
@@ -463,39 +536,37 @@ void GlossaryBuilder::addStructuredStyle(
             .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
         out += ';';
     }
+
+    return currentFontPixelSize;
 }
 
-void GlossaryBuilder::addStructuredContentHelper(
-    const QString &str, QString &out)
+void StructuredRichText::addStructuredContentHelper(
+    const QString &str, QString &out) const
 {
     out += escapeHtml(str).replace('\n', "<br>");
 }
 
-void GlossaryBuilder::addStructuredContentHelper(
+void StructuredRichText::addStructuredContentHelper(
     const QJsonArray &arr,
-    const QString &basepath,
-    QString &out,
-    QSet<FileInfo> &fileMap)
+    StructuredRichText::Context &ctx,
+    QString &out) const
 {
     for (const QJsonValue &val : arr)
     {
-        addStructuredContent(val, basepath, out, fileMap);
+        addStructuredContent(val, ctx, out);
     }
 }
 
-void GlossaryBuilder::addStructuredContentHelper(
+void StructuredRichText::addStructuredContentHelper(
     const QJsonObject &obj,
-    const QString &basepath,
-    QString &out,
-    QSet<FileInfo> &fileMap)
+    StructuredRichText::Context &ctx,
+    QString &out) const
 {
     constexpr const char *KEY_ALT = "alt";
     constexpr const char *KEY_APPEARANCE = "appearance";
     constexpr const char *KEY_BACKGROUND = "background";
     constexpr const char *KEY_BORDER = "border";
     constexpr const char *KEY_BORDER_RADIUS = "borderRadius";
-    constexpr const char *KEY_COLLAPSED = "collapsed";
-    constexpr const char *KEY_COLLAPSIBLE = "collapsible";
     constexpr const char *KEY_COLSPAN = "colSpan";
     constexpr const char *KEY_CONTENT = "content";
     constexpr const char *KEY_DATA = "data";
@@ -537,19 +608,10 @@ void GlossaryBuilder::addStructuredContentHelper(
     }
     else if (tag == "img")
     {
-        if (obj[KEY_COLLAPSIBLE].toBool(false))
-        {
-            out += "<details";
-            if (!obj[KEY_COLLAPSED].toBool(false))
-            {
-                out += " open";
-            }
-            out += ">";
-        }
+        QString filename = escapeHtml(ctx.basepath + obj[KEY_PATH].toString());
 
-        QString filename = addFile(basepath, obj[KEY_PATH].toString(), fileMap);
         out += "<img src=\"";
-        out += escapeHtml(filename);
+        out += filename;
         out += '"';
 
         if (obj[KEY_DATA].isObject())
@@ -578,23 +640,41 @@ void GlossaryBuilder::addStructuredContentHelper(
             out += '"';
         }
 
-        out += " style=\"";
-
         QString units = obj[KEY_UNITS].toString("px");
         if (obj[KEY_WIDTH].isDouble())
         {
-            out += "width: ";
-            out += QString::number(obj[KEY_WIDTH].toDouble());
-            out += units;
-            out += ';';
+            QString cssSize = QString("%1%2")
+                .arg(obj[KEY_WIDTH].toDouble())
+                .arg(units);
+            const double pixelSize = cssFontSizeToPixels(
+                cssSize,
+                ctx.screen,
+                ctx.parentFontPixelSize,
+                ctx.rootFontPixelSize
+            );
+
+            out += " width=\"";
+            out += formatPixelSize(pixelSize);
+            out += '"';
         }
         if (obj[KEY_HEIGHT].isDouble())
         {
-            out += "height: ";
-            out += QString::number(obj[KEY_HEIGHT].toDouble());
-            out += units;
-            out += ';';
+            QString cssSize = QString("%1%2")
+                .arg(obj[KEY_HEIGHT].toDouble())
+                .arg(units);
+            const double pixelSize = cssFontSizeToPixels(
+                cssSize,
+                ctx.screen,
+                ctx.parentFontPixelSize,
+                ctx.rootFontPixelSize
+            );
+
+            out += " height=\"";
+            out += formatPixelSize(pixelSize);
+            out += '"';
         }
+
+        out += " style=\"";
 
         if (obj[KEY_RENDERING].isString())
         {
@@ -654,14 +734,11 @@ void GlossaryBuilder::addStructuredContentHelper(
         }
 
         out += "\">";
-
-        if (obj[KEY_COLLAPSIBLE].toBool(false))
-        {
-            out += "</details>";
-        }
     }
     else
     {
+        double currentFontPixelSize = ctx.parentFontPixelSize;
+
         out += '<';
         out += tag;
 
@@ -714,16 +791,34 @@ void GlossaryBuilder::addStructuredContentHelper(
             out += '"';
         }
 
+        out += " style=\"";
+        if (tag == "table")
+        {
+            out += "border: 1px solid;"
+                "border-collapse: collapse;";
+        }
+        else if (tag == "th" || tag == "td")
+        {
+            out += "border: 1px solid;"
+                "border-collapse: collapse;"
+                "padding: 5px;";
+        }
+
         if (obj[KEY_STYLE].isObject())
         {
-            out += " style=\"";
-            addStructuredStyle(obj[KEY_STYLE].toObject(), out);
-            out += '"';
+            currentFontPixelSize = addStructuredStyle(
+                obj[KEY_STYLE].toObject(),
+                ctx,
+                out
+            );
         }
+        out += '"';
 
         out += '>';
 
-        addStructuredContent(obj[KEY_CONTENT], basepath, out, fileMap);
+        std::swap(ctx.parentFontPixelSize, currentFontPixelSize);
+        addStructuredContent(obj[KEY_CONTENT], ctx, out);
+        std::swap(ctx.parentFontPixelSize, currentFontPixelSize);
 
         out += "</";
         out += tag;
@@ -731,11 +826,10 @@ void GlossaryBuilder::addStructuredContentHelper(
     }
 }
 
-void GlossaryBuilder::addStructuredContent(
+void StructuredRichText::addStructuredContent(
     const QJsonValue &val,
-    const QString &basepath,
-    QString &out,
-    QSet<FileInfo> &fileMap)
+    StructuredRichText::Context &ctx,
+    QString &out) const
 {
     switch (val.type())
     {
@@ -744,11 +838,11 @@ void GlossaryBuilder::addStructuredContent(
         break;
 
     case QJsonValue::Type::Array:
-        addStructuredContentHelper(val.toArray(), basepath, out, fileMap);
+        addStructuredContentHelper(val.toArray(), ctx, out);
         break;
 
     case QJsonValue::Type::Object:
-        addStructuredContentHelper(val.toObject(), basepath, out, fileMap);
+        addStructuredContentHelper(val.toObject(), ctx, out);
         break;
 
     default:
@@ -759,11 +853,10 @@ void GlossaryBuilder::addStructuredContent(
 /* End Structured Content Parsing */
 /* Begin Other Object Parsers */
 
-void GlossaryBuilder::addImage(
+void StructuredRichText::addImage(
     const QJsonObject &obj,
-    const QString &basepath,
-    QString &out,
-    QSet<FileInfo> &fileMap)
+    StructuredRichText::Context &ctx,
+    QString &out) const
 {
     constexpr const char *KEY_PATH = "path";
     constexpr const char *KEY_WIDTH = "width";
@@ -771,28 +864,10 @@ void GlossaryBuilder::addImage(
     constexpr const char *KEY_TITLE = "title";
     constexpr const char *KEY_RENDERING = "imageRendering";
     constexpr const char *KEY_DESCRIPTION = "description";
-    constexpr const char *KEY_COLLAPSED = "collapsed";
-    constexpr const char *KEY_COLLAPSIBLE = "collapsible";
 
-    bool collapsed = obj[KEY_COLLAPSED].toBool(false);
-    bool collapsible = obj[KEY_COLLAPSIBLE].toBool(true);
-
-    if (collapsible)
-    {
-        out += "<details";
-        if (!collapsed)
-        {
-            out += " open";
-        }
-        out += '>';
-        out +=
-            "<summary style=\"text-decoration: underline;cursor: pointer;\">"
-                "[Image]"
-            "</summary>";
-    }
-
+    QString filename = escapeHtml(ctx.basepath + obj[KEY_PATH].toString());
     out += "<img src=\"";
-    out += escapeHtml(addFile(basepath, obj[KEY_PATH].toString(), fileMap));
+    out += filename;
     out += '"';
 
     if (obj[KEY_WIDTH].isDouble())
@@ -831,14 +906,9 @@ void GlossaryBuilder::addImage(
         out += escapeHtml(obj[KEY_DESCRIPTION].toString())
             .replace('\n', "<br>");
     }
-
-    if (collapsible)
-    {
-        out += "</details>";
-    }
 }
 
-void GlossaryBuilder::addText(const QJsonObject &obj, QString &out)
+void StructuredRichText::addText(const QJsonObject &obj, QString &out) const
 {
     constexpr const char *KEY_TEXT = "text";
     out += escapeHtml(obj[KEY_TEXT].toString()).replace('\n', "<br>");
@@ -847,33 +917,306 @@ void GlossaryBuilder::addText(const QJsonObject &obj, QString &out)
 /* End Other Object Parsers */
 /* Begin Helpers */
 
-QString GlossaryBuilder::addFile(
-    QString basepath,
-    const QString &path,
-    QSet<FileInfo> &fileMap)
+bool StructuredRichText::containsStructuredContent(
+    const QJsonArray &content) const
 {
-#if defined(Q_OS_WIN)
-    basepath += QDir::toNativeSeparators(path);
-#else
-    basepath += path;
-#endif
-    QString hash = FileUtils::calculateMd5(basepath);
-    if (hash.isEmpty())
+    return std::any_of(
+        std::begin(content), std::end(content),
+        [] (const QJsonValue &value) -> bool
+        {
+            return value.type() == QJsonValue::Object;
+        }
+    );
+}
+
+QString StructuredRichText::escapeHtml(const QString &str) const
+{
+    return str.toHtmlEscaped();
+}
+
+QString StructuredRichText::structuredDataAttributeName(
+    const QString &key) const
+{
+    QString out = "data-sc-";
+    for (const QChar ch : key)
     {
-        return QString("File not found at: %1").arg(basepath);
+        if (ch.isUpper())
+        {
+            out += '-';
+            out += ch.toLower();
+        }
+        else
+        {
+            out += ch;
+        }
     }
-    int lastSlashIndex = path.lastIndexOf('/');
-    if (lastSlashIndex == -1)
+    return out;
+}
+
+bool StructuredRichText::isSupportedStructuredTag(const QString &tag) const
+{
+    return m_supportedTags.contains(tag);
+}
+
+double StructuredRichText::cssFontSizeToPixels(
+    const QString &size,
+    const QScreen *screen,
+    const QFont &font) const
+{
+    const double fontSize = fontPixelSize(font, screen);
+    return cssFontSizeToPixels(size, screen, fontSize, fontSize);
+}
+
+
+double StructuredRichText::cssFontSizeToPixels(
+    const QString &size,
+    const QScreen *screen,
+    double parentFontPixelSize,
+    double rootFontPixelSize) const
+{
+    const QString normalized = size.trimmed().toLower();
+    if (normalized.isEmpty())
     {
-        lastSlashIndex = 0;
+        return -1.0;
     }
-    int dotIndex = path.indexOf('.', lastSlashIndex);
-    if (dotIndex != -1)
+
+    if (normalized == "inherit" || normalized == "unset" ||
+        normalized == "revert" || normalized == "revert-layer")
     {
-        hash += path.right(path.length() - dotIndex);
+        return parentFontPixelSize;
     }
-    fileMap.insert(FileInfo{basepath, hash});
-    return hash;
+    if (normalized == "initial" || normalized == "medium")
+    {
+        return rootFontPixelSize;
+    }
+    if (normalized == "xx-small")
+    {
+        return rootFontPixelSize * 3.0 / 5.0;
+    }
+    if (normalized == "x-small")
+    {
+        return rootFontPixelSize * 3.0 / 4.0;
+    }
+    if (normalized == "small")
+    {
+        return rootFontPixelSize * 8.0 / 9.0;
+    }
+    if (normalized == "large")
+    {
+        return rootFontPixelSize * 6.0 / 5.0;
+    }
+    if (normalized == "x-large")
+    {
+        return rootFontPixelSize * 3.0 / 2.0;
+    }
+    if (normalized == "xx-large")
+    {
+        return rootFontPixelSize * 2.0;
+    }
+    if (normalized == "xxx-large")
+    {
+        return rootFontPixelSize * 3.0;
+    }
+    if (normalized == "smaller")
+    {
+        return parentFontPixelSize / 1.2;
+    }
+    if (normalized == "larger")
+    {
+        return parentFontPixelSize * 1.2;
+    }
+
+    qsizetype index = 0;
+    bool ok = false;
+    normalized.toDouble(&ok);
+    if (ok)
+    {
+        index = normalized.size();
+    }
+    else
+    {
+        while (index < normalized.size())
+        {
+            const QChar ch = normalized[index];
+            if (!ch.isDigit() && ch != '-' && ch != '+' && ch != '.')
+            {
+                break;
+            }
+            ++index;
+        }
+        if (index == 0)
+        {
+            return -1.0;
+        }
+    }
+
+    const QString number = normalized.first(index);
+    ok = false;
+    const double numericValue = number.toDouble(&ok);
+    if (!ok || !std::isfinite(numericValue))
+    {
+        return -1.0;
+    }
+
+    const QString unit = normalized.sliced(index).trimmed();
+    if (unit.isEmpty())
+    {
+        return numericValue == 0.0 ? 0.0 : -1.0;
+    }
+    if (unit == "px")
+    {
+        return numericValue;
+    }
+    if (unit == "%")
+    {
+        return parentFontPixelSize * numericValue / 100.0;
+    }
+    if (unit == "em")
+    {
+        return parentFontPixelSize * numericValue;
+    }
+    if (unit == "rem")
+    {
+        return rootFontPixelSize * numericValue;
+    }
+    if (unit == "ex")
+    {
+        return parentFontPixelSize * numericValue / 2.0;
+    }
+    if (unit == "rex")
+    {
+        return rootFontPixelSize * numericValue / 2.0;
+    }
+    if (unit == "ch")
+    {
+        return parentFontPixelSize * numericValue / 2.0;
+    }
+    if (unit == "rch")
+    {
+        return rootFontPixelSize * numericValue / 2.0;
+    }
+    if (unit == "cap")
+    {
+        return parentFontPixelSize * numericValue * 0.7;
+    }
+    if (unit == "rcap")
+    {
+        return rootFontPixelSize * numericValue * 0.7;
+    }
+    if (unit == "ic")
+    {
+        return parentFontPixelSize * numericValue;
+    }
+    if (unit == "ric")
+    {
+        return rootFontPixelSize * numericValue;
+    }
+    if (unit == "lh")
+    {
+        return parentFontPixelSize * numericValue * 1.2;
+    }
+    if (unit == "rlh")
+    {
+        return rootFontPixelSize * numericValue * 1.2;
+    }
+
+    if (screen != nullptr)
+    {
+        const QSize screenSize = screen->availableGeometry().size();
+        if (unit == "vw" || unit == "svw" || unit == "lvw" || unit == "dvw" ||
+            unit == "vi" || unit == "svi" || unit == "lvi" || unit == "dvi")
+        {
+            return screenSize.width() * numericValue / 100.0;
+        }
+        if (unit == "vh" || unit == "svh" || unit == "lvh" || unit == "dvh" ||
+            unit == "vb" || unit == "svb" || unit == "lvb" || unit == "dvb")
+        {
+            return screenSize.height() * numericValue / 100.0;
+        }
+        if (unit == "vmin" || unit == "svmin" || unit == "lvmin" ||
+            unit == "dvmin")
+        {
+            return std::min(screenSize.width(), screenSize.height()) *
+                numericValue / 100.0;
+        }
+        if (unit == "vmax" || unit == "svmax" || unit == "lvmax" ||
+            unit == "dvmax")
+        {
+            return std::max(screenSize.width(), screenSize.height()) *
+                numericValue / 100.0;
+        }
+    }
+
+    const double dpi = screenDpi(screen);
+    if (unit == "pt")
+    {
+        return numericValue * dpi / 72.0;
+    }
+    if (unit == "pc")
+    {
+        return numericValue * dpi / 6.0;
+    }
+    if (unit == "in")
+    {
+        return numericValue * dpi;
+    }
+    if (unit == "cm")
+    {
+        return numericValue * dpi / 2.54;
+    }
+    if (unit == "mm")
+    {
+        return numericValue * dpi / 25.4;
+    }
+    if (unit == "q")
+    {
+        return numericValue * dpi / 101.6;
+    }
+
+    return -1.0;
+}
+
+double StructuredRichText::fontPixelSize(
+    const QFont &font, const QScreen *screen) const
+{
+    constexpr double POINTS_IN_INCH = 72.0;
+    constexpr double DEFAULT_PIXEL_SIZE = 16.0;
+
+    if (font.pixelSize() > 0)
+    {
+        return font.pixelSize();
+    }
+    if (font.pointSizeF() > 0)
+    {
+        return font.pointSizeF() * screenDpi(screen) / POINTS_IN_INCH;
+    }
+    return DEFAULT_PIXEL_SIZE;
+}
+
+double StructuredRichText::screenDpi(const QScreen *screen) const
+{
+    constexpr double DEFAULT_SCREEN_DPI = 96.0;
+
+    if (screen == nullptr)
+    {
+        return DEFAULT_SCREEN_DPI;
+    }
+    const double dpi = screen->logicalDotsPerInch();
+    return dpi > 0.0 ? dpi : DEFAULT_SCREEN_DPI;
+}
+
+QString StructuredRichText::formatPixelSize(double size) const
+{
+    QString formatted = QString::number(size, 'f', 3);
+    while (formatted.endsWith('0'))
+    {
+        formatted.chop(1);
+    }
+    if (formatted.endsWith('.'))
+    {
+        formatted.chop(1);
+    }
+    return formatted;
 }
 
 /* End Helpers */

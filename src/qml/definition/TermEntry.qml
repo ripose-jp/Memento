@@ -8,6 +8,7 @@ Item {
 
     required property Term term
 
+    signal searchRequested(query: string, wildcards: bool)
     signal kanjiClicked(ch: string)
 
     implicitHeight: rootLayout.implicitHeight
@@ -491,6 +492,8 @@ Item {
                 term: root.term
                 definition: root.term?.definitions[index]
                 visible: !root.term?.collapsed
+
+                onSearchRequested: (query, wildcards) => root.searchRequested(query, wildcards)
             }
         }
     }

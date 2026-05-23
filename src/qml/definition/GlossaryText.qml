@@ -6,6 +6,8 @@ SearchableText {
 
     property TermDefinition definition: null
 
+    signal searchRequested(query: string, wildcards: bool)
+
     cursorShape: Qt.IBeamCursor
     textFormat: TextEdit.RichText
     wrapMode: TextEdit.Wrap
@@ -26,9 +28,46 @@ SearchableText {
     font.hintingPreference: MementoSettings.interfaceSearchGlossaryFont.hintingPreference
     font.styleName: MementoSettings.interfaceSearchGlossaryFont.styleName
 
-    text: StructuredContent.parse(
-              root.definition?.dictionaryInfo?.name ?? "",
+    text: StructuredRichText.parse(
+              root.definition?.dictionaryInfo,
               root.definition?.glossary ?? [],
               MementoSettings.searchGlossaryStyle,
+              root,
               root.font)
+
+    onLinkActivated: function(link) {
+        if (link.startsWith("?"))
+        {
+            let query = "";
+            let wildcards = false;
+
+            let args = link.substring(1).split("&").map(v => v.split("="));
+            for (let i = 0; i < args.length; ++i)
+            {
+                if (args[i].length !== 2)
+                {
+                    continue;
+                }
+                let argName = decodeURIComponent(args[i][0]);
+                let argValue = decodeURIComponent(args[i][1]);
+
+                if (argName === "query")
+                {
+                    query = argValue;
+                }
+                else if (argName === "wildcards")
+                {
+                    wildcards = argValue !== "off";
+                }
+            }
+            if (query.length > 0)
+            {
+                root.searchRequested(query, wildcards);
+            }
+        }
+        else
+        {
+            Qt.openUrlExternally(link);
+        }
+    }
 }

@@ -13,8 +13,8 @@ Page {
 
     signal closePressed()
 
-    onTermsChanged: kanjiSearch.clearKanji()
-    onKanjiChanged: kanjiSearch.clearKanji()
+    onTermsChanged: search.clearResults()
+    onKanjiChanged: search.clearResults()
 
     Action {
         id: addAnkiAction
@@ -26,8 +26,20 @@ Page {
     }
 
     DictionarySearch {
-        id: kanjiSearch
+        id: search
         settings: MementoSettings
+
+        onTermsChanged: {
+            if (terms.length > 0)
+            {
+                stackView.push(subTermList);
+            }
+            else
+            {
+                stackView.pop(null, StackView.Immediate);
+            }
+        }
+
         onKanjiChanged: {
             if (kanji)
             {
@@ -88,7 +100,16 @@ Page {
         clip: true
         initialItem: DefinitionList {
             id: definitionList
-            onKanjiClicked: (ch) => kanjiSearch.searchKanji(ch, "", 0)
+            onSearchRequested: (query, wildcards) => search.searchTerms(query, query, 0)
+            onKanjiClicked: (ch) => search.searchKanji(ch, ch, 0)
+        }
+    }
+
+    Component {
+        id: subTermList
+        DefinitionList {
+            terms: search.terms
+            kanji: null
         }
     }
 
@@ -110,7 +131,7 @@ Page {
                 width: kanjiScrollView.ScrollBar.vertical.visible ?
                            kanjiScrollView.width - kanjiScrollView.ScrollBar.vertical.width :
                            kanjiScrollView.width
-                kanji: kanjiSearch.kanji
+                kanji: search.kanji
             }
         }
     }

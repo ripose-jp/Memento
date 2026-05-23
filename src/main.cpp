@@ -43,7 +43,7 @@
 #include "anki/ankifieldlistmodel.h"
 #include "anki/ankiprofile.h"
 #include "audio/audioplayer.h"
-#include "definition/structuredcontent.h"
+#include "definition/structuredrichtext.h"
 #include "dict/dictionary.h"
 #include "dict/dictionarycontroller.h"
 #include "dict/dictionaryinfomodel.h"
@@ -161,8 +161,9 @@ static void registerQmlTypes(Context &context)
 
     /* Definition Types */
 
-    qmlRegisterSingletonInstance<StructuredContent>(
-        MEMENTO_URI, 1, 0, "StructuredContent", new StructuredContent(&context)
+    qmlRegisterSingletonInstance<StructuredRichText>(
+        MEMENTO_URI, 1, 0, "StructuredRichText",
+        new StructuredRichText(&context)
     );
 
     /* OS Types */
