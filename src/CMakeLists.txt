@@ -39,6 +39,7 @@ configure_file(
     "${PROJECT_SOURCE_DIR}/src/qml/util/Features.qml"
 )
 set_source_files_properties(
+    qml/objects/AudioSourceResolver.qml
     qml/util/AnkiMarkers.qml
     qml/util/Features.qml
     qml/util/MementoPalette.qml
@@ -88,6 +89,7 @@ qt_add_qml_module(
         qml/dialogs/UpdateDialog.qml
         qml/Main.qml
         qml/objects/AudioFiles.qml
+        qml/objects/AudioSourceResolver.qml
         qml/objects/CursorTimer.qml
         qml/objects/MoveTimer.qml
         qml/options/AnkiIntegrationHelpWindow.qml

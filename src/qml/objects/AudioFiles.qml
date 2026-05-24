@@ -17,14 +17,20 @@ QtObject {
 
     property int loadState: AudioFiles.LoadState.Unloaded
 
-    /* The current active XHR request, null if nothing is active */
-    property var activeRequest: null
+    /* Incremented whenever outstanding async loads should be ignored. */
+    property int loadToken: 0
+
+    /* Properties describing in flight requests */
+    property int activeJsonRequestId: 0
+    property int pendingIndex: -1
+    property int pendingToken: 0
+    property string pendingExpression
+    property string pendingReading
+    property string pendingSkipHash
 
     Component.onDestruction: {
-        if (root.activeRequest)
-        {
-            root.activeRequest.abort();
-        }
+        ++root.loadToken;
+        root.activeJsonRequestId = 0;
     }
 
     onTermChanged: {
@@ -39,10 +45,8 @@ QtObject {
      * Clears all audio files.
      */
     function clear() {
-        if (root.activeRequest)
-        {
-            root.activeRequest.abort();
-        }
+        ++root.loadToken;
+        root.activeJsonRequestId = 0;
         root.files.clear();
         root.loadState = AudioFiles.LoadState.Unloaded;
     }
@@ -53,12 +57,12 @@ QtObject {
      * @param reading The reading of the term.
      */
     function load(expression, reading) {
-        if (root.loadState !== AudioFiles.Unloaded)
+        if (root.loadState !== AudioFiles.LoadState.Unloaded)
         {
             root.clear();
         }
         root.loadState = AudioFiles.LoadState.Loading;
-        root.loadHelper(expression, reading, 0);
+        root.loadHelper(expression, reading, 0, root.loadToken);
     }
 
     /**
@@ -67,7 +71,11 @@ QtObject {
      * @param reading The reading of the term.
      * @param index The index of the audio source to add.
      */
-    function loadHelper(expression, reading, index) {
+    function loadHelper(expression, reading, index, token) {
+        if (token !== root.loadToken)
+        {
+            return;
+        }
         if (index >= MementoSettings.audioSources.rowCount())
         {
             root.loadState = AudioFiles.LoadState.Loaded;
@@ -93,89 +101,91 @@ QtObject {
                 "skipHash": skipHash,
                 "exists": true
             });
-            root.loadHelper(expression, reading, index + 1);
+            root.loadHelper(expression, reading, index + 1, token);
             break;
 
         case MementoSetting.AudioSourceTypeJson:
-            root.requestJsonSource(
-                url,
-                function(audioSources)
-                {
-                    for (let i = 0; i < audioSources.length; ++i)
-                    {
-                        if (!audioSources[i].name)
-                        {
-                            continue;
-                        }
-                        else if (!audioSources[i].url)
-                        {
-                            continue;
-                        }
-                        root.files.append({
-                            "name": audioSources[i].name,
-                            "url": audioSources[i].url,
-                            "skipHash": skipHash,
-                            "exists": true
-                        });
-                    }
-                    root.loadHelper(expression, reading, index + 1);
-                },
-                function()
-                {
-                    root.loadHelper(expression, reading, index + 1);
-                }
-            );
+            root.pendingExpression = expression;
+            root.pendingReading = reading;
+            root.pendingIndex = index;
+            root.pendingSkipHash = skipHash;
+            root.pendingToken = token;
+            root.activeJsonRequestId = AudioSourceResolver.request(url);
             break;
 
         default:
-            root.loadHelper(expression, reading, index + 1);
+            root.loadHelper(expression, reading, index + 1, token);
             return;
         }
     }
 
     /**
-     * Requests a JSON audio source and gets the source list.
-     * @param url The URL of the JSON source.
-     * @param callback The function to callback with the audio source array.
-     * @param errorCallback The function to callback on an error.
+     * Handles a successful JSON source loaded and loads the next one if
+     * necessary.
+     * @param requestId The unique ID of the audio source request.
+     * @param audioSources The JSON audio source object.
      */
-    function requestJsonSource(url, callback, errorCallback) {
-        let request = new XMLHttpRequest();
-        root.activeRequest = request;
+    function continueJsonLoad(requestId, audioSources) {
+        if (requestId !== root.activeJsonRequestId ||
+                root.pendingToken !== root.loadToken)
+        {
+            return;
+        }
+        root.activeJsonRequestId = 0;
 
-        request.onreadystatechange = function () {
-            if (request.readyState === XMLHttpRequest.UNSENT)
+        for (let i = 0; i < audioSources.length; ++i)
+        {
+            if (!audioSources[i].name)
             {
-                /* This request has been aborted, don't continue. */
-                return;
+                continue;
             }
-            else if (request.readyState !== XMLHttpRequest.DONE)
+            else if (!audioSources[i].url)
             {
-                return;
+                continue;
             }
-            root.activeRequest = null;
+            root.files.append({
+                "name": audioSources[i].name,
+                "url": audioSources[i].url,
+                "skipHash": root.pendingSkipHash,
+                "exists": true
+            });
+        }
+        root.loadHelper(
+            root.pendingExpression,
+            root.pendingReading,
+            root.pendingIndex + 1,
+            root.pendingToken
+        );
+    }
 
-            if (request.status === 0)
-            {
-                errorCallback();
-                return;
-            }
-            const response = JSON.parse(request.responseText);
-            if (response.type !== "audioSourceList")
-            {
-                errorCallback();
-                return;
-            }
-            else if (!Array.isArray(response.audioSources))
-            {
-                errorCallback();
-                return;
-            }
+    /**
+     * Handles an error and continues loading JSON audio sources.
+     * @param requestId The unique ID of the audio source request.
+     */
+    function continueJsonLoadAfterError(requestId) {
+        if (requestId !== root.activeJsonRequestId ||
+                root.pendingToken !== root.loadToken)
+        {
+            return;
+        }
+        root.activeJsonRequestId = 0;
+        root.loadHelper(
+            root.pendingExpression,
+            root.pendingReading,
+            root.pendingIndex + 1,
+            root.pendingToken
+        );
+    }
 
-            callback(response.audioSources);
-        };
+    readonly property Connections resolverConnections: Connections {
+        target: AudioSourceResolver
 
-        request.open("GET", url);
-        request.send();
+        function onResolved(requestId, audioSources) {
+            root.continueJsonLoad(requestId, audioSources);
+        }
+
+        function onFailed(requestId) {
+            root.continueJsonLoadAfterError(requestId);
+        }
     }
 }
