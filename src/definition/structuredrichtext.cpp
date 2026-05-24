@@ -108,10 +108,7 @@ QString StructuredRichText::parse(
         switch (val.type())
         {
             case QJsonValue::Type::String:
-                glossary += escapeHtml(val.toString()).replace(
-                    '\n',
-                    "<br>"
-                );
+                glossary += escapeHtml(val.toString()).replace('\n', "<br>");
                 break;
 
             case QJsonValue::Type::Object:
@@ -127,7 +124,7 @@ QString StructuredRichText::parse(
                 }
                 else if (obj[KEY_TYPE] == VALUE_TYPE_TEXT)
                 {
-                    addText(obj, style, glossary);
+                    addText(obj, glossary);
                 }
                 break;
             }
@@ -1070,14 +1067,10 @@ void StructuredRichText::addImage(
     }
 }
 
-void StructuredRichText::addText(
-    const QJsonObject &obj, Setting::GlossaryStyle style, QString &out) const
+void StructuredRichText::addText(const QJsonObject &obj, QString &out) const
 {
     constexpr const char *KEY_TEXT = "text";
-    out += escapeHtml(obj[KEY_TEXT].toString()).replace(
-        '\n',
-        style == Setting::GlossaryStyleBullet ? "</li><li>" : "<br>"
-    );
+    out += escapeHtml(obj[KEY_TEXT].toString()).replace('\n', "<br>");
 }
 
 /* End Other Object Parsers */

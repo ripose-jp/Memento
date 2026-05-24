@@ -231,12 +231,9 @@ private:
      * @brief Add a text object to the HTML document.
      *
      * @param obj The text object.
-     * @param style The glossary style to display.
      * @param[out] out The string the formatted text will be appended to.
      */
-    void addText(
-        const QJsonObject &obj, Setting::GlossaryStyle style, QString &out
-    ) const;
+    void addText(const QJsonObject &obj, QString &out) const;
 
     /**
      * Determines if an array contains structured content.
