@@ -437,7 +437,7 @@ Item {
             }
         }
 
-        Flow {
+        CenteredFlow {
             id: tagsLayout
             Layout.fillWidth: true
             spacing: 5
@@ -452,7 +452,7 @@ Item {
             }
         }
 
-        Flow {
+        CenteredFlow {
             id: frequencyLayout
             Layout.fillWidth: true
             spacing: 5
@@ -467,7 +467,7 @@ Item {
             }
         }
 
-        Flow {
+        CenteredFlow {
             id: pitchLayout
             Layout.fillWidth: true
             spacing: 5

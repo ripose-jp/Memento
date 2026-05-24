@@ -178,7 +178,7 @@ Item {
                 required property int index
                 readonly property KanjiDefinition definition: root.kanji?.definitions[index]
 
-                Flow {
+                CenteredFlow {
                     Layout.fillWidth: true
                     spacing: 5
 

@@ -55,6 +55,7 @@ qt_add_qml_module(
         qml/controls/AnkiFieldTextArea.qml
         qml/controls/AnkiMarkerDescription.qml
         qml/controls/AnkiNoteBox.qml
+        qml/controls/CenteredFlow.qml
         qml/controls/KeybindCommand.qml
         qml/controls/ManualSearchPage.qml
         qml/controls/Player.qml

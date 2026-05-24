@@ -13,7 +13,7 @@ ColumnLayout {
 
     signal searchRequested(query: string)
 
-    Flow {
+    CenteredFlow {
         Layout.fillWidth: true
 
         spacing: 5
@@ -54,31 +54,14 @@ ColumnLayout {
 
         Repeater {
             model: root.definition?.tags ?? []
-            delegate: Item {
-                id: delegateItem
-
+            delegate: TagLabel {
                 required property int index
-
-                implicitHeight: Math.max(checkBox.implicitHeight, delegateTag.height)
-                implicitWidth: delegateTag.width
-
-                TagLabel {
-                    id: delegateTag
-                    anchors.centerIn: parent
-                    tag: root.definition?.tags[delegateItem.index]
-                }
+                tag: root.definition?.tags[index]
             }
         }
 
-        Item {
-            implicitHeight: Math.max(checkBox.implicitHeight, dictionaryTag.height)
-            implicitWidth: dictionaryTag.width
-
-            DictionaryLabel {
-                id: dictionaryTag
-                anchors.centerIn: parent
-                info: root.definition?.dictionaryInfo
-            }
+        DictionaryLabel {
+            info: root.definition?.dictionaryInfo
         }
     }
 
