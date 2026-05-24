@@ -89,12 +89,14 @@ void DictionarySearch::setSettings(Settings *value)
 void DictionarySearch::searchTerms(
     const QString &query, const QString &text, qsizetype index)
 {
+    ++m_termsSearchId;
     searchTermsAsync(query, text, index);
 }
 
 QCoro::Task<void> DictionarySearch::searchTermsAsync(
     QString query, QString text, qsizetype index)
 {
+    const quint64 searchId = m_termsSearchId;
     ++m_runningSearches;
 
     QList<Term *> terms = co_await QtConcurrent::run(
@@ -109,9 +111,19 @@ QCoro::Task<void> DictionarySearch::searchTermsAsync(
         terms.front()->setAutoPlay(settings()->searchAutoPlayAudio());
     }
 
-    qDeleteAll(m_terms);
-    m_terms = std::move(terms);
-    emit termsChanged();
+    if (searchId == m_termsSearchId)
+    {
+        clearTermsLater();
+        m_terms = std::move(terms);
+        emit termsChanged();
+    }
+    else
+    {
+        for (Term *term : terms)
+        {
+            term->deleteLater();
+        }
+    }
 
     if (--m_runningSearches == 0)
     {
@@ -142,27 +154,31 @@ QList<Term *> DictionarySearch::searchTermsSync(
         }
         if (query.ruleFilter.size() > 0)
         {
-            results.erase(
-                std::remove_if(
-                    std::begin(results),
-                    std::end(results),
-                    [&] (const Term *term)
+            QList<Term *> filtered;
+            for (Term *term : results)
+            {
+                bool keep = false;
+                for (const TermDefinition *def : term->definitions())
+                {
+                    QSet<QString> rules{
+                        std::begin(def->rules()), std::end(def->rules())
+                    };
+                    if (rules.intersects(query.ruleFilter))
                     {
-                        for (const TermDefinition *def : term->definitions())
-                        {
-                            QSet<QString> rules{
-                                std::begin(def->rules()), std::end(def->rules())
-                            };
-                            if (rules.intersects(query.ruleFilter))
-                            {
-                                return false;
-                            }
-                        }
-                        return true;
+                        keep = true;
+                        break;
                     }
-                ),
-                std::end(results)
-            );
+                }
+                if (keep)
+                {
+                    filtered.emplaceBack(term);
+                }
+                else
+                {
+                    delete term;
+                }
+            }
+            results = std::move(filtered);
         }
 
         QString clozePrefix;
@@ -202,12 +218,14 @@ QList<Term *> DictionarySearch::searchTermsSync(
 void DictionarySearch::searchKanji(
     const QString &character, const QString &text, qsizetype index)
 {
+    ++m_kanjiSearchId;
     searchKanjiAsync(character, text, index);
 }
 
 QCoro::Task<void> DictionarySearch::searchKanjiAsync(
     QString character, QString text, qsizetype index)
 {
+    const quint64 searchId = m_kanjiSearchId;
     ++m_runningSearches;
 
     Kanji *kanji = co_await QtConcurrent::run(
@@ -218,12 +236,16 @@ QCoro::Task<void> DictionarySearch::searchKanjiAsync(
         index
     );
 
-    if (m_kanji)
+    if (searchId == m_kanjiSearchId)
     {
-        m_kanji->deleteLater();
+        clearKanjiLater();
+        m_kanji = kanji;
+        emit kanjiChanged();
     }
-    m_kanji = kanji;
-    emit kanjiChanged();
+    else if (kanji)
+    {
+        kanji->deleteLater();
+    }
 
     if (--m_runningSearches == 0)
     {
@@ -452,16 +474,32 @@ void DictionarySearch::clearResults()
 
 void DictionarySearch::clearTerms()
 {
+    ++m_termsSearchId;
+    clearTermsLater();
+}
+
+void DictionarySearch::clearTermsLater()
+{
     if (m_terms.isEmpty())
     {
         return;
     }
-    qDeleteAll(m_terms);
+    QList<Term *> terms = std::move(m_terms);
     m_terms.clear();
     emit termsChanged();
+    for (Term *term : terms)
+    {
+        term->deleteLater();
+    }
 }
 
 void DictionarySearch::clearKanji()
+{
+    ++m_kanjiSearchId;
+    clearKanjiLater();
+}
+
+void DictionarySearch::clearKanjiLater()
 {
     if (m_kanji)
     {

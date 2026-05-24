@@ -251,11 +251,25 @@ private:
      */
     void sortTags(QList<Tag *> &tags) const;
 
+    /**
+     * @brief Clears term results and schedules existing objects for deletion.
+     */
+    void clearTermsLater();
+
+    /**
+     * @brief Clears kanji results and schedules the existing object for deletion.
+     */
+    void clearKanjiLater();
+
     /* The system settings */
     Settings *m_settings{nullptr};
 
     /* The number of running searches */
     int m_runningSearches{0};
+
+    /* IDs used to ignore stale async search completions. */
+    quint64 m_termsSearchId{0};
+    quint64 m_kanjiSearchId{0};
 
     /* Mutex for the list of query generators */
     mutable QReadWriteLock m_generatorsMutex;
