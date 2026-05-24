@@ -754,52 +754,50 @@ void StructuredRichText::addStructuredContentHelper(
         ctx.elements.emplaceBack(structuredElement(obj));
         double currentFontPixelSize = ctx.parentFontPixelSize;
         QHash<QString, QString> declarations;
-
-        out += '<';
-        out += tag;
+        QString attributes;
 
         if (obj[KEY_HREF].isString())
         {
-            out += " href=\"";
-            out += escapeHtml(obj[KEY_HREF].toString());
-            out += '"';
+            attributes += " href=\"";
+            attributes += escapeHtml(obj[KEY_HREF].toString());
+            attributes += '"';
         }
 
         if (obj[KEY_DATA].isObject())
         {
-            addStructuredData(obj[KEY_DATA].toObject(), out);
+            addStructuredData(obj[KEY_DATA].toObject(), attributes);
         }
 
         if (obj[KEY_COLSPAN].isDouble())
         {
-            out += " colspan=\"";
-            out += QString::number(
+            attributes += " colspan=\"";
+            attributes += QString::number(
                 static_cast<int>(obj[KEY_COLSPAN].toDouble())
             );
-            out += '"';
+            attributes += '"';
         }
 
         if (obj[KEY_ROWSPAN].isDouble())
         {
-            out += " rowspan=\"";
-            out += QString::number(
+            attributes += " rowspan=\"";
+            attributes += QString::number(
                 static_cast<int>(obj[KEY_ROWSPAN].toDouble())
             );
-            out += '"';
+            attributes += '"';
         }
 
         if (obj[KEY_TITLE].isString())
         {
-            out += " title=\"";
-            out += escapeHtml(obj[KEY_TITLE].toString());
-            out += '"';
+            attributes += " title=\"";
+            attributes += escapeHtml(obj[KEY_TITLE].toString());
+            attributes += '"';
         }
 
         if (obj[KEY_LANG].isString())
         {
-            out += " lang=\"";
-            out += escapeHtml(obj[KEY_LANG].toString());
-            out += '"';
+            attributes += " lang=\"";
+            attributes += escapeHtml(obj[KEY_LANG].toString());
+            attributes += '"';
         }
 
         if (tag == "table")
@@ -843,21 +841,85 @@ void StructuredRichText::addStructuredContentHelper(
         }
 
         const QString listType = declarations.value("list-style-type");
-        if ((tag == "ul" || tag == "ol") &&
-            (listType == "disc" || listType == "circle" ||
-             listType == "square" || listType == "1" ||
-             listType == "a" || listType == "A"))
+        const QString listMarker =
+            normalizeListMarker(listType.isEmpty() ?
+                defaultListMarker(tag) :
+                listType
+            );
+        const bool isList = tag == "ul" || tag == "ol";
+        const bool manualList = isList &&
+            (
+                !isNativeListMarker(listMarker) ||
+                hasManualListItemMarkers(obj)
+            );
+        const bool manualListItem = tag == "li" && !ctx.manualLists.isEmpty();
+        QString manualMarker;
+        if (manualListItem)
         {
-            out += " type=\"";
-            out += listType;
-            out += '"';
+            ManualList &list = ctx.manualLists.back();
+            ++list.item;
+            manualMarker = manualListMarker(list, listType);
+        }
+        const bool manualListTable =
+            manualListItem && !manualMarker.isEmpty();
+        QString outputTag;
+        if (manualListTable)
+        {
+            outputTag = "table";
+        }
+        else if (manualList || manualListItem)
+        {
+            outputTag = "div";
+        }
+        else
+        {
+            outputTag = tag;
         }
 
+        if (manualList)
+        {
+            declarations.remove("list-style-type");
+        }
+        else if (manualListItem)
+        {
+            declarations.remove("list-style-type");
+        }
+        else if (isList &&
+            !listMarker.isEmpty() &&
+            isNativeListMarker(listMarker))
+        {
+            attributes += " type=\"";
+            attributes += listMarker;
+            attributes += '"';
+        }
+
+        out += '<';
+        out += outputTag;
+        if (manualListTable)
+        {
+            out += " border=\"0\" cellspacing=\"0\" cellpadding=\"0\""
+                " width=\"100%\"";
+        }
+        out += attributes;
         out += " style=\"";
         addCssDeclarations(declarations, out);
         out += '"';
 
         out += '>';
+
+        if (manualListTable)
+        {
+            constexpr double RELATIVE_INDENT_FACTOR = 0.35;
+
+            out += "<tr><td style=\"vertical-align: top; white-space: nowrap; "
+                "padding-right: ";
+            out += formatPixelSize(
+                currentFontPixelSize * RELATIVE_INDENT_FACTOR
+            );
+            out += "px;\">";
+            out += escapeHtml(manualMarker);
+            out += "</td><td width=\"100%\" style=\"vertical-align: top;\">";
+        }
 
         const bool paddedSpan =
             tag == "span" &&
@@ -878,16 +940,43 @@ void StructuredRichText::addStructuredContentHelper(
             out += escapeHtml(beforeContent);
         }
 
+        if (manualList)
+        {
+            QString marker = listMarker;
+            if (marker == "none")
+            {
+                marker.clear();
+            }
+            ctx.manualLists.emplaceBack(ManualList{tag, marker});
+        }
+        else if (manualListItem)
+        {
+            if (!manualListTable && !manualMarker.isEmpty())
+            {
+                out += escapeHtml(manualMarker);
+                out += "&nbsp;";
+            }
+        }
+
         std::swap(ctx.parentFontPixelSize, currentFontPixelSize);
         addStructuredContent(obj[KEY_CONTENT], ctx, out);
         std::swap(ctx.parentFontPixelSize, currentFontPixelSize);
+
+        if (manualList)
+        {
+            ctx.manualLists.removeLast();
+        }
 
         if (paddedSpan)
         {
             out += "&nbsp;";
         }
+        if (manualListTable)
+        {
+            out += "</td></tr>";
+        }
         out += "</";
-        out += tag;
+        out += outputTag;
         out += '>';
 
         if (paddedSpan)
@@ -1091,6 +1180,142 @@ void StructuredRichText::addCssDeclarations(
         out += declarations[key];
         out += ';';
     }
+}
+
+bool StructuredRichText::hasManualListItemMarkers(
+    const QJsonObject &obj) const
+{
+    constexpr const char *KEY_CONTENT = "content";
+    constexpr const char *KEY_LIST_STYLE_TYPE = "listStyleType";
+    constexpr const char *KEY_STYLE = "style";
+    constexpr const char *KEY_TAG = "tag";
+    constexpr const char *VALUE_TAG_LI = "li";
+
+    const auto hasManualMarker = [&] (const QJsonValue &value) -> bool
+    {
+        if (!value.isObject())
+        {
+            return false;
+        }
+
+        const QJsonObject item = value.toObject();
+        if (item[KEY_TAG].toString() != VALUE_TAG_LI ||
+            !item[KEY_STYLE].isObject())
+        {
+            return false;
+        }
+
+        const QJsonObject style = item[KEY_STYLE].toObject();
+        if (!style[KEY_LIST_STYLE_TYPE].isString())
+        {
+            return false;
+        }
+
+        const QString marker = normalizeListMarker(
+            style[KEY_LIST_STYLE_TYPE].toString()
+        );
+        return !isNativeListMarker(marker);
+    };
+
+    const QJsonValue content = obj[KEY_CONTENT];
+    if (content.isArray())
+    {
+        const QJsonArray items = content.toArray();
+        return std::any_of(
+            std::begin(items), std::end(items), hasManualMarker
+        );
+    }
+    return hasManualMarker(content);
+}
+
+QString StructuredRichText::normalizeListMarker(QString marker) const
+{
+    marker = marker.trimmed();
+    marker.replace('"', '\'');
+    if (marker.size() >= 2 &&
+        ((marker.front() == '\'' && marker.back() == '\'') ||
+         (marker.front() == '"' && marker.back() == '"')))
+    {
+        marker = marker.sliced(1, marker.size() - 2);
+    }
+    return marker;
+}
+
+QString StructuredRichText::defaultListMarker(const QString &tag) const
+{
+    if (tag == "ol")
+    {
+        return "1";
+    }
+    if (tag == "ul")
+    {
+        return "disc";
+    }
+    return "";
+}
+
+QString StructuredRichText::manualListMarker(
+    const ManualList &list, const QString &marker) const
+{
+    QString normalized = normalizeListMarker(marker);
+    if (normalized.isEmpty())
+    {
+        normalized = list.marker;
+    }
+    if (normalized == "none")
+    {
+        return "";
+    }
+    if (!isNativeListMarker(normalized))
+    {
+        return normalized;
+    }
+    if (normalized == "disc")
+    {
+        return QString{QChar(0x2022)};
+    }
+    if (normalized == "circle")
+    {
+        return QString{QChar(0x25E6)};
+    }
+    if (normalized == "square")
+    {
+        return QString{QChar(0x25AA)};
+    }
+    if (normalized == "1")
+    {
+        return QString::number(list.item) + '.';
+    }
+    if (normalized == "a" || normalized == "A")
+    {
+        constexpr int LETTERS_IN_ALPHABET = 26;
+
+        QString alpha;
+        qsizetype value = list.item;
+        while (value > 0)
+        {
+            --value;
+            const QChar ch{
+                'a' + static_cast<char>(value % LETTERS_IN_ALPHABET)
+            };
+            alpha.prepend(normalized == "A" ? ch.toUpper() : ch);
+            value /= LETTERS_IN_ALPHABET;
+        }
+        return alpha + '.';
+    }
+    return list.marker;
+}
+
+bool StructuredRichText::isNativeListMarker(const QString &marker) const
+{
+    const QString normalized = normalizeListMarker(marker);
+    return normalized.isEmpty() ||
+        normalized == "disc" ||
+        normalized == "circle" ||
+        normalized == "square" ||
+        normalized == "1" ||
+        normalized == "a" ||
+        normalized == "A";
 }
 
 QHash<QString, QString> StructuredRichText::parseCssDeclarations(
