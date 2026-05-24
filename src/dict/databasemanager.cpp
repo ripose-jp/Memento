@@ -594,8 +594,7 @@ Kanji *DatabaseManager::queryKanji(
             }
             else
             {
-                tag->deleteLater();
-                tag = nullptr;
+                delete tag;
                 continue;
             }
         }
@@ -617,7 +616,7 @@ Kanji *DatabaseManager::queryKanji(
 
 error:
     sqlite3_finalize(stmt);
-    kanji->deleteLater();
+    delete kanji;
 
     return nullptr;
 }

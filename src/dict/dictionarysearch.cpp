@@ -58,7 +58,10 @@ DictionarySearch::~DictionarySearch()
         loop.exec();
     }
 
-    clearResults();
+    qDeleteAll(m_terms);
+    m_terms.clear();
+    delete m_kanji;
+    m_kanji = nullptr;
 }
 
 /* End Constructor/Destructor */
@@ -267,7 +270,7 @@ Kanji *DictionarySearch::searchKanjiSync(
     /* Delete the Kanji if there are no definitions left */
     if (kanji->definitions().isEmpty())
     {
-        kanji->deleteLater();
+        delete kanji;
         return nullptr;
     }
 
