@@ -362,7 +362,7 @@ QList<Term *> DatabaseManager::queryTerms(
     constexpr int COLUMN_EXPRESSION = 0;
     constexpr int COLUMN_READING = 1;
 
-    QReadLocker lock{&m_dbLock};
+    QWriteLocker lock{&m_dbLock};
 
     QByteArray exp = query.toUtf8();
     QByteArray katakana = halfToFull(query).toUtf8();
@@ -508,7 +508,7 @@ Kanji *DatabaseManager::queryKanji(
     constexpr const char *TAG_NAME_CODE = "code";
     constexpr const char *TAG_NAME_INDEX = "index";
 
-    QReadLocker lock{&m_dbLock};
+    QWriteLocker lock{&m_dbLock};
 
     Kanji *kanji = new Kanji(parent);
     kanji->setCharacter(query);
@@ -535,7 +535,7 @@ Kanji *DatabaseManager::queryKanji(
         }
         goto error;
     }
-    while ((step = sqlite3_step(stmt)) != SQLITE_DONE)
+    while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
         int64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
 
