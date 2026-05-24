@@ -146,7 +146,7 @@ class Term : public Expression
         NOTIFY addableReadingChanged
     )
 
-    friend class DictionarySearch;
+    friend class DictionarySearchController;
 
 public:
     Term(QObject *parent = nullptr);

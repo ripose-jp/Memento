@@ -45,6 +45,5 @@ Popup {
 
     DictionarySearch {
         id: dictionarySearch
-        settings: MementoSettings
     }
 }

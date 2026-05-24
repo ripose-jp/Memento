@@ -55,7 +55,7 @@ class Kanji : public Expression
         NOTIFY addableChanged
     )
 
-    friend class DictionarySearch;
+    friend class DictionarySearchController;
 
 public:
     Kanji(QObject *parent = nullptr);

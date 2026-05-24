@@ -82,7 +82,7 @@ class Tag : public QObject
         NOTIFY valueChanged
     )
 
-    friend class DictionarySearch;
+    friend class DictionarySearchController;
 
 public:
     Tag(QObject *parent = nullptr);

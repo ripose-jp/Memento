@@ -42,12 +42,14 @@ public:
     virtual ~Dictionary();
 
     /**
-     * @brief Get the database instance.
-     *
-     * @param parent The parent to give the database if it doesn't exist.
-     * @return The pointer to the database instance.
+     * @brief Create the static database instance.
      */
-    static DatabaseManager *databaseInstance(QObject *parent = nullptr);
+    static void createDatabaseInstance();
+
+    /**
+     * @brief Destroy the static database instance.
+     */
+    static void destroyDatabaseInstance();
 
     /**
      * @brief Get if the database is being modified.

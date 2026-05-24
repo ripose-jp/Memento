@@ -34,9 +34,6 @@ MainManager::MainManager(
     m_engine(engine),
     m_context(context)
 {
-    /* Instantiate the database instance with this as a parent */
-    Dictionary::databaseInstance(this);
-
     connect(
         engine, &QQmlApplicationEngine::objectCreated,
         this, &MainManager::handleObjectCreated,

@@ -390,7 +390,6 @@ MpvPlayer {
 
         DictionarySearch {
             id: dictionarySearch
-            settings: MementoSettings
         }
 
         Timer {

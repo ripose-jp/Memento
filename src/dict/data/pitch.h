@@ -54,7 +54,7 @@ class Pitch : public QObject
         NOTIFY positionsChanged
     )
 
-    friend class DictionarySearch;
+    friend class DictionarySearchController;
 
 public:
     Pitch(QObject *parent = nullptr);

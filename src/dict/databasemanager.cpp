@@ -362,7 +362,7 @@ QList<Term *> DatabaseManager::queryTerms(
     constexpr int COLUMN_EXPRESSION = 0;
     constexpr int COLUMN_READING = 1;
 
-    QWriteLocker lock{&m_dbLock};
+    QReadLocker lock{&m_dbLock};
 
     QByteArray exp = query.toUtf8();
     QByteArray katakana = halfToFull(query).toUtf8();
@@ -508,7 +508,7 @@ Kanji *DatabaseManager::queryKanji(
     constexpr const char *TAG_NAME_CODE = "code";
     constexpr const char *TAG_NAME_INDEX = "index";
 
-    QWriteLocker lock{&m_dbLock};
+    QReadLocker lock{&m_dbLock};
 
     Kanji *kanji = new Kanji(parent);
     kanji->setCharacter(query);

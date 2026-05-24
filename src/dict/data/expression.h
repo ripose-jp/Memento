@@ -146,7 +146,7 @@ class Expression : public QObject
         NOTIFY ankiAddingChanged
     )
 
-    friend class DictionarySearch;
+    friend class DictionarySearchController;
 
 public:
     Expression(QObject *parent = nullptr);

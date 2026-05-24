@@ -73,6 +73,8 @@ add_library(
     dictionaryinfomodel.h
     dictionarysearch.cpp
     dictionarysearch.h
+    dictionarysearchcontroller.cpp
+    dictionarysearchcontroller.h
     exactquerygenerator.cpp
     exactquerygenerator.h
 )

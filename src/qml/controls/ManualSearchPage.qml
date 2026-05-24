@@ -79,6 +79,5 @@ Page {
 
     DictionarySearch {
         id: dictionarySearch
-        settings: MementoSettings
     }
 }

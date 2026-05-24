@@ -48,6 +48,7 @@
 #include "dict/dictionarycontroller.h"
 #include "dict/dictionaryinfomodel.h"
 #include "dict/dictionarysearch.h"
+#include "dict/dictionarysearchcontroller.h"
 #include "manager/mainmanager.h"
 #include "os/screensaver.h"
 #include "player/mpvplayer.h"
@@ -255,6 +256,43 @@ static void registerImageProviders(QQmlApplicationEngine &engine)
     engine.addImageProvider("svgicon", new ColoredSvgProvider);
 }
 
+/**
+ * @brief Run the application.
+ *
+ * @return The application return code.
+ */
+[[nodiscard]]
+static int runApplication()
+{
+    QQmlApplicationEngine engine;
+#if defined(Q_OS_WIN)
+    engine.addImportPath(QCoreApplication::applicationDirPath() + "/qml");
+#endif // defined(Q_OS_WIN)
+    QObject::connect(
+        &engine,
+        &QQmlApplicationEngine::objectCreationFailed,
+        QCoreApplication::instance(),
+        [] () { QCoreApplication::exit(-1); },
+        Qt::QueuedConnection
+    );
+
+    Context context(&engine);
+    QQmlApplicationEngine::setObjectOwnership(
+        &context, QQmlEngine::CppOwnership
+    );
+
+    DictionarySearchController::createInstance(context.settings());
+
+    registerQmlTypes(context);
+    registerImageProviders(engine);
+
+    MainManager mainManager(&engine, &context, &engine);
+
+    engine.loadFromModule(MEMENTO_URI, "Main");
+
+    return QCoreApplication::exec();
+}
+
 int main(int argc, char *argv[])
 {
     if (showHelpMessage(argc, argv))
@@ -311,29 +349,12 @@ int main(int argc, char *argv[])
     }
 #endif // defined(Q_OS_MACOS) || defined(Q_OS_WIN)
 
-    QQmlApplicationEngine engine;
-#if defined(Q_OS_WIN)
-    engine.addImportPath(QCoreApplication::applicationDirPath() + "/qml");
-#endif // defined(Q_OS_WIN)
-    QObject::connect(
-        &engine,
-        &QQmlApplicationEngine::objectCreationFailed,
-        &app,
-        [] () { QCoreApplication::exit(-1); },
-        Qt::QueuedConnection
-    );
+    Dictionary::createDatabaseInstance();
 
-    Context context(&engine);
-    QQmlApplicationEngine::setObjectOwnership(
-        &context, QQmlEngine::CppOwnership
-    );
+    int ret = runApplication();
 
-    registerQmlTypes(context);
-    registerImageProviders(engine);
+    DictionarySearchController::destroyInstance();
+    Dictionary::destroyDatabaseInstance();
 
-    MainManager mainManager(&engine, &context, &engine);
-
-    engine.loadFromModule(MEMENTO_URI, "Main");
-
-    return app.exec();
+    return ret;
 }

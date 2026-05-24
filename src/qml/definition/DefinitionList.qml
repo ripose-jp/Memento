@@ -146,7 +146,6 @@ ListView {
 
     DictionarySearch {
         id: recursiveSearch
-        settings: MementoSettings
     }
 
     cacheBuffer: 1000

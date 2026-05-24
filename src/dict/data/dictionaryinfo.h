@@ -56,7 +56,7 @@ class DictionaryInfo : public QObject
         NOTIFY enabledChanged
     )
 
-    friend class DictionarySearch;
+    friend class DictionarySearchController;
 
 public:
     DictionaryInfo(QObject *parent = nullptr);

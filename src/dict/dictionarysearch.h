@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "dict/dictionary.h"
+#include <QObject>
 
 #include <QQmlListProperty>
 
@@ -30,24 +30,15 @@
 #include <qcoro/qcorotask.h>
 #endif // MEMENTO_SYSTEM_QCORO
 
-#include "dict/data/data.h"
-#include "dict/querygenerator.h"
-#include "setting/settings.h"
+#include "dict/data/term.h"
+#include "dict/data/kanji.h"
 
 /**
  * @brief Handles a single dictionary search.
  */
-class DictionarySearch : public Dictionary
+class DictionarySearch : public QObject
 {
     Q_OBJECT
-
-    Q_PROPERTY(
-        Settings *settings
-        READ settings
-        WRITE setSettings
-        NOTIFY settingsChanged
-        REQUIRED
-    )
 
     Q_PROPERTY(
         QQmlListProperty<Term> terms
@@ -64,21 +55,6 @@ class DictionarySearch : public Dictionary
 public:
     DictionarySearch(QObject *parent = nullptr);
     virtual ~DictionarySearch();
-
-    /**
-     * @brief Get the settings object.
-     *
-     * @return The settings object.
-     */
-    [[nodiscard]]
-    Settings *settings() const noexcept;
-
-    /**
-     * @brief Set the settings object.
-     *
-     * @param value The settings object.
-     */
-    void setSettings(Settings *value);
 
     /**
      * @brief Searches for all terms. Popuplates the terms property.
@@ -134,13 +110,6 @@ public:
 
 signals:
     /**
-     * @brief Emitted when the settings object is changed.
-     *
-     * @param value The new settings object.
-     */
-    void settingsChanged(Settings *value);
-
-    /**
      * @brief Emitted when terms are changed.
      */
     void termsChanged();
@@ -149,27 +118,6 @@ signals:
      * @brief Emitted when the kanji are changed.
      */
     void kanjiChanged();
-
-    /**
-     * @brief Emitted when all outstanding searches are finished.
-     */
-    void searchesComplete();
-
-private slots:
-    /**
-     * @brief Updates generators and dictionary order when
-     */
-    void handleSettingsChanged();
-
-    /**
-     * @brief Keeps generators up to date with settings.
-     */
-    void updateGenerators();
-
-    /**
-     * @brief Updates the dictionary order.
-     */
-    void updateDictionaryOrder();
 
 private:
     /**
@@ -182,19 +130,7 @@ private:
      * @return An awaitable task.
      */
     QCoro::Task<void> searchTermsAsync(
-        QString query, QString text, qsizetype index);
-
-    /**
-     * @brief Synchronously searches for terms.
-     *
-     * @param query The query to look up. Only matches terms from the start of
-     * the query.
-     * @param text The text containing the query.
-     * @param index The index into text where query start from.
-     * @return The list of terms.
-     */
-    [[nodiscard]]
-    QList<Term *> searchTermsSync(QString query, QString text, qsizetype index);
+        const QString &query, const QString &text, qsizetype index);
 
     /**
      * @brief Search for all kanji in a query. Populates the kanji property.
@@ -205,51 +141,7 @@ private:
      * @return An awaitable task.
      */
     QCoro::Task<void> searchKanjiAsync(
-        QString query, QString text, qsizetype index);
-
-    /**
-     * @brief Synchronously searches for kanji.
-     *
-     * @param character The character to search for.
-     * @param text The text the kanji originates from.
-     * @param index The index into the text where the kanji
-     * @return The kanji found.
-     */
-    [[nodiscard]]
-    Kanji *searchKanjiSync(
-        QString query, QString text, qsizetype index);
-
-    /**
-     * Generate queries from text.
-     * @param text The text to generate queries from.
-     * @return The list of SearchQuery.
-     */
-    [[nodiscard]]
-    std::vector<SearchQuery> generateQueries(const QString &text) const;
-
-    /**
-     * Sorties queries in order from ascending length of the surface.
-     * @param[out] queries The list of queries to sort.
-     */
-    static void sortQueries(std::vector<SearchQuery> &queries);
-
-    /**
-     * Filters out duplicates from the queries vector.
-     * @param[out] queries The queries to filter duplicates from.
-     */
-    static void filterDuplicates(std::vector<SearchQuery> &queries);
-
-    /**
-     * Sort the term list by priority and length.
-     * @param[out] terms The term list to sort.
-     */
-    void sortTerms(QList<Term *> &terms) const;
-
-    /**
-     * Sorts tag by descending order, breaking ties on ascending score.
-     * @param[out] tags The list of tags to sort.
-     */
-    void sortTags(QList<Tag *> &tags) const;
+        const QString &character, const QString &text, qsizetype index);
 
     /**
      * @brief Clears term results and schedules existing objects for deletion.
@@ -257,31 +149,14 @@ private:
     void clearTermsLater();
 
     /**
-     * @brief Clears kanji results and schedules the existing object for deletion.
+     * @brief Clears kanji results and schedules the existing object for
+     * deletion.
      */
     void clearKanjiLater();
-
-    /* The system settings */
-    Settings *m_settings{nullptr};
-
-    /* The number of running searches */
-    int m_runningSearches{0};
 
     /* IDs used to ignore stale async search completions. */
     quint64 m_termsSearchId{0};
     quint64 m_kanjiSearchId{0};
-
-    /* Mutex for the list of query generators */
-    mutable QReadWriteLock m_generatorsMutex;
-
-    /* List of QueryGenerators */
-    std::vector<std::unique_ptr<QueryGenerator>> m_generators;
-
-    /* Mutex for accessing dictionary order */
-    mutable QReadWriteLock m_dictionaryOrderMutex;
-
-    /* Maps dictionary IDs to priorities. */
-    QHash<int64_t, qsizetype> m_dictionaryOrder;
 
     /* The terms of the last search */
     QList<Term *> m_terms;

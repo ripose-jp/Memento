@@ -78,7 +78,7 @@ class TermDefinition : public QObject
         NOTIFY selectedChanged
     )
 
-    friend class DictionarySearch;
+    friend class DictionarySearchController;
 
 public:
     TermDefinition(QObject *parent = nullptr);

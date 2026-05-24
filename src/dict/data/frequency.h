@@ -47,7 +47,7 @@ class Frequency : public QObject
         NOTIFY frequencyChanged
     )
 
-    friend class DictionarySearch;
+    friend class DictionarySearchController;
 
 public:
     Frequency(QObject *parent = nullptr);

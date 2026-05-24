@@ -94,7 +94,7 @@ class KanjiDefinition : public QObject
         NOTIFY indicesChanged
     )
 
-    friend class DictionarySearch;
+    friend class DictionarySearchController;
 
 public:
     KanjiDefinition(QObject *parent = nullptr);

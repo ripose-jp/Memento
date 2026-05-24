@@ -24,7 +24,6 @@
 
 Dictionary::Dictionary(QObject *parent) : QObject(parent)
 {
-    databaseInstance(this);
     setModifyingDatabase(m_db->modifyingDatabase());
     connect(
         m_db, &DatabaseManager::modifyingDatabaseChanged,
@@ -38,17 +37,21 @@ Dictionary::~Dictionary()
 
 }
 
-DatabaseManager *Dictionary::databaseInstance(QObject *parent)
+void Dictionary::createDatabaseInstance()
 {
     if (m_db == nullptr)
     {
         m_db = new DatabaseManager(
             DirectoryUtils::getDictionaryDb(),
-            DirectoryUtils::getDictionaryResourceDir(),
-            parent
+            DirectoryUtils::getDictionaryResourceDir()
         );
     }
-    return m_db;
+}
+
+void Dictionary::destroyDatabaseInstance()
+{
+    delete m_db;
+    m_db = nullptr;
 }
 
 bool Dictionary::modifyingDatabase() const noexcept
