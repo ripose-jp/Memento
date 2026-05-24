@@ -8,8 +8,8 @@ Item {
 
     required property Term term
 
-    signal searchRequested(query: string, wildcards: bool)
-    signal kanjiClicked(ch: string)
+    signal searchRequested(query: string)
+    signal kanjiClicked(expression: string, index: int)
 
     implicitHeight: rootLayout.implicitHeight
 
@@ -214,7 +214,7 @@ Item {
                     font.styleName: MementoSettings.interfaceSearchExpressionFont.styleName
 
                     expression: root.term?.expression ?? ""
-                    onKanjiClicked: (ch) => root.kanjiClicked(ch)
+                    onKanjiClicked: (expression, index) => root.kanjiClicked(expression, index)
                 }
             }
 
@@ -493,7 +493,7 @@ Item {
                 definition: root.term?.definitions[index]
                 visible: !root.term?.collapsed
 
-                onSearchRequested: (query, wildcards) => root.searchRequested(query, wildcards)
+                onSearchRequested: (query) => root.searchRequested(query)
             }
         }
     }

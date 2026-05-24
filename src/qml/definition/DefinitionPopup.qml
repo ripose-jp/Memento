@@ -37,9 +37,8 @@ Popup {
         DefinitionPage {
             anchors.fill: parent
             anchors.margins: borderRectangle.border.width
+            search: dictionarySearch
             showToolbar: true
-            terms: dictionarySearch.terms
-            kanji: dictionarySearch.kanji
             onClosePressed: root.close()
         }
     }

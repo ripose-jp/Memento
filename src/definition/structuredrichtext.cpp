@@ -25,6 +25,8 @@
 
 #include <QJsonObject>
 #include <QQuickWindow>
+#include <QSet>
+#include <QStringList>
 
 #include "util/utils.h"
 
@@ -81,6 +83,7 @@ QString StructuredRichText::parse(
     ctx.basepath += '/';
     ctx.basepath += info->name();
     ctx.basepath += '/';
+    ctx.dictionaryStyles = info->styles();
 
     const bool containsSc = containsStructuredContent(content);
     const bool shouldUseBullets =
@@ -124,7 +127,7 @@ QString StructuredRichText::parse(
                 }
                 else if (obj[KEY_TYPE] == VALUE_TYPE_TEXT)
                 {
-                    addText(obj, glossary);
+                    addText(obj, style, glossary);
                 }
                 break;
             }
@@ -540,6 +543,21 @@ double StructuredRichText::addStructuredStyle(
     return currentFontPixelSize;
 }
 
+double StructuredRichText::addStructuredStyle(
+    const QJsonObject &obj,
+    StructuredRichText::Context &ctx,
+    QHash<QString, QString> &declarations) const
+{
+    QString style;
+    const double currentFontPixelSize = addStructuredStyle(obj, ctx, style);
+    const QHash<QString, QString> parsed = parseCssDeclarations(style);
+    for (const auto &[key, value] : parsed.asKeyValueRange())
+    {
+        declarations[key] = value;
+    }
+    return currentFontPixelSize;
+}
+
 void StructuredRichText::addStructuredContentHelper(
     const QString &str, QString &out) const
 {
@@ -574,7 +592,6 @@ void StructuredRichText::addStructuredContentHelper(
     constexpr const char *KEY_HEIGHT = "height";
     constexpr const char *KEY_HREF = "href";
     constexpr const char *KEY_LANG = "lang";
-    constexpr const char *KEY_OPEN = "open";
     constexpr const char *KEY_PATH = "path";
     constexpr const char *KEY_PIXELATED = "pixelated";
     constexpr const char *KEY_RENDERING = "imageRendering";
@@ -585,9 +602,6 @@ void StructuredRichText::addStructuredContentHelper(
     constexpr const char *KEY_UNITS = "sizeUnits";
     constexpr const char *KEY_VERT_ALIGN = "verticalAlign";
     constexpr const char *KEY_WIDTH = "width";
-
-    constexpr const char QUOTE_SEARCH = '"';
-    constexpr const char QUOTE_ESCAPE = '\'';
 
     constexpr const char *VALUE_RENDERING_MONOCHROME = "monochrome";
 
@@ -608,6 +622,8 @@ void StructuredRichText::addStructuredContentHelper(
     }
     else if (tag == "img")
     {
+        ctx.elements.emplaceBack(structuredElement(obj));
+
         QString filename = escapeHtml(ctx.basepath + obj[KEY_PATH].toString());
 
         out += "<img src=\"";
@@ -674,78 +690,73 @@ void StructuredRichText::addStructuredContentHelper(
             out += '"';
         }
 
-        out += " style=\"";
+        QHash<QString, QString> declarations;
+        addMatchingCssRules(ctx, declarations);
 
         if (obj[KEY_RENDERING].isString())
         {
-            out += "image-rendering: ";
-            out += obj[KEY_RENDERING].toString("auto")
-                .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-            out += ';';
+            addCssDeclaration(
+                "image-rendering",
+                obj[KEY_RENDERING].toString("auto"),
+                declarations
+            );
         }
         else if (obj[KEY_PIXELATED].toBool(false))
         {
-            out += "image-rendering: pixelated;";
+            addCssDeclaration("image-rendering", "pixelated", declarations);
         }
 
         if (obj[KEY_APPEARANCE].toString("auto") == VALUE_RENDERING_MONOCHROME)
         {
-            out += "object-fit: fill;";
-            out += "object-position: -9999999px 9999999px;";
-            out += "background-color: currentColor;";
-
-            out += "-webkit-mask-image: url(" + filename + ");";
-            out += "-webkit-mask-repeat: no-repeat;";
-            out += "-webkit-mask-size: contain;";
-            out += "-webkit-mask-position: center;";
-
-            out += "mask-image: url(" + filename + ");";
-            out += "mask-repeat: no-repeat;";
-            out += "mask-size: contain;";
-            out += "mask-position: center;";
+            addCssDeclaration(
+                "background-color", "currentColor", declarations
+            );
         }
         else if (obj[KEY_BACKGROUND].toBool(true))
         {
-            out += "background-color: currentColor;";
+            addCssDeclaration(
+                "background-color", "currentColor", declarations
+            );
         }
 
         if (obj[KEY_VERT_ALIGN].isString())
         {
-            out += "vertical-align: ";
-            out += obj[KEY_VERT_ALIGN].toString()
-                .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-            out += ';';
+            addCssDeclaration(
+                "vertical-align",
+                obj[KEY_VERT_ALIGN].toString(),
+                declarations
+            );
         }
 
         if (obj[KEY_BORDER].isString())
         {
-            out += "border: ";
-            out += obj[KEY_BORDER].toString()
-                .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-            out += ';';
+            addCssDeclaration("border", obj[KEY_BORDER].toString(),
+                declarations);
         }
 
         if (obj[KEY_BORDER_RADIUS].isString())
         {
-            out += "border-radius: ";
-            out += obj[KEY_BORDER_RADIUS].toString()
-                .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-            out += ';';
+            addCssDeclaration(
+                "border-radius",
+                obj[KEY_BORDER_RADIUS].toString(),
+                declarations
+            );
         }
 
+        out += " style=\"";
+        addCssDeclarations(declarations, out);
         out += "\">";
+
+        ctx.elements.removeLast();
     }
     else
     {
+        ctx.elements.emplaceBack(structuredElement(obj));
         double currentFontPixelSize = ctx.parentFontPixelSize;
+        QHash<QString, QString> declarations;
 
         out += '<';
         out += tag;
-
-        if (obj[KEY_OPEN].toBool(false))
-        {
-            out += " open";
-        }
 
         if (obj[KEY_HREF].isString())
         {
@@ -791,38 +802,100 @@ void StructuredRichText::addStructuredContentHelper(
             out += '"';
         }
 
-        out += " style=\"";
         if (tag == "table")
         {
-            out += "border: 1px solid;"
-                "border-collapse: collapse;";
+            addCssDeclaration("border", "1px solid", declarations);
+            addCssDeclaration(
+                "border-collapse", "collapse", declarations
+            );
         }
         else if (tag == "th" || tag == "td")
         {
-            out += "border: 1px solid;"
-                "border-collapse: collapse;"
-                "padding: 5px;";
+            addCssDeclaration("border", "1px solid", declarations);
+            addCssDeclaration(
+                "border-collapse", "collapse", declarations
+            );
+            addCssDeclaration("padding", "5px", declarations);
         }
+
+        addMatchingCssRules(ctx, declarations);
 
         if (obj[KEY_STYLE].isObject())
         {
             currentFontPixelSize = addStructuredStyle(
                 obj[KEY_STYLE].toObject(),
                 ctx,
-                out
+                declarations
             );
         }
+        if (declarations.contains("font-size"))
+        {
+            const double pixelSize = cssFontSizeToPixels(
+                declarations["font-size"],
+                ctx.screen,
+                ctx.parentFontPixelSize,
+                ctx.rootFontPixelSize
+            );
+            if (pixelSize >= 0.0)
+            {
+                currentFontPixelSize = pixelSize;
+            }
+        }
+
+        const QString listType = declarations.value("list-style-type");
+        if ((tag == "ul" || tag == "ol") &&
+            (listType == "disc" || listType == "circle" ||
+             listType == "square" || listType == "1" ||
+             listType == "a" || listType == "A"))
+        {
+            out += " type=\"";
+            out += listType;
+            out += '"';
+        }
+
+        out += " style=\"";
+        addCssDeclarations(declarations, out);
         out += '"';
 
         out += '>';
+
+        const bool paddedSpan =
+            tag == "span" &&
+            (
+                ctx.elements.back().attributes.value("data-sc-class") ==
+                    "tag" ||
+                ctx.elements.back().attributes.value("data-sc-content") ==
+                    "forms-label"
+            );
+        if (paddedSpan)
+        {
+            out += "&nbsp;";
+        }
+
+        const QString beforeContent = matchingBeforeContent(ctx);
+        if (!beforeContent.isEmpty())
+        {
+            out += escapeHtml(beforeContent);
+        }
 
         std::swap(ctx.parentFontPixelSize, currentFontPixelSize);
         addStructuredContent(obj[KEY_CONTENT], ctx, out);
         std::swap(ctx.parentFontPixelSize, currentFontPixelSize);
 
+        if (paddedSpan)
+        {
+            out += "&nbsp;";
+        }
         out += "</";
         out += tag;
         out += '>';
+
+        if (paddedSpan)
+        {
+            out += ' ';
+        }
+
+        ctx.elements.removeLast();
     }
 }
 
@@ -908,10 +981,14 @@ void StructuredRichText::addImage(
     }
 }
 
-void StructuredRichText::addText(const QJsonObject &obj, QString &out) const
+void StructuredRichText::addText(
+    const QJsonObject &obj, Setting::GlossaryStyle style, QString &out) const
 {
     constexpr const char *KEY_TEXT = "text";
-    out += escapeHtml(obj[KEY_TEXT].toString()).replace('\n', "<br>");
+    out += escapeHtml(obj[KEY_TEXT].toString()).replace(
+        '\n',
+        style == Setting::GlossaryStyleBullet ? "</li><li>" : "<br>"
+    );
 }
 
 /* End Other Object Parsers */
@@ -924,7 +1001,12 @@ bool StructuredRichText::containsStructuredContent(
         std::begin(content), std::end(content),
         [] (const QJsonValue &value) -> bool
         {
-            return value.type() == QJsonValue::Object;
+            constexpr const char *KEY_TYPE = "type";
+            constexpr const char *VALUE_STRUCTURED_CONTENT =
+                "structured-content";
+
+            return value.type() == QJsonValue::Object &&
+                value.toObject()[KEY_TYPE] == VALUE_STRUCTURED_CONTENT;
         }
     );
 }
@@ -932,6 +1014,301 @@ bool StructuredRichText::containsStructuredContent(
 QString StructuredRichText::escapeHtml(const QString &str) const
 {
     return str.toHtmlEscaped();
+}
+
+void StructuredRichText::addCssDeclaration(
+    const QString &property,
+    const QString &value,
+    QHash<QString, QString> &declarations) const
+{
+    const QString name = property.trimmed().toLower();
+    QString cssValue = value.trimmed();
+
+    if (name.isEmpty() || cssValue.isEmpty())
+    {
+        return;
+    }
+
+    cssValue.replace('"', '\'');
+
+    /* Make sure the function is supported by Qt rich text before using it */
+    QRegularExpressionMatchIterator functions =
+        m_cssFunctionRegex.globalMatch(cssValue);
+    while (functions.hasNext())
+    {
+        const QString functionName =
+            functions.next().captured(1).toLower();
+        if (!m_supportedCssFunctions.contains(functionName))
+        {
+            return;
+        }
+    }
+
+    if (name == "text-decoration-line")
+    {
+        declarations["text-decoration"] = cssValue;
+    }
+    else if (name == "content")
+    {
+        /* Remove quotes before injecting text */
+        if (cssValue.size() >= 2 &&
+            ((cssValue.front() == '"' && cssValue.back() == '"') ||
+             (cssValue.front() == '\'' && cssValue.back() == '\'')))
+        {
+            cssValue = cssValue.sliced(1, cssValue.size() - 2);
+        }
+        declarations[name] = cssValue;
+    }
+    else if (name == "background")
+    {
+        if (!cssValue.contains(' ') && !cssValue.contains("url("))
+        {
+            declarations["background-color"] = cssValue;
+        }
+    }
+    else if (m_supportedCssProperties.contains(name))
+    {
+        declarations[name] = cssValue;
+    }
+}
+
+void StructuredRichText::addCssDeclarations(
+    const QHash<QString, QString> &declarations, QString &out) const
+{
+    QStringList keys = declarations.keys();
+    keys.sort();
+
+    for (const QString &key : keys)
+    {
+        /* These are stored as metadata, not handled directly by styles */
+        if (key == "content" || key == "list-style-type")
+        {
+            continue;
+        }
+
+        out += key;
+        out += ": ";
+        out += declarations[key];
+        out += ';';
+    }
+}
+
+QHash<QString, QString> StructuredRichText::parseCssDeclarations(
+    const QString &body) const
+{
+    QHash<QString, QString> declarations;
+    QString property;
+    QString value;
+    bool inProperty = true;
+    bool inQuote = false;
+    QChar quote;
+    int parenDepth = 0;
+
+    const auto flush = [&] ()
+    {
+        addCssDeclaration(property, value, declarations);
+        property.clear();
+        value.clear();
+        inProperty = true;
+    };
+
+    for (const QChar ch : body)
+    {
+        if (inQuote)
+        {
+            (inProperty ? property : value) += ch;
+            if (ch == quote)
+            {
+                inQuote = false;
+            }
+        }
+        else if (ch == '"' || ch == '\'')
+        {
+            inQuote = true;
+            quote = ch;
+            (inProperty ? property : value) += ch;
+        }
+        else if (ch == '(')
+        {
+            ++parenDepth;
+            (inProperty ? property : value) += ch;
+        }
+        else if (ch == ')')
+        {
+            --parenDepth;
+            (inProperty ? property : value) += ch;
+        }
+        else if (ch == ':' && inProperty)
+        {
+            inProperty = false;
+        }
+        else if (ch == ';' && parenDepth == 0)
+        {
+            flush();
+        }
+        else
+        {
+            (inProperty ? property : value) += ch;
+        }
+    }
+    flush();
+
+    return declarations;
+}
+
+void StructuredRichText::addMatchingCssRules(
+    const StructuredRichText::Context &ctx,
+    QHash<QString, QString> &declarations) const
+{
+    if (ctx.dictionaryStyles == nullptr)
+    {
+        return;
+    }
+
+    for (const CssRule &rule : ctx.dictionaryStyles->parsedStylesheet().rules)
+    {
+        if (rule.before || !cssRuleMatches(rule, ctx.elements))
+        {
+            continue;
+        }
+
+        for (const auto &[key, declaration] :
+             rule.declarations.asKeyValueRange())
+        {
+            QString value = declaration;
+            if (key == "font-size")
+            {
+                const double pixelSize = cssFontSizeToPixels(
+                    value,
+                    ctx.screen,
+                    ctx.parentFontPixelSize,
+                    ctx.rootFontPixelSize
+                );
+                if (pixelSize >= 0.0)
+                {
+                    value = formatPixelSize(pixelSize) + "px";
+                }
+            }
+            addCssDeclaration(key, value, declarations);
+        }
+    }
+}
+
+QString StructuredRichText::matchingBeforeContent(
+    const StructuredRichText::Context &ctx) const
+{
+    QString content;
+    if (ctx.dictionaryStyles == nullptr)
+    {
+        return content;
+    }
+
+    for (const CssRule &rule : ctx.dictionaryStyles->parsedStylesheet().rules)
+    {
+        if (!rule.before || !cssRuleMatches(rule, ctx.elements))
+        {
+            continue;
+        }
+        content = rule.declarations.value("content", content);
+    }
+    return content;
+}
+
+bool StructuredRichText::cssRuleMatches(
+    const CssRule &rule,
+    const QList<StructuredElement> &elements) const
+{
+    if (rule.selector.isEmpty() || elements.isEmpty())
+    {
+        return false;
+    }
+
+    qsizetype elementIndex = elements.size() - 1;
+    for (qsizetype i = rule.selector.size() - 1; i >= 0; --i)
+    {
+        const CssSelectorPart &part = rule.selector[i];
+        const bool requireDirect =
+            i + 1 < rule.selector.size() &&
+            rule.selector[i + 1].directParent;
+
+        if (i == rule.selector.size() - 1 || requireDirect)
+        {
+            if (elementIndex < 0 ||
+                !cssSelectorPartMatches(part, elements[elementIndex]))
+            {
+                return false;
+            }
+            --elementIndex;
+            continue;
+        }
+
+        bool matched = false;
+        while (elementIndex >= 0)
+        {
+            if (cssSelectorPartMatches(part, elements[elementIndex]))
+            {
+                matched = true;
+                --elementIndex;
+                break;
+            }
+            --elementIndex;
+        }
+        if (!matched)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool StructuredRichText::cssSelectorPartMatches(
+    const CssSelectorPart &part,
+    const StructuredElement &element) const
+{
+    if (!part.tag.isEmpty() && part.tag != element.tag)
+    {
+        return false;
+    }
+    if (!part.className.isEmpty() &&
+        element.attributes.value("data-sc-class") != part.className)
+    {
+        return false;
+    }
+    for (const auto &[key, value] : part.attributes.asKeyValueRange())
+    {
+        if (element.attributes.value(key) != value)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+StructuredRichText::StructuredElement StructuredRichText::structuredElement(
+    const QJsonObject &obj) const
+{
+    constexpr const char *KEY_DATA = "data";
+    constexpr const char *KEY_TAG = "tag";
+
+    StructuredElement element;
+    element.tag = obj[KEY_TAG].toString().toLower();
+
+    if (!obj[KEY_DATA].isObject())
+    {
+        return element;
+    }
+
+    const QJsonObject data = obj[KEY_DATA].toObject();
+    for (const QString &key : data.keys())
+    {
+        if (data[key].isString())
+        {
+            element.attributes[structuredDataAttributeName(key)] =
+                data[key].toString();
+        }
+    }
+
+    return element;
 }
 
 QString StructuredRichText::structuredDataAttributeName(

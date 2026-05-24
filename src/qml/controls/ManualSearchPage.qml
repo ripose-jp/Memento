@@ -73,8 +73,7 @@ Page {
 
     DefinitionPage {
         anchors.fill: parent
-        terms: dictionarySearch.terms
-        kanji: dictionarySearch.kanji
+        search: dictionarySearch
         onClosePressed: searchTextField.text = ""
     }
 

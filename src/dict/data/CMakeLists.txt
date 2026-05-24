@@ -3,6 +3,8 @@ add_library(
     data.h
     dictionaryinfo.cpp
     dictionaryinfo.h
+    dictionarystyles.cpp
+    dictionarystyles.h
     expression.cpp
     expression.h
     frequency.cpp

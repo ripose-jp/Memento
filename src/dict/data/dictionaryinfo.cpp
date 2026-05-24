@@ -36,7 +36,7 @@ DictionaryInfo *DictionaryInfo::clone(QObject *parent) const
     copy->setId(id());
     copy->setName(name());
     copy->setEnabled(enabled());
-    copy->setStyles(styles());
+    copy->m_dictionaryStyles = m_dictionaryStyles;
     return copy;
 }
 
@@ -85,17 +85,18 @@ void DictionaryInfo::setEnabled(bool value)
     emit enabledChanged(m_enabled);
 }
 
-const QString &DictionaryInfo::styles() const noexcept
+const std::shared_ptr<const DictionaryStyles>
+DictionaryInfo::styles() const noexcept
 {
-    return m_styles;
+    return m_dictionaryStyles;
 }
 
 void DictionaryInfo::setStyles(const QString &value)
 {
-    if (m_styles == value)
+    if (m_dictionaryStyles != nullptr &&
+        m_dictionaryStyles->stylesheet() == value)
     {
         return;
     }
-    m_styles = value;
-    emit stylesChanged(m_styles);
+    m_dictionaryStyles = std::make_shared<DictionaryStyles>(value);
 }

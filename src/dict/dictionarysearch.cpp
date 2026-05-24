@@ -57,6 +57,8 @@ DictionarySearch::~DictionarySearch()
         );
         loop.exec();
     }
+
+    clearResults();
 }
 
 /* End Constructor/Destructor */

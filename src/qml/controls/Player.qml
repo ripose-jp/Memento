@@ -342,27 +342,28 @@ MpvPlayer {
             border.width: Features.platform === Features.Linux ? 1 : 0
 
             DefinitionPage {
+                id: definitionPage
                 anchors.fill: parent
                 anchors.margins: dictionaryBorderRectangle.border.width
-
-                terms: dictionarySearch.terms
-                kanji: dictionarySearch.kanji
+                search: dictionarySearch
 
                 /**
                  * Selects the longest cloze match or clears the selection on clear.
                  */
                 function updateSelection() {
-                    if (terms.length === 0 && kanji === null)
+                    if (dictionarySearch.terms.length === 0 &&
+                        dictionarySearch.kanji === null)
                     {
                         subtitleText.clearSelection();
                         return;
                     }
                     let selectionLength = 0;
-                    if (terms.length > 0)
+                    if (dictionarySearch.terms.length > 0)
                     {
-                        selectionLength = terms[0].clozeBody.length;
+                        selectionLength =
+                            dictionarySearch.terms[0].clozeBody.length;
                     }
-                    else if (kanji !== null)
+                    else if (dictionarySearch.kanji !== null)
                     {
                         selectionLength = 1;
                     }
@@ -371,10 +372,19 @@ MpvPlayer {
                                 subtitleText.hoverIndex + selectionLength);
                 }
 
-                onTermsChanged: updateSelection()
-                onKanjiChanged: updateSelection()
-
                 onClosePressed: dictionarySearch.clearResults()
+
+                Connections {
+                    target: dictionarySearch
+
+                    function onKanjiChanged() {
+                        definitionPage.updateSelection();
+                    }
+
+                    function onTermsChanged() {
+                        definitionPage.updateSelection();
+                    }
+                }
             }
         }
 

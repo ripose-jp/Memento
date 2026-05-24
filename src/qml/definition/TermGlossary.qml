@@ -11,7 +11,7 @@ ColumnLayout {
 
     readonly property alias selectedText: glossaryText.selectedText
 
-    signal searchRequested(query: string, wildcards: bool)
+    signal searchRequested(query: string)
 
     Flow {
         Layout.fillWidth: true
@@ -88,6 +88,6 @@ ColumnLayout {
         persistentSelection: true
         definition: root.definition
 
-        onSearchRequested: (query, wildcards) => root.searchRequested(query, wildcards)
+        onSearchRequested: (query) => root.searchRequested(query)
     }
 }

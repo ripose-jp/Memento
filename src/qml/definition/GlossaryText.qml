@@ -6,7 +6,7 @@ SearchableText {
 
     property TermDefinition definition: null
 
-    signal searchRequested(query: string, wildcards: bool)
+    signal searchRequested(query: string)
 
     cursorShape: Qt.IBeamCursor
     textFormat: TextEdit.RichText
@@ -55,14 +55,10 @@ SearchableText {
                 {
                     query = argValue;
                 }
-                else if (argName === "wildcards")
-                {
-                    wildcards = argValue !== "off";
-                }
             }
             if (query.length > 0)
             {
-                root.searchRequested(query, wildcards);
+                root.searchRequested(query);
             }
         }
         else

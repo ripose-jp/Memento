@@ -23,8 +23,11 @@
 #include <QObject>
 
 #include <QFont>
+#include <QHash>
 #include <QJsonArray>
+#include <QList>
 #include <QQuickItem>
+#include <QRegularExpression>
 #include <QScreen>
 #include <QSet>
 #include <QString>
@@ -64,6 +67,22 @@ public:
 
 private:
     /**
+     * @brief A structured content element used for CSS selector matching.
+     */
+    struct StructuredElement
+    {
+        /* The element tag */
+        QString tag;
+
+        /* The element's data-sc-* attributes */
+        QHash<QString, QString> attributes;
+    };
+
+    using CssRule = DictionaryStyles::CssRule;
+    using CssSelectorPart = DictionaryStyles::CssSelectorPart;
+    using ParsedStylesheet = DictionaryStyles::ParsedStylesheet;
+
+    /**
      * @brief Current context of the StructuredRichText parser.
      */
     struct Context
@@ -90,6 +109,12 @@ private:
 
         /* Base path of resources for this dictionary */
         QString basepath;
+
+        /* CSS rules parsed from the dictionary stylesheet */
+        std::shared_ptr<const DictionaryStyles> dictionaryStyles;
+
+        /* Stack of structured content elements */
+        QList<StructuredElement> elements;
     };
 
     /**
@@ -113,6 +138,20 @@ private:
         const QJsonObject &obj,
         StructuredRichText::Context &ctx,
         QString &out) const;
+
+    /**
+     * @brief Add structured style objects to a declaration map.
+     *
+     * @param obj The structured style object.
+     * @param ctx The StructuredRichText context.
+     * @param[out] declarations The declaration map to append to.
+     * @return The font size in pixels of the top level element.
+     */
+    [[nodiscard]]
+    double addStructuredStyle(
+        const QJsonObject &obj,
+        StructuredRichText::Context &ctx,
+        QHash<QString, QString> &declarations) const;
 
     /**
      * @brief Add string structured content.
@@ -174,9 +213,12 @@ private:
      * @brief Add a text object to the HTML document.
      *
      * @param obj The text object.
+     * @param style The glossary style to display.
      * @param[out] out The string the formatted text will be appended to.
      */
-    void addText(const QJsonObject &obj, QString &out) const;
+    void addText(
+        const QJsonObject &obj, Setting::GlossaryStyle style, QString &out
+    ) const;
 
     /**
      * Determines if an array contains structured content.
@@ -194,6 +236,89 @@ private:
      */
     [[nodiscard]]
     QString escapeHtml(const QString &str) const;
+
+    /**
+     * @brief Add a CSS declaration to a declaration map.
+     *
+     * @param property The CSS property.
+     * @param value The CSS value.
+     * @param[out] declarations The declaration map to append to.
+     */
+    void addCssDeclaration(
+        const QString &property,
+        const QString &value,
+        QHash<QString, QString> &declarations) const;
+
+    /**
+     * @brief Add declarations to a CSS style attribute.
+     *
+     * @param declarations The declarations to output.
+     * @param[out] out The string to append CSS to.
+     */
+    void addCssDeclarations(
+        const QHash<QString, QString> &declarations, QString &out) const;
+
+    /**
+     * @brief Parse inline CSS declarations into a declaration map.
+     *
+     * @param body The CSS declaration body.
+     * @return The parsed declaration map.
+     */
+    [[nodiscard]]
+    QHash<QString, QString> parseCssDeclarations(const QString &body) const;
+
+    /**
+     * @brief Apply matching stylesheet rules to a declaration map.
+     *
+     * @param ctx The StructuredRichText context.
+     * @param[out] declarations The declaration map to update.
+     */
+    void addMatchingCssRules(
+        const StructuredRichText::Context &ctx,
+        QHash<QString, QString> &declarations) const;
+
+    /**
+     * @brief Get generated ::before content for the current element.
+     *
+     * @param ctx The StructuredRichText context.
+     * @return The generated text content.
+     */
+    [[nodiscard]]
+    QString matchingBeforeContent(
+        const StructuredRichText::Context &ctx) const;
+
+    /**
+     * @brief Check if a rule matches the current element stack.
+     *
+     * @param rule The CSS rule to check.
+     * @param elements The current element stack.
+     * @return true if the rule matches, false otherwise.
+     */
+    [[nodiscard]]
+    bool cssRuleMatches(
+        const CssRule &rule,
+        const QList<StructuredElement> &elements) const;
+
+    /**
+     * @brief Check if a selector part matches an element.
+     *
+     * @param part The selector part to check.
+     * @param element The element to check.
+     * @return true if the selector part matches, false otherwise.
+     */
+    [[nodiscard]]
+    bool cssSelectorPartMatches(
+        const CssSelectorPart &part,
+        const StructuredElement &element) const;
+
+    /**
+     * @brief Convert structured data to element attributes.
+     *
+     * @param obj The structured content object.
+     * @return The structured content element.
+     */
+    [[nodiscard]]
+    StructuredElement structuredElement(const QJsonObject &obj) const;
 
     /**
      * @brief Convert a structured data key to an HTML data attribute name.
@@ -270,8 +395,38 @@ private:
 
     /* Set of supported structured content tags */
     const QSet<QString> m_supportedTags = {
-        "br", "ruby", "rt", "rp", "table", "thead", "tbody", "tfoot",
-        "tr", "td", "th", "span", "div", "ol", "ul", "li", "details",
-        "summary", "img", "a"
+        "br", "ruby", "table", "thead", "tbody", "tfoot", "tr", "td", "th",
+        "span", "div", "ol", "ul", "li", "details", "summary", "img", "a"
+    };
+
+    /* Set of supported CSS properties */
+    const QSet<QString> m_supportedCssProperties = {
+        "background-color", "border", "border-bottom",
+        "border-bottom-color", "border-bottom-style",
+        "border-bottom-width", "border-collapse", "border-color",
+        "border-left", "border-left-color", "border-left-style",
+        "border-left-width", "border-radius", "border-right",
+        "border-right-color", "border-right-style",
+        "border-right-width", "border-style", "border-top",
+        "border-top-color", "border-top-style", "border-top-width",
+        "border-width", "color", "cursor", "float", "font",
+        "font-family", "font-kerning", "font-size", "font-style",
+        "font-variant", "font-weight", "image-rendering",
+        "line-height", "list-style-type", "margin-bottom",
+        "margin-left", "margin-right", "margin-top", "padding",
+        "padding-bottom", "padding-left", "padding-right",
+        "padding-top", "text-align", "text-decoration",
+        "text-indent", "text-transform", "vertical-align",
+        "white-space", "word-spacing"
+    };
+
+    /* Matches CSS function names */
+    const QRegularExpression m_cssFunctionRegex{
+        "\\b([A-Za-z-]+)\\s*\\("
+    };
+
+    /* CSS functions that are supported by Qt rich text */
+    const QSet<QString> m_supportedCssFunctions = {
+        "hsl", "hsla", "rgb", "rgba"
     };
 };

@@ -6,50 +6,42 @@ import Ripose.Memento
 Page {
     id: root
 
-    property alias terms: definitionList.terms
-    property alias kanji: definitionList.kanji
+    required property DictionarySearch search
 
     property bool showToolbar: false
 
     signal closePressed()
 
-    onTermsChanged: search.clearResults()
-    onKanjiChanged: search.clearResults()
-
     Action {
         id: addAnkiAction
         enabled: AnkiConfig.enabled &&
                  stackView.currentItem &&
-                 (definitionList.count > 0 || definitionList.kanji)
+                 (stackView.currentItem.count > 0 ||
+                  stackView.currentItem.kanji)
         shortcut: MementoSettings.keybinds.profile?.cardAdd
         onTriggered: stackView.currentItem.addNote()
     }
 
-    DictionarySearch {
-        id: search
-        settings: MementoSettings
+    Connections {
+        target: root.search
 
-        onTermsChanged: {
-            if (terms.length > 0)
-            {
-                stackView.push(subTermList);
-            }
-            else
-            {
-                stackView.pop(null, StackView.Immediate);
-            }
+        function onKanjiChanged() {
+            stackView.pop(null, StackView.Immediate);
         }
 
-        onKanjiChanged: {
-            if (kanji)
-            {
-                stackView.push(subKanjiEntry);
-            }
-            else
-            {
-                stackView.pop(null, StackView.Immediate);
-            }
+        function onTermsChanged() {
+            stackView.pop(null, StackView.Immediate);
         }
+    }
+
+    /**
+     * Add a recursive search result list to the stack.
+     * @param search The search object that owns the recursive results.
+     */
+    function pushSearch(search) {
+        stackView.push(definitionListComponent, {
+            dictionarySearch: search
+        });
     }
 
     header: ColumnLayout {
@@ -100,38 +92,19 @@ Page {
         clip: true
         initialItem: DefinitionList {
             id: definitionList
-            onSearchRequested: (query, wildcards) => search.searchTerms(query, query, 0)
-            onKanjiClicked: (ch) => search.searchKanji(ch, ch, 0)
-        }
-    }
-
-    Component {
-        id: subTermList
-        DefinitionList {
-            terms: search.terms
-            kanji: null
-        }
-    }
-
-    Component {
-        id: subKanjiEntry
-        ScrollView {
-            id: kanjiScrollView
-
-            /**
-             * Add a note to Anki.
-             */
-            function addNote() {
-                kanjiEntry.addKanji();
+            dictionarySearch: root.search
+            onRecursiveSearchRequested: function(search) {
+                root.pushSearch(search);
             }
+        }
+    }
 
-            ScrollBar.vertical.policy: ScrollBar.AlwaysOn
-            KanjiEntry {
-                id: kanjiEntry
-                width: kanjiScrollView.ScrollBar.vertical.visible ?
-                           kanjiScrollView.width - kanjiScrollView.ScrollBar.vertical.width :
-                           kanjiScrollView.width
-                kanji: search.kanji
+    Component {
+        id: definitionListComponent
+
+        DefinitionList {
+            onRecursiveSearchRequested: function(search) {
+                root.pushSearch(search);
             }
         }
     }

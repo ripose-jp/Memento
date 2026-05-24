@@ -6,11 +6,12 @@ import Ripose.Memento
 ListView {
     id: root
 
-    required property var terms
-    required property Kanji kanji
+    required property DictionarySearch dictionarySearch
 
-    signal searchRequested(query: string, wildcards: bool)
-    signal kanjiClicked(ch: string)
+    readonly property var terms: dictionarySearch.terms
+    readonly property Kanji kanji: dictionarySearch.kanji
+
+    signal recursiveSearchRequested(DictionarySearch search)
 
     /**
      * Add the current entry to Anki.
@@ -104,6 +105,31 @@ ListView {
         }
     }
 
+    /**
+     * Searches for a term and requests a recursive result page.
+     * @param query The term to search for.
+     */
+    function searchTermRecursively(query) {
+        recursiveSearch.clearResults();
+        recursiveSearch.searchTerms(query, query, 0);
+        if (query.length > 0)
+        {
+            recursiveSearch.searchKanji(query[0], query[0], 0);
+        }
+        root.recursiveSearchRequested(recursiveSearch);
+    }
+
+    /**
+     * Searches for a kanji and requests a recursive result page.
+     * @param expression The text containing the kanji.
+     * @param index The index of the kanji to search.
+     */
+    function searchKanjiRecursively(expression, index) {
+        recursiveSearch.clearResults();
+        recursiveSearch.searchKanji(expression[index], expression, index);
+        root.recursiveSearchRequested(recursiveSearch);
+    }
+
     Action {
         id: nextAction
         enabled: root.visible && (root.count > 0 || root.kanji)
@@ -116,6 +142,11 @@ ListView {
         enabled: root.visible && (root.count > 0 || root.kanji)
         shortcut: MementoSettings.keybinds.profile?.cardPrevious
         onTriggered: root.scrollToPrevious()
+    }
+
+    DictionarySearch {
+        id: recursiveSearch
+        settings: MementoSettings
     }
 
     cacheBuffer: 1000
@@ -148,8 +179,14 @@ ListView {
             Layout.fillWidth: true
             Layout.margins: 10
             term: termLayout.index < root.terms.length ? root.terms[termLayout.index] : null
-            onSearchRequested: (query, wildcards) => root.searchRequested(query, wildcards)
-            onKanjiClicked: (ch) => root.kanjiClicked(ch)
+
+            onSearchRequested: function(query) {
+                root.searchTermRecursively(query);
+            }
+
+            onKanjiClicked: function(expression, index) {
+                root.searchKanjiRecursively(expression, index);
+            }
         }
 
         Rectangle {

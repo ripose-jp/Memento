@@ -22,6 +22,10 @@
 
 #include <QObject>
 
+#include <memory>
+
+#include "dict/data/dictionarystyles.h"
+
 class DictionarySearch;
 
 /**
@@ -50,13 +54,6 @@ class DictionaryInfo : public QObject
         READ enabled
         WRITE setEnabled
         NOTIFY enabledChanged
-    )
-
-    Q_PROPERTY(
-        QString styles
-        READ styles
-        WRITE setStyles
-        NOTIFY stylesChanged
     )
 
     friend class DictionarySearch;
@@ -125,12 +122,12 @@ public:
      * @return The CSS stylesheet for this dictionary.
      */
     [[nodiscard]]
-    const QString &styles() const noexcept;
+    const std::shared_ptr<const DictionaryStyles> styles() const noexcept;
 
     /**
-     * @brief Set the CSS stylesheet for this dictionary.
+     * @brief Set the stylesheet for this dictionary.
      *
-     * @param value The CSS stylesheet for this dictionary.
+     * @param value The CSS of the stylesheet.
      */
     void setStyles(const QString &value);
 
@@ -156,13 +153,6 @@ signals:
      */
     void enabledChanged(bool value);
 
-    /**
-     * @brief Emitted when the CSS stylesheet is changed.
-     *
-     * @param value The new stylesheet.
-     */
-    void stylesChanged(const QString &value);
-
 protected:
     /* ID of the dictionary */
     int64_t m_id{0};
@@ -174,5 +164,5 @@ protected:
     bool m_enabled{false};
 
     /* The CSS stylesheet of this dictionary */
-    QString m_styles;
+    std::shared_ptr<DictionaryStyles> m_dictionaryStyles{nullptr};
 };

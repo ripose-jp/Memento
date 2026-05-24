@@ -1207,21 +1207,23 @@ static GlossaryData getGlossary(const QList<TermDefinition *> &definitions)
         data.glossary += "</span></li>";
         data.glossaryCompact += "</span></li>";
 
-        if (!def->dictionaryInfo()->styles().isEmpty() &&
+        const std::shared_ptr<const DictionaryStyles> styles =
+            def->dictionaryInfo()->styles();
+        if (styles != nullptr &&
             !dictionariesWithStyles.contains(def->dictionaryInfo()->id()))
         {
             dictionariesWithStyles.insert(def->dictionaryInfo()->id());
 
             data.glossary += "<style>";
-            data.glossary += def->dictionaryInfo()->styles();
+            data.glossary += styles->stylesheet();
             data.glossary += "</style>";
 
             data.glossaryBrief += "<style>";
-            data.glossaryBrief += def->dictionaryInfo()->styles();
+            data.glossaryBrief += styles->stylesheet();
             data.glossaryBrief += "</style>";
 
             data.glossaryCompact += "<style>";
-            data.glossaryCompact += def->dictionaryInfo()->styles();
+            data.glossaryCompact += styles->stylesheet();
             data.glossaryCompact += "</style>";
         }
     }
