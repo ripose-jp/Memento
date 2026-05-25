@@ -49,7 +49,7 @@ Page {
     header: TabBar {
         id: tabBar
         width: parent.width
-        visible: root.player.state.secondarySid !== 0
+        visible: (root.player?.state.secondarySid ?? 0) !== 0
         onVisibleChanged: {
             if (!visible)
             {
@@ -84,7 +84,7 @@ Page {
         SubtitleList {
             id: primarySubtitleList
             subtitleListModel: SubtitleLists.primary
-            delay: root.player.state.subtitle.delay
+            delay: root.player?.state.subtitle.delay ?? 0
             textColor: root.textColor
             hoverColor: root.hoverColor
             selectedColor: root.selectedColor
@@ -96,7 +96,7 @@ Page {
         SubtitleList {
             id: secondarySubtitleList
             subtitleListModel: SubtitleLists.secondary
-            delay: root.player.state.secondarySubtitle.delay
+            delay: root.player?.state.secondarySubtitle.delay ?? 0
             textColor: root.textColor
             hoverColor: root.hoverColor
             selectedColor: root.selectedColor

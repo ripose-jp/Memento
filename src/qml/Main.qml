@@ -226,30 +226,45 @@ ApplicationWindow {
         }
     }
 
-    Window {
-        id: searchPageWindow
-        width: 500
-        height: 500
-        visible: MementoSettings.interfaceSearchWindow && MementoSettings.windowSearch
-        title: qsTr("Search")
-        onClosing: if (visible) MementoSettings.windowSearch = false
+    Loader {
+        active: MementoSettings.interfaceSearchWindow
+        sourceComponent: Component {
+            Window {
+                id: searchPageWindow
+                width: 500
+                height: 500
+                visible: MementoSettings.interfaceSearchWindow && MementoSettings.windowSearch
+                title: qsTr("Search")
+                onClosing: if (visible) MementoSettings.windowSearch = false
 
-        ManualSearchPage {
-            anchors.fill: parent
+                ManualSearchPage {
+                    anchors.fill: parent
+                }
+            }
         }
     }
 
-    Window {
-        id: subtitleListWindow
-        width: 500
-        height: 720
-        visible: MementoSettings.interfaceSubtitleListWindow && MementoSettings.windowSubtitleList
-        title: qsTr("Subtitle List")
-        onClosing: if (visible) MementoSettings.windowSubtitleList = false
+    Loader {
+        id: subtitleListWindowLoader
 
-        SubtitleListPage {
-            anchors.fill: parent
-            player: player
+        /* Need to load the player into the SubtitleList */
+        readonly property MpvPlayer mainPlayer: player
+
+        active: MementoSettings.interfaceSubtitleListWindow
+        sourceComponent: Component {
+            Window {
+                id: subtitleListWindow
+                width: 500
+                height: 720
+                visible: MementoSettings.interfaceSubtitleListWindow && MementoSettings.windowSubtitleList
+                title: qsTr("Subtitle List")
+                onClosing: if (visible) MementoSettings.windowSubtitleList = false
+
+                SubtitleListPage {
+                    anchors.fill: parent
+                    player: subtitleListWindowLoader.mainPlayer
+                }
+            }
         }
     }
 
