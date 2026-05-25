@@ -139,6 +139,11 @@ QCoro::Task<QList<Term *>> DictionarySearchController::searchTermsAsync(
 QList<Term *> DictionarySearchController::searchTermsSync(
     QString query, QString text, qsizetype index)
 {
+    if (m_shuttingDown)
+    {
+        return {};
+    }
+
     std::vector<SearchQuery> queries = generateQueries(query);
 
     sortQueries(queries);
@@ -148,6 +153,13 @@ QList<Term *> DictionarySearchController::searchTermsSync(
     QList<Term *> terms;
     for (const SearchQuery &query : queries)
     {
+        if (m_shuttingDown)
+        {
+            qDeleteAll(terms);
+            terms.clear();
+            return {};
+        }
+
         QString err;
         QList<Term *> results = m_db->queryTerms(query.deconj, nullptr, &err);
         if (!err.isEmpty())
@@ -248,6 +260,11 @@ QCoro::Task<Kanji *> DictionarySearchController::searchKanjiAsync(
 Kanji *DictionarySearchController::searchKanjiSync(
     QString character, QString text, qsizetype index)
 {
+    if (m_shuttingDown)
+    {
+        return nullptr;
+    }
+
     QString err;
     Kanji *kanji = m_db->queryKanji(character, nullptr, &err);
 

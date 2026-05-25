@@ -249,5 +249,5 @@ private:
     uint64_t m_activeSearches{0};
 
     /* True once this object has started shutting down */
-    bool m_shuttingDown{false};
+    std::atomic_bool m_shuttingDown{false};
 };
