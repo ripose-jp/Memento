@@ -777,15 +777,13 @@ Page {
                             Layout.alignment: Qt.AlignLeft
                             text: qsTr("Popup width")
                         }
-                        TextField {
+                        SpinBox {
                             Layout.alignment: Qt.AlignRight
-                            Layout.preferredWidth: 100
-                            validator: IntValidator {
-                                bottom: 1
-                            }
-                            placeholderText: qsTr("Pixels")
-                            text: MementoSettings.interfacePopupWidth
-                            onEditingFinished: MementoSettings.interfacePopupWidth = text
+                            editable: true
+                            from: 1
+                            to: 99999
+                            value: MementoSettings.interfacePopupWidth
+                            onValueModified: MementoSettings.interfacePopupWidth = value
                         }
                     }
 
@@ -799,15 +797,13 @@ Page {
                             Layout.alignment: Qt.AlignLeft
                             text: qsTr("Popup height")
                         }
-                        TextField {
+                        SpinBox {
                             Layout.alignment: Qt.AlignRight
-                            Layout.preferredWidth: 100
-                            validator: IntValidator {
-                                bottom: 1
-                            }
-                            placeholderText: qsTr("Pixels")
-                            text: MementoSettings.interfacePopupHeight
-                            onEditingFinished: MementoSettings.interfacePopupHeight = text
+                            editable: true
+                            from: 1
+                            to: 99999
+                            value: MementoSettings.interfacePopupHeight
+                            onValueModified: MementoSettings.interfacePopupHeight = value
                         }
                     }
                 }

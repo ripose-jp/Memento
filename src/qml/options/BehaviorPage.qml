@@ -98,16 +98,13 @@ Page {
                             Layout.alignment: Qt.AlignLeft
                             text: qsTr("Auto fit media percentage")
                         }
-                        TextField {
+                        SpinBox {
                             Layout.alignment: Qt.AlignRight
-                            Layout.preferredWidth: 50
-                            placeholderText: qsTr("Percent")
-                            validator: IntValidator {
-                                bottom: 1
-                                top: 1000
-                            }
-                            text: MementoSettings.behaviorAutoFitPercent
-                            onEditingFinished: MementoSettings.behaviorAutoFitPercent = text
+                            editable: true
+                            from: 1
+                            to: 1000
+                            value: MementoSettings.behaviorAutoFitPercent
+                            onValueModified: MementoSettings.behaviorAutoFitPercent = value
                         }
                     }
                 }
@@ -129,16 +126,13 @@ Page {
                             Layout.alignment: Qt.AlignLeft
                             text: qsTr("Visibility duration milliseconds")
                         }
-                        TextField {
+                        SpinBox {
                             Layout.alignment: Qt.AlignRight
-                            Layout.preferredWidth: 50
-                            placeholderText: qsTr("ms")
-                            validator: IntValidator {
-                                bottom: 50
-                                top: 9999
-                            }
-                            text: MementoSettings.behaviorOscDuration
-                            onEditingFinished: MementoSettings.behaviorOscDuration = text
+                            editable: true
+                            from: 50
+                            to: 9999
+                            value: MementoSettings.behaviorOscDuration
+                            onValueModified: MementoSettings.behaviorOscDuration = value
                         }
                     }
 
@@ -152,16 +146,13 @@ Page {
                             Layout.alignment: Qt.AlignLeft
                             text: qsTr("Fade duration milliseconds")
                         }
-                        TextField {
+                        SpinBox {
                             Layout.alignment: Qt.AlignRight
-                            Layout.preferredWidth: 50
-                            placeholderText: qsTr("ms")
-                            validator: IntValidator {
-                                bottom: 0
-                                top: 9999
-                            }
-                            text: MementoSettings.behaviorOscFadeDuration
-                            onEditingFinished: MementoSettings.behaviorOscFadeDuration = text
+                            editable: true
+                            from: 0
+                            to: 9999
+                            value: MementoSettings.behaviorOscFadeDuration
+                            onValueModified: MementoSettings.behaviorOscFadeDuration = value
                         }
                     }
 
@@ -175,16 +166,13 @@ Page {
                             Layout.alignment: Qt.AlignLeft
                             text: qsTr("Minimum mouse pixel movement")
                         }
-                        TextField {
+                        SpinBox {
                             Layout.alignment: Qt.AlignRight
-                            Layout.preferredWidth: 50
-                            placeholderText: qsTr("Pixels")
-                            validator: IntValidator {
-                                bottom: 0
-                                top: 999
-                            }
-                            text: MementoSettings.behaviorOscMinMove
-                            onEditingFinished: MementoSettings.behaviorOscMinMove = text
+                            editable: true
+                            from: 0
+                            to: 999
+                            value: MementoSettings.behaviorOscMinMove
+                            onValueModified: MementoSettings.behaviorOscMinMove = value
                         }
                     }
 

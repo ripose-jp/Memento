@@ -164,15 +164,13 @@ Page {
                             Layout.alignment: Qt.AlignLeft
                             text: qsTr("Search hover millisecond delay")
                         }
-                        TextField {
+                        SpinBox {
                             Layout.alignment: Qt.AlignRight
-                            Layout.preferredWidth: 50
-                            validator: IntValidator {
-                                bottom: 0
-                            }
-                            placeholderText: qsTr("ms")
-                            text: MementoSettings.searchDelay
-                            onEditingFinished: MementoSettings.searchDelay = text
+                            editable: true
+                            from: 0
+                            to: 99999
+                            value: MementoSettings.searchDelay
+                            onValueModified: MementoSettings.searchDelay = value
                         }
                     }
 
