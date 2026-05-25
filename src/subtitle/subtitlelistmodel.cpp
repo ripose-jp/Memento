@@ -130,9 +130,21 @@ QHash<int, QByteArray> SubtitleListModel::roleNames() const
 qsizetype SubtitleListModel::addSubtitle(
     const QString &text, double start, double end)
 {
+    constexpr qsizetype MAX_TEXT_LENGTH = 2000;
+    constexpr qsizetype MAX_NEWLINE_COUNT = 15;
     constexpr double TIME_DELTA = 0.0001;
 
     if (m_blockAdds)
+    {
+        return -1;
+    }
+
+    if (text.size() > MAX_TEXT_LENGTH)
+    {
+        return -1;
+    }
+
+    if (text.count('\n') > MAX_NEWLINE_COUNT)
     {
         return -1;
     }
