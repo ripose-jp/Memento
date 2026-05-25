@@ -70,7 +70,12 @@ DictionarySearchController::DictionarySearchController(
 
 DictionarySearchController::~DictionarySearchController()
 {
-    QWriteLocker runningSearchlock{&m_runningSearchMutex};
+    std::unique_lock lock{m_searchLifetimeMutex};
+    m_shuttingDown = true;
+    m_noActiveSearches.wait(
+        lock,
+        [this] () { return m_activeSearches == 0; }
+    );
 }
 
 /* End Constructor/Destructor */
@@ -105,12 +110,23 @@ void DictionarySearchController::destroyInstance()
 QCoro::Task<QList<Term *>> DictionarySearchController::searchTermsAsync(
     QString query, QString text, qsizetype index)
 {
+    std::optional<SearchGuard> searchGuard = acquireSearchGuard();
+    if (!searchGuard)
+    {
+        co_return {};
+    }
+
     QList<Term *> terms = co_await QtConcurrent::run(
-        &DictionarySearchController::searchTermsSync,
-        this,
-        std::move(query),
-        std::move(text),
-        index
+        [
+            this,
+            guard = std::move(*searchGuard),
+            query = std::move(query),
+            text = std::move(text),
+            index
+        ] () mutable
+        {
+            return searchTermsSync(std::move(query), std::move(text), index);
+        }
     );
     if (!terms.isEmpty() && m_settings != nullptr)
     {
@@ -123,8 +139,6 @@ QCoro::Task<QList<Term *>> DictionarySearchController::searchTermsAsync(
 QList<Term *> DictionarySearchController::searchTermsSync(
     QString query, QString text, qsizetype index)
 {
-    QReadLocker runningSearchlock{&m_runningSearchMutex};
-
     std::vector<SearchQuery> queries = generateQueries(query);
 
     sortQueries(queries);
@@ -208,12 +222,25 @@ QList<Term *> DictionarySearchController::searchTermsSync(
 QCoro::Task<Kanji *> DictionarySearchController::searchKanjiAsync(
     QString character, QString text, qsizetype index)
 {
+    std::optional<SearchGuard> searchGuard = acquireSearchGuard();
+    if (!searchGuard)
+    {
+        co_return nullptr;
+    }
+
     Kanji *kanji = co_await QtConcurrent::run(
-        &DictionarySearchController::searchKanjiSync,
-        this,
-        std::move(character),
-        std::move(text),
-        index
+        [
+            this,
+            guard = std::move(*searchGuard),
+            character = std::move(character),
+            text = std::move(text),
+            index
+        ] () mutable
+        {
+            return searchKanjiSync(
+                std::move(character), std::move(text), index
+            );
+        }
     );
     co_return kanji;
 }
@@ -221,8 +248,6 @@ QCoro::Task<Kanji *> DictionarySearchController::searchKanjiAsync(
 Kanji *DictionarySearchController::searchKanjiSync(
     QString character, QString text, qsizetype index)
 {
-    QReadLocker runningSearchlock{&m_runningSearchMutex};
-
     QString err;
     Kanji *kanji = m_db->queryKanji(character, nullptr, &err);
 
@@ -485,3 +510,70 @@ void DictionarySearchController::sortTags(QList<Tag *> &tags) const
 }
 
 /* End Search Helpers */
+/* Begin Search Guard */
+
+DictionarySearchController::SearchGuard::SearchGuard(
+    DictionarySearchController *controller) noexcept :
+    m_controller(controller)
+{
+
+}
+
+DictionarySearchController::SearchGuard::SearchGuard(
+    SearchGuard &&other) noexcept :
+    m_controller(std::exchange(other.m_controller, nullptr))
+{
+
+}
+
+DictionarySearchController::SearchGuard &
+DictionarySearchController::SearchGuard::operator=(
+    SearchGuard &&other) noexcept
+{
+    if (this != &other)
+    {
+        reset();
+        m_controller = std::exchange(other.m_controller, nullptr);
+    }
+    return *this;
+}
+
+DictionarySearchController::SearchGuard::~SearchGuard()
+{
+    reset();
+}
+
+void DictionarySearchController::SearchGuard::reset() noexcept
+{
+    if (m_controller == nullptr)
+    {
+        return;
+    }
+    DictionarySearchController *controller = m_controller;
+    m_controller = nullptr;
+    controller->releaseSearchGuard();
+}
+
+std::optional<DictionarySearchController::SearchGuard>
+DictionarySearchController::acquireSearchGuard()
+{
+    std::lock_guard lock{m_searchLifetimeMutex};
+    if (m_shuttingDown)
+    {
+        return std::nullopt;
+    }
+    ++m_activeSearches;
+    return SearchGuard{this};
+}
+
+void DictionarySearchController::releaseSearchGuard() noexcept
+{
+    std::lock_guard lock{m_searchLifetimeMutex};
+    --m_activeSearches;
+    if (m_activeSearches == 0)
+    {
+        m_noActiveSearches.notify_all();
+    }
+}
+
+/* End Search Guard */

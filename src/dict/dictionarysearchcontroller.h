@@ -22,6 +22,11 @@
 
 #include "dict/dictionary.h"
 
+#include <condition_variable>
+#include <cstdint>
+#include <mutex>
+#include <optional>
+#include <utility>
 #include <vector>
 
 #include <QHash>
@@ -169,6 +174,53 @@ private:
      */
     void sortTags(QList<Tag *> &tags) const;
 
+    /**
+     * @brief RAII object for guarding searches against race conditions.
+     *
+     * This exists to prevent DictionarySearchController from being deleted
+     * before all outstanding searches complete.
+     */
+    class SearchGuard
+    {
+    public:
+        SearchGuard(const SearchGuard &) = delete;
+        SearchGuard &operator=(const SearchGuard &) = delete;
+        SearchGuard(SearchGuard &&other) noexcept;
+        SearchGuard &operator=(SearchGuard &&other) noexcept;
+        ~SearchGuard();
+
+    private:
+        friend class DictionarySearchController;
+
+        /**
+         * @brief Create a new SearchGuard.
+         *
+         * @param controller The DictionarySearchController object to guard.
+         */
+        explicit SearchGuard(DictionarySearchController *controller) noexcept;
+
+        /**
+         * @brief Calls releaseSearchGuard in the controller.
+         */
+        void reset() noexcept;
+
+        /* Pointer to the dictionary controller being guarded */
+        DictionarySearchController *m_controller{nullptr};
+    };
+
+    /**
+     * @brief Acquire a guard that keeps this object alive for a search worker.
+     *
+     * @return A guard, or std::nullopt if shutdown has started.
+     */
+    [[nodiscard]]
+    std::optional<SearchGuard> acquireSearchGuard();
+
+    /**
+     * @brief Release a search guard and notify waiters if no workers remain.
+     */
+    void releaseSearchGuard() noexcept;
+
     /* Static pointer to the global instance */
     static inline DictionarySearchController *m_instance{nullptr};
 
@@ -187,6 +239,15 @@ private:
     /* Maps dictionary IDs to priorities. */
     QHash<int64_t, qsizetype> m_dictionaryOrder;
 
-    /* A mutex to be acquired whenever a search starts */
-    mutable QReadWriteLock m_runningSearchMutex;
+    /* Mutex for the lifetime of queued and running searches */
+    std::mutex m_searchLifetimeMutex;
+
+    /* Signaled when all queued and running searches are finished */
+    std::condition_variable m_noActiveSearches;
+
+    /* Number of searches scheduled but not yet finished */
+    uint64_t m_activeSearches{0};
+
+    /* True once this object has started shutting down */
+    bool m_shuttingDown{false};
 };
