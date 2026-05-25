@@ -297,4 +297,36 @@ ApplicationWindow {
         Component.onCompleted: active = DictionaryController.dictionaries.rowCount() === 0
         onLoaded: item.open()
     }
+
+    Loader {
+        id: autoUpdateOptInLoader
+        active: !MementoSettings.internalAutoUpdateOptInShown
+        sourceComponent: Component {
+            Dialog {
+                id: autoUpdateOptInDialog
+                parent: Overlay.overlay
+                anchors.centerIn: parent
+                modal: true
+                standardButtons: Dialog.Yes | Dialog.No
+                title: qsTr("Auto Update")
+
+                Label {
+                    text: qsTr(
+                        "Do you want to check for updates on launch?\n\n" +
+                        "This can be disabled at any time by going to %1.\n" +
+                        "This will check GitHub's API when Memento is launched."
+                    ).arg(Features.platform === Features.MacOS ?
+                              qsTr("Memento → Preferences → Application") :
+                              qsTr("Settings → Options → Application")
+                    )
+                }
+
+                onAccepted: MementoSettings.applicationAutoUpdateCheck = true
+                onRejected: MementoSettings.applicationAutoUpdateCheck = false
+                onClosed: MementoSettings.internalAutoUpdateOptInShown = true
+            }
+        }
+
+        onLoaded: item.open()
+    }
 }

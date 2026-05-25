@@ -45,6 +45,7 @@ void Settings::load()
 {
     loadVersion();
     loadWindowSettings();
+    loadInternalSettings();
     loadRecentSettings();
     loadSubtitleListSettings();
     loadApplicationSettings();
@@ -61,6 +62,7 @@ void Settings::write()
 {
     writeVersion();
     writeWindowSettings();
+    writeInternalSettings();
     writeRecentSettings();
     writeSubtitleListSettings();
     writeApplicationSettings();
@@ -103,8 +105,18 @@ void Settings::loadWindowSettings()
     QSettings s;
     s.beginGroup(Keys::Window::GROUP);
 
-    setWindowSubtitleList(s.value(Keys::Window::SUBTITLE_LIST).toBool());
-    setWindowSearch(s.value(Keys::Window::SEARCH).toBool());
+    setWindowSubtitleList(
+        s.value(
+            Keys::Window::SUBTITLE_LIST,
+            false
+        ).toBool()
+    );
+    setWindowSearch(
+        s.value(
+            Keys::Window::SEARCH,
+            false
+        ).toBool()
+    );
 
     s.endGroup();
 }
@@ -114,8 +126,42 @@ void Settings::writeWindowSettings()
     QSettings s;
     s.beginGroup(Keys::Window::GROUP);
 
-    s.setValue(Keys::Window::SUBTITLE_LIST, windowSubtitleList());
-    s.setValue(Keys::Window::SEARCH, windowSearch());
+    s.setValue(
+        Keys::Window::SUBTITLE_LIST,
+        windowSubtitleList()
+    );
+    s.setValue(
+        Keys::Window::SEARCH,
+        windowSearch()
+    );
+
+    s.endGroup();
+}
+
+void Settings::loadInternalSettings()
+{
+    QSettings s;
+    s.beginGroup(Keys::Internal::GROUP);
+
+    setInternalAutoUpdateOptInShown(
+        s.value(
+            Keys::Internal::AUTO_UPDATE_OPT_IN_SHOWN,
+            false
+        ).toBool()
+    );
+
+    s.endGroup();
+}
+
+void Settings::writeInternalSettings()
+{
+    QSettings s;
+    s.beginGroup(Keys::Internal::GROUP);
+
+    s.setValue(
+        Keys::Internal::AUTO_UPDATE_OPT_IN_SHOWN,
+        internalAutoUpdateOptInShown()
+    );
 
     s.endGroup();
 }
@@ -1387,6 +1433,23 @@ void Settings::setWindowSearch(bool value)
     }
     m_window.search = value;
     emit windowSearchChanged(m_window.search);
+}
+
+/* Internal Settings */
+
+bool Settings::internalAutoUpdateOptInShown() const noexcept
+{
+    return m_internal.autoUpdateOptInShown;
+}
+
+void Settings::setInternalAutoUpdateOptInShown(bool value)
+{
+    if (m_internal.autoUpdateOptInShown == value)
+    {
+        return;
+    }
+    m_internal.autoUpdateOptInShown = value;
+    emit internalAutoUpdateOptInShownChanged(m_internal.autoUpdateOptInShown);
 }
 
 /* Recent Settings */

@@ -86,6 +86,13 @@ namespace Keys
         constexpr const char *SEARCH = "search";
     }
 
+    namespace Internal
+    {
+        constexpr const char *GROUP = "internal";
+
+        constexpr const char *AUTO_UPDATE_OPT_IN_SHOWN = "auto-update-opt-in-shown";
+    }
+
     namespace Recent
     {
         constexpr const char *GROUP = "recent";

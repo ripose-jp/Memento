@@ -55,6 +55,15 @@ class Settings : public QObject
         NOTIFY windowSearchChanged
     )
 
+    /* Internal Settings */
+
+    Q_PROPERTY(
+        bool internalAutoUpdateOptInShown
+        READ internalAutoUpdateOptInShown
+        WRITE setInternalAutoUpdateOptInShown
+        NOTIFY internalAutoUpdateOptInShownChanged
+    )
+
     /* Recent Settings */
 
     Q_PROPERTY(
@@ -550,6 +559,16 @@ public:
     Q_INVOKABLE void writeWindowSettings();
 
     /**
+     * @brief Load internal settings from disc.
+     */
+    Q_INVOKABLE void loadInternalSettings();
+
+    /**
+     * @brief Write internal settings to disc.
+     */
+    Q_INVOKABLE void writeInternalSettings();
+
+    /**
      * @brief Loads recent settings from disc.
      */
     Q_INVOKABLE void loadRecentSettings();
@@ -742,6 +761,24 @@ public:
      * @param value true if the search panel is open, false otherwise.
      */
     void setWindowSearch(bool value);
+
+    /* Internal Settings */
+
+    /**
+     * @brief Get if the auto update opt-in message has been shown.
+     *
+     * @return true if the message has been shown,
+     * @return false otherwise.
+     */
+    [[nodiscard]]
+    bool internalAutoUpdateOptInShown() const noexcept;
+
+    /**
+     * @brief Set if the auto update opt-in message has been shown.
+     *
+     * @param value true if the message has been shown, false otherwise.
+     */
+    void setInternalAutoUpdateOptInShown(bool value);
 
     /* Recent Settings */
 
@@ -1845,6 +1882,15 @@ signals:
      */
     void windowSearchChanged(bool value);
 
+    /* Internal Settings */
+
+    /**
+     * @brief Emitted when the auto update opt-in shown state is changed.
+     *
+     * @param value The new value.
+     */
+    void internalAutoUpdateOptInShownChanged(bool value);
+
     /* Recent Settings */
 
     /**
@@ -2330,6 +2376,16 @@ private:
         bool search{false};
     };
     WindowSettings m_window{};
+
+    /**
+     * @brief Saved internal application state.
+     */
+    struct InternalSettings
+    {
+        /* true if the auto update opt in has been shown, false otherwise */
+        bool autoUpdateOptInShown{false};
+    };
+    InternalSettings m_internal{};
 
     /**
      * @brief Saved recents.
