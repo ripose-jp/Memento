@@ -551,6 +551,13 @@ MenuBar {
 
     UpdateDialog {
         id: updateDialog
+
+        Component.onCompleted: {
+            if (MementoSettings.applicationAutoUpdateCheck)
+            {
+                updateDialog.check(true);
+            }
+        }
     }
 
     OptionsWindow {

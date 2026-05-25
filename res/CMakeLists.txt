@@ -31,6 +31,7 @@ qt_add_resources(
         images/play.svg
         images/remove.svg
         images/search.svg
+        images/settings.svg
         images/skip-next.svg
         images/skip-previous.svg
         images/volume-off.svg

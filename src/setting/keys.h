@@ -121,6 +121,14 @@ namespace Keys
         constexpr const char *MD5_DEFAULT = "7e2c2f954ef6051373ba916f000168dc";
     }
 
+    namespace Application
+    {
+        constexpr const char *GROUP = "application";
+
+        constexpr const char *AUTO_UPDATE_CHECK = "auto-update-check";
+        constexpr bool AUTO_UPDATE_CHECK_DEFAULT = false;
+    }
+
     namespace Behavior
     {
         constexpr const char *GROUP = "behavior";

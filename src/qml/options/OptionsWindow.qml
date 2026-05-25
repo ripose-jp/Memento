@@ -25,6 +25,10 @@ Window {
                     text: qsTr("Anki Integration")
                     icon: "anki"
                 }
+                ListElement {
+                    text: qsTr("Application")
+                    icon: "settings"
+                }
                 ListElement{
                     text: qsTr("Audio Sources")
                     icon: "volume-on"
@@ -69,6 +73,8 @@ Window {
             currentIndex: sidebar.currentIndex
 
             AnkiIntegrationPage { }
+
+            ApplicationPage { }
 
             AudioSourcesPage { }
 

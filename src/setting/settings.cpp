@@ -47,6 +47,7 @@ void Settings::load()
     loadWindowSettings();
     loadRecentSettings();
     loadSubtitleListSettings();
+    loadApplicationSettings();
     loadAudioSourceSettings();
     loadBehaviorSettings();
     loadDictionarySettings();
@@ -62,6 +63,7 @@ void Settings::write()
     writeWindowSettings();
     writeRecentSettings();
     writeSubtitleListSettings();
+    writeApplicationSettings();
     writeAudioSourceSettings();
     writeBehaviorSettings();
     writeDictionarySettings();
@@ -74,6 +76,7 @@ void Settings::write()
 void Settings::defaults()
 {
     defaultSubtitleListSettings();
+    defaultApplicationSettings();
     defaultAudioSourceSettings();
     defaultBehaviorSettings();
     defaultDictionarySettings();
@@ -180,6 +183,39 @@ void Settings::defaultSubtitleListSettings()
 {
     setSubtitleListIgnoreWhitespace();
     setSubtitleListAutoSeek();
+}
+
+void Settings::loadApplicationSettings()
+{
+    QSettings s;
+    s.beginGroup(Keys::Application::GROUP);
+
+    setApplicationAutoUpdateCheck(
+        s.value(
+            Keys::Application::AUTO_UPDATE_CHECK,
+            Keys::Application::AUTO_UPDATE_CHECK_DEFAULT
+        ).toBool()
+    );
+
+    s.endGroup();
+}
+
+void Settings::writeApplicationSettings()
+{
+    QSettings s;
+    s.beginGroup(Keys::Application::GROUP);
+
+    s.setValue(
+        Keys::Application::AUTO_UPDATE_CHECK,
+        applicationAutoUpdateCheck()
+    );
+
+    s.endGroup();
+}
+
+void Settings::defaultApplicationSettings()
+{
+    setApplicationAutoUpdateCheck();
 }
 
 void Settings::loadAudioSourceSettings()
@@ -1409,6 +1445,25 @@ void Settings::setSubtitleListAutoSeek(bool value)
     }
     m_subtitleList.autoSeek = value;
     emit subtitleListAutoSeekChanged(m_subtitleList.autoSeek);
+}
+
+/* Application Settings */
+
+bool Settings::applicationAutoUpdateCheck() const noexcept
+{
+    return m_applicationSettings.autoUpdateCheck;
+}
+
+void Settings::setApplicationAutoUpdateCheck(bool value)
+{
+    if (m_applicationSettings.autoUpdateCheck == value)
+    {
+        return;
+    }
+    m_applicationSettings.autoUpdateCheck = value;
+    emit applicationAutoUpdateCheckChanged(
+        m_applicationSettings.autoUpdateCheck
+    );
 }
 
 /* Audio Source Settings */

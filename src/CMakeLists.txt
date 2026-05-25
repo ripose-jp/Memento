@@ -95,6 +95,7 @@ qt_add_qml_module(
         qml/objects/MoveTimer.qml
         qml/options/AnkiIntegrationHelpWindow.qml
         qml/options/AnkiIntegrationPage.qml
+        qml/options/ApplicationPage.qml
         qml/options/AudioSourcesPage.qml
         qml/options/BehaviorPage.qml
         qml/options/DictionaryPage.qml

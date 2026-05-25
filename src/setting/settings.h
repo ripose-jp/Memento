@@ -79,6 +79,15 @@ class Settings : public QObject
         NOTIFY subtitleListAutoSeekChanged
     )
 
+    /* Application Settings */
+
+    Q_PROPERTY(
+        bool applicationAutoUpdateCheck
+        READ applicationAutoUpdateCheck
+        WRITE setApplicationAutoUpdateCheck
+        NOTIFY applicationAutoUpdateCheckChanged
+    )
+
     /* Audio Source Settings */
 
     Q_PROPERTY(
@@ -566,6 +575,21 @@ public:
     Q_INVOKABLE void defaultSubtitleListSettings();
 
     /**
+     * @brief Load the application settings from disc.
+     */
+    Q_INVOKABLE void loadApplicationSettings();
+
+    /**
+     * @brief Write the application settings to disc.
+     */
+    Q_INVOKABLE void writeApplicationSettings();
+
+    /**
+     * @brief Load the application settings defaults.
+     */
+    Q_INVOKABLE void defaultApplicationSettings();
+
+    /**
      * @brief Loads audio source settings from disc.
      */
     Q_INVOKABLE void loadAudioSourceSettings();
@@ -776,6 +800,26 @@ public:
      */
     void setSubtitleListAutoSeek(
         bool value = Keys::SubtitleList::AUTO_SEEK_DEFAULT);
+
+    /* Application Settings */
+
+    /**
+     * @brief Gets if the application should check for updates on start.
+     *
+     * @return true to check for updates on start,
+     * @return false otherwise.
+     */
+    [[nodiscard]]
+    bool applicationAutoUpdateCheck() const noexcept;
+
+    /**
+     * @brief Sets if the application should check for updates on start.
+     *
+     * @param value true if updates should be checked for on start, false
+     * otherwise.
+     */
+    void setApplicationAutoUpdateCheck(
+        bool value = Keys::Application::AUTO_UPDATE_CHECK_DEFAULT);
 
     /* Audio Source Settings */
 
@@ -1824,6 +1868,15 @@ signals:
      */
     void subtitleListAutoSeekChanged(bool value);
 
+    /* Application Settings */
+
+    /**
+     * @brief Emitted when the auto update check is changed.
+     *
+     * @param value The new value.
+     */
+    void applicationAutoUpdateCheckChanged(bool value);
+
     /* Behavior Settings */
 
     /**
@@ -2300,6 +2353,16 @@ private:
         bool autoSeek{Keys::SubtitleList::AUTO_SEEK_DEFAULT};
     };
     SubtitleListSettings m_subtitleList{};
+
+    /**
+     * @brief Application settings.
+     */
+    struct ApplicationSettings
+    {
+        /* true if the application should check for updates on start */
+        bool autoUpdateCheck{Keys::Application::AUTO_UPDATE_CHECK_DEFAULT};
+    };
+    ApplicationSettings m_applicationSettings{};
 
     /**
      * @brief Audio source settings.
