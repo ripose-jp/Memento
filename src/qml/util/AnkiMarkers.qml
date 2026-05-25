@@ -31,8 +31,8 @@ QtObject {
     readonly property string onyomi: "onyomi"
     readonly property string pitch: "pitch"
     readonly property string pitchCategories: "pitch-categories"
-    readonly property string pitchGraph: "pitch-graph"
-    readonly property string pitchPosition: "pitch-position"
+    readonly property string pitchGraphs: "pitch-graphs"
+    readonly property string pitchPositions: "pitch-positions"
     readonly property string reading: "reading"
     readonly property string screenshot: "screenshot"
     readonly property string screenshotVideo: "screenshot-video"
@@ -127,10 +127,10 @@ QtObject {
     readonly property string pitchDesc: qsTr(
         "<p>Pitch accents for the reading of the expression.</p>"
     )
-    readonly property string pitchGraphDesc: qsTr(
+    readonly property string pitchGraphsDesc: qsTr(
         "<p>Pitch graphs for the reading of the expression.</p>"
     )
-    readonly property string pitchPositionDesc: qsTr(
+    readonly property string pitchPositionsDesc: qsTr(
         "<p>Pitch positions for the reading of the expression.</p>"
     )
     readonly property string readingDesc: qsTr(
@@ -406,13 +406,13 @@ QtObject {
             "arguments": [],
         },
         {
-            "name": root.pitchGraph,
-            "description": root.pitchGraphDesc,
+            "name": root.pitchGraphs,
+            "description": root.pitchGraphsDesc,
             "arguments": [],
         },
         {
-            "name": root.pitchPosition,
-            "description": root.pitchPositionDesc,
+            "name": root.pitchPositions,
+            "description": root.pitchPositionsDesc,
             "arguments": [],
         },
         {

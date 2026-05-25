@@ -60,9 +60,15 @@ constexpr const char *FURIGANA_PLAIN = "furigana-plain";
 constexpr const char *GLOSSARY_BRIEF = "glossary-brief";
 constexpr const char *GLOSSARY_COMPACT = "glossary-compact";
 constexpr const char *PITCH = "pitch";
+constexpr const char *PITCH_ALT = "pitch-accents";
 constexpr const char *PITCH_CATEGORIES = "pitch-categories";
-constexpr const char *PITCH_GRAPH = "pitch-graph";
-constexpr const char *PITCH_POSITION = "pitch-position";
+constexpr const char *PITCH_CATEGORIES_ALT = "pitch-accent-categories";
+constexpr const char *PITCH_GRAPHS = "pitch-graphs";
+constexpr const char *PITCH_GRAPHS_ALT1 = "pitch-graph";
+constexpr const char *PITCH_GRAPHS_ALT2 = "pitch-accent-graphs";
+constexpr const char *PITCH_POSITIONS = "pitch-positions";
+constexpr const char *PITCH_POSITIONS_ALT1 = "pitch-position";
+constexpr const char *PITCH_POSITIONS_ALT2 = "pitch-accent-positions";
 constexpr const char *READING = "reading";
 constexpr const char *SELECTION = "selection";
 

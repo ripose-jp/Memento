@@ -1410,13 +1410,13 @@ static QString getPitch(const QList<Pitch *> &pitches)
 }
 
 /**
- * @brief Get the {pitch-graph} marker.
+ * @brief Get the {pitch-graphs} marker.
  *
  * @param pitches The pitches to use to build the marker.
  * @return The SVGs for the {pitch-graph} marker.
  */
 [[nodiscard]]
-static QString getPitchGraph(const QList<Pitch *> &pitches)
+static QString getPitchGraphs(const QList<Pitch *> &pitches)
 {
     if (pitches.isEmpty())
     {
@@ -1491,13 +1491,13 @@ static QString getPitchGraph(const QList<Pitch *> &pitches)
 }
 
 /**
- * @brief Get the marker for {pitch-position}.
+ * @brief Get the marker for {pitch-positions}.
  *
  * @param pitches The pitches to use.
  * @return The text for {pitch-position}.
  */
 [[nodiscard]]
-static QString getPitchPosition(const QList<Pitch *> &pitches)
+static QString getPitchPositions(const QList<Pitch *> &pitches)
 {
     if (pitches.isEmpty())
     {
@@ -2008,24 +2008,30 @@ static MarkerResult processMarker(
         fieldCtx.files.unite(data.files);
         return result;
     }
-    else if (marker.marker == Anki::Marker::PITCH)
+    else if (marker.marker == Anki::Marker::PITCH ||
+        marker.marker == Anki::Marker::PITCH_ALT)
     {
         result.text = getPitch(term.pitches());
         return result;
     }
-    else if (marker.marker == Anki::Marker::PITCH_GRAPH)
-    {
-        result.text = getPitchGraph(term.pitches());
-        return result;
-    }
-    else if (marker.marker == Anki::Marker::PITCH_POSITION)
-    {
-        result.text = getPitchPosition(term.pitches());
-        return result;
-    }
-    else if (marker.marker == Anki::Marker::PITCH_CATEGORIES)
+    else if (marker.marker == Anki::Marker::PITCH_CATEGORIES ||
+        marker.marker == Anki::Marker::PITCH_CATEGORIES_ALT)
     {
         result.text = getPitchCategories(term);
+        return result;
+    }
+    else if (marker.marker == Anki::Marker::PITCH_GRAPHS ||
+        marker.marker == Anki::Marker::PITCH_GRAPHS_ALT1 ||
+        marker.marker == Anki::Marker::PITCH_GRAPHS_ALT2)
+    {
+        result.text = getPitchGraphs(term.pitches());
+        return result;
+    }
+    else if (marker.marker == Anki::Marker::PITCH_POSITIONS ||
+        marker.marker == Anki::Marker::PITCH_POSITIONS_ALT1 ||
+        marker.marker == Anki::Marker::PITCH_POSITIONS_ALT2)
+    {
+        result.text = getPitchPositions(term.pitches());
         return result;
     }
     else if (marker.marker == Anki::Marker::SELECTION)
