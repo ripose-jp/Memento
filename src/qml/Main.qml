@@ -253,29 +253,33 @@ ApplicationWindow {
         }
     }
 
-    Dialog {
-        id: dictionaryInstallDialog
-        parent: Overlay.overlay
-        anchors.centerIn: parent
-        modal: true
-        standardButtons: Dialog.Ok
-        title: qsTr("No Dictionaries Installed")
+    Loader {
+        id: dictionaryInstallLoader
+        active: false
+        sourceComponent: Component {
+            Dialog {
+                id: dictionaryInstallDialog
+                parent: Overlay.overlay
+                anchors.centerIn: parent
+                modal: true
+                standardButtons: Dialog.Ok
+                title: qsTr("No Dictionaries Installed")
 
-        Label {
-            textFormat: Text.RichText
-            text: qsTr("<p>For searching to work, please install a dictionary.</p>" +
-                       "<p>Dictionaries can be found <a href='https://yomitan.wiki/dictionaries/'>here</a>.</p>" +
-                       "<p>To install a dictionary, go to %1.</p>").arg(Features.platform === Features.MacOS ?
-                                                                            qsTr("Memento → Preferences → Dictionary") :
-                                                                            qsTr("Settings → Options → Dictionary"))
-            onLinkActivated: (link) => Qt.openUrlExternally(link)
-        }
+                onClosed: dictionaryInstallLoader.active = false
 
-        Component.onCompleted: {
-            if (DictionaryController.dictionaries.rowCount() === 0)
-            {
-                dictionaryInstallDialog.open();
+                Label {
+                    textFormat: Text.RichText
+                    text: qsTr("<p>For searching to work, please install a dictionary.</p>" +
+                               "<p>Dictionaries can be found <a href='https://yomitan.wiki/dictionaries/'>here</a>.</p>" +
+                               "<p>To install a dictionary, go to %1.</p>").arg(Features.platform === Features.MacOS ?
+                                                                                    qsTr("Memento → Preferences → Dictionary") :
+                                                                                    qsTr("Settings → Options → Dictionary"))
+                    onLinkActivated: (link) => Qt.openUrlExternally(link)
+                }
             }
         }
+
+        Component.onCompleted: active = DictionaryController.dictionaries.rowCount() === 0
+        onLoaded: item.open()
     }
 }
