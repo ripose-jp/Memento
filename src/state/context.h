@@ -55,6 +55,7 @@ public:
      *
      * @return The global Anki config.
      */
+    [[nodiscard]]
     AnkiConfig *ankiConfig() const noexcept;
 
     /**
@@ -62,6 +63,7 @@ public:
      *
      * @return The global Anki client.
      */
+    [[nodiscard]]
     AnkiClient *ankiClient() const noexcept;
 
     /**
