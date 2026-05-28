@@ -7,10 +7,10 @@ MpvPlayer {
 
     readonly property bool oscVisible:
         controls.visible ||
-        (Features.platform !== Features.MacOS && menu.visible)
+        (!Features.macos && menu.visible)
     readonly property bool oscHovered:
         subtitleHover.hovered ||
-        (Features.platform !== Features.MacOS && menu.anyHovered) ||
+        (!Features.macos && menu.anyHovered) ||
         controlsHover.hovered
 
     readonly property bool pause: root.state.pause
@@ -35,7 +35,7 @@ MpvPlayer {
             return;
         }
 
-        if (Features.platform !== Features.MacOS)
+        if (!Features.macos)
         {
             menuFadeOut.stop();
             menuFadeIn.start();
@@ -53,7 +53,7 @@ MpvPlayer {
             return;
         }
 
-        if (Features.platform !== Features.MacOS)
+        if (!Features.macos)
         {
             menuFadeIn.stop();
             menuFadeOut.start();
@@ -253,7 +253,7 @@ MpvPlayer {
 
         readonly property bool show:
             hoverCursorSecondarySubtitleShow.hovered ||
-            (Features.platform !== Features.MacOS && menu.anyHovered)
+            (!Features.macos && menu.anyHovered)
 
         anchors {
             left: root.left
@@ -339,7 +339,7 @@ MpvPlayer {
             anchors.fill: parent
             color: "transparent"
             border.color: MementoPalette.border
-            border.width: Features.platform === Features.Linux ? 1 : 0
+            border.width: Features.unix ? 1 : 0
 
             DefinitionPage {
                 id: definitionPage
@@ -482,7 +482,7 @@ MpvPlayer {
             bottomMargin: {
                 let minValue = controls.visible ? controls.height : 0;
                 let maxValue = root.height - subtitleText.height;
-                if (Features.platform !== Features.MacOS && menu.visible)
+                if (!Features.macos && menu.visible)
                 {
                     maxValue -= menu.height;
                 }
@@ -608,7 +608,7 @@ MpvPlayer {
             right: parent.right
             top: parent.top
         }
-        visible: Features.platform === Features.MacOS
+        visible: Features.macos
         player: root
 
         OpacityAnimator on opacity {

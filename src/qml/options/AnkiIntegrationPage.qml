@@ -77,7 +77,7 @@ Page {
 
         Rectangle {
             Layout.fillWidth: true
-            visible: Features.platform !== Features.Linux
+            visible: !Features.unix
             implicitHeight: 1
             color: MementoPalette.border
         }
@@ -150,7 +150,7 @@ Page {
 
         Rectangle {
             Layout.fillWidth: true
-            visible: Features.platform === Features.Linux && !scrollView.atBottom
+            visible: Features.unix && !scrollView.atBottom
             color: MementoPalette.border
             height: 1
         }

@@ -15,7 +15,7 @@ Page {
 
         Rectangle {
             Layout.fillWidth: true
-            visible: Features.platform === Features.Linux && !scrollView.atBottom
+            visible: Features.unix && !scrollView.atBottom
             color: MementoPalette.border
             height: 1
         }
@@ -62,7 +62,7 @@ Page {
                 Layout.preferredWidth: root.preferredWidth
                 Layout.topMargin: root.groupSpacing
                 Layout.alignment: Qt.AlignHCenter
-                visible: Features.platform === Features.Linux
+                visible: Features.unix
                 title: qsTr("Theme")
 
                 ColumnLayout {

@@ -34,14 +34,9 @@ if(APPLE AND MEMENTO_BUNDLE)
         PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
     )
 endif()
-configure_file(
-    qml/util/Features.qml.in
-    "${PROJECT_SOURCE_DIR}/src/qml/util/Features.qml"
-)
 set_source_files_properties(
     qml/objects/AudioSourceResolver.qml
     qml/util/AnkiMarkers.qml
-    qml/util/Features.qml
     qml/util/MementoPalette.qml
     qml/util/Utils.qml
     PROPERTIES
@@ -105,7 +100,6 @@ qt_add_qml_module(
         qml/options/OptionsWindow.qml
         qml/options/SearchPage.qml
         qml/util/AnkiMarkers.qml
-        qml/util/Features.qml
         qml/util/MementoPalette.qml
         qml/util/Utils.qml
         qml/windows/AboutWindow.qml
@@ -135,6 +129,7 @@ target_link_libraries(
     PRIVATE coloredsvgprovider
     PRIVATE definition
     PRIVATE dictionary
+    PRIVATE features
     PRIVATE keytracker
     PRIVATE managers
     PRIVATE mpvplayer

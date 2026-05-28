@@ -22,7 +22,7 @@ ColumnLayout {
             id: checkBox
 
             Component.onCompleted: {
-                if (Features.platform === Features.Linux)
+                if (Features.unix)
                 {
                     return;
                 }

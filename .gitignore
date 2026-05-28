@@ -85,4 +85,3 @@ CMakeLists.txt.user*
 .cache
 .qtcreator
 .vscode
-src/qml/util/Features.qml

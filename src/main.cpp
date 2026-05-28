@@ -55,6 +55,7 @@
 #include "player/mpvthumbnail.h"
 #include "quick/clipboard.h"
 #include "quick/coloredsvgprovider.h"
+#include "quick/features.h"
 #include "quick/keytracker.h"
 #include "quick/paths.h"
 #include "setting/settings.h"
@@ -228,6 +229,9 @@ static void registerQmlTypes(Context &context)
     /* Quick Types */
 
     qmlRegisterType<Clipboard>(MEMENTO_URI, 1, 0, "Clipboard");
+    qmlRegisterSingletonInstance<Features>(
+        MEMENTO_URI, 1, 0, "Features", new Features(&context)
+    );
     qmlRegisterSingletonInstance<KeyTracker>(
         MEMENTO_URI, 1, 0, "KeyTracker", new KeyTracker(&context)
     );

@@ -80,7 +80,7 @@ Page {
 
         Rectangle {
             Layout.fillWidth: true
-            visible: Features.platform !== Features.Linux && toolbar.visible
+            visible: !Features.unix && toolbar.visible
             implicitHeight: 1
             color: MementoPalette.border
         }

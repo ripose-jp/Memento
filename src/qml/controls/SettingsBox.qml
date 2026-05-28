@@ -6,7 +6,7 @@ GroupBox {
     id: root
 
     Component.onCompleted: {
-        if (Features.platform === Features.Linux)
+        if (Features.unix)
         {
             root.background = linuxBackground;
             root.label = linuxLabel;

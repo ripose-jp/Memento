@@ -51,7 +51,7 @@ MenuBar {
     }
 
     Component.onCompleted: {
-        if (Features.platform === Features.Windows)
+        if (Features.windows)
         {
             root.background = windowsBackground;
         }
@@ -76,7 +76,7 @@ MenuBar {
             shortcut: MementoSettings.keybinds.profile?.openFile
             onShortcutChanged: {
                 /* Hack to force a refresh */
-                if (Features.platform === Features.MacOS)
+                if (Features.macos)
                 {
                     checkable = !checkable;
                     checkable = !checkable;
@@ -90,7 +90,7 @@ MenuBar {
             shortcut: MementoSettings.keybinds.profile?.openUrl
             onShortcutChanged: {
                 /* Hack to force a refresh */
-                if (Features.platform === Features.MacOS)
+                if (Features.macos)
                 {
                     checkable = !checkable;
                     checkable = !checkable;
@@ -117,7 +117,7 @@ MenuBar {
                     /* This is a hack to force a refresh after adding the item.
                      * For some reason the items are all added with blank text,
                      * until something causes a visual update. */
-                    if (Features.platform === Features.MacOS)
+                    if (Features.macos)
                     {
                         object.checkable = !object.checkable;
                         object.checkable = !object.checkable;
@@ -171,7 +171,7 @@ MenuBar {
                 /* This is a hack to force a refresh after adding the item.
                  * For some reason the items are all added with blank text,
                  * until something causes a visual update. */
-                if (Features.platform === Features.MacOS)
+                if (Features.macos)
                 {
                     object.checkable = !object.checkable;
                     object.checkable = !object.checkable;
@@ -195,7 +195,7 @@ MenuBar {
             shortcut: MementoSettings.keybinds.profile?.subtitleAutoPause
             onShortcutChanged: {
                 /* Hack to force a refresh */
-                if (Features.platform === Features.MacOS)
+                if (Features.macos)
                 {
                     checkable = !checkable;
                     checkable = !checkable;
@@ -213,7 +213,7 @@ MenuBar {
                 shortcut: MementoSettings.keybinds.profile?.subtitleIncreaseSize
                 onShortcutChanged: {
                     /* Hack to force a refresh */
-                    if (Features.platform === Features.MacOS)
+                    if (Features.macos)
                     {
                         checkable = !checkable;
                         checkable = !checkable;
@@ -229,7 +229,7 @@ MenuBar {
                 shortcut: MementoSettings.keybinds.profile?.subtitleDecreaseSize
                 onShortcutChanged: {
                     /* Hack to force a refresh */
-                    if (Features.platform === Features.MacOS)
+                    if (Features.macos)
                     {
                         checkable = !checkable;
                         checkable = !checkable;
@@ -245,7 +245,7 @@ MenuBar {
                 shortcut: MementoSettings.keybinds.profile?.subtitleMoveUp
                 onShortcutChanged: {
                     /* Hack to force a refresh */
-                    if (Features.platform === Features.MacOS)
+                    if (Features.macos)
                     {
                         checkable = !checkable;
                         checkable = !checkable;
@@ -261,7 +261,7 @@ MenuBar {
                 shortcut: MementoSettings.keybinds.profile?.subtitleMoveDown
                 onShortcutChanged: {
                     /* Hack to force a refresh */
-                    if (Features.platform === Features.MacOS)
+                    if (Features.macos)
                     {
                         checkable = !checkable;
                         checkable = !checkable;
@@ -280,7 +280,7 @@ MenuBar {
             shortcut: MementoSettings.keybinds.profile?.subtitleShow
             onShortcutChanged: {
                 /* Hack to force a refresh */
-                if (Features.platform === Features.MacOS)
+                if (Features.macos)
                 {
                     checkable = !checkable;
                     checkable = !checkable;
@@ -329,7 +329,7 @@ MenuBar {
                     /* This is a hack to force a refresh after adding the item.
                      * For some reason the items are all added with blank text,
                      * until something causes a visual update. */
-                    if (Features.platform === Features.MacOS)
+                    if (Features.macos)
                     {
                         object.checkable = !object.checkable;
                         object.checkable = !object.checkable;
@@ -386,7 +386,7 @@ MenuBar {
                 /* This is a hack to force a refresh after adding the item.
                  * For some reason the items are all added with blank text,
                  * until something causes a visual update. */
-                if (Features.platform === Features.MacOS)
+                if (Features.macos)
                 {
                     object.checkable = !object.checkable;
                     object.checkable = !object.checkable;
@@ -410,7 +410,7 @@ MenuBar {
             shortcut: MementoSettings.keybinds.profile?.showSearch
             onShortcutChanged: {
                 /* Hack to force a refresh */
-                if (Features.platform === Features.MacOS)
+                if (Features.macos)
                 {
                     checkable = !checkable;
                     checkable = !checkable;
@@ -426,7 +426,7 @@ MenuBar {
             shortcut: MementoSettings.keybinds.profile?.showSubtitleList
             onShortcutChanged: {
                 /* Hack to force a refresh */
-                if (Features.platform === Features.MacOS)
+                if (Features.macos)
                 {
                     checkable = !checkable;
                     checkable = !checkable;
@@ -467,7 +467,7 @@ MenuBar {
                     /* This is a hack to force a refresh after adding the item.
                      * For some reason the items are all added with blank text,
                      * until something causes a visual update. */
-                    if (Features.platform === Features.MacOS)
+                    if (Features.macos)
                     {
                         object.checkable = !object.checkable;
                         object.checkable = !object.checkable;
@@ -487,7 +487,7 @@ MenuBar {
 
         Action {
             text: qsTr("&Open Config")
-            onTriggered: Features.platform === Features.Windows ?
+            onTriggered: Features.windows ?
                              Qt.openUrlExternally(`file:///${MementoPaths.config}`) :
                              Qt.openUrlExternally(`file://${MementoPaths.config}`)
         }

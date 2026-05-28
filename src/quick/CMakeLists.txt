@@ -28,6 +28,20 @@ target_link_libraries(
 )
 
 add_library(
+    features
+    features.cpp
+    features.h
+)
+target_compile_features(features PRIVATE cxx_std_20)
+target_include_directories(features PRIVATE ${MEMENTO_INCLUDE_DIRS})
+target_compile_options(features PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_link_libraries(
+    features
+    PRIVATE version
+    PUBLIC Qt6::Core
+)
+
+add_library(
     keytracker
     keytracker.cpp
     keytracker.h
