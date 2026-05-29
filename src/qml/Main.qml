@@ -178,6 +178,21 @@ ApplicationWindow {
 
                 player.controller.play();
             }
+            onAuxiliarySearchRequested: function(text) {
+                MementoSettings.windowSearch = true;
+                if (MementoSettings.interfaceSearchWindow)
+                {
+                    searchWindowLoader.pendingQuery = text;
+                    if (searchWindowLoader.item?.searchPage)
+                    {
+                        searchWindowLoader.item.searchPage.setQuery(text);
+                    }
+                }
+                else
+                {
+                    inlineSearchPage.setQuery(text);
+                }
+            }
 
             DropArea {
                 anchors.fill: parent
@@ -227,10 +242,16 @@ ApplicationWindow {
     }
 
     Loader {
+        id: searchWindowLoader
+        property string pendingQuery: ""
+
         active: MementoSettings.interfaceSearchWindow
         sourceComponent: Component {
             Window {
                 id: searchPageWindow
+
+                property alias searchPage: windowSearchPage
+
                 width: 500
                 height: 500
                 visible: MementoSettings.interfaceSearchWindow && MementoSettings.windowSearch
@@ -238,7 +259,14 @@ ApplicationWindow {
                 onClosing: if (visible) MementoSettings.windowSearch = false
 
                 ManualSearchPage {
+                    id: windowSearchPage
                     anchors.fill: parent
+                    Component.onCompleted: {
+                        if (searchWindowLoader.pendingQuery.length > 0)
+                        {
+                            setQuery(searchWindowLoader.pendingQuery);
+                        }
+                    }
                 }
             }
         }

@@ -405,6 +405,7 @@ namespace Keys
             constexpr const char *OSC_VISIBILITY = "osc-visibility";
             constexpr const char *SHOW_SEARCH = "show-search";
             constexpr const char *SHOW_SUBTITLE_LIST = "show-sub-list";
+            constexpr const char *START_OCR = "start-ocr";
             constexpr const char *SUBTITLE_AUTO_PAUSE = "sub-auto-pause";
             constexpr const char *SUBTITLE_DECREASE_SIZE = "sub-decrease-size";
             constexpr const char *SUBTITLE_INCREASE_SIZE = "sub-increase-size";

@@ -1123,6 +1123,16 @@ void Settings::loadKeybindSettings()
                 ).toString()
             );
         }
+#ifdef MEMENTO_OCR_SUPPORT
+        if (s.contains(Keys::Keybind::Profile::START_OCR))
+        {
+            profile->setStartOcr(
+                s.value(
+                    Keys::Keybind::Profile::START_OCR
+                ).toString()
+            );
+        }
+#endif // MEMENTO_OCR_SUPPORT
         if (s.contains(Keys::Keybind::Profile::SUBTITLE_AUTO_PAUSE))
         {
             profile->setSubtitleAutoPause(
@@ -1277,6 +1287,12 @@ void Settings::writeKeybindSettings()
             Keys::Keybind::Profile::SHOW_SUBTITLE_LIST,
             profile->showSubtitleList()
         );
+#ifdef MEMENTO_OCR_SUPPORT
+        s.setValue(
+            Keys::Keybind::Profile::START_OCR,
+            profile->startOcr()
+        );
+#endif // MEMENTO_OCR_SUPPORT
         s.setValue(
             Keys::Keybind::Profile::SUBTITLE_AUTO_PAUSE,
             profile->subtitleAutoPause()

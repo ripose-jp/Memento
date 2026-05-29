@@ -84,4 +84,5 @@ CMakeLists.txt.user*
 # User Entires
 .cache
 .qtcreator
+.venv
 .vscode

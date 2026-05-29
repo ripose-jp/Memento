@@ -50,6 +50,7 @@
 #include "dict/dictionarysearch.h"
 #include "dict/dictionarysearchcontroller.h"
 #include "manager/mainmanager.h"
+#include "ocr/ocrcontroller.h"
 #include "os/screensaver.h"
 #include "player/mpvplayer.h"
 #include "player/mpvthumbnail.h"
@@ -171,6 +172,13 @@ static void registerQmlTypes(Context &context)
     /* OS Types */
 
     qmlRegisterType<Screensaver>(MEMENTO_URI, 1, 0, "Screensaver");
+
+    /* OCR Types */
+
+    qmlRegisterSingletonInstance<OcrController>(
+        MEMENTO_URI, 1, 0, "OcrController",
+        new OcrController(context.settings(), &context)
+    );
 
     /* Player Types */
 

@@ -118,6 +118,7 @@ Page {
                         }
                         TextField {
                             Layout.alignment: Qt.AlignRight
+                            Layout.preferredWidth: 250
                             placeholderText: qsTr("Hugging Face Model")
                             text: MementoSettings.ocrModel
                             onEditingFinished: MementoSettings.ocrModel = text

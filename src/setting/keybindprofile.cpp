@@ -37,6 +37,7 @@ KeybindProfile *KeybindProfile::clone(QObject *parent) const
     copy->setOscVisibility(oscVisibility());
     copy->setShowSearch(showSearch());
     copy->setShowSubtitleList(showSubtitleList());
+    copy->setStartOcr(startOcr());
     copy->setSubtitleAutoPause(subtitleAutoPause());
     copy->setSubtitleDecreaseSize(subtitleDecreaseSize());
     copy->setSubtitleIncreaseSize(subtitleIncreaseSize());
@@ -166,6 +167,19 @@ void KeybindProfile::setShowSubtitleList(const QString &value)
     if (setSequence(m_showSubtitleList, value))
     {
         emit showSubtitleListChanged(m_showSubtitleList.toString());
+    }
+}
+
+QString KeybindProfile::startOcr() const
+{
+    return m_startOcr.toString();
+}
+
+void KeybindProfile::setStartOcr(const QString &value)
+{
+    if (setSequence(m_startOcr, value))
+    {
+        emit startOcrChanged(m_startOcr.toString());
     }
 }
 

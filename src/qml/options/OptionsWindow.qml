@@ -24,38 +24,53 @@ Window {
                 ListElement {
                     text: qsTr("Anki Integration")
                     icon: "anki"
+                    pageIndex: 0
                 }
                 ListElement {
                     text: qsTr("Application")
                     icon: "settings"
+                    pageIndex: 1
                 }
                 ListElement{
                     text: qsTr("Audio Sources")
                     icon: "volume-on"
+                    pageIndex: 2
                 }
                 ListElement{
                     text: qsTr("Behavior")
                     icon: "gear"
+                    pageIndex: 3
                 }
                 ListElement {
                     text: qsTr("Dictionary")
                     icon: "dictionary"
+                    pageIndex: 4
                 }
                 ListElement {
                     text: qsTr("Interface")
                     icon: "window"
+                    pageIndex: 5
                 }
                 ListElement {
                     text: qsTr("Keybinds")
                     icon: "keyboard"
-                }
-                ListElement {
-                    text: qsTr("OCR")
-                    icon: "eye"
+                    pageIndex: 6
                 }
                 ListElement {
                     text: qsTr("Search")
                     icon: "search"
+                    pageIndex: 8
+                }
+            }
+
+            Component.onCompleted: {
+                if (Features.ocr)
+                {
+                    model.insert(7, {
+                        text: qsTr("OCR"),
+                        icon: "eye",
+                        pageIndex: 7,
+                    });
                 }
             }
         }
@@ -70,7 +85,14 @@ Window {
             id: stackLayoutPanels
             Layout.fillWidth: true
             Layout.fillHeight: true
-            currentIndex: sidebar.currentIndex
+            currentIndex: {
+                if (sidebar.currentIndex < 0 || sidebar.currentIndex >= sidebar.model.count)
+                {
+                    return 0;
+                }
+
+                return sidebar.model.get(sidebar.currentIndex).pageIndex;
+            }
 
             AnkiIntegrationPage { }
 

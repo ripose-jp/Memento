@@ -144,6 +144,14 @@ Rectangle {
         }
 
         ToolButton {
+            id: ocrButton
+            focusPolicy: Qt.NoFocus
+            visible: Features.ocr && MementoSettings.ocrEnabled
+            icon.source: Utils.toImageProvider("eye", MementoPalette.text)
+            onClicked: root.player.startOcrMode()
+        }
+
+        ToolButton {
             id: fullscreenButton
             focusPolicy: Qt.NoFocus
             visible: !root.player.state.fullscreen

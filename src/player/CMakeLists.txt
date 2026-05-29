@@ -37,10 +37,10 @@ target_include_directories(mpvplayer PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_compile_options(mpvplayer PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_link_libraries(
     mpvplayer
-    PRIVATE Qt6::Gui
     PRIVATE utils
     PUBLIC mpv::mpv
     PUBLIC Qt6::Core
+    PUBLIC Qt6::Gui
     PUBLIC Qt6::OpenGL
     PUBLIC Qt6::Qml
     PUBLIC Qt6::Quick

@@ -5,6 +5,7 @@ add_subdirectory(constant)
 add_subdirectory(definition)
 add_subdirectory(dict)
 add_subdirectory(manager)
+add_subdirectory(ocr)
 add_subdirectory(os)
 add_subdirectory(player)
 add_subdirectory(quick)
@@ -56,6 +57,7 @@ qt_add_qml_module(
         qml/controls/Player.qml
         qml/controls/PlayerControls.qml
         qml/controls/PlayerMenu.qml
+        qml/controls/PlayerOcrOverlay.qml
         qml/controls/PlayerSlider.qml
         qml/controls/PlayerThumbnail.qml
         qml/controls/SearchableText.qml
@@ -133,6 +135,7 @@ target_link_libraries(
     PRIVATE keytracker
     PRIVATE managers
     PRIVATE mpvplayer
+    PRIVATE ocr
     PRIVATE Qt6::Quick
     PRIVATE Qt6::QuickControls2
     PRIVATE Qt6::Svg

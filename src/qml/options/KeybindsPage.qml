@@ -295,6 +295,23 @@ Page {
                     Layout.fillWidth: true
                     Layout.margins: root.commonMargin
 
+                    visible: Features.ocr
+
+                    text: qsTr("Start OCR")
+                    sequence: MementoSettings.keybinds?.profile.startOcr
+                    onSequenceSet: function(seq) {
+                        if (MementoSettings.keybinds.profile)
+                        {
+                            MementoSettings.keybinds.profile.startOcr = seq;
+                        }
+                    }
+                    onClearClicked: MementoSettings.keybinds.profile.startOcr = ""
+                }
+
+                KeybindCommand {
+                    Layout.fillWidth: true
+                    Layout.margins: root.commonMargin
+
                     text: qsTr("Toggle subtitle auto pause")
                     sequence: MementoSettings.keybinds?.profile.subtitleAutoPause
                     onSequenceSet: function(seq) {

@@ -32,6 +32,8 @@ MenuBar {
     /* The minimum width of each top level menu */
     property int minimumMenuWidth: 225
 
+    signal ocrModeRequested()
+
     /**
      * Turns a track into a display string.
      * @param track The track to turn into a display string.
@@ -433,6 +435,39 @@ MenuBar {
                 }
             }
             onTriggered: MementoSettings.windowSubtitleList = checked
+        }
+
+        Instantiator {
+            /* Hide the action if OCR is disabled */
+            model: Features.ocr && MementoSettings.ocrEnabled ? 1 : 0
+
+            delegate: Action {
+                text: qsTr("&Start OCR")
+                shortcut: MementoSettings.keybinds.profile?.startOcr
+                onShortcutChanged: {
+                    /* Hack to force a refresh */
+                    if (Features.macos)
+                    {
+                        checkable = !checkable;
+                        checkable = !checkable;
+                    }
+                }
+                onTriggered: root.ocrModeRequested()
+            }
+
+            onObjectAdded: function(index, object) {
+                toolsMenu.insertAction(toolsMenu.count, object);
+
+                /* Hack to force a refresh */
+                if (Features.macos)
+                {
+                    object.checkable = !object.checkable;
+                    object.checkable = !object.checkable;
+                }
+            }
+            onObjectRemoved: function(index, object) {
+                toolsMenu.removeAction(object);
+            }
         }
     }
 

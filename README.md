@@ -84,10 +84,13 @@ no workaround that can be implemented.
 * Json-C
 * libzip
 * QCoro (optional)
+    * Use `-DMEMENTO_SYSTEM_QCORO=ON`
 * yt-dlp (optional)
 * MeCab (optional)
+    * Use `-DMEMENTO_MECAB_SUPPORT=ON`
     * With either ipadic or NAIST-jdic installed as a system dictionary on Linux and macOS. This only applies to self-compiled versions, not appimages or app bundles.
-* Python (optional)
+* [libmocr](https://github.com/ripose-jp/libmocr) (Optional)
+    * Use `-DMEMENTO_OCR_SUPPORT=ON` and `-DMEMENTO_SYSTEM_MOCR=ON`
 
 For the best experience, install [Noto Sans CJK JP](https://github.com/googlefonts/noto-cjk/raw/main/Sans/Variable/TTF/NotoSansCJKjp-VF.ttf)
 and the [Kanji Stroke Order](https://drive.google.com/uc?export=download&id=1oyQoTB531tbhlYaOW7ugvutXZ7HSlJfW) fonts.
@@ -177,13 +180,38 @@ sudo cmake --build . --target install
     ```
     cd Memento
     mkdir build
-    cmake -S . -B build -DMEMENTO_CODESIGN_IDENTITY="<certificate name>" -DMEMENTO_BUNDLE=ON -DCMAKE_BUILD_TYPE=Release -DMEMENTO_MECAB_SUPPORT=ON -DMEMENTO_SYSTEM_QCORO=ON
-    cmake --build build --target memento_bundle -j$(sysctl -n hw.ncpu)
+    cd build
+    cmake -DMEMENTO_CODESIGN_IDENTITY="<certificate name>" -DMEMENTO_BUNDLE=ON -DCMAKE_BUILD_TYPE=Release -DMEMENTO_MECAB_SUPPORT=ON -DMEMENTO_SYSTEM_QCORO=ON ..
+    cmake --build . --target memento_bundle -j$(sysctl -n hw.ncpu)
     ```
 1. The resulting app bundle will located at:
     ```
     Memento/build/src/Memento.app
     ```
+
+### Adding OCR Support
+
+To build with OCR support, make sure that Python is installed and run:
+```
+pip install manga-ocr
+```
+*Any problems you may have getting `manga-ocr` installed using `pip` is beyond the scope of this project.*
+*I wish you the best of luck.*
+
+Configure the build with:
+```
+cmake .. -DMEMENTO_OCR_SUPPORT=ON
+```
+
+If you want to use a venv, make sure to configure the build with these additional options:
+```
+-DPython_EXECUTABLE=/path/to/.venv/bin/python
+-DPython_FIND_VIRTUALENV=ONLY
+```
+
+**Note:** If using `-DMEMENTO_SYSTEM_MOCR=ON`, make sure that the installed libmocr binary links to your preferred venv by building libmocr using the same `-DPython_` options.
+
+Follow the normal build instructions from here.
 
 ## Configuration
 

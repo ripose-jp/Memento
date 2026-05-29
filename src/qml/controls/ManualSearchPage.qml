@@ -6,6 +6,17 @@ import Ripose.Memento
 Page {
     id: root
 
+    property alias text: searchTextField.text
+
+    /**
+     * Set the search query and search from the beginning.
+     * @param query The text to search.
+     */
+    function setQuery(query) {
+        searchTextField.text = query;
+        searchTextField.searchIndex(0);
+    }
+
     header: ToolBar {
         ColumnLayout {
             anchors.fill: parent

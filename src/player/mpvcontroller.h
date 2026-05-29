@@ -22,11 +22,15 @@
 
 #include <QObject>
 
+#include <optional>
+
+#include <QImage>
 #include <QPoint>
 #include <QSet>
 
+#include <mpv/client.h>
+
 class MpvPlayer;
-struct mpv_handle;
 
 /**
  * @brief Arguments for tempAudioClip.
@@ -324,7 +328,17 @@ public:
      */
     [[nodiscard]]
     Q_INVOKABLE QString tempScreenshot(
-        const bool subtitles, const QString &ext = ".jpg");
+        bool subtitles, const QString &ext = ".jpg");
+
+    /**
+     * @brief Take a screenshot of the player contents in memory.
+     *
+     * @param subtitles true to include the subtitles in the image, false
+     * otherwise.
+     * @return The screenshot image, or a null image on failure.
+     */
+    [[nodiscard]]
+    QImage screenshotRaw(bool subtitles);
 
     /**
      * @brief Create an audio clip given a start and end time in the temporary
@@ -450,6 +464,51 @@ private:
         const QByteArray &argString,
         const QList<QPair<QByteArray, QByteArray>> &options,
         const QString &fileExtension);
+
+    /**
+     * @brief Get a node value from an mpv_node map.
+     *
+     * @param node The node_map to get a value from.
+     * @param key The name of the value to get.
+     * @return An mpv_node if the value exists and was an mpv_node, nullptr
+     * otherwise.
+     */
+    [[nodiscard]]
+    static const mpv_node *mapValue(const mpv_node &node, const char *key);
+
+    /**
+     * @brief Get an integer value from an mpv_node map.
+     *
+     * @param node The node_map to get a value from.
+     * @param key The name of the value to get.
+     * @return The integer value corresponding to the given key, nullptr
+     * otherwise.
+     */
+    [[nodiscard]]
+    static std::optional<int64_t> mapInt(const mpv_node &node, const char *key);
+
+    /**
+     * @brief Get a string value from an mpv_node map.
+     *
+     * @param node The node_map to get a value from.
+     * @param key The name of the value to get.
+     * @return The string value corresponding to the given key, nullptr
+     * otherwise.
+     */
+    [[nodiscard]]
+    static QString mapString(const mpv_node &node, const char *key);
+
+    /**
+     * @brief Get an mpv_byte_array value from an mpv_node map.
+     *
+     * @param node The node_map to get a value from.
+     * @param key The name of the value to get.
+     * @return The mpv_byte_array value corresponding to the given key, nullptr
+     * otherwise.
+     */
+    [[nodiscard]]
+    static const mpv_byte_array *mapByteArray(
+        const mpv_node &node, const char *key);
 
     /* The player that this controller controls */
     MpvPlayer *m_player{nullptr};

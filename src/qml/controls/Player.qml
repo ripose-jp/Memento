@@ -6,16 +6,24 @@ MpvPlayer {
     id: root
 
     readonly property bool oscVisible:
-        controls.visible ||
-        (!Features.macos && menu.visible)
+        !root.ocrMode && (
+            controls.visible ||
+            (!Features.macos && menu.visible)
+        )
     readonly property bool oscHovered:
-        subtitleHover.hovered ||
-        (!Features.macos && menu.anyHovered) ||
-        controlsHover.hovered
+        !root.ocrMode && (
+            subtitleHover.hovered ||
+            (!Features.macos && menu.anyHovered) ||
+            controlsHover.hovered
+        )
 
     readonly property bool pause: root.state.pause
 
     property point cursorPosition: Qt.point(0, 0)
+
+    property bool ocrMode: false
+
+    signal auxiliarySearchRequested(string text)
 
     enum OscVisibility
     {
@@ -30,6 +38,11 @@ MpvPlayer {
      * Shows the OSC with fade in.
      */
     function showOsc() {
+        if (root.ocrMode)
+        {
+            return;
+        }
+
         if (root.oscVisibility === Player.OscHidden)
         {
             return;
@@ -45,10 +58,12 @@ MpvPlayer {
     }
 
     /**
-     * Hides the OSC with fade out;
+     * Hides the OSC with fade out.
+     *
+     * @param force Unconditionally hide the OSC if true.
      */
-    function hideOsc() {
-        if (root.oscVisibility === Player.OscVisible)
+    function hideOsc(force) {
+        if (!force && root.oscVisibility === Player.OscVisible)
         {
             return;
         }
@@ -60,6 +75,20 @@ MpvPlayer {
         }
         controlsFadeIn.stop();
         controlsFadeOut.start();
+    }
+
+    /**
+     * Put the player into OCR mode.
+     */
+    function startOcrMode() {
+        ocrOverlay.start();
+    }
+
+    /**
+     * Get the player out of OCR mode.
+     */
+    function cancelOcrMode() {
+        ocrOverlay.cancel();
     }
 
     /**
@@ -78,6 +107,12 @@ MpvPlayer {
     }
 
     Keys.onPressed: function(event) {
+        if (root.ocrMode && event.key === Qt.Key_Escape)
+        {
+            root.cancelOcrMode();
+            event.accepted = true;
+            return;
+        }
         root.controller.sendKeyPress(event.key, event.modifiers);
     }
 
@@ -133,6 +168,7 @@ MpvPlayer {
         hoverEnabled: true
         acceptedButtons: Qt.AllButtons
         cursorShape: root.oscHovered ? Qt.ArrowCursor : cursorTimer.cursorShape
+        enabled: !root.ocrMode
 
         onPositionChanged: function(event) {
             root.cursorPosition = Qt.point(event.x, event.y);
@@ -167,6 +203,7 @@ MpvPlayer {
     }
 
     WheelHandler {
+        enabled: !root.ocrMode
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
         onWheel: function(event) {
             root.controller.sendWheel(event.x, event.y, event.angleDelta);
@@ -188,6 +225,7 @@ MpvPlayer {
 
     MoveTimer {
         id: minMouseMoveTimer
+        running: !root.ocrMode
         minMovement: MementoSettings.behaviorOscMinMove
         cursorPosition: root.cursorPosition
         onMouseMoved: {
@@ -530,6 +568,11 @@ MpvPlayer {
         }
 
         visible: {
+            if (root.ocrMode)
+            {
+                return false;
+            }
+
             /* Implement unconditional hiding of subtitles */
             if (!menu.showSubtitles)
             {
@@ -626,6 +669,8 @@ MpvPlayer {
             running: false
             onFinished: menu.visible = false
         }
+
+        onOcrModeRequested: root.startOcrMode()
     }
 
     PlayerControls {
@@ -657,5 +702,28 @@ MpvPlayer {
         HoverHandler {
             id: controlsHover
         }
+    }
+
+    PlayerOcrOverlay {
+        id: ocrOverlay
+        player: root
+        onHideOscRequested: {
+            definitionPopup.clearResults();
+            interactiveTimer.stop();
+            root.hideOsc(true);
+        }
+        onModeChanged: (enabled) => root.ocrMode = enabled
+        onRestoreOscRequested: {
+            if (root.oscVisibility === Player.OscVisible)
+            {
+                root.showOsc();
+            }
+            else
+            {
+                interactiveTimer.restart();
+            }
+        }
+        onShowTextRequested: (text) => root.controller.showText(text)
+        onTextRecognized: (text) => root.auxiliarySearchRequested(text)
     }
 }

@@ -96,6 +96,13 @@ class KeybindProfile : public QObject
     )
 
     Q_PROPERTY(
+        QString startOcr
+        READ startOcr
+        WRITE setStartOcr
+        NOTIFY startOcrChanged
+    )
+
+    Q_PROPERTY(
         QString subtitleAutoPause
         READ subtitleAutoPause
         WRITE setSubtitleAutoPause
@@ -313,6 +320,21 @@ public:
     void setShowSubtitleList(const QString &value);
 
     /**
+     * @brief Get the start OCR key sequence.
+     *
+     * @return The start OCR key sequence.
+     */
+    [[nodiscard]]
+    QString startOcr() const;
+
+    /**
+     * @brief Set the start OCR key sequence.
+     *
+     * @param value The start OCR key sequence.
+     */
+    void setStartOcr(const QString &value);
+
+    /**
      * @brief Get the subtile auto pause key sequence.
      *
      * @return The subtitle auto pause key sequence.
@@ -527,6 +549,13 @@ signals:
     void showSubtitleListChanged(const QString &value);
 
     /**
+     * @brief Emitted when the start OCR key sequence is changed.
+     *
+     * @param value The new start OCR key sequence.
+     */
+    void startOcrChanged(const QString &value);
+
+    /**
      * @brief Emitted when the subtitle auto pause key sequence is changed.
      *
      * @param value The new subtitle auto pause key sequence.
@@ -652,6 +681,13 @@ private:
         Qt::KeyboardModifier::ControlModifier | Qt::Key_E
     };
 
+    /* Start OCR */
+    QKeySequence m_startOcr{
+#ifdef MEMENTO_OCR_SUPPORT
+        Qt::KeyboardModifier::ControlModifier | Qt::Key_L
+#endif // MEMENTO_OCR_SUPPORT
+    };
+
     /* Toggle subtitle auto pause */
     QKeySequence m_subtitleAutoPause{
         Qt::KeyboardModifier::ControlModifier | Qt::Key_P
@@ -709,6 +745,9 @@ private:
         m_oscVisibility.toString(),
         m_showSearch.toString(),
         m_showSubtitleList.toString(),
+#ifdef MEMENTO_OCR_SUPPORT
+        m_startOcr.toString(),
+#endif // MEMENTO_OCR_SUPPORT
         m_subtitleAutoPause.toString(),
         m_subtitleDecreaseSize.toString(),
         m_subtitleIncreaseSize.toString(),

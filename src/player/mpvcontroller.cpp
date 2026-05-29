@@ -21,7 +21,11 @@
 #include "player/mpvcontroller.h"
 
 #include <cinttypes>
+#include <cstdlib>
+#include <cstring>
+#include <limits>
 
+#include <QScopeGuard>
 #include <QTemporaryFile>
 
 #include "player/mpvplayer.h"
@@ -586,7 +590,7 @@ void MpvController::sendWheel(double x, double y, QPoint angleDelta)
 }
 
 
-QString MpvController::tempScreenshot(const bool subtitles, const QString &ext)
+QString MpvController::tempScreenshot(bool subtitles, const QString &ext)
 {
     /* Create a valid temporary file name */
     QTemporaryFile file;
@@ -610,6 +614,84 @@ QString MpvController::tempScreenshot(const bool subtitles, const QString &ext)
     }
 
     return filename;
+}
+
+QImage MpvController::screenshotRaw(bool subtitles)
+{
+    const char *args[] = {
+        "screenshot-raw",
+        subtitles ? "subtitles" : "video",
+        "rgba",
+        NULL,
+    };
+
+    mpv_node result{};
+    int ret = ::mpv_command_ret(handle(), args, &result);
+    if (ret < 0)
+    {
+        qWarning("Could not take raw screenshot: %s", ::mpv_error_string(ret));
+        return {};
+    }
+
+    QImage image;
+    auto cleanup = qScopeGuard(
+        [&result] { ::mpv_free_node_contents(&result); }
+    );
+
+    std::optional<int64_t> width = mapInt(result, "w");
+    std::optional<int64_t> height = mapInt(result, "h");
+    std::optional<int64_t> stride = mapInt(result, "stride");
+    QString format = mapString(result, "format");
+    const mpv_byte_array *data = mapByteArray(result, "data");
+    if (!width ||
+        !height ||
+        !stride ||
+        format != "rgba" ||
+        data == nullptr ||
+        data->data == nullptr)
+    {
+        qWarning("Raw screenshot result had an unexpected format");
+        return {};
+    }
+    if (*width <= 0 ||
+        *height <= 0 ||
+        *width > std::numeric_limits<int>::max() ||
+        *height > std::numeric_limits<int>::max())
+    {
+        qWarning("Raw screenshot result had invalid dimensions");
+        return {};
+    }
+
+    constexpr int BYTES_PER_PIXEL = 4;
+    const int64_t minimumLineSize = *width * BYTES_PER_PIXEL;
+    if (std::llabs(*stride) < minimumLineSize)
+    {
+        qWarning("Raw screenshot result had an invalid stride");
+        return {};
+    }
+
+    image = QImage(
+        static_cast<int>(*width),
+        static_cast<int>(*height),
+        QImage::Format_RGBA8888
+    );
+    if (image.isNull())
+    {
+        qWarning("Could not allocate raw screenshot image");
+        return {};
+    }
+
+    const char *source = static_cast<const char *>(data->data);
+    for (int y = 0; y < image.height(); ++y)
+    {
+        std::memcpy(
+            image.scanLine(y),
+            source + y * *stride,
+            static_cast<size_t>(minimumLineSize)
+        );
+    }
+
+    return image;
 }
 
 QString MpvController::tempAudioClip(const MpvAudioClipArgs &args)
@@ -928,6 +1010,56 @@ cleanup:
     ::mpv_destroy(enc_h);
 
     return filename;
+}
+
+const mpv_node *MpvController::mapValue(const mpv_node &node, const char *key)
+{
+    if (node.format != MPV_FORMAT_NODE_MAP || node.u.list == nullptr)
+    {
+        return nullptr;
+    }
+
+    mpv_node_list *list = node.u.list;
+    for (int i = 0; i < list->num; ++i)
+    {
+        if (std::strcmp(list->keys[i], key) == 0)
+        {
+            return &list->values[i];
+        }
+    }
+    return nullptr;
+}
+
+std::optional<int64_t> MpvController::mapInt(
+    const mpv_node &node, const char *key)
+{
+    const mpv_node *value = mapValue(node, key);
+    if (value == nullptr || value->format != MPV_FORMAT_INT64)
+    {
+        return std::nullopt;
+    }
+    return value->u.int64;
+}
+
+QString MpvController::mapString(const mpv_node &node, const char *key)
+{
+    const mpv_node *value = mapValue(node, key);
+    if (value == nullptr || value->format != MPV_FORMAT_STRING)
+    {
+        return {};
+    }
+    return QString::fromUtf8(value->u.string);
+}
+
+const mpv_byte_array *MpvController::mapByteArray(
+    const mpv_node &node, const char *key)
+{
+    const mpv_node *value = mapValue(node, key);
+    if (value == nullptr || value->format != MPV_FORMAT_BYTE_ARRAY)
+    {
+        return nullptr;
+    }
+    return value->u.ba;
 }
 
 /* End Private Functions */
