@@ -323,7 +323,9 @@ bool SubtitleParser::parseSRT(
         }
         ++lineNumber;
         currentLine = in.readLine();
-        QStringList timing = currentLine.trimmed().split(' ');
+        QStringList timing = currentLine.trimmed().split(
+            m_whitespaceRegex, Qt::SkipEmptyParts
+        );
         if (timing.size() != 3)
         {
             qDebug() << "SRT Parser: Invalid timing";
@@ -451,7 +453,9 @@ bool SubtitleParser::parseVTT(
             continue;
         }
         /* Skip non-subtitle sections */
-        else if (m_vttSections.contains(currentLine.split(' ')[0]))
+        else if (m_vttSections.contains(
+            currentLine.split(m_whitespaceRegex, Qt::SkipEmptyParts
+        )[0]))
         {
             while (!in.atEnd())
             {
@@ -468,7 +472,9 @@ bool SubtitleParser::parseVTT(
         SubtitleEntry entry{};
 
         /* Get timings */
-        QStringList timings = currentLine.split(' ');
+        QStringList timings = currentLine.split(
+            m_whitespaceRegex, Qt::SkipEmptyParts
+        );
         if (timings.size() < 3 || timings[TIMING_ARROW_INDEX] != TIMING_ARROW)
         {
             if (in.atEnd())
@@ -479,8 +485,9 @@ bool SubtitleParser::parseVTT(
             }
             ++lineNumber;
             currentLine = in.readLine();
-            timings = currentLine.split(' ');
-            if (timings.size() < 3 || timings[TIMING_ARROW_INDEX] != TIMING_ARROW)
+            timings = currentLine.split(m_whitespaceRegex, Qt::SkipEmptyParts);
+            if (timings.size() < 3 ||
+                timings[TIMING_ARROW_INDEX] != TIMING_ARROW)
             {
                 qDebug() << "VTT Parser: Invalid timing line";
                 qDebug() << "Line Number " << lineNumber;

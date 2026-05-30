@@ -102,6 +102,9 @@ private:
     /* Removes everything between angle braces */
     const QRegularExpression m_angleBraceCleaner{"<[^>]*>"};
 
+    /* Checks for all whitespace */
+    const QRegularExpression m_whitespaceRegex{"\\s+"};
+
     /* A set of special VTT sections */
     const QSet<QString> m_vttSections{{
         "NOTE",
