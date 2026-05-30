@@ -31,6 +31,8 @@ AnkiProfile *AnkiProfile::clone(QObject *parent) const
     copy->setName(name());
     copy->setHostname(hostname());
     copy->setPort(port());
+    copy->setUseApiKey(useApiKey());
+    copy->setApiKey(apiKey());
     copy->setDuplicatePolicy(duplicatePolicy());
     copy->setNewlineReplacer(newlineReplacer());
     copy->setScreenshotType(screenshotType());
@@ -53,6 +55,8 @@ void AnkiProfile::defaults()
 {
     setHostname();
     setPort();
+    setUseApiKey();
+    setApiKey();
     setDuplicatePolicy();
     setNewlineReplacer();
     setScreenshotType();
@@ -109,6 +113,36 @@ void AnkiProfile::setPort(const QString &value)
     }
     m_port = value;
     emit portChanged(m_port);
+}
+
+bool AnkiProfile::useApiKey() const noexcept
+{
+    return m_useApiKey;
+}
+
+void AnkiProfile::setUseApiKey(bool value)
+{
+    if (m_useApiKey == value)
+    {
+        return;
+    }
+    m_useApiKey = value;
+    emit useApiKeyChanged(m_useApiKey);
+}
+
+const QString &AnkiProfile::apiKey() const noexcept
+{
+    return m_apiKey;
+}
+
+void AnkiProfile::setApiKey(const QString &value)
+{
+    if (m_apiKey == value)
+    {
+        return;
+    }
+    m_apiKey = value;
+    emit apiKeyChanged(m_apiKey);
 }
 
 Anki::DuplicatePolicy AnkiProfile::duplicatePolicy() const noexcept

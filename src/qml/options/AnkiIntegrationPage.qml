@@ -323,10 +323,22 @@ Page {
                             text: qsTr("Hostname")
                         }
                         TextField {
+                            id: hostnameTextField
                             Layout.alignment: Qt.AlignRight
                             placeholderText: qsTr("Hostname")
+                            validator: RegularExpressionValidator {
+                                regularExpression: /^https?:\/\/.+/
+                            }
                             text: AnkiConfig.profile.hostname
                             onEditingFinished: AnkiConfig.profile.hostname = text
+                            onActiveFocusChanged: {
+                                if (!activeFocus && !acceptableInput)
+                                {
+                                    text = Qt.binding(function() {
+                                        return AnkiConfig.profile.hostname;
+                                    });
+                                }
+                            }
                         }
                     }
 
@@ -349,6 +361,44 @@ Page {
                             }
                             text: AnkiConfig.profile.port
                             onEditingFinished: AnkiConfig.profile.port = text
+                        }
+                    }
+
+                    SettingsBoxSeparator {
+                        Layout.fillWidth: true
+                    }
+
+                    RowLayout {
+                        Label {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignLeft
+                            text: qsTr("Use API key")
+                        }
+                        Switch {
+                            Layout.alignment: Qt.AlignRight
+                            checked: AnkiConfig.profile.useApiKey
+                            onClicked: AnkiConfig.profile.useApiKey = checked
+                        }
+                    }
+
+                    SettingsBoxSeparator {
+                        Layout.fillWidth: true
+                        visible: AnkiConfig.profile.useApiKey
+                    }
+
+                    RowLayout {
+                        visible: AnkiConfig.profile.useApiKey
+
+                        Label {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignLeft
+                            text: qsTr("API key")
+                        }
+                        TextField {
+                            Layout.alignment: Qt.AlignRight
+                            placeholderText: qsTr("API key")
+                            text: AnkiConfig.profile.apiKey
+                            onEditingFinished: AnkiConfig.profile.apiKey = text
                         }
                     }
 
@@ -500,9 +550,9 @@ Page {
                             text: AnkiConfig.profile.audioPadStart
                             onEditingFinished: AnkiConfig.profile.audioPadStart = text
                             onActiveFocusChanged: {
-                                if (!acceptableInput)
+                                if (!activeFocus && !acceptableInput)
                                 {
-                                    text = Qt.binding(function () {
+                                    text = Qt.binding(function() {
                                         return AnkiConfig.profile.audioPadStart;
                                     });
                                 }
@@ -528,9 +578,9 @@ Page {
                             text: AnkiConfig.profile.audioPadEnd
                             onEditingFinished: AnkiConfig.profile.audioPadEnd = text
                             onActiveFocusChanged: {
-                                if (!acceptableInput)
+                                if (!activeFocus && !acceptableInput)
                                 {
-                                    text = Qt.binding(function () {
+                                    text = Qt.binding(function() {
                                         return AnkiConfig.profile.audioPadEnd;
                                     });
                                 }

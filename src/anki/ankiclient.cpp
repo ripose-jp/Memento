@@ -855,7 +855,7 @@ QCoro::Task<std::unique_ptr<QNetworkReply>> AnkiClient::makeRequest(
 {
     QNetworkRequest request;
     request.setUrl(QUrl(
-        QString("http://%1:%2")
+        QString("%1:%2")
             .arg(profile->hostname())
             .arg(profile->port())
     ));
@@ -863,7 +863,11 @@ QCoro::Task<std::unique_ptr<QNetworkReply>> AnkiClient::makeRequest(
 
     QJsonObject jsonMsg;
     jsonMsg[AnkiConnect::Req::ACTION] = action;
-    jsonMsg[AnkiConnect::Reply::VERSION] = MIN_ANKICONNECT_VERSION;
+    jsonMsg[AnkiConnect::Req::VERSION] = MIN_ANKICONNECT_VERSION;
+    if (profile->useApiKey())
+    {
+        jsonMsg[AnkiConnect::Req::KEY] = profile->apiKey();
+    }
     if (!params.isEmpty())
     {
         jsonMsg[AnkiConnect::Req::PARAMS] = params;

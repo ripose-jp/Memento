@@ -78,159 +78,8 @@ bool AnkiConfig::load()
         return false;
     }
 
-    /* Error check the config */
+    /* Get the config */
     QJsonObject jsonObj = jsonDoc.object();
-    if (!jsonObj[Anki::Keys::ENABLED].isBool())
-    {
-        setError(
-            tr(PREFIX_ERR_STR "\"%1\" is not a boolean")
-                .arg(Anki::Keys::ENABLED)
-        );
-        return false;
-    }
-    else if (!jsonObj[Anki::Keys::SET_PROFILE].isString())
-    {
-        setError(
-            tr(PREFIX_ERR_STR "\"%1\" is not a string")
-                .arg(Anki::Keys::SET_PROFILE)
-        );
-        return false;
-    }
-    else if (!jsonObj[Anki::Keys::PROFILES].isArray())
-    {
-        setError(
-            tr(PREFIX_ERR_STR "\"%1\" is not an array")
-                .arg(Anki::Keys::PROFILES)
-        );
-        return false;
-    }
-    QJsonArray profiles = jsonObj[Anki::Keys::PROFILES].toArray();
-    for (qsizetype i = 0; i < profiles.size(); ++i)
-    {
-        if (!profiles[i].isObject())
-        {
-            setError(
-                tr(PREFIX_ERR_STR "\"%1\" element is not a JSON object")
-                    .arg(Anki::Keys::PROFILES)
-            );
-            return false;
-        }
-        QJsonObject profile = profiles[i].toObject();
-
-        /* Error check values */
-        if (!profile[Anki::Keys::NAME].isString())
-        {
-            setError(
-                tr(PREFIX_ERR_STR "\"%1\" is not a string")
-                    .arg(Anki::Keys::NAME)
-            );
-            return false;
-        }
-        else if (!profile[Anki::Keys::HOSTNAME].isString())
-        {
-            setError(
-                tr(PREFIX_ERR_STR "\"%1\" is not a string")
-                    .arg(Anki::Keys::HOSTNAME)
-            );
-            return false;
-        }
-        else if (!profile[Anki::Keys::PORT].isString())
-        {
-            setError(
-                tr(PREFIX_ERR_STR "\"%1\" is not a string")
-                    .arg(Anki::Keys::PORT)
-            );
-            return false;
-        }
-        else if (!profile[Anki::Keys::DUPLICATE_POLICY].isDouble())
-        {
-            setError(
-                tr(PREFIX_ERR_STR "\"%1\" is not a double")
-                    .arg(Anki::Keys::DUPLICATE_POLICY)
-            );
-            return false;
-        }
-        else if (!profile[Anki::Keys::NEWLINE_REPLACER].isString())
-        {
-            setError(
-                tr(PREFIX_ERR_STR "\"%1\" is not a string")
-                    .arg(Anki::Keys::NEWLINE_REPLACER)
-            );
-            return false;
-        }
-        else if (!profile[Anki::Keys::SCREENSHOT].isDouble())
-        {
-            setError(
-                tr(PREFIX_ERR_STR "\"%1\" is not a double")
-                    .arg(Anki::Keys::SCREENSHOT)
-            );
-            return false;
-        }
-        else if (!profile[Anki::Keys::AUDIO_PAD_START].isDouble())
-        {
-            setError(
-                tr(PREFIX_ERR_STR "\"%1\" is not a double")
-                    .arg(Anki::Keys::AUDIO_PAD_START)
-            );
-            return false;
-        }
-        else if (!profile[Anki::Keys::AUDIO_PAD_END].isDouble())
-        {
-            setError(
-                tr(PREFIX_ERR_STR "\"%1\" is not a double")
-                    .arg(Anki::Keys::AUDIO_PAD_END)
-            );
-            return false;
-        }
-        else if (!profile[Anki::Keys::AUDIO_NORMALIZE].isBool())
-        {
-            setError(
-                tr(PREFIX_ERR_STR "\"%1\" is not a bool")
-                    .arg(Anki::Keys::AUDIO_NORMALIZE)
-            );
-            return false;
-        }
-        else if (!profile[Anki::Keys::AUDIO_DB].isDouble())
-        {
-            setError(
-                tr(PREFIX_ERR_STR "\"%1\" is not a double")
-                    .arg(Anki::Keys::AUDIO_DB)
-            );
-            return false;
-        }
-        else if (!profile[Anki::Keys::TAGS].isArray())
-        {
-            setError(
-                tr(PREFIX_ERR_STR "\"%1\" is not an array")
-                    .arg(Anki::Keys::TAGS)
-            );
-            return false;
-        }
-        else if (!profile[Anki::Keys::TERM].isObject())
-        {
-            setError(
-                tr(PREFIX_ERR_STR "\"%1\" is not an object")
-                    .arg(Anki::Keys::TERM)
-            );
-            return false;
-        }
-        else if (!profile[Anki::Keys::KANJI].isObject())
-        {
-            setError(
-                tr(PREFIX_ERR_STR "\"%1\" is not an object")
-                    .arg(Anki::Keys::KANJI)
-            );
-            return false;
-        }
-        else if (!profile[Anki::Keys::EXCLUDE_GLOSSARIES].isArray())
-        {
-            setError(
-                tr(PREFIX_ERR_STR "\"%1\" is not an array")
-                    .arg(Anki::Keys::EXCLUDE_GLOSSARIES)
-            );
-            return false;
-        }
-    }
 
     /* Clear out existing profiles */
     qDeleteAll(m_profiles);
@@ -241,20 +90,37 @@ bool AnkiConfig::load()
     m_enabled = jsonObj[Anki::Keys::ENABLED]
         .toBool(Anki::Keys::ENABLED_DEFAULT);
     QString currentProfile = jsonObj[Anki::Keys::SET_PROFILE].toString();
+    QJsonArray profiles = jsonObj[Anki::Keys::PROFILES].toArray();
     for (const QJsonValue &val : profiles)
     {
         QJsonObject profile = val.toObject();
 
         AnkiProfile *ankiProfile = new AnkiProfile(this);
         ankiProfile->setName(
-            profile[Anki::Keys::NAME].toString(Anki::Keys::NAME_DEFAULT)
+            profile[Anki::Keys::NAME]
+                .toString(Anki::Keys::NAME_DEFAULT)
         );
         ankiProfile->setHostname(
             profile[Anki::Keys::HOSTNAME]
                 .toString(Anki::Keys::HOSTNAME_DEFAULT)
         );
+        /* Make sure that hostnames include http:// or https:// */
+        if (!ankiProfile->hostname().startsWith("http://") &&
+            !ankiProfile->hostname().startsWith("https://"))
+        {
+            ankiProfile->setHostname("http://" + ankiProfile->hostname());
+        }
         ankiProfile->setPort(
-            profile[Anki::Keys::PORT].toString(Anki::Keys::PORT)
+            profile[Anki::Keys::PORT]
+                .toString(Anki::Keys::PORT_DEFAULT)
+        );
+        ankiProfile->setUseApiKey(
+            profile[Anki::Keys::USE_API_KEY]
+                .toBool(Anki::Keys::USE_API_KEY_DEFAULT)
+        );
+        ankiProfile->setApiKey(
+            profile[Anki::Keys::API_KEY]
+                .toString(Anki::Keys::API_KEY_DEFAULT)
         );
         ankiProfile->setDuplicatePolicy(static_cast<Anki::DuplicatePolicy>(
                 profile[Anki::Keys::DUPLICATE_POLICY]
@@ -332,6 +198,10 @@ bool AnkiConfig::load()
             return lhs->name() < rhs->name();
         }
     );
+    if (m_profiles.isEmpty())
+    {
+        m_profiles.emplaceBack(new AnkiProfile{this});
+    }
     if (m_profile == nullptr)
     {
         m_profile = m_profiles.first();
@@ -377,6 +247,8 @@ bool AnkiConfig::write()
         configObj[Anki::Keys::NAME] = profile->name();
         configObj[Anki::Keys::HOSTNAME] = profile->hostname();
         configObj[Anki::Keys::PORT] = profile->port();
+        configObj[Anki::Keys::USE_API_KEY] = profile->useApiKey();
+        configObj[Anki::Keys::API_KEY] = profile->apiKey();
         configObj[Anki::Keys::DUPLICATE_POLICY] = profile->duplicatePolicy();
         configObj[Anki::Keys::NEWLINE_REPLACER] = profile->newlineReplacer();
         configObj[Anki::Keys::SCREENSHOT] = profile->screenshotType();

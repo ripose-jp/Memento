@@ -28,8 +28,10 @@ namespace AnkiConnect
     namespace Req
     {
         constexpr const char *ACTION = "action";
-        constexpr const char *RESULT = "result";
+        constexpr const char *KEY = "key";
         constexpr const char *PARAMS = "params";
+        constexpr const char *RESULT = "result";
+        constexpr const char *VERSION = "version";
     }
 
     namespace Reply

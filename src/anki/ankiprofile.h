@@ -59,6 +59,20 @@ class AnkiProfile : public QObject
     )
 
     Q_PROPERTY(
+        bool useApiKey
+        READ useApiKey
+        WRITE setUseApiKey
+        NOTIFY useApiKeyChanged
+    )
+
+    Q_PROPERTY(
+        QString apiKey
+        READ apiKey
+        WRITE setApiKey
+        NOTIFY apiKeyChanged
+    )
+
+    Q_PROPERTY(
         Anki::DuplicatePolicy duplicatePolicy
         READ duplicatePolicy
         WRITE setDuplicatePolicy
@@ -223,6 +237,37 @@ public:
      * @param value The new port of the server.
      */
     void setPort(const QString &value = Anki::Keys::PORT_DEFAULT);
+
+    /**
+     * @brief Get if an API key should be used.
+     *
+     * @return true to use an API key,
+     * @return false otherwise.
+     */
+    [[nodiscard]]
+    bool useApiKey() const noexcept;
+
+    /**
+     * @brief Set if an API key should be used.
+     *
+     * @param value true to use an API key, false otherwise.
+     */
+    void setUseApiKey(bool value = Anki::Keys::USE_API_KEY_DEFAULT);
+
+    /**
+     * @brief Get the API key to use to connect.
+     *
+     * @return The API key.
+     */
+    [[nodiscard]]
+    const QString &apiKey() const noexcept;
+
+    /**
+     * @brief Set the API key to use to connect.
+     *
+     * @param value The API key to use.
+     */
+    void setApiKey(const QString &value = Anki::Keys::API_KEY_DEFAULT);
 
     /**
      * @brief Get the duplicate policy of this profile.
@@ -462,6 +507,20 @@ signals:
     void portChanged(const QString &value);
 
     /**
+     * @brief Emitted when the use API key setting is changed.
+     *
+     * @param value The new use api key value.
+     */
+    void useApiKeyChanged(bool value);
+
+    /**
+     * @brief Emitted when the API key is changed.
+     *
+     * @param value The new API key.
+     */
+    void apiKeyChanged(const QString &value);
+
+    /**
      * @brief Emitted when the duplicate policy is changed.
      *
      * @param value The new duplicate policy.
@@ -571,6 +630,12 @@ private:
 
     /* Port of the AnkiConnect server */
     QString m_port{Anki::Keys::PORT_DEFAULT};
+
+    /* true to use the API key, false otherwise */
+    bool m_useApiKey{Anki::Keys::USE_API_KEY_DEFAULT};
+
+    /* API key for the AnkiConnect server */
+    QString m_apiKey{Anki::Keys::API_KEY_DEFAULT};
 
     /* Note duplicate policy */
     Anki::DuplicatePolicy m_duplicatePolicy{

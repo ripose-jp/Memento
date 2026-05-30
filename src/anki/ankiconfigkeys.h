@@ -71,10 +71,16 @@ constexpr const char *NAME = "name";
 constexpr const char *NAME_DEFAULT = "Default";
 
 constexpr const char *HOSTNAME = "host";
-constexpr const char *HOSTNAME_DEFAULT = "localhost";
+constexpr const char *HOSTNAME_DEFAULT = "http://localhost";
 
 constexpr const char *PORT = "port";
 constexpr const char *PORT_DEFAULT = "8765";
+
+constexpr const char *USE_API_KEY = "use-api-key";
+constexpr bool USE_API_KEY_DEFAULT = false;
+
+constexpr const char *API_KEY = "api-key";
+constexpr const char *API_KEY_DEFAULT = "";
 
 constexpr const char *DUPLICATE_POLICY = "duplicate";
 constexpr Anki::DuplicatePolicy DUPLICATE_POLICY_DEFAULT =
