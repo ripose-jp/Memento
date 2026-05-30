@@ -499,7 +499,7 @@ MpvPlayer {
     SubtitleText {
         id: subtitleText
 
-        readonly property var regexFitler: new RegExp(MementoSettings.searchRemoveRegex, "g")
+        readonly property var regexFilter: Utils.safeRegex(MementoSettings.searchRemoveRegex, "g")
 
         /**
          * Toggles mpv subtitles if searchHideMpvSubs is enabled.
@@ -558,7 +558,7 @@ MpvPlayer {
 
         text: {
             /* Implements regex filtering */
-            let text = root.state.subtitle.text.replace(subtitleText.regexFitler, "");
+            let text = root.state.subtitle.text.replace(subtitleText.regexFilter, "");
             /* Implements replace new lines */
             if (MementoSettings.searchReplaceNewlines)
             {

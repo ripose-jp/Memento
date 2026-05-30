@@ -24,6 +24,24 @@ QtObject {
     }
 
     /**
+     * Creates a regex, or a regex that matches nothing if the pattern is
+     * invalid.
+     * @param pattern The regex pattern.
+     * @param flags The regex flags.
+     * @return A RegExp object.
+     */
+    function safeRegex(pattern, flags) {
+        try
+        {
+            return new RegExp(pattern, flags);
+        }
+        catch (error)
+        {
+            return /$a/; // This matches nothing
+        }
+    }
+
+    /**
      * Makes a time string from a duration.
      * @param time The duration in seconds.
      * @return The time as a string in the format [H:]MM:SS

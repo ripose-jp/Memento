@@ -8,7 +8,7 @@ ListView {
 
     required property SubtitleListModel subtitleListModel
     readonly property ItemSelectionModel selectionModel: root.subtitleListModel?.selectionModel ?? null
-    readonly property var regexFilter: new RegExp(MementoSettings.searchRemoveRegex, "g")
+    readonly property var regexFilter: Utils.safeRegex(MementoSettings.searchRemoveRegex, "g")
 
     property int delay: 0
     property color textColor: "white"
