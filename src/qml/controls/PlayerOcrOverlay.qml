@@ -7,6 +7,9 @@ Item {
 
     required property MpvPlayer player
 
+    property color highlight: MementoPalette.highlight
+    property real highlightOpacity: 0.2
+
     property point startPoint: Qt.point(0, 0)
     property point endPoint: Qt.point(0, 0)
     property bool active: false
@@ -118,18 +121,13 @@ Item {
     }
 
     Rectangle {
-        anchors.fill: parent
-        color: "#66000000"
-    }
-
-    Rectangle {
         x: root.selectionRect().x
         y: root.selectionRect().y
         width: root.selectionRect().width
         height: root.selectionRect().height
         visible: root.selecting
-        color: "#33ffffff"
-        border.color: MementoPalette.highlight
+        color: Qt.rgba(root.highlight.r, root.highlight.g, root.highlight.b, root.highlightOpacity)
+        border.color: root.highlight
         border.width: 1
     }
 
