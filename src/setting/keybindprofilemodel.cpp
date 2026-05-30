@@ -132,6 +132,10 @@ void KeybindProfileModel::setProfiles(QList<KeybindProfile *> &&profiles)
     for (KeybindProfile *profile : profiles)
     {
         profile->setParent(this);
+        connect(
+            profile, &KeybindProfile::nameChanged,
+            this, &KeybindProfileModel::sortProfiles
+        );
     }
     std::ranges::sort(
         profiles,
