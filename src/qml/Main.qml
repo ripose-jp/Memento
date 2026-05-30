@@ -180,18 +180,7 @@ ApplicationWindow {
             }
             onAuxiliarySearchRequested: function(text) {
                 MementoSettings.windowSearch = true;
-                if (MementoSettings.interfaceSearchWindow)
-                {
-                    searchWindowLoader.pendingQuery = text;
-                    if (searchWindowLoader.item?.searchPage)
-                    {
-                        searchWindowLoader.item.searchPage.setQuery(text);
-                    }
-                }
-                else
-                {
-                    inlineSearchPage.setQuery(text);
-                }
+                searchPage.setQuery(text);
             }
 
             DropArea {
@@ -222,35 +211,34 @@ ApplicationWindow {
 
             SplitView.preferredWidth: toolSplitView.hasVisibleChildren ? toolSplitView.savedWidth : 0
             SplitView.minimumWidth: toolSplitView.hasVisibleChildren ? 300 : 0
+            parent: toolSplitView.hasVisibleChildren ? mainSplitView : null
             visible: toolSplitView.hasVisibleChildren
             orientation: Qt.Vertical
 
-            ManualSearchPage {
-                id: inlineSearchPage
+            Item {
+                id: inlineSearchHost
                 SplitView.minimumHeight: 200
                 SplitView.preferredHeight: 400
                 visible: MementoSettings.windowSearch && !MementoSettings.interfaceSearchWindow
             }
 
-            SubtitleListPage {
-                id: inlineSubtitleLists
+            Item {
+                id: inlineSubtitleListHost
                 SplitView.minimumHeight: 200
                 visible: MementoSettings.windowSubtitleList && !MementoSettings.interfaceSubtitleListWindow
-                player: player
             }
         }
     }
 
     Loader {
         id: searchWindowLoader
-        property string pendingQuery: ""
 
         active: MementoSettings.interfaceSearchWindow
         sourceComponent: Component {
             Window {
                 id: searchPageWindow
 
-                property alias searchPage: windowSearchPage
+                property alias searchHost: searchWindowHost
 
                 width: 500
                 height: 500
@@ -258,15 +246,9 @@ ApplicationWindow {
                 title: qsTr("Search")
                 onClosing: if (visible) MementoSettings.windowSearch = false
 
-                ManualSearchPage {
-                    id: windowSearchPage
+                Item {
+                    id: searchWindowHost
                     anchors.fill: parent
-                    Component.onCompleted: {
-                        if (searchWindowLoader.pendingQuery.length > 0)
-                        {
-                            setQuery(searchWindowLoader.pendingQuery);
-                        }
-                    }
                 }
             }
         }
@@ -275,25 +257,44 @@ ApplicationWindow {
     Loader {
         id: subtitleListWindowLoader
 
-        /* Need to load the player into the SubtitleList */
-        readonly property MpvPlayer mainPlayer: player
-
         active: MementoSettings.interfaceSubtitleListWindow
         sourceComponent: Component {
             Window {
                 id: subtitleListWindow
+
+                property alias subtitleListHost: subtitleListWindowHost
+
                 width: 500
                 height: 720
                 visible: MementoSettings.interfaceSubtitleListWindow && MementoSettings.windowSubtitleList
                 title: qsTr("Subtitle List")
                 onClosing: if (visible) MementoSettings.windowSubtitleList = false
 
-                SubtitleListPage {
+                Item {
+                    id: subtitleListWindowHost
                     anchors.fill: parent
-                    player: subtitleListWindowLoader.mainPlayer
                 }
             }
         }
+    }
+
+    ManualSearchPage {
+        id: searchPage
+        parent: MementoSettings.interfaceSearchWindow ?
+                    searchWindowLoader.item?.searchHost ?? null :
+                    inlineSearchHost
+        anchors.fill: parent
+        visible: MementoSettings.windowSearch
+    }
+
+    SubtitleListPage {
+        id: subtitleListPage
+        parent: MementoSettings.interfaceSubtitleListWindow ?
+                    subtitleListWindowLoader.item?.subtitleListHost ?? null :
+                    inlineSubtitleListHost
+        anchors.fill: parent
+        visible: MementoSettings.windowSubtitleList
+        player: player
     }
 
     Loader {
