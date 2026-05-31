@@ -1130,113 +1130,12 @@ QString DatabaseManager::errorCodeToString(const int code) const
     }
 }
 
-QString DatabaseManager::halfToFull(const QString &query)
+QString DatabaseManager::halfToFull(const QString &query) const
 {
-    static const QChar HALFWIDTH_LOW(0xFF61);
-    static const QChar HALFWIDTH_HIGH(0xFF9F);
-    static const QChar HALFWIDTH_VOICED(0xFF9E);
-    static const QChar HALFWIDTH_SEMI_VOICED(0xFF9F);
-
-    /* While initializing a new map every time this conversion is done seems and
-     * is stupid, QMap is not thread safe. An older version of Memento used to
-     * disregarded this and it led to a horrible bug that caused CPU usage to
-     * spike to 100% until Memento was closed.
-     *
-     * While it might seem obvious that half-width should be easily mappable to
-     * full-width with offsets, this is not the case. Unicode in their infinite
-     * wisdom decided the ordering for half-width characters should be different
-     * from their full width counter parts and that half width characters should
-     * use two characters to represent something like ガ using two characters
-     * (ｶﾞ).
-     */
-    QMap<QString, QString> charMap{
-        {"｡", "。"},
-        {"｢", "「"},
-        {"｣", "」"},
-        {"､", "、"},
-        {"･", "・"},
-        {"ｦ", "ヲ"},
-        {"ｧ", "ァ"},
-        {"ｨ", "ィ"},
-        {"ｩ", "ゥ"},
-        {"ｪ", "ェ"},
-        {"ｫ", "ォ"},
-        {"ｬ", "ャ"},
-        {"ｭ", "ュ"},
-        {"ｮ", "ョ"},
-        {"ｯ", "ッ"},
-        {"ｰ", "ー"},
-        {"ｱ", "ア"},
-        {"ｲ", "イ"},
-        {"ｳ", "ウ"},
-        {"ｴ", "エ"},
-        {"ｵ", "オ"},
-        {"ｶ", "か"},
-        {"ｶﾞ", "が"},
-        {"ｷ", "キ"},
-        {"ｷﾞ", "ギ"},
-        {"ｸ", "ク"},
-        {"ｸﾞ", "グ"},
-        {"ｹ", "ケ"},
-        {"ｹﾞ", "ゲ"},
-        {"ｺ", "コ"},
-        {"ｺﾞ", "ゴ"},
-        {"ｻ", "サ"},
-        {"ｻﾞ", "ザ"},
-        {"ｼ", "シ"},
-        {"ｼﾞ", "ジ"},
-        {"ｽ", "ス"},
-        {"ｽﾞ", "ズ"},
-        {"ｾ", "セ"},
-        {"ｾﾞ", "ゼ"},
-        {"ｿ", "ソ"},
-        {"ｿﾞ", "ゾ"},
-        {"ﾀ", "タ"},
-        {"ﾀﾞ", "ダ"},
-        {"ﾁ", "チ"},
-        {"ﾁﾞ", "ヂ"},
-        {"ﾂ", "ツ"},
-        {"ﾂﾞ", "ヅ"},
-        {"ﾃ", "テ"},
-        {"ﾃﾞ", "デ"},
-        {"ﾄ", "ト"},
-        {"ﾄﾞ", "ド"},
-        {"ﾅ", "ナ"},
-        {"ﾆ", "ニ"},
-        {"ﾇ", "ヌ"},
-        {"ﾈ", "ネ"},
-        {"ﾉ", "ノ"},
-        {"ﾊ", "ハ"},
-        {"ﾊﾞ", "バ"},
-        {"ﾊﾟ", "パ"},
-        {"ﾋ", "ヒ"},
-        {"ﾋﾞ", "ビ"},
-        {"ﾋﾟ", "ピ"},
-        {"ﾌ", "フ"},
-        {"ﾌﾞ", "ブ"},
-        {"ﾌﾟ", "プ"},
-        {"ﾍ", "ヘ"},
-        {"ﾍﾞ", "ベ"},
-        {"ﾍﾟ", "ペ"},
-        {"ﾎ", "ホ"},
-        {"ﾎﾞ", "ボ"},
-        {"ﾎﾟ", "ポ"},
-        {"ﾏ", "マ"},
-        {"ﾐ", "ミ"},
-        {"ﾑ", "ム"},
-        {"ﾒ", "メ"},
-        {"ﾓ", "モ"},
-        {"ﾔ", "ヤ"},
-        {"ﾕ", "ユ"},
-        {"ﾖ", "ヨ"},
-        {"ﾗ", "ラ"},
-        {"ﾘ", "リ"},
-        {"ﾙ", "ル"},
-        {"ﾚ", "レ"},
-        {"ﾛ", "ロ"},
-        {"ﾜ", "ワ"},
-        {"ﾝ", "ン"},
-    };
+    static constexpr QChar HALFWIDTH_LOW(0xFF61);
+    static constexpr QChar HALFWIDTH_HIGH(0xFF9F);
+    static constexpr QChar HALFWIDTH_VOICED(0xFF9E);
+    static constexpr  QChar HALFWIDTH_SEMI_VOICED(0xFF9F);
 
     QString res;
     qsizetype i{0};
@@ -1246,14 +1145,14 @@ QString DatabaseManager::halfToFull(const QString &query)
         {
             if ((query[i + 1] == HALFWIDTH_VOICED ||
                  query[i + 1] == HALFWIDTH_SEMI_VOICED) &&
-                charMap.contains(query.mid(i, 2)))
+                 m_halfToFullMap.contains(query.mid(i, 2)))
             {
-                res += charMap[query.mid(i, 2)];
+                res += m_halfToFullMap[query.mid(i, 2)];
                 ++i;
             }
             else
             {
-                res += charMap[query[i]];
+                res += m_halfToFullMap[query[i]];
             }
         }
         else
@@ -1264,9 +1163,9 @@ QString DatabaseManager::halfToFull(const QString &query)
     if (i < query.size())
     {
         if (HALFWIDTH_LOW <= query[i] && query[i] <= HALFWIDTH_HIGH &&
-            charMap.contains(query[i]))
+            m_halfToFullMap.contains(query[i]))
         {
-            res += charMap[query[i]];
+            res += m_halfToFullMap[query[i]];
         }
         else
         {
