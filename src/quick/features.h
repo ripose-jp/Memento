@@ -61,19 +61,19 @@ class Features : public QObject
 
     Q_PROPERTY(
         bool windows
-        READ windows
+        READ isWindows
         CONSTANT
     )
 
     Q_PROPERTY(
         bool unix
-        READ unix
+        READ isUnix
         CONSTANT
     )
 
     Q_PROPERTY(
         bool macos
-        READ macos
+        READ isMacos
         CONSTANT
     )
 
@@ -165,7 +165,7 @@ public:
      * @return false otherwise.
      */
     [[nodiscard]]
-    bool windows() const noexcept;
+    bool isWindows() const noexcept;
 
     /**
      * @brief Get if this is running on Unix, excluding macOS.
@@ -174,7 +174,7 @@ public:
      * @return false otherwise.
      */
     [[nodiscard]]
-    bool unix() const noexcept;
+    bool isUnix() const noexcept;
 
     /**
      * @brief Get if this is running on macOS.
@@ -183,7 +183,7 @@ public:
      * @return false otherwise.
      */
     [[nodiscard]]
-    bool macos() const noexcept;
+    bool isMacos() const noexcept;
 
     /**
      * @brief Get the exact OS this is running on.

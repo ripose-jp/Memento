@@ -57,7 +57,7 @@ QString Features::versionHash() const
     return Memento::VERSION_HASH;
 }
 
-bool Features::windows() const noexcept
+bool Features::isWindows() const noexcept
 {
 #if defined(Q_OS_WIN)
     return true;
@@ -66,7 +66,7 @@ bool Features::windows() const noexcept
 #endif
 }
 
-bool Features::unix() const noexcept
+bool Features::isUnix() const noexcept
 {
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
     return true;
@@ -75,7 +75,7 @@ bool Features::unix() const noexcept
 #endif
 }
 
-bool Features::macos() const noexcept
+bool Features::isMacos() const noexcept
 {
 #if defined(Q_OS_MACOS)
     return true;
