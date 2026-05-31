@@ -572,13 +572,17 @@ void StructuredRichText::addStructuredContentHelper(
     const StructuredRichText::Context &ctx,
     QString &out) const
 {
-    if (ctx.linkHref.isEmpty())
+    if (ctx.linkHref.isEmpty() && ctx.titleTooltip.isEmpty())
     {
         addStructuredContentHelper(str, out);
         return;
     }
 
-    addAnchorStart(ctx.linkHref, "", out);
+    const bool titleOnly = ctx.linkHref.isEmpty() && !ctx.titleTooltip.isEmpty();
+    const QString href = ctx.titleTooltip.isEmpty() ?
+        ctx.linkHref :
+        internalLinkHref(ctx.linkHref, ctx.titleTooltip, "", "title");
+    addAnchorStart(href, titleOnly ? ctx.textColor : "", out);
     addStructuredContentHelper(str, out);
     out += "</a>";
 }
@@ -633,16 +637,23 @@ void StructuredRichText::addStructuredContentHelper(
     {
         addRuby(obj, ctx, out);
     }
-    else if (tag == "a" && containsRuby(obj[KEY_CONTENT]))
+    else if (obj[KEY_TAG].toString() == "a" &&
+        anchorNeedsTooltipHandling(obj, ctx))
     {
         ctx.elements.emplaceBack(structuredElement(obj));
 
         const QString oldLinkHref = ctx.linkHref;
+        const QString oldTitleTooltip = ctx.titleTooltip;
         if (obj[KEY_HREF].isString())
         {
             ctx.linkHref = obj[KEY_HREF].toString();
         }
+        if (obj[KEY_TITLE].isString())
+        {
+            ctx.titleTooltip = obj[KEY_TITLE].toString();
+        }
         addStructuredContent(obj[KEY_CONTENT], ctx, out);
+        ctx.titleTooltip = oldTitleTooltip;
         ctx.linkHref = oldLinkHref;
 
         ctx.elements.removeLast();
@@ -663,6 +674,22 @@ void StructuredRichText::addStructuredContentHelper(
 
         QString filename = escapeHtml(ctx.basepath + obj[KEY_PATH].toString());
 
+        const QString imageTitle = obj[KEY_TITLE].isString() ?
+            obj[KEY_TITLE].toString() :
+            ctx.titleTooltip;
+
+        const bool imageTitleOnly = ctx.linkHref.isEmpty() &&
+            !imageTitle.isEmpty();
+
+        if (!imageTitle.isEmpty())
+        {
+            addAnchorStart(
+                internalLinkHref(ctx.linkHref, imageTitle, "", "title"),
+                imageTitleOnly ? ctx.textColor : "",
+                out
+            );
+        }
+
         out += "<img src=\"";
         out += filename;
         out += '"';
@@ -670,13 +697,6 @@ void StructuredRichText::addStructuredContentHelper(
         if (obj[KEY_DATA].isObject())
         {
             addStructuredData(obj[KEY_DATA].toObject(), out);
-        }
-
-        if (obj[KEY_TITLE].isString())
-        {
-            out += " title=\"";
-            out += escapeHtml(obj[KEY_TITLE].toString());
-            out += '"';
         }
 
         if (obj[KEY_ALT].isString())
@@ -784,6 +804,11 @@ void StructuredRichText::addStructuredContentHelper(
         addCssDeclarations(declarations, out);
         out += "\">";
 
+        if (!imageTitle.isEmpty())
+        {
+            out += "</a>";
+        }
+
         ctx.elements.removeLast();
     }
     else
@@ -824,8 +849,11 @@ void StructuredRichText::addStructuredContentHelper(
             attributes += '"';
         }
 
+        const QString oldTitleTooltip = ctx.titleTooltip;
+        QString currentTitleTooltip = ctx.titleTooltip;
         if (obj[KEY_TITLE].isString())
         {
+            currentTitleTooltip = obj[KEY_TITLE].toString();
             attributes += " title=\"";
             attributes += escapeHtml(obj[KEY_TITLE].toString());
             attributes += '"';
@@ -1002,9 +1030,12 @@ void StructuredRichText::addStructuredContentHelper(
 
         std::swap(ctx.parentFontPixelSize, currentFontPixelSize);
         std::swap(ctx.textColor, currentTextColor);
+        std::swap(ctx.titleTooltip, currentTitleTooltip);
         addStructuredContent(obj[KEY_CONTENT], ctx, out);
+        std::swap(ctx.titleTooltip, currentTitleTooltip);
         std::swap(ctx.textColor, currentTextColor);
         std::swap(ctx.parentFontPixelSize, currentFontPixelSize);
+        ctx.titleTooltip = oldTitleTooltip;
 
         if (manualList)
         {
@@ -1072,6 +1103,16 @@ void StructuredRichText::addImage(
     constexpr const char *KEY_DESCRIPTION = "description";
 
     QString filename = escapeHtml(ctx.basepath + obj[KEY_PATH].toString());
+
+    if (obj[KEY_TITLE].isString())
+    {
+        addAnchorStart(
+            internalLinkHref("", obj[KEY_TITLE].toString(), "", "title"),
+            ctx.textColor,
+            out
+        );
+    }
+
     out += "<img src=\"";
     out += filename;
     out += '"';
@@ -1088,12 +1129,6 @@ void StructuredRichText::addImage(
         out += QString::number(obj[KEY_HEIGHT].toDouble(1.0));
         out += '"';
     }
-    if (obj[KEY_TITLE].isString())
-    {
-        out += " title=\"";
-        out += escapeHtml(obj[KEY_TITLE].toString());
-        out += '"';
-    }
 
     out += " style=\"display: inline-table; vertical-align: top;";
     if (obj[KEY_RENDERING].isString())
@@ -1105,6 +1140,11 @@ void StructuredRichText::addImage(
     out += '"';
 
     out += '>';
+
+    if (obj[KEY_TITLE].isString())
+    {
+        out += "</a>";
+    }
 
     if (obj[KEY_DESCRIPTION].isString())
     {
@@ -1163,14 +1203,22 @@ void StructuredRichText::addRuby(
     }
 
     addAnchorStart(
-        internalLinkHref(ctx.linkHref, reading, structuredContentText(base)),
+        internalLinkHref(
+            ctx.linkHref,
+            reading,
+            structuredContentText(base),
+            "ruby"
+        ),
         ctx.linkHref.isEmpty() ? ctx.textColor : "",
         out
     );
 
     const QString oldLinkHref = ctx.linkHref;
+    const QString oldTitleTooltip = ctx.titleTooltip;
     ctx.linkHref.clear();
+    ctx.titleTooltip.clear();
     addStructuredContent(base, ctx, out);
+    ctx.titleTooltip = oldTitleTooltip;
     ctx.linkHref = oldLinkHref;
 
     out += "</a>";
@@ -1293,10 +1341,23 @@ bool StructuredRichText::containsRuby(const QJsonValue &val) const
     }
 }
 
+bool StructuredRichText::anchorNeedsTooltipHandling(
+    const QJsonObject &obj,
+    const StructuredRichText::Context &ctx) const
+{
+    constexpr const char *KEY_CONTENT = "content";
+    constexpr const char *KEY_TITLE = "title";
+
+    return containsRuby(obj[KEY_CONTENT]) ||
+        obj[KEY_TITLE].isString() ||
+        !ctx.titleTooltip.isEmpty();
+}
+
 QString StructuredRichText::internalLinkHref(
     const QString &target,
     const QString &tooltip,
-    const QString &text) const
+    const QString &tooltipText,
+    const QString &tooltipType) const
 {
     QString out = "memento://glossary-link?";
     bool hasParam = false;
@@ -1319,14 +1380,25 @@ QString StructuredRichText::internalLinkHref(
         hasParam = true;
     }
 
-    if (!text.isEmpty())
+    if (!tooltipText.isEmpty())
     {
         if (hasParam)
         {
             out += '&';
         }
-        out += "text=";
-        out += QString::fromUtf8(QUrl::toPercentEncoding(text));
+        out += "tooltipText=";
+        out += QString::fromUtf8(QUrl::toPercentEncoding(tooltipText));
+        hasParam = true;
+    }
+
+    if (!tooltipType.isEmpty())
+    {
+        if (hasParam)
+        {
+            out += '&';
+        }
+        out += "tooltipType=";
+        out += QString::fromUtf8(QUrl::toPercentEncoding(tooltipType));
     }
 
     return out;

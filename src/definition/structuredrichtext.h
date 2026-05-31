@@ -141,6 +141,9 @@ private:
 
         /* The href inherited from a parent anchor */
         QString linkHref;
+
+        /* The title tooltip inherited from a parent element */
+        QString titleTooltip;
     };
 
     /**
@@ -267,18 +270,32 @@ private:
     bool containsRuby(const QJsonValue &val) const;
 
     /**
+     * @brief Check if an anchor needs custom tooltip rendering.
+     *
+     * @param obj The structured content anchor object.
+     * @param ctx The StructuredRichText context.
+     * @return true if the anchor should be rendered through tooltip-aware code.
+     */
+    [[nodiscard]]
+    bool anchorNeedsTooltipHandling(
+        const QJsonObject &obj,
+        const StructuredRichText::Context &ctx) const;
+
+    /**
      * @brief Build an internal href carrying optional target and tooltip data.
      *
      * @param target The normal link target.
      * @param tooltip The tooltip text.
-     * @param text The visible text covered by the tooltip.
+     * @param tooltipText The visible text covered by the tooltip.
+     * @param tooltipType The type of tooltip to display.
      * @return The internal href.
      */
     [[nodiscard]]
     QString internalLinkHref(
         const QString &target,
         const QString &tooltip,
-        const QString &text) const;
+        const QString &tooltipText,
+        const QString &tooltipType) const;
 
     /**
      * @brief Add an anchor tag.

@@ -5,14 +5,36 @@ import Ripose.Memento
 SearchableText {
     id: root
 
-    property TermDefinition definition: null
+    enum TooltipType {
+        None,
+        Ruby,
+        Title
+    }
+
+    required property TermDefinition definition
 
     signal searchRequested(query: string)
 
-    /* Information about <ruby> tooltips */
-    property string rubyTooltip: ""
+    /* Current type of tooltip */
+    property int tooltipType: GlossaryText.TooltipType.None
+
+    /* Raw link text of the tooltip */
+    property string tooltipLink: ""
+
+    /* Text of the current tooltip */
+    property string tooltip: ""
+
+    /* Text the current tooltip is attached to */
+    property string tooltipText: ""
+
+    /* Rectangle used for positioning ruby tool tips */
     property rect rubyTooltipRect: Qt.rect(0, 0, 0, 0)
-    property string rubyTooltipText: ""
+
+    /* Position used for title tooltips */
+    property point titleTooltipPosition: Qt.point(0, 0)
+
+    /* true if the tooltip is visible, false otherwise */
+    property bool tooltipVisible: false
 
     /**
      * Parse a query string from a link into a map.
@@ -42,6 +64,25 @@ SearchableText {
     }
 
     /**
+     * Convert a tooltip type name to the enum value.
+     * @param tooltipType The tooltip type name.
+     * @return The tooltip type enum value.
+     */
+    function toTooltipType(tooltipType) {
+        switch (tooltipType)
+        {
+        case "ruby":
+            return GlossaryText.TooltipType.Ruby;
+
+        case "title":
+            return GlossaryText.TooltipType.Title;
+
+        default:
+            return GlossaryText.TooltipType.None;
+        }
+    }
+
+    /**
      * Open a link from the glossary.
      * @param link The link to open.
      */
@@ -67,6 +108,9 @@ SearchableText {
             }
             if (query.length > 0)
             {
+                /* Hide the tooltip so it doesn't linger on transitions */
+                root.tooltipVisible = false;
+
                 root.searchRequested(query);
             }
         }
@@ -113,6 +157,48 @@ SearchableText {
         );
     }
 
+    /**
+     * Return the x-coordinate for the current glossary tooltip.
+     * @return The tooltip x-coordinate.
+     */
+    function tooltipX() {
+        switch (root.tooltipType)
+        {
+        case GlossaryText.TooltipType.Ruby:
+            return root.rubyTooltipRect.x +
+                (root.rubyTooltipRect.width - glossaryToolTip.implicitWidth) / 2;
+
+        case GlossaryText.TooltipType.Title:
+        default:
+            return root.titleTooltipPosition.x - glossaryToolTip.implicitWidth / 2;
+        }
+    }
+
+    /**
+     * Return the y-coordinate for the current glossary tooltip.
+     * @return The tooltip y-coordinate.
+     */
+    function tooltipY() {
+        switch (root.tooltipType)
+        {
+        case GlossaryText.TooltipType.Ruby:
+            return root.rubyTooltipRect.y -
+                glossaryToolTip.implicitHeight -
+                glossaryToolTip.margin;
+
+        case GlossaryText.TooltipType.Title:
+        default:
+        {
+            const tooltipHeight = glossaryToolTip.implicitHeight > 0 ?
+                glossaryToolTip.implicitHeight :
+                glossaryToolTip.height;
+            return root.titleTooltipPosition.y -
+                tooltipHeight -
+                glossaryToolTip.margin;
+        }
+        }
+    }
+
     cursorShape: Qt.IBeamCursor
     textFormat: TextEdit.RichText
     wrapMode: TextEdit.Wrap
@@ -149,40 +235,82 @@ SearchableText {
         if (link.startsWith("memento://glossary-link?"))
         {
             const args = root.linkArgs(link);
-            root.rubyTooltip = args.tooltip ? args.tooltip : "";
-            root.rubyTooltipText = args.text ? args.text : "";
-            if (root.rubyTooltip.length > 0)
+            const linkChanged = root.tooltipLink !== link;
+
+            root.tooltip = args.tooltip ? args.tooltip : "";
+            root.tooltipText = args.tooltipText ? args.tooltipText : "";
+            root.tooltipType = root.toTooltipType(args.tooltipType);
+
+            if (root.tooltip.length > 0 &&
+                root.tooltipType === GlossaryText.TooltipType.Title)
             {
-                root.updateRubyTooltipPosition(root.rubyTooltipText);
+                if (linkChanged)
+                {
+                    titleTooltipTimer.stop();
+                    root.tooltipVisible = false;
+                    titleTooltipTimer.start();
+                }
+                else if (!root.tooltipVisible &&
+                         !titleTooltipTimer.running)
+                {
+                    titleTooltipTimer.start();
+                }
             }
+            else if (root.tooltip.length > 0 &&
+                root.tooltipType === GlossaryText.TooltipType.Ruby)
+            {
+                titleTooltipTimer.stop();
+                root.tooltipVisible = true;
+                root.updateRubyTooltipPosition(root.tooltipText);
+            }
+
+            root.tooltipLink = link;
         }
         else
         {
-            root.rubyTooltip = "";
-            root.rubyTooltipText = "";
+            titleTooltipTimer.stop();
+            root.tooltip = "";
+            root.tooltipText = "";
+            root.tooltipType = GlossaryText.TooltipType.None;
+            root.tooltipVisible = false;
+            root.tooltipLink = "";
         }
     }
 
     onHoverIndexChanged: {
-        if (root.rubyTooltip.length > 0)
+        if (root.tooltip.length > 0 &&
+            root.tooltipType === GlossaryText.TooltipType.Ruby)
         {
-            root.updateRubyTooltipPosition(root.rubyTooltipText);
+            root.updateRubyTooltipPosition(root.tooltipText);
+        }
+    }
+
+    Timer {
+        id: titleTooltipTimer
+
+        interval: 500
+        repeat: false
+        onTriggered: {
+            if (root.tooltip.length > 0 &&
+                root.tooltipType === GlossaryText.TooltipType.Title)
+            {
+                root.titleTooltipPosition = root.mousePosition;
+                root.tooltipVisible = true;
+            }
         }
     }
 
     ToolTip {
-        id: rubyToolTip
+        id: glossaryToolTip
 
         readonly property real margin: 4
 
-        visible: root.rubyTooltip.length > 0
+        visible: root.visible &&
+                 root.tooltip.length > 0 &&
+                 root.tooltipVisible
         delay: 0
-        text: root.rubyTooltip
-        x: Math.max(0, Math.min(
-            root.rubyTooltipRect.x +
-                (root.rubyTooltipRect.width - implicitWidth) / 2,
-            root.width - implicitWidth
-        ))
-        y: Math.max(0, root.rubyTooltipRect.y - implicitHeight - margin)
+        text: root.tooltip
+        x: root.tooltipX()
+        y: root.tooltipY()
     }
 }

@@ -11,6 +11,9 @@ TextEdit {
     /* The index into plainText that is currently hovered */
     property int hoverIndex: -1
 
+    /* The current mouse position */
+    property point mousePosition: Qt.point(0, 0)
+
     /* The unformatted text string */
     readonly property string plainText: root.getText(0, root.length)
 
@@ -121,6 +124,7 @@ TextEdit {
         acceptedButtons: Qt.MiddleButton
 
         onPositionChanged: function(event) {
+            root.mousePosition = Qt.point(event.x, event.y);
             root.hoverIndex = root.getIndexAt(event.x, event.y);
             event.accepted = false;
         }
