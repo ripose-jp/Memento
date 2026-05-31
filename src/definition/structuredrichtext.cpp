@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include <QGuiApplication>
 #include <QJsonObject>
 #include <QQuickWindow>
 #include <QSet>
@@ -2071,7 +2072,11 @@ double StructuredRichText::screenDpi(const QScreen *screen) const
 
     if (screen == nullptr)
     {
-        return DEFAULT_SCREEN_DPI;
+        screen = QGuiApplication::primaryScreen();
+        if (screen == nullptr)
+        {
+            return DEFAULT_SCREEN_DPI;
+        }
     }
     const double dpi = screen->logicalDotsPerInch();
     return dpi > 0.0 ? dpi : DEFAULT_SCREEN_DPI;
