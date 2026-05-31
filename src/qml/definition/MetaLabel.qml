@@ -9,10 +9,20 @@ Rectangle {
     property string tip: ""
     property alias textFormat: tagLabel.textFormat
 
+    property bool clicked: false
+
     height: tagLabel.contentHeight + tagLabel.anchors.topMargin + tagLabel.anchors.bottomMargin
     width: tagLabel.contentWidth + tagLabel.anchors.leftMargin + tagLabel.anchors.rightMargin
 
     radius: 3
+
+    MouseArea {
+        id: mouseArea
+        anchors.fill: parent
+        acceptedButtons: Qt.LeftButton
+        onClicked: root.clicked = true
+        onEntered: root.clicked = false
+    }
 
     HoverHandler {
         id: hoverHandler
@@ -49,7 +59,7 @@ Rectangle {
     ToolTip {
         id: toolTip
         visible: text.length > 0 && hoverHandler.hovered
-        delay: 500
+        delay: root.clicked ? 0 : 500
         text: root.tip
     }
 }
