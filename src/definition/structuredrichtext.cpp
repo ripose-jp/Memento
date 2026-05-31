@@ -27,6 +27,7 @@
 #include <QQuickWindow>
 #include <QSet>
 #include <QStringList>
+#include <QUrl>
 
 #include "util/utils.h"
 
@@ -50,7 +51,8 @@ QString StructuredRichText::parse(
     const QJsonArray &content,
     Setting::GlossaryStyle style,
     const QQuickItem *item,
-    const QFont &font) const
+    const QFont &font,
+    const QColor &color) const
 
 {
     if (info == nullptr)
@@ -74,6 +76,10 @@ QString StructuredRichText::parse(
     ctx.font = font;
     ctx.rootFontPixelSize = fontPixelSize(font, ctx.screen);
     ctx.parentFontPixelSize = ctx.rootFontPixelSize;
+    if (color.isValid())
+    {
+        ctx.textColor = color.name(QColor::HexArgb);
+    }
     ctx.basepath = DirectoryUtils::getDictionaryResourceDir();
 #if defined(Q_OS_WIN)
     ctx.basepath.prepend('/');
@@ -562,6 +568,22 @@ void StructuredRichText::addStructuredContentHelper(
 }
 
 void StructuredRichText::addStructuredContentHelper(
+    const QString &str,
+    const StructuredRichText::Context &ctx,
+    QString &out) const
+{
+    if (ctx.linkHref.isEmpty())
+    {
+        addStructuredContentHelper(str, out);
+        return;
+    }
+
+    addAnchorStart(ctx.linkHref, "", out);
+    addStructuredContentHelper(str, out);
+    out += "</a>";
+}
+
+void StructuredRichText::addStructuredContentHelper(
     const QJsonArray &arr,
     StructuredRichText::Context &ctx,
     QString &out) const
@@ -606,6 +628,24 @@ void StructuredRichText::addStructuredContentHelper(
     if (!isSupportedStructuredTag(tag))
     {
         return;
+    }
+    else if (tag == "ruby")
+    {
+        addRuby(obj, ctx, out);
+    }
+    else if (tag == "a" && containsRuby(obj[KEY_CONTENT]))
+    {
+        ctx.elements.emplaceBack(structuredElement(obj));
+
+        const QString oldLinkHref = ctx.linkHref;
+        if (obj[KEY_HREF].isString())
+        {
+            ctx.linkHref = obj[KEY_HREF].toString();
+        }
+        addStructuredContent(obj[KEY_CONTENT], ctx, out);
+        ctx.linkHref = oldLinkHref;
+
+        ctx.elements.removeLast();
     }
     else if (tag == "br")
     {
@@ -750,6 +790,7 @@ void StructuredRichText::addStructuredContentHelper(
     {
         ctx.elements.emplaceBack(structuredElement(obj));
         double currentFontPixelSize = ctx.parentFontPixelSize;
+        QString currentTextColor = ctx.textColor;
         QHash<QString, QString> declarations;
         QString attributes;
 
@@ -835,6 +876,10 @@ void StructuredRichText::addStructuredContentHelper(
             {
                 currentFontPixelSize = pixelSize;
             }
+        }
+        if (declarations.contains("color"))
+        {
+            currentTextColor = declarations["color"];
         }
 
         const QString listType = declarations.value("list-style-type");
@@ -956,7 +1001,9 @@ void StructuredRichText::addStructuredContentHelper(
         }
 
         std::swap(ctx.parentFontPixelSize, currentFontPixelSize);
+        std::swap(ctx.textColor, currentTextColor);
         addStructuredContent(obj[KEY_CONTENT], ctx, out);
+        std::swap(ctx.textColor, currentTextColor);
         std::swap(ctx.parentFontPixelSize, currentFontPixelSize);
 
         if (manualList)
@@ -993,7 +1040,7 @@ void StructuredRichText::addStructuredContent(
     switch (val.type())
     {
     case QJsonValue::Type::String:
-        addStructuredContentHelper(val.toString(), out);
+        addStructuredContentHelper(val.toString(), ctx, out);
         break;
 
     case QJsonValue::Type::Array:
@@ -1096,6 +1143,213 @@ bool StructuredRichText::containsStructuredContent(
 QString StructuredRichText::escapeHtml(const QString &str) const
 {
     return str.toHtmlEscaped();
+}
+
+void StructuredRichText::addRuby(
+    const QJsonObject &obj,
+    StructuredRichText::Context &ctx,
+    QString &out) const
+{
+    constexpr const char *KEY_CONTENT = "content";
+
+    QJsonArray base;
+    QString reading;
+    splitRubyContent(obj[KEY_CONTENT], base, reading);
+
+    if (reading.isEmpty())
+    {
+        addStructuredContent(base, ctx, out);
+        return;
+    }
+
+    addAnchorStart(
+        internalLinkHref(ctx.linkHref, reading, structuredContentText(base)),
+        ctx.linkHref.isEmpty() ? ctx.textColor : "",
+        out
+    );
+
+    const QString oldLinkHref = ctx.linkHref;
+    ctx.linkHref.clear();
+    addStructuredContent(base, ctx, out);
+    ctx.linkHref = oldLinkHref;
+
+    out += "</a>";
+}
+
+void StructuredRichText::splitRubyContent(
+    const QJsonValue &val,
+    QJsonArray &base,
+    QString &reading) const
+{
+    constexpr const char *KEY_CONTENT = "content";
+    constexpr const char *KEY_TAG = "tag";
+
+    switch (val.type())
+    {
+    case QJsonValue::Type::Array:
+    {
+        const QJsonArray arr = val.toArray();
+        for (const QJsonValue &child : arr)
+        {
+            if (child.isObject())
+            {
+                const QJsonObject obj = child.toObject();
+                const QString tag = obj[KEY_TAG].toString();
+                if (tag == "rt")
+                {
+                    reading += structuredContentText(obj[KEY_CONTENT]);
+                    continue;
+                }
+                if (tag == "rp")
+                {
+                    continue;
+                }
+            }
+            base.append(child);
+        }
+        break;
+    }
+
+    case QJsonValue::Type::Object:
+    {
+        const QJsonObject obj = val.toObject();
+        const QString tag = obj[KEY_TAG].toString();
+        if (tag == "rt")
+        {
+            reading += structuredContentText(obj[KEY_CONTENT]);
+        }
+        else if (tag != "rp")
+        {
+            base.append(val);
+        }
+        break;
+    }
+
+    default:
+        base.append(val);
+        break;
+    }
+}
+
+QString StructuredRichText::structuredContentText(const QJsonValue &val) const
+{
+    constexpr const char *KEY_CONTENT = "content";
+
+    switch (val.type())
+    {
+    case QJsonValue::Type::String:
+        return val.toString();
+
+    case QJsonValue::Type::Array:
+    {
+        QString text;
+        const QJsonArray arr = val.toArray();
+        for (const QJsonValue &child : arr)
+        {
+            text += structuredContentText(child);
+        }
+        return text;
+    }
+
+    case QJsonValue::Type::Object:
+        return structuredContentText(val.toObject()[KEY_CONTENT]);
+
+    default:
+        return "";
+    }
+}
+
+bool StructuredRichText::containsRuby(const QJsonValue &val) const
+{
+    constexpr const char *KEY_CONTENT = "content";
+    constexpr const char *KEY_TAG = "tag";
+
+    switch (val.type())
+    {
+    case QJsonValue::Type::Array:
+    {
+        const QJsonArray arr = val.toArray();
+        return std::any_of(
+            std::begin(arr), std::end(arr),
+            [this] (const QJsonValue &child) -> bool
+            {
+                return containsRuby(child);
+            }
+        );
+    }
+
+    case QJsonValue::Type::Object:
+    {
+        const QJsonObject obj = val.toObject();
+        if (obj[KEY_TAG].toString() == "ruby")
+        {
+            return true;
+        }
+        return containsRuby(obj[KEY_CONTENT]);
+    }
+
+    default:
+        return false;
+    }
+}
+
+QString StructuredRichText::internalLinkHref(
+    const QString &target,
+    const QString &tooltip,
+    const QString &text) const
+{
+    QString out = "memento://glossary-link?";
+    bool hasParam = false;
+
+    if (!target.isEmpty())
+    {
+        out += "target=";
+        out += QString::fromUtf8(QUrl::toPercentEncoding(target));
+        hasParam = true;
+    }
+
+    if (!tooltip.isEmpty())
+    {
+        if (hasParam)
+        {
+            out += '&';
+        }
+        out += "tooltip=";
+        out += QString::fromUtf8(QUrl::toPercentEncoding(tooltip));
+        hasParam = true;
+    }
+
+    if (!text.isEmpty())
+    {
+        if (hasParam)
+        {
+            out += '&';
+        }
+        out += "text=";
+        out += QString::fromUtf8(QUrl::toPercentEncoding(text));
+    }
+
+    return out;
+}
+
+void StructuredRichText::addAnchorStart(
+    const QString &href,
+    const QString &color,
+    QString &out) const
+{
+    constexpr const char QUOTE_SEARCH = '"';
+    constexpr const char QUOTE_ESCAPE = '\'';
+
+    out += "<a href=\"";
+    out += escapeHtml(href);
+    out += '"';
+    if (!color.isEmpty())
+    {
+        out += " style=\"color: ";
+        out += escapeHtml(QString(color).replace(QUOTE_SEARCH, QUOTE_ESCAPE));
+        out += "; text-decoration: none;\"";
+    }
+    out += '>';
 }
 
 void StructuredRichText::addCssDeclaration(

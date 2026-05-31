@@ -22,6 +22,7 @@
 
 #include <QObject>
 
+#include <QColor>
 #include <QFont>
 #include <QHash>
 #include <QJsonArray>
@@ -63,7 +64,8 @@ public:
         const QJsonArray &content,
         Setting::GlossaryStyle style,
         const QQuickItem *item,
-        const QFont &font) const;
+        const QFont &font,
+        const QColor &color) const;
 
 private:
     /**
@@ -122,6 +124,9 @@ private:
         /* Font size in pixels of the parent element */
         double parentFontPixelSize{12.0};
 
+        /* Text color of the parent element */
+        QString textColor;
+
         /* Base path of resources for this dictionary */
         QString basepath;
 
@@ -133,6 +138,9 @@ private:
 
         /* Stack of lists rendered without Qt rich text list handling */
         QList<ManualList> manualLists;
+
+        /* The href inherited from a parent anchor */
+        QString linkHref;
     };
 
     /**
@@ -180,6 +188,19 @@ private:
     void addStructuredContentHelper(const QString &str, QString &out) const;
 
     /**
+     * @brief Add string structured content, inheriting a parent link if
+     * present.
+     *
+     * @param str The string to add.
+     * @param ctx The StructuredRichText context.
+     * @param[out] out The string this string will be appended to.
+     */
+    void addStructuredContentHelper(
+        const QString &str,
+        const StructuredRichText::Context &ctx,
+        QString &out) const;
+
+    /**
      * @brief Add an array of structured content.
      *
      * @param arr The array of structured content.
@@ -201,6 +222,75 @@ private:
     void addStructuredContentHelper(
         const QJsonObject &obj,
         StructuredRichText::Context &ctx,
+        QString &out) const;
+
+    /**
+     * @brief Add a ruby structured content object.
+     *
+     * @param obj The ruby object to add.
+     * @param ctx The StructuredRichText context.
+     * @param[out] out The string this content will be appended to.
+     */
+    void addRuby(
+        const QJsonObject &obj,
+        StructuredRichText::Context &ctx,
+        QString &out) const;
+
+    /**
+     * @brief Split ruby content into visible base text and hidden reading.
+     *
+     * @param val The ruby content value.
+     * @param[out] base The visible ruby base content.
+     * @param[out] reading The hidden ruby reading.
+     */
+    void splitRubyContent(
+        const QJsonValue &val,
+        QJsonArray &base,
+        QString &reading) const;
+
+    /**
+     * @brief Convert structured content to plain text.
+     *
+     * @param val The structured content value.
+     * @return The plain text content.
+     */
+    [[nodiscard]]
+    QString structuredContentText(const QJsonValue &val) const;
+
+    /**
+     * @brief Check if structured content contains a ruby tag.
+     *
+     * @param val The structured content value.
+     * @return true if ruby content exists.
+     */
+    [[nodiscard]]
+    bool containsRuby(const QJsonValue &val) const;
+
+    /**
+     * @brief Build an internal href carrying optional target and tooltip data.
+     *
+     * @param target The normal link target.
+     * @param tooltip The tooltip text.
+     * @param text The visible text covered by the tooltip.
+     * @return The internal href.
+     */
+    [[nodiscard]]
+    QString internalLinkHref(
+        const QString &target,
+        const QString &tooltip,
+        const QString &text) const;
+
+    /**
+     * @brief Add an anchor tag.
+     *
+     * @param href The link href.
+     * @param color The concrete text color used to suppress default link
+     * styling.
+     * @param[out] out The string this anchor will be appended to.
+     */
+    void addAnchorStart(
+        const QString &href,
+        const QString &color,
         QString &out) const;
 
     /**
@@ -457,8 +547,9 @@ private:
 
     /* Set of supported structured content tags */
     const QSet<QString> m_supportedTags = {
-        "br", "ruby", "table", "thead", "tbody", "tfoot", "tr", "td", "th",
-        "span", "div", "ol", "ul", "li", "details", "summary", "img", "a"
+        "br", "ruby", "rp", "rt", "table", "thead", "tbody", "tfoot", "tr",
+        "td", "th", "span", "div", "ol", "ul", "li", "details", "summary",
+        "img", "a"
     };
 
     /* Set of supported CSS properties */
