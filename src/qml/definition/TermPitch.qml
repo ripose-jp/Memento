@@ -17,7 +17,7 @@ ColumnLayout {
             readonly property int position: modelData
 
             MetaLabel {
-                text: `${root.pitch?.dictionaryInfo?.name ?? ""} [${pitchRow.position}]`
+                text: `${root.pitch?.dictionaryInfo?.name ?? ""}`
                 color: "#6640be"
             }
 
@@ -111,6 +111,12 @@ ColumnLayout {
                         ctx.stroke();
                     }
                 }
+            }
+
+            Label {
+                font.family: MementoSettings.interfaceSearchGlossaryFont.family
+                font.pointSize: MementoSettings.interfaceSearchGlossaryFont.pointSize
+                text: `[${pitchRow.position}]`
             }
         }
     }
