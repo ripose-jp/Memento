@@ -81,9 +81,9 @@ private:
     };
 
     /**
-     * @brief Manual list rendering state.
+     * @brief List rendering state.
      */
-    struct ManualList
+    struct List
     {
         /* Parent list tag */
         QString tag;
@@ -136,8 +136,8 @@ private:
         /* Stack of structured content elements */
         QList<StructuredElement> elements;
 
-        /* Stack of lists rendered without Qt rich text list handling */
-        QList<ManualList> manualLists;
+        /* Stack of lists being rendered */
+        QList<List> lists;
 
         /* The href inherited from a parent anchor */
         QString linkHref;
@@ -381,15 +381,6 @@ private:
         const QHash<QString, QString> &declarations, QString &out) const;
 
     /**
-     * @brief Check if a structured list has custom item markers.
-     *
-     * @param obj The structured list object.
-     * @return true if any direct list item has a custom marker.
-     */
-    [[nodiscard]]
-    bool hasManualListItemMarkers(const QJsonObject &obj) const;
-
-    /**
      * @brief Normalize a list marker value.
      *
      * @param marker The CSS list marker value.
@@ -408,24 +399,23 @@ private:
     QString defaultListMarker(const QString &tag) const;
 
     /**
-     * @brief Get a manually rendered marker for a list item.
+     * @brief Get a rendered marker for a list item.
      *
      * @param list The list state.
      * @param marker The normalized item marker override.
      * @return The marker text.
      */
     [[nodiscard]]
-    QString manualListMarker(
-        const ManualList &list, const QString &marker) const;
+    QString listMarker(const List &list, const QString &marker) const;
 
     /**
-     * @brief Check if the list marker is supported by Qt rich text.
+     * @brief Check if the list marker is a built-in marker.
      *
      * @param marker The list marker type.
-     * @return true if the marker can be rendered as a Qt rich text list.
+     * @return true if the marker should be formatted from the item index.
      */
     [[nodiscard]]
-    bool isNativeListMarker(const QString &marker) const;
+    bool isBuiltInListMarker(const QString &marker) const;
 
     /**
      * @brief Parse inline CSS declarations into a declaration map.
