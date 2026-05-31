@@ -195,6 +195,22 @@ Item {
                     }
                 }
 
+                CenteredFlow {
+                    id: frequencyLayout
+                    Layout.fillWidth: true
+                    spacing: 5
+                    visible: frequencyRepeater.count > 0
+
+                    Repeater {
+                        id: frequencyRepeater
+                        model: Utils.foldFrequencies(root.kanji?.frequencies)
+                        delegate: FrequencyLabel {
+                            name: modelData.name
+                            value: modelData.value
+                        }
+                    }
+                }
+
                 GridLayout {
                     Layout.fillWidth: true
                     columns: 3

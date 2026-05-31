@@ -456,13 +456,14 @@ Item {
             id: frequencyLayout
             Layout.fillWidth: true
             spacing: 5
-            visible: !root.term?.collapsed && (root.term?.frequencies.length ?? false)
+            visible: !root.term?.collapsed && frequencyRepeater.count > 0
 
             Repeater {
-                model: root.term?.frequencies ?? []
+                id: frequencyRepeater
+                model: Utils.foldFrequencies(root.term?.frequencies)
                 delegate: FrequencyLabel {
-                    required property int index
-                    frequency: root.term?.frequencies[index]
+                    name: modelData.name
+                    value: modelData.value
                 }
             }
         }
