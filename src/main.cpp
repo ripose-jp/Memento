@@ -240,6 +240,9 @@ static void registerQmlTypes(Context &context)
     qmlRegisterSingletonInstance<Features>(
         MEMENTO_URI, 1, 0, "Features", new Features(&context)
     );
+    qmlRegisterSingletonInstance<FileOpenHandler>(
+        MEMENTO_URI, 1, 0, "FileOpenHandler", context.fileOpenHandler()
+    );
     qmlRegisterSingletonInstance<KeyTracker>(
         MEMENTO_URI, 1, 0, "KeyTracker", new KeyTracker(&context)
     );
@@ -291,6 +294,9 @@ static int runApplication()
     Context context(&engine);
     QQmlApplicationEngine::setObjectOwnership(
         &context, QQmlEngine::CppOwnership
+    );
+    QCoreApplication::instance()->installEventFilter(
+        context.fileOpenHandler()
     );
 
     DictionarySearchController::createInstance(context.settings());

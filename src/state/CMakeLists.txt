@@ -11,6 +11,7 @@ target_link_libraries(
     PUBLIC anki
     PUBLIC audioplayer
     PUBLIC dictionary
+    PUBLIC fileopenhandler
     PUBLIC mpvplayer
     PUBLIC Qt6::Core
     PUBLIC settings

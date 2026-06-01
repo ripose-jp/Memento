@@ -120,6 +120,13 @@ set_target_properties(
     MACOSX_BUNDLE_ICON_FILE memento.icns
     WIN32_EXECUTABLE ${MEMENTO_WIN32_EXECUTABLE}
 )
+if(APPLE AND MEMENTO_BUNDLE)
+    set_target_properties(
+        memento PROPERTIES
+        MACOSX_BUNDLE_INFO_PLIST
+            "${PROJECT_SOURCE_DIR}/cmake/MacOSBundleInfo.plist.in"
+    )
+endif()
 target_link_libraries(
     memento
     PRIVATE "$<$<BOOL:${MEMENTO_QAPPLICATION}>:Qt6::Widgets>"

@@ -28,6 +28,20 @@ target_link_libraries(
 )
 
 add_library(
+    fileopenhandler
+    fileopenhandler.cpp
+    fileopenhandler.h
+)
+target_compile_features(fileopenhandler PRIVATE cxx_std_20)
+target_include_directories(fileopenhandler PRIVATE ${MEMENTO_INCLUDE_DIRS})
+target_compile_options(fileopenhandler PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_link_libraries(
+    fileopenhandler
+    PRIVATE Qt6::Gui
+    PUBLIC Qt6::Core
+)
+
+add_library(
     features
     features.cpp
     features.h

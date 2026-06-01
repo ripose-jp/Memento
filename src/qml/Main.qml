@@ -166,7 +166,17 @@ ApplicationWindow {
             focusPolicy: Qt.WheelFocus
             focus: true
 
-            onInitialized: player.controller.loadArgs(Qt.application.arguments)
+            onInitialized: {
+                const files = FileOpenHandler.takePendingFiles();
+                if (files.length > 0)
+                {
+                    player.controller.loadFile(files);
+                }
+                else
+                {
+                    player.controller.loadArgs(Qt.application.arguments);
+                }
+            }
             onShutdown: Qt.quit()
             onFileLoaded: function(w, h) {
                 if (MementoSettings.behaviorAutoFit)
@@ -181,6 +191,13 @@ ApplicationWindow {
             onAuxiliarySearchRequested: function(text) {
                 MementoSettings.windowSearch = true;
                 searchPage.setQuery(text);
+            }
+
+            Connections {
+                target: FileOpenHandler
+                function onFilesOpened(files) {
+                    player.controller.loadFile(files);
+                }
             }
 
             DropArea {

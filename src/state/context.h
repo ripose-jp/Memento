@@ -27,6 +27,7 @@
 #include "audio/audioplayer.h"
 #include "dict/dictionarycontroller.h"
 #include "player/mpvplayer.h"
+#include "quick/fileopenhandler.h"
 #include "setting/settings.h"
 #include "subtitle/subtitlelists.h"
 #include "util/utils.h"
@@ -91,6 +92,14 @@ public:
     DictionaryController *dictionaryController() const noexcept;
 
     /**
+     * @brief Get the global file open handler.
+     *
+     * @return The global file open handler.
+     */
+    [[nodiscard]]
+    FileOpenHandler *fileOpenHandler() const noexcept;
+
+    /**
      * @brief Get the application MpvPlayer instance.
      *
      * @return The MpvPlayer instance.
@@ -127,6 +136,9 @@ private:
     DictionaryController *m_dictionaryController{
         new DictionaryController(m_settings, this)
     };
+
+    /* The application file open handler. Has ownership. */
+    FileOpenHandler *m_fileOpenHandler{new FileOpenHandler(this)};
 
     /* The main application MpvPlayer. Does not have ownership. */
     MpvPlayer *m_player{nullptr};

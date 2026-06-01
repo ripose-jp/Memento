@@ -60,6 +60,11 @@ DictionaryController *Context::dictionaryController() const noexcept
     return m_dictionaryController;
 }
 
+FileOpenHandler *Context::fileOpenHandler() const noexcept
+{
+    return m_fileOpenHandler;
+}
+
 MpvPlayer *Context::player() const noexcept
 {
     return m_player;
