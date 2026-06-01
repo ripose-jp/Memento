@@ -279,6 +279,23 @@ Page {
                             onClicked: MementoSettings.searchAutoPlayAudio = checked
                         }
                     }
+
+                    SettingsBoxSeparator {
+                        Layout.fillWidth: true
+                    }
+
+                    RowLayout {
+                        Label {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignLeft
+                            text: qsTr("Show add to Anki glossary checkbox")
+                        }
+                        Switch {
+                            Layout.alignment: Qt.AlignRight
+                            checked: MementoSettings.showAnkiGlossaryCheckbox
+                            onClicked: MementoSettings.showAnkiGlossaryCheckbox = checked
+                        }
+                    }
                 }
             }
 

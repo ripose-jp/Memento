@@ -307,6 +307,13 @@ class Settings : public QObject
         NOTIFY searchRemoveRegexChanged
     )
 
+    Q_PROPERTY(
+        bool showAnkiGlossaryCheckbox
+        READ showAnkiGlossaryCheckbox
+        WRITE setShowAnkiGlossaryCheckbox
+        NOTIFY showAnkiGlossaryCheckboxChanged
+    )
+
     /* Interface Settings */
 
     Q_PROPERTY(
@@ -1352,6 +1359,22 @@ public:
     void setSearchRemoveRegex(
         const QString &value = Keys::Search::REMOVE_REGEX_DEFAULT);
 
+    /**
+     * @brief Get if the Anki checkbox should be shown in term glossaries.
+     *
+     * @return true to show the Anki checkbox, false to hide it.
+     */
+    [[nodiscard]]
+    bool showAnkiGlossaryCheckbox() const noexcept;
+
+    /**
+     * @brief Set if the Anki checkbox should be shown in term glossaries.
+     *
+     * @param value true to show the Anki checkbox, false to hide it.
+     */
+    void setShowAnkiGlossaryCheckbox(
+        bool value = Keys::Search::SHOW_ANKI_GLOSSARY_CHECKBOX_DEFAULT);
+
     /* Interface Settings */
 
     /**
@@ -2124,6 +2147,13 @@ signals:
      */
     void searchRemoveRegexChanged(const QString &value);
 
+    /**
+     * @brief Emitted when the show Anki glossary checkbox setting is changed.
+     *
+     * @param value The new value.
+     */
+    void showAnkiGlossaryCheckboxChanged(bool value);
+
     /* Interface Settings */
 
     /**
@@ -2543,6 +2573,11 @@ private:
 
         /* The regular expression filter subtitle text through */
         QString removeRegex{Keys::Search::REMOVE_REGEX_DEFAULT};
+
+        /* true to show Anki glossary checkboxes, false to hide */
+        bool showAnkiGlossaryCheckbox{
+            Keys::Search::SHOW_ANKI_GLOSSARY_CHECKBOX_DEFAULT
+        };
     };
     SearchSettings m_search{};
 

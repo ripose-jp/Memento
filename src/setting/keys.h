@@ -236,6 +236,9 @@ namespace Keys
 
         constexpr const char *REMOVE_REGEX = "remove-regex";
         constexpr const char *REMOVE_REGEX_DEFAULT = "";
+
+        constexpr const char *SHOW_ANKI_GLOSSARY_CHECKBOX = "show-anki-glossary-checkbox";
+        constexpr bool SHOW_ANKI_GLOSSARY_CHECKBOX_DEFAULT = true;
     }
 
     namespace Interface

@@ -44,6 +44,7 @@ ColumnLayout {
             }
 
             visible: AnkiConfig.enabled &&
+                     MementoSettings.showAnkiGlossaryCheckbox &&
                      root.term &&
                      root.term.ankiChecked &&
                      (root.term.addableExpression || root.term.addableReading)
