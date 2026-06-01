@@ -90,7 +90,7 @@ QtObject {
 
     /**
      * Fold frequencies into a model where entries from the same dictionary
-     * are a comma separated list.
+     * have their name omitted.
      * @param frequencies The list of Frequency objects.
      * @return An array of objects containing name and value properties.
      */
@@ -101,18 +101,22 @@ QtObject {
         }
 
         let freqs = [];
+        let currentName = null;
         for (let i = 0; i < frequencies.length; ++i)
         {
             const freq = frequencies[i];
-            if (freqs.length > 0 &&
-                    freqs[freqs.length - 1].name === freq.dictionaryInfo.name)
+            if (freq.dictionaryInfo.name === currentName)
             {
-                freqs[freqs.length - 1].value += `, ${freq.frequency}`;
+                freqs.push({
+                    "name": "",
+                    "value": freq.frequency,
+                });
             }
             else
             {
+                currentName = freq.dictionaryInfo.name;
                 freqs.push({
-                    "name": freq.dictionaryInfo.name,
+                    "name": currentName,
                     "value": freq.frequency,
                 });
             }
