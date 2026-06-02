@@ -5,6 +5,10 @@
 
 Memento is a FOSS, mpv-based video player for studying Japanese.
 
+**Memento has been drastically overhauled since v1.7.2. If you're looking**
+**for the README relevant to that version, click**
+**[here](https://github.com/ripose-jp/Memento/tree/9aa39ec4f6c4c033db68253988ccfc2a9898df78).**
+
 ![Example](example.png)
 
 ## Features
