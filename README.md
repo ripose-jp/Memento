@@ -74,6 +74,13 @@ Move the Memento application to a directory that doesn't have spaces in the path
 like `/Applications`. Unfortunately, this is an limitation of MeCab and there is
 no workaround that can be implemented.
 
+### KDE Plasma: No native file picker
+
+For Memento to be able to use the native file picker on KDE Plasma, you must
+compile with with `-DMEMENTO_QAPPLICATION=ON`.
+This pulls in a dependency on Qt Widgets, so make sure to have that installed on
+your system.
+
 ## Dependencies
 
 * Qt
