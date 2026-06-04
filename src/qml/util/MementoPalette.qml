@@ -16,7 +16,7 @@ QtObject {
     readonly property color buttonText: systemPalette.buttonText
     readonly property color colorGroup: systemPalette.colorGroup
     readonly property color dark: {
-        if (Features.unix)
+        if (Features.isUnix)
         {
             return systemPalette.dark;
         }
@@ -26,14 +26,14 @@ QtObject {
     readonly property color highlightedText: systemPalette.highlightedText
     readonly property color light: systemPalette.light
     readonly property color mid: {
-        if (Features.unix)
+        if (Features.isUnix)
         {
             return systemPalette.mid;
         }
         return Qt.darker(root.light, 1.5);
     }
     readonly property color midlight: {
-        if (Features.unix)
+        if (Features.isUnix)
         {
             return systemPalette.midlight;
         }
@@ -46,7 +46,7 @@ QtObject {
     readonly property color windowText: systemPalette.windowText
 
     readonly property color border: {
-        if (Features.unix)
+        if (Features.isUnix)
         {
             if (Qt.styleHints.colorScheme === Qt.ColorScheme.Dark)
             {

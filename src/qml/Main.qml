@@ -16,7 +16,7 @@ ApplicationWindow {
     /* Handle fullscreen on non-Windows platforms */
     Binding {
         root.visibility: player.state.fullscreen ? Window.FullScreen : Window.Windowed
-        when: !Features.windows
+        when: !Features.isWindows
     }
 
     /* Handle borderless fullscreen on Windows */
@@ -25,7 +25,7 @@ ApplicationWindow {
     Connections {
         target: player.state
         function onFullscreenChanged() {
-            if (!Features.windows)
+            if (!Features.isWindows)
             {
                 return;
             }
@@ -334,7 +334,7 @@ ApplicationWindow {
                         "<p>For searching to work, please install a dictionary.</p>" +
                         "<p>Dictionaries can be found <a href='https://yomitan.wiki/dictionaries/'>here</a>.</p>" +
                         "<p>To install a dictionary, go to %1.</p>"
-                    ).arg(Features.macos ?
+                    ).arg(Features.isMacos ?
                         qsTr("Memento → Preferences → Dictionary") :
                         qsTr("Settings → Options → Dictionary")
                     )
@@ -364,7 +364,7 @@ ApplicationWindow {
                         "Do you want to check for updates on launch?\n\n" +
                         "This can be disabled at any time by going to %1.\n" +
                         "This will check GitHub's API when Memento is launched."
-                    ).arg(Features.macos?
+                    ).arg(Features.isMacos?
                               qsTr("Memento → Preferences → Application") :
                               qsTr("Settings → Options → Application")
                     )

@@ -14,7 +14,7 @@ Page {
 
         Rectangle {
             Layout.fillWidth: true
-            visible: Features.unix && !scrollView.atBottom
+            visible: Features.isUnix && !scrollView.atBottom
             color: MementoPalette.border
             height: 1
         }

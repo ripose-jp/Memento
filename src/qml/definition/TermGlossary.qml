@@ -22,7 +22,7 @@ ColumnLayout {
             id: checkBox
 
             Component.onCompleted: {
-                if (Features.unix)
+                if (Features.isUnix)
                 {
                     return;
                 }

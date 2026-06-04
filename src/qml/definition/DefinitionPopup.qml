@@ -32,7 +32,7 @@ Popup {
         anchors.fill: parent
         color: "transparent"
         border.color: MementoPalette.border
-        border.width: Features.unix ? 1 : 0
+        border.width: Features.isUnix ? 1 : 0
 
         DefinitionPage {
             anchors.fill: parent

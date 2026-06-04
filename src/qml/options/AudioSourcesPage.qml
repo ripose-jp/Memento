@@ -29,7 +29,7 @@ Page {
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            visible: !Features.unix
+            visible: !Features.isUnix
             implicitHeight: 1
             color: MementoPalette.border
         }
@@ -178,7 +178,7 @@ Page {
 
         Rectangle {
             Layout.fillWidth: true
-            visible: Features.unix
+            visible: Features.isUnix
             implicitHeight: 1
             color: MementoPalette.border
         }

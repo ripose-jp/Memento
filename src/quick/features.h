@@ -60,19 +60,19 @@ class Features : public QObject
     )
 
     Q_PROPERTY(
-        bool windows
+        bool isWindows
         READ isWindows
         CONSTANT
     )
 
     Q_PROPERTY(
-        bool unix
+        bool isUnix
         READ isUnix
         CONSTANT
     )
 
     Q_PROPERTY(
-        bool macos
+        bool isMacos
         READ isMacos
         CONSTANT
     )

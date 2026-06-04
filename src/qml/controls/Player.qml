@@ -8,12 +8,12 @@ MpvPlayer {
     readonly property bool oscVisible:
         !root.ocrMode && (
             controls.visible ||
-            (!Features.macos && menu.visible)
+            (!Features.isMacos && menu.visible)
         )
     readonly property bool oscHovered:
         !root.ocrMode && (
             subtitleHover.hovered ||
-            (!Features.macos && menu.anyHovered) ||
+            (!Features.isMacos && menu.anyHovered) ||
             controlsHover.hovered
         )
 
@@ -48,7 +48,7 @@ MpvPlayer {
             return;
         }
 
-        if (!Features.macos)
+        if (!Features.isMacos)
         {
             menuFadeOut.stop();
             menuFadeIn.start();
@@ -68,7 +68,7 @@ MpvPlayer {
             return;
         }
 
-        if (!Features.macos)
+        if (!Features.isMacos)
         {
             menuFadeIn.stop();
             menuFadeOut.start();
@@ -291,7 +291,7 @@ MpvPlayer {
 
         readonly property bool show:
             hoverCursorSecondarySubtitleShow.hovered ||
-            (!Features.macos && menu.anyHovered)
+            (!Features.isMacos && menu.anyHovered)
 
         anchors {
             left: root.left
@@ -377,7 +377,7 @@ MpvPlayer {
             anchors.fill: parent
             color: "transparent"
             border.color: MementoPalette.border
-            border.width: Features.unix ? 1 : 0
+            border.width: Features.isUnix ? 1 : 0
 
             DefinitionPage {
                 id: definitionPage
@@ -520,7 +520,7 @@ MpvPlayer {
             bottomMargin: {
                 let minValue = controls.visible ? controls.height : 0;
                 let maxValue = root.height - subtitleText.height;
-                if (!Features.macos && menu.visible)
+                if (!Features.isMacos && menu.visible)
                 {
                     maxValue -= menu.height;
                 }
@@ -651,7 +651,7 @@ MpvPlayer {
             right: parent.right
             top: parent.top
         }
-        visible: Features.macos
+        visible: Features.isMacos
         player: root
 
         OpacityAnimator on opacity {

@@ -4,6 +4,6 @@ import Ripose.Memento
 Rectangle {
     id: root
 
-    color: Features.unix ? MementoPalette.border : MementoPalette.mid
+    color: Features.isUnix ? MementoPalette.border : MementoPalette.mid
     height: 1
 }
