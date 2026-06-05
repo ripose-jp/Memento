@@ -28,9 +28,11 @@
 #endif // MEMENTO_QAPPLICATION
 
 #include <QDir>
+#include <QLocale>
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
 #include <QQuickWindow>
+#include <QTranslator>
 
 #ifdef MEMENTO_SYSTEM_QCORO
 #include <QCoroQml>
@@ -272,6 +274,144 @@ static void registerImageProviders(QQmlApplicationEngine &engine)
 }
 
 /**
+ * @brief Get candidate translation directories for this platform/build.
+ *
+ * @return A list of directories that may contain Memento .qm files.
+ */
+[[nodiscard]]
+static QStringList translationDirectories()
+{
+    const QString appDir = QCoreApplication::applicationDirPath();
+    QStringList dirs;
+
+#if defined(Q_OS_MACOS) && MEMENTO_BUNDLE
+    dirs.emplaceBack(
+        QDir(appDir).absoluteFilePath("../Resources/translations")
+    );
+#endif // defined(Q_OS_MACOS) && MEMENTO_BUNDLE
+
+    dirs.emplaceBack(QDir(appDir).absoluteFilePath("translations"));
+
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    dirs.emplaceBack(
+        QDir(appDir).absoluteFilePath("../share/memento/translations")
+    );
+#endif // defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+
+    dirs.removeDuplicates();
+    return dirs;
+}
+
+/**
+ * @brief Convert a QLocal::Language to a Setting::Language value.
+ *
+ * @param locale The locale to convert.
+ * @return The corresponding language. English if it isn't supported.
+ */
+static Setting::Language localeToLanguage(const QLocale &locale) noexcept
+{
+    switch (locale.language())
+    {
+        case QLocale::Chinese:
+            switch (locale.script())
+            {
+                case QLocale::TraditionalChineseScript:
+                    return Setting::Language::LanguageChineseTraditional;
+
+                case QLocale::SimplifiedChineseScript:
+                    return Setting::Language::LanguageChineseSimplified;
+
+                default:
+                    break;
+            }
+
+            switch (locale.territory())
+            {
+                case QLocale::HongKong:
+                case QLocale::Macau:
+                case QLocale::Taiwan:
+                    return Setting::Language::LanguageChineseTraditional;
+
+                default:
+                    return Setting::Language::LanguageChineseSimplified;
+            }
+
+        case QLocale::Korean:
+            return Setting::Language::LanguageKorean;
+
+        case QLocale::English:
+        default:
+            return Setting::Language::LanguageEnglish;
+    }
+}
+
+/**
+ * @brief Convert a setting language to the language to load.
+ *
+ * @param language The configured language.
+ * @return The resolved language. English if the system language is unsupported.
+ */
+static inline Setting::Language resolveLanguage(
+    Setting::Language language) noexcept
+{
+    if (language == Setting::Language::LanguageSystem)
+    {
+        return localeToLanguage(QLocale::system());
+    }
+    return language;
+}
+
+/**
+ * @brief Install the configured application translator.
+ *
+ * @param translator The translator instance that will live until shutdown.
+ * @param context The application context.
+ */
+static void installTranslator(QTranslator &translator, const Context &context)
+{
+    const Setting::Language language = resolveLanguage(
+        context.settings()->applicationLanguage()
+    );
+    if (language == Setting::LanguageEnglish)
+    {
+        return;
+    }
+
+    QString fileName;
+    switch (language)
+    {
+        case Setting::LanguageKorean:
+            fileName = QStringLiteral("memento_ko");
+            break;
+
+        case Setting::LanguageChineseSimplified:
+            fileName = QStringLiteral("memento_zh_CN");
+            break;
+
+        case Setting::LanguageChineseTraditional:
+            fileName = QStringLiteral("memento_zh_TW");
+            break;
+
+        case Setting::LanguageSystem:
+        case Setting::LanguageEnglish:
+        default:
+            return;
+    }
+
+    for (const QString &directory : translationDirectories())
+    {
+        if (translator.load(fileName, directory))
+        {
+            QCoreApplication::installTranslator(&translator);
+            return;
+        }
+    }
+
+    qWarning() << "Could not load translation" << fileName
+               << "from" << translationDirectories();
+}
+
+/**
  * @brief Run the application.
  *
  * @return The application return code.
@@ -298,6 +438,9 @@ static int runApplication()
     QCoreApplication::instance()->installEventFilter(
         context.fileOpenHandler()
     );
+
+    QTranslator translator;
+    installTranslator(translator, context);
 
     DictionarySearchController::createInstance(context.settings());
 

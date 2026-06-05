@@ -152,6 +152,43 @@ target_link_libraries(
     PRIVATE subtitle
     PRIVATE utils
 )
+set(
+    MEMENTO_TRANSLATION_TS_FILES
+    translations/memento_ko.ts
+    translations/memento_zh_CN.ts
+    translations/memento_zh_TW.ts
+)
+qt_add_lupdate(
+    SOURCE_TARGETS
+        dictionary # required due to static tr() calls
+        memento
+    TS_FILES ${MEMENTO_TRANSLATION_TS_FILES}
+    OPTIONS -extensions qml,cpp,h
+)
+qt_add_lrelease(
+    memento
+    TS_FILES ${MEMENTO_TRANSLATION_TS_FILES}
+    QM_FILES_OUTPUT_VARIABLE MEMENTO_TRANSLATION_QM_FILES
+)
+if(APPLE AND MEMENTO_BUNDLE)
+    # Bundled translations belong in Contents/Resources and are copied by
+    # CopyTranslationsMacOS.cmake after the application bundle is created.
+    add_dependencies(memento Memento_lrelease)
+else()
+    add_custom_target(
+        memento_copy_translations ALL
+        COMMAND
+            "${CMAKE_COMMAND}" -E make_directory
+            "$<TARGET_FILE_DIR:memento>/translations"
+        COMMAND
+            "${CMAKE_COMMAND}" -E copy_if_different
+            ${MEMENTO_TRANSLATION_QM_FILES}
+            "$<TARGET_FILE_DIR:memento>/translations"
+        DEPENDS ${MEMENTO_TRANSLATION_QM_FILES}
+        VERBATIM
+    )
+    add_dependencies(memento memento_copy_translations)
+endif()
 
 include(GNUInstallDirs)
 install(
@@ -160,6 +197,21 @@ install(
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+install(
+    FILES ${MEMENTO_TRANSLATION_QM_FILES}
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/memento/translations
+)
+if(UNIX AND NOT APPLE)
+	install(
+		FILES "${PROJECT_SOURCE_DIR}/res/memento.desktop"
+		DESTINATION ${CMAKE_INSTALL_DATADIR}/applications
+	)
+	install(
+		FILES "${PROJECT_SOURCE_DIR}/res/memento.svg"
+		DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps
+	)
+endif()
+
 if(APPLE AND MEMENTO_BUNDLE)
     # BundleUtilities walks the actual linked dependency graph from the bundle.
     # These directories are only search hints so it can resolve @rpath entries
@@ -205,6 +257,13 @@ if(APPLE AND MEMENTO_BUNDLE)
     )
     install(SCRIPT "${PROJECT_BINARY_DIR}/BundleMacOS.cmake")
 
+    configure_file(
+        "${PROJECT_SOURCE_DIR}/cmake/CopyTranslationsMacOS.cmake.in"
+        "${PROJECT_BINARY_DIR}/CopyTranslationsMacOS.cmake"
+        @ONLY
+    )
+    install(SCRIPT "${PROJECT_BINARY_DIR}/CopyTranslationsMacOS.cmake")
+
     if(MEMENTO_MECAB_SUPPORT)
         configure_file(
             "${PROJECT_SOURCE_DIR}/cmake/CopyMeCabDictionaryMacOS.cmake.in"
@@ -224,6 +283,10 @@ if(APPLE AND MEMENTO_BUNDLE)
             "${CMAKE_COMMAND}"
             -DMEMENTO_BUNDLE_PATH=$<TARGET_BUNDLE_DIR:memento>
             -P "${PROJECT_BINARY_DIR}/BundleMacOS.cmake"
+        COMMAND
+            "${CMAKE_COMMAND}"
+            -DMEMENTO_BUNDLE_PATH=$<TARGET_BUNDLE_DIR:memento>
+            -P "${PROJECT_BINARY_DIR}/CopyTranslationsMacOS.cmake"
         DEPENDS memento
         COMMENT "Bundling dependencies into Memento.app"
         VERBATIM
@@ -257,14 +320,4 @@ if(APPLE AND MEMENTO_BUNDLE)
             VERBATIM
         )
     endif()
-endif()
-if(UNIX AND NOT APPLE)
-	install(
-		FILES "${PROJECT_SOURCE_DIR}/res/memento.desktop"
-		DESTINATION ${CMAKE_INSTALL_DATADIR}/applications
-	)
-	install(
-		FILES "${PROJECT_SOURCE_DIR}/res/memento.svg"
-		DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps
-	)
 endif()

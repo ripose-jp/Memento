@@ -148,6 +148,7 @@ set(
 	Concurrent
 	Core
 	Gui
+	LinguistTools
 	Network
 	OpenGL
 	Qml

@@ -236,6 +236,12 @@ void Settings::loadApplicationSettings()
     QSettings s;
     s.beginGroup(Keys::Application::GROUP);
 
+    setApplicationLanguage(
+        static_cast<Setting::Language>(s.value(
+            Keys::Application::LANGUAGE,
+            static_cast<int>(Keys::Application::LANGUAGE_DEFAULT)
+        ).toInt())
+    );
     setApplicationAutoUpdateCheck(
         s.value(
             Keys::Application::AUTO_UPDATE_CHECK,
@@ -252,6 +258,10 @@ void Settings::writeApplicationSettings()
     s.beginGroup(Keys::Application::GROUP);
 
     s.setValue(
+        Keys::Application::LANGUAGE,
+        static_cast<int>(applicationLanguage())
+    );
+    s.setValue(
         Keys::Application::AUTO_UPDATE_CHECK,
         applicationAutoUpdateCheck()
     );
@@ -261,6 +271,7 @@ void Settings::writeApplicationSettings()
 
 void Settings::defaultApplicationSettings()
 {
+    setApplicationLanguage();
     setApplicationAutoUpdateCheck();
 }
 
@@ -1538,6 +1549,21 @@ void Settings::setSubtitleListAutoSeek(bool value)
 }
 
 /* Application Settings */
+
+Setting::Language Settings::applicationLanguage() const noexcept
+{
+    return m_applicationSettings.language;
+}
+
+void Settings::setApplicationLanguage(Setting::Language value)
+{
+    if (m_applicationSettings.language == value)
+    {
+        return;
+    }
+    m_applicationSettings.language = value;
+    emit applicationLanguageChanged(m_applicationSettings.language);
+}
 
 bool Settings::applicationAutoUpdateCheck() const noexcept
 {

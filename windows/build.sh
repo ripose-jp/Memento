@@ -19,6 +19,13 @@ $PREFIX/bin/cmake --build . -- -j$(nproc)
 mkdir -p Memento_$ARCH
 rm -rf Memento_$ARCH/memento.exe
 cp memento.exe Memento_$ARCH
+if [[ -d translations ]]
+then
+    cp -r translations Memento_$ARCH
+elif [[ -d src/translations ]]
+then
+    cp -r src/translations Memento_$ARCH
+fi
 if [[ " $@ " =~ ' -DMEMENTO_MECAB_SUPPORT=ON ' ]]
 then
     cp -r ../dic Memento_$ARCH

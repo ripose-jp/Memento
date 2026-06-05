@@ -91,6 +91,13 @@ class Settings : public QObject
     /* Application Settings */
 
     Q_PROPERTY(
+        Setting::Language applicationLanguage
+        READ applicationLanguage
+        WRITE setApplicationLanguage
+        NOTIFY applicationLanguageChanged
+    )
+
+    Q_PROPERTY(
         bool applicationAutoUpdateCheck
         READ applicationAutoUpdateCheck
         WRITE setApplicationAutoUpdateCheck
@@ -846,6 +853,22 @@ public:
         bool value = Keys::SubtitleList::AUTO_SEEK_DEFAULT);
 
     /* Application Settings */
+
+    /**
+     * @brief Gets the language of the application.
+     *
+     * @return The language of the application.
+     */
+    [[nodiscard]]
+    Setting::Language applicationLanguage() const noexcept;
+
+    /**
+     * @brief Sets the language of the application.
+     *
+     * @param value The new language of the application.
+     */
+    void setApplicationLanguage(
+        Setting::Language value = Keys::Application::LANGUAGE_DEFAULT);
 
     /**
      * @brief Gets if the application should check for updates on start.
@@ -1940,6 +1963,13 @@ signals:
     /* Application Settings */
 
     /**
+     * @brief Emitted when the application language is changed.
+     *
+     * @param value The new value.
+     */
+    void applicationLanguageChanged(Setting::Language value);
+
+    /**
      * @brief Emitted when the auto update check is changed.
      *
      * @param value The new value.
@@ -2445,6 +2475,9 @@ private:
      */
     struct ApplicationSettings
     {
+        /* The application language */
+        Setting::Language language{Keys::Application::LANGUAGE_DEFAULT};
+
         /* true if the application should check for updates on start */
         bool autoUpdateCheck{Keys::Application::AUTO_UPDATE_CHECK_DEFAULT};
     };

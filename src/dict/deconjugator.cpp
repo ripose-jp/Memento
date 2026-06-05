@@ -20,13 +20,13 @@
 
 #include "dict/deconjugator.h"
 
+#include <QCoreApplication>
 #include <QList>
 #include <QMap>
 #include <QPair>
+#include <QRegularExpression>
 #include <QStack>
 #include <QString>
-
-#include "dict/dictionarysearch.h"
 
 struct Rule
 {
@@ -34,6 +34,11 @@ struct Rule
     QString conjugated;
     WordForm baseType;
     WordForm conjugatedType;
+};
+
+class Deconjugator
+{
+    Q_DECLARE_TR_FUNCTIONS(Deconjugator)
 };
 
 static const QList<Rule> silentRules =
@@ -467,85 +472,85 @@ static QString wordFormToString(WordForm ruleType)
     switch (ruleType)
     {
     case WordForm::godanVerb:
-        return DictionarySearch::tr("godan verb");
+        return Deconjugator::tr("godan verb");
     case WordForm::ichidanVerb:
-        return DictionarySearch::tr("ichidan verb");
+        return Deconjugator::tr("ichidan verb");
     case WordForm::suruVerb:
-        return DictionarySearch::tr("suru verb");
+        return Deconjugator::tr("suru verb");
     case WordForm::kuruVerb:
-        return DictionarySearch::tr("kuru verb");
+        return Deconjugator::tr("kuru verb");
     case WordForm::adjective:
-        return DictionarySearch::tr("adjective");
+        return Deconjugator::tr("adjective");
     case WordForm::negative:
-        return DictionarySearch::tr("negative");
+        return Deconjugator::tr("negative");
     case WordForm::past:
-        return DictionarySearch::tr("past");
+        return Deconjugator::tr("past");
     case WordForm::te:
-        return DictionarySearch::tr("-te");
+        return Deconjugator::tr("-te");
     case WordForm::conjunctive:
-        return DictionarySearch::tr("masu stem");
+        return Deconjugator::tr("masu stem");
     case WordForm::volitional:
-        return DictionarySearch::tr("volitional");
+        return Deconjugator::tr("volitional");
     case WordForm::passive:
-        return DictionarySearch::tr("passive");
+        return Deconjugator::tr("passive");
     case WordForm::causative:
-        return DictionarySearch::tr("causative");
+        return Deconjugator::tr("causative");
     case WordForm::imperative:
-        return DictionarySearch::tr("imperative");
+        return Deconjugator::tr("imperative");
     case WordForm::potential:
-        return DictionarySearch::tr("potential");
+        return Deconjugator::tr("potential");
     case WordForm::potentialPassive:
-        return DictionarySearch::tr("potential or passive");
+        return Deconjugator::tr("potential or passive");
     case WordForm::imperativeNegative:
-        return DictionarySearch::tr("imperative negative");
+        return Deconjugator::tr("imperative negative");
     case WordForm::zaru:
-        return DictionarySearch::tr("-zaru");
+        return Deconjugator::tr("-zaru");
     case WordForm::neba:
-        return DictionarySearch::tr("-neba");
+        return Deconjugator::tr("-neba");
     case WordForm::zu:
-        return DictionarySearch::tr("-zu");
+        return Deconjugator::tr("-zu");
     case WordForm::nu:
-        return DictionarySearch::tr("-nu");
+        return Deconjugator::tr("-nu");
     case WordForm::ba:
-        return DictionarySearch::tr("-ba");
+        return Deconjugator::tr("-ba");
     case WordForm::tari:
-        return DictionarySearch::tr("-tari");
+        return Deconjugator::tr("-tari");
     case WordForm::shimau:
-        return DictionarySearch::tr("-shimau");
+        return Deconjugator::tr("-shimau");
     case WordForm::chau:
-        return DictionarySearch::tr("-chau");
+        return Deconjugator::tr("-chau");
     case WordForm::chimau:
-        return DictionarySearch::tr("-chimau");
+        return Deconjugator::tr("-chimau");
     case WordForm::polite:
-        return DictionarySearch::tr("polite");
+        return Deconjugator::tr("polite");
     case WordForm::tara:
-        return DictionarySearch::tr("-tara");
+        return Deconjugator::tr("-tara");
     case WordForm::tai:
-        return DictionarySearch::tr("-tai");
+        return Deconjugator::tr("-tai");
     case WordForm::nasai:
-        return DictionarySearch::tr("-nasai");
+        return Deconjugator::tr("-nasai");
     case WordForm::sugiru:
-        return DictionarySearch::tr("-sugiru");
+        return Deconjugator::tr("-sugiru");
     case WordForm::sou:
-        return DictionarySearch::tr("-sou");
+        return Deconjugator::tr("-sou");
     case WordForm::e:
-        return DictionarySearch::tr("-e");
+        return Deconjugator::tr("-e");
     case WordForm::ki:
-        return DictionarySearch::tr("-ki");
+        return Deconjugator::tr("-ki");
     case WordForm::toku:
-        return DictionarySearch::tr("-toku");
+        return Deconjugator::tr("-toku");
     case WordForm::colloquialNegative:
-        return DictionarySearch::tr("colloquial negative");
+        return Deconjugator::tr("colloquial negative");
     case WordForm::provisionalColloquialNegative:
-        return DictionarySearch::tr("provisional colloquial negative");
+        return Deconjugator::tr("provisional colloquial negative");
     case WordForm::continuous:
-        return DictionarySearch::tr("progressive or perfect");
+        return Deconjugator::tr("progressive or perfect");
     case WordForm::adverbial:
-        return DictionarySearch::tr("adv");
+        return Deconjugator::tr("adv");
     case WordForm::noun:
-        return DictionarySearch::tr("noun");
+        return Deconjugator::tr("noun");
     default:
-        return DictionarySearch::tr("unknown");
+        return Deconjugator::tr("unknown");
     }
 }
 

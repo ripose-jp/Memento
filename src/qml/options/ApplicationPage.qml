@@ -58,6 +58,58 @@ Page {
             spacing: root.groupSpacing
 
             SettingsBox {
+                id: languageBox
+                Layout.preferredWidth: root.preferredWidth
+                Layout.topMargin: root.groupSpacing
+                Layout.bottomMargin: root.groupSpacing
+                Layout.alignment: Qt.AlignHCenter
+                title: qsTr("Language")
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    spacing: root.groupSpacing
+
+                    RowLayout {
+                        Label {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignLeft
+                            text: qsTr("Interface language (Restart required)")
+                        }
+                        ComboBox {
+                            Layout.alignment: Qt.AlignRight
+                            implicitContentWidthPolicy: ComboBox.WidestText
+                            model: ListModel {
+                                ListElement {
+                                    text: qsTr("System")
+                                    value: MementoSetting.LanguageSystem
+                                }
+                                ListElement {
+                                    text: "English"
+                                    value: MementoSetting.LanguageEnglish
+                                }
+                                ListElement {
+                                    text: "한국어 (MTL)"
+                                    value: MementoSetting.LanguageKorean
+                                }
+                                ListElement {
+                                    text: "简体中文 (MTL)"
+                                    value: MementoSetting.LanguageChineseSimplified
+                                }
+                                ListElement {
+                                    text: "繁體中文 (MTL)"
+                                    value: MementoSetting.LanguageChineseTraditional
+                                }
+                            }
+                            textRole: "text"
+                            valueRole: "value"
+                            currentValue: MementoSettings.applicationLanguage
+                            onActivated: MementoSettings.applicationLanguage = currentValue
+                        }
+                    }
+                }
+            }
+
+            SettingsBox {
                 id: playerBox
                 Layout.preferredWidth: root.preferredWidth
                 Layout.topMargin: root.groupSpacing

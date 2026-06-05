@@ -34,14 +34,6 @@ enum AudioSourceType
 };
 Q_ENUM_NS(AudioSourceType)
 
-enum GlossaryStyle
-{
-    GlossaryStyleBullet = 0,
-    GlossaryStyleLineBreak = 1,
-    GlossaryStylePipe = 2,
-};
-Q_ENUM_NS(GlossaryStyle)
-
 enum Directory
 {
     DirectoryCurrent = 0,
@@ -52,12 +44,23 @@ enum Directory
 };
 Q_ENUM_NS(Directory)
 
-enum SearchMethod
+enum GlossaryStyle
 {
-    SearchMethodHover = 0,
-    SearchMethodModifier = 1,
+    GlossaryStyleBullet = 0,
+    GlossaryStyleLineBreak = 1,
+    GlossaryStylePipe = 2,
 };
-Q_ENUM_NS(SearchMethod)
+Q_ENUM_NS(GlossaryStyle)
+
+enum Language
+{
+    LanguageSystem = 0,
+    LanguageEnglish = 1,
+    LanguageKorean = 2,
+    LanguageChineseSimplified = 3,
+    LanguageChineseTraditional = 4,
+};
+Q_ENUM_NS(Language)
 
 enum Modifier
 {
@@ -67,6 +70,13 @@ enum Modifier
     ModifierSuper = 3,
 };
 Q_ENUM_NS(Modifier)
+
+enum SearchMethod
+{
+    SearchMethodHover = 0,
+    SearchMethodModifier = 1,
+};
+Q_ENUM_NS(SearchMethod)
 
 } // namespace Setting
 
@@ -131,6 +141,9 @@ namespace Keys
     namespace Application
     {
         constexpr const char *GROUP = "application";
+
+        constexpr const char *LANGUAGE = "language";
+        constexpr Setting::Language LANGUAGE_DEFAULT = Setting::LanguageSystem;
 
         constexpr const char *AUTO_UPDATE_CHECK = "auto-update-check";
         constexpr bool AUTO_UPDATE_CHECK_DEFAULT = false;
