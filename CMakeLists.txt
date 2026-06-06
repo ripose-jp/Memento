@@ -66,7 +66,7 @@ if(MEMENTO_ASAN)
 endif()
 
 # Get the Git version hash
-if(NOT RELEASE_BUILD)
+if(NOT MEMENTO_RELEASE_BUILD)
 	find_package(Git QUIET)
 
 	if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")

@@ -34,6 +34,6 @@ namespace Memento
     /* Complete version string. Does not contain v */
     constexpr const char *VERSION{"@PROJECT_VERSION@"};
 
-    /* Git version hash. Empty if RELEASE_BUILD=ON. */
+    /* Git version hash. Empty if MEMENTO_RELEASE_BUILD=ON. */
     constexpr const char *VERSION_HASH{"@MEMENTO_VERSION_HASH@"};
 }

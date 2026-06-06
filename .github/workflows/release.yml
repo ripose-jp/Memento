@@ -1,0 +1,312 @@
+name: Draft Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: draft-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate tag and project version
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tag must use the format vMAJOR.MINOR.PATCH."
+            exit 1
+          fi
+
+          project_version="$(
+            sed -n '/^[[:space:]]*project[[:space:]]*(/,/^[[:space:]]*)/p' CMakeLists.txt |
+              sed -n 's/^[[:space:]]*VERSION[[:space:]]\{1,\}\([0-9][0-9.]*\).*$/\1/p' |
+              head -n 1
+          )"
+
+          if [[ -z "$project_version" ]]; then
+            echo "::error::Could not read the project version from CMakeLists.txt."
+            exit 1
+          fi
+
+          if [[ "$RELEASE_TAG" != "v$project_version" ]]; then
+            echo "::error::Release tag $RELEASE_TAG does not match project version v$project_version."
+            exit 1
+          fi
+
+          if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "::error::Tag $RELEASE_TAG already exists."
+            exit 1
+          fi
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "::error::A release for $RELEASE_TAG already exists."
+            exit 1
+          fi
+
+  macos:
+    name: Build macOS arm64
+    needs: validate
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install cmake sqlite3 qt6 qcoro6 mpv mecab json-c libzip
+
+      - name: Import code-signing certificate
+        env:
+          MACOS_CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          MACOS_KEYCHAIN_PASSWORD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          : "${MACOS_CERTIFICATE_BASE64:?MACOS_CERTIFICATE_BASE64 secret is not set.}"
+          : "${MACOS_CERTIFICATE_PASSWORD:?MACOS_CERTIFICATE_PASSWORD secret is not set.}"
+          : "${MACOS_KEYCHAIN_PASSWORD:?MACOS_KEYCHAIN_PASSWORD secret is not set.}"
+
+          certificate_path="$RUNNER_TEMP/memento-signing.p12"
+          keychain_path="$RUNNER_TEMP/memento-signing.keychain-db"
+
+          printf '%s' "$MACOS_CERTIFICATE_BASE64" |
+            openssl base64 -d -A -out "$certificate_path"
+          security create-keychain -p "$MACOS_KEYCHAIN_PASSWORD" "$keychain_path"
+          security set-keychain-settings -lut 21600 "$keychain_path"
+          security unlock-keychain -p "$MACOS_KEYCHAIN_PASSWORD" "$keychain_path"
+          security import "$certificate_path" \
+            -P "$MACOS_CERTIFICATE_PASSWORD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$keychain_path"
+          security set-key-partition-list \
+            -S apple-tool:,apple: \
+            -k "$MACOS_KEYCHAIN_PASSWORD" \
+            "$keychain_path"
+          security list-keychains -d user -s "$keychain_path"
+
+      - name: Configure and build app bundle
+        env:
+          MACOS_CODESIGN_IDENTITY: ${{ secrets.MACOS_CODESIGN_IDENTITY }}
+        run: |
+          set -euo pipefail
+
+          : "${MACOS_CODESIGN_IDENTITY:?MACOS_CODESIGN_IDENTITY secret is not set.}"
+
+          cmake -S . -B build \
+            -DMEMENTO_CODESIGN_IDENTITY="$MACOS_CODESIGN_IDENTITY" \
+            -DMEMENTO_RELEASE_BUILD=ON \
+            -DMEMENTO_BUNDLE=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DMEMENTO_MECAB_SUPPORT=ON \
+            -DMEMENTO_SYSTEM_QCORO=ON
+          cmake --build build \
+            --target memento_bundle \
+            -j"$(sysctl -n hw.ncpu)"
+
+      - name: Verify and package app bundle
+        run: |
+          set -euo pipefail
+
+          test -d build/src/Memento.app
+          codesign --verify --deep --strict --verbose=2 build/src/Memento.app
+          ditto -c -k --norsrc --noextattr --keepParent \
+            build/src/Memento.app \
+            Memento_macOS_arm64.zip
+          test -s Memento_macOS_arm64.zip
+
+          while IFS= read -r entry; do
+            case "$entry" in
+              Memento.app | Memento.app/*) ;;
+              *)
+                echo "::error::Unexpected ZIP entry: $entry"
+                exit 1
+                ;;
+            esac
+          done < <(zipinfo -1 Memento_macOS_arm64.zip)
+
+      - name: Upload macOS release asset
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-release-asset
+          path: Memento_macOS_arm64.zip
+          if-no-files-found: error
+
+      - name: Delete temporary keychain
+        if: always()
+        run: |
+          security delete-keychain \
+            "$RUNNER_TEMP/memento-signing.keychain-db" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/memento-signing.p12"
+
+  windows:
+    name: Build Windows x86_64
+    needs: validate
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - name: Install dependencies
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ucrt64
+          update: true
+          install: >-
+            curl
+            unzip
+            zip
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-git
+            mingw-w64-ucrt-x86_64-json-c
+            mingw-w64-ucrt-x86_64-libzip
+            mingw-w64-ucrt-x86_64-mecab
+            mingw-w64-ucrt-x86_64-mpv
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-nsis
+            mingw-w64-ucrt-x86_64-python
+            mingw-w64-ucrt-x86_64-qt6
+            mingw-w64-ucrt-x86_64-sqlite3
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build installer and portable directory
+        run: |
+          set -euo pipefail
+
+          ./windows/build-installer.sh \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DMEMENTO_RELEASE_BUILD=ON \
+            -DMEMENTO_MECAB_SUPPORT=ON \
+            -DMEMENTO_WIN32_EXECUTABLE=ON
+
+      - name: Package Windows release assets
+        run: |
+          set -euo pipefail
+
+          test -s build/Memento_Windows_x86_64_Installer.exe
+          test -d build/Memento_x86_64
+
+          (
+            cd build
+            zip -r ../Memento_Windows_x86_64.zip Memento_x86_64
+          )
+          cp \
+            build/Memento_Windows_x86_64_Installer.exe \
+            Memento_Windows_x86_64_Installer.exe
+
+          test -s Memento_Windows_x86_64.zip
+          while IFS= read -r entry; do
+            case "$entry" in
+              Memento_x86_64 | Memento_x86_64/*) ;;
+              *)
+                echo "::error::Unexpected ZIP entry: $entry"
+                exit 1
+                ;;
+            esac
+          done < <(zipinfo -1 Memento_Windows_x86_64.zip)
+
+      - name: Upload Windows release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release-assets
+          path: |
+            Memento_Windows_x86_64_Installer.exe
+            Memento_Windows_x86_64.zip
+          if-no-files-found: error
+
+  release:
+    name: Create draft release
+    needs:
+      - macos
+      - windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download release assets
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Verify release assets
+        run: |
+          set -euo pipefail
+
+          expected_assets=(
+            Memento_macOS_arm64.zip
+            Memento_Windows_x86_64_Installer.exe
+            Memento_Windows_x86_64.zip
+          )
+
+          for asset in "${expected_assets[@]}"; do
+            test -s "release-assets/$asset"
+          done
+
+          asset_count="$(find release-assets -maxdepth 1 -type f | wc -l)"
+          if [[ "$asset_count" -ne 3 ]]; then
+            echo "::error::Expected exactly three release assets, found $asset_count."
+            find release-assets -maxdepth 1 -type f -print
+            exit 1
+          fi
+
+      - name: Create draft release
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+
+          if gh api \
+            "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" \
+            >/dev/null 2>&1; then
+            echo "::error::Tag $RELEASE_TAG was created while the builds were running."
+            exit 1
+          fi
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "::error::A release for $RELEASE_TAG was created while the builds were running."
+            exit 1
+          fi
+
+          gh release create "$RELEASE_TAG" \
+            release-assets/Memento_macOS_arm64.zip \
+            release-assets/Memento_Windows_x86_64_Installer.exe \
+            release-assets/Memento_Windows_x86_64.zip \
+            --draft \
+            --title "$RELEASE_TAG" \
+            --notes "" \
+            --target "$GITHUB_SHA"
