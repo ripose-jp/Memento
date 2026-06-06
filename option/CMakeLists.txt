@@ -1,6 +1,7 @@
 # Apple Build Options
 option(MEMENTO_BUNDLE "Toggle when building macOS Bundles" OFF)
 set(MEMENTO_CODESIGN_IDENTITY "" CACHE STRING "macOS code signing identity for the Bundle")
+set(MEMENTO_CODESIGN_KEYCHAIN "" CACHE FILEPATH "macOS keychain containing the code signing identity")
 
 # Release Options
 option(MEMENTO_RELEASE_BUILD "Toggle to build with release settings" OFF)

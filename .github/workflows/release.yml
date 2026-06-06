@@ -111,16 +111,38 @@ jobs:
             "$keychain_path"
           security list-keychains -d user -s "$keychain_path"
 
+          identity_output="$(
+            security find-identity -p codesigning "$keychain_path"
+          )"
+          printf '%s\n' "$identity_output"
+          codesign_identity="$(
+            printf '%s\n' "$identity_output" |
+              awk '/^[[:space:]]*[0-9]+\)/ { print $2; exit }'
+          )"
+          if [[ ! "$codesign_identity" =~ ^[[:xdigit:]]{40}$ ]]; then
+            echo "::error::The imported .p12 does not contain a code-signing certificate with its matching private key."
+            exit 1
+          fi
+
+          codesign_test_path="$RUNNER_TEMP/memento-codesign-test"
+          cp /usr/bin/true "$codesign_test_path"
+          codesign \
+            --force \
+            --keychain "$keychain_path" \
+            --sign "$codesign_identity" \
+            "$codesign_test_path"
+          codesign --verify --strict --verbose=2 "$codesign_test_path"
+
+          echo "MEMENTO_CODESIGN_IDENTITY=$codesign_identity" >> "$GITHUB_ENV"
+          echo "MEMENTO_CODESIGN_KEYCHAIN=$keychain_path" >> "$GITHUB_ENV"
+
       - name: Configure and build app bundle
-        env:
-          MACOS_CODESIGN_IDENTITY: ${{ secrets.MACOS_CODESIGN_IDENTITY }}
         run: |
           set -euo pipefail
 
-          : "${MACOS_CODESIGN_IDENTITY:?MACOS_CODESIGN_IDENTITY secret is not set.}"
-
           cmake -S . -B build \
-            -DMEMENTO_CODESIGN_IDENTITY="$MACOS_CODESIGN_IDENTITY" \
+            -DMEMENTO_CODESIGN_IDENTITY="$MEMENTO_CODESIGN_IDENTITY" \
+            -DMEMENTO_CODESIGN_KEYCHAIN="$MEMENTO_CODESIGN_KEYCHAIN" \
             -DMEMENTO_RELEASE_BUILD=ON \
             -DMEMENTO_BUNDLE=ON \
             -DCMAKE_BUILD_TYPE=Release \
