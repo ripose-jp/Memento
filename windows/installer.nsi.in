@@ -27,26 +27,13 @@ Name "${APPNAME}"
 Icon "logo.ico"
 outFile "${APPNAME}_Windows_x86_64_Installer.exe"
 
-!include LogicLib.nsh
-
 # Just three pages - license agreement, install location, and installation
 page license
 page directory
 Page instfiles
 
-!macro VerifyUserIsAdmin
-UserInfo::GetAccountType
-pop $0
-${If} $0 != "admin" ;Require admin rights on NT4+
-        messageBox mb_iconstop "Administrator rights required!"
-        setErrorLevel 740 ;ERROR_ELEVATION_REQUIRED
-        quit
-${EndIf}
-!macroend
-
 function .onInit
 	setShellVarContext all
-	!insertmacro VerifyUserIsAdmin
 functionEnd
 
 section "install"
@@ -92,7 +79,6 @@ function un.onInit
 	MessageBox MB_OKCANCEL "Permanently remove ${APPNAME}?" IDOK next
 		Abort
 	next:
-	!insertmacro VerifyUserIsAdmin
 functionEnd
 
 section "uninstall"
