@@ -5,12 +5,10 @@ on:
     branches:
       - dev
       - master
-      - v2.0.0-testing
   pull_request:
     branches:
       - dev
       - master
-      - v2.0.0-testing
 
 jobs:
   linux:
