@@ -22,17 +22,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-
-import subprocess
-import os.path
 import argparse
+import os
+import os.path
 import shutil
+import subprocess
+import sys
 
-# The mingw path matches where Fedora 21 installs mingw32; this is the default
-# fallback if no other search path is specified in $MINGW_BUNDLEDLLS_SEARCH_PATH
+# Search the active Python environment and PATH by default. On GitHub runners,
+# MSYS2 is installed outside C:\msys64, so hardcoded installation paths fail.
 DEFAULT_PATH_PREFIXES = [
     "",
-    "C:\\msys64\\ucrt64\\bin\\",
+    os.path.join(sys.prefix, "bin"),
+    *os.environ.get("PATH", "").split(os.pathsep),
 ]
 
 env_path_prefixes = os.environ.get('MINGW_BUNDLEDLLS_SEARCH_PATH', None)
