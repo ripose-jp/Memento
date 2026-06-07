@@ -44,8 +44,8 @@ ApplicationWindow {
                 root.flags = Qt.Window | Qt.FramelessWindowHint;
                 root.x = 0;
                 root.y = 0;
-                root.width = root.screen.width;
-                root.height = root.screen.height + 1;
+                root.width = Screen.width;
+                root.height = Screen.height + 1;
                 mainSplitView.anchors.bottomMargin = 1;
             }
             else
@@ -102,9 +102,9 @@ ApplicationWindow {
         requestedWidth *= scaleFactor;
         requestedHeight *= scaleFactor;
 
-        /* Get the maximum width and height */
-        const maxWidth = root.screen.desktopAvailableWidth;
-        const maxHeight = root.screen.desktopAvailableHeight;
+        /* Get the dimensions of the current screen */
+        const maxWidth = Screen.width;
+        const maxHeight = Screen.height;
 
         /* Potentially scale if dimensions exceed the screen */
         const scale = Math.min(maxWidth / requestedWidth, maxHeight / requestedHeight, 1.0);
@@ -115,9 +115,9 @@ ApplicationWindow {
         root.width = finalWidth;
         root.height = finalHeight;
 
-        /* Center - May not work on Wayland or macOS */
-        root.x = (root.screen.width - finalWidth) / 2;
-        root.y = (root.screen.height - finalHeight) / 2;
+        /* Center in the current screen's virtual-desktop geometry */
+        root.x = Screen.virtualX + (maxWidth - finalWidth) / 2;
+        root.y = Screen.virtualY + (maxHeight - finalHeight) / 2;
     }
 
     SplitView {
