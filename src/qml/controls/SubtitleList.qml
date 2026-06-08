@@ -29,7 +29,6 @@ ListView {
     interactive: true
     acceptedButtons: Qt.NoButton
     boundsBehavior: Flickable.StopAtBounds
-    flickDeceleration: 5000
     reuseItems: true
 
     ScrollBar.vertical: ScrollBar {}
