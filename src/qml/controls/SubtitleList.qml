@@ -26,7 +26,8 @@ ListView {
      */
     signal seekRequested(position: real)
 
-    interactive: false
+    interactive: true
+    acceptedButtons: Qt.NoButton
     boundsBehavior: Flickable.StopAtBounds
     flickDeceleration: 5000
     reuseItems: true
@@ -248,18 +249,6 @@ ListView {
         onReleased: {
             rootMouseArea.anchorIndex = -1;
             rootMouseArea.dragActive = false;
-        }
-
-        onWheel: function(event) {
-            if (event.angleDelta.y < 0)
-            {
-                root.flick(0, -1200);
-            }
-            else if (event.angleDelta.y > 0)
-            {
-                root.flick(0, 1200);
-            }
-            event.accepted = true;
         }
     }
 }
