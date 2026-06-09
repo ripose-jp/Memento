@@ -109,9 +109,14 @@ qt_add_qml_module(
 target_compile_features(memento PRIVATE cxx_std_20)
 target_include_directories(memento PRIVATE ${MEMENTO_INCLUDE_DIRS})
 target_compile_options(memento PRIVATE ${MEMENTO_COMPILER_FLAGS})
+if(MEMENTO_BUNDLE)
+    set(MEMENTO_OUTPUT_NAME Memento)
+else()
+    set(MEMENTO_OUTPUT_NAME memento)
+endif()
 set_target_properties(
     memento PROPERTIES
-    OUTPUT_NAME "$<$<BOOL:${MEMENTO_BUNDLE}>:Memento>$<$<NOT:$<BOOL:${MEMENTO_BUNDLE}>>:memento>"
+    OUTPUT_NAME "${MEMENTO_OUTPUT_NAME}"
     MACOSX_BUNDLE_BUNDLE_NAME Memento
     MACOSX_BUNDLE_GUI_IDENTIFIER io.ripose_jp.Memento
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
