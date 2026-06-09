@@ -365,7 +365,8 @@ QList<Term *> DatabaseManager::queryTerms(
     QReadLocker lock{&m_dbLock};
 
     QByteArray exp = query.toUtf8();
-    QByteArray katakana = halfToFull(query).toUtf8();
+    QByteArray katakana =
+        query.normalized(QString::NormalizationForm_KC).toUtf8();
     bool containsHalf = katakana != exp;
     QByteArray hiragana = kataToHira(katakana).toUtf8();
     bool containsKata = hiragana != katakana;
@@ -1128,51 +1129,6 @@ QString DatabaseManager::errorCodeToString(const int code) const
     default:
         return tr("Unknown error");
     }
-}
-
-QString DatabaseManager::halfToFull(const QString &query) const
-{
-    static constexpr QChar HALFWIDTH_LOW(0xFF61);
-    static constexpr QChar HALFWIDTH_HIGH(0xFF9F);
-    static constexpr QChar HALFWIDTH_VOICED(0xFF9E);
-    static constexpr  QChar HALFWIDTH_SEMI_VOICED(0xFF9F);
-
-    QString res;
-    qsizetype i{0};
-    for (i = 0; i < query.size() - 1; ++i)
-    {
-        if (HALFWIDTH_LOW <= query[i] && query[i] <= HALFWIDTH_HIGH)
-        {
-            if ((query[i + 1] == HALFWIDTH_VOICED ||
-                 query[i + 1] == HALFWIDTH_SEMI_VOICED) &&
-                 m_halfToFullMap.contains(query.mid(i, 2)))
-            {
-                res += m_halfToFullMap[query.mid(i, 2)];
-                ++i;
-            }
-            else
-            {
-                res += m_halfToFullMap[query[i]];
-            }
-        }
-        else
-        {
-            res += query[i];
-        }
-    }
-    if (i < query.size())
-    {
-        if (HALFWIDTH_LOW <= query[i] && query[i] <= HALFWIDTH_HIGH &&
-            m_halfToFullMap.contains(query[i]))
-        {
-            res += m_halfToFullMap[query[i]];
-        }
-        else
-        {
-            res += query[i];
-        }
-    }
-    return res;
 }
 
 QString DatabaseManager::kataToHira(QString query)
