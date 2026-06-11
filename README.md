@@ -21,29 +21,43 @@ Memento is a FOSS, mpv-based video player for studying Japanese.
 
 ## Dictionaries
 
-*   **[JMdict](https://www.edrdg.org/jmdict/edict_doc.html)** (Japanese vocabulary)
-    *   [JMdict\_dutch.zip](https://github.com/themoeway/jmdict-yomitan/releases/latest/download/JMdict_dutch.zip)
-    *   [JMdict\_english.zip](https://github.com/themoeway/jmdict-yomitan/releases/latest/download/JMdict_english.zip)
-    *   [JMdict\_french.zip](https://github.com/themoeway/jmdict-yomitan/releases/latest/download/JMdict_french.zip)
-    *   [JMdict\_german.zip](https://github.com/themoeway/jmdict-yomitan/releases/latest/download/JMdict_german.zip)
-    *   [JMdict\_hungarian.zip](https://github.com/themoeway/jmdict-yomitan/releases/latest/download/JMdict_hungarian.zip)
-    *   [JMdict\_russian.zip](https://github.com/themoeway/jmdict-yomitan/releases/latest/download/JMdict_russian.zip)
-    *   [JMdict\_slovenian.zip](https://github.com/themoeway/jmdict-yomitan/releases/latest/download/JMdict_slovenian.zip)
-    *   [JMdict\_spanish.zip](https://github.com/themoeway/jmdict-yomitan/releases/latest/download/JMdict_spanish.zip)
-    *   [JMdict\_swedish.zip](https://github.com/themoeway/jmdict-yomitan/releases/latest/download/JMdict_swedish.zip)
-*   **[JMnedict](https://www.edrdg.org/enamdict/enamdict_doc.html)** (Japanese names)
-    *   [JMnedict.zip](https://github.com/themoeway/jmdict-yomitan/releases/latest/download/JMnedict.zip)
-*   **[KireiCake](https://kireicake.com/rikaicakes/)** (Japanese slang)
-    *   [kireicake.zip](https://github.com/FooSoft/yomichan/raw/dictionaries/kireicake.zip)
-*   **[KANJIDIC](http://nihongo.monash.edu/kanjidic2/index.html)** (Japanese kanji)
-    *   [KANJIDIC\_english.zip](https://github.com/themoeway/jmdict-yomitan/releases/latest/download/KANJIDIC_english.zip)
-    *   [KANJIDIC\_french.zip](https://github.com/themoeway/jmdict-yomitan/releases/latest/download/KANJIDIC_french.zip)
-    *   [KANJIDIC\_portuguese.zip](https://github.com/themoeway/jmdict-yomitan/releases/latest/download/KANJIDIC_portuguese.zip)
-    *   [KANJIDIC\_spanish.zip](https://github.com/themoeway/jmdict-yomitan/releases/latest/download/KANJIDIC_spanish.zip)
-*   **[Innocent Corpus](https://web.archive.org/web/20190309073023/https://forum.koohii.com/thread-9459.html#pid168613)** (Term and kanji frequencies across 5000+ novels)
-    *   [innocent\_corpus.zip](https://github.com/FooSoft/yomichan/raw/dictionaries/innocent_corpus.zip)
-*   **[Kanjium](https://github.com/mifunetoshiro/kanjium)** (Pitch dictionary, see [related project page](https://github.com/toasted-nutbread/yomichan-pitch-accent-dictionary) for details)
-    *   [kanjium_pitch_accents.zip](https://github.com/FooSoft/yomichan/raw/dictionaries/kanjium_pitch_accents.zip)
+* [JMdict](https://github.com/yomidevs/jmdict-yomitan/) (English)
+  * [JMdict_english_with_examples.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/JMdict_english_with_examples.zip)
+    * This is the version of JMdict with example sentences from the [Tatoeba Project](http://tatoeba.org/home).
+  * [JMdict_english.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/JMdict_english.zip)
+    * This is the same JMdict but without example sentences.
+  * [JMdict_english_legacy.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/JMdict_english_legacy.zip)
+    * This is the same JMdict with legacy formatting instead of structured content.
+  * [JMdict_english_without_proper_names.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/JMdict_english_without_proper_names.zip)
+    * This is `JMdict_english` but without several thousand entries from JMnedict.
+  * [JMdict_english_legacy_without_proper_names.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/JMdict_english_legacy_without_proper_names.zip)
+* [JMdict](https://github.com/yomidevs/jmdict-yomitan/) (Other Languages)
+  * [JMdict_dutch.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/JMdict_dutch.zip)
+  * [JMdict_french.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/JMdict_french.zip)
+  * [JMdict_german.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/JMdict_german.zip)
+  * [JMdict_hungarian.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/JMdict_hungarian.zip)
+  * [JMdict_russian.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/JMdict_russian.zip)
+  * [JMdict_slovenian.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/JMdict_slovenian.zip)
+  * [JMdict_spanish.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/JMdict_spanish.zip)
+  * [JMdict_swedish.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/JMdict_swedish.zip)
+* [Jitendex](https://jitendex.org/) (English)
+  * [jitendex-yomitan.zip](https://github.com/stephenmk/stephenmk.github.io/releases/latest/download/jitendex-yomitan.zip)
+    * Similar to `JMdict_english_with_examples` with additional formatting.
+* [JMnedict](https://github.com/yomidevs/jmdict-yomitan/) (Japanese Names)
+  * [JMnedict.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/JMnedict.zip)
+* [JPDB](https://github.com/Kuuuube/yomitan-dictionaries) (Frequency)
+  * [JPDB v2.2 Kana](https://github.com/Kuuuube/yomitan-dictionaries/raw/main/dictionaries/JPDB_v2.2_Frequency_Kana_2024-10-13.zip) (Recommended)
+  * [JPDB v2.2 Frequency Kana Display Only](https://github.com/Kuuuube/yomitan-dictionaries/raw/main/dictionaries/JPDB_v2.2_Frequency_Kana_Display_Only_2024-10-13.zip)
+  * [JPDB v2.2](https://github.com/Kuuuube/yomitan-dictionaries/raw/main/dictionaries/JPDB_v2.2_Frequency_2024-10-13.zip)
+* [BCCWJ SUW LUW Combined](https://github.com/Kuuuube/yomitan-dictionaries) (Frequency)
+  * [BCCWJ_SUW_LUW_combined.zip](https://github.com/Kuuuube/yomitan-dictionaries/raw/main/dictionaries/BCCWJ_SUW_LUW_combined.zip)
+* Kanjium (Pitch)
+  * [kanjium_pitch_accents.zip](https://github.com/FooSoft/yomichan/raw/dictionaries/kanjium_pitch_accents.zip)
+* [KANJIDIC](https://github.com/yomidevs/jmdict-yomitan/) (Kanji)
+  * [KANJIDIC_english.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/KANJIDIC_english.zip)
+  * [KANJIDIC_french.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/KANJIDIC_french.zip)
+  * [KANJIDIC_portuguese.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/KANJIDIC_portuguese.zip)
+  * [KANJIDIC_spanish.zip](https://github.com/yomidevs/jmdict-yomitan/releases/latest/download/KANJIDIC_spanish.zip)
 
 ## Troubleshooting
 
@@ -277,3 +291,6 @@ If you hate Memento, try [asbplayer](https://app.asbplayer.dev/).
   * https://github.com/flathub/io.mpv.Mpv
 * QCoro is builtin to the project
   * https://github.com/qcoro/qcoro
+* Most dictionary links taken from jmdict-yomitan and yomitan-dictionaries
+  * https://github.com/yomidevs/jmdict-yomitan
+  * https://github.com/Kuuuube/yomitan-dictionaries
