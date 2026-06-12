@@ -99,6 +99,53 @@ MpvPlayer {
         cursorTimer.restart();
     }
 
+    /**
+     * @brief Stores the active fileLoaded handler, if any.
+     */
+    property var restoreHandler: null
+
+    /**
+     * Load a file from history and restore its subtitle tracks after
+     * the file finishes loading.
+     */
+    function restoreFromHistory(videoPath, primaryTrackId, secondaryTrackId, externalPaths, playbackPosition) {
+        root.controller.loadFile(videoPath)
+
+        if (root.restoreHandler)
+        {
+            root.fileLoaded.disconnect(root.restoreHandler)
+        }
+
+        root.restoreHandler = function(w, h) {
+            if (externalPaths)
+            {
+                for (var i = 0; i < externalPaths.length; ++i)
+                {
+                    root.controller.loadSubtitle(externalPaths[i])
+                }
+            }
+
+            if (primaryTrackId > 0)
+            {
+                root.controller.setSid(primaryTrackId)
+            }
+            if (secondaryTrackId > 0)
+            {
+                root.controller.setSecondarySid(secondaryTrackId)
+            }
+
+            if (playbackPosition > 0)
+            {
+                root.controller.seek(playbackPosition)
+            }
+
+            root.fileLoaded.disconnect(root.restoreHandler)
+            root.restoreHandler = null
+        }
+
+        root.fileLoaded.connect(root.restoreHandler)
+    }
+
     onFileLoaded: {
         if (MementoSettings.searchHideMpvSubs)
         {

@@ -73,6 +73,12 @@ class Paths : public QObject
         CONSTANT
     )
 
+    Q_PROPERTY(
+        QString historyDir
+        READ historyDir
+        CONSTANT
+    )
+
 public:
     Paths(QObject *parent = nullptr);
 
@@ -133,6 +139,14 @@ public:
     [[nodiscard]]
     const QString &mpvInputConfig() const noexcept;
 
+    /**
+     * @brief Get the path to the history directory.
+     *
+     * @return Path to the history directory.
+     */
+    [[nodiscard]]
+    const QString &historyDir() const noexcept;
+
 private:
     /* Path to the program executable */
     const QString m_program{DirectoryUtils::getProgramDirectory()};
@@ -156,4 +170,7 @@ private:
 
     /* Path to the mpv input.conf file */
     const QString m_mpvInputConfig{DirectoryUtils::getMpvInputConfig()};
+
+    /* Path to the history directory */
+    const QString m_historyDir{DirectoryUtils::getHistoryDir()};
 };

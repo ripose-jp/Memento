@@ -59,3 +59,8 @@ const QString &Paths::mpvInputConfig() const noexcept
 {
     return m_mpvInputConfig;
 }
+
+const QString &Paths::historyDir() const noexcept
+{
+    return m_historyDir;
+}

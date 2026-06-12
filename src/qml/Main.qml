@@ -13,6 +13,10 @@ ApplicationWindow {
     color: "black"
     title: player.state.title ? qsTr("%1 - Memento").arg(player.state.title) : qsTr("Memento")
 
+    onClosing: {
+        root.saveCurrentHistory()
+    }
+
     /* Handle fullscreen on non-Windows platforms */
     Binding {
         root.visibility: player.state.fullscreen ? Window.FullScreen : Window.Windowed
@@ -22,8 +26,20 @@ ApplicationWindow {
     /* Handle borderless fullscreen on Windows */
     property int savedVisibility: 0
     property rect savedGeometry: Qt.rect(0, 0, 0, 0)
+    property string currentVideoPath: ""
+    property string currentVideoTitle: ""
+    property int currentPrimarySubtitleTrackId: 0
+    property int currentSecondarySubtitleTrackId: 0
+    property var currentExternalSubtitles: []
+    property double currentTimePosition: 0.0
     Connections {
         target: player.state
+        function onPathChanged() {
+            root.saveCurrentHistory()
+        }
+        function onTimePositionChanged(pos) {
+            root.currentTimePosition = pos
+        }
         function onFullscreenChanged() {
             if (!Features.isWindows)
             {
@@ -120,6 +136,31 @@ ApplicationWindow {
         root.y = Screen.virtualY + (maxHeight - finalHeight) / 2;
     }
 
+    /**
+     * Save the currently playing video's state to history.
+     */
+    function saveCurrentHistory() {
+        if (root.currentVideoPath.length === 0)
+        {
+            return
+        }
+
+        const thumbDir = MementoPaths.historyDir
+        const thumbName = "thumb_" +
+            Date.now() + ".jpg"
+        const thumbPath = thumbDir + thumbName
+
+        const thumbOk = player.controller.saveThumbnail(thumbPath)
+        HistoryManager.addEntry(
+            root.currentVideoPath,
+            root.currentPrimarySubtitleTrackId,
+            root.currentSecondarySubtitleTrackId,
+            root.currentExternalSubtitles,
+            root.currentTimePosition,
+            root.currentVideoTitle.length > 0 ? root.currentVideoTitle : root.currentVideoPath,
+            thumbOk ? thumbPath : "")
+    }
+
     SplitView {
         id: mainSplitView
         anchors.fill: parent
@@ -179,6 +220,12 @@ ApplicationWindow {
             }
             onShutdown: Qt.quit()
             onFileLoaded: function(w, h) {
+                root.currentVideoPath = player.state.path
+                root.currentVideoTitle = player.state.title
+                root.currentPrimarySubtitleTrackId = 0
+                root.currentSecondarySubtitleTrackId = 0
+                root.currentExternalSubtitles = []
+
                 if (MementoSettings.behaviorAutoFit)
                 {
                     root.updateWindowSize(w, h);
@@ -197,6 +244,23 @@ ApplicationWindow {
                 target: FileOpenHandler
                 function onFilesOpened(files) {
                     player.controller.loadFile(files);
+                }
+            }
+
+            Connections {
+                target: player.controller
+                function onSubtitleFileLoaded(path) {
+                    root.currentExternalSubtitles.push(path)
+                }
+            }
+
+            Connections {
+                target: player.state
+                function onSidChanged(sid) {
+                    root.currentPrimarySubtitleTrackId = sid
+                }
+                function onSecondarySidChanged(sid) {
+                    root.currentSecondarySubtitleTrackId = sid
                 }
             }
 
@@ -312,6 +376,14 @@ ApplicationWindow {
         anchors.fill: parent
         visible: MementoSettings.windowSubtitleList
         player: player
+    }
+
+    Loader {
+        id: historyWindowLoader
+
+        active: MementoSettings.windowHistory
+        source: "controls/HistoryPage.qml"
+        onLoaded: item.playerItem = player
     }
 
     Loader {

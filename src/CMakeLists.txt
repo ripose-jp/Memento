@@ -52,6 +52,8 @@ qt_add_qml_module(
         qml/controls/AnkiMarkerDescription.qml
         qml/controls/AnkiNoteBox.qml
         qml/controls/CenteredFlow.qml
+        qml/controls/HistoryCard.qml
+        qml/controls/HistoryPage.qml
         qml/controls/KeybindCommand.qml
         qml/controls/ManualSearchPage.qml
         qml/controls/Player.qml
@@ -144,6 +146,7 @@ target_link_libraries(
     PRIVATE definition
     PRIVATE dictionary
     PRIVATE features
+    PRIVATE historymanager
     PRIVATE keytracker
     PRIVATE managers
     PRIVATE mpvplayer

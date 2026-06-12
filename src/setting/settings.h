@@ -55,6 +55,13 @@ class Settings : public QObject
         NOTIFY windowSearchChanged
     )
 
+    Q_PROPERTY(
+        bool windowHistory
+        READ windowHistory
+        WRITE setWindowHistory
+        NOTIFY windowHistoryChanged
+    )
+
     /* Internal Settings */
 
     Q_PROPERTY(
@@ -775,6 +782,22 @@ public:
      * @param value true if the search panel is open, false otherwise.
      */
     void setWindowSearch(bool value);
+
+    /**
+     * @brief The saved history window open state.
+     *
+     * @return true if the history window is open,
+     * @return false otherwise.
+     */
+    [[nodiscard]]
+    bool windowHistory() const noexcept;
+
+    /**
+     * @brief Sets the history window open state.
+     *
+     * @param value true if the history window is open, false otherwise.
+     */
+    void setWindowHistory(bool value);
 
     /* Internal Settings */
 
@@ -1928,6 +1951,8 @@ signals:
      */
     void windowSearchChanged(bool value);
 
+    void windowHistoryChanged(bool value);
+
     /* Internal Settings */
 
     /**
@@ -2434,6 +2459,9 @@ private:
 
         /* true if the subtitle search was open on close */
         bool search{false};
+
+        /* true if the history window was open on close */
+        bool history{false};
     };
     WindowSettings m_window{};
 

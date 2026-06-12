@@ -86,4 +86,12 @@ QString getMpvInputConfig();
 [[nodiscard]]
 QString getDictionaryResourceDir();
 
+/**
+ * @brief Gets the history directory path. Creates it if it doesn't exist.
+ *
+ * @return The history directory path.
+ */
+[[nodiscard]]
+QString getHistoryDir();
+
 };

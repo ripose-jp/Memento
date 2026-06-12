@@ -83,3 +83,17 @@ target_link_libraries(
     PUBLIC Qt6::Core
     PUBLIC utils
 )
+
+add_library(
+    historymanager
+    historymanager.cpp
+    historymanager.h
+)
+target_compile_features(historymanager PRIVATE cxx_std_20)
+target_include_directories(historymanager PRIVATE ${MEMENTO_INCLUDE_DIRS})
+target_compile_options(historymanager PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_link_libraries(
+    historymanager
+    PUBLIC Qt6::Core
+    PUBLIC utils
+)

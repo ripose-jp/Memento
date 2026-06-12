@@ -117,6 +117,12 @@ void Settings::loadWindowSettings()
             false
         ).toBool()
     );
+    setWindowHistory(
+        s.value(
+            Keys::Window::HISTORY,
+            false
+        ).toBool()
+    );
 
     s.endGroup();
 }
@@ -133,6 +139,10 @@ void Settings::writeWindowSettings()
     s.setValue(
         Keys::Window::SEARCH,
         windowSearch()
+    );
+    s.setValue(
+        Keys::Window::HISTORY,
+        windowHistory()
     );
 
     s.endGroup();
@@ -1471,6 +1481,21 @@ void Settings::setWindowSearch(bool value)
     }
     m_window.search = value;
     emit windowSearchChanged(m_window.search);
+}
+
+bool Settings::windowHistory() const noexcept
+{
+    return m_window.history;
+}
+
+void Settings::setWindowHistory(bool value)
+{
+    if (m_window.history == value)
+    {
+        return;
+    }
+    m_window.history = value;
+    emit windowHistoryChanged(m_window.history);
 }
 
 /* Internal Settings */

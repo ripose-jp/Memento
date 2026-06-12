@@ -28,10 +28,13 @@
 #endif // MEMENTO_QAPPLICATION
 
 #include <QDir>
+#include <QFile>
 #include <QLocale>
+#include <QMessageLogContext>
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
 #include <QQuickWindow>
+#include <QTextStream>
 #include <QTranslator>
 
 #ifdef MEMENTO_SYSTEM_QCORO
@@ -59,6 +62,7 @@
 #include "quick/clipboard.h"
 #include "quick/coloredsvgprovider.h"
 #include "quick/features.h"
+#include "quick/historymanager.h"
 #include "quick/keytracker.h"
 #include "quick/paths.h"
 #include "setting/settings.h"
@@ -244,6 +248,9 @@ static void registerQmlTypes(Context &context)
     );
     qmlRegisterSingletonInstance<FileOpenHandler>(
         MEMENTO_URI, 1, 0, "FileOpenHandler", context.fileOpenHandler()
+    );
+    qmlRegisterSingletonInstance<HistoryManager>(
+        MEMENTO_URI, 1, 0, "HistoryManager", new HistoryManager(&context)
     );
     qmlRegisterSingletonInstance<KeyTracker>(
         MEMENTO_URI, 1, 0, "KeyTracker", new KeyTracker(&context)

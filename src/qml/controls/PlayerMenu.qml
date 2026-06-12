@@ -437,6 +437,13 @@ MenuBar {
             onTriggered: MementoSettings.windowSubtitleList = checked
         }
 
+        Action {
+            text: qsTr("&Show History")
+            checkable: true
+            checked: MementoSettings.windowHistory
+            onTriggered: MementoSettings.windowHistory = checked
+        }
+
         Instantiator {
             /* Hide the action if OCR is disabled */
             model: Features.ocr && MementoSettings.ocrEnabled ? 1 : 0

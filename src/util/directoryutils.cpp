@@ -78,3 +78,15 @@ QString DirectoryUtils::getDictionaryResourceDir()
     constexpr const char *RESOURCE_DIR = "res";
     return getConfigDir() + RESOURCE_DIR + QDir::separator();
 }
+
+QString DirectoryUtils::getHistoryDir()
+{
+    constexpr const char *HISTORY_DIR = "history";
+    QString path = getConfigDir() + HISTORY_DIR + QDir::separator();
+    QDir dir(path);
+    if (!dir.exists())
+    {
+        dir.mkpath(path);
+    }
+    return path;
+}

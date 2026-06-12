@@ -94,6 +94,7 @@ namespace Keys
 
         constexpr const char *SUBTITLE_LIST = "subtitle-list";
         constexpr const char *SEARCH = "search";
+        constexpr const char *HISTORY = "history";
     }
 
     namespace Internal

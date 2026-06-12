@@ -189,6 +189,8 @@ bool MpvController::loadSubtitle(const QString &file)
         );
         return false;
     }
+
+    emit subtitleFileLoaded(file);
     return true;
 }
 
@@ -614,6 +616,28 @@ QString MpvController::tempScreenshot(bool subtitles, const QString &ext)
     }
 
     return filename;
+}
+
+bool MpvController::saveThumbnail(const QString &path)
+{
+    QImage frame = screenshotRaw(true);
+    if (frame.isNull())
+    {
+        qWarning("Could not capture raw frame for thumbnail");
+        return false;
+    }
+
+    QImage thumb = frame.scaled(
+        320, 180,
+        Qt::KeepAspectRatio,
+        Qt::SmoothTransformation
+    );
+    if (!thumb.save(path, "JPG", 85))
+    {
+        qWarning("Could not save thumbnail to '%s'", qUtf8Printable(path));
+        return false;
+    }
+    return true;
 }
 
 QImage MpvController::screenshotRaw(bool subtitles)

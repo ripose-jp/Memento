@@ -359,11 +359,29 @@ public:
     [[nodiscard]]
     Q_INVOKABLE QString tempVideoClip(const MpvVideoClipArgs &args);
 
+    /**
+     * @brief Saves a scaled thumbnail to the specified path.
+     *
+     * Captures the current frame, scales it down to 320x180,
+     * and saves as JPEG with quality 85.
+     *
+     * @param path The full path to save the thumbnail to.
+     * @return true if the thumbnail was saved, false otherwise.
+     */
+    Q_INVOKABLE bool saveThumbnail(const QString &path);
+
 signals:
     /**
      * @brief Emitted when the player being controlled changes.
      */
     void playerChanged();
+
+    /**
+     * @brief Emitted when a subtitle file is loaded.
+     *
+     * @param path The path to the loaded subtitle file.
+     */
+    void subtitleFileLoaded(const QString &path);
 
 private:
     /**
