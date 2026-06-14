@@ -15,7 +15,7 @@ S="${WORKDIR}/Memento-${PV}"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64"
-IUSE="mecab"
+IUSE="mecab widgets"
 
 DEPEND="
     dev-libs/libzip
@@ -24,19 +24,23 @@ DEPEND="
     dev-db/sqlite
     media-video/mpv:=[libmpv]
     dev-libs/json-c
-    >=dev-qt/qtbase-6.7.0:6"
+    >=dev-qt/qtbase-6.9.0:6
+    dev-qt/qtsvg
+    dev-libs/qcoro"
 RDEPEND="
     ${DEPEND}
     media-fonts/noto-cjk"
 BDEPEND="
-    >=dev-build/cmake-3.15.0"
+    >=dev-build/cmake-3.16.0"
 
 src_configure()
 {
     local mycmakeargs=(
         "-DBUILD_SHARED_LIBS=OFF"
-        "-DRELEASE_BUILD=ON"
-        "-DMECAB_SUPPORT=$(use mecab && echo ON || echo OFF)"
+        "-DMEMENTO_RELEASE_BUILD=ON"
+        "-DMEMENTO_SYSTEM_QCORO=ON"
+        "-DMEMENTO_QAPPLICATION=$(use widgets && echo ON || echo OFF)"
+        "-DMEMENTO_MECAB_SUPPORT=$(use mecab && echo ON || echo OFF)"
     )
     cmake_src_configure
 }
