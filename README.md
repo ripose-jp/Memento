@@ -113,7 +113,7 @@ your system.
 * yt-dlp (optional)
 * MeCab (optional)
     * Use `-DMEMENTO_MECAB_SUPPORT=ON`
-    * With either ipadic or NAIST-jdic installed as a system dictionary on Linux and macOS. This only applies to self-compiled versions, not appimages or app bundles.
+    * With either ipadic or NAIST-jdic installed as a system dictionary on Linux and macOS.
 * [libmocr](https://github.com/ripose-jp/libmocr) (Optional)
     * Use `-DMEMENTO_OCR_SUPPORT=ON` and `-DMEMENTO_SYSTEM_MOCR=ON`
 
