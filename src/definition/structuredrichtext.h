@@ -20,6 +20,9 @@
 
 #pragma once
 
+#include <array>
+#include <memory>
+
 #include <QObject>
 
 #include <QColor>
@@ -27,11 +30,13 @@
 #include <QHash>
 #include <QJsonArray>
 #include <QList>
+#include <QMap>
 #include <QQuickItem>
 #include <QRegularExpression>
 #include <QScreen>
 #include <QSet>
 #include <QString>
+#include <QStringList>
 #include <QWindow>
 
 #include "dict/data/dictionaryinfo.h"
@@ -51,11 +56,13 @@ public:
     /**
      * @brief Parse structred content into Qt rich text.
      *
-     * @param name The name of the dictionary.
+     * @param info Information about the dictionary being rendered.
      * @param content The structured content to parse.
      * @param style The glossary style to display.
      * @param item The item this rich text will be displayed in.
      * @param font The font in use.
+     * @param color The glossary text color.
+     * @param backgroundColor The glossary canvas color.
      * @return A string containing the structured content as rich text.
      */
     [[nodiscard]]
@@ -65,7 +72,8 @@ public:
         Setting::GlossaryStyle style,
         const QQuickItem *item,
         const QFont &font,
-        const QColor &color) const;
+        const QColor &color,
+        const QColor &backgroundColor) const;
 
 private:
     /**
@@ -76,14 +84,36 @@ private:
         /* The element tag */
         QString tag;
 
-        /* The element's data-sc-* attributes */
+        /* Attributes used by stylesheet selectors */
         QHash<QString, QString> attributes;
+
+        /* Generated classes used by stylesheet selectors */
+        QSet<QString> classes;
+
+        /* Index of the previous element sibling in selectorElements, or -1 */
+        qsizetype previousSibling{-1};
+    };
+
+    /**
+     * @brief Element sibling state for the current content container.
+     */
+    struct SiblingState
+    {
+        /* Index of the most recently rendered element child in
+         * selectorElements */
+        qsizetype previousElement{-1};
+
+        /* Largest positive margin waiting to be emitted */
+        double pendingPositiveMarginPixels{0.0};
+
+        /* Smallest negative margin waiting to be emitted */
+        double pendingNegativeMarginPixels{0.0};
     };
 
     /**
      * @brief List rendering state.
      */
-    struct List
+    struct StructuredList
     {
         /* Parent list tag */
         QString tag;
@@ -96,8 +126,102 @@ private:
     };
 
     using CssRule = DictionaryStyles::CssRule;
+    using CssDeclaration = DictionaryStyles::CssDeclaration;
     using CssSelectorPart = DictionaryStyles::CssSelectorPart;
     using ParsedStylesheet = DictionaryStyles::ParsedStylesheet;
+    using CssDeclarations = QMap<QString, QString>;
+
+    /**
+     * @brief Physical side of a CSS box in clockwise order.
+     */
+    enum class BoxSide : std::size_t
+    {
+        Top,
+        Right,
+        Bottom,
+        Left,
+        Count /* Only used to determine the number of sides */
+    };
+
+    /**
+     * @brief Qt-compatible layout selected for a structured element.
+     */
+    enum class ElementLayout
+    {
+        Inline,
+        Block,
+        List,
+        MarkedListItem,
+        MarkerlessListItem,
+        Box
+    };
+
+    /**
+     * @brief Width behavior used by an emitted compatibility box.
+     */
+    enum class WidthPolicy
+    {
+        Natural,
+        Fill,
+        FitContent,
+        Explicit
+    };
+
+    /**
+     * @brief Vertical margin behavior of a rendered element.
+     */
+    enum class MarginFlow
+    {
+        Inline,
+        Collapsible,
+        Contained,
+        PropagateLastChild
+    };
+
+    /**
+     * @brief Resolved border data for one side of a CSS box.
+     */
+    struct BorderSide
+    {
+        /* Resolved border color */
+        QString color;
+
+        /* Resolved border style */
+        QString style;
+
+        /* Border width converted to pixels */
+        double widthPixels{0.0};
+
+        /* True when a compatibility frame paints this border */
+        bool painted{false};
+    };
+
+    /**
+     * @brief Normalized CSS box used by the Qt compatibility renderer.
+     */
+    struct BoxStyle
+    {
+        /* Margins in top, right, bottom, left order */
+        std::array<QString, static_cast<std::size_t>(BoxSide::Count)> margins{};
+
+        /* Padding widths in top, right, bottom, left order, in pixels */
+        std::array<double, static_cast<std::size_t>(BoxSide::Count)> padding{};
+
+        /* Border definitions in top, right, bottom, left order */
+        std::array<
+            BorderSide,
+            static_cast<std::size_t>(BoxSide::Count)
+        > borders{};
+
+        /* Opaque background color painted by the box frame */
+        QString backgroundColor;
+
+        /* True when the element needs a table-backed compatibility box */
+        bool enabled{false};
+
+        /* True when all painted borders can share one compact frame */
+        bool compactBorderFrame{false};
+    };
 
     /**
      * @brief Current context of the StructuredRichText parser.
@@ -127,17 +251,41 @@ private:
         /* Text color of the parent element */
         QString textColor;
 
+        /* Global glossary text color used by palette CSS variables */
+        QString glossaryTextColor;
+
+        /* Background color of the glossary canvas */
+        QString backgroundColor;
+
+        /* Global glossary background color used by palette CSS variables */
+        QString glossaryBackgroundColor;
+
+        /* Nearest opaque background painted around the current content */
+        QString paintedBackgroundColor;
+
         /* Base path of resources for this dictionary */
         QString basepath;
 
         /* CSS rules parsed from the dictionary stylesheet */
         std::shared_ptr<const DictionaryStyles> dictionaryStyles;
 
-        /* Stack of structured content elements */
-        QList<StructuredElement> elements;
+        /* Storage containing selector elements for the current render */
+        QList<StructuredElement> selectorElements;
+
+        /* Stack of indexes into selectorElements */
+        QList<qsizetype> elements;
+
+        /* Stack of sibling state for structured content containers */
+        QList<SiblingState> siblings;
 
         /* Stack of lists being rendered */
-        QList<List> lists;
+        QList<StructuredList> lists;
+
+        /* CSS values resolved during this render, keyed by source value */
+        QHash<QString, QString> resolvedCssValues;
+
+        /* Inherited text layout direction */
+        Qt::LayoutDirection textDirection{Qt::LeftToRight};
 
         /* The href inherited from a parent anchor */
         QString linkHref;
@@ -161,11 +309,22 @@ private:
         QString attributes;
 
         /* CSS declarations emitted on the outer element */
-        QHash<QString, QString> declarations;
+        CssDeclarations declarations;
 
         /* CSS declarations moved to a table-backed content cell */
-        QHash<QString, QString> cellDeclarations;
+        CssDeclarations cellDeclarations;
 
+        /* Normalized CSS box used by the compatibility emitter */
+        BoxStyle box;
+
+        /* Qt-compatible layout selected for the element */
+        ElementLayout layout{ElementLayout::Inline};
+
+        /* Width behavior of the element or compatibility box */
+        WidthPolicy widthPolicy{WidthPolicy::Natural};
+
+        /* Vertical margin behavior selected for the element */
+        MarginFlow marginFlow{MarginFlow::Inline};
 
         /* Resolved font size inherited by child content */
         double fontPixelSize{0.0};
@@ -176,6 +335,11 @@ private:
         /* Resolved title tooltip inherited by child content */
         QString titleTooltip;
 
+        /* Background color inherited by child content */
+        QString paintedBackgroundColor;
+
+        /* Generated ::before content resolved with the element styles */
+        QString beforeContent;
 
         /* Visible marker emitted for the current list item */
         QString listMarker;
@@ -183,39 +347,26 @@ private:
         /* Marker type inherited by child list items */
         QString listMarkerType;
 
-        /* True when the element is an ordered or unordered list */
-        bool isList{false};
-
-        /* True when the element is a child of a rendered list */
-        bool isListItem{false};
-
-        /* True when a marked list item uses a two-cell table */
-        bool listItemTable{false};
-
-        /* True when a markerless item uses explicit content spacing */
-        bool markerlessListItem{false};
-
-        /* True when a details element uses a single-cell table */
-        bool detailsTable{false};
+        /* Resolved layout direction inherited by child content */
+        Qt::LayoutDirection textDirection{Qt::LeftToRight};
 
         /* True when a known label span needs non-breaking side padding */
         bool paddedSpan{false};
 
+        /* True when the element contains only a text string */
+        bool textOnlyContent{false};
+
+        /* Inline spacing before text-only block content */
+        QString contentInlineSpacingBefore;
+
+        /* Inline spacing after text-only block content */
+        QString contentInlineSpacingAfter;
 
         /* Inline spacing emitted before the element */
         QString inlineSpacingBefore;
 
         /* Inline spacing emitted after the element */
         QString inlineSpacingAfter;
-
-        /* Vertical spacing emitted before markerless item content */
-        QString contentSpacingBefore;
-
-        /* Vertical spacing emitted after markerless item content */
-        QString contentSpacingAfter;
-
-        /* Vertical spacing emitted after the element */
-        QString elementSpacingAfter;
     };
 
     /**
@@ -227,32 +378,16 @@ private:
     void addStructuredData(const QJsonObject &obj, QString &out) const;
 
     /**
-     * @brief Add structured style objects.
+     * @brief Add structured style objects to an element render state.
      *
      * @param obj The structured style object.
      * @param ctx The StructuredRichText context.
-     * @param[out] out The string this style will be appended to.
-     * @return The font size in pixels of the top level element.
+     * @param[out] state The element render state to update.
      */
-    [[nodiscard]]
-    double addStructuredStyle(
+    void addStructuredStyle(
         const QJsonObject &obj,
         StructuredRichText::Context &ctx,
-        QString &out) const;
-
-    /**
-     * @brief Add structured style objects to a declaration map.
-     *
-     * @param obj The structured style object.
-     * @param ctx The StructuredRichText context.
-     * @param[out] declarations The declaration map to append to.
-     * @return The font size in pixels of the top level element.
-     */
-    [[nodiscard]]
-    double addStructuredStyle(
-        const QJsonObject &obj,
-        StructuredRichText::Context &ctx,
-        QHash<QString, QString> &declarations) const;
+        ElementRenderState &state) const;
 
     /**
      * @brief Add string structured content.
@@ -272,7 +407,7 @@ private:
      */
     void addStructuredContentHelper(
         const QString &str,
-        const StructuredRichText::Context &ctx,
+        StructuredRichText::Context &ctx,
         QString &out) const;
 
     /**
@@ -296,6 +431,18 @@ private:
      */
     void addStructuredContentHelper(
         const QJsonObject &obj,
+        StructuredRichText::Context &ctx,
+        QString &out) const;
+
+    /**
+     * @brief Add children with a new element-sibling context.
+     *
+     * @param val The child structured content.
+     * @param ctx The StructuredRichText context.
+     * @param[out] out The string this content will be appended to.
+     */
+    void addStructuredChildren(
+        const QJsonValue &val,
         StructuredRichText::Context &ctx,
         QString &out) const;
 
@@ -362,9 +509,31 @@ private:
     /**
      * @brief Apply Qt rich text compatibility rewrites to an element.
      *
+     * @param ctx The StructuredRichText context.
      * @param[out] state The element render state to update.
      */
-    void applyElementCompatibility(ElementRenderState &state) const;
+    void applyElementCompatibility(
+        const StructuredRichText::Context &ctx,
+        ElementRenderState &state) const;
+
+    /**
+     * @brief Move CSS box declarations into normalized render state.
+     *
+     * @param ctx The StructuredRichText context.
+     * @param[out] state The element render state to update.
+     */
+    void resolveBoxStyle(
+        const StructuredRichText::Context &ctx,
+        ElementRenderState &state) const;
+
+    /**
+     * @brief Select vertical margin behavior after box normalization.
+     *
+     * @param state The resolved element render state.
+     * @return The margin flow for the element.
+     */
+    [[nodiscard]]
+    MarginFlow marginFlow(const ElementRenderState &state) const;
 
     /**
      * @brief Add the opening HTML for a structured element.
@@ -391,14 +560,40 @@ private:
         QString &out) const;
 
     /**
+     * @brief Add the opening table frame for a normalized CSS box.
+     *
+     * @param state The resolved element render state.
+     * @param ctx The StructuredRichText context.
+     * @param[out] out The string this HTML will be appended to.
+     */
+    void addBoxStart(
+        const ElementRenderState &state,
+        const StructuredRichText::Context &ctx,
+        QString &out) const;
+
+    /**
+     * @brief Close the table frame for a normalized CSS box.
+     *
+     * @param state The resolved element render state.
+     * @param ctx The StructuredRichText context.
+     * @param[out] out The string this HTML will be appended to.
+     */
+    void addBoxEnd(
+        const ElementRenderState &state,
+        const StructuredRichText::Context &ctx,
+        QString &out) const;
+
+    /**
      * @brief Add an inline spacer supported by Qt rich text.
      *
      * @param spacing The CSS spacing value.
+     * @param fontPixelSize The element font size used for relative spacing.
      * @param ctx The StructuredRichText context.
      * @param[out] out The string this spacer will be appended to.
      */
     void addInlineSpacer(
         const QString &spacing,
+        double fontPixelSize,
         const StructuredRichText::Context &ctx,
         QString &out) const;
 
@@ -406,9 +601,83 @@ private:
      * @brief Add a vertical spacer supported by Qt rich text.
      *
      * @param spacing The CSS spacing value.
+     * @param fontPixelSize The element font size used for relative spacing.
+     * @param ctx The StructuredRichText context.
      * @param[out] out The string this spacer will be appended to.
      */
-    void addVerticalSpacer(const QString &spacing, QString &out) const;
+    void addVerticalSpacer(
+        const QString &spacing,
+        double fontPixelSize,
+        const StructuredRichText::Context &ctx,
+        QString &out) const;
+
+    /**
+     * @brief Emit a vertical spacer with a deterministic rendered height.
+     *
+     * @param pixelSize The signed spacer height in pixels.
+     * @param[out] out The string this spacer will be appended to.
+     */
+    void addVerticalPixelSpacer(double pixelSize, QString &out) const;
+
+    /**
+     * @brief Add a margin to a pending CSS margin-collapse group.
+     *
+     * @param spacing The CSS margin value.
+     * @param fontPixelSize The element font size used for relative spacing.
+     * @param ctx The StructuredRichText context.
+     * @param[out] siblings The sibling state receiving the margin.
+     */
+    void addPendingVerticalMargin(
+        const QString &spacing,
+        double fontPixelSize,
+        const StructuredRichText::Context &ctx,
+        SiblingState &siblings) const;
+
+    /**
+     * @brief Merge one pending CSS margin-collapse group into another.
+     *
+     * @param source The pending margins to merge.
+     * @param[out] destination The sibling state receiving the margins.
+     */
+    void mergePendingVerticalMargins(
+        const SiblingState &source,
+        SiblingState &destination) const;
+
+    /**
+     * @brief Emit and clear the current pending collapsed margin.
+     *
+     * @param ctx The StructuredRichText context.
+     * @param[out] out The string this spacer will be appended to.
+     */
+    void flushPendingVerticalMargin(
+        StructuredRichText::Context &ctx,
+        QString &out) const;
+
+    /**
+     * @brief Clear pending collapsed margins from a sibling state.
+     *
+     * @param[out] siblings The sibling state to clear.
+     */
+    void clearPendingVerticalMargins(SiblingState &siblings) const;
+
+    /**
+     * @brief Get one side from a one-to-four-value CSS box shorthand.
+     *
+     * @param value The CSS shorthand value.
+     * @param side The side index in top, right, bottom, left order.
+     * @return The value for the requested side, or an empty string.
+     */
+    [[nodiscard]]
+    QString cssBoxSideValue(const QString &value, qsizetype side) const;
+
+    /**
+     * @brief Check whether a CSS spacing value is zero.
+     *
+     * @param spacing The CSS spacing value.
+     * @return true if the value represents zero spacing.
+     */
+    [[nodiscard]]
+    bool isZeroSpacing(const QString &spacing) const;
 
     /**
      * @brief Add a ruby structured content object.
@@ -552,7 +821,21 @@ private:
     void addCssDeclaration(
         const QString &property,
         const QString &value,
-        QHash<QString, QString> &declarations) const;
+        CssDeclarations &declarations) const;
+
+    /**
+     * @brief Resolve a CSS value before adding it to a declaration map.
+     *
+     * @param property The CSS property.
+     * @param value The unresolved CSS value.
+     * @param ctx The StructuredRichText context.
+     * @param[out] declarations The declaration map to append to.
+     */
+    void addResolvedCssDeclaration(
+        const QString &property,
+        const QString &value,
+        StructuredRichText::Context &ctx,
+        CssDeclarations &declarations) const;
 
     /**
      * @brief Add declarations to a CSS style attribute.
@@ -561,7 +844,77 @@ private:
      * @param[out] out The string to append CSS to.
      */
     void addCssDeclarations(
-        const QHash<QString, QString> &declarations, QString &out) const;
+        const CssDeclarations &declarations, QString &out) const;
+
+    /**
+     * @brief Resolve browser CSS values to values supported by Qt rich text.
+     *
+     * @param value The browser CSS value.
+     * @param ctx The StructuredRichText context.
+     * @return A Qt-compatible value, or an empty string if unsupported.
+     */
+    [[nodiscard]]
+    QString resolveCssValue(
+        const QString &value,
+        StructuredRichText::Context &ctx) const;
+
+    /**
+     * @brief Resolve CSS variable references in a declaration value.
+     *
+     * @param value The declaration value.
+     * @param ctx The StructuredRichText context.
+     * @return The value with supported variables replaced.
+     */
+    [[nodiscard]]
+    QString resolveCssVariables(
+        QString value,
+        const StructuredRichText::Context &ctx) const;
+
+    /**
+     * @brief Resolve supported calc functions embedded in a CSS value.
+     *
+     * @param value The declaration value.
+     * @return The value with calculations replaced, or an empty string if
+     * unsupported.
+     */
+    [[nodiscard]]
+    QString resolveCssCalculations(QString value) const;
+
+    /**
+     * @brief Resolve a color-mix function to a concrete color.
+     *
+     * @param value The color-mix value.
+     * @return The mixed color, or an empty string if invalid.
+     */
+    [[nodiscard]]
+    QString resolveColorMix(const QString &value) const;
+
+    /**
+     * @brief Resolve a simple calc division to a concrete length.
+     *
+     * @param value The calc value.
+     * @return The calculated length, or an empty string if unsupported.
+     */
+    [[nodiscard]]
+    QString resolveCssCalc(const QString &value) const;
+
+    /**
+     * @brief Select a solid-color fallback from a CSS gradient.
+     *
+     * @param value The gradient value.
+     * @return The fallback color, or an empty string if unsupported.
+     */
+    [[nodiscard]]
+    QString cssGradientFallback(const QString &value) const;
+
+    /**
+     * @brief Split a CSS function argument list at top-level commas.
+     *
+     * @param arguments The function argument text.
+     * @return The trimmed function arguments.
+     */
+    [[nodiscard]]
+    QStringList splitCssArguments(const QString &arguments) const;
 
     /**
      * @brief Normalize a list marker value.
@@ -589,7 +942,7 @@ private:
      * @return The marker text.
      */
     [[nodiscard]]
-    QString listMarker(const List &list, const QString &marker) const;
+    QString listMarker(const StructuredList &list, const QString &marker) const;
 
     /**
      * @brief Check if the list marker is a built-in marker.
@@ -601,45 +954,47 @@ private:
     bool isBuiltInListMarker(const QString &marker) const;
 
     /**
-     * @brief Parse inline CSS declarations into a declaration map.
-     *
-     * @param body The CSS declaration body.
-     * @return The parsed declaration map.
-     */
-    [[nodiscard]]
-    QHash<QString, QString> parseCssDeclarations(const QString &body) const;
-
-    /**
      * @brief Apply matching stylesheet rules to a declaration map.
      *
      * @param ctx The StructuredRichText context.
      * @param[out] declarations The declaration map to update.
+     * @param[out] beforeContent Generated ::before content, when requested.
      */
     void addMatchingCssRules(
-        const StructuredRichText::Context &ctx,
-        QHash<QString, QString> &declarations) const;
-
-    /**
-     * @brief Get generated ::before content for the current element.
-     *
-     * @param ctx The StructuredRichText context.
-     * @return The generated text content.
-     */
-    [[nodiscard]]
-    QString matchingBeforeContent(
-        const StructuredRichText::Context &ctx) const;
+        StructuredRichText::Context &ctx,
+        CssDeclarations &declarations,
+        QString *beforeContent = nullptr) const;
 
     /**
      * @brief Check if a rule matches the current element stack.
      *
      * @param rule The CSS rule to check.
-     * @param elements The current element stack.
+     * @param ctx The current render context and selector storage.
      * @return true if the rule matches, false otherwise.
      */
     [[nodiscard]]
     bool cssRuleMatches(
         const CssRule &rule,
-        const QList<StructuredElement> &elements) const;
+        const Context &ctx) const;
+
+    /**
+     * @brief Match a selector recursively from a candidate element.
+     *
+     * @param rule The CSS rule being matched.
+     * @param ctx The current render context and selector storage.
+     * @param partIndex The selector part being matched.
+     * @param stackIndex The candidate element's depth in the stack.
+     * @param selectorElementIndex The candidate element's index in
+     * selectorElements.
+     * @return true if this part and all preceding parts match.
+     */
+    [[nodiscard]]
+    bool cssRuleMatchesAt(
+        const CssRule &rule,
+        const Context &ctx,
+        qsizetype partIndex,
+        qsizetype stackIndex,
+        qsizetype selectorElementIndex) const;
 
     /**
      * @brief Check if a selector part matches an element.
@@ -657,10 +1012,13 @@ private:
      * @brief Convert structured data to element attributes.
      *
      * @param obj The structured content object.
-     * @return The structured content element.
+     * @param ctx The StructuredRichText context.
+     * @return The index of the structured element in selectorElements.
      */
     [[nodiscard]]
-    StructuredElement structuredElement(const QJsonObject &obj) const;
+    qsizetype structuredElement(
+        const QJsonObject &obj,
+        StructuredRichText::Context &ctx) const;
 
     /**
      * @brief Convert a structured data key to an HTML data attribute name.
@@ -760,7 +1118,7 @@ private:
         "padding-bottom", "padding-left", "padding-right",
         "padding-top", "text-align", "text-decoration",
         "text-indent", "text-transform", "vertical-align",
-        "white-space", "word-spacing"
+        "white-space", "width", "word-spacing"
     };
 
     /* Matches CSS function names */

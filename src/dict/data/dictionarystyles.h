@@ -22,6 +22,7 @@
 
 #include <QHash>
 #include <QList>
+#include <QSet>
 #include <QString>
 
 /**
@@ -38,21 +39,49 @@ public:
     DictionaryStyles(const QString &stylesheet);
 
     /**
+     * @brief Relationship between a selector part and the preceding part.
+     */
+    enum class CssCombinator
+    {
+        Descendant,
+        Child,
+        AdjacentSibling
+    };
+
+    /**
      * @brief A single simple selector in a CSS selector chain.
      */
     struct CssSelectorPart
     {
-        /* True if this part must match the direct parent */
-        bool directParent{false};
+        /* Relationship to the preceding selector part */
+        CssCombinator combinator{CssCombinator::Descendant};
 
         /* Optional tag name */
         QString tag;
 
-        /* Optional class name */
-        QString className;
+        /* Required class names */
+        QSet<QString> classNames;
 
-        /* Required attributes */
+        /* Attributes that must equal a specific value */
         QHash<QString, QString> attributes;
+
+        /* Attributes that only need to be present */
+        QSet<QString> presentAttributes;
+
+        /* True if the element must be its parent's first element child */
+        bool firstChild{false};
+    };
+
+    /**
+     * @brief One CSS declaration in source order.
+     */
+    struct CssDeclaration
+    {
+        /* Lowercase CSS property name */
+        QString property;
+
+        /* Trimmed CSS property value */
+        QString value;
     };
 
     /**
@@ -63,8 +92,8 @@ public:
         /* The selector parts, ordered from ancestor to target */
         QList<CssSelectorPart> selector;
 
-        /* The CSS declarations */
-        QHash<QString, QString> declarations;
+        /* The CSS declarations in source order */
+        QList<CssDeclaration> declarations;
 
         /* True if this rule applies to ::before content */
         bool before{false};
@@ -83,6 +112,12 @@ public:
     {
         /* The parsed CSS rules */
         QList<CssRule> rules;
+
+        /* Rule indexes whose target selector has no tag restriction */
+        QList<qsizetype> universalRuleIndexes;
+
+        /* Ordered candidate rule indexes for each target tag */
+        QHash<QString, QList<qsizetype>> ruleIndexesByTargetTag;
     };
 
     /**
@@ -100,6 +135,16 @@ public:
      */
     [[nodiscard]]
     const ParsedStylesheet &parsedStylesheet() const noexcept;
+
+    /**
+     * @brief Get ordered CSS rule candidates for an element tag.
+     *
+     * @param tag The original structured element tag.
+     * @return Rule indexes that can match the target tag.
+     */
+    [[nodiscard]]
+    const QList<qsizetype> &candidateRuleIndexes(
+        const QString &tag) const noexcept;
 
 private:
     /**
@@ -126,17 +171,17 @@ private:
         int &specificity);
 
     /**
-     * @brief Parse CSS declarations into a declaration map.
+     * @brief Parse CSS declarations into a declaration list.
      *
      * @param body The CSS declaration body.
-     * @return The parsed declaration map.
+     * @return The parsed declarations in source order.
      */
     [[nodiscard]]
-    static QHash<QString, QString> parseCssDeclarations(const QString &body);
+    static QList<CssDeclaration> parseCssDeclarations(const QString &body);
 
     /* Raw content of the CSS stylesheet */
     const QString m_stylesheet;
 
-    /* The parse stylesheet */
+    /* The parsed stylesheet */
     const ParsedStylesheet m_parsedStylesheet{};
 };

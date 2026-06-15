@@ -38,6 +38,16 @@ DictionaryStyles::parsedStylesheet() const noexcept
     return m_parsedStylesheet;
 }
 
+const QList<qsizetype> &DictionaryStyles::candidateRuleIndexes(
+    const QString &tag) const noexcept
+{
+    const auto rules =
+        m_parsedStylesheet.ruleIndexesByTargetTag.constFind(tag);
+    return rules == m_parsedStylesheet.ruleIndexesByTargetTag.cend() ?
+        m_parsedStylesheet.universalRuleIndexes :
+        rules.value();
+}
+
 DictionaryStyles::ParsedStylesheet DictionaryStyles::parseStylesheet(
     const QString &css)
 {
@@ -69,75 +79,93 @@ DictionaryStyles::ParsedStylesheet DictionaryStyles::parseStylesheet(
     int order = 0;
 
     const auto findMatchingBrace =
-        [] (const QString &str, qsizetype open) -> qsizetype
+    [] (const QString &str, qsizetype open) -> qsizetype
+    {
+        qsizetype depth = 1;
+        for (qsizetype i = open + 1; i < str.size(); ++i)
         {
-            qsizetype depth = 1;
-            for (qsizetype i = open + 1; i < str.size(); ++i)
+            if (str[i] == '{')
             {
-                if (str[i] == '{')
-                {
-                    ++depth;
-                }
-                else if (str[i] == '}' && --depth == 0)
-                {
-                    return i;
-                }
+                ++depth;
             }
-            return -1;
-        };
+            else if (str[i] == '}' && --depth == 0)
+            {
+                return i;
+            }
+        }
+        return -1;
+    };
+
+    /* Finds the end of a top-level CSS at-rule without parsing its body */
+    const auto skipAtRule =
+    [&findMatchingBrace] (const QString &str, qsizetype start) -> qsizetype
+    {
+        const qsizetype semicolon = str.indexOf(';', start);
+        const qsizetype brace = str.indexOf('{', start);
+        if (brace >= 0 && (semicolon < 0 || brace < semicolon))
+        {
+            const qsizetype close = findMatchingBrace(str, brace);
+            return close < 0 ? str.size() : close;
+        }
+        if (semicolon >= 0)
+        {
+            return semicolon;
+        }
+        return str.size();
+    };
 
     const auto splitSelectors =
-        [] (const QString &selector) -> QStringList
-        {
-            QStringList selectors;
-            QString current;
-            bool inQuote = false;
-            QChar quote;
-            int bracketDepth = 0;
+    [] (const QString &selector) -> QStringList
+    {
+        QStringList selectors;
+        QString current;
+        bool inQuote = false;
+        QChar quote;
+        int bracketDepth = 0;
 
-            for (const QChar ch : selector)
+        for (const QChar ch : selector)
+        {
+            if (inQuote)
             {
-                if (inQuote)
+                current += ch;
+                if (ch == quote)
                 {
-                    current += ch;
-                    if (ch == quote)
-                    {
-                        inQuote = false;
-                    }
-                }
-                else if (ch == '"' || ch == '\'')
-                {
-                    inQuote = true;
-                    quote = ch;
-                    current += ch;
-                }
-                else if (ch == '[')
-                {
-                    ++bracketDepth;
-                    current += ch;
-                }
-                else if (ch == ']')
-                {
-                    --bracketDepth;
-                    current += ch;
-                }
-                else if (ch == ',' && bracketDepth == 0)
-                {
-                    selectors.emplaceBack(current.trimmed());
-                    current.clear();
-                }
-                else
-                {
-                    current += ch;
+                    inQuote = false;
                 }
             }
-
-            if (!current.trimmed().isEmpty())
+            else if (ch == '"' || ch == '\'')
+            {
+                inQuote = true;
+                quote = ch;
+                current += ch;
+            }
+            else if (ch == '[')
+            {
+                ++bracketDepth;
+                current += ch;
+            }
+            else if (ch == ']')
+            {
+                --bracketDepth;
+                current += ch;
+            }
+            else if (ch == ',' && bracketDepth == 0)
             {
                 selectors.emplaceBack(current.trimmed());
+                current.clear();
             }
-            return selectors;
-        };
+            else
+            {
+                current += ch;
+            }
+        }
+
+        if (!current.trimmed().isEmpty())
+        {
+            selectors.emplaceBack(current.trimmed());
+        }
+        return selectors;
+    };
 
     std::function<void(const QStringList &, const QString &)> parseBody =
     [&] (const QStringList &selectors, const QString &body)
@@ -188,7 +216,7 @@ DictionaryStyles::ParsedStylesheet DictionaryStyles::parseStylesheet(
         }
 
         declarationsText += body.sliced(last);
-        const QHash<QString, QString> declarations =
+        const QList<CssDeclaration> declarations =
             parseCssDeclarations(declarationsText);
         if (declarations.isEmpty())
         {
@@ -221,15 +249,17 @@ DictionaryStyles::ParsedStylesheet DictionaryStyles::parseStylesheet(
 
     for (qsizetype i = 0; i < source.size(); ++i)
     {
+        while (i < source.size() && source[i].isSpace())
+        {
+            ++i;
+        }
+        if (i >= source.size())
+        {
+            break;
+        }
         if (source[i] == '@')
         {
-            const qsizetype brace = source.indexOf('{', i);
-            if (brace < 0)
-            {
-                break;
-            }
-            const qsizetype close = findMatchingBrace(source, brace);
-            i = close < 0 ? source.size() : close;
+            i = skipAtRule(source, i);
             continue;
         }
 
@@ -264,7 +294,43 @@ DictionaryStyles::ParsedStylesheet DictionaryStyles::parseStylesheet(
         }
     );
 
-    return ParsedStylesheet{rules};
+    ParsedStylesheet parsed;
+    parsed.rules = std::move(rules);
+
+    QSet<QString> targetTags;
+    for (qsizetype i = 0; i < parsed.rules.size(); ++i)
+    {
+        const CssRule &rule = parsed.rules[i];
+        const QString targetTag =
+            rule.selector.isEmpty() ? "" : rule.selector.back().tag;
+        if (targetTag.isEmpty())
+        {
+            parsed.universalRuleIndexes.emplaceBack(i);
+        }
+        else
+        {
+            targetTags.insert(targetTag);
+        }
+    }
+
+    for (const QString &tag : targetTags)
+    {
+        QList<qsizetype> &indexes =
+            parsed.ruleIndexesByTargetTag[tag];
+        indexes.reserve(parsed.rules.size());
+        for (qsizetype i = 0; i < parsed.rules.size(); ++i)
+        {
+            const CssRule &rule = parsed.rules[i];
+            const QString targetTag =
+                rule.selector.isEmpty() ? "" : rule.selector.back().tag;
+            if (targetTag.isEmpty() || targetTag == tag)
+            {
+                indexes.emplaceBack(i);
+            }
+        }
+    }
+
+    return parsed;
 }
 
 QList<DictionaryStyles::CssSelectorPart> DictionaryStyles::parseCssSelector(
@@ -281,18 +347,26 @@ QList<DictionaryStyles::CssSelectorPart> DictionaryStyles::parseCssSelector(
         before = true;
         normalized.replace("::before", "");
     }
-    if (normalized.contains(':'))
-    {
-        return {};
-    }
 
     QList<QString> rawParts;
-    QList<bool> directParents;
+    QList<CssCombinator> combinators;
     QString current;
-    bool directParent = false;
+    CssCombinator combinator = CssCombinator::Descendant;
     bool inQuote = false;
     QChar quote;
     int bracketDepth = 0;
+
+    const auto flushPart = [&] ()
+    {
+        if (current.trimmed().isEmpty())
+        {
+            return;
+        }
+        rawParts.emplaceBack(current.trimmed());
+        combinators.emplaceBack(combinator);
+        current.clear();
+        combinator = CssCombinator::Descendant;
+    };
 
     for (const QChar ch : normalized)
     {
@@ -322,22 +396,19 @@ QList<DictionaryStyles::CssSelectorPart> DictionaryStyles::parseCssSelector(
         }
         else if (ch == '>' && bracketDepth == 0)
         {
-            if (!current.trimmed().isEmpty())
-            {
-                rawParts.emplaceBack(current.trimmed());
-                directParents.emplaceBack(directParent);
-                current.clear();
-            }
-            directParent = true;
+            flushPart();
+            combinator = CssCombinator::Child;
+        }
+        else if (ch == '+' && bracketDepth == 0)
+        {
+            flushPart();
+            combinator = CssCombinator::AdjacentSibling;
         }
         else if (ch.isSpace() && bracketDepth == 0)
         {
             if (!current.trimmed().isEmpty())
             {
-                rawParts.emplaceBack(current.trimmed());
-                directParents.emplaceBack(directParent);
-                current.clear();
-                directParent = false;
+                flushPart();
             }
         }
         else
@@ -346,21 +417,28 @@ QList<DictionaryStyles::CssSelectorPart> DictionaryStyles::parseCssSelector(
         }
     }
 
-    if (!current.trimmed().isEmpty())
-    {
-        rawParts.emplaceBack(current.trimmed());
-        directParents.emplaceBack(directParent);
-    }
+    flushPart();
 
     QList<CssSelectorPart> parts;
     for (qsizetype i = 0; i < rawParts.size(); ++i)
     {
         CssSelectorPart part;
-        part.directParent = directParents[i];
+        part.combinator = combinators[i];
         QString raw = rawParts[i];
 
-        const qsizetype classIndex = raw.indexOf('.');
-        if (classIndex >= 0)
+        if (raw.contains(":first-child"))
+        {
+            part.firstChild = true;
+            raw.replace(":first-child", "");
+            specificity += 10;
+        }
+        if (raw.contains(':'))
+        {
+            return {};
+        }
+
+        qsizetype classIndex = raw.indexOf('.');
+        while (classIndex >= 0)
         {
             qsizetype end = classIndex + 1;
             while (end < raw.size() &&
@@ -369,9 +447,16 @@ QList<DictionaryStyles::CssSelectorPart> DictionaryStyles::parseCssSelector(
             {
                 ++end;
             }
-            part.className = raw.sliced(classIndex + 1, end - classIndex - 1);
+            if (end == classIndex + 1)
+            {
+                return {};
+            }
+            part.classNames.insert(
+                raw.sliced(classIndex + 1, end - classIndex - 1)
+            );
             raw.remove(classIndex, end - classIndex);
             specificity += 10;
+            classIndex = raw.indexOf('.', classIndex);
         }
 
         qsizetype attrIndex = raw.indexOf('[');
@@ -390,18 +475,28 @@ QList<DictionaryStyles::CssSelectorPart> DictionaryStyles::parseCssSelector(
             const qsizetype equal = attr.indexOf('=');
             if (equal < 0)
             {
-                return {};
+                if (attr.isEmpty())
+                {
+                    return {};
+                }
+                part.presentAttributes.insert(attr);
             }
-
-            QString name = attr.first(equal).trimmed();
-            QString value = attr.sliced(equal + 1).trimmed();
-            if (value.size() >= 2 &&
-                ((value.front() == '"' && value.back() == '"') ||
-                 (value.front() == '\'' && value.back() == '\'')))
+            else
             {
-                value = value.sliced(1, value.size() - 2);
+                QString name = attr.first(equal).trimmed();
+                QString value = attr.sliced(equal + 1).trimmed();
+                if (name.isEmpty())
+                {
+                    return {};
+                }
+                if (value.size() >= 2 &&
+                    ((value.front() == '"' && value.back() == '"') ||
+                     (value.front() == '\'' && value.back() == '\'')))
+                {
+                    value = value.sliced(1, value.size() - 2);
+                }
+                part.attributes[name] = value;
             }
-            part.attributes[name] = value;
             raw.remove(attrIndex, attrEnd - attrIndex + 1);
             attrIndex = raw.indexOf('[', attrIndex);
             specificity += 10;
@@ -419,10 +514,10 @@ QList<DictionaryStyles::CssSelectorPart> DictionaryStyles::parseCssSelector(
     return parts;
 }
 
-QHash<QString, QString> DictionaryStyles::parseCssDeclarations(
+QList<DictionaryStyles::CssDeclaration> DictionaryStyles::parseCssDeclarations(
     const QString &body)
 {
-    QHash<QString, QString> declarations;
+    QList<CssDeclaration> declarations;
     QString property;
     QString value;
     bool inProperty = true;
@@ -450,7 +545,7 @@ QHash<QString, QString> DictionaryStyles::parseCssDeclarations(
             cssValue = cssValue.sliced(1, cssValue.size() - 2);
         }
 
-        declarations[name] = cssValue;
+        declarations.emplaceBack(CssDeclaration{name, cssValue});
         property.clear();
         value.clear();
         inProperty = true;

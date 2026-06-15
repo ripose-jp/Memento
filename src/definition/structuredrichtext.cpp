@@ -26,6 +26,7 @@
 
 #include <QGuiApplication>
 #include <QJsonObject>
+#include <QLocale>
 #include <QQuickWindow>
 #include <QSet>
 #include <QStringList>
@@ -33,6 +34,311 @@
 
 #include "util/utils.h"
 
+/* Begin Local Functions */
+
+namespace
+{
+
+/* Number of physical sides represented by CSS box arrays */
+constexpr std::size_t BOX_SIDE_COUNT = 4;
+
+/* Array index for the top side of a CSS box */
+constexpr std::size_t TOP_SIDE = 0;
+
+/* Array index for the right side of a CSS box */
+constexpr std::size_t RIGHT_SIDE = 1;
+
+/* Array index for the bottom side of a CSS box */
+constexpr std::size_t BOTTOM_SIDE = 2;
+
+/* Array index for the left side of a CSS box */
+constexpr std::size_t LEFT_SIDE = 3;
+
+/* Alpha channel value representing a fully opaque QColor */
+constexpr int OPAQUE_ALPHA = 255;
+
+/* Smallest pixel value treated as visible by compatibility rendering */
+constexpr double MINIMUM_VISIBLE_PIXELS = 0.001;
+
+/* Pixel width used for the CSS thin border keyword */
+constexpr double THIN_BORDER_WIDTH_PIXELS = 1.0;
+
+/* Pixel width used for an unspecified solid border and CSS medium */
+constexpr double DEFAULT_BORDER_WIDTH_PIXELS = 3.0;
+
+/* Pixel width used for the CSS thick border keyword */
+constexpr double THICK_BORDER_WIDTH_PIXELS = 5.0;
+
+/* Initial selector-node capacity for a structured-content render */
+constexpr qsizetype SELECTOR_ARENA_RESERVE = 128;
+
+/* Initial ancestor-stack capacity for selector matching */
+constexpr qsizetype ELEMENT_STACK_RESERVE = 32;
+
+/* Initial sibling-state stack capacity for margin collapsing */
+constexpr qsizetype SIBLING_STACK_RESERVE = 32;
+
+/* Initial nested-list stack capacity */
+constexpr qsizetype LIST_STACK_RESERVE = 8;
+
+/* Initial capacity for resolved CSS values cached during a render */
+constexpr qsizetype CSS_VALUE_CACHE_RESERVE = 64;
+
+/* Initial character capacity for generated rich-text HTML */
+constexpr qsizetype OUTPUT_RESERVE = 4096;
+
+/* CSS side names in top, right, bottom, left order */
+constexpr std::array<const char *, BOX_SIDE_COUNT> SIDE_NAMES = {
+    "top",
+    "right",
+    "bottom",
+    "left"
+};
+
+/* Longhand padding properties in CSS box-side order */
+constexpr std::array<const char *, BOX_SIDE_COUNT> PADDING_PROPERTIES = {
+    "padding-top",
+    "padding-right",
+    "padding-bottom",
+    "padding-left"
+};
+
+/* Longhand margin properties in CSS box-side order */
+constexpr std::array<const char *, BOX_SIDE_COUNT> MARGIN_PROPERTIES = {
+    "margin-top",
+    "margin-right",
+    "margin-bottom",
+    "margin-left"
+};
+
+/**
+ * @brief Components parsed from a CSS border shorthand.
+ */
+struct ParsedBorder
+{
+    /* Border width token */
+    QString width;
+
+    /* Border style token */
+    QString style;
+
+    /* Border color token */
+    QString color;
+};
+
+/**
+ * @brief Split a CSS value into whitespace-delimited top-level tokens.
+ *
+ * Whitespace inside quoted strings and function parentheses is preserved.
+ *
+ * @param value The CSS value to tokenize.
+ * @return The top-level CSS tokens in source order.
+ */
+QStringList splitCssTokens(const QString &value)
+{
+    QStringList tokens;
+    QString current;
+    QChar quote;
+    bool inQuote = false;
+    int parenthesisDepth = 0;
+
+    for (const QChar ch : value.trimmed())
+    {
+        if (inQuote)
+        {
+            current += ch;
+            if (ch == quote)
+            {
+                inQuote = false;
+            }
+        }
+        else if (ch == '"' || ch == '\'')
+        {
+            inQuote = true;
+            quote = ch;
+            current += ch;
+        }
+        else if (ch == '(')
+        {
+            ++parenthesisDepth;
+            current += ch;
+        }
+        else if (ch == ')')
+        {
+            --parenthesisDepth;
+            current += ch;
+        }
+        else if (ch.isSpace() && parenthesisDepth == 0)
+        {
+            if (!current.isEmpty())
+            {
+                tokens.emplaceBack(std::move(current));
+                current.clear();
+            }
+        }
+        else
+        {
+            current += ch;
+        }
+    }
+    if (!current.isEmpty())
+    {
+        tokens.emplaceBack(std::move(current));
+    }
+    return tokens;
+}
+
+/**
+ * @brief Parse supported components from a CSS border shorthand.
+ *
+ * @param value The border shorthand value.
+ * @return The discovered width, style, and color tokens.
+ */
+ParsedBorder parseBorderShorthand(const QString &value)
+{
+    /* CSS border styles recognized while classifying shorthand tokens */
+    static const QSet<QString> BORDER_STYLES = {
+        "none",
+        "hidden",
+        "dotted",
+        "dashed",
+        "solid",
+        "double",
+        "groove",
+        "ridge",
+        "inset",
+        "outset"
+    };
+
+    ParsedBorder border;
+    QStringList colorTokens;
+    for (const QString &token : splitCssTokens(value))
+    {
+        const QString normalized = token.toLower();
+        if (BORDER_STYLES.contains(normalized))
+        {
+            border.style = normalized;
+        }
+        else if (normalized == "thin" ||
+                 normalized == "medium" ||
+                 normalized == "thick" ||
+                 normalized.front().isDigit() ||
+                 normalized.front() == '.' ||
+                 normalized.front() == '+' ||
+                 normalized.front() == '-')
+        {
+            border.width = token;
+        }
+        else
+        {
+            colorTokens.emplaceBack(token);
+        }
+    }
+    border.color = colorTokens.join(' ');
+    return border;
+}
+
+/**
+ * @brief Composite a foreground color over a background color.
+ *
+ * @param foreground The color painted over the background.
+ * @param background The existing painted color.
+ * @return The resulting premultiplied color, or an invalid color if clear.
+ */
+QColor compositeColor(const QColor &foreground, const QColor &background)
+{
+    const double foregroundAlpha = foreground.alphaF();
+    const double backgroundAlpha = background.alphaF();
+    const double outputAlpha =
+        foregroundAlpha + backgroundAlpha * (1.0 - foregroundAlpha);
+    if (outputAlpha <= 0.0)
+    {
+        return {};
+    }
+
+    return QColor::fromRgbF(
+        (
+            foreground.redF() * foregroundAlpha +
+            background.redF() * backgroundAlpha *
+                (1.0 - foregroundAlpha)
+        ) / outputAlpha,
+        (
+            foreground.greenF() * foregroundAlpha +
+            background.greenF() * backgroundAlpha *
+                (1.0 - foregroundAlpha)
+        ) / outputAlpha,
+        (
+            foreground.blueF() * foregroundAlpha +
+            background.blueF() * backgroundAlpha *
+                (1.0 - foregroundAlpha)
+        ) / outputAlpha,
+        outputAlpha
+    );
+}
+
+/**
+ * @brief Parse a CSS color supported by the compatibility renderer.
+ *
+ * QColor handles named and hexadecimal colors. This helper additionally
+ * accepts comma-separated rgb() and rgba() values used by dictionaries.
+ *
+ * @param value The CSS color value.
+ * @return The parsed color, or an invalid color when unsupported.
+ */
+QColor parseCssColor(const QString &value)
+{
+    QColor color = QColor::fromString(value.trimmed());
+    if (color.isValid())
+    {
+        return color;
+    }
+
+    /* Pattern for comma-separated integer RGB channels and decimal alpha */
+    static const QRegularExpression RGB_COLOR{
+        R"(^rgba?\(\s*([+-]?\d+(?:\.\d+)?)\s*,\s*)"
+        R"(([+-]?\d+(?:\.\d+)?)\s*,\s*)"
+        R"(([+-]?\d+(?:\.\d+)?)\s*)"
+        R"((?:,\s*([+-]?\d+(?:\.\d+)?)\s*)?\)$)",
+        QRegularExpression::CaseInsensitiveOption
+    };
+    const QRegularExpressionMatch match =
+        RGB_COLOR.match(value.trimmed());
+    if (!match.hasMatch())
+    {
+        return {};
+    }
+
+    /* Maximum numeric value of an RGB color channel */
+    constexpr double COLOR_CHANNEL_MAXIMUM = 255.0;
+    const double red = std::clamp(
+        match.captured(1).toDouble(),
+        0.0,
+        COLOR_CHANNEL_MAXIMUM
+    );
+    const double green = std::clamp(
+        match.captured(2).toDouble(),
+        0.0,
+        COLOR_CHANNEL_MAXIMUM
+    );
+    const double blue = std::clamp(
+        match.captured(3).toDouble(),
+        0.0,
+        COLOR_CHANNEL_MAXIMUM
+    );
+    const double alpha = match.captured(4).isEmpty() ?
+        1.0 :
+        std::clamp(match.captured(4).toDouble(), 0.0, 1.0);
+    return QColor::fromRgbF(
+        red / COLOR_CHANNEL_MAXIMUM,
+        green / COLOR_CHANNEL_MAXIMUM,
+        blue / COLOR_CHANNEL_MAXIMUM,
+        alpha
+    );
+}
+
+}
+
+/* End Local Functions */
 /* Begin Constructor/Destructor */
 
 StructuredRichText::StructuredRichText(QObject *parent) : QObject(parent)
@@ -54,14 +360,15 @@ QString StructuredRichText::parse(
     Setting::GlossaryStyle style,
     const QQuickItem *item,
     const QFont &font,
-    const QColor &color) const
-
+    const QColor &color,
+    const QColor &backgroundColor) const
 {
     if (info == nullptr)
     {
         return "";
     }
 
+    /* JSON keys and discriminator values for top-level glossary entries */
     constexpr const char *KEY_TYPE = "type";
     constexpr const char *KEY_CONTENT = "content";
     constexpr const char *VALUE_TYPE_IMAGE = "image";
@@ -76,12 +383,34 @@ QString StructuredRichText::parse(
         ctx.screen = item->window()->screen();
     }
     ctx.font = font;
+    ctx.dictionaryStyles = info->styles();
+
     ctx.rootFontPixelSize = fontPixelSize(font, ctx.screen);
     ctx.parentFontPixelSize = ctx.rootFontPixelSize;
     if (color.isValid())
     {
-        ctx.textColor = color.name(QColor::HexArgb);
+        ctx.glossaryTextColor = color.name(
+            color.alpha() == OPAQUE_ALPHA ?
+                QColor::HexRgb :
+                QColor::HexArgb
+        );
+        ctx.textColor = ctx.glossaryTextColor;
     }
+    if (backgroundColor.isValid())
+    {
+        ctx.glossaryBackgroundColor = backgroundColor.name(
+            backgroundColor.alpha() == OPAQUE_ALPHA ?
+                QColor::HexRgb :
+                QColor::HexArgb
+        );
+        ctx.backgroundColor = ctx.glossaryBackgroundColor;
+    }
+    ctx.paintedBackgroundColor = ctx.backgroundColor;
+    ctx.selectorElements.reserve(SELECTOR_ARENA_RESERVE);
+    ctx.elements.reserve(ELEMENT_STACK_RESERVE);
+    ctx.siblings.reserve(SIBLING_STACK_RESERVE);
+    ctx.lists.reserve(LIST_STACK_RESERVE);
+    ctx.resolvedCssValues.reserve(CSS_VALUE_CACHE_RESERVE);
     ctx.basepath = DirectoryUtils::getDictionaryResourceDir();
 #if defined(Q_OS_WIN)
     ctx.basepath.prepend('/');
@@ -91,15 +420,16 @@ QString StructuredRichText::parse(
     ctx.basepath += '/';
     ctx.basepath += info->name();
     ctx.basepath += '/';
-    ctx.dictionaryStyles = info->styles();
 
     const bool containsSc = containsStructuredContent(content);
     const bool shouldUseBullets =
         style == Setting::GlossaryStyleBullet && !containsSc;
 
-    QString glossary = "<html><head></head><body>";
+    QString glossary;
+    glossary.reserve(OUTPUT_RESERVE);
+    glossary = "<html><head></head><body>";
 
-    List fallbackList{"ul", "disc"};
+    StructuredList fallbackList{"ul", "disc"};
 
     for (qsizetype i = 0; i < content.size(); ++i)
     {
@@ -107,13 +437,12 @@ QString StructuredRichText::parse(
 
         if (shouldUseBullets)
         {
+            /* Marker-to-content gap relative to the inherited font size */
             constexpr double RELATIVE_INDENT_FACTOR = 0.35;
 
             ++fallbackList.item;
             glossary += "<table "
-                "border=\"0\" "
                 "cellspacing=\"0\" "
-                "cellpadding=\"0\" "
                 "width=\"100%\">"
                     "<tr><td "
                     "style=\""
@@ -140,7 +469,7 @@ QString StructuredRichText::parse(
                 QJsonObject obj = val.toObject();
                 if (obj[KEY_TYPE] == VALUE_TYPE_STRUCTURED_CONTENT)
                 {
-                    addStructuredContent(obj[KEY_CONTENT], ctx, glossary);
+                    addStructuredChildren(obj[KEY_CONTENT], ctx, glossary);
                 }
                 else if (obj[KEY_TYPE] == VALUE_TYPE_IMAGE)
                 {
@@ -205,373 +534,132 @@ void StructuredRichText::addStructuredData(
     }
 }
 
-double StructuredRichText::addStructuredStyle(
+void StructuredRichText::addStructuredStyle(
     const QJsonObject &obj,
     StructuredRichText::Context &ctx,
-    QString &out) const
+    StructuredRichText::ElementRenderState &state) const
 {
-    constexpr const char *KEY_FONT_STYLE = "fontStyle";
-    constexpr const char *KEY_FONT_WEIGHT = "fontWeight";
+    /* Structured style key that changes the inherited font size */
     constexpr const char *KEY_FONT_SIZE = "fontSize";
-    constexpr const char *KEY_COLOR = "color";
-    constexpr const char *KEY_BACKGROUND = "background";
-    constexpr const char *KEY_BACKGROUND_COLOR = "backgroundColor";
-    constexpr const char *KEY_TEXT_DECORATION_LINE = "textDecorationLine";
-    constexpr const char *KEY_TEXT_DECORATION_STYLE = "textDecorationStyle";
-    constexpr const char *KEY_TEXT_DECORATION_COLOR = "textDecorationColor";
-    constexpr const char *KEY_BORDER_COLOR = "borderColor";
-    constexpr const char *KEY_BORDER_STYLE = "borderStyle";
-    constexpr const char *KEY_BORDER_RADIUS = "borderRadius";
-    constexpr const char *KEY_BORDER_WIDTH = "borderWidth";
-    constexpr const char *KEY_CLIP_PATH = "clipPath";
-    constexpr const char *KEY_VERTICAL_ALIGN = "verticalAlign";
-    constexpr const char *KEY_TEXT_ALIGN = "textAlign";
-    constexpr const char *KEY_TEXT_EMPHASIS = "textEmphasis";
-    constexpr const char *KEY_TEXT_SHADOW = "textShadow";
-    constexpr const char *KEY_MARGIN = "margin";
-    constexpr const char *KEY_MARGIN_TOP = "marginTop";
-    constexpr const char *KEY_MARGIN_LEFT = "marginLeft";
-    constexpr const char *KEY_MARGIN_RIGHT = "marginRight";
-    constexpr const char *KEY_MARGIN_BOTTOM = "marginBottom";
-    constexpr const char *KEY_PADDING = "padding";
-    constexpr const char *KEY_PADDING_TOP = "paddingTop";
-    constexpr const char *KEY_PADDING_LEFT = "paddingLeft";
-    constexpr const char *KEY_PADDING_RIGHT = "paddingRight";
-    constexpr const char *KEY_PADDING_BOTTOM = "paddingBottom";
-    constexpr const char *KEY_WORD_BREAK = "wordBreak";
-    constexpr const char *KEY_WHITE_SPACE = "whiteSpace";
-    constexpr const char *KEY_CURSOR = "cursor";
-    constexpr const char *KEY_LIST_STYLE_TYPE = "listStyleType";
 
-    constexpr const char QUOTE_SEARCH = '"';
-    constexpr const char QUOTE_ESCAPE = '\'';
-
-    double currentFontPixelSize = ctx.parentFontPixelSize;
-
-    if (obj[KEY_FONT_STYLE].isString())
+    const auto addString = [&obj, &ctx, &state, this]
+    (const char *jsonKey, const char *cssProperty)
     {
-        out += "font-style: ";
-        out += obj[KEY_FONT_STYLE].toString("normal")
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_FONT_WEIGHT].isString())
+        if (obj[jsonKey].isString())
+        {
+            addResolvedCssDeclaration(
+                cssProperty,
+                obj[jsonKey].toString(),
+                ctx,
+                state.declarations
+            );
+        }
+    };
+    const auto addSpacing = [&obj, &ctx, &state, this]
+    (const char *jsonKey, const char *cssProperty)
     {
-        out += "font-weight: ";
-        out += obj[KEY_FONT_WEIGHT].toString("normal")
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
+        if (obj[jsonKey].isString())
+        {
+            addResolvedCssDeclaration(
+                cssProperty,
+                obj[jsonKey].toString(),
+                ctx,
+                state.declarations
+            );
+        }
+        else if (obj[jsonKey].isDouble())
+        {
+            addResolvedCssDeclaration(
+                cssProperty,
+                QString::number(obj[jsonKey].toDouble()) + "em",
+                ctx,
+                state.declarations
+            );
+        }
+    };
 
+    addString("fontStyle", "font-style");
+    addString("fontWeight", "font-weight");
     if (obj[KEY_FONT_SIZE].isString())
     {
-        const QString fontSize = obj[KEY_FONT_SIZE].toString("medium")
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        const double fontPixelSize = cssFontSizeToPixels(
-            fontSize,
-            ctx.screen,
-            ctx.parentFontPixelSize,
-            ctx.rootFontPixelSize
+        const QString fontSize =
+            resolveCssValue(obj[KEY_FONT_SIZE].toString(), ctx);
+        if (!fontSize.isEmpty())
+        {
+            const double pixels = cssFontSizeToPixels(
+                fontSize,
+                ctx.screen,
+                ctx.parentFontPixelSize,
+                ctx.rootFontPixelSize
+            );
+            if (pixels >= 0.0)
+            {
+                state.fontPixelSize = pixels;
+                addCssDeclaration(
+                    "font-size",
+                    formatPixelSize(pixels) + "px",
+                    state.declarations
+                );
+            }
+            else
+            {
+                addCssDeclaration("font-size", fontSize, state.declarations);
+            }
+        }
+    }
+
+    addString("color", "color");
+    addString("background", "background");
+    addString("backgroundColor", "background-color");
+    if (obj["textDecorationLine"].isArray())
+    {
+        QStringList lines;
+        const QJsonArray values =
+            obj["textDecorationLine"].toArray();
+        lines.reserve(values.size());
+        for (const QJsonValue &value : values)
+        {
+            if (value.isString())
+            {
+                lines.emplaceBack(value.toString());
+            }
+        }
+        addResolvedCssDeclaration(
+            "text-decoration-line",
+            lines.join(' '),
+            ctx,
+            state.declarations
         );
-
-        out += "font-size: ";
-        if (fontPixelSize >= 0)
-        {
-            currentFontPixelSize = fontPixelSize;
-            out += formatPixelSize(fontPixelSize);
-            out += "px";
-        }
-        else
-        {
-            out += fontSize;
-        }
-        out += ';';
     }
-
-    if (obj[KEY_COLOR].isString())
+    else
     {
-        out += "color: ";
-        out += obj[KEY_COLOR].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
+        addString("textDecorationLine", "text-decoration-line");
     }
-
-    if (obj[KEY_BACKGROUND].isString())
-    {
-        out += "background: ";
-        out += obj[KEY_BACKGROUND].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_BACKGROUND_COLOR].isString())
-    {
-        out += "background-color: ";
-        out += obj[KEY_BACKGROUND_COLOR].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_TEXT_DECORATION_LINE].isArray())
-    {
-        out += "text-decoration-line: ";
-        for (const QJsonValue &val : obj[KEY_TEXT_DECORATION_LINE].toArray())
-        {
-            out += val.toString("none")
-                .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-            out += ' ';
-        }
-        out += ';';
-    }
-    else if (obj[KEY_TEXT_DECORATION_LINE].isString())
-    {
-        out += "text-decoration-line: ";
-        out += obj[KEY_TEXT_DECORATION_LINE].toString("none")
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_TEXT_DECORATION_STYLE].isString())
-    {
-        out += "text-decoration-style: ";
-        out += obj[KEY_TEXT_DECORATION_STYLE].toString("solid")
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_TEXT_DECORATION_COLOR].isString())
-    {
-        out += "text-decoration-color: ";
-        out += obj[KEY_TEXT_DECORATION_COLOR].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_BORDER_COLOR].isString())
-    {
-        out += "border-color: ";
-        out += obj[KEY_BORDER_COLOR].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_BORDER_STYLE].isString())
-    {
-        out += "border-style: ";
-        out += obj[KEY_BORDER_STYLE].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_BORDER_RADIUS].isString())
-    {
-        out += "border-radius: ";
-        out += obj[KEY_BORDER_RADIUS].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_BORDER_WIDTH].isString())
-    {
-        out += "border-width: ";
-        out += obj[KEY_BORDER_WIDTH].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_CLIP_PATH].isString())
-    {
-        out += "clip-path: ";
-        out += obj[KEY_CLIP_PATH].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_VERTICAL_ALIGN].isString())
-    {
-        out += "vertical-align: ";
-        out += obj[KEY_VERTICAL_ALIGN].toString("baseline")
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_TEXT_ALIGN].isString())
-    {
-        out += "text-align: ";
-        out += obj[KEY_TEXT_ALIGN].toString("start")
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_TEXT_EMPHASIS].isString())
-    {
-        out += "text-emphasis: ";
-        out += obj[KEY_TEXT_EMPHASIS].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_TEXT_SHADOW].isString())
-    {
-        out += "text-shadow: ";
-        out += obj[KEY_TEXT_SHADOW].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_MARGIN].isString())
-    {
-        out += "margin: ";
-        out += obj[KEY_MARGIN].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_MARGIN_TOP].isString())
-    {
-        out += "margin-top: ";
-        out += obj[KEY_MARGIN_TOP].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-    else if (obj[KEY_MARGIN_TOP].isDouble())
-    {
-        out += "margin-top: ";
-        out += QString::number(obj[KEY_MARGIN_TOP].toDouble(0));
-        out += "px;";
-    }
-
-    if (obj[KEY_MARGIN_LEFT].isString())
-    {
-        out += "margin-left: ";
-        out += obj[KEY_MARGIN_LEFT].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-    else if (obj[KEY_MARGIN_LEFT].isDouble())
-    {
-        out += "margin-left: ";
-        out += QString::number(obj[KEY_MARGIN_LEFT].toDouble(0));
-        out += "px;";
-    }
-
-    if (obj[KEY_MARGIN_RIGHT].isString())
-    {
-        out += "margin-right: ";
-        out += obj[KEY_MARGIN_RIGHT].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-    else if (obj[KEY_MARGIN_RIGHT].isDouble())
-    {
-        out += "margin-right: ";
-        out += QString::number(obj[KEY_MARGIN_RIGHT].toDouble(0));
-        out += "px;";
-    }
-
-    if (obj[KEY_MARGIN_BOTTOM].isString())
-    {
-        out += "margin-bottom: ";
-        out += obj[KEY_MARGIN_BOTTOM].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-    else if (obj[KEY_MARGIN_BOTTOM].isDouble())
-    {
-        out += "margin-bottom: ";
-        out += QString::number(obj[KEY_MARGIN_BOTTOM].toDouble(0));
-        out += "px;";
-    }
-
-    if (obj[KEY_PADDING].isString())
-    {
-        out += "padding: ";
-        out += obj[KEY_PADDING].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_PADDING_TOP].isString())
-    {
-        out += "padding-top: ";
-        out += obj[KEY_PADDING_TOP].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_PADDING_LEFT].isString())
-    {
-        out += "padding-left: ";
-        out += obj[KEY_PADDING_LEFT].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_PADDING_RIGHT].isString())
-    {
-        out += "padding-right: ";
-        out += obj[KEY_PADDING_RIGHT].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_PADDING_BOTTOM].isString())
-    {
-        out += "padding-bottom: ";
-        out += obj[KEY_PADDING_BOTTOM].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_WORD_BREAK].isString())
-    {
-        out += "word-break: ";
-        out += obj[KEY_WORD_BREAK].toString("normal")
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_WHITE_SPACE].isString())
-    {
-        out += "white-space: ";
-        out += obj[KEY_WHITE_SPACE].toString()
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_CURSOR].isString())
-    {
-        out += "cursor: ";
-        out += obj[KEY_CURSOR].toString("auto")
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    if (obj[KEY_LIST_STYLE_TYPE].isString())
-    {
-        out += "list-style-type: ";
-        out += obj[KEY_LIST_STYLE_TYPE].toString("disc")
-            .replace(QUOTE_SEARCH, QUOTE_ESCAPE);
-        out += ';';
-    }
-
-    return currentFontPixelSize;
-}
-
-double StructuredRichText::addStructuredStyle(
-    const QJsonObject &obj,
-    StructuredRichText::Context &ctx,
-    QHash<QString, QString> &declarations) const
-{
-    QString style;
-    const double currentFontPixelSize = addStructuredStyle(obj, ctx, style);
-    const QHash<QString, QString> parsed = parseCssDeclarations(style);
-    for (const auto &[key, value] : parsed.asKeyValueRange())
-    {
-        declarations[key] = value;
-    }
-    return currentFontPixelSize;
+    addString("textDecorationStyle", "text-decoration-style");
+    addString("textDecorationColor", "text-decoration-color");
+    addString("borderColor", "border-color");
+    addString("borderStyle", "border-style");
+    addString("borderRadius", "border-radius");
+    addString("borderWidth", "border-width");
+    addString("clipPath", "clip-path");
+    addString("verticalAlign", "vertical-align");
+    addString("textAlign", "text-align");
+    addString("textEmphasis", "text-emphasis");
+    addString("textShadow", "text-shadow");
+    addSpacing("margin", "margin");
+    addSpacing("marginTop", "margin-top");
+    addSpacing("marginRight", "margin-right");
+    addSpacing("marginBottom", "margin-bottom");
+    addSpacing("marginLeft", "margin-left");
+    addString("padding", "padding");
+    addString("paddingTop", "padding-top");
+    addString("paddingRight", "padding-right");
+    addString("paddingBottom", "padding-bottom");
+    addString("paddingLeft", "padding-left");
+    addString("wordBreak", "word-break");
+    addString("whiteSpace", "white-space");
+    addString("cursor", "cursor");
+    addString("listStyleType", "list-style-type");
 }
 
 void StructuredRichText::addStructuredContentHelper(
@@ -582,16 +670,19 @@ void StructuredRichText::addStructuredContentHelper(
 
 void StructuredRichText::addStructuredContentHelper(
     const QString &str,
-    const StructuredRichText::Context &ctx,
+    StructuredRichText::Context &ctx,
     QString &out) const
 {
+    flushPendingVerticalMargin(ctx, out);
+
     if (ctx.linkHref.isEmpty() && ctx.titleTooltip.isEmpty())
     {
         addStructuredContentHelper(str, out);
         return;
     }
 
-    const bool titleOnly = ctx.linkHref.isEmpty() && !ctx.titleTooltip.isEmpty();
+    const bool titleOnly =
+        ctx.linkHref.isEmpty() && !ctx.titleTooltip.isEmpty();
     const QString href = ctx.titleTooltip.isEmpty() ?
         ctx.linkHref :
         internalLinkHref(ctx.linkHref, ctx.titleTooltip, "", "title");
@@ -616,8 +707,8 @@ void StructuredRichText::addStructuredContentHelper(
     StructuredRichText::Context &ctx,
     QString &out) const
 {
+    /* Structured-content keys consumed by special element renderers */
     constexpr const char *KEY_ALT = "alt";
-    constexpr const char *KEY_APPEARANCE = "appearance";
     constexpr const char *KEY_BACKGROUND = "background";
     constexpr const char *KEY_BORDER = "border";
     constexpr const char *KEY_BORDER_RADIUS = "borderRadius";
@@ -635,8 +726,6 @@ void StructuredRichText::addStructuredContentHelper(
     constexpr const char *KEY_VERT_ALIGN = "verticalAlign";
     constexpr const char *KEY_WIDTH = "width";
 
-    constexpr const char *VALUE_RENDERING_MONOCHROME = "monochrome";
-
     QString tag = obj[KEY_TAG].toString();
     if (!isSupportedStructuredTag(tag))
     {
@@ -644,12 +733,16 @@ void StructuredRichText::addStructuredContentHelper(
     }
     else if (tag == "ruby")
     {
+        flushPendingVerticalMargin(ctx, out);
+        ctx.elements.emplaceBack(structuredElement(obj, ctx));
         addRuby(obj, ctx, out);
+        ctx.elements.removeLast();
     }
     else if (obj[KEY_TAG].toString() == "a" &&
         anchorNeedsTooltipHandling(obj, ctx))
     {
-        ctx.elements.emplaceBack(structuredElement(obj));
+        flushPendingVerticalMargin(ctx, out);
+        ctx.elements.emplaceBack(structuredElement(obj, ctx));
 
         const QString oldLinkHref = ctx.linkHref;
         const QString oldTitleTooltip = ctx.titleTooltip;
@@ -661,7 +754,7 @@ void StructuredRichText::addStructuredContentHelper(
         {
             ctx.titleTooltip = obj[KEY_TITLE].toString();
         }
-        addStructuredContent(obj[KEY_CONTENT], ctx, out);
+        addStructuredChildren(obj[KEY_CONTENT], ctx, out);
         ctx.titleTooltip = oldTitleTooltip;
         ctx.linkHref = oldLinkHref;
 
@@ -669,6 +762,8 @@ void StructuredRichText::addStructuredContentHelper(
     }
     else if (tag == "br")
     {
+        flushPendingVerticalMargin(ctx, out);
+        ctx.elements.emplaceBack(structuredElement(obj, ctx));
         out += '<';
         out += tag;
         if (obj[KEY_DATA].isObject())
@@ -676,10 +771,12 @@ void StructuredRichText::addStructuredContentHelper(
             addStructuredData(obj[KEY_DATA].toObject(), out);
         }
         out += '>';
+        ctx.elements.removeLast();
     }
     else if (tag == "img")
     {
-        ctx.elements.emplaceBack(structuredElement(obj));
+        flushPendingVerticalMargin(ctx, out);
+        ctx.elements.emplaceBack(structuredElement(obj, ctx));
 
         QString filename = escapeHtml(ctx.basepath + obj[KEY_PATH].toString());
 
@@ -756,7 +853,7 @@ void StructuredRichText::addStructuredContentHelper(
             out += '"';
         }
 
-        QHash<QString, QString> declarations;
+        CssDeclarations declarations;
         addMatchingCssRules(ctx, declarations);
 
         if (obj[KEY_RENDERING].isString())
@@ -772,13 +869,7 @@ void StructuredRichText::addStructuredContentHelper(
             addCssDeclaration("image-rendering", "pixelated", declarations);
         }
 
-        if (obj[KEY_APPEARANCE].toString("auto") == VALUE_RENDERING_MONOCHROME)
-        {
-            addCssDeclaration(
-                "background-color", "currentColor", declarations
-            );
-        }
-        else if (obj[KEY_BACKGROUND].toBool(true))
+        if (obj[KEY_BACKGROUND].toBool(true))
         {
             addCssDeclaration(
                 "background-color", "currentColor", declarations
@@ -812,9 +903,13 @@ void StructuredRichText::addStructuredContentHelper(
             );
         }
 
-        out += " style=\"";
-        addCssDeclarations(declarations, out);
-        out += "\">";
+        if (!declarations.isEmpty())
+        {
+            out += " style=\"";
+            addCssDeclarations(declarations, out);
+            out += '"';
+        }
+        out += '>';
 
         if (!imageTitle.isEmpty())
         {
@@ -829,41 +924,120 @@ void StructuredRichText::addStructuredContentHelper(
     }
 }
 
+void StructuredRichText::addStructuredChildren(
+    const QJsonValue &val,
+    StructuredRichText::Context &ctx,
+    QString &out) const
+{
+    ctx.siblings.emplaceBack();
+    addStructuredContent(val, ctx, out);
+    flushPendingVerticalMargin(ctx, out);
+    ctx.siblings.removeLast();
+}
+
 void StructuredRichText::addStructuredElement(
     const QJsonObject &obj,
     const QString &tag,
     StructuredRichText::Context &ctx,
     QString &out) const
 {
+    /* Structured-content key containing an element's children */
     constexpr const char *KEY_CONTENT = "content";
 
-    ctx.elements.emplaceBack(structuredElement(obj));
+    ctx.elements.emplaceBack(structuredElement(obj, ctx));
 
     const QString oldTitleTooltip = ctx.titleTooltip;
     ElementRenderState state = elementRenderState(obj, tag, ctx);
+    const bool blockElement = state.layout != ElementLayout::Inline;
+    const bool collapsibleBlock = state.marginFlow == MarginFlow::Collapsible;
+    const bool propagatesTrailingChildMargin =
+        state.marginFlow == MarginFlow::PropagateLastChild;
 
+    if (blockElement)
+    {
+        addPendingVerticalMargin(
+            state.box.margins[static_cast<std::size_t>(BoxSide::Top)],
+            state.fontPixelSize,
+            ctx,
+            ctx.siblings.back()
+        );
+        if (!collapsibleBlock)
+        {
+            flushPendingVerticalMargin(ctx, out);
+        }
+    }
+    else
+    {
+        flushPendingVerticalMargin(ctx, out);
+    }
     addStructuredElementStart(state, ctx, out);
 
-    if (state.isList)
+    if (state.layout == ElementLayout::List)
     {
-        ctx.lists.emplaceBack(List{tag, state.listMarkerType});
+        ctx.lists.emplaceBack(StructuredList{tag, state.listMarkerType});
     }
 
     std::swap(ctx.parentFontPixelSize, state.fontPixelSize);
     std::swap(ctx.textColor, state.textColor);
     std::swap(ctx.titleTooltip, state.titleTooltip);
-    addStructuredContent(obj[KEY_CONTENT], ctx, out);
+    std::swap(ctx.textDirection, state.textDirection);
+    std::swap(ctx.paintedBackgroundColor, state.paintedBackgroundColor);
+
+    SiblingState completedChildren;
+    if (blockElement)
+    {
+        SiblingState childSiblings;
+        if (collapsibleBlock)
+        {
+            mergePendingVerticalMargins(
+                ctx.siblings.back(),
+                childSiblings
+            );
+            clearPendingVerticalMargins(ctx.siblings.back());
+        }
+
+        ctx.siblings.emplaceBack(std::move(childSiblings));
+        addStructuredContent(obj[KEY_CONTENT], ctx, out);
+        if (!collapsibleBlock && !propagatesTrailingChildMargin)
+        {
+            flushPendingVerticalMargin(ctx, out);
+        }
+        completedChildren = ctx.siblings.takeLast();
+    }
+    else
+    {
+        addStructuredChildren(obj[KEY_CONTENT], ctx, out);
+    }
+
+    std::swap(ctx.paintedBackgroundColor, state.paintedBackgroundColor);
+    std::swap(ctx.textDirection, state.textDirection);
     std::swap(ctx.titleTooltip, state.titleTooltip);
     std::swap(ctx.textColor, state.textColor);
     std::swap(ctx.parentFontPixelSize, state.fontPixelSize);
     ctx.titleTooltip = oldTitleTooltip;
 
-    if (state.isList)
+    if (state.layout == ElementLayout::List)
     {
         ctx.lists.removeLast();
     }
 
     addStructuredElementEnd(state, ctx, out);
+    if (blockElement)
+    {
+        if (collapsibleBlock || propagatesTrailingChildMargin)
+        {
+            mergePendingVerticalMargins(
+                completedChildren,
+                ctx.siblings.back()
+            );
+        }
+        addPendingVerticalMargin(
+            state.box.margins[static_cast<std::size_t>(BoxSide::Bottom)],
+            state.fontPixelSize,
+            ctx,
+            ctx.siblings.back()
+        );
+    }
     ctx.elements.removeLast();
 }
 
@@ -879,11 +1053,19 @@ StructuredRichText::elementRenderState(
     state.fontPixelSize = ctx.parentFontPixelSize;
     state.textColor = ctx.textColor;
     state.titleTooltip = ctx.titleTooltip;
+    state.textDirection = ctx.textDirection;
+    state.paintedBackgroundColor = ctx.paintedBackgroundColor;
+    state.textOnlyContent = obj["content"].isString();
+    if (obj["lang"].isString())
+    {
+        state.textDirection =
+            QLocale(obj["lang"].toString()).textDirection();
+    }
 
     addElementAttributes(obj, state);
     resolveElementStyles(obj, ctx, state);
     resolveElementLayout(ctx, state);
-    applyElementCompatibility(state);
+    applyElementCompatibility(ctx, state);
 
     return state;
 }
@@ -892,6 +1074,7 @@ void StructuredRichText::addElementAttributes(
     const QJsonObject &obj,
     StructuredRichText::ElementRenderState &state) const
 {
+    /* Structured-content keys emitted as HTML element attributes */
     constexpr const char *KEY_COLSPAN = "colSpan";
     constexpr const char *KEY_DATA = "data";
     constexpr const char *KEY_HREF = "href";
@@ -950,6 +1133,7 @@ void StructuredRichText::resolveElementStyles(
     StructuredRichText::Context &ctx,
     StructuredRichText::ElementRenderState &state) const
 {
+    /* Structured-content key containing direct style declarations */
     constexpr const char *KEY_STYLE = "style";
 
     if (state.tag == "table")
@@ -968,14 +1152,18 @@ void StructuredRichText::resolveElementStyles(
         addCssDeclaration("padding", "5px", state.declarations);
     }
 
-    addMatchingCssRules(ctx, state.declarations);
+    addMatchingCssRules(
+        ctx,
+        state.declarations,
+        &state.beforeContent
+    );
 
     if (obj[KEY_STYLE].isObject())
     {
-        state.fontPixelSize = addStructuredStyle(
+        addStructuredStyle(
             obj[KEY_STYLE].toObject(),
             ctx,
-            state.declarations
+            state
         );
     }
     if (state.declarations.contains("font-size"))
@@ -1007,38 +1195,72 @@ void StructuredRichText::resolveElementLayout(
         defaultListMarker(state.tag) :
         listType
     );
-    state.isList = state.tag == "ul" || state.tag == "ol";
-    state.isListItem = state.tag == "li" && !ctx.lists.isEmpty();
-    if (state.isListItem)
+    const bool isList = state.tag == "ul" || state.tag == "ol";
+    const bool isListItem = state.tag == "li" && !ctx.lists.isEmpty();
+    if (isListItem)
     {
-        List &list = ctx.lists.back();
+        StructuredList &list = ctx.lists.back();
         ++list.item;
         state.listMarker = listMarker(list, listType);
     }
 
-    state.listItemTable =
-        state.isListItem && !state.listMarker.isEmpty();
-    state.markerlessListItem =
-        state.isListItem && state.listMarker.isEmpty();
-    state.detailsTable = state.tag == "details";
+    const auto isBoxDeclaration = [] (const QString &property) -> bool
+    {
+        return property == "background-color" ||
+            property.startsWith("border") ||
+            property.startsWith("padding");
+    };
+    const bool styledBlock =
+        (
+            state.tag == "div" ||
+            state.tag == "details" ||
+            state.tag == "summary"
+        ) &&
+        std::any_of(
+            state.declarations.keyBegin(),
+            state.declarations.keyEnd(),
+            isBoxDeclaration
+        );
     state.paddedSpan =
         state.tag == "span" &&
         (
-            ctx.elements.back().attributes.value("data-sc-class") == "tag" ||
-            ctx.elements.back().attributes.value("data-sc-content") ==
-                "forms-label"
+            ctx.selectorElements[ctx.elements.back()].attributes.value(
+                "data-sc-class"
+            ) == "tag" ||
+            ctx.selectorElements[ctx.elements.back()].attributes.value(
+                "data-sc-content"
+            ) == "forms-label"
         );
 
-    if (state.listItemTable || state.detailsTable)
+    if (isList)
     {
-        state.outputTag = "table";
+        state.layout = ElementLayout::List;
+        state.outputTag = "div";
     }
-    else if (state.isList || state.isListItem || state.tag == "summary")
+    else if (isListItem && !state.listMarker.isEmpty())
     {
+        state.layout = ElementLayout::MarkedListItem;
+        state.outputTag = "table";
+        state.widthPolicy = WidthPolicy::Fill;
+    }
+    else if (isListItem)
+    {
+        state.layout = ElementLayout::MarkerlessListItem;
+        state.outputTag = "div";
+    }
+    else if (state.tag == "details" || styledBlock)
+    {
+        state.layout = ElementLayout::Box;
+        state.outputTag = "table";
+        state.widthPolicy = WidthPolicy::Fill;
+    }
+    else if (state.tag == "div" || state.tag == "summary")
+    {
+        state.layout = ElementLayout::Block;
         state.outputTag = "div";
     }
 
-    if (state.isList || state.isListItem)
+    if (isList || isListItem)
     {
         state.declarations.remove("list-style-type");
     }
@@ -1046,55 +1268,373 @@ void StructuredRichText::resolveElementLayout(
     {
         state.listMarkerType.clear();
     }
+
+    const QString width = state.declarations.value("width");
+    if (state.layout == ElementLayout::Box &&
+        width.compare("fit-content", Qt::CaseInsensitive) == 0)
+    {
+        state.widthPolicy = WidthPolicy::FitContent;
+        state.declarations.remove("width");
+    }
+    else if (state.layout == ElementLayout::Box && !width.isEmpty())
+    {
+        state.widthPolicy = WidthPolicy::Explicit;
+    }
 }
 
 void StructuredRichText::applyElementCompatibility(
+    const StructuredRichText::Context &ctx,
     StructuredRichText::ElementRenderState &state) const
 {
-    if (state.detailsTable)
-    {
-        constexpr std::array<const char *, 5> PADDING_PROPERTIES = {
-            "padding",
-            "padding-bottom",
-            "padding-left",
-            "padding-right",
-            "padding-top"
-        };
-
-        for (const char *property : PADDING_PROPERTIES)
-        {
-            if (state.declarations.contains(property))
-            {
-                state.cellDeclarations[property] =
-                    state.declarations.take(property);
-            }
-        }
-
-        state.elementSpacingAfter =
-            state.declarations.take("margin-bottom");
-    }
-    else if (state.markerlessListItem)
-    {
-        state.contentSpacingBefore =
-            state.declarations.take("padding-top");
-        state.contentSpacingAfter =
-            state.declarations.take("padding-bottom");
-        state.elementSpacingAfter =
-            state.declarations.take("margin-bottom");
-    }
-    else if (state.outputTag == "div")
-    {
-        state.elementSpacingAfter =
-            state.declarations.take("margin-bottom");
-    }
-
     if (state.tag == "span")
     {
-        state.inlineSpacingAfter =
-            state.declarations.take("margin-left");
-        state.inlineSpacingBefore =
-            state.declarations.take("margin-right");
+        const QString left = state.declarations.take("margin-left");
+        const QString right = state.declarations.take("margin-right");
+        if (state.textDirection == Qt::RightToLeft)
+        {
+            state.inlineSpacingBefore = right;
+            state.inlineSpacingAfter = left;
+        }
+        else
+        {
+            state.inlineSpacingBefore = left;
+            state.inlineSpacingAfter = right;
+        }
     }
+
+    if (state.layout == ElementLayout::Inline)
+    {
+        state.marginFlow = MarginFlow::Inline;
+        return;
+    }
+
+    resolveBoxStyle(ctx, state);
+    state.marginFlow = marginFlow(state);
+}
+
+void StructuredRichText::resolveBoxStyle(
+    const StructuredRichText::Context &ctx,
+    StructuredRichText::ElementRenderState &state) const
+{
+    const bool hasPadding =
+        state.declarations.contains("padding") ||
+        std::any_of(
+            PADDING_PROPERTIES.begin(),
+            PADDING_PROPERTIES.end(),
+            [&state] (const char *property)
+            {
+                return state.declarations.contains(property);
+            }
+        );
+    if (hasPadding)
+    {
+        const QString paddingShorthand =
+            state.declarations.take("padding");
+        for (std::size_t side = 0; side < BOX_SIDE_COUNT; ++side)
+        {
+            QString value =
+                state.declarations.take(PADDING_PROPERTIES[side]);
+            if (value.isEmpty())
+            {
+                value = cssBoxSideValue(
+                    paddingShorthand,
+                    static_cast<qsizetype>(side)
+                );
+            }
+            const double pixels = cssFontSizeToPixels(
+                value,
+                ctx.screen,
+                state.fontPixelSize,
+                ctx.rootFontPixelSize
+            );
+            if (pixels > MINIMUM_VISIBLE_PIXELS)
+            {
+                state.box.padding[side] = pixels;
+            }
+        }
+    }
+
+    for (std::size_t side = 0; side < BOX_SIDE_COUNT; ++side)
+    {
+        state.box.margins[side] =
+            state.declarations.take(MARGIN_PROPERTIES[side]);
+    }
+
+    if (state.layout == ElementLayout::Block &&
+        state.textOnlyContent)
+    {
+        QString &left = state.box.margins[LEFT_SIDE];
+        QString &right = state.box.margins[RIGHT_SIDE];
+        if (state.textDirection == Qt::RightToLeft)
+        {
+            state.contentInlineSpacingBefore = std::move(right);
+            state.contentInlineSpacingAfter = std::move(left);
+        }
+        else
+        {
+            state.contentInlineSpacingBefore = std::move(left);
+            state.contentInlineSpacingAfter = std::move(right);
+        }
+    }
+
+    if (state.declarations.contains("background-color"))
+    {
+        const QString background =
+            state.declarations.take("background-color");
+        QColor resolvedBackground = parseCssColor(background);
+        if (resolvedBackground.isValid() &&
+            resolvedBackground.alpha() < OPAQUE_ALPHA)
+        {
+            const QColor parent =
+                parseCssColor(ctx.paintedBackgroundColor);
+            if (parent.isValid())
+            {
+                resolvedBackground =
+                    compositeColor(resolvedBackground, parent);
+            }
+        }
+        if (resolvedBackground.isValid())
+        {
+            state.box.backgroundColor = resolvedBackground.name(
+                resolvedBackground.alpha() == OPAQUE_ALPHA ?
+                    QColor::HexRgb :
+                    QColor::HexArgb
+            );
+            state.paintedBackgroundColor = state.box.backgroundColor;
+        }
+        else
+        {
+            state.box.backgroundColor = background;
+        }
+    }
+
+    const bool hasBorder = std::any_of(
+        state.declarations.keyBegin(),
+        state.declarations.keyEnd(),
+        [] (const QString &property)
+        {
+            return property == "border" ||
+                property.startsWith("border-");
+        }
+    );
+    if (!hasBorder)
+    {
+        state.declarations.remove("border-radius");
+        state.box.enabled =
+            state.layout == ElementLayout::Box ||
+            !state.box.backgroundColor.isEmpty() ||
+            hasPadding;
+        const bool hasHorizontalMargins =
+            !isZeroSpacing(state.box.margins[LEFT_SIDE]) ||
+            !isZeroSpacing(state.box.margins[RIGHT_SIDE]);
+        if (state.layout == ElementLayout::Block &&
+            !state.textOnlyContent &&
+            hasHorizontalMargins)
+        {
+            state.layout = ElementLayout::Box;
+            state.outputTag = "table";
+            state.widthPolicy = WidthPolicy::Fill;
+            state.box.enabled = true;
+        }
+        return;
+    }
+
+    const ParsedBorder commonBorder =
+        parseBorderShorthand(state.declarations.take("border"));
+    const QString borderWidths =
+        state.declarations.take("border-width");
+    const QString borderStyles =
+        state.declarations.take("border-style");
+    const QString borderColors =
+        state.declarations.take("border-color");
+
+    std::size_t paintedBorderCount = 0;
+    QString sharedBorderColor;
+    bool sharedBorderColorMatches = true;
+    for (std::size_t side = 0; side < BOX_SIDE_COUNT; ++side)
+    {
+        ParsedBorder border = commonBorder;
+        const QString sideName = SIDE_NAMES[side];
+        const QString boxWidth = cssBoxSideValue(
+            borderWidths,
+            static_cast<qsizetype>(side)
+        );
+        const QString boxStyle = cssBoxSideValue(
+            borderStyles,
+            static_cast<qsizetype>(side)
+        );
+        const QString boxColor = cssBoxSideValue(
+            borderColors,
+            static_cast<qsizetype>(side)
+        );
+        if (!boxWidth.isEmpty())
+        {
+            border.width = boxWidth;
+        }
+        if (!boxStyle.isEmpty())
+        {
+            border.style = boxStyle;
+        }
+        if (!boxColor.isEmpty())
+        {
+            border.color = boxColor;
+        }
+
+        const ParsedBorder sideBorder = parseBorderShorthand(
+            state.declarations.take("border-" + sideName)
+        );
+        if (!sideBorder.width.isEmpty())
+        {
+            border.width = sideBorder.width;
+        }
+        if (!sideBorder.style.isEmpty())
+        {
+            border.style = sideBorder.style;
+        }
+        if (!sideBorder.color.isEmpty())
+        {
+            border.color = sideBorder.color;
+        }
+
+        const QString widthProperty = "border-" + sideName + "-width";
+        const QString styleProperty = "border-" + sideName + "-style";
+        const QString colorProperty = "border-" + sideName + "-color";
+        if (state.declarations.contains(widthProperty))
+        {
+            border.width = state.declarations.take(widthProperty);
+        }
+        if (state.declarations.contains(styleProperty))
+        {
+            border.style = state.declarations.take(styleProperty);
+        }
+        if (state.declarations.contains(colorProperty))
+        {
+            border.color = state.declarations.take(colorProperty);
+        }
+
+        if (border.width.isEmpty() &&
+            border.style.compare("solid", Qt::CaseInsensitive) == 0)
+        {
+            border.width =
+                formatPixelSize(DEFAULT_BORDER_WIDTH_PIXELS) + "px";
+        }
+        double widthPixels = cssFontSizeToPixels(
+            border.width,
+            ctx.screen,
+            state.fontPixelSize,
+            ctx.rootFontPixelSize
+        );
+        if (border.width.compare("thin", Qt::CaseInsensitive) == 0)
+        {
+            widthPixels = THIN_BORDER_WIDTH_PIXELS;
+        }
+        else if (border.width.compare("medium", Qt::CaseInsensitive) == 0)
+        {
+            widthPixels = DEFAULT_BORDER_WIDTH_PIXELS;
+        }
+        else if (border.width.compare("thick", Qt::CaseInsensitive) == 0)
+        {
+            widthPixels = THICK_BORDER_WIDTH_PIXELS;
+        }
+
+        if (border.color.isEmpty() ||
+            border.color.compare("currentcolor", Qt::CaseInsensitive) == 0)
+        {
+            border.color = state.textColor;
+        }
+
+        BorderSide &resolved = state.box.borders[side];
+        resolved.color = border.color;
+        resolved.style = border.style;
+        resolved.widthPixels = std::max(0.0, widthPixels);
+        const QColor color = parseCssColor(resolved.color);
+        resolved.painted =
+            resolved.style.compare("solid", Qt::CaseInsensitive) == 0 &&
+            resolved.widthPixels > MINIMUM_VISIBLE_PIXELS &&
+            color.isValid();
+        if (resolved.painted)
+        {
+            ++paintedBorderCount;
+            if (sharedBorderColor.isEmpty())
+            {
+                sharedBorderColor = resolved.color;
+            }
+            else if (sharedBorderColor != resolved.color)
+            {
+                sharedBorderColorMatches = false;
+            }
+        }
+        else if (!resolved.style.isEmpty() &&
+                 resolved.style.compare("none", Qt::CaseInsensitive) != 0 &&
+                 resolved.widthPixels > MINIMUM_VISIBLE_PIXELS)
+        {
+            state.cellDeclarations["border-" + sideName] =
+                formatPixelSize(resolved.widthPixels) + "px " +
+                resolved.style + ' ' + resolved.color;
+        }
+    }
+    state.declarations.remove("border-radius");
+
+    state.box.compactBorderFrame =
+        paintedBorderCount > 0 && sharedBorderColorMatches;
+    state.box.enabled =
+        state.layout == ElementLayout::Box ||
+        paintedBorderCount > 0 ||
+        !state.box.backgroundColor.isEmpty() ||
+        std::any_of(
+            state.box.padding.begin(),
+            state.box.padding.end(),
+            [] (double value)
+            {
+                return value > MINIMUM_VISIBLE_PIXELS;
+            }
+        );
+
+    const bool hasHorizontalMargins =
+        !isZeroSpacing(state.box.margins[LEFT_SIDE]) ||
+        !isZeroSpacing(state.box.margins[RIGHT_SIDE]);
+    if (state.layout == ElementLayout::Block &&
+        !state.textOnlyContent &&
+        hasHorizontalMargins)
+    {
+        state.layout = ElementLayout::Box;
+        state.outputTag = "table";
+        state.widthPolicy = WidthPolicy::Fill;
+        state.box.enabled = true;
+    }
+}
+
+StructuredRichText::MarginFlow StructuredRichText::marginFlow(
+    const StructuredRichText::ElementRenderState &state) const
+{
+    if (state.layout == ElementLayout::Inline)
+    {
+        return MarginFlow::Inline;
+    }
+
+    const bool hasVerticalPadding =
+        state.box.padding[TOP_SIDE] > MINIMUM_VISIBLE_PIXELS ||
+        state.box.padding[BOTTOM_SIDE] > MINIMUM_VISIBLE_PIXELS;
+    const bool hasPaintedBorder = std::any_of(
+        state.box.borders.begin(),
+        state.box.borders.end(),
+        [] (const BorderSide &border)
+        {
+            return border.painted;
+        }
+    );
+    if (state.box.enabled &&
+        (!state.box.backgroundColor.isEmpty() ||
+         hasVerticalPadding ||
+         hasPaintedBorder))
+    {
+        return MarginFlow::Contained;
+    }
+    if (state.layout == ElementLayout::MarkedListItem)
+    {
+        return MarginFlow::PropagateLastChild;
+    }
+    return MarginFlow::Collapsible;
 }
 
 void StructuredRichText::addStructuredElementStart(
@@ -1102,37 +1642,53 @@ void StructuredRichText::addStructuredElementStart(
     const StructuredRichText::Context &ctx,
     QString &out) const
 {
-    addInlineSpacer(state.inlineSpacingBefore, ctx, out);
+    addInlineSpacer(
+        state.inlineSpacingBefore,
+        state.fontPixelSize,
+        ctx,
+        out
+    );
 
-    out += '<';
-    out += state.outputTag;
-    if (state.listItemTable || state.detailsTable)
+    if (state.layout == ElementLayout::Box)
     {
-        out += " border=\"0\" cellspacing=\"0\" cellpadding=\"0\""
-            " width=\"100%\"";
+        addBoxStart(state, ctx, out);
     }
-    out += state.attributes;
-    out += " style=\"";
-    addCssDeclarations(state.declarations, out);
-    out += "\">";
+    else
+    {
+        out += '<';
+        out += state.outputTag;
+        if (state.layout == ElementLayout::MarkedListItem)
+        {
+            out += " cellspacing=\"0\""
+                " width=\"100%\"";
+        }
+        out += state.attributes;
+        if (!state.declarations.isEmpty())
+        {
+            out += " style=\"";
+            addCssDeclarations(state.declarations, out);
+            out += '"';
+        }
+        out += '>';
+    }
 
-    if (state.detailsTable)
+    if (state.layout == ElementLayout::MarkerlessListItem)
     {
-        out += "<tr><td style=\"";
-        addCssDeclarations(state.cellDeclarations, out);
-        out += "\">";
-    }
-    else if (state.markerlessListItem)
-    {
-        addVerticalSpacer(state.contentSpacingBefore, out);
+        addVerticalPixelSpacer(state.box.padding[TOP_SIDE], out);
     }
 
-    if (state.listItemTable)
+    if (state.layout == ElementLayout::MarkedListItem)
     {
+        /* Marker-to-content gap relative to the item's font size */
         constexpr double RELATIVE_INDENT_FACTOR = 0.35;
+        const char *paddingProperty =
+            state.textDirection == Qt::RightToLeft ?
+                "padding-left" :
+                "padding-right";
 
-        out += "<tr><td style=\"vertical-align: top; white-space: nowrap; "
-            "padding-right: ";
+        out += "<tr><td style=\"vertical-align: top; white-space: nowrap; ";
+        out += paddingProperty;
+        out += ": ";
         out += formatPixelSize(
             state.fontPixelSize * RELATIVE_INDENT_FACTOR
         );
@@ -1146,10 +1702,16 @@ void StructuredRichText::addStructuredElementStart(
         out += "&nbsp;";
     }
 
-    const QString beforeContent = matchingBeforeContent(ctx);
-    if (!beforeContent.isEmpty())
+    addInlineSpacer(
+        state.contentInlineSpacingBefore,
+        state.fontPixelSize,
+        ctx,
+        out
+    );
+
+    if (!state.beforeContent.isEmpty())
     {
-        out += escapeHtml(beforeContent);
+        out += escapeHtml(state.beforeContent);
     }
 }
 
@@ -1162,21 +1724,38 @@ void StructuredRichText::addStructuredElementEnd(
     {
         out += "&nbsp;";
     }
-    if (state.markerlessListItem)
+    addInlineSpacer(
+        state.contentInlineSpacingAfter,
+        state.fontPixelSize,
+        ctx,
+        out
+    );
+    if (state.layout == ElementLayout::MarkerlessListItem)
     {
-        addVerticalSpacer(state.contentSpacingAfter, out);
+        addVerticalPixelSpacer(state.box.padding[BOTTOM_SIDE], out);
     }
-    if (state.listItemTable || state.detailsTable)
+    if (state.layout == ElementLayout::Box)
     {
-        out += "</td></tr>";
+        addBoxEnd(state, ctx, out);
+    }
+    else
+    {
+        if (state.layout == ElementLayout::MarkedListItem)
+        {
+            out += "</td></tr>";
+        }
+
+        out += "</";
+        out += state.outputTag;
+        out += '>';
     }
 
-    out += "</";
-    out += state.outputTag;
-    out += '>';
-
-    addInlineSpacer(state.inlineSpacingAfter, ctx, out);
-    addVerticalSpacer(state.elementSpacingAfter, out);
+    addInlineSpacer(
+        state.inlineSpacingAfter,
+        state.fontPixelSize,
+        ctx,
+        out
+    );
 
     if (state.paddedSpan)
     {
@@ -1184,15 +1763,236 @@ void StructuredRichText::addStructuredElementEnd(
     }
 }
 
+void StructuredRichText::addBoxStart(
+    const StructuredRichText::ElementRenderState &state,
+    const StructuredRichText::Context &ctx,
+    QString &out) const
+{
+    const auto marginPixels =
+        [&state, &ctx, this] (std::size_t side) -> double
+    {
+        return std::max(
+            0.0,
+            cssFontSizeToPixels(
+                state.box.margins[side],
+                ctx.screen,
+                state.fontPixelSize,
+                ctx.rootFontPixelSize
+            )
+        );
+    };
+    const double leftMargin = marginPixels(LEFT_SIDE);
+    const double rightMargin = marginPixels(RIGHT_SIDE);
+    const bool hasMarginGrid =
+        leftMargin > MINIMUM_VISIBLE_PIXELS ||
+        rightMargin > MINIMUM_VISIBLE_PIXELS;
+
+    if (hasMarginGrid)
+    {
+        out += "<table cellspacing=\"0\""
+            " width=\"100%\"><tr>";
+        if (leftMargin > MINIMUM_VISIBLE_PIXELS)
+        {
+            out += "<td width=\"";
+            out += formatPixelSize(leftMargin);
+            out += "\"></td>";
+        }
+        out += "<td width=\"100%\" style=\"vertical-align: top;\">";
+    }
+    if (!state.box.enabled)
+    {
+        return;
+    }
+
+    const auto addTableStart =
+        [&state, &out, this] (
+            const QString &background,
+            bool outerTable)
+    {
+        out += "<table cellspacing=\"0\"";
+        if (state.widthPolicy == WidthPolicy::Fill)
+        {
+            out += " width=\"100%\"";
+        }
+        if (!background.isEmpty())
+        {
+            out += " bgcolor=\"";
+            out += background;
+            out += '"';
+        }
+        if (outerTable)
+        {
+            out += state.attributes;
+            if (!state.declarations.isEmpty())
+            {
+                out += " style=\"";
+                addCssDeclarations(state.declarations, out);
+                out += '"';
+            }
+        }
+        out += "><tr><td style=\"vertical-align: top;";
+    };
+
+    const auto addBorderPadding =
+        [&state, &out, this] (std::size_t side)
+    {
+        const BorderSide &border = state.box.borders[side];
+        if (!border.painted)
+        {
+            return;
+        }
+        out += "padding-";
+        out += SIDE_NAMES[side];
+        out += ": ";
+        out += formatPixelSize(border.widthPixels);
+        out += "px;";
+    };
+
+    const auto closeOpeningCell = [&out] ()
+    {
+        out += "\">";
+    };
+
+    const auto firstPaintedBorder =
+        std::find_if(
+            state.box.borders.begin(),
+            state.box.borders.end(),
+            [] (const BorderSide &border)
+            {
+                return border.painted;
+            }
+        );
+    const bool hasPaintedBorder =
+        firstPaintedBorder != state.box.borders.end();
+    const QString contentBackground =
+        state.paintedBackgroundColor;
+
+    bool outerTable = true;
+    if (hasPaintedBorder && state.box.compactBorderFrame)
+    {
+        addTableStart(firstPaintedBorder->color, outerTable);
+        for (std::size_t side = 0; side < BOX_SIDE_COUNT; ++side)
+        {
+            addBorderPadding(side);
+        }
+        closeOpeningCell();
+        outerTable = false;
+    }
+    else if (hasPaintedBorder)
+    {
+        /* Stable nesting order for independently colored border layers */
+        constexpr std::array<std::size_t, BOX_SIDE_COUNT> BORDER_LAYER_ORDER = {
+            TOP_SIDE,
+            RIGHT_SIDE,
+            BOTTOM_SIDE,
+            LEFT_SIDE
+        };
+        for (const std::size_t side : BORDER_LAYER_ORDER)
+        {
+            const BorderSide &border = state.box.borders[side];
+            if (!border.painted)
+            {
+                continue;
+            }
+            addTableStart(border.color, outerTable);
+            addBorderPadding(side);
+            closeOpeningCell();
+            outerTable = false;
+        }
+    }
+
+    addTableStart(contentBackground, outerTable);
+    /* Cell-padding emission order used by the Qt HTML table workaround */
+    constexpr std::array<std::size_t, BOX_SIDE_COUNT> PADDING_ORDER = {
+        BOTTOM_SIDE,
+        LEFT_SIDE,
+        RIGHT_SIDE,
+        TOP_SIDE
+    };
+    for (const std::size_t side : PADDING_ORDER)
+    {
+        if (state.box.padding[side] <= MINIMUM_VISIBLE_PIXELS)
+        {
+            continue;
+        }
+        out += "padding-";
+        out += SIDE_NAMES[side];
+        out += ": ";
+        out += formatPixelSize(state.box.padding[side]);
+        out += "px;";
+    }
+    addCssDeclarations(state.cellDeclarations, out);
+    closeOpeningCell();
+}
+
+void StructuredRichText::addBoxEnd(
+    const StructuredRichText::ElementRenderState &state,
+    const StructuredRichText::Context &ctx,
+    QString &out) const
+{
+    if (state.box.enabled)
+    {
+        out += "</td></tr></table>";
+        const std::size_t paintedBorderCount =
+            static_cast<std::size_t>(std::count_if(
+                state.box.borders.begin(),
+                state.box.borders.end(),
+                [] (const BorderSide &border)
+                {
+                    return border.painted;
+                }
+            ));
+        const std::size_t borderLayerCount =
+            state.box.compactBorderFrame && paintedBorderCount > 0 ?
+                1 :
+                paintedBorderCount;
+        for (std::size_t layer = 0;
+             layer < borderLayerCount;
+             ++layer)
+        {
+            out += "</td></tr></table>";
+        }
+    }
+
+    const auto marginPixels =
+    [&state, &ctx, this] (std::size_t side) -> double
+    {
+        return std::max(
+            0.0,
+            cssFontSizeToPixels(
+                state.box.margins[side],
+                ctx.screen,
+                state.fontPixelSize,
+                ctx.rootFontPixelSize
+            )
+        );
+    };
+    const double leftMargin = marginPixels(LEFT_SIDE);
+    const double rightMargin = marginPixels(RIGHT_SIDE);
+    if (leftMargin > MINIMUM_VISIBLE_PIXELS ||
+        rightMargin > MINIMUM_VISIBLE_PIXELS)
+    {
+        out += "</td>";
+        if (rightMargin > MINIMUM_VISIBLE_PIXELS)
+        {
+            out += "<td width=\"";
+            out += formatPixelSize(rightMargin);
+            out += "\"></td>";
+        }
+        out += "</tr></table>";
+    }
+}
+
 void StructuredRichText::addInlineSpacer(
     const QString &spacing,
+    double fontPixelSize,
     const StructuredRichText::Context &ctx,
     QString &out) const
 {
     const double pixelSize = cssFontSizeToPixels(
         spacing,
         ctx.screen,
-        ctx.parentFontPixelSize,
+        fontPixelSize,
         ctx.rootFontPixelSize
     );
     if (pixelSize <= 0.0)
@@ -1206,22 +2006,220 @@ void StructuredRichText::addInlineSpacer(
 }
 
 void StructuredRichText::addVerticalSpacer(
-    const QString &spacing, QString &out) const
+    const QString &spacing,
+    double fontPixelSize,
+    const StructuredRichText::Context &ctx,
+    QString &out) const
 {
+    const QString value = spacing.trimmed();
+    if (isZeroSpacing(value))
+    {
+        return;
+    }
+
+    const double pixelSize = cssFontSizeToPixels(
+        value,
+        ctx.screen,
+        fontPixelSize,
+        ctx.rootFontPixelSize
+    );
+    if (pixelSize < 0.0)
+    {
+        return;
+    }
+
+    addVerticalPixelSpacer(pixelSize, out);
+}
+
+void StructuredRichText::addVerticalPixelSpacer(
+    double pixelSize, QString &out) const
+{
+    /* Threshold below which a spacer is omitted from generated HTML */
+    constexpr double MINIMUM_VISIBLE_SPACING_PIXELS = 0.001;
+
+    /* Line box height used to represent an arbitrary vertical spacer */
+    constexpr double SPACER_LINE_HEIGHT_PIXELS = 1.0;
+
+    if (std::abs(pixelSize) < MINIMUM_VISIBLE_SPACING_PIXELS)
+    {
+        return;
+    }
+
+    out += "<div style=\"font-size: ";
+    out += formatPixelSize(SPACER_LINE_HEIGHT_PIXELS);
+    out += "px;line-height: ";
+    out += formatPixelSize(SPACER_LINE_HEIGHT_PIXELS);
+    out += "px;margin-top: ";
+    out += formatPixelSize(pixelSize - SPACER_LINE_HEIGHT_PIXELS);
+    out += "px;\">&nbsp;</div>";
+}
+
+void StructuredRichText::addPendingVerticalMargin(
+    const QString &spacing,
+    double fontPixelSize,
+    const StructuredRichText::Context &ctx,
+    StructuredRichText::SiblingState &siblings) const
+{
+    /* CSS length syntax accepted by the margin-collapsing compatibility path */
+    static const QRegularExpression CSS_LENGTH{
+        R"(^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:px|%|em|rem|ex|rex|ch|rch|)"
+        R"(cap|rcap|ic|ric|lh|rlh|vw|svw|lvw|dvw|vi|svi|lvi|dvi|vh|)"
+        R"(svh|lvh|dvh|vb|svb|lvb|dvb|vmin|svmin|lvmin|dvmin|vmax|)"
+        R"(svmax|lvmax|dvmax|pt|pc|in|cm|mm|q)$)",
+        QRegularExpression::CaseInsensitiveOption
+    };
+
+    const QString value = spacing.trimmed();
+    if (isZeroSpacing(value) || !CSS_LENGTH.match(value).hasMatch())
+    {
+        return;
+    }
+
+    const double pixelSize = cssFontSizeToPixels(
+        value,
+        ctx.screen,
+        fontPixelSize,
+        ctx.rootFontPixelSize
+    );
+    if (pixelSize > 0.0)
+    {
+        siblings.pendingPositiveMarginPixels = std::max(
+            siblings.pendingPositiveMarginPixels,
+            pixelSize
+        );
+    }
+    else if (pixelSize < 0.0)
+    {
+        siblings.pendingNegativeMarginPixels = std::min(
+            siblings.pendingNegativeMarginPixels,
+            pixelSize
+        );
+    }
+}
+
+void StructuredRichText::mergePendingVerticalMargins(
+    const StructuredRichText::SiblingState &source,
+    StructuredRichText::SiblingState &destination) const
+{
+    destination.pendingPositiveMarginPixels = std::max(
+        destination.pendingPositiveMarginPixels,
+        source.pendingPositiveMarginPixels
+    );
+    destination.pendingNegativeMarginPixels = std::min(
+        destination.pendingNegativeMarginPixels,
+        source.pendingNegativeMarginPixels
+    );
+}
+
+void StructuredRichText::flushPendingVerticalMargin(
+    StructuredRichText::Context &ctx,
+    QString &out) const
+{
+    if (ctx.siblings.isEmpty())
+    {
+        return;
+    }
+
+    SiblingState &siblings = ctx.siblings.back();
+    const double margin =
+        siblings.pendingPositiveMarginPixels +
+        siblings.pendingNegativeMarginPixels;
+    clearPendingVerticalMargins(siblings);
+    addVerticalPixelSpacer(margin, out);
+}
+
+void StructuredRichText::clearPendingVerticalMargins(
+    StructuredRichText::SiblingState &siblings) const
+{
+    siblings.pendingPositiveMarginPixels = 0.0;
+    siblings.pendingNegativeMarginPixels = 0.0;
+}
+
+QString StructuredRichText::cssBoxSideValue(
+    const QString &value, qsizetype side) const
+{
+    /* Side count and indexes used to expand CSS box shorthands */
+    constexpr qsizetype BOX_SIDE_COUNT = 4;
+    constexpr qsizetype TOP_SIDE = 0;
+    constexpr qsizetype RIGHT_SIDE = 1;
+    constexpr qsizetype BOTTOM_SIDE = 2;
+
+    if (side < 0 || side >= BOX_SIDE_COUNT)
+    {
+        return "";
+    }
+
+    QStringList values;
+    QString current;
+    int parenthesisDepth = 0;
+    for (const QChar ch : value.trimmed())
+    {
+        if (ch == '(')
+        {
+            ++parenthesisDepth;
+        }
+        else if (ch == ')')
+        {
+            --parenthesisDepth;
+        }
+
+        if (ch.isSpace() && parenthesisDepth == 0)
+        {
+            if (!current.isEmpty())
+            {
+                values.emplaceBack(current);
+                current.clear();
+            }
+        }
+        else
+        {
+            current += ch;
+        }
+    }
+    if (!current.isEmpty())
+    {
+        values.emplaceBack(current);
+    }
+
+    switch (values.size())
+    {
+    case 1:
+        return values[0];
+
+    case 2:
+        return side == TOP_SIDE || side == BOTTOM_SIDE ?
+            values[0] :
+            values[1];
+
+    case 3:
+        if (side == TOP_SIDE)
+        {
+            return values[0];
+        }
+        if (side == RIGHT_SIDE)
+        {
+            return values[1];
+        }
+        return side == BOTTOM_SIDE ? values[2] : values[1];
+
+    case BOX_SIDE_COUNT:
+        return values[side];
+
+    default:
+        return "";
+    }
+}
+
+bool StructuredRichText::isZeroSpacing(const QString &spacing) const
+{
+    /* CSS numeric zero with an optional unit */
     static const QRegularExpression ZERO_SPACING{
         R"(^[+-]?(?:0+(?:\.0*)?|\.0+)(?:[a-z%]+)?$)",
         QRegularExpression::CaseInsensitiveOption
     };
 
     const QString value = spacing.trimmed();
-    if (value.isEmpty() || ZERO_SPACING.match(value).hasMatch())
-    {
-        return;
-    }
-
-    out += "<div style=\"line-height: 0px;margin-top: ";
-    out += value;
-    out += ";\"></div>";
+    return value.isEmpty() || ZERO_SPACING.match(value).hasMatch();
 }
 
 void StructuredRichText::addStructuredContent(
@@ -1256,6 +2254,7 @@ void StructuredRichText::addImage(
     StructuredRichText::Context &ctx,
     QString &out) const
 {
+    /* Legacy glossary image object keys */
     constexpr const char *KEY_PATH = "path";
     constexpr const char *KEY_WIDTH = "width";
     constexpr const char *KEY_HEIGHT = "height";
@@ -1317,6 +2316,7 @@ void StructuredRichText::addImage(
 
 void StructuredRichText::addText(const QJsonObject &obj, QString &out) const
 {
+    /* Legacy glossary text object key */
     constexpr const char *KEY_TEXT = "text";
     out += escapeHtml(obj[KEY_TEXT].toString()).replace('\n', "<br>");
 }
@@ -1331,6 +2331,7 @@ bool StructuredRichText::containsStructuredContent(
         std::begin(content), std::end(content),
         [] (const QJsonValue &value) -> bool
         {
+            /* Top-level discriminator for structured glossary entries */
             constexpr const char *KEY_TYPE = "type";
             constexpr const char *VALUE_STRUCTURED_CONTENT =
                 "structured-content";
@@ -1351,6 +2352,7 @@ void StructuredRichText::addRuby(
     StructuredRichText::Context &ctx,
     QString &out) const
 {
+    /* Structured-content key containing ruby base and reading children */
     constexpr const char *KEY_CONTENT = "content";
 
     QJsonArray base;
@@ -1359,7 +2361,7 @@ void StructuredRichText::addRuby(
 
     if (reading.isEmpty())
     {
-        addStructuredContent(base, ctx, out);
+        addStructuredChildren(base, ctx, out);
         return;
     }
 
@@ -1378,7 +2380,7 @@ void StructuredRichText::addRuby(
     const QString oldTitleTooltip = ctx.titleTooltip;
     ctx.linkHref.clear();
     ctx.titleTooltip.clear();
-    addStructuredContent(base, ctx, out);
+    addStructuredChildren(base, ctx, out);
     ctx.titleTooltip = oldTitleTooltip;
     ctx.linkHref = oldLinkHref;
 
@@ -1390,6 +2392,7 @@ void StructuredRichText::splitRubyContent(
     QJsonArray &base,
     QString &reading) const
 {
+    /* Structured-content keys used to separate ruby base and reading nodes */
     constexpr const char *KEY_CONTENT = "content";
     constexpr const char *KEY_TAG = "tag";
 
@@ -1442,6 +2445,7 @@ void StructuredRichText::splitRubyContent(
 
 QString StructuredRichText::structuredContentText(const QJsonValue &val) const
 {
+    /* Structured-content key recursively traversed for plain text */
     constexpr const char *KEY_CONTENT = "content";
 
     switch (val.type())
@@ -1470,6 +2474,7 @@ QString StructuredRichText::structuredContentText(const QJsonValue &val) const
 
 bool StructuredRichText::containsRuby(const QJsonValue &val) const
 {
+    /* Structured-content keys used while searching for ruby descendants */
     constexpr const char *KEY_CONTENT = "content";
     constexpr const char *KEY_TAG = "tag";
 
@@ -1506,6 +2511,7 @@ bool StructuredRichText::anchorNeedsTooltipHandling(
     const QJsonObject &obj,
     const StructuredRichText::Context &ctx) const
 {
+    /* Structured-content keys that require custom anchor tooltip handling */
     constexpr const char *KEY_CONTENT = "content";
     constexpr const char *KEY_TITLE = "title";
 
@@ -1570,6 +2576,7 @@ void StructuredRichText::addAnchorStart(
     const QString &color,
     QString &out) const
 {
+    /* Quote substitution used to keep generated style attributes valid */
     constexpr const char QUOTE_SEARCH = '"';
     constexpr const char QUOTE_ESCAPE = '\'';
 
@@ -1588,7 +2595,7 @@ void StructuredRichText::addAnchorStart(
 void StructuredRichText::addCssDeclaration(
     const QString &property,
     const QString &value,
-    QHash<QString, QString> &declarations) const
+    StructuredRichText::CssDeclarations &declarations) const
 {
     const QString name = property.trimmed().toLower();
     QString cssValue = value.trimmed();
@@ -1599,6 +2606,84 @@ void StructuredRichText::addCssDeclaration(
     }
 
     cssValue.replace('"', '\'');
+
+    if (name == "margin")
+    {
+        /* Maximum component count permitted by the CSS margin shorthand */
+        constexpr qsizetype MAXIMUM_MARGIN_VALUES = 4;
+
+        QStringList values;
+        QString current;
+        bool inQuote = false;
+        QChar quote;
+        int parenDepth = 0;
+
+        for (const QChar ch : cssValue)
+        {
+            if (inQuote)
+            {
+                current += ch;
+                if (ch == quote)
+                {
+                    inQuote = false;
+                }
+            }
+            else if (ch == '"' || ch == '\'')
+            {
+                inQuote = true;
+                quote = ch;
+                current += ch;
+            }
+            else if (ch == '(')
+            {
+                ++parenDepth;
+                current += ch;
+            }
+            else if (ch == ')')
+            {
+                --parenDepth;
+                current += ch;
+            }
+            else if (ch.isSpace() && parenDepth == 0)
+            {
+                if (!current.isEmpty())
+                {
+                    values.emplaceBack(current);
+                    current.clear();
+                }
+            }
+            else
+            {
+                current += ch;
+            }
+        }
+        if (!current.isEmpty())
+        {
+            values.emplaceBack(current);
+        }
+        if (values.isEmpty() ||
+            values.size() > MAXIMUM_MARGIN_VALUES)
+        {
+            return;
+        }
+
+        const QString top = values[0];
+        const QString right = values.size() > 1 ? values[1] : top;
+        const QString bottom = values.size() > 2 ? values[2] : top;
+        const QString left = values.size() > 3 ? values[3] : right;
+        addCssDeclaration("margin-top", top, declarations);
+        addCssDeclaration("margin-right", right, declarations);
+        addCssDeclaration("margin-bottom", bottom, declarations);
+        addCssDeclaration("margin-left", left, declarations);
+        return;
+    }
+
+    if (name == "clip-path" &&
+        cssValue.startsWith("circle(", Qt::CaseInsensitive))
+    {
+        declarations["border-radius"] = "50%";
+        return;
+    }
 
     /* Make sure the function is supported by Qt rich text before using it */
     QRegularExpressionMatchIterator functions =
@@ -1641,13 +2726,25 @@ void StructuredRichText::addCssDeclaration(
     }
 }
 
-void StructuredRichText::addCssDeclarations(
-    const QHash<QString, QString> &declarations, QString &out) const
+void StructuredRichText::addResolvedCssDeclaration(
+    const QString &property,
+    const QString &value,
+    StructuredRichText::Context &ctx,
+    StructuredRichText::CssDeclarations &declarations) const
 {
-    QStringList keys = declarations.keys();
-    keys.sort();
+    const QString resolved = resolveCssValue(value, ctx);
+    if (resolved.isEmpty())
+    {
+        return;
+    }
+    addCssDeclaration(property, resolved, declarations);
+}
 
-    for (const QString &key : keys)
+void StructuredRichText::addCssDeclarations(
+    const StructuredRichText::CssDeclarations &declarations,
+    QString &out) const
+{
+    for (const auto &[key, value] : declarations.asKeyValueRange())
     {
         /* These are stored as metadata, not handled directly by styles */
         if (key == "content" || key == "list-style-type")
@@ -1657,9 +2754,421 @@ void StructuredRichText::addCssDeclarations(
 
         out += key;
         out += ": ";
-        out += declarations[key];
+        out += value;
         out += ';';
     }
+}
+
+QString StructuredRichText::resolveCssValue(
+    const QString &value,
+    StructuredRichText::Context &ctx) const
+{
+    const auto cached = ctx.resolvedCssValues.constFind(value);
+    if (cached != ctx.resolvedCssValues.cend())
+    {
+        return cached.value();
+    }
+
+    QString resolved = resolveCssVariables(value.trimmed(), ctx);
+    if (resolved.isEmpty())
+    {
+        ctx.resolvedCssValues[value] = "";
+        return "";
+    }
+
+    resolved = resolveCssCalculations(resolved);
+    if (resolved.isEmpty())
+    {
+        ctx.resolvedCssValues[value] = "";
+        return "";
+    }
+
+    if (resolved.startsWith("color-mix(", Qt::CaseInsensitive))
+    {
+        resolved = resolveColorMix(resolved);
+    }
+    else if (resolved.contains("gradient(", Qt::CaseInsensitive))
+    {
+        resolved = cssGradientFallback(resolved);
+    }
+    ctx.resolvedCssValues[value] = resolved;
+    return resolved;
+}
+
+QString StructuredRichText::resolveCssVariables(
+    QString value,
+    const StructuredRichText::Context &ctx) const
+{
+    /* Recursion guard for nested or cyclic CSS variable substitution */
+    constexpr int MAX_REPLACEMENTS = 32;
+
+    /* Character count of the opening "var(" token */
+    constexpr qsizetype CSS_VARIABLE_PREFIX_LENGTH = 4;
+
+    for (int replacementCount = 0;
+         replacementCount < MAX_REPLACEMENTS;
+         ++replacementCount)
+    {
+        const qsizetype start = value.indexOf(
+            "var(",
+            0,
+            Qt::CaseInsensitive
+        );
+        if (start < 0)
+        {
+            return value;
+        }
+
+        qsizetype end = -1;
+        int depth = 1;
+        for (qsizetype i = start + CSS_VARIABLE_PREFIX_LENGTH;
+             i < value.size();
+             ++i)
+        {
+            if (value[i] == '(')
+            {
+                ++depth;
+            }
+            else if (value[i] == ')' && --depth == 0)
+            {
+                end = i;
+                break;
+            }
+        }
+        if (end < 0)
+        {
+            return "";
+        }
+
+        const QStringList arguments = splitCssArguments(
+            value.sliced(
+                start + CSS_VARIABLE_PREFIX_LENGTH,
+                end - start - CSS_VARIABLE_PREFIX_LENGTH
+            )
+        );
+        if (arguments.isEmpty())
+        {
+            return "";
+        }
+
+        const QString name = arguments[0].trimmed().toLower();
+        QString fallback;
+        if (arguments.size() > 1)
+        {
+            fallback = arguments.sliced(1).join(',');
+        }
+
+        QString replacement;
+        if (name == "--text-color" || name == "--fg")
+        {
+            replacement = ctx.glossaryTextColor.isEmpty() ?
+                fallback :
+                ctx.glossaryTextColor;
+        }
+        else if (name == "--font-size-no-units")
+        {
+            replacement = formatPixelSize(ctx.rootFontPixelSize);
+        }
+        else if (name == "--background-color" || name == "--canvas")
+        {
+            replacement = ctx.glossaryBackgroundColor.isEmpty() ?
+                fallback :
+                ctx.glossaryBackgroundColor;
+        }
+        else
+        {
+            replacement = fallback;
+        }
+
+        if (replacement.isEmpty())
+        {
+            return "";
+        }
+        replacement = resolveCssVariables(replacement, ctx);
+        if (replacement.isEmpty())
+        {
+            return "";
+        }
+        value.replace(start, end - start + 1, replacement);
+    }
+
+    return "";
+}
+
+QString StructuredRichText::resolveCssCalculations(QString value) const
+{
+    /* Recursion guard for nested CSS calc() substitutions */
+    constexpr int MAX_REPLACEMENTS = 16;
+
+    /* Character count of the opening "calc(" token */
+    constexpr qsizetype CSS_CALC_PREFIX_LENGTH = 5;
+
+    for (int replacementCount = 0;
+         replacementCount < MAX_REPLACEMENTS;
+         ++replacementCount)
+    {
+        const qsizetype start = value.indexOf(
+            "calc(",
+            0,
+            Qt::CaseInsensitive
+        );
+        if (start < 0)
+        {
+            return value;
+        }
+
+        qsizetype end = -1;
+        int depth = 1;
+        for (qsizetype i = start + CSS_CALC_PREFIX_LENGTH;
+             i < value.size();
+             ++i)
+        {
+            if (value[i] == '(')
+            {
+                ++depth;
+            }
+            else if (value[i] == ')' && --depth == 0)
+            {
+                end = i;
+                break;
+            }
+        }
+        if (end < 0)
+        {
+            return "";
+        }
+
+        const QString replacement = resolveCssCalc(
+            value.sliced(start, end - start + 1)
+        );
+        if (replacement.isEmpty())
+        {
+            return "";
+        }
+        value.replace(start, end - start + 1, replacement);
+    }
+
+    return "";
+}
+
+QString StructuredRichText::resolveColorMix(const QString &value) const
+{
+    /* Number of colors supported by the compatibility color-mix parser */
+    constexpr qsizetype COLOR_COUNT = 2;
+
+    /* Character count of the opening "color-mix(" token */
+    constexpr qsizetype COLOR_MIX_PREFIX_LENGTH = 10;
+
+    /* Character count of a CSS function's closing parenthesis */
+    constexpr qsizetype CSS_FUNCTION_SUFFIX_LENGTH = 1;
+
+    /* Equal weighting used when neither mixed color specifies a percentage */
+    constexpr double DEFAULT_COLOR_PERCENTAGE = 50.0;
+
+    /* Percentage total used to infer one omitted color weight */
+    constexpr double TOTAL_COLOR_PERCENTAGE = 100.0;
+
+    /* Sentinel identifying a color weight omitted from color-mix() */
+    constexpr double UNSPECIFIED_PERCENTAGE = -1.0;
+
+    if (!value.endsWith(')'))
+    {
+        return "";
+    }
+
+    QStringList arguments = splitCssArguments(
+        value.sliced(
+            COLOR_MIX_PREFIX_LENGTH,
+            value.size() -
+                COLOR_MIX_PREFIX_LENGTH -
+                CSS_FUNCTION_SUFFIX_LENGTH
+        )
+    );
+    if (!arguments.isEmpty() &&
+        arguments.front().startsWith("in ", Qt::CaseInsensitive))
+    {
+        arguments.removeFirst();
+    }
+    if (arguments.size() != COLOR_COUNT)
+    {
+        return "";
+    }
+
+    std::array<QColor, COLOR_COUNT> colors;
+    std::array<double, COLOR_COUNT> percentages = {
+        UNSPECIFIED_PERCENTAGE,
+        UNSPECIFIED_PERCENTAGE
+    };
+    /* Trailing percentage attached to an individual color-mix argument */
+    static const QRegularExpression PERCENTAGE{
+        R"(\s+([0-9]+(?:\.[0-9]+)?)%\s*$)"
+    };
+
+    for (qsizetype i = 0; i < COLOR_COUNT; ++i)
+    {
+        QString colorValue = arguments[i].trimmed();
+        const QRegularExpressionMatch match = PERCENTAGE.match(colorValue);
+        if (match.hasMatch())
+        {
+            percentages[i] = match.captured(1).toDouble();
+            colorValue = colorValue.first(match.capturedStart()).trimmed();
+        }
+        colors[i] = QColor::fromString(colorValue);
+        if (!colors[i].isValid())
+        {
+            return "";
+        }
+    }
+
+    if (percentages[0] < 0.0 && percentages[1] < 0.0)
+    {
+        percentages[0] = DEFAULT_COLOR_PERCENTAGE;
+        percentages[1] = DEFAULT_COLOR_PERCENTAGE;
+    }
+    else if (percentages[0] < 0.0)
+    {
+        percentages[0] = TOTAL_COLOR_PERCENTAGE - percentages[1];
+    }
+    else if (percentages[1] < 0.0)
+    {
+        percentages[1] = TOTAL_COLOR_PERCENTAGE - percentages[0];
+    }
+
+    const double total = percentages[0] + percentages[1];
+    if (total <= 0.0)
+    {
+        return "";
+    }
+    const double firstWeight = percentages[0] / total;
+    const double secondWeight = percentages[1] / total;
+    const double alpha =
+        colors[0].alphaF() * firstWeight +
+        colors[1].alphaF() * secondWeight;
+    if (alpha <= 0.0)
+    {
+        return QColor(Qt::transparent).name(QColor::HexArgb);
+    }
+
+    return QColor::fromRgbF(
+        (
+            colors[0].redF() * colors[0].alphaF() * firstWeight +
+            colors[1].redF() * colors[1].alphaF() * secondWeight
+        ) / alpha,
+        (
+            colors[0].greenF() * colors[0].alphaF() * firstWeight +
+            colors[1].greenF() * colors[1].alphaF() * secondWeight
+        ) / alpha,
+        (
+            colors[0].blueF() * colors[0].alphaF() * firstWeight +
+            colors[1].blueF() * colors[1].alphaF() * secondWeight
+        ) / alpha,
+        alpha
+    ).name(QColor::HexArgb);
+}
+
+QString StructuredRichText::resolveCssCalc(const QString &value) const
+{
+    /* Simple dimension-by-number division supported inside calc() */
+    static const QRegularExpression DIVISION{
+        R"(^calc\(\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+))([a-z%]+)\s*/\s*)"
+        R"(([+-]?(?:\d+(?:\.\d*)?|\.\d+))\s*\)$)",
+        QRegularExpression::CaseInsensitiveOption
+    };
+
+    const QRegularExpressionMatch match = DIVISION.match(value);
+    if (!match.hasMatch())
+    {
+        return "";
+    }
+
+    const double denominator = match.captured(3).toDouble();
+    if (denominator == 0.0)
+    {
+        return "";
+    }
+    return formatPixelSize(
+        match.captured(1).toDouble() / denominator
+    ) + match.captured(2);
+}
+
+QString StructuredRichText::cssGradientFallback(const QString &value) const
+{
+    const qsizetype open = value.indexOf('(');
+    if (open < 0 || !value.endsWith(')'))
+    {
+        return "";
+    }
+
+    const QStringList arguments = splitCssArguments(
+        value.sliced(open + 1, value.size() - open - 2)
+    );
+    if (arguments.isEmpty())
+    {
+        return "";
+    }
+
+    QString colorValue = arguments.front().trimmed();
+    /* Trailing percentage position attached to a gradient color stop */
+    static const QRegularExpression COLOR_STOP{
+        R"(\s+[0-9]+(?:\.[0-9]+)?%\s*$)"
+    };
+    const QRegularExpressionMatch match = COLOR_STOP.match(colorValue);
+    if (match.hasMatch())
+    {
+        colorValue = colorValue.first(match.capturedStart()).trimmed();
+    }
+
+    const QColor color = QColor::fromString(colorValue);
+    return color.isValid() ? color.name(QColor::HexArgb) : "";
+}
+
+QStringList StructuredRichText::splitCssArguments(
+    const QString &arguments) const
+{
+    QStringList result;
+    QString current;
+    bool inQuote = false;
+    QChar quote;
+    int parenDepth = 0;
+
+    for (const QChar ch : arguments)
+    {
+        if (inQuote)
+        {
+            current += ch;
+            if (ch == quote)
+            {
+                inQuote = false;
+            }
+        }
+        else if (ch == '"' || ch == '\'')
+        {
+            inQuote = true;
+            quote = ch;
+            current += ch;
+        }
+        else if (ch == '(')
+        {
+            ++parenDepth;
+            current += ch;
+        }
+        else if (ch == ')')
+        {
+            --parenDepth;
+            current += ch;
+        }
+        else if (ch == ',' && parenDepth == 0)
+        {
+            result.emplaceBack(current.trimmed());
+            current.clear();
+        }
+        else
+        {
+            current += ch;
+        }
+    }
+    result.emplaceBack(current.trimmed());
+    return result;
 }
 
 QString StructuredRichText::normalizeListMarker(QString marker) const
@@ -1689,7 +3198,7 @@ QString StructuredRichText::defaultListMarker(const QString &tag) const
 }
 
 QString StructuredRichText::listMarker(
-    const List &list, const QString &marker) const
+    const StructuredList &list, const QString &marker) const
 {
     QString normalized = normalizeListMarker(marker);
     if (normalized.isEmpty())
@@ -1722,6 +3231,7 @@ QString StructuredRichText::listMarker(
     }
     if (normalized == "a" || normalized == "A")
     {
+        /* Number of symbols in the Latin alphabetic list-marker sequence */
         constexpr int LETTERS_IN_ALPHABET = 26;
 
         QString alpha;
@@ -1752,90 +3262,52 @@ bool StructuredRichText::isBuiltInListMarker(const QString &marker) const
         normalized == "A";
 }
 
-QHash<QString, QString> StructuredRichText::parseCssDeclarations(
-    const QString &body) const
-{
-    QHash<QString, QString> declarations;
-    QString property;
-    QString value;
-    bool inProperty = true;
-    bool inQuote = false;
-    QChar quote;
-    int parenDepth = 0;
-
-    const auto flush = [&] ()
-    {
-        addCssDeclaration(property, value, declarations);
-        property.clear();
-        value.clear();
-        inProperty = true;
-    };
-
-    for (const QChar ch : body)
-    {
-        if (inQuote)
-        {
-            (inProperty ? property : value) += ch;
-            if (ch == quote)
-            {
-                inQuote = false;
-            }
-        }
-        else if (ch == '"' || ch == '\'')
-        {
-            inQuote = true;
-            quote = ch;
-            (inProperty ? property : value) += ch;
-        }
-        else if (ch == '(')
-        {
-            ++parenDepth;
-            (inProperty ? property : value) += ch;
-        }
-        else if (ch == ')')
-        {
-            --parenDepth;
-            (inProperty ? property : value) += ch;
-        }
-        else if (ch == ':' && inProperty)
-        {
-            inProperty = false;
-        }
-        else if (ch == ';' && parenDepth == 0)
-        {
-            flush();
-        }
-        else
-        {
-            (inProperty ? property : value) += ch;
-        }
-    }
-    flush();
-
-    return declarations;
-}
-
 void StructuredRichText::addMatchingCssRules(
-    const StructuredRichText::Context &ctx,
-    QHash<QString, QString> &declarations) const
+    StructuredRichText::Context &ctx,
+    StructuredRichText::CssDeclarations &declarations,
+    QString *beforeContent) const
 {
-    if (ctx.dictionaryStyles == nullptr)
+    if (ctx.dictionaryStyles == nullptr || ctx.elements.isEmpty())
     {
         return;
     }
 
-    for (const CssRule &rule : ctx.dictionaryStyles->parsedStylesheet().rules)
+    const ParsedStylesheet &stylesheet =
+        ctx.dictionaryStyles->parsedStylesheet();
+    const QList<qsizetype> &candidateIndexes =
+        ctx.dictionaryStyles->candidateRuleIndexes(
+            ctx.selectorElements[ctx.elements.back()].tag
+        );
+    for (const qsizetype index : candidateIndexes)
     {
-        if (rule.before || !cssRuleMatches(rule, ctx.elements))
+        const CssRule &rule = stylesheet.rules[index];
+        if (!cssRuleMatches(rule, ctx))
         {
             continue;
         }
-
-        for (const auto &[key, declaration] :
-             rule.declarations.asKeyValueRange())
+        if (rule.before)
         {
-            QString value = declaration;
-            if (key == "font-size")
+            if (beforeContent != nullptr)
+            {
+                for (const CssDeclaration &declaration : rule.declarations)
+                {
+                    if (declaration.property == "content")
+                    {
+                        *beforeContent = declaration.value;
+                    }
+                }
+            }
+            continue;
+        }
+
+        for (const CssDeclaration &declaration : rule.declarations)
+        {
+            QString value = resolveCssValue(declaration.value, ctx);
+            if (value.isEmpty())
+            {
+                continue;
+            }
+            if (declaration.property == "font-size")
             {
                 const double pixelSize = cssFontSizeToPixels(
                     value,
@@ -1848,76 +3320,95 @@ void StructuredRichText::addMatchingCssRules(
                     value = formatPixelSize(pixelSize) + "px";
                 }
             }
-            addCssDeclaration(key, value, declarations);
+            addCssDeclaration(declaration.property, value, declarations);
         }
     }
-}
-
-QString StructuredRichText::matchingBeforeContent(
-    const StructuredRichText::Context &ctx) const
-{
-    QString content;
-    if (ctx.dictionaryStyles == nullptr)
-    {
-        return content;
-    }
-
-    for (const CssRule &rule : ctx.dictionaryStyles->parsedStylesheet().rules)
-    {
-        if (!rule.before || !cssRuleMatches(rule, ctx.elements))
-        {
-            continue;
-        }
-        content = rule.declarations.value("content", content);
-    }
-    return content;
 }
 
 bool StructuredRichText::cssRuleMatches(
     const CssRule &rule,
-    const QList<StructuredElement> &elements) const
+    const StructuredRichText::Context &ctx) const
 {
-    if (rule.selector.isEmpty() || elements.isEmpty())
+    if (rule.selector.isEmpty() || ctx.elements.isEmpty())
     {
         return false;
     }
 
-    qsizetype elementIndex = elements.size() - 1;
-    for (qsizetype i = rule.selector.size() - 1; i >= 0; --i)
+    const qsizetype stackIndex = ctx.elements.size() - 1;
+    return cssRuleMatchesAt(
+        rule,
+        ctx,
+        rule.selector.size() - 1,
+        stackIndex,
+        ctx.elements[stackIndex]
+    );
+}
+
+bool StructuredRichText::cssRuleMatchesAt(
+    const CssRule &rule,
+    const StructuredRichText::Context &ctx,
+    qsizetype partIndex,
+    qsizetype stackIndex,
+    qsizetype selectorElementIndex) const
+{
+    const StructuredElement &element =
+        ctx.selectorElements[selectorElementIndex];
+    if (partIndex < 0 ||
+        !cssSelectorPartMatches(rule.selector[partIndex], element))
     {
-        const CssSelectorPart &part = rule.selector[i];
-        const bool requireDirect =
-            i + 1 < rule.selector.size() &&
-            rule.selector[i + 1].directParent;
+        return false;
+    }
+    if (partIndex == 0)
+    {
+        return true;
+    }
 
-        if (i == rule.selector.size() - 1 || requireDirect)
-        {
-            if (elementIndex < 0 ||
-                !cssSelectorPartMatches(part, elements[elementIndex]))
-            {
-                return false;
-            }
-            --elementIndex;
-            continue;
-        }
-
-        bool matched = false;
-        while (elementIndex >= 0)
-        {
-            if (cssSelectorPartMatches(part, elements[elementIndex]))
-            {
-                matched = true;
-                --elementIndex;
-                break;
-            }
-            --elementIndex;
-        }
-        if (!matched)
+    switch (rule.selector[partIndex].combinator)
+    {
+    case DictionaryStyles::CssCombinator::Child:
+        if (stackIndex <= 0)
         {
             return false;
         }
+        return cssRuleMatchesAt(
+            rule,
+            ctx,
+            partIndex - 1,
+            stackIndex - 1,
+            ctx.elements[stackIndex - 1]
+        );
+
+    case DictionaryStyles::CssCombinator::AdjacentSibling:
+        if (element.previousSibling < 0)
+        {
+            return false;
+        }
+        return cssRuleMatchesAt(
+            rule,
+            ctx,
+            partIndex - 1,
+            stackIndex,
+            element.previousSibling
+        );
+
+    case DictionaryStyles::CssCombinator::Descendant:
+        for (qsizetype i = stackIndex - 1; i >= 0; --i)
+        {
+            if (cssRuleMatchesAt(
+                    rule,
+                    ctx,
+                    partIndex - 1,
+                    i,
+                    ctx.elements[i]
+                ))
+            {
+                return true;
+            }
+        }
+        return false;
     }
-    return true;
+
+    return false;
 }
 
 bool StructuredRichText::cssSelectorPartMatches(
@@ -1928,10 +3419,12 @@ bool StructuredRichText::cssSelectorPartMatches(
     {
         return false;
     }
-    if (!part.className.isEmpty() &&
-        element.attributes.value("data-sc-class") != part.className)
+    for (const QString &className : part.classNames)
     {
-        return false;
+        if (!element.classes.contains(className))
+        {
+            return false;
+        }
     }
     for (const auto &[key, value] : part.attributes.asKeyValueRange())
     {
@@ -1940,34 +3433,81 @@ bool StructuredRichText::cssSelectorPartMatches(
             return false;
         }
     }
+    for (const QString &attribute : part.presentAttributes)
+    {
+        if (!element.attributes.contains(attribute))
+        {
+            return false;
+        }
+    }
+    if (part.firstChild && element.previousSibling >= 0)
+    {
+        return false;
+    }
     return true;
 }
 
-StructuredRichText::StructuredElement StructuredRichText::structuredElement(
-    const QJsonObject &obj) const
+qsizetype StructuredRichText::structuredElement(
+    const QJsonObject &obj,
+    StructuredRichText::Context &ctx) const
 {
+    /* Structured-content keys recorded for CSS selector matching */
     constexpr const char *KEY_DATA = "data";
+    constexpr const char *KEY_HREF = "href";
+    constexpr const char *KEY_LANG = "lang";
     constexpr const char *KEY_TAG = "tag";
+    constexpr const char *KEY_TITLE = "title";
 
     StructuredElement element;
     element.tag = obj[KEY_TAG].toString().toLower();
-
-    if (!obj[KEY_DATA].isObject())
+    element.classes.insert("gloss-sc-" + element.tag);
+    if (element.tag == "img")
     {
-        return element;
+        element.classes.insert("gloss-image");
+        element.classes.insert("gloss-image-container");
+        element.classes.insert("gloss-image-link");
     }
 
-    const QJsonObject data = obj[KEY_DATA].toObject();
-    for (const QString &key : data.keys())
+    if (obj[KEY_DATA].isObject())
     {
-        if (data[key].isString())
+        const QJsonObject data = obj[KEY_DATA].toObject();
+        for (const QString &key : data.keys())
         {
-            element.attributes[structuredDataAttributeName(key)] =
-                data[key].toString();
+            if (data[key].isString())
+            {
+                element.attributes[structuredDataAttributeName(key)] =
+                    data[key].toString();
+            }
         }
     }
 
-    return element;
+    /* Standard attributes copied into the selector-node attribute map */
+    constexpr std::array<const char *, 3> STANDARD_ATTRIBUTES = {
+        KEY_HREF,
+        KEY_LANG,
+        KEY_TITLE
+    };
+    for (const char *key : STANDARD_ATTRIBUTES)
+    {
+        if (obj[key].isString())
+        {
+            element.attributes[key] = obj[key].toString();
+        }
+    }
+
+    if (!ctx.siblings.isEmpty())
+    {
+        SiblingState &siblings = ctx.siblings.back();
+        element.previousSibling = siblings.previousElement;
+    }
+
+    const qsizetype index = ctx.selectorElements.size();
+    ctx.selectorElements.emplaceBack(std::move(element));
+    if (!ctx.siblings.isEmpty())
+    {
+        ctx.siblings.back().previousElement = index;
+    }
+    return index;
 }
 
 QString StructuredRichText::structuredDataAttributeName(
@@ -2215,7 +3755,10 @@ double StructuredRichText::cssFontSizeToPixels(
 double StructuredRichText::fontPixelSize(
     const QFont &font, const QScreen *screen) const
 {
+    /* Typographic points per physical inch */
     constexpr double POINTS_IN_INCH = 72.0;
+
+    /* Browser-compatible font size used when the QFont has no valid size */
     constexpr double DEFAULT_PIXEL_SIZE = 16.0;
 
     if (font.pixelSize() > 0)
@@ -2231,6 +3774,7 @@ double StructuredRichText::fontPixelSize(
 
 double StructuredRichText::screenDpi(const QScreen *screen) const
 {
+    /* CSS reference pixel density used when no screen DPI is available */
     constexpr double DEFAULT_SCREEN_DPI = 96.0;
 
     if (screen == nullptr)

@@ -225,7 +225,8 @@ SearchableText {
               MementoSettings.searchGlossaryStyle,
               root,
               root.font,
-              root.color)
+              root.color,
+              MementoPalette.window)
 
     onLinkActivated: function(link) {
         root.openLink(link);
