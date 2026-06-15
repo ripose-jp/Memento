@@ -147,6 +147,78 @@ private:
     };
 
     /**
+     * @brief Resolved state used to render a structured element.
+     */
+    struct ElementRenderState
+    {
+        /* Original structured content tag used for selector matching */
+        QString tag;
+
+        /* Qt-compatible HTML tag emitted for the element */
+        QString outputTag;
+
+        /* HTML attributes emitted on the outer element */
+        QString attributes;
+
+        /* CSS declarations emitted on the outer element */
+        QHash<QString, QString> declarations;
+
+        /* CSS declarations moved to a table-backed content cell */
+        QHash<QString, QString> cellDeclarations;
+
+
+        /* Resolved font size inherited by child content */
+        double fontPixelSize{0.0};
+
+        /* Resolved text color inherited by child content */
+        QString textColor;
+
+        /* Resolved title tooltip inherited by child content */
+        QString titleTooltip;
+
+
+        /* Visible marker emitted for the current list item */
+        QString listMarker;
+
+        /* Marker type inherited by child list items */
+        QString listMarkerType;
+
+        /* True when the element is an ordered or unordered list */
+        bool isList{false};
+
+        /* True when the element is a child of a rendered list */
+        bool isListItem{false};
+
+        /* True when a marked list item uses a two-cell table */
+        bool listItemTable{false};
+
+        /* True when a markerless item uses explicit content spacing */
+        bool markerlessListItem{false};
+
+        /* True when a details element uses a single-cell table */
+        bool detailsTable{false};
+
+        /* True when a known label span needs non-breaking side padding */
+        bool paddedSpan{false};
+
+
+        /* Inline spacing emitted before the element */
+        QString inlineSpacingBefore;
+
+        /* Inline spacing emitted after the element */
+        QString inlineSpacingAfter;
+
+        /* Vertical spacing emitted before markerless item content */
+        QString contentSpacingBefore;
+
+        /* Vertical spacing emitted after markerless item content */
+        QString contentSpacingAfter;
+
+        /* Vertical spacing emitted after the element */
+        QString elementSpacingAfter;
+    };
+
+    /**
      * @brief Add structured data attributes to the string.
      *
      * @param obj The structured data attributes to parse.
@@ -226,6 +298,117 @@ private:
         const QJsonObject &obj,
         StructuredRichText::Context &ctx,
         QString &out) const;
+
+    /**
+     * @brief Render a normal structured element.
+     *
+     * @param obj The structured content object.
+     * @param tag The original structured content tag.
+     * @param ctx The StructuredRichText context.
+     * @param[out] out The string this content will be appended to.
+     */
+    void addStructuredElement(
+        const QJsonObject &obj,
+        const QString &tag,
+        StructuredRichText::Context &ctx,
+        QString &out) const;
+
+    /**
+     * @brief Resolve the attributes, styles, and layout for an element.
+     *
+     * @param obj The structured content object.
+     * @param tag The original structured content tag.
+     * @param ctx The StructuredRichText context.
+     * @return The resolved element render state.
+     */
+    [[nodiscard]]
+    ElementRenderState elementRenderState(
+        const QJsonObject &obj,
+        const QString &tag,
+        StructuredRichText::Context &ctx) const;
+
+    /**
+     * @brief Add HTML attributes from a structured content object.
+     *
+     * @param obj The structured content object.
+     * @param[out] state The element render state to update.
+     */
+    void addElementAttributes(
+        const QJsonObject &obj,
+        ElementRenderState &state) const;
+
+    /**
+     * @brief Resolve matched and inline styles for an element.
+     *
+     * @param obj The structured content object.
+     * @param ctx The StructuredRichText context.
+     * @param[out] state The element render state to update.
+     */
+    void resolveElementStyles(
+        const QJsonObject &obj,
+        StructuredRichText::Context &ctx,
+        ElementRenderState &state) const;
+
+    /**
+     * @brief Resolve list state and the Qt-compatible output tag.
+     *
+     * @param ctx The StructuredRichText context.
+     * @param[out] state The element render state to update.
+     */
+    void resolveElementLayout(
+        StructuredRichText::Context &ctx,
+        ElementRenderState &state) const;
+
+    /**
+     * @brief Apply Qt rich text compatibility rewrites to an element.
+     *
+     * @param[out] state The element render state to update.
+     */
+    void applyElementCompatibility(ElementRenderState &state) const;
+
+    /**
+     * @brief Add the opening HTML for a structured element.
+     *
+     * @param state The element render state.
+     * @param ctx The StructuredRichText context.
+     * @param[out] out The string this HTML will be appended to.
+     */
+    void addStructuredElementStart(
+        const ElementRenderState &state,
+        const StructuredRichText::Context &ctx,
+        QString &out) const;
+
+    /**
+     * @brief Add the closing HTML for a structured element.
+     *
+     * @param state The element render state.
+     * @param ctx The StructuredRichText context.
+     * @param[out] out The string this HTML will be appended to.
+     */
+    void addStructuredElementEnd(
+        const ElementRenderState &state,
+        const StructuredRichText::Context &ctx,
+        QString &out) const;
+
+    /**
+     * @brief Add an inline spacer supported by Qt rich text.
+     *
+     * @param spacing The CSS spacing value.
+     * @param ctx The StructuredRichText context.
+     * @param[out] out The string this spacer will be appended to.
+     */
+    void addInlineSpacer(
+        const QString &spacing,
+        const StructuredRichText::Context &ctx,
+        QString &out) const;
+
+    /**
+     * @brief Add a vertical spacer supported by Qt rich text.
+     *
+     * @param spacing The CSS spacing value.
+     * @param[out] out The string this spacer will be appended to.
+     */
+    void addVerticalSpacer(const QString &spacing, QString &out) const;
 
     /**
      * @brief Add a ruby structured content object.
