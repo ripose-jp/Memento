@@ -302,7 +302,7 @@ private:
      * @return true if code is an error, false otherwise.
      */
     [[nodiscard]]
-    static bool inline isStepError(const int step);
+    static bool isStepError(const int step);
 
     /* Saved path to the database */
     const QByteArray m_dbPath;

@@ -476,6 +476,16 @@ QList<Term *> DatabaseManager::queryTerms(
         goto error;
     }
 
+    /* Filter terms with no definitions */
+    for (qsizetype i = 0; i < terms.size(); ++i)
+    {
+        if (terms[i]->definitions().isEmpty())
+        {
+            delete std::exchange(terms[i], nullptr);
+        }
+    }
+    terms.removeAll(nullptr);
+
     /* Return results on success */
     sqlite3_finalize(stmt);
 
@@ -669,6 +679,24 @@ int DatabaseManager::populateTerms(const QList<Term *> &terms) const
         QList<Tag *> tags;
         while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
         {
+            /* Filter out all deinflection glossaries since they aren't used */
+            QJsonArray glossary = QJsonDocument::fromJson(
+                reinterpret_cast<const char *>(
+                    sqlite3_column_text(stmt, COLUMN_GLOSSARY)
+                )
+            ).array();
+            for (qsizetype i = glossary.size() - 1; i >= 0; --i)
+            {
+                if (glossary[i].isArray())
+                {
+                    glossary.removeAt(i);
+                }
+            }
+            if (glossary.isEmpty())
+            {
+                continue;
+            }
+
             const int64_t id = sqlite3_column_int64(stmt, COLUMN_DIC_ID);
 
             /* These fields are accumulated */
@@ -686,11 +714,7 @@ int DatabaseManager::populateTerms(const QList<Term *> &terms) const
 
             TermDefinition *def = new TermDefinition(term);
             def->setDictionaryInfo(getDictionary(id)->clone(def));
-            def->setGlossary(QJsonDocument::fromJson(
-                reinterpret_cast<const char *>(
-                    sqlite3_column_text(stmt, COLUMN_GLOSSARY)
-                )
-            ).array());
+            def->setGlossary(std::move(glossary));
             def->setScore(sqlite3_column_int(stmt, COLUMN_SCORE));
             def->setTags(
                 getTags(
@@ -1167,7 +1191,7 @@ QStringList DatabaseManager::jsonArrayToStringList(const char *jsonstr)
     return list;
 }
 
-bool inline DatabaseManager::isStepError(const int step)
+bool DatabaseManager::isStepError(const int step)
 {
     return step != SQLITE_ROW && step != SQLITE_DONE;
 }
