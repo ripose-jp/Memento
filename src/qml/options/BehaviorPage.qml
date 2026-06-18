@@ -170,7 +170,7 @@ Page {
                             Layout.alignment: Qt.AlignRight
                             editable: true
                             from: 0
-                            to: 999
+                            to: 99
                             value: MementoSettings.behaviorOscMinMove
                             onValueModified: MementoSettings.behaviorOscMinMove = value
                         }
