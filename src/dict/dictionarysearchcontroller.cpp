@@ -464,6 +464,12 @@ void DictionarySearchController::sortTerms(QList<Term *> &terms) const
             {
                 return lhs->clozeBody().size() > rhs->clozeBody().size();
             }
+            bool lhsExact = lhs->expression() == lhs->clozeBody();
+            bool rhsExact = rhs->expression() == rhs->clozeBody();
+            if (lhsExact != rhsExact)
+            {
+                return lhsExact;
+            }
             if (lhs->expression().size() != rhs->expression().size())
             {
                 return lhs->expression().size() > rhs->expression().size();
