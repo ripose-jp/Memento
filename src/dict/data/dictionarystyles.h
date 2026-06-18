@@ -45,7 +45,68 @@ public:
     {
         Descendant,
         Child,
-        AdjacentSibling
+        AdjacentSibling,
+        GeneralSibling
+    };
+
+    /**
+     * @brief Attribute selector comparison supported by the CSS matcher.
+     */
+    enum class CssAttributeOperator
+    {
+        Exists,
+        Equals,
+        StartsWith
+    };
+
+    /**
+     * @brief Pseudo-element target supported by generated-content rules.
+     */
+    enum class CssPseudoElement
+    {
+        None,
+        Before,
+        After
+    };
+
+    /**
+     * @brief Supported CSS pseudo-class condition.
+     */
+    enum class CssPseudoClass
+    {
+        FirstChild,
+        LastChild,
+        NthChild
+    };
+
+    /**
+     * @brief A single CSS attribute selector.
+     */
+    struct CssAttributeSelector
+    {
+        /* Attribute name to test */
+        QString name;
+
+        /* Attribute value used by value-based operators */
+        QString value;
+
+        /* Attribute comparison performed by the selector */
+        CssAttributeOperator op{CssAttributeOperator::Exists};
+    };
+
+    /**
+     * @brief A single CSS pseudo-class selector.
+     */
+    struct CssPseudoClassSelector
+    {
+        /* Pseudo-class condition to test */
+        CssPseudoClass type{CssPseudoClass::FirstChild};
+
+        /* Exact one-based child index for :nth-child(), or 0 otherwise */
+        int childIndex{0};
+
+        /* True when this pseudo-class came from :not(...) */
+        bool negated{false};
     };
 
     /**
@@ -62,14 +123,11 @@ public:
         /* Required class names */
         QSet<QString> classNames;
 
-        /* Attributes that must equal a specific value */
-        QHash<QString, QString> attributes;
+        /* Attribute selector tests required by this selector part */
+        QList<CssAttributeSelector> attributes;
 
-        /* Attributes that only need to be present */
-        QSet<QString> presentAttributes;
-
-        /* True if the element must be its parent's first element child */
-        bool firstChild{false};
+        /* Pseudo-class selector tests required by this selector part */
+        QList<CssPseudoClassSelector> pseudoClasses;
     };
 
     /**
@@ -95,8 +153,8 @@ public:
         /* The CSS declarations in source order */
         QList<CssDeclaration> declarations;
 
-        /* True if this rule applies to ::before content */
-        bool before{false};
+        /* Pseudo-element target for generated-content rules */
+        CssPseudoElement pseudoElement{CssPseudoElement::None};
 
         /* The selector specificity */
         int specificity{0};
@@ -118,6 +176,9 @@ public:
 
         /* Ordered candidate rule indexes for each target tag */
         QHash<QString, QList<qsizetype>> ruleIndexesByTargetTag;
+
+        /* True when any selector needs a total element-child count */
+        bool usesElementChildCount{false};
     };
 
     /**
@@ -160,14 +221,14 @@ private:
      * @brief Parse a CSS selector into selector parts.
      *
      * @param selector The selector to parse.
-     * @param before Set true if the selector targets ::before.
+     * @param pseudoElement Set to the selector's generated-content target.
      * @param specificity Set to the selector specificity.
      * @return The parsed selector parts.
      */
     [[nodiscard]]
     static QList<CssSelectorPart> parseCssSelector(
         const QString &selector,
-        bool &before,
+        CssPseudoElement &pseudoElement,
         int &specificity);
 
     /**

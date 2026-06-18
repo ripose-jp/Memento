@@ -92,6 +92,12 @@ private:
 
         /* Index of the previous element sibling in selectorElements, or -1 */
         qsizetype previousSibling{-1};
+
+        /* One-based element-child index among siblings */
+        qsizetype childIndex{0};
+
+        /* Total element-child count in this element's parent */
+        qsizetype childCount{0};
     };
 
     /**
@@ -102,6 +108,12 @@ private:
         /* Index of the most recently rendered element child in
          * selectorElements */
         qsizetype previousElement{-1};
+
+        /* Number of element children encountered in this sibling group */
+        qsizetype visitedElementCount{0};
+
+        /* Total number of element children in this sibling group */
+        qsizetype elementCount{0};
 
         /* Largest positive margin waiting to be emitted */
         double pendingPositiveMarginPixels{0.0};
@@ -269,6 +281,9 @@ private:
         /* CSS rules parsed from the dictionary stylesheet */
         std::shared_ptr<const DictionaryStyles> dictionaryStyles;
 
+        /* True when selectors need total element-child counts */
+        bool needsElementChildCount{false};
+
         /* Storage containing selector elements for the current render */
         QList<StructuredElement> selectorElements;
 
@@ -340,6 +355,9 @@ private:
 
         /* Generated ::before content resolved with the element styles */
         QString beforeContent;
+
+        /* Generated ::after content resolved with the element styles */
+        QString afterContent;
 
         /* Visible marker emitted for the current list item */
         QString listMarker;
@@ -445,6 +463,15 @@ private:
         const QJsonValue &val,
         StructuredRichText::Context &ctx,
         QString &out) const;
+
+    /**
+     * @brief Count direct element children used by CSS sibling selectors.
+     *
+     * @param val The structured content value to inspect.
+     * @return Number of supported structured elements in this child group.
+     */
+    [[nodiscard]]
+    qsizetype structuredElementChildCount(const QJsonValue &val) const;
 
     /**
      * @brief Render a normal structured element.
@@ -963,7 +990,8 @@ private:
     void addMatchingCssRules(
         StructuredRichText::Context &ctx,
         CssDeclarations &declarations,
-        QString *beforeContent = nullptr) const;
+        QString *beforeContent = nullptr,
+        QString *afterContent = nullptr) const;
 
     /**
      * @brief Check if a rule matches the current element stack.
@@ -1108,7 +1136,7 @@ private:
         "border-left", "border-left-color", "border-left-style",
         "border-left-width", "border-radius", "border-right",
         "border-right-color", "border-right-style",
-        "border-right-width", "border-style", "border-top",
+        "border-right-width", "border-style", "border-top", "display",
         "border-top-color", "border-top-style", "border-top-width",
         "border-width", "color", "cursor", "float", "font",
         "font-family", "font-kerning", "font-size", "font-style",

@@ -69,8 +69,8 @@ constexpr double DEFAULT_BORDER_WIDTH_PIXELS = 3.0;
 /* Pixel width used for the CSS thick border keyword */
 constexpr double THICK_BORDER_WIDTH_PIXELS = 5.0;
 
-/* Initial selector-node capacity for a structured-content render */
-constexpr qsizetype SELECTOR_ARENA_RESERVE = 128;
+/* Initial selector-element capacity for a structured-content render */
+constexpr qsizetype SELECTOR_ELEMENT_RESERVE = 128;
 
 /* Initial ancestor-stack capacity for selector matching */
 constexpr qsizetype ELEMENT_STACK_RESERVE = 32;
@@ -384,6 +384,11 @@ QString StructuredRichText::parse(
     }
     ctx.font = font;
     ctx.dictionaryStyles = info->styles();
+    if (ctx.dictionaryStyles != nullptr)
+    {
+        ctx.needsElementChildCount =
+            ctx.dictionaryStyles->parsedStylesheet().usesElementChildCount;
+    }
 
     ctx.rootFontPixelSize = fontPixelSize(font, ctx.screen);
     ctx.parentFontPixelSize = ctx.rootFontPixelSize;
@@ -406,7 +411,7 @@ QString StructuredRichText::parse(
         ctx.backgroundColor = ctx.glossaryBackgroundColor;
     }
     ctx.paintedBackgroundColor = ctx.backgroundColor;
-    ctx.selectorElements.reserve(SELECTOR_ARENA_RESERVE);
+    ctx.selectorElements.reserve(SELECTOR_ELEMENT_RESERVE);
     ctx.elements.reserve(ELEMENT_STACK_RESERVE);
     ctx.siblings.reserve(SIBLING_STACK_RESERVE);
     ctx.lists.reserve(LIST_STACK_RESERVE);
@@ -929,10 +934,38 @@ void StructuredRichText::addStructuredChildren(
     StructuredRichText::Context &ctx,
     QString &out) const
 {
-    ctx.siblings.emplaceBack();
+    SiblingState siblings;
+    if (ctx.needsElementChildCount)
+    {
+        siblings.elementCount = structuredElementChildCount(val);
+    }
+    ctx.siblings.emplaceBack(std::move(siblings));
     addStructuredContent(val, ctx, out);
     flushPendingVerticalMargin(ctx, out);
     ctx.siblings.removeLast();
+}
+
+qsizetype StructuredRichText::structuredElementChildCount(
+    const QJsonValue &val) const
+{
+    if (val.isArray())
+    {
+        qsizetype count = 0;
+        const QJsonArray arr = val.toArray();
+        for (const QJsonValue &child : arr)
+        {
+            count += structuredElementChildCount(child);
+        }
+        return count;
+    }
+    if (!val.isObject())
+    {
+        return 0;
+    }
+
+    const QJsonObject obj = val.toObject();
+    const QString tag = obj["tag"].toString().toLower();
+    return isSupportedStructuredTag(tag) ? 1 : 0;
 }
 
 void StructuredRichText::addStructuredElement(
@@ -987,6 +1020,11 @@ void StructuredRichText::addStructuredElement(
     if (blockElement)
     {
         SiblingState childSiblings;
+        if (ctx.needsElementChildCount)
+        {
+            childSiblings.elementCount =
+                structuredElementChildCount(obj[KEY_CONTENT]);
+        }
         if (collapsibleBlock)
         {
             mergePendingVerticalMargins(
@@ -1155,7 +1193,8 @@ void StructuredRichText::resolveElementStyles(
     addMatchingCssRules(
         ctx,
         state.declarations,
-        &state.beforeContent
+        &state.beforeContent,
+        &state.afterContent
     );
 
     if (obj[KEY_STYLE].isObject())
@@ -1189,6 +1228,8 @@ void StructuredRichText::resolveElementLayout(
     StructuredRichText::Context &ctx,
     StructuredRichText::ElementRenderState &state) const
 {
+    const QString display =
+        state.declarations.take("display").trimmed().toLower();
     const QString listType =
         state.declarations.value("list-style-type");
     state.listMarkerType = normalizeListMarker(listType.isEmpty() ?
@@ -1197,6 +1238,8 @@ void StructuredRichText::resolveElementLayout(
     );
     const bool isList = state.tag == "ul" || state.tag == "ol";
     const bool isListItem = state.tag == "li" && !ctx.lists.isEmpty();
+    const bool inlineListItem =
+        isListItem && display.compare("inline", Qt::CaseInsensitive) == 0;
     if (isListItem)
     {
         StructuredList &list = ctx.lists.back();
@@ -1237,6 +1280,11 @@ void StructuredRichText::resolveElementLayout(
         state.layout = ElementLayout::List;
         state.outputTag = "div";
     }
+    else if (inlineListItem)
+    {
+        state.layout = ElementLayout::Inline;
+        state.outputTag = "span";
+    }
     else if (isListItem && !state.listMarker.isEmpty())
     {
         state.layout = ElementLayout::MarkedListItem;
@@ -1271,7 +1319,8 @@ void StructuredRichText::resolveElementLayout(
 
     const QString width = state.declarations.value("width");
     if (state.layout == ElementLayout::Box &&
-        width.compare("fit-content", Qt::CaseInsensitive) == 0)
+        (width.compare("fit-content", Qt::CaseInsensitive) == 0 ||
+         width.compare("max-content", Qt::CaseInsensitive) == 0))
     {
         state.widthPolicy = WidthPolicy::FitContent;
         state.declarations.remove("width");
@@ -1720,6 +1769,10 @@ void StructuredRichText::addStructuredElementEnd(
     const StructuredRichText::Context &ctx,
     QString &out) const
 {
+    if (!state.afterContent.isEmpty())
+    {
+        out += escapeHtml(state.afterContent);
+    }
     if (state.paddedSpan)
     {
         out += "&nbsp;";
@@ -2720,6 +2773,18 @@ void StructuredRichText::addCssDeclaration(
             declarations["background-color"] = cssValue;
         }
     }
+    else if (name == "list-style")
+    {
+        for (const QString &token : splitCssTokens(cssValue))
+        {
+            const QString marker = normalizeListMarker(token);
+            if (marker == "none" || isBuiltInListMarker(marker))
+            {
+                declarations["list-style-type"] = marker;
+                return;
+            }
+        }
+    }
     else if (m_supportedCssProperties.contains(name))
     {
         declarations[name] = cssValue;
@@ -3265,7 +3330,8 @@ bool StructuredRichText::isBuiltInListMarker(const QString &marker) const
 void StructuredRichText::addMatchingCssRules(
     StructuredRichText::Context &ctx,
     StructuredRichText::CssDeclarations &declarations,
-    QString *beforeContent) const
+    QString *beforeContent,
+    QString *afterContent) const
 {
     if (ctx.dictionaryStyles == nullptr || ctx.elements.isEmpty())
     {
@@ -3285,15 +3351,19 @@ void StructuredRichText::addMatchingCssRules(
         {
             continue;
         }
-        if (rule.before)
+        if (rule.pseudoElement != DictionaryStyles::CssPseudoElement::None)
         {
-            if (beforeContent != nullptr)
+            QString *content =
+                rule.pseudoElement == DictionaryStyles::CssPseudoElement::After ?
+                    afterContent :
+                    beforeContent;
+            if (content != nullptr)
             {
                 for (const CssDeclaration &declaration : rule.declarations)
                 {
                     if (declaration.property == "content")
                     {
-                        *beforeContent = declaration.value;
+                        *content = declaration.value;
                     }
                 }
             }
@@ -3391,6 +3461,24 @@ bool StructuredRichText::cssRuleMatchesAt(
             element.previousSibling
         );
 
+    case DictionaryStyles::CssCombinator::GeneralSibling:
+        for (qsizetype sibling = element.previousSibling;
+             sibling >= 0;
+             sibling = ctx.selectorElements[sibling].previousSibling)
+        {
+            if (cssRuleMatchesAt(
+                    rule,
+                    ctx,
+                    partIndex - 1,
+                    stackIndex,
+                    sibling
+                ))
+            {
+                return true;
+            }
+        }
+        return false;
+
     case DictionaryStyles::CssCombinator::Descendant:
         for (qsizetype i = stackIndex - 1; i >= 0; --i)
         {
@@ -3426,23 +3514,65 @@ bool StructuredRichText::cssSelectorPartMatches(
             return false;
         }
     }
-    for (const auto &[key, value] : part.attributes.asKeyValueRange())
+    for (const DictionaryStyles::CssAttributeSelector &attribute :
+         part.attributes)
     {
-        if (element.attributes.value(key) != value)
+        const auto it = element.attributes.constFind(attribute.name);
+        if (it == element.attributes.cend())
         {
             return false;
         }
-    }
-    for (const QString &attribute : part.presentAttributes)
-    {
-        if (!element.attributes.contains(attribute))
+        switch (attribute.op)
         {
-            return false;
+        case DictionaryStyles::CssAttributeOperator::Exists:
+            break;
+
+        case DictionaryStyles::CssAttributeOperator::Equals:
+            if (it.value() != attribute.value)
+            {
+                return false;
+            }
+            break;
+
+        case DictionaryStyles::CssAttributeOperator::StartsWith:
+            if (!it.value().startsWith(attribute.value))
+            {
+                return false;
+            }
+            break;
         }
     }
-    if (part.firstChild && element.previousSibling >= 0)
+    if (!part.pseudoClasses.isEmpty() && element.childIndex <= 0)
     {
         return false;
+    }
+    for (const DictionaryStyles::CssPseudoClassSelector &pseudo :
+         part.pseudoClasses)
+    {
+        bool matched = false;
+        switch (pseudo.type)
+        {
+        case DictionaryStyles::CssPseudoClass::FirstChild:
+            matched = element.childIndex == 1;
+            break;
+
+        case DictionaryStyles::CssPseudoClass::LastChild:
+            if (element.childCount <= 0)
+            {
+                return false;
+            }
+            matched = element.childIndex == element.childCount;
+            break;
+
+        case DictionaryStyles::CssPseudoClass::NthChild:
+            matched = element.childIndex == pseudo.childIndex;
+            break;
+        }
+
+        if (pseudo.negated ? matched : !matched)
+        {
+            return false;
+        }
     }
     return true;
 }
@@ -3461,6 +3591,10 @@ qsizetype StructuredRichText::structuredElement(
     StructuredElement element;
     element.tag = obj[KEY_TAG].toString().toLower();
     element.classes.insert("gloss-sc-" + element.tag);
+    if (element.tag == "details")
+    {
+        element.attributes["open"] = "";
+    }
     if (element.tag == "img")
     {
         element.classes.insert("gloss-image");
@@ -3499,6 +3633,8 @@ qsizetype StructuredRichText::structuredElement(
     {
         SiblingState &siblings = ctx.siblings.back();
         element.previousSibling = siblings.previousElement;
+        element.childIndex = ++siblings.visitedElementCount;
+        element.childCount = siblings.elementCount;
     }
 
     const qsizetype index = ctx.selectorElements.size();

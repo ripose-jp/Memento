@@ -225,11 +225,11 @@ DictionaryStyles::ParsedStylesheet DictionaryStyles::parseStylesheet(
 
         for (const QString &selector : selectors)
         {
-            bool before = false;
+            CssPseudoElement pseudoElement = CssPseudoElement::None;
             int specificity = 0;
             QList<CssSelectorPart> parts = parseCssSelector(
                 selector,
-                before,
+                pseudoElement,
                 specificity
             );
             if (parts.isEmpty())
@@ -240,7 +240,7 @@ DictionaryStyles::ParsedStylesheet DictionaryStyles::parseStylesheet(
             rules.emplaceBack(CssRule{
                 parts,
                 declarations,
-                before,
+                pseudoElement,
                 specificity,
                 order++
             });
@@ -301,6 +301,16 @@ DictionaryStyles::ParsedStylesheet DictionaryStyles::parseStylesheet(
     for (qsizetype i = 0; i < parsed.rules.size(); ++i)
     {
         const CssRule &rule = parsed.rules[i];
+        for (const CssSelectorPart &part : rule.selector)
+        {
+            for (const CssPseudoClassSelector &pseudo :
+                 part.pseudoClasses)
+            {
+                parsed.usesElementChildCount =
+                    parsed.usesElementChildCount ||
+                    pseudo.type == CssPseudoClass::LastChild;
+            }
+        }
         const QString targetTag =
             rule.selector.isEmpty() ? "" : rule.selector.back().tag;
         if (targetTag.isEmpty())
@@ -335,17 +345,66 @@ DictionaryStyles::ParsedStylesheet DictionaryStyles::parseStylesheet(
 
 QList<DictionaryStyles::CssSelectorPart> DictionaryStyles::parseCssSelector(
     const QString &selector,
-    bool &before,
+    CssPseudoElement &pseudoElement,
     int &specificity)
 {
-    before = false;
+    /* Specificity weight for one class, attribute, or pseudo-class */
+    constexpr int CLASS_SPECIFICITY = 10;
+
+    /* Specificity weight for one tag or pseudo-element */
+    constexpr int TAG_SPECIFICITY = 1;
+
+    /* Character count for the attribute prefix-match operator */
+    constexpr qsizetype PREFIX_ATTRIBUTE_OPERATOR_LENGTH = 2;
+
+    /* Character count for the attribute equality operator */
+    constexpr qsizetype EQUAL_ATTRIBUTE_OPERATOR_LENGTH = 1;
+
+    /* Character count for a CSS pseudo-element prefix */
+    constexpr qsizetype PSEUDO_ELEMENT_PREFIX_LENGTH = 2;
+
+    /* Prefix that begins a supported exact numeric :nth-child() selector */
+    const QString nthChildPrefix = ":nth-child(";
+
+    /* Prefix that begins a supported simple :not() wrapper */
+    const QString notPseudoPrefix = ":not(";
+
+    pseudoElement = CssPseudoElement::None;
     specificity = 0;
 
     QString normalized = selector.trimmed();
-    if (normalized.contains("::before"))
+    if (normalized.contains("::"))
     {
-        before = true;
-        normalized.replace("::before", "");
+        const qsizetype pseudoStart = normalized.indexOf("::");
+        qsizetype pseudoEnd =
+            pseudoStart + PSEUDO_ELEMENT_PREFIX_LENGTH;
+        while (pseudoEnd < normalized.size() &&
+               (normalized[pseudoEnd].isLetter() ||
+                normalized[pseudoEnd] == '-'))
+        {
+            ++pseudoEnd;
+        }
+
+        const QString pseudo =
+            normalized.sliced(pseudoStart, pseudoEnd - pseudoStart);
+        if (pseudo == "::before")
+        {
+            pseudoElement = CssPseudoElement::Before;
+        }
+        else if (pseudo == "::after")
+        {
+            pseudoElement = CssPseudoElement::After;
+        }
+        else
+        {
+            return {};
+        }
+        normalized.remove(pseudoStart, pseudo.size());
+        if (normalized.contains("::"))
+        {
+            return {};
+        }
+        specificity += TAG_SPECIFICITY;
     }
 
     QList<QString> rawParts;
@@ -404,6 +463,11 @@ QList<DictionaryStyles::CssSelectorPart> DictionaryStyles::parseCssSelector(
             flushPart();
             combinator = CssCombinator::AdjacentSibling;
         }
+        else if (ch == '~' && bracketDepth == 0)
+        {
+            flushPart();
+            combinator = CssCombinator::GeneralSibling;
+        }
         else if (ch.isSpace() && bracketDepth == 0)
         {
             if (!current.trimmed().isEmpty())
@@ -426,15 +490,184 @@ QList<DictionaryStyles::CssSelectorPart> DictionaryStyles::parseCssSelector(
         part.combinator = combinators[i];
         QString raw = rawParts[i];
 
-        if (raw.contains(":first-child"))
+        qsizetype attrIndex = raw.indexOf('[');
+        while (attrIndex >= 0)
         {
-            part.firstChild = true;
-            raw.replace(":first-child", "");
-            specificity += 10;
+            const qsizetype attrEnd = raw.indexOf(']', attrIndex);
+            if (attrEnd < 0)
+            {
+                return {};
+            }
+
+            QString attr = raw.sliced(
+                attrIndex + 1,
+                attrEnd - attrIndex - 1
+            ).trimmed();
+            CssAttributeSelector selector;
+            qsizetype opIndex = attr.indexOf("^=");
+            if (opIndex >= 0)
+            {
+                selector.op = CssAttributeOperator::StartsWith;
+            }
+            else
+            {
+                opIndex = attr.indexOf('=');
+                selector.op = opIndex < 0 ?
+                    CssAttributeOperator::Exists :
+                    CssAttributeOperator::Equals;
+            }
+
+            if (opIndex < 0)
+            {
+                selector.name = attr.trimmed();
+            }
+            else
+            {
+                selector.name = attr.first(opIndex).trimmed();
+                const qsizetype valueOffset =
+                    selector.op == CssAttributeOperator::StartsWith ?
+                        PREFIX_ATTRIBUTE_OPERATOR_LENGTH :
+                        EQUAL_ATTRIBUTE_OPERATOR_LENGTH;
+                selector.value = attr.sliced(opIndex + valueOffset).trimmed();
+                if (selector.value.size() >= 2 &&
+                    ((selector.value.front() == '"' &&
+                      selector.value.back() == '"') ||
+                     (selector.value.front() == '\'' &&
+                      selector.value.back() == '\'')))
+                {
+                    selector.value =
+                        selector.value.sliced(1, selector.value.size() - 2);
+                }
+            }
+            if (selector.name.isEmpty())
+            {
+                return {};
+            }
+            part.attributes.emplaceBack(std::move(selector));
+            raw.remove(attrIndex, attrEnd - attrIndex + 1);
+            attrIndex = raw.indexOf('[', attrIndex);
+            specificity += CLASS_SPECIFICITY;
         }
-        if (raw.contains(':'))
+
+        const auto parsePseudoClass =
+        [&part, &specificity, nthChildPrefix]
+        (const QString &rawPseudo, bool negated) -> bool
         {
-            return {};
+            CssPseudoClassSelector selector;
+            selector.negated = negated;
+            if (rawPseudo == ":first-child")
+            {
+                selector.type = CssPseudoClass::FirstChild;
+            }
+            else if (rawPseudo == ":last-child")
+            {
+                selector.type = CssPseudoClass::LastChild;
+            }
+            else if (rawPseudo.startsWith(nthChildPrefix))
+            {
+                const qsizetype valueStart = nthChildPrefix.size();
+                const qsizetype valueEnd =
+                    rawPseudo.indexOf(')', valueStart);
+                if (valueEnd != rawPseudo.size() - 1)
+                {
+                    return false;
+                }
+
+                const QString value = rawPseudo.sliced(
+                    valueStart,
+                    valueEnd - valueStart
+                ).trimmed();
+                if (value.isEmpty())
+                {
+                    return false;
+                }
+                for (const QChar ch : value)
+                {
+                    if (!ch.isDigit())
+                    {
+                        return false;
+                    }
+                }
+
+                bool ok = false;
+                const int childIndex = value.toInt(&ok);
+                if (!ok || childIndex <= 0)
+                {
+                    return false;
+                }
+                selector.type = CssPseudoClass::NthChild;
+                selector.childIndex = childIndex;
+            }
+            else
+            {
+                return false;
+            }
+
+            part.pseudoClasses.emplaceBack(std::move(selector));
+            specificity += CLASS_SPECIFICITY;
+            return true;
+        };
+        const auto pseudoClassTokenEnd =
+        [&nthChildPrefix] (const QString &text, qsizetype start) -> qsizetype
+        {
+            if (text.sliced(start).startsWith(nthChildPrefix))
+            {
+                const qsizetype valueStart =
+                    start + nthChildPrefix.size();
+                const qsizetype valueEnd = text.indexOf(')', valueStart);
+                return valueEnd < 0 ? -1 : valueEnd + 1;
+            }
+
+            qsizetype end = start + 1;
+            while (end < text.size() &&
+                   (text[end].isLetter() || text[end] == '-'))
+            {
+                ++end;
+            }
+            return end == start + 1 ? -1 : end;
+        };
+
+        qsizetype notIndex = raw.indexOf(notPseudoPrefix);
+        while (notIndex >= 0)
+        {
+            const qsizetype pseudoStart =
+                notIndex + notPseudoPrefix.size();
+            const qsizetype pseudoEnd =
+                pseudoClassTokenEnd(raw, pseudoStart);
+            if (pseudoEnd < 0 ||
+                pseudoEnd >= raw.size() ||
+                raw[pseudoEnd] != ')')
+            {
+                return {};
+            }
+
+            const QString rawPseudo =
+                raw.sliced(pseudoStart, pseudoEnd - pseudoStart);
+            if (!parsePseudoClass(rawPseudo.trimmed(), true))
+            {
+                return {};
+            }
+            raw.remove(notIndex, pseudoEnd - notIndex + 1);
+            notIndex = raw.indexOf(notPseudoPrefix);
+        }
+
+        qsizetype pseudoIndex = raw.indexOf(':');
+        while (pseudoIndex >= 0)
+        {
+            const qsizetype pseudoEnd =
+                pseudoClassTokenEnd(raw, pseudoIndex);
+            if (pseudoEnd < 0)
+            {
+                return {};
+            }
+            const qsizetype length = pseudoEnd - pseudoIndex;
+            const QString rawPseudo = raw.sliced(pseudoIndex, length);
+            if (!parsePseudoClass(rawPseudo.trimmed(), false))
+            {
+                return {};
+            }
+            raw.remove(pseudoIndex, length);
+            pseudoIndex = raw.indexOf(':');
         }
 
         qsizetype classIndex = raw.indexOf('.');
@@ -455,58 +688,19 @@ QList<DictionaryStyles::CssSelectorPart> DictionaryStyles::parseCssSelector(
                 raw.sliced(classIndex + 1, end - classIndex - 1)
             );
             raw.remove(classIndex, end - classIndex);
-            specificity += 10;
+            specificity += CLASS_SPECIFICITY;
             classIndex = raw.indexOf('.', classIndex);
         }
-
-        qsizetype attrIndex = raw.indexOf('[');
-        while (attrIndex >= 0)
+        if (raw.contains(':'))
         {
-            const qsizetype attrEnd = raw.indexOf(']', attrIndex);
-            if (attrEnd < 0)
-            {
-                return {};
-            }
-
-            QString attr = raw.sliced(
-                attrIndex + 1,
-                attrEnd - attrIndex - 1
-            ).trimmed();
-            const qsizetype equal = attr.indexOf('=');
-            if (equal < 0)
-            {
-                if (attr.isEmpty())
-                {
-                    return {};
-                }
-                part.presentAttributes.insert(attr);
-            }
-            else
-            {
-                QString name = attr.first(equal).trimmed();
-                QString value = attr.sliced(equal + 1).trimmed();
-                if (name.isEmpty())
-                {
-                    return {};
-                }
-                if (value.size() >= 2 &&
-                    ((value.front() == '"' && value.back() == '"') ||
-                     (value.front() == '\'' && value.back() == '\'')))
-                {
-                    value = value.sliced(1, value.size() - 2);
-                }
-                part.attributes[name] = value;
-            }
-            raw.remove(attrIndex, attrEnd - attrIndex + 1);
-            attrIndex = raw.indexOf('[', attrIndex);
-            specificity += 10;
+            return {};
         }
 
         raw = raw.trimmed();
         if (!raw.isEmpty() && raw != "*")
         {
             part.tag = raw.toLower();
-            ++specificity;
+            specificity += TAG_SPECIFICITY;
         }
         parts.emplaceBack(std::move(part));
     }
