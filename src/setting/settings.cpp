@@ -2594,9 +2594,9 @@ void Settings::updateSettings()
             settings.remove("dictionaries");
             settings.remove("interface");
             settings.remove("search/modifier");
+            settings.remove(Keys::Window::GROUP);
         }
     }
 
-    settings.remove(Keys::Window::GROUP);
     settings.setValue(Keys::Version::VERSION, Keys::Version::CURRENT);
 }

@@ -736,7 +736,7 @@ private:
 
     /* The set of existing key binds */
     QSet<QString> m_existingBinds = {
-        QKeySequence{QKeySequence::Preferences}.toString(),
+        "Ctrl+,",
         m_cardAdd.toString(),
         m_cardNext.toString(),
         m_cardPrevious.toString(),

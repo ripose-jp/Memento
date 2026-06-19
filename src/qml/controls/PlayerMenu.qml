@@ -516,7 +516,7 @@ MenuBar {
 
         Action {
             text: qsTr("&Options")
-            shortcut: StandardKey.Preferences
+            shortcut: "Ctrl+,"
             onTriggered: optionsWindow.show()
         }
 
