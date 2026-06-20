@@ -44,6 +44,10 @@ Page {
         });
     }
 
+    background: Rectangle {
+        color: MementoPalette.window
+    }
+
     header: ColumnLayout {
         spacing: 0
 

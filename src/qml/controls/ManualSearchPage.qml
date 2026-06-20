@@ -17,6 +17,10 @@ Page {
         searchTextField.searchIndex(0);
     }
 
+    background: Rectangle {
+        color: MementoPalette.window
+    }
+
     header: ToolBar {
         ColumnLayout {
             anchors.fill: parent
