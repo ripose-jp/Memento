@@ -96,29 +96,44 @@ Item {
         spacing: root.lineSpacing
 
         Repeater {
-            id: repeaterShape
+            id: shapeRepeater
 
             model: root.makeTextModel(root.text)
             delegate: Rectangle {
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: Math.max(strokeShape.width, textMetrics.tightBoundingRect.width)
-                height: Math.max(strokeShape.height, textMetrics.tightBoundingRect.height)
-                clip: true
+                id: delegateRect
 
-                color: root.background
+                required property string text
+                required property int offset
 
-                TextMetrics {
-                    id: textMetrics
-                    font: textEdit.font
-                    text: textEdit.text
-                    renderType: textEdit.renderType
+                readonly property int selectionStart: {
+                    if (root.selectionStart < 0)
+                    {
+                        return -1;
+                    }
+                    const start = root.selectionStart - delegateRect.offset;
+                    return Math.max(start, 0);
                 }
+
+                readonly property int selectionEnd: {
+                    if (root.selectionEnd < 0)
+                    {
+                        return -1;
+                    }
+                    const end = root.selectionEnd - delegateRect.offset;
+                    return Math.min(end, delegateRect.text.length);
+                }
+
+                anchors.horizontalCenter: parent.horizontalCenter
+                height: strokeShape.implicitHeight
+                width: strokeShape.implicitWidth
+                clip: true
+                color: root.background
 
                 Shape {
                     id: strokeShape
                     antialiasing: true
                     layer.enabled: true
-                    layer.samples: 4
+                    layer.samples: 8
                     layer.smooth: true
 
                     ShapePath {
@@ -130,64 +145,74 @@ Item {
                         capStyle: ShapePath.RoundCap
 
                         PathText {
-                            id: pathTextStroke
+                            id: strokePathText
                             x: root.margin
                             y: root.margin
                             font: root.font
-                            text: modelData.text
+                            text: delegateRect.text
+                        }
+                    }
+                }
+
+                Rectangle {
+                    id: selectionRect
+
+                    readonly property int maxVerticalPadding: 10
+
+                    anchors.verticalCenter: textShape.verticalCenter
+                    x: {
+                        if (delegateRect.selectionStart < 0 ||
+                                delegateRect.selectionStart > textEdit.length)
+                        {
+                            return 0;
+                        }
+                        const startRect = textEdit.positionToRectangle(delegateRect.selectionStart);
+                        return startRect.x + root.margin;
+                    }
+                    height: textShape.height + Math.min(selectionRect.maxVerticalPadding, root.margin) * 2
+                    width: {
+                        if (delegateRect.selectionStart < 0 ||
+                                delegateRect.selectionStart > textEdit.length ||
+                                delegateRect.selectionEnd < 0 ||
+                                delegateRect.selectionEnd > textEdit.length ||
+                                delegateRect.selectionStart >= delegateRect.selectionEnd)
+                        {
+                            return 0;
+                        }
+                        const startRect = textEdit.positionToRectangle(delegateRect.selectionStart);
+                        const endRect = textEdit.positionToRectangle(delegateRect.selectionEnd);
+                        return endRect.x - startRect.x;
+                    }
+                    color: MementoPalette.highlight
+                    visible: delegateRect.selectionStart < delegateRect.selectionEnd
+                }
+
+                Shape {
+                    id: textShape
+                    x: root.margin
+                    y: root.margin
+                    antialiasing: true
+                    layer.enabled: true
+                    layer.samples: 8
+                    layer.smooth: true
+
+                    ShapePath {
+                        strokeWidth: 0
+                        fillColor: root.color
+                        fillRule: ShapePath.WindingFill
+                        joinStyle: ShapePath.RoundJoin
+                        capStyle: ShapePath.RoundCap
+
+                        PathText {
+                            id: textPathText
+                            font: root.font
+                            text: delegateRect.text
                         }
                     }
                 }
 
                 TextEdit {
                     id: textEdit
-
-                    x: root.margin
-                    y: root.margin - (textMetrics.tightBoundingRect.y - textMetrics.boundingRect.y)
-                    font: root.font
-                    color: root.color
-                    readOnly: true
-                    selectByMouse: false
-                    selectByKeyboard: false
-                    selectionColor: MementoPalette.highlight
-                    wrapMode: TextEdit.NoWrap
-                    renderType: TextEdit.QtRendering
-                    text: modelData.text
-
-                    Connections {
-                        target: root
-                        function onSelectionStartChanged() {
-                            textEdit.updateSelection();
-                        }
-                    }
-                    Connections {
-                        target: root
-                        function onSelectionEndChanged() {
-                            textEdit.updateSelection();
-                        }
-                    }
-
-                    /**
-                     * Update the selection with the new selectionStart and selectionEnd values.
-                     */
-                    function updateSelection() {
-                        if (root.selectionStart < 0 || root.selectionEnd < 0)
-                        {
-                            textEdit.deselect();
-                            return;
-                        }
-
-                        let start = root.selectionStart - modelData.offset;
-                        start = Math.max(start, 0);
-                        let end = root.selectionEnd - modelData.offset;
-                        end = Math.min(end, textEdit.text.length);
-                        if (start >= end)
-                        {
-                            textEdit.deselect();
-                            return;
-                        }
-                        textEdit.select(start, end);
-                    }
 
                     /**
                      * Returns the index into the root.text property for the
@@ -200,8 +225,20 @@ Item {
                         const rect = textEdit.positionToRectangle(pos);
                         const actualIndex = (x < rect.x) ? pos - 1 : pos;
                         const lineIndex = Math.max(0, Math.min(textEdit.text.length - 1, actualIndex));
-                        return lineIndex + modelData.offset;
+                        return lineIndex + delegateRect.offset;
                     }
+
+                    x: root.margin
+                    anchors.verticalCenter: textShape.verticalCenter
+                    font: root.font
+                    color: "transparent"
+                    readOnly: true
+                    selectByMouse: false
+                    selectByKeyboard: false
+                    selectionColor: MementoPalette.highlight
+                    wrapMode: TextEdit.NoWrap
+                    renderType: TextEdit.QtRendering
+                    text: delegateRect.text
                 }
 
                 MouseArea {
