@@ -126,7 +126,6 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 height: strokeShape.implicitHeight
                 width: strokeShape.implicitWidth
-                clip: true
                 color: root.background
 
                 Shape {
