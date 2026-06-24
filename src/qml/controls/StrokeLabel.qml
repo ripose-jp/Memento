@@ -42,104 +42,67 @@ Item {
         anchors.centerIn: parent
         spacing: root.lineSpacing
 
-        /* This is a hack to force redraws of text when one property changes */
-        Connections {
-            target: root
-            function onTextChanged() {
-                repeaterShape.model = root.makeTextModel(root.text);
-            }
-        }
-        Connections {
-            target: root
-            function onFontChanged() {
-                repeaterShape.model = [];
-                repeaterShape.model = root.makeTextModel(root.text);
-            }
-        }
-        Connections {
-            target: root
-            function onColorChanged() {
-                repeaterShape.model = [];
-                repeaterShape.model = root.makeTextModel(root.text);
-            }
-        }
-        Connections {
-            target: root
-            function onBackgroundChanged() {
-                repeaterShape.model = [];
-                repeaterShape.model = root.makeTextModel(root.text);
-            }
-        }
-        Connections {
-            target: root
-            function onStrokeChanged() {
-                repeaterShape.model = [];
-                repeaterShape.model = root.makeTextModel(root.text);
-            }
-        }
-        Connections {
-            target: root
-            function onStrokeSizeChanged() {
-                repeaterShape.model = [];
-                repeaterShape.model = root.makeTextModel(root.text);
-            }
-        }
-
         Repeater {
-            id: repeaterShape
+            id: lineRepeater
 
             model: root.makeTextModel(root.text)
-            delegate: Shape {
-                id: shape
+            delegate: Rectangle {
+                id: delegateRect
+
+                required property string text
+                required property int offset
+
                 anchors.horizontalCenter: parent.horizontalCenter
-                antialiasing: true
-                layer.enabled: true
-                layer.samples: 4
-                layer.smooth: true
+                height: strokeShape.implicitHeight
+                width: strokeShape.implicitWidth
+                color: root.background
 
-                // This draws the background
-                ShapePath {
-                    fillColor: root.background
-                    strokeColor: "transparent"
-                    strokeWidth: 0
+                Shape {
+                    id: strokeShape
+                    antialiasing: true
+                    layer.enabled: true
+                    layer.samples: 8
+                    layer.smooth: true
 
-                    PathRectangle {
-                        x: 0
-                        y: 0
-                        width: shape.width
-                        height: shape.height
+                    ShapePath {
+                        strokeWidth: root.strokeSize
+                        strokeColor: root.stroke
+                        fillColor: "transparent"
+                        fillRule: ShapePath.WindingFill
+                        joinStyle: ShapePath.RoundJoin
+                        capStyle: ShapePath.RoundCap
+
+                        PathText {
+                            id: strokePathText
+                            x: root.margin
+                            y: root.margin
+                            font: root.font
+                            text: delegateRect.text
+                        }
                     }
                 }
 
-                // This draws the text stroke
-                ShapePath {
-                    strokeWidth: root.strokeSize
-                    strokeColor: root.stroke
-                    fillColor: "transparent"
-                    fillRule: ShapePath.WindingFill
-                    joinStyle: ShapePath.RoundJoin
-                    capStyle: ShapePath.RoundCap
+                Shape {
+                    id: textShape
+                    x: root.margin
+                    y: root.margin
+                    antialiasing: true
+                    layer.enabled: true
+                    layer.samples: 8
+                    layer.smooth: true
 
-                    PathText {
-                        id: pathTextStroke
-                        x: root.margin
-                        y: root.margin
-                        font: root.font
-                        text: modelData.text
-                    }
-                }
+                    ShapePath {
+                        strokeWidth: 0
+                        fillColor: root.color
+                        fillRule: ShapePath.WindingFill
+                        joinStyle: ShapePath.RoundJoin
+                        capStyle: ShapePath.RoundCap
 
-                // This fills in the text on top of the stroke layer
-                ShapePath {
-                    strokeWidth: 0
-                    fillColor: root.color
-                    fillRule: ShapePath.WindingFill
-
-                    PathText {
-                        x: root.margin
-                        y: root.margin
-                        font: root.font
-                        text: modelData.text
+                        PathText {
+                            id: textPathText
+                            font: root.font
+                            text: delegateRect.text
+                        }
                     }
                 }
             }
