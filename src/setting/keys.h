@@ -85,7 +85,7 @@ namespace Keys
     namespace Version
     {
         constexpr const char *VERSION = "version";
-        constexpr unsigned int CURRENT = 4;
+        constexpr unsigned int CURRENT = 5;
     }
 
     namespace Window

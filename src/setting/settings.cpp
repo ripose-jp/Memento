@@ -21,11 +21,89 @@
 #include "setting/settings.h"
 
 #include <QDir>
+#include <QMetaType>
 #include <QSettings>
+#include <QVariant>
 
 #if defined(Q_OS_WIN)
 #include "util/utils.h"
 #endif // defined(Q_OS_WIN)
+
+namespace
+{
+
+/**
+ * @brief Read a font from a QVariant. This handles both the old and new ways
+ * of serializing fonts.
+ *
+ * @param value The variant containing the serialized font.
+ * @param defaultFont The default font to use in case of an error.
+ * @return The variant as a font, defaultFont on error.
+ */
+[[nodiscard]]
+QFont fontFromSettingsValue(const QVariant &value, const QFont &defaultFont)
+{
+    if (!value.isValid())
+    {
+        return defaultFont;
+    }
+
+    if (value.metaType().id() == QMetaType::QFont)
+    {
+        return value.value<QFont>();
+    }
+
+    QFont font = defaultFont;
+    if (!font.fromString(value.toString()))
+    {
+        return defaultFont;
+    }
+    return font;
+}
+
+/**
+ * @brief Read a font from a QSettings object.
+ *
+ * @param settings The settings object to read the font from.
+ * @param key The settings key of the font.
+ * @param defaultFont The font to return as the default.
+ * @return The font in the QSettings object, defaultFont otherwise.
+ */
+[[nodiscard]]
+QFont readFontSetting(
+    const QSettings &settings,
+    const QString &key,
+    const QFont &defaultFont)
+{
+    return fontFromSettingsValue(
+        settings.value(key, defaultFont.toString()),
+        defaultFont
+    );
+}
+
+/**
+ * @brief Migrate a font setting from the version 4 format to version 5 format.
+ *
+ * @param settings The settings object the font to access the font.
+ * @param key The key of the font setting.
+ * @param defaultFont The font to return as the default.
+ */
+void migrateFontSetting4To5(
+    QSettings &settings,
+    const QString &key,
+    const QFont &defaultFont)
+{
+    if (!settings.contains(key))
+    {
+        return;
+    }
+
+    const QVariant value = settings.value(key);
+    const QFont font = fontFromSettingsValue(value, defaultFont);
+    settings.setValue(key, font.toString());
+}
+
+} // namespace
 
 Settings::Settings(QObject *parent) : QObject(parent)
 {
@@ -750,10 +828,11 @@ void Settings::loadInterfaceSettings()
         ).toBool()
     );
     setInterfaceSubtitleFont(
-        s.value(
+        readFontSetting(
+            s,
             Keys::Interface::Subtitle::FONT,
-            QFont(Keys::Interface::Subtitle::FONT_DEFAULT)
-        ).value<QFont>()
+            Keys::Interface::Subtitle::FONT_DEFAULT
+        )
     );
     setInterfaceSubtitleLineSpacing(
         s.value(
@@ -822,40 +901,46 @@ void Settings::loadInterfaceSettings()
         ).toBool()
     );
     setInterfaceSearchExpressionFont(
-        s.value(
+        readFontSetting(
+            s,
             Keys::Interface::SEARCH_EXPRESSION_FONT,
-            QFont(Keys::Interface::SEARCH_EXPRESSION_FONT_DEFAULT)
-        ).value<QFont>()
+            Keys::Interface::SEARCH_EXPRESSION_FONT_DEFAULT
+        )
     );
     setInterfaceSearchReadingFont(
-        s.value(
+        readFontSetting(
+            s,
             Keys::Interface::SEARCH_READING_FONT,
-            QFont(Keys::Interface::SEARCH_READING_FONT_DEFAULT)
-        ).value<QFont>()
+            Keys::Interface::SEARCH_READING_FONT_DEFAULT
+        )
     );
     setInterfaceSearchConjFont(
-        s.value(
+        readFontSetting(
+            s,
             Keys::Interface::SEARCH_CONJ_FONT,
-            QFont(Keys::Interface::SEARCH_CONJ_FONT_DEFAULT)
-        ).value<QFont>()
+            Keys::Interface::SEARCH_CONJ_FONT_DEFAULT
+        )
     );
     setInterfaceSearchTagFont(
-        s.value(
+        readFontSetting(
+            s,
             Keys::Interface::SEARCH_TAG_FONT,
-            QFont(Keys::Interface::SEARCH_TAG_FONT_DEFAULT)
-        ).value<QFont>()
+            Keys::Interface::SEARCH_TAG_FONT_DEFAULT
+        )
     );
     setInterfaceSearchGlossaryFont(
-        s.value(
+        readFontSetting(
+            s,
             Keys::Interface::SEARCH_GLOSSARY_FONT,
-            QFont(Keys::Interface::SEARCH_GLOSSARY_FONT_DEFAULT)
-        ).value<QFont>()
+            Keys::Interface::SEARCH_GLOSSARY_FONT_DEFAULT
+        )
     );
     setInterfaceSearchKanjiFont(
-        s.value(
+        readFontSetting(
+            s,
             Keys::Interface::SEARCH_KANJI_FONT,
-            QFont(Keys::Interface::SEARCH_KANJI_FONT_DEFAULT)
-        ).value<QFont>()
+            Keys::Interface::SEARCH_KANJI_FONT_DEFAULT
+        )
     );
     setInterfaceSubtitleListWindow(
         s.value(
@@ -900,16 +985,18 @@ void Settings::loadInterfaceSettings()
         ).toString()
     );
     setInterfaceSubtitleListPrimaryFont(
-        s.value(
+        readFontSetting(
+            s,
             Keys::Interface::SubtitleList::PRIMARY_FONT,
-            QFont(Keys::Interface::SubtitleList::PRIMARY_FONT_DEFAULT)
-        ).value<QFont>()
+            Keys::Interface::SubtitleList::PRIMARY_FONT_DEFAULT
+        )
     );
     setInterfaceSubtitleListSecondaryFont(
-        s.value(
+        readFontSetting(
+            s,
             Keys::Interface::SubtitleList::SECONDARY_FONT,
-            QFont(Keys::Interface::SubtitleList::SECONDARY_FONT_DEFAULT)
-        ).value<QFont>()
+            Keys::Interface::SubtitleList::SECONDARY_FONT_DEFAULT
+        )
     );
 
     s.endGroup();
@@ -926,7 +1013,7 @@ void Settings::writeInterfaceSettings()
     );
     s.setValue(
         Keys::Interface::Subtitle::FONT,
-        interfaceSubtitleFont()
+        interfaceSubtitleFont().toString()
     );
     s.setValue(
         Keys::Interface::Subtitle::LINE_SPACING,
@@ -970,27 +1057,27 @@ void Settings::writeInterfaceSettings()
     );
     s.setValue(
         Keys::Interface::SEARCH_EXPRESSION_FONT,
-        interfaceSearchExpressionFont()
+        interfaceSearchExpressionFont().toString()
     );
     s.setValue(
         Keys::Interface::SEARCH_READING_FONT,
-        interfaceSearchReadingFont()
+        interfaceSearchReadingFont().toString()
     );
     s.setValue(
         Keys::Interface::SEARCH_CONJ_FONT,
-        interfaceSearchConjFont()
+        interfaceSearchConjFont().toString()
     );
     s.setValue(
         Keys::Interface::SEARCH_TAG_FONT,
-        interfaceSearchTagFont()
+        interfaceSearchTagFont().toString()
     );
     s.setValue(
         Keys::Interface::SEARCH_GLOSSARY_FONT,
-        interfaceSearchGlossaryFont()
+        interfaceSearchGlossaryFont().toString()
     );
     s.setValue(
         Keys::Interface::SEARCH_KANJI_FONT,
-        interfaceSearchKanjiFont()
+        interfaceSearchKanjiFont().toString()
     );
     s.setValue(
         Keys::Interface::SubtitleList::WINDOW,
@@ -1022,11 +1109,11 @@ void Settings::writeInterfaceSettings()
     );
     s.setValue(
         Keys::Interface::SubtitleList::PRIMARY_FONT,
-        interfaceSubtitleListPrimaryFont()
+        interfaceSubtitleListPrimaryFont().toString()
     );
     s.setValue(
         Keys::Interface::SubtitleList::SECONDARY_FONT,
-        interfaceSubtitleListSecondaryFont()
+        interfaceSubtitleListSecondaryFont().toString()
     );
 
     s.endGroup();
@@ -2595,6 +2682,58 @@ void Settings::updateSettings()
             settings.remove("interface");
             settings.remove("search/modifier");
             settings.remove(Keys::Window::GROUP);
+            [[fallthrough]];
+        }
+
+        case 4:
+        {
+            settings.beginGroup(Keys::Interface::GROUP);
+            migrateFontSetting4To5(
+                settings,
+                Keys::Interface::Subtitle::FONT,
+                Keys::Interface::Subtitle::FONT_DEFAULT
+            );
+            migrateFontSetting4To5(
+                settings,
+                Keys::Interface::SEARCH_EXPRESSION_FONT,
+                Keys::Interface::SEARCH_EXPRESSION_FONT_DEFAULT
+            );
+            migrateFontSetting4To5(
+                settings,
+                Keys::Interface::SEARCH_READING_FONT,
+                Keys::Interface::SEARCH_READING_FONT_DEFAULT
+            );
+            migrateFontSetting4To5(
+                settings,
+                Keys::Interface::SEARCH_CONJ_FONT,
+                Keys::Interface::SEARCH_CONJ_FONT_DEFAULT
+            );
+            migrateFontSetting4To5(
+                settings,
+                Keys::Interface::SEARCH_TAG_FONT,
+                Keys::Interface::SEARCH_TAG_FONT_DEFAULT
+            );
+            migrateFontSetting4To5(
+                settings,
+                Keys::Interface::SEARCH_GLOSSARY_FONT,
+                Keys::Interface::SEARCH_GLOSSARY_FONT_DEFAULT
+            );
+            migrateFontSetting4To5(
+                settings,
+                Keys::Interface::SEARCH_KANJI_FONT,
+                Keys::Interface::SEARCH_KANJI_FONT_DEFAULT
+            );
+            migrateFontSetting4To5(
+                settings,
+                Keys::Interface::SubtitleList::PRIMARY_FONT,
+                Keys::Interface::SubtitleList::PRIMARY_FONT_DEFAULT
+            );
+            migrateFontSetting4To5(
+                settings,
+                Keys::Interface::SubtitleList::SECONDARY_FONT,
+                Keys::Interface::SubtitleList::SECONDARY_FONT_DEFAULT
+            );
+            settings.endGroup();
         }
     }
 
