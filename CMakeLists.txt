@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(
     Memento
-    VERSION 2.0.0
+    VERSION 2.0.1
     DESCRIPTION "An mpv-based video player for studying Japanese"
 	HOMEPAGE_URL "https://ripose-jp.github.io/Memento"
     LANGUAGES C CXX
