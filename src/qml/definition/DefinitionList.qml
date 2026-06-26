@@ -7,6 +7,7 @@ ListView {
     id: root
 
     required property DictionarySearch dictionarySearch
+    property color canvasColor: MementoPalette.window
 
     readonly property var terms: dictionarySearch.terms
     readonly property Kanji kanji: dictionarySearch.kanji
@@ -178,6 +179,7 @@ ListView {
             Layout.fillWidth: true
             Layout.margins: 10
             term: termLayout.index < root.terms.length ? root.terms[termLayout.index] : null
+            canvasColor: root.canvasColor
 
             onSearchRequested: function(query) {
                 root.searchTermRecursively(query);

@@ -12,6 +12,7 @@ SearchableText {
     }
 
     required property TermDefinition definition
+    required property color canvasColor
 
     signal searchRequested(query: string)
 
@@ -226,7 +227,7 @@ SearchableText {
               root,
               root.font,
               root.color,
-              MementoPalette.window)
+              root.canvasColor)
 
     onLinkActivated: function(link) {
         root.openLink(link);

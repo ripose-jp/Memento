@@ -7,6 +7,7 @@ Item {
     id: root
 
     required property Term term
+    required property color canvasColor
 
     signal searchRequested(query: string)
     signal kanjiClicked(expression: string, index: int)
@@ -492,6 +493,7 @@ Item {
                 required property int index
                 term: root.term
                 definition: root.term?.definitions[index]
+                canvasColor: root.canvasColor
                 visible: !root.term?.collapsed
 
                 onSearchRequested: (query) => root.searchRequested(query)

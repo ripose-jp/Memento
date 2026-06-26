@@ -44,10 +44,6 @@ Page {
         });
     }
 
-    background: Rectangle {
-        color: MementoPalette.window
-    }
-
     header: ColumnLayout {
         spacing: 0
 
@@ -97,6 +93,7 @@ Page {
         initialItem: DefinitionList {
             id: definitionList
             dictionarySearch: root.search
+            canvasColor: root.palette.window
             onRecursiveSearchRequested: function(search) {
                 root.pushSearch(search);
             }
@@ -107,6 +104,7 @@ Page {
         id: definitionListComponent
 
         DefinitionList {
+            canvasColor: root.palette.window
             onRecursiveSearchRequested: function(search) {
                 root.pushSearch(search);
             }

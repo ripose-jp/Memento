@@ -8,6 +8,7 @@ ColumnLayout {
 
     required property Term term
     required property TermDefinition definition
+    required property color canvasColor
 
     readonly property alias selectedText: glossaryText.selectedText
 
@@ -71,6 +72,7 @@ ColumnLayout {
         Layout.fillWidth: true
         persistentSelection: true
         definition: root.definition
+        canvasColor: root.canvasColor
 
         onSearchRequested: (query) => root.searchRequested(query)
     }
