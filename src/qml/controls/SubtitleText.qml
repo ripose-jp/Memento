@@ -130,6 +130,7 @@ Item {
 
                 Shape {
                     id: strokeShape
+                    anchors.centerIn: parent
                     antialiasing: true
                     layer.enabled: true
                     layer.samples: 8
@@ -188,8 +189,7 @@ Item {
 
                 Shape {
                     id: textShape
-                    x: root.margin
-                    y: root.margin
+                    anchors.centerIn: strokeShape
                     antialiasing: true
                     layer.enabled: true
                     layer.samples: 8
