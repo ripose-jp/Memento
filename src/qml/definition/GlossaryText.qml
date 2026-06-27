@@ -14,6 +14,8 @@ SearchableText {
     required property TermDefinition definition
     required property color canvasColor
 
+    readonly property string ankiSelectedText: root.cleanSelectedText(root.selectedText)
+
     signal searchRequested(query: string)
 
     /* Current type of tooltip */
@@ -200,6 +202,118 @@ SearchableText {
         }
     }
 
+    /**
+     * Return true if a character is a Qt rich-text document sentinel.
+     * @param ch The character to check.
+     * @return true if the character should not be exported.
+     */
+    function isQtDocumentSentinel(ch) {
+        const qtSentinelRangeStartCode = 0xFDD0;
+        const qtSentinelRangeEndCode = 0xFDEF;
+        const qtObjectReplacementCharacterCode = 0xFFFC;
+        const code = ch.charCodeAt(0);
+        return (code >= qtSentinelRangeStartCode &&
+                code <= qtSentinelRangeEndCode) ||
+                code === qtObjectReplacementCharacterCode;
+    }
+
+    /**
+     * Remove generated glossary list markers and hidden rich-text sentinels.
+     * @param text The raw selected text from TextEdit.
+     * @return Text suitable for Anki marker output.
+     */
+    function cleanSelectedText(text) {
+        const listItemSentinel = "\u2060";
+        const listMarkerStartSentinel = "\u2061";
+        const listMarkerEndSentinel = "\u2062";
+        const paragraphSeparator = "\u2029";
+        const noBreakSpace = "\u00A0";
+
+        let out = [];
+        let boundary = 0;
+        let inListMarker = false;
+        let inGeneratedListItem = false;
+        let generatedListItemHasText = false;
+        let discardSpacerAfterGeneratedListBoundary = false;
+
+        for (let i = 0; i < text.length; ++i)
+        {
+            const ch = text.charAt(i);
+            if (root.isQtDocumentSentinel(ch))
+            {
+                if (inGeneratedListItem && generatedListItemHasText)
+                {
+                    if (out.length > 0 && out[out.length - 1] !== "\n")
+                    {
+                        out.push("\n");
+                    }
+                    boundary = out.length;
+                    inGeneratedListItem = false;
+                    generatedListItemHasText = false;
+                    discardSpacerAfterGeneratedListBoundary = true;
+                }
+                continue;
+            }
+            if (discardSpacerAfterGeneratedListBoundary)
+            {
+                if (ch === noBreakSpace || ch === " " || ch === "\t")
+                {
+                    continue;
+                }
+                discardSpacerAfterGeneratedListBoundary = false;
+            }
+            if (ch === listMarkerStartSentinel)
+            {
+                inListMarker = true;
+                continue;
+            }
+            if (ch === listMarkerEndSentinel)
+            {
+                if (inListMarker)
+                {
+                    inListMarker = false;
+                }
+                else
+                {
+                    out.length = boundary;
+                }
+                continue;
+            }
+            if (inListMarker)
+            {
+                continue;
+            }
+            if (ch === listItemSentinel)
+            {
+                if (out.length > 0 && out[out.length - 1] !== "\n")
+                {
+                    out.push("\n");
+                }
+                boundary = out.length;
+                inGeneratedListItem = true;
+                generatedListItemHasText = false;
+                continue;
+            }
+            out.push(ch === paragraphSeparator ? "\n" : ch);
+            generatedListItemHasText = inGeneratedListItem;
+        }
+
+        return out.join("")
+                  .replace(/[ \t]*\n[ \t]*/g, "\n")
+                  .replace(/\n{2,}/g, "\n")
+                  .trim();
+    }
+
+    /**
+     * Copy the cleaned Anki selection text to the clipboard.
+     */
+    function copyAnkiSelection() {
+        if (root.ankiSelectedText.length > 0)
+        {
+            clipboard.setText(root.ankiSelectedText);
+        }
+    }
+
     cursorShape: Qt.IBeamCursor
     textFormat: TextEdit.RichText
     wrapMode: TextEdit.Wrap
@@ -285,6 +399,18 @@ SearchableText {
         {
             root.updateRubyTooltipPosition(root.tooltipText);
         }
+    }
+
+    Keys.onPressed: function(event) {
+        if (event.matches(StandardKey.Copy) && root.selectedText.length > 0)
+        {
+            root.copyAnkiSelection();
+            event.accepted = true;
+        }
+    }
+
+    Clipboard {
+        id: clipboard
     }
 
     Timer {

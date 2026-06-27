@@ -87,6 +87,15 @@ constexpr qsizetype CSS_VALUE_CACHE_RESERVE = 64;
 /* Initial character capacity for generated rich-text HTML */
 constexpr qsizetype OUTPUT_RESERVE = 4096;
 
+/* Zero-width marker used to indicate a list item boundary in selected text */
+constexpr char16_t LIST_ITEM_SENTINEL = u'\u2060';
+
+/* Zero-width marker used to indicate the start of generated list marker text */
+constexpr char16_t LIST_MARKER_START_SENTINEL = u'\u2061';
+
+/* Zero-width marker used to indicate the end of generated list marker text */
+constexpr char16_t LIST_MARKER_END_SENTINEL = u'\u2062';
+
 /* CSS side names in top, right, bottom, left order */
 constexpr std::array<const char *, BOX_SIDE_COUNT> SIDE_NAMES = {
     "top",
@@ -458,7 +467,10 @@ QString StructuredRichText::parse(
                 ctx.parentFontPixelSize * RELATIVE_INDENT_FACTOR
             );
             glossary += "px;\">";
+            addSelectionSentinel(LIST_ITEM_SENTINEL, glossary);
+            addSelectionSentinel(LIST_MARKER_START_SENTINEL, glossary);
             glossary += escapeHtml(listMarker(fallbackList, ""));
+            addSelectionSentinel(LIST_MARKER_END_SENTINEL, glossary);
             glossary += "</td>"
                 "<td width=\"100%\" style=\"vertical-align: top;\">";
         }
@@ -1724,6 +1736,7 @@ void StructuredRichText::addStructuredElementStart(
     if (state.layout == ElementLayout::MarkerlessListItem)
     {
         addVerticalPixelSpacer(state.box.padding[TOP_SIDE], out);
+        addSelectionSentinel(LIST_ITEM_SENTINEL, out);
     }
 
     if (state.layout == ElementLayout::MarkedListItem)
@@ -1742,7 +1755,10 @@ void StructuredRichText::addStructuredElementStart(
             state.fontPixelSize * RELATIVE_INDENT_FACTOR
         );
         out += "px;\">";
+        addSelectionSentinel(LIST_ITEM_SENTINEL, out);
+        addSelectionSentinel(LIST_MARKER_START_SENTINEL, out);
         out += escapeHtml(state.listMarker);
+        addSelectionSentinel(LIST_MARKER_END_SENTINEL, out);
         out += "</td><td width=\"100%\" style=\"vertical-align: top;\">";
     }
 
@@ -1814,6 +1830,12 @@ void StructuredRichText::addStructuredElementEnd(
     {
         out += ' ';
     }
+}
+
+void StructuredRichText::addSelectionSentinel(
+    char16_t sentinel, QString &out) const
+{
+    out += QChar(sentinel);
 }
 
 void StructuredRichText::addBoxStart(

@@ -587,6 +587,14 @@ private:
         QString &out) const;
 
     /**
+     * @brief Add a zero-width selection sentinel to generated rich text.
+     *
+     * @param sentinel The sentinel character to add.
+     * @param[out] out The string this HTML will be appended to.
+     */
+    void addSelectionSentinel(char16_t sentinel, QString &out) const;
+
+    /**
      * @brief Add the opening table frame for a normalized CSS box.
      *
      * @param state The resolved element render state.

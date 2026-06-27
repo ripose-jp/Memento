@@ -10,7 +10,7 @@ ColumnLayout {
     required property TermDefinition definition
     required property color canvasColor
 
-    readonly property alias selectedText: glossaryText.selectedText
+    readonly property string selectedText: glossaryText.ankiSelectedText
 
     signal searchRequested(query: string)
 
