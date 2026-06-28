@@ -55,13 +55,21 @@ SearchableText {
         let pairs = link.substring(queryIndex + 1).split("&");
         for (let i = 0; i < pairs.length; ++i)
         {
-            let pair = pairs[i].split("=");
-            if (pair.length !== 2)
+            const pair = pairs[i];
+            const separator = pair.indexOf("=");
+            if (separator <= 0)
             {
                 continue;
             }
-            args[decodeURIComponent(pair[0])] =
-                    decodeURIComponent(pair[1]);
+            try
+            {
+                args[decodeURIComponent(pair.substring(0, separator))] =
+                        decodeURIComponent(pair.substring(separator + 1));
+            }
+            catch (error)
+            {
+                console.warn("Could not decode glossary link argument:", error);
+            }
         }
         return args;
     }

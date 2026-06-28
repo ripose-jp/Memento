@@ -24,8 +24,16 @@ Popup {
     width: MementoSettings.interfacePopupWidth
     height: MementoSettings.interfacePopupHeight
 
+    /**
+     * Reset recursive pages and clear root search results.
+     */
+    function clearResults() {
+        definitionPage.resetStack();
+        dictionarySearch.clearResults();
+    }
+
     onShouldOpenChanged: root.shouldOpen ? root.open() : root.close()
-    onClosed: dictionarySearch.clearResults()
+    onClosed: root.clearResults()
 
     Rectangle {
         id: borderRectangle
@@ -35,6 +43,7 @@ Popup {
         border.width: Features.isUnix ? 1 : 0
 
         DefinitionPage {
+            id: definitionPage
             anchors.fill: parent
             anchors.margins: borderRectangle.border.width
             search: dictionarySearch

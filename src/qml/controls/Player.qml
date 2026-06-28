@@ -363,14 +363,14 @@ MpvPlayer {
             }
         }
         onClosed: {
-            definitionPopup.lastHoverIndex = -1;
+            definitionPopup.clearResults();
             interactiveTimer.restart();
         }
 
-        onPlayerWidthChanged: dictionarySearch.clearResults()
-        onPlayerHeightChanged: dictionarySearch.clearResults()
-        onPausedChanged: dictionarySearch.clearResults()
-        onPositionChanged: dictionarySearch.clearResults()
+        onPlayerWidthChanged: definitionPopup.clearResults()
+        onPlayerHeightChanged: definitionPopup.clearResults()
+        onPausedChanged: definitionPopup.clearResults()
+        onPositionChanged: definitionPopup.clearResults()
 
         Rectangle {
             id: dictionaryBorderRectangle
@@ -410,7 +410,7 @@ MpvPlayer {
                                 subtitleText.hoverIndex + selectionLength);
                 }
 
-                onClosePressed: dictionarySearch.clearResults()
+                onClosePressed: definitionPopup.clearResults()
 
                 Connections {
                     target: dictionarySearch
@@ -479,6 +479,7 @@ MpvPlayer {
             }
 
             definitionPopup.cursorAtSearch = root.cursorPosition;
+            definitionPage.resetStack();
 
             const text = subtitleText.text;
             const index = subtitleText.hoverIndex;
@@ -492,6 +493,7 @@ MpvPlayer {
          */
         function clearResults() {
             definitionPopup.lastHoverIndex = -1;
+            definitionPage.resetStack();
             dictionarySearch.clearResults();
         }
     }

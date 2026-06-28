@@ -11,8 +11,10 @@ ListView {
 
     readonly property var terms: dictionarySearch.terms
     readonly property Kanji kanji: dictionarySearch.kanji
+    property bool ownsDictionarySearch: false
 
-    signal recursiveSearchRequested(DictionarySearch search)
+    signal recursiveTermSearchRequested(query: string)
+    signal recursiveKanjiSearchRequested(expression: string, index: int)
 
     /**
      * Add the current entry to Anki.
@@ -111,13 +113,11 @@ ListView {
      * @param query The term to search for.
      */
     function searchTermRecursively(query) {
-        recursiveSearch.clearResults();
-        recursiveSearch.searchTerms(query, query, 0);
-        if (query.length > 0)
+        if (query.length <= 0)
         {
-            recursiveSearch.searchKanji(query[0], query[0], 0);
+            return;
         }
-        root.recursiveSearchRequested(recursiveSearch);
+        root.recursiveTermSearchRequested(query);
     }
 
     /**
@@ -126,9 +126,11 @@ ListView {
      * @param index The index of the kanji to search.
      */
     function searchKanjiRecursively(expression, index) {
-        recursiveSearch.clearResults();
-        recursiveSearch.searchKanji(expression[index], expression, index);
-        root.recursiveSearchRequested(recursiveSearch);
+        if (index < 0 || index >= expression.length)
+        {
+            return;
+        }
+        root.recursiveKanjiSearchRequested(expression, index);
     }
 
     Action {
@@ -143,10 +145,6 @@ ListView {
         enabled: root.visible && (root.count > 0 || root.kanji)
         shortcut: MementoSettings.keybinds.profile?.cardPrevious
         onTriggered: root.scrollToPrevious()
-    }
-
-    DictionarySearch {
-        id: recursiveSearch
     }
 
     cacheBuffer: 1000
@@ -226,6 +224,14 @@ ListView {
             {
                 event.accepted = false;
             }
+        }
+    }
+
+    StackView.onRemoved: {
+        if (root.ownsDictionarySearch && root.dictionarySearch)
+        {
+            root.dictionarySearch.clearResults();
+            root.dictionarySearch.destroy();
         }
     }
 }

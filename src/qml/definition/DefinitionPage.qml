@@ -8,7 +8,11 @@ Page {
 
     required property DictionarySearch search
 
+    /* true to show the toolbar in top-level searches */
     property bool showToolbar: false
+
+    /* true if the root item needs to be discarded, false if it can be reused */
+    property bool rootRefreshNeeded: false
 
     signal closePressed()
 
@@ -26,22 +30,121 @@ Page {
         target: root.search
 
         function onKanjiChanged() {
-            stackView.pop(null, StackView.Immediate);
+            root.resetStack();
         }
 
         function onTermsChanged() {
-            stackView.pop(null, StackView.Immediate);
+            root.resetStack();
         }
     }
 
     /**
-     * Add a recursive search result list to the stack.
+     * Push the root result list onto an empty stack.
+     */
+    function pushRootSearch() {
+        stackView.push(definitionListComponent, {
+            dictionarySearch: root.search,
+            canvasColor: root.palette.window
+        }, StackView.Immediate);
+    }
+
+    /**
+     * Discard all pages and create a fresh root result list.
+     */
+    function refreshRootSearch() {
+        stackView.clear(StackView.Immediate);
+        root.pushRootSearch();
+        root.rootRefreshNeeded = false;
+    }
+
+    /**
+     * Pop recursive result pages while keeping the root result list alive when
+     * it is safe to reuse.
+     */
+    function resetStack() {
+        if (stackView.depth <= 0)
+        {
+            root.refreshRootSearch();
+            return;
+        }
+
+        const rootItem = stackView.get(0);
+        if (!rootItem || root.rootRefreshNeeded)
+        {
+            root.refreshRootSearch();
+            return;
+        }
+
+        if (stackView.depth > 1)
+        {
+            stackView.pop(rootItem, StackView.Immediate);
+        }
+    }
+
+    /**
+     * Create a search object for a recursive search result page.
+     * @return A new search object, or null on failure.
+     */
+    function createRecursiveSearch() {
+        const search = dictionarySearchComponent.createObject(stackView);
+        if (!search)
+        {
+            console.error("Could not create recursive dictionary search");
+        }
+        return search;
+    }
+
+    /**
+     * Add a recursive search result list to the stack and transfer ownership
+     * of the search object to the result list.
      * @param search The search object that owns the recursive results.
      */
     function pushSearch(search) {
+        root.rootRefreshNeeded = true;
         stackView.push(definitionListComponent, {
-            dictionarySearch: search
+            dictionarySearch: search,
+            ownsDictionarySearch: true
         });
+    }
+
+    /**
+     * Search for a term and push its recursive result page.
+     * @param query The term to search for.
+     */
+    function pushTermSearch(query) {
+        const search = root.createRecursiveSearch();
+        if (!search)
+        {
+            return;
+        }
+
+        search.searchTerms(query, query, 0);
+        if (query.length > 0)
+        {
+            search.searchKanji(query[0], query[0], 0);
+        }
+        root.pushSearch(search);
+    }
+
+    /**
+     * Search for a kanji and push its recursive result page.
+     * @param expression The text containing the kanji.
+     * @param index The index of the kanji to search.
+     */
+    function pushKanjiSearch(expression, index) {
+        if (index < 0 || index >= expression.length)
+        {
+            return;
+        }
+
+        const search = root.createRecursiveSearch();
+        if (!search)
+        {
+            return;
+        }
+
+        search.searchKanji(expression[index], expression, index);
+        root.pushSearch(search);
     }
 
     header: ColumnLayout {
@@ -90,14 +193,7 @@ Page {
         id: stackView
         anchors.fill: parent
         clip: true
-        initialItem: DefinitionList {
-            id: definitionList
-            dictionarySearch: root.search
-            canvasColor: root.palette.window
-            onRecursiveSearchRequested: function(search) {
-                root.pushSearch(search);
-            }
-        }
+        Component.onCompleted: root.pushRootSearch()
     }
 
     Component {
@@ -105,9 +201,17 @@ Page {
 
         DefinitionList {
             canvasColor: root.palette.window
-            onRecursiveSearchRequested: function(search) {
-                root.pushSearch(search);
+            onRecursiveTermSearchRequested: function(query) {
+                root.pushTermSearch(query);
+            }
+            onRecursiveKanjiSearchRequested: function(expression, index) {
+                root.pushKanjiSearch(expression, index);
             }
         }
+    }
+
+    Component {
+        id: dictionarySearchComponent
+        DictionarySearch { }
     }
 }
