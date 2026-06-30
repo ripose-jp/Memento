@@ -30,14 +30,27 @@ Page {
 
                 property int hoverIndex: -1
 
+                /**
+                 * Searches the text at the given index.
+                 * @param index The index into the text to search.
+                 */
+                function searchIndex(index) {
+                    dictionarySearch.clearResults();
+                    if (index < text.length)
+                    {
+                        dictionarySearch.searchTerms(text.substring(index), text, index);
+                        dictionarySearch.searchKanji(text.charAt(index), text, index);
+                    }
+                }
+
                 Layout.fillWidth: true
                 Layout.margins: 5
                 placeholderText: qsTr("Search")
-                onTextChanged: searchIndex(0)
+                onTextChanged: Qt.callLater(searchTextField.searchIndex, 0)
                 onHoverIndexChanged: {
                     if (KeyTracker.modifierHeld(MementoSettings.searchModifier))
                     {
-                        searchIndex(hoverIndex);
+                        Qt.callLater(searchTextField.searchIndex, searchTextField.hoverIndex);
                     }
                 }
 
@@ -63,24 +76,11 @@ Page {
                     onClicked: function(event) {
                         if (MementoSettings.searchMiddleMouseScan)
                         {
-                            searchTextField.searchIndex(searchTextField.hoverIndex);
+                            Qt.callLater(searchTextField.searchIndex, searchTextField.hoverIndex);
                         }
                     }
 
                     onExited: searchTextField.hoverIndex = -1
-                }
-
-                /**
-                 * Searches the text at the given index.
-                 * @param index The index into the text to search.
-                 */
-                function searchIndex(index) {
-                    dictionarySearch.clearResults();
-                    if (index < text.length)
-                    {
-                        dictionarySearch.searchTerms(text.substring(index), text, index);
-                        dictionarySearch.searchKanji(text.charAt(index), text, index);
-                    }
                 }
             }
         }

@@ -445,7 +445,7 @@ MpvPlayer {
                     return;
                 }
 
-                definitionPopup.search();
+                Qt.callLater(definitionPopup.search, subtitleText.hoverIndex);
             }
         }
 
@@ -471,9 +471,10 @@ MpvPlayer {
 
         /**
          * Executes a search using the hover index of the subtitle text.
+         * @param index The index into the subtitle text to search.
          */
-        function search() {
-            if (subtitleText.hoverIndex < 0)
+        function search(index) {
+            if (index < 0 || index >= subtitleText.text.length)
             {
                 return;
             }
@@ -482,7 +483,6 @@ MpvPlayer {
             definitionPage.resetStack();
 
             const text = subtitleText.text;
-            const index = subtitleText.hoverIndex;
             const query = text.substring(index);
             dictionarySearch.searchTerms(query, text, index);
             dictionarySearch.searchKanji(text.charAt(index), text, index);
@@ -633,7 +633,7 @@ MpvPlayer {
             case MementoSetting.SearchMethodModifier:
                 if (KeyTracker.modifierHeld(MementoSettings.searchModifier))
                 {
-                    definitionPopup.search();
+                    Qt.callLater(definitionPopup.search, subtitleText.hoverIndex);
                 }
                 break;
             }
@@ -641,7 +641,7 @@ MpvPlayer {
         onMiddleClicked: {
             if (MementoSettings.searchMiddleMouseScan)
             {
-                definitionPopup.search();
+                Qt.callLater(definitionPopup.search, subtitleText.hoverIndex);
             }
         }
     }

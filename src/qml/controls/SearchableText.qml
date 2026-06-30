@@ -112,7 +112,7 @@ TextEdit {
         {
             return;
         }
-        root.searchIndex(root.hoverIndex);
+        Qt.callLater(root.searchIndex, root.hoverIndex);
     }
 
     MouseArea {
@@ -135,7 +135,7 @@ TextEdit {
                 event.accepted = false;
                 return;
             }
-            root.searchIndex(root.hoverIndex);
+            Qt.callLater(root.searchIndex, root.hoverIndex);
         }
 
         onExited: root.hoverIndex = -1
