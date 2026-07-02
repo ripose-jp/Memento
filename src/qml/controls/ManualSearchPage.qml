@@ -36,7 +36,7 @@ Page {
                  */
                 function searchIndex(index) {
                     dictionarySearch.clearResults();
-                    if (index < text.length)
+                    if (index >= 0 && index < text.length)
                     {
                         dictionarySearch.searchTerms(text.substring(index), text, index);
                         dictionarySearch.searchKanji(text.charAt(index), text, index);
@@ -45,12 +45,24 @@ Page {
 
                 Layout.fillWidth: true
                 Layout.margins: 5
+                hoverEnabled: true
                 placeholderText: qsTr("Search")
                 onTextChanged: Qt.callLater(searchTextField.searchIndex, 0)
                 onHoverIndexChanged: {
                     if (KeyTracker.modifierHeld(MementoSettings.searchModifier))
                     {
                         Qt.callLater(searchTextField.searchIndex, searchTextField.hoverIndex);
+                    }
+                }
+
+                Connections {
+                    target: KeyTracker
+                    function onModifiersChanged() {
+                        if (searchTextField.hovered &&
+                                KeyTracker.modifierHeld(MementoSettings.searchModifier))
+                        {
+                            Qt.callLater(searchTextField.searchIndex, searchTextField.hoverIndex);
+                        }
                     }
                 }
 

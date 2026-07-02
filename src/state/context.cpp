@@ -65,6 +65,11 @@ FileOpenHandler *Context::fileOpenHandler() const noexcept
     return m_fileOpenHandler;
 }
 
+KeyTracker *Context::keyTracker() const noexcept
+{
+    return m_keyTracker;
+}
+
 MpvPlayer *Context::player() const noexcept
 {
     return m_player;

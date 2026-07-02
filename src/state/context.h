@@ -28,6 +28,7 @@
 #include "dict/dictionarycontroller.h"
 #include "player/mpvplayer.h"
 #include "quick/fileopenhandler.h"
+#include "quick/keytracker.h"
 #include "setting/settings.h"
 #include "subtitle/subtitlelists.h"
 #include "util/utils.h"
@@ -100,6 +101,14 @@ public:
     FileOpenHandler *fileOpenHandler() const noexcept;
 
     /**
+     * @brief Get the global key tracker.
+     *
+     * @return The global key tracker.
+     */
+    [[nodiscard]]
+    KeyTracker *keyTracker() const noexcept;
+
+    /**
      * @brief Get the application MpvPlayer instance.
      *
      * @return The MpvPlayer instance.
@@ -139,6 +148,9 @@ private:
 
     /* The application file open handler. Has ownership. */
     FileOpenHandler *m_fileOpenHandler{new FileOpenHandler(this)};
+
+    /* The application key tracker. Has ownership. */
+    KeyTracker *m_keyTracker{new KeyTracker(this)};
 
     /* The main application MpvPlayer. Does not have ownership. */
     MpvPlayer *m_player{nullptr};

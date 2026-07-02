@@ -21,6 +21,7 @@
 #include "quick/keytracker.h"
 
 #include <QGuiApplication>
+#include <QKeyEvent>
 #include <QKeySequence>
 
 KeyTracker::KeyTracker(QObject *parent) : QObject(parent)
@@ -33,12 +34,22 @@ KeyTracker::~KeyTracker()
 
 }
 
-Qt::KeyboardModifiers KeyTracker::modifiers()
+Qt::KeyboardModifiers KeyTracker::modifiers() const
 {
-    return QGuiApplication::keyboardModifiers();
+    return m_modifiers;
 }
 
-bool KeyTracker::modifierHeld(Setting::Modifier key)
+void KeyTracker::setModifiers(Qt::KeyboardModifiers value)
+{
+    if (m_modifiers == value)
+    {
+        return;
+    }
+    m_modifiers = value;
+    emit modifiersChanged(m_modifiers);
+}
+
+bool KeyTracker::modifierHeld(Setting::Modifier key) const
 {
     switch (key)
     {
@@ -57,4 +68,35 @@ bool KeyTracker::modifierHeld(Setting::Modifier key)
 QString KeyTracker::keyComboToString(int key, int modifiers)
 {
     return QKeySequence(key | modifiers).toString();
+}
+
+bool KeyTracker::eventFilter(QObject *obj, QEvent *event)
+{
+    switch (event->type())
+    {
+        case QEvent::KeyPress:
+        case QEvent::KeyRelease:
+        {
+            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+            setModifiers(keyEvent->modifiers());
+            break;
+        }
+
+        case QEvent::ApplicationDeactivate:
+        case QEvent::WindowDeactivate:
+        case QEvent::FocusOut:
+            setModifiers(Qt::NoModifier);
+            break;
+
+        case QEvent::ApplicationActivate:
+        case QEvent::WindowActivate:
+        case QEvent::FocusIn:
+            setModifiers(QGuiApplication::queryKeyboardModifiers());
+            break;
+
+        default:
+            break;
+    }
+
+    return QObject::eventFilter(obj, event);
 }

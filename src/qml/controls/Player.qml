@@ -644,6 +644,18 @@ MpvPlayer {
                 Qt.callLater(definitionPopup.search, subtitleText.hoverIndex);
             }
         }
+
+        Connections {
+            target: KeyTracker
+            function onModifiersChanged() {
+                if (MementoSettings.searchMethod === MementoSetting.SearchMethodModifier &&
+                        subtitleHover.hovered &&
+                        KeyTracker.modifierHeld(MementoSettings.searchModifier))
+                {
+                    Qt.callLater(definitionPopup.search, subtitleText.hoverIndex);
+                }
+            }
+        }
     }
 
     PlayerMenu {

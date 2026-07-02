@@ -79,6 +79,32 @@ TextEdit {
         popupLoader.item.y = y;
     }
 
+    readOnly: true
+    selectByMouse: false
+    selectByKeyboard: false
+    textFormat: TextEdit.PlainText
+    color: MementoPalette.text
+    selectionColor: MementoPalette.highlight
+
+    onHoverIndexChanged: {
+        if (!KeyTracker.modifierHeld(MementoSettings.searchModifier))
+        {
+            return;
+        }
+        Qt.callLater(root.searchIndex, root.hoverIndex);
+    }
+
+    Connections {
+        target: KeyTracker
+        function onModifiersChanged() {
+            if (hoverHandler.hovered &&
+                    KeyTracker.modifierHeld(MementoSettings.searchModifier))
+            {
+                Qt.callLater(root.searchIndex, root.hoverIndex);
+            }
+        }
+    }
+
     Connections {
         target: popupLoader.item
         function onClosed() {
@@ -100,19 +126,8 @@ TextEdit {
         }
     }
 
-    readOnly: true
-    selectByMouse: false
-    selectByKeyboard: false
-    textFormat: TextEdit.PlainText
-    color: MementoPalette.text
-    selectionColor: MementoPalette.highlight
-
-    onHoverIndexChanged: {
-        if (!KeyTracker.modifierHeld(MementoSettings.searchModifier))
-        {
-            return;
-        }
-        Qt.callLater(root.searchIndex, root.hoverIndex);
+    HoverHandler {
+        id: hoverHandler
     }
 
     MouseArea {

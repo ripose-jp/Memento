@@ -12,6 +12,7 @@ target_link_libraries(
     PUBLIC audioplayer
     PUBLIC dictionary
     PUBLIC fileopenhandler
+    PUBLIC keytracker
     PUBLIC mpvplayer
     PUBLIC Qt6::Core
     PUBLIC settings

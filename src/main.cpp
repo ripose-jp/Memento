@@ -246,7 +246,7 @@ static void registerQmlTypes(Context &context)
         MEMENTO_URI, 1, 0, "FileOpenHandler", context.fileOpenHandler()
     );
     qmlRegisterSingletonInstance<KeyTracker>(
-        MEMENTO_URI, 1, 0, "KeyTracker", new KeyTracker(&context)
+        MEMENTO_URI, 1, 0, "KeyTracker", context.keyTracker()
     );
     qmlRegisterSingletonInstance<Paths>(
         MEMENTO_URI, 1, 0, "MementoPaths", new Paths(&context)
@@ -435,9 +435,8 @@ static int runApplication()
     QQmlApplicationEngine::setObjectOwnership(
         &context, QQmlEngine::CppOwnership
     );
-    QCoreApplication::instance()->installEventFilter(
-        context.fileOpenHandler()
-    );
+    QCoreApplication::instance()->installEventFilter(context.fileOpenHandler());
+    QCoreApplication::instance()->installEventFilter(context.keyTracker());
 
     QTranslator translator;
     installTranslator(translator, context);

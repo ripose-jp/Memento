@@ -31,6 +31,12 @@ class KeyTracker : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(
+        Qt::KeyboardModifiers modifiers
+        READ modifiers
+        NOTIFY modifiersChanged
+    )
+
 public:
     KeyTracker(QObject *parent = nullptr);
     ~KeyTracker();
@@ -41,7 +47,7 @@ public:
      * @return The currently held modifiers.
      */
     [[nodiscard]]
-    Q_INVOKABLE static Qt::KeyboardModifiers modifiers();
+    Q_INVOKABLE Qt::KeyboardModifiers modifiers() const;
 
     /**
      * @brief Get if the modifier is held.
@@ -51,7 +57,7 @@ public:
      * @return false otherwise.
      */
     [[nodiscard]]
-    Q_INVOKABLE static bool modifierHeld(Setting::Modifier key);
+    Q_INVOKABLE bool modifierHeld(Setting::Modifier key) const;
 
     /**
      * @brief Get a sequence string from a key combination.
@@ -62,4 +68,33 @@ public:
      */
     [[nodiscard]]
     Q_INVOKABLE static QString keyComboToString(int key, int modifiers);
+
+    /**
+     * @brief Filter events to find key presses and releases.
+     *
+     * @param obj The object this event came from.
+     * @param event The event to filter.
+     * @return Always returns false so as to not filter any events.
+     */
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
+signals:
+    /**
+     * @brief Emitted when the held modifiers changes.
+     *
+     * @param modifiers The newly held modifiers
+     */
+    void modifiersChanged(Qt::KeyboardModifiers modifiers);
+
+private:
+    /**
+     * @brief Set the currently held modifiers and notify if modifiers have been
+     * updated.
+     *
+     * @param value The new modifiers to set.
+     */
+    void setModifiers(Qt::KeyboardModifiers value);
+
+    /* The currently held modifiers */
+    Qt::KeyboardModifiers m_modifiers{};
 };
