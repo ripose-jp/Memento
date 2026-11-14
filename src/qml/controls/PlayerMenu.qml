@@ -590,7 +590,7 @@ MenuBar {
         currentFolder: Utils.getFileOpenDirectory(MementoSettings.behaviorFileOpenDirectory)
         fileMode: FileDialog.OpenFiles
         nameFilters: [
-            qsTr("Video Files (%1)").arg("*.webm *.mkv *.vob *.ogv *.ogg *.avi *.mov *.qt *.mp4 *.m4p *.m4v *.mpg *.mp2 *.mpeg *.mpe *.mpv)"),
+            qsTr("Video Files (%1)").arg("*.webm *.mkv *.vob *.ogv *.ogg *.avi *.mov *.qt *.mp4 *.m4p *.m4v *.mpg *.mp2 *.mpeg *.mpe *.mpv"),
             qsTr("All Files (*.*)")
         ]
         onAccepted: root.player.controller.loadFile(selectedFiles)
@@ -624,7 +624,7 @@ MenuBar {
         currentFolder: Utils.getFileOpenDirectory(MementoSettings.behaviorFileOpenDirectory)
         fileMode: FileDialog.OpenFile
         nameFilters: [
-            qsTr("Subtitle Files (%1)").arg("*.ass *.idx *.lrc *.mks *.pgs *.rt *.scc *.smi *.srt *.ssa *.sub *.sup *.utf-8 *.utf *.utf8 *.vtt)"),
+            qsTr("Subtitle Files (%1)").arg("*.ass *.idx *.lrc *.mks *.pgs *.rt *.scc *.smi *.srt *.ssa *.sub *.sup *.utf-8 *.utf *.utf8 *.vtt"),
             qsTr("All Files (*.*)")
         ]
         title: qsTr("Select Subtitle File")
