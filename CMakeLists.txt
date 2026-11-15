@@ -70,8 +70,8 @@ list(
 	"$<$<BOOL:${MEMENTO_WARN_UNSUPPORTED_CSS}>:-DMEMENTO_WARN_UNSUPPORTED_CSS=1>"
 	"$<$<BOOL:${MEMENTO_WERROR}>:-Werror>"
 )
-if(MEMENTO_ASAN)
-	add_link_options(-fsanitize=address)
+if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    list(APPEND MEMENTO_COMPILER_FLAGS "-Wno-gnu-include-next")
 endif()
 
 # Get the Git version hash
