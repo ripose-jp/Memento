@@ -20,24 +20,35 @@
 
 #pragma once
 
-#ifdef Q_OS_MACOS
+#include <memory>
+
+#include <QtGlobal>
+
+#if defined(Q_OS_WIN)
+#include <QQuickRhiItem>
+#elif defined(Q_OS_MACOS)
 #include <QQuickItem>
 #else
 #include <QQuickFramebufferObject>
-#endif // Q_OS_MACOS
+#endif
 
 #include <mpv/client.h>
-#include <mpv/render_gl.h>
+#include <mpv/render.h>
 
 #include "player/mpvcontroller.h"
 #include "player/mpvstate.h"
+#ifndef Q_OS_WIN
+#include "player/mpvopenglframebackend.h"
+#endif // Q_OS_WIN
 
-#ifdef Q_OS_MACOS
+#if defined(Q_OS_WIN)
+using MpvPlayerBase = QQuickRhiItem;
+#elif defined(Q_OS_MACOS)
 class MpvMetalRenderer;
 using MpvPlayerBase = QQuickItem;
 #else
 using MpvPlayerBase = QQuickFramebufferObject;
-#endif // Q_OS_MACOS
+#endif
 
 /**
  * @brief A component that creates an instance of mpv in QML.
@@ -59,7 +70,16 @@ class MpvPlayer : public MpvPlayerBase
     )
 
 public:
+    /**
+     * @brief Creates the mpv core and connects its event notifications.
+     *
+     * @param parent The parent Quick item.
+     */
     MpvPlayer(QQuickItem *parent = nullptr);
+
+    /**
+     * @brief Disconnects callbacks and releases the player's mpv resources.
+     */
     virtual ~MpvPlayer();
 
     /**
@@ -70,37 +90,23 @@ public:
     [[nodiscard]]
     mpv_handle *handle() const noexcept;
 
+#if defined(Q_OS_WIN)
     /**
-     * @brief The mpv OpenGL render context in use.
-     *
-     * @return A pointer to the current render context. Nullptr if
-     * createRenderContext() has been called yet.
-     */
-    [[nodiscard]]
-    mpv_render_context *renderContext() const noexcept;
-
-    /**
-     * @brief Creates the render context.
-     */
-    void createRenderContext();
-
-    /**
-     * @brief Destroys the mpv render context.
-     *
-     * The OpenGL context that was current when createRenderContext() was called
-     * must be current before this function is called.
-     */
-    void destroyRenderContext();
-
-    /**
-     * @brief Creates a QQuickFramebufferObject::Renderer
+     * @brief Creates the Windows D3D11 renderer on the Qt render thread.
      *
      * @return A pointer to the newly created renderer.
      */
-#ifndef Q_OS_MACOS
     [[nodiscard]]
-    virtual Renderer *createRenderer() const;
-#endif // Q_OS_MACOS
+    QQuickRhiItemRenderer *createRenderer() override;
+#elif !defined(Q_OS_MACOS)
+    /**
+     * @brief Creates the OpenGL framebuffer renderer.
+     *
+     * @return A pointer to the newly created renderer.
+     */
+    [[nodiscard]]
+    Renderer *createRenderer() const override;
+#endif
 
     /**
      * @brief Gets the state object tracked by this mpv context.
@@ -135,11 +141,6 @@ public:
 
 signals:
     /**
-     * @brief Emitted when the render context is created.
-     */
-    void renderContextCreated();
-
-    /**
      * @brief Emitted when the player finishes initialization.
      */
     void initialized();
@@ -148,11 +149,6 @@ signals:
      * @brief Emitted when an mpv is available to handle.
      */
     void mpvEvent();
-
-    /**
-     * @brief Emitted when mpv is ready to redraw on the framebuffer.
-     */
-    void mpvRedraw();
 
     /**
      * @brief Emitted when a new file is loaded.
@@ -187,7 +183,7 @@ protected:
 
 private slots:
     /**
-     * @brief Initializes mpv.
+     * @brief Initializes mpv once its render context is ready.
      */
     void initializeMpv();
 
@@ -214,11 +210,21 @@ private:
      */
     void initPropertyMap();
 
-    /* The mpv context */
+    /**
+     * @brief Notifies the GUI thread that mpv has queued events.
+     *
+     * @param ctx The player receiving the events.
+     */
+    static void onMpvEvents(void *ctx);
+
+    /* The mpv core */
     mpv_handle *m_mpv{nullptr};
 
-    /* The mpv render context */
-    mpv_render_context *m_mpv_gl{nullptr};
+    /* Keeps the core alive until both the player and renderer release it. */
+    std::shared_ptr<mpv_handle> m_mpvOwner;
+
+    /* Prevents renderer recreation from initializing the mpv core twice. */
+    bool m_initialized{false};
 
     /* Maps mpv properties to the appropriate event handling function */
     QHash<QString, std::function<void(mpv_event_property *)>> m_propertyMap;
@@ -228,6 +234,14 @@ private:
 
     /* The state object tracking this mpv player */
     MpvController *m_controller{new MpvController(this)};
+
+#ifndef Q_OS_WIN
+    /* The OpenGL framebackend which manges the OpenGL context on Linux and
+     * macOS */
+    MpvOpenGlFrameBackend *m_frameBackend{
+        new MpvOpenGlFrameBackend{this, this}
+    };
+#endif // Q_OS_WIN
 
 #ifdef Q_OS_MACOS
 protected:

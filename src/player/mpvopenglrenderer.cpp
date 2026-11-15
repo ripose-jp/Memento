@@ -18,34 +18,44 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "player/mpvrenderer.h"
+#include "player/mpvopenglrenderer.h"
 
-#include <QQuickWindow>
 #include <QOpenGLFramebufferObject>
+#include <QQuickWindow>
 
-MpvRenderer::MpvRenderer(MpvPlayer *player) :
+#include "player/mpvplayer.h"
+
+/* Begin Constructor/Destructor */
+
+MpvOpenGlRenderer::MpvOpenGlRenderer(
+    MpvPlayer *player, MpvOpenGlFrameBackend *backend) :
     m_player{player},
-    m_frameBackend{player}
+    m_frameBackend{backend}
 {
 
 }
 
-QOpenGLFramebufferObject *MpvRenderer::createFramebufferObject(
+/* End Constructor/Destructor */
+/* Begin Rendering */
+
+QOpenGLFramebufferObject *MpvOpenGlRenderer::createFramebufferObject(
     const QSize &size)
 {
-    if (m_player->renderContext() == nullptr)
+    if (m_frameBackend->renderContext() == nullptr)
     {
-        m_player->createRenderContext();
+        m_frameBackend->createRenderContext();
     }
     return QQuickFramebufferObject::Renderer::createFramebufferObject(size);
 }
 
-void MpvRenderer::render()
+void MpvOpenGlRenderer::render()
 {
     m_player->window()->beginExternalCommands();
 
     QOpenGLFramebufferObject *fbo = framebufferObject();
-    m_frameBackend.renderToFramebuffer(fbo->handle(), fbo->size());
+    m_frameBackend->renderToFramebuffer(fbo->handle(), fbo->size());
 
     m_player->window()->endExternalCommands();
 }
+
+/* End Rendering */

@@ -483,10 +483,14 @@ int main(int argc, char *argv[])
     /* Make the icon show up on Wayland */
     QGuiApplication::setDesktopFileName("memento");
 
-#ifndef Q_OS_MACOS
+#if defined(Q_OS_MACOS)
+    QQuickWindow::setGraphicsApi(QSGRendererInterface::Metal);
+#elif defined(Q_OS_WIN)
+    QQuickWindow::setGraphicsApi(QSGRendererInterface::Direct3D11);
+#else
     /* mpv uses OpenGL on these platforms, so Qt Quick must share that API. */
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
-#endif // Q_OS_MACOS
+#endif
 
 #ifdef MEMENTO_QAPPLICATION
     QApplication app(argc, argv);

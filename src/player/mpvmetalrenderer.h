@@ -28,6 +28,7 @@
 
 #include <QSize>
 
+class MpvOpenGlFrameBackend;
 class MpvPlayer;
 class QQuickWindow;
 class QSGTexture;
@@ -43,8 +44,11 @@ public:
      * @brief Creates the macOS renderer for a player.
      *
      * @param player The player whose mpv render context is rendered.
+     * @param backend The OpenGL frame backend containing the mpv OpenGL
+     * context.
      */
-    explicit MpvMetalRenderer(MpvPlayer *player);
+    explicit MpvMetalRenderer(
+        MpvPlayer *player, MpvOpenGlFrameBackend *backend);
 
     /**
      * @brief Stops the worker and releases all worker-owned resources.

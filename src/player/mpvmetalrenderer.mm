@@ -44,7 +44,7 @@
 #import <OpenGL/CGLIOSurface.h>
 #import <OpenGL/OpenGL.h>
 
-#include "player/mpvframebackend.h"
+#include "player/mpvopenglframebackend.h"
 #include "player/mpvplayer.h"
 
 /* The maximum number of frames to buffer */
@@ -60,8 +60,10 @@ public:
      * @brief Creates a worker-owned OpenGL producer for a player.
      *
      * @param player The player rendered by this backend.
+     * @param backend The OpenGL frame backend containing the mpv OpenGL
+     * context.
      */
-    explicit Impl(MpvPlayer *player);
+    explicit Impl(MpvPlayer *player, MpvOpenGlFrameBackend *backend);
 
     /**
      * @brief Stops the worker and releases all renderer resources.
@@ -173,7 +175,7 @@ private:
     MpvPlayer *m_player{nullptr};
 
     /* Shared mpv framebuffer submission logic. */
-    MpvFrameBackend m_frameBackend;
+    MpvOpenGlFrameBackend *m_frameBackend{nullptr};
 
     /* Synchronizes requests and frame publication between threads. */
     std::mutex m_mutex;
@@ -221,9 +223,10 @@ private:
     std::vector<MetalTexture> m_metalTextures;
 };
 
-MpvMetalRenderer::Impl::Impl(MpvPlayer *player) :
+MpvMetalRenderer::Impl::Impl(
+    MpvPlayer *player, MpvOpenGlFrameBackend *backend) :
     m_player{player},
-    m_frameBackend{player}
+    m_frameBackend{backend}
 {
     QSurfaceFormat format;
     format.setVersion(4, 1);
@@ -382,7 +385,7 @@ void MpvMetalRenderer::Impl::createContext()
     m_context->create();
 
     m_context->makeCurrent(m_surface.get());
-    m_player->createRenderContext();
+    m_frameBackend->createRenderContext();
 }
 
 void MpvMetalRenderer::Impl::recreateFrames(const QSize &size)
@@ -458,7 +461,7 @@ void MpvMetalRenderer::Impl::renderFrame()
 
     FrameSlot &frame = m_frames[frameIndex];
     glBindFramebuffer(GL_FRAMEBUFFER, frame.framebuffer);
-    m_frameBackend.renderToFramebuffer(frame.framebuffer, activeSize);
+    m_frameBackend->renderToFramebuffer(frame.framebuffer, activeSize);
     glFlush();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -503,7 +506,7 @@ void MpvMetalRenderer::Impl::destroyFrame(FrameSlot &frame)
 void MpvMetalRenderer::Impl::destroyWorkerResources()
 {
     m_context->makeCurrent(m_surface.get());
-    m_player->destroyRenderContext();
+    m_frameBackend->destroyRenderContext();
 
     for (FrameSlot &frame : m_frames)
     {
@@ -523,8 +526,9 @@ void MpvMetalRenderer::Impl::destroyWorkerResources()
     m_context.reset();
 }
 
-MpvMetalRenderer::MpvMetalRenderer(MpvPlayer *player) :
-    m_impl{std::make_unique<Impl>(player)}
+MpvMetalRenderer::MpvMetalRenderer(
+    MpvPlayer *player, MpvOpenGlFrameBackend *backend) :
+    m_impl{std::make_unique<Impl>(player, backend)}
 {
 
 }

@@ -20,43 +20,24 @@
 
 #include "player/mpvplayer.h"
 
-#include <QOpenGLContext>
 #include <QQuickWindow>
-
-#include "player/mpvrenderer.h"
-#include "util/utils.h"
-
 #ifdef Q_OS_MACOS
 #include <QSGSimpleTextureNode>
-
-#include "player/mpvmetalrenderer.h"
 #endif // Q_OS_MACOS
 
-/* Begin Static Callbacks */
+#ifndef Q_OS_WIN
+#include <mpv/render_gl.h>
+#endif // Q_OS_WIN
 
-static void on_mpv_events(void *ctx)
-{
-    MpvPlayer *self = reinterpret_cast<MpvPlayer *>(ctx);
-    emit self->mpvEvent();
-}
+#if defined(Q_OS_WIN)
+#include "player/mpvd3d11renderer.h"
+#elif defined(Q_OS_MACOS)
+#include "player/mpvmetalrenderer.h"
+#else
+#include "player/mpvopenglrenderer.h"
+#endif
+#include "util/utils.h"
 
-static void on_mpv_redraw(void *ctx)
-{
-    MpvPlayer *self = reinterpret_cast<MpvPlayer *>(ctx);
-    emit self->mpvRedraw();
-}
-
-static void *get_proc_address_mpv([[maybe_unused]] void *ctx, const char *name)
-{
-    QOpenGLContext *glctx = QOpenGLContext::currentContext();
-    if (glctx == nullptr)
-    {
-        return nullptr;
-    }
-    return reinterpret_cast<void *>(glctx->getProcAddress(QByteArray(name)));
-}
-
-/* End Static Callbacks */
 /* Begin Constructor/Deconstructor */
 
 MpvPlayer::MpvPlayer(QQuickItem *parent) : MpvPlayerBase(parent)
@@ -66,41 +47,43 @@ MpvPlayer::MpvPlayer(QQuickItem *parent) : MpvPlayerBase(parent)
     {
         throw std::runtime_error("MpvPlayer: Could not create mpv context");
     }
+    m_mpvOwner = std::shared_ptr<mpv_handle>(m_mpv, ::mpv_terminate_destroy);
 
     initPropertyMap();
 
-    connect(
-        this, &MpvPlayer::renderContextCreated,
-        this, &MpvPlayer::initializeMpv,
-        Qt::QueuedConnection
-    );
     connect(
         this, &MpvPlayer::mpvEvent,
         this, &MpvPlayer::handleMpvEvents,
         Qt::QueuedConnection
     );
+#ifndef Q_OS_WIN
     connect(
-        this, &MpvPlayer::mpvRedraw,
+        m_frameBackend, &MpvOpenGlFrameBackend::contextCreated,
+        this, &MpvPlayer::initializeMpv,
+        Qt::QueuedConnection
+    );
+    connect(
+        m_frameBackend, &MpvOpenGlFrameBackend::redraw,
         this, &MpvPlayer::doUpdate,
         Qt::QueuedConnection
     );
-    ::mpv_set_wakeup_callback(m_mpv, on_mpv_events, this);
+#endif // Q_OS_WIN
+    ::mpv_set_wakeup_callback(m_mpv, &MpvPlayer::onMpvEvents, this);
 
 #ifdef Q_OS_MACOS
     setFlag(ItemHasContents, true);
-    m_renderer = std::make_unique<MpvMetalRenderer>(this);
+    m_renderer = std::make_unique<MpvMetalRenderer>(this, m_frameBackend);
 #endif // Q_OS_MACOS
 }
 
 MpvPlayer::~MpvPlayer()
 {
+    ::mpv_set_wakeup_callback(m_mpv, nullptr, nullptr);
 #ifdef Q_OS_MACOS
     m_renderer.reset();
-#else
-    destroyRenderContext();
-#endif // Q_OS_MACOS
-    ::mpv_set_wakeup_callback(m_mpv, nullptr, nullptr);
-    ::mpv_terminate_destroy(m_mpv);
+#elif !defined(Q_OS_WIN)
+    m_frameBackend->destroyRenderContext();
+#endif
 }
 
 /* End Constructor/Deconstructor */
@@ -435,6 +418,11 @@ void MpvPlayer::initPropertyMap()
 
 void MpvPlayer::initializeMpv()
 {
+    if (m_initialized)
+    {
+        return;
+    }
+
     initOptions();
 
     if (mpv_initialize(m_mpv) < 0)
@@ -475,8 +463,9 @@ void MpvPlayer::initializeMpv()
     mpv_observe_property(m_mpv, 0, "cursor-autohide",     MPV_FORMAT_STRING);
     mpv_observe_property(m_mpv, 0, "cursor-autohide-fs-only", MPV_FORMAT_FLAG);
 
-    mpv_set_wakeup_callback(m_mpv, on_mpv_events, this);
+    mpv_set_wakeup_callback(m_mpv, &MpvPlayer::onMpvEvents, this);
 
+    m_initialized = true;
     emit initialized();
 }
 
@@ -558,93 +547,50 @@ mpv_handle *MpvPlayer::handle() const noexcept
     return m_mpv;
 }
 
-mpv_render_context *MpvPlayer::renderContext() const noexcept
+#if defined(Q_OS_WIN)
+QQuickRhiItemRenderer *MpvPlayer::createRenderer()
 {
-    return m_mpv_gl;
+    window()->setPersistentGraphics(true);
+    window()->setPersistentSceneGraph(true);
+
+    auto *renderer = new MpvD3D11Renderer(m_mpvOwner);
+    connect(
+        renderer, &MpvD3D11Renderer::contextCreated,
+        this, &MpvPlayer::initializeMpv,
+        Qt::QueuedConnection
+    );
+    connect(
+        renderer, &MpvD3D11Renderer::redraw,
+        this, &MpvPlayer::doUpdate,
+        Qt::QueuedConnection
+    );
+    return renderer;
 }
-
-void MpvPlayer::createRenderContext()
-{
-    if (m_mpv_gl)
-    {
-        return;
-    }
-
-    mpv_opengl_init_params gl_init_params{};
-    gl_init_params.get_proc_address = ::get_proc_address_mpv;
-    gl_init_params.get_proc_address_ctx = nullptr;
-#if MPV_CLIENT_API_VERSION < MPV_MAKE_VERSION(2, 0)
-    gl_init_params.extra_exts = nullptr;
-#endif
-    mpv_render_param params[]{
-        {
-            MPV_RENDER_PARAM_API_TYPE,
-            const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)
-        },
-        {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init_params},
-        {MPV_RENDER_PARAM_INVALID, nullptr},
-        {MPV_RENDER_PARAM_INVALID, nullptr},
-    };
-
-#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
-    if (auto x11App = qApp->nativeInterface<QNativeInterface::QX11Application>())
-    {
-        params[2].type = MPV_RENDER_PARAM_X11_DISPLAY;
-        params[2].data = x11App->display();
-    }
-#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
-    else if (auto wlApp = qApp->nativeInterface<QNativeInterface::QWaylandApplication>())
-    {
-        params[2].type = MPV_RENDER_PARAM_WL_DISPLAY;
-        params[2].data = wlApp->display();
-    }
-#endif // QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
-#endif // defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
-
-    if (::mpv_render_context_create(&m_mpv_gl, m_mpv, params) < 0)
-    {
-        throw std::runtime_error(
-            "MpvPlayer: Failed to initialize mpv GL context"
-        );
-    }
-    ::mpv_render_context_set_update_callback(m_mpv_gl, on_mpv_redraw, this);
-
-    emit renderContextCreated();
-}
-
-void MpvPlayer::destroyRenderContext()
-{
-    if (m_mpv_gl == nullptr)
-    {
-        return;
-    }
-
-    ::mpv_render_context_set_update_callback(m_mpv_gl, nullptr, nullptr);
-    ::mpv_render_context_free(m_mpv_gl);
-    m_mpv_gl = nullptr;
-}
-
-#ifndef Q_OS_MACOS
+#elif !defined(Q_OS_MACOS)
 QQuickFramebufferObject::Renderer *MpvPlayer::createRenderer() const
 {
     window()->setPersistentGraphics(true);
     window()->setPersistentSceneGraph(true);
-    return new MpvRenderer(const_cast<MpvPlayer *>(this));
+    return new MpvOpenGlRenderer(
+        const_cast<MpvPlayer *>(this),
+        const_cast<MpvOpenGlFrameBackend *>(m_frameBackend)
+    );
 }
-#endif // Q_OS_MACOS
+#endif
 
 /* End mpv context methods */
 /* Begin Mpv Event Slots */
 
 void MpvPlayer::doUpdate()
 {
-#ifdef Q_OS_MACOS
+#if defined(Q_OS_MACOS)
     if (m_renderer)
     {
         m_renderer->requestRender();
     }
-#endif // Q_OS_MACOS
+#else
     update();
+#endif
 }
 
 #ifdef Q_OS_MACOS
@@ -829,3 +775,12 @@ void MpvPlayer::setController(MpvController *controller)
 }
 
 /* End Properties */
+/* Begin Static Callbacks */
+
+void MpvPlayer::onMpvEvents(void *ctx)
+{
+    MpvPlayer *self = reinterpret_cast<MpvPlayer *>(ctx);
+    emit self->mpvEvent();
+}
+
+/* End Static Callbacks */

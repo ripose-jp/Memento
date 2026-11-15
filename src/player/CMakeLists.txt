@@ -2,12 +2,8 @@ add_library(
     mpvplayer
     mpvcontroller.cpp
     mpvcontroller.h
-    mpvframebackend.cpp
-    mpvframebackend.h
     mpvplayer.cpp
     mpvplayer.h
-    mpvrenderer.cpp
-    mpvrenderer.h
     mpvstate.cpp
     mpvstate.h
     mpvsubtitle.cpp
@@ -17,6 +13,27 @@ add_library(
     mpvtrack.cpp
     mpvtrack.h
 )
+if(WIN32)
+    target_sources(
+        mpvplayer
+        PRIVATE mpvd3d11renderer.cpp
+        PRIVATE mpvd3d11renderer.h
+    )
+    target_link_libraries(mpvplayer PRIVATE Qt6::GuiPrivate)
+else()
+    target_sources(
+        mpvplayer
+        PRIVATE mpvopenglframebackend.cpp
+        PRIVATE mpvopenglframebackend.h
+    )
+    if(NOT APPLE)
+        target_sources(
+            mpvplayer
+            PRIVATE mpvopenglrenderer.cpp
+            PRIVATE mpvopenglrenderer.h
+        )
+    endif()
+endif()
 if(APPLE)
     target_sources(
         mpvplayer

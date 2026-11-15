@@ -9,61 +9,9 @@ ApplicationWindow {
 
     width: 1280
     height: 720
-    visibility: Window.Windowed
+    visibility: player.state.fullscreen ? Window.FullScreen : Window.Windowed
     color: "black"
     title: player.state.title ? qsTr("%1 - Memento").arg(player.state.title) : qsTr("Memento")
-
-    /* Handle fullscreen on non-Windows platforms */
-    Binding {
-        root.visibility: player.state.fullscreen ? Window.FullScreen : Window.Windowed
-        when: !Features.isWindows
-    }
-
-    /* Handle borderless fullscreen on Windows */
-    property int savedVisibility: 0
-    property rect savedGeometry: Qt.rect(0, 0, 0, 0)
-    Connections {
-        target: player.state
-        function onFullscreenChanged() {
-            if (!Features.isWindows)
-            {
-                return;
-            }
-
-            if (player.state.fullscreen)
-            {
-                root.savedVisibility = root.visibility;
-                root.showNormal();
-                root.savedGeometry = Qt.rect(root.x, root.y, root.width, root.height);
-
-                /* It is important to set 1 dimension greater than the screen size.
-                 * Windows has issue with OpenGL where fullscreen OpenGL whether
-                 * windowed or true causes graphical glitches, hitches, etc.
-                 * By adding just 1 pixel to a single dimension such that the window
-                 * is greater than the screen size, this no longer happens. */
-                root.flags = Qt.Window | Qt.FramelessWindowHint;
-                root.x = 0;
-                root.y = 0;
-                root.width = Screen.width;
-                root.height = Screen.height + 1;
-                mainSplitView.anchors.bottomMargin = 1;
-            }
-            else
-            {
-                root.flags = Qt.Window;
-                root.requestUpdate();
-
-                Qt.callLater(function() {
-                    mainSplitView.anchors.bottomMargin = 0;
-                    root.x = root.savedGeometry.x;
-                    root.y = root.savedGeometry.y;
-                    root.width = root.savedGeometry.width;
-                    root.height = root.savedGeometry.height;
-                    root.visibility = root.savedVisibility;
-                });
-            }
-        }
-    }
 
     /* This is needed to return focus to the player after a dialog */
     onActiveFocusItemChanged: {
@@ -86,7 +34,7 @@ ApplicationWindow {
      */
     function updateWindowSize(requestedWidth, requestedHeight) {
         /* Don't trigger in fullscreen or maximized */
-        if (root.visibility !== Window.Windowed || player.state.fullscreen)
+        if (root.visibility !== Window.Windowed)
         {
             return;
         }
