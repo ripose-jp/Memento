@@ -20,412 +20,374 @@
 
 #include "player/mpvmetalrenderer.h"
 
-#ifdef Q_OS_MACOS
-
 #define GL_SILENCE_DEPRECATION
 
-#include <condition_variable>
-#include <mutex>
-#include <thread>
+#include <dlfcn.h>
+#include <utility>
 #include <vector>
 
-#include <QMetaObject>
-#include <QOffscreenSurface>
-#include <QOpenGLContext>
-#include <QQuickWindow>
-#include <QSGRendererInterface>
-#include <QSGTexture>
-#include <QSurfaceFormat>
-#include <QtQuick/qsgtexture_platform.h>
+#include <QDebug>
+#include <QFile>
+#include <QThread>
+#include <rhi/qrhi_platform.h>
+#include <rhi/qrhi.h>
+#include <rhi/qshader.h>
 
 #import <CoreVideo/CVPixelBuffer.h>
 #import <IOSurface/IOSurface.h>
 #import <Metal/Metal.h>
 #import <OpenGL/CGLIOSurface.h>
+#import <OpenGL/gl3.h>
 #import <OpenGL/OpenGL.h>
 
 #include "player/mpvopenglframebackend.h"
-#include "player/mpvplayer.h"
-
-/* The maximum number of frames to buffer */
-static constexpr int FRAME_SLOT_COUNT{3};
 
 /**
- * @brief The PiPL implementation of the mpv-Metal renderer.
+ * @brief Makes a CGL context current and restores the caller's context.
+ */
+class CglContextGuard final
+{
+public:
+    /**
+     * @brief Selects the supplied context on this thread.
+     *
+     * @param context The context to make current.
+     */
+    explicit CglContextGuard(CGLContextObj context) :
+        m_previous{CGLGetCurrentContext()},
+        m_valid{CGLSetCurrentContext(context) == kCGLNoError}
+    {
+
+    }
+
+    /**
+     * @brief Restores the context that was current before construction.
+     */
+    ~CglContextGuard()
+    {
+        CGLSetCurrentContext(m_previous);
+    }
+
+    /**
+     * @brief Reports whether selecting the requested context succeeded.
+     *
+     * @return True if the requested context is current.
+     */
+    [[nodiscard]]
+    bool isValid() const noexcept
+    {
+        return m_valid;
+    }
+
+private:
+    /* The caller's context, which may be null with Qt's Metal backend. */
+    CGLContextObj m_previous;
+
+    /* Whether the requested context was successfully made current. */
+    bool m_valid;
+};
+
+/**
+ * @brief Owns the CGL-to-Metal bridge and its RHI presentation resources.
  */
 class MpvMetalRenderer::Impl final
 {
 public:
     /**
-     * @brief Creates a worker-owned OpenGL producer for a player.
+     * @brief Connects backend notifications without creating GL resources.
      *
-     * @param player The player rendered by this backend.
-     * @param backend The OpenGL frame backend containing the mpv OpenGL
-     * context.
+     * @param renderer The renderer forwarding notifications to the GUI.
+     * @param mpv The core to render.
      */
-    explicit Impl(MpvPlayer *player, MpvOpenGlFrameBackend *backend);
+    Impl(MpvMetalRenderer *renderer, std::shared_ptr<mpv_handle> mpv);
 
     /**
-     * @brief Stops the worker and releases all renderer resources.
+     * @brief Completes GPU work and releases resources on the render thread.
      */
     ~Impl();
 
     /**
-     * @brief Requests a new worker-side backing size.
+     * @brief Initializes resources for Qt's current Metal device and target.
      *
-     * @param pixelSize The requested frame size in physical pixels.
+     * @param rhi The RHI owning the current frame.
+     * @param colorTexture Qt's single-sample output texture.
      */
-    void setPixelSize(const QSize &pixelSize);
+    void initialize(QRhi *rhi, QRhiTexture *colorTexture);
 
     /**
-     * @brief Requests a new frame from the worker.
-     */
-    void requestRender();
-
-    /**
-     * @brief Gets a Metal-backed Qt texture for the latest completed frame.
+     * @brief Renders mpv into the current slot and samples it in a RHI pass.
      *
-     * @param window The window that owns the Qt texture wrapper.
-     * @return The latest completed frame texture, or nullptr if none exists.
+     * @param cb The command buffer receiving the presentation pass.
+     * @param target Qt's output render target.
      */
-    [[nodiscard]]
-    QSGTexture *texture(QQuickWindow *window);
+    void render(QRhiCommandBuffer *cb, QRhiRenderTarget *target);
 
 private:
     /**
-     * @brief One IOSurface-backed render target owned by the GL worker.
+     * @brief Shared storage and API wrappers for one in-flight frame slot.
      */
     struct FrameSlot
     {
-        /* Shared storage visible from both OpenGL and Metal. */
+        /* Shared BGRA storage for GL rendering and Metal sampling. */
         IOSurfaceRef surface{nullptr};
 
-        /* OpenGL texture view of surface. */
+        /* OpenGL rectangle texture attached to the shared storage. */
         GLuint texture{0};
 
-        /* OpenGL framebuffer rendered by mpv. */
+        /* OpenGL framebuffer used by mpv. */
         GLuint framebuffer{0};
 
-        /* Monotonic frame number written into this slot. */
-        quint64 serial{0};
-    };
-
-    /**
-     * @brief Metal-side cache for a published IOSurface.
-     */
-    struct MetalTexture
-    {
-        /* IOSurface used to decide whether the cache entry is still current. */
-        IOSurfaceRef surface{nullptr};
-
-        /* Metal view of surface used by Qt Quick. */
+        /* Owned Metal texture view; QRhi does not own imported textures. */
         id<MTLTexture> metalTexture{nil};
 
-        /* Qt scene graph wrapper around metalTexture. */
-        QSGTexture *qsgTexture{nullptr};
+        /* RHI view of metalTexture, used only by this frame slot. */
+        std::unique_ptr<QRhiTexture> rhiTexture;
+
+        /* Texture and sampler bindings for this slot. */
+        std::unique_ptr<QRhiShaderResourceBindings> bindings;
+
+        /* Allocated size in physical pixels. */
+        QSize size;
     };
 
     /**
-     * @brief Runs the OpenGL producer loop.
-     */
-    void run();
-
-    /**
-     * @brief Creates the worker-owned OpenGL context and mpv render context.
-     */
-    void createContext();
-
-    /**
-     * @brief Recreates the active frame generation for a size change.
+     * @brief Creates the private OpenGL 4.1 core context.
      *
-     * Old generations are retained until shutdown so Metal never observes an
-     * IOSurface being destroyed while GPU reads may still be in flight.
-     *
-     * @param size The new frame size in physical pixels.
-     */
-    void recreateFrames(const QSize &size);
-
-    /**
-     * @brief Creates one IOSurface-backed OpenGL target.
-     *
-     * @param size The target size in physical pixels.
-     * @return A newly created frame slot.
+     * @return True on success, or false if CGL initialization failed.
      */
     [[nodiscard]]
-    FrameSlot createFrame(const QSize &size);
+    bool createContext();
 
     /**
-     * @brief Renders one frame into the next available active frame slot.
-     */
-    void renderFrame();
-
-    /**
-     * @brief Releases a worker-owned OpenGL frame slot.
+     * @brief Allocates a bridge slot after its previous GPU use has finished.
      *
-     * @param frame The frame to release.
+     * @param frame The slot to allocate or resize.
+     * @param size The required physical pixel size.
+     * @return True if every GL, Metal, and RHI resource was created.
+     */
+    [[nodiscard]]
+    bool createFrame(FrameSlot &frame, const QSize &size);
+
+    /**
+     * @brief Creates the presentation pipeline for the current target.
+     *
+     * @param target The render target defining the compatible render pass.
+     * @return True if the pipeline was created successfully.
+     */
+    [[nodiscard]]
+    bool createPipeline(QRhiRenderTarget *target);
+
+    /**
+     * @brief Releases a completed slot with the GL context current.
+     *
+     * @param frame The slot whose resources are released.
      */
     void destroyFrame(FrameSlot &frame);
 
     /**
-     * @brief Releases all worker-owned OpenGL resources.
+     * @brief Stops callbacks and releases all resources before the core.
+     * Safe to call repeatedly and only outside a render pass.
      */
-    void destroyWorkerResources();
+    void releaseResources();
 
-    /* The player rendered by this backend. */
-    MpvPlayer *m_player{nullptr};
+    /**
+     * @brief Resolves an OpenGL symbol exported by the linked framework.
+     *
+     * @param ctx Unused callback context.
+     * @param name The GL function name.
+     * @return The function address, or nullptr if unavailable.
+     */
+    static void *getProcAddress(void *ctx, const char *name);
 
-    /* Shared mpv framebuffer submission logic. */
-    MpvOpenGlFrameBackend *m_frameBackend{nullptr};
+    /**
+     * @brief Loads a compiled shader from the application's resources.
+     *
+     * @param path The embedded shader path.
+     * @return The shader, or an invalid shader if loading failed.
+     */
+    static QShader loadShader(const char *path);
 
-    /* Synchronizes requests and frame publication between threads. */
-    std::mutex m_mutex;
+    /* Retains the mpv core until all native rendering resources are gone. */
+    MpvOpenGlFrameBackend m_backend;
 
-    /* Wakes the worker for resize, render, or shutdown requests. */
-    std::condition_variable m_condition;
+    /* Private CGL context used exclusively on Qt's render thread. */
+    CGLContextObj m_context{nullptr};
 
-    /* Dedicated worker that owns all OpenGL objects. */
-    std::thread m_thread;
+    /* Borrowed RHI, kept for GPU completion during native-resource cleanup. */
+    QRhi *m_rhi{nullptr};
 
-    /* True once the worker should exit. */
-    bool m_stopping{false};
+    /* Borrowed Metal device used to construct views of IOSurfaces. */
+    id<MTLDevice> m_device{nil};
 
-    /* True when mpv has requested a new rendered frame. */
-    bool m_renderRequested{true};
-
-    /* Most recently requested frame size in physical pixels. */
-    QSize m_requestedSize;
-
-    /* Size of the currently active worker frame generation. */
-    QSize m_activeSize;
-
-    /* Active render targets used as a small producer ring. */
+    /* Bounded bridge storage indexed by QRhi's current frame slot. */
     std::vector<FrameSlot> m_frames;
 
-    /* Old resize generations retained until worker shutdown. */
-    std::vector<std::vector<FrameSlot>> m_retiredFrames;
+    /* Shared linear sampler for the presentation pass. */
+    std::unique_ptr<QRhiSampler> m_sampler;
 
-    /* Index of the most recently completed active frame slot. */
-    int m_latestFrame{-1};
+    /* Pipeline drawing a full-screen triangle without a vertex buffer. */
+    std::unique_ptr<QRhiGraphicsPipeline> m_pipeline;
 
-    /* Index of the frame slot rendered most recently by the worker. */
-    int m_writeFrame{-1};
+    /* Stable binding layout independent of resized frame-slot textures. */
+    std::unique_ptr<QRhiShaderResourceBindings> m_layout;
 
-    /* Monotonic serial assigned to completed frames. */
-    quint64 m_nextSerial{1};
+    /* Owned compatible pass descriptor independent of Qt's resized target. */
+    std::unique_ptr<QRhiRenderPassDescriptor> m_renderPass;
 
-    /* Worker-owned OpenGL context. */
-    std::unique_ptr<QOpenGLContext> m_context;
-
-    /* Surface used to make m_context current on the worker. */
-    std::unique_ptr<QOffscreenSurface> m_surface;
-
-    /* Render-thread-owned wrappers for published IOSurfaces. */
-    std::vector<MetalTexture> m_metalTextures;
+    /* Stops retries and repeated diagnostics after a rendering failure. */
+    bool m_failed{false};
 };
 
-MpvMetalRenderer::Impl::Impl(
-    MpvPlayer *player, MpvOpenGlFrameBackend *backend) :
-    m_player{player},
-    m_frameBackend{backend}
+/* Begin Constructor/Destructor */
+
+MpvMetalRenderer::MpvMetalRenderer(std::shared_ptr<mpv_handle> mpv) :
+    m_impl{std::make_unique<Impl>(this, std::move(mpv))}
 {
-    QSurfaceFormat format;
-    format.setVersion(4, 1);
-    format.setProfile(QSurfaceFormat::CoreProfile);
+    Q_INIT_RESOURCE(mpv_shaders);
+}
 
-    /*
-     * QOffscreenSurface native creation and destruction belong on the GUI
-     * thread, although the surface may later be used by makeCurrent() on the
-     * worker thread.
-     */
-    m_surface = std::make_unique<QOffscreenSurface>();
-    m_surface->setFormat(format);
-    m_surface->create();
+MpvMetalRenderer::~MpvMetalRenderer() = default;
 
-    m_thread = std::thread{&Impl::run, this};
+MpvMetalRenderer::Impl::Impl(
+    MpvMetalRenderer *renderer, std::shared_ptr<mpv_handle> mpv) :
+    m_backend{std::move(mpv)}
+{
+    QObject::connect(
+        &m_backend, &MpvOpenGlFrameBackend::contextCreated,
+        renderer, &MpvMetalRenderer::contextCreated, Qt::DirectConnection
+    );
+    QObject::connect(
+        &m_backend, &MpvOpenGlFrameBackend::redraw,
+        renderer, &MpvMetalRenderer::redraw, Qt::DirectConnection
+    );
 }
 
 MpvMetalRenderer::Impl::~Impl()
 {
-    {
-        std::scoped_lock lock{m_mutex};
-        m_stopping = true;
-    }
-    m_condition.notify_one();
-    m_thread.join();
-
-    for (MetalTexture &texture : m_metalTextures)
-    {
-        delete texture.qsgTexture;
-        texture.qsgTexture = nullptr;
-        texture.metalTexture = nil;
-        texture.surface = nullptr;
-    }
-    m_surface.reset();
+    releaseResources();
 }
 
-void MpvMetalRenderer::Impl::setPixelSize(const QSize &pixelSize)
+/* End Constructor/Destructor */
+/* Begin Initializers */
+
+void MpvMetalRenderer::initialize([[maybe_unused]] QRhiCommandBuffer *cb)
 {
-    {
-        std::scoped_lock lock{m_mutex};
-        if (m_requestedSize == pixelSize)
-        {
-            return;
-        }
-        m_requestedSize = pixelSize;
-        m_renderRequested = true;
-    }
-    m_condition.notify_one();
+    m_impl->initialize(rhi(), colorTexture());
 }
 
-void MpvMetalRenderer::Impl::requestRender()
+void MpvMetalRenderer::Impl::initialize(QRhi *rhi, QRhiTexture *colorTexture)
 {
+    Q_ASSERT(QThread::currentThread() == m_backend.thread());
+    if (m_rhi != rhi)
     {
-        std::scoped_lock lock{m_mutex};
-        m_renderRequested = true;
+        releaseResources();
+        m_rhi = rhi;
+        m_failed = false;
     }
-    m_condition.notify_one();
-}
-
-QSGTexture *MpvMetalRenderer::Impl::texture(QQuickWindow *window)
-{
-    IOSurfaceRef latestSurface{nullptr};
-    QSize latestSize;
+    if (m_failed)
     {
-        std::scoped_lock lock{m_mutex};
-        if (m_latestFrame < 0)
-        {
-            return nullptr;
-        }
-        latestSurface = m_frames[m_latestFrame].surface;
-        latestSize = m_activeSize;
+        return;
     }
-
-    for (const MetalTexture &texture : m_metalTextures)
+    if (rhi->backend() != QRhi::Metal ||
+        !colorTexture ||
+        colorTexture->format() != QRhiTexture::RGBA8)
     {
-        if (texture.surface == latestSurface)
-        {
-            return texture.qsgTexture;
-        }
+        qCritical(
+            "MpvMetalRenderer: Metal and a single-sample RGBA8 target "
+            "are required."
+        );
+        m_failed = true;
+        return;
+    }
+    if (m_context)
+    {
+        return;
     }
 
-    MetalTexture texture;
-    texture.surface = latestSurface;
-
-    auto *rendererInterface = window->rendererInterface();
-    id<MTLDevice> device = (__bridge id<MTLDevice>)rendererInterface->getResource(
-        window, QSGRendererInterface::DeviceResource
+    const auto *handles = static_cast<const QRhiMetalNativeHandles *>(
+        rhi->nativeHandles()
     );
-    MTLTextureDescriptor *descriptor = [
-        MTLTextureDescriptor
-            texture2DDescriptorWithPixelFormat : MTLPixelFormatBGRA8Unorm
-            width : latestSize.width()
-            height : latestSize.height()
-            mipmapped : NO
-    ];
-    descriptor.usage = MTLTextureUsageShaderRead;
-    texture.metalTexture = [
-        device
-            newTextureWithDescriptor : descriptor
-            iosurface : latestSurface
-            plane : 0
-    ];
-    texture.qsgTexture = QNativeInterface::QSGMetalTexture::fromNative(
-        texture.metalTexture, window, latestSize
-    );
-    m_metalTextures.emplace_back(texture);
-    return m_metalTextures.back().qsgTexture;
-}
-
-void MpvMetalRenderer::Impl::run()
-{
-    createContext();
-
-    while (true)
+    m_device = (id<MTLDevice>)handles->dev;
+    if (!m_device || !createContext())
     {
-        QSize requestedSize;
-        bool shouldRender{false};
-        {
-            std::unique_lock lock{m_mutex};
-            m_condition.wait(lock, [this] ()
-            {
-                return m_stopping || m_renderRequested ||
-                    m_requestedSize != m_activeSize;
-            });
-            if (m_stopping)
-            {
-                break;
-            }
-            requestedSize = m_requestedSize;
-            shouldRender = m_renderRequested;
-            m_renderRequested = false;
-        }
-
-        if (!requestedSize.isEmpty() && requestedSize != m_activeSize)
-        {
-            recreateFrames(requestedSize);
-            shouldRender = true;
-        }
-        if (shouldRender && !m_frames.empty())
-        {
-            renderFrame();
-        }
+        qCritical("MpvMetalRenderer: Cannot create the native GL bridge.");
+        m_failed = true;
+        return;
     }
 
-    destroyWorkerResources();
-}
-
-void MpvMetalRenderer::Impl::createContext()
-{
-    QSurfaceFormat format;
-    format.setVersion(4, 1);
-    format.setProfile(QSurfaceFormat::CoreProfile);
-
-    m_context = std::make_unique<QOpenGLContext>();
-    m_context->setFormat(format);
-    m_context->create();
-
-    m_context->makeCurrent(m_surface.get());
-    m_frameBackend->createRenderContext();
-}
-
-void MpvMetalRenderer::Impl::recreateFrames(const QSize &size)
-{
-    std::vector<FrameSlot> newFrames;
-    newFrames.reserve(FRAME_SLOT_COUNT);
-    for (int i = 0; i < FRAME_SLOT_COUNT; ++i)
+    CglContextGuard guard{m_context};
+    if (!guard.isValid())
     {
-        newFrames.emplace_back(createFrame(size));
+        qCritical("MpvMetalRenderer: Cannot make the GL context current.");
+        m_failed = true;
+        return;
+    }
+    Q_ASSERT(CGLGetCurrentContext() == m_context);
+    mpv_opengl_init_params initParams{};
+    initParams.get_proc_address = getProcAddress;
+    if (!m_backend.createRenderContext(initParams))
+    {
+        m_failed = true;
+        return;
     }
 
-    std::scoped_lock lock{m_mutex};
-    if (!m_frames.empty())
+    m_frames.resize(rhi->resourceLimit(QRhi::FramesInFlight));
+    m_sampler.reset(rhi->newSampler(
+        QRhiSampler::Linear,
+        QRhiSampler::Linear,
+        QRhiSampler::None,
+        QRhiSampler::ClampToEdge,
+        QRhiSampler::ClampToEdge
+    ));
+    if (!m_sampler->create())
     {
-        m_retiredFrames.emplace_back(std::move(m_frames));
+        qCritical("MpvMetalRenderer: Cannot create the presentation sampler.");
+        m_failed = true;
     }
-    m_frames = std::move(newFrames);
-    m_activeSize = size;
-    m_latestFrame = -1;
-    m_writeFrame = -1;
 }
 
-MpvMetalRenderer::Impl::FrameSlot
-MpvMetalRenderer::Impl::createFrame(const QSize &size)
+bool MpvMetalRenderer::Impl::createContext()
 {
-    FrameSlot frame;
+    const CGLPixelFormatAttribute attributes[]{
+        kCGLPFAOpenGLProfile,
+        static_cast<CGLPixelFormatAttribute>(kCGLOGLPVersion_GL4_Core),
+        kCGLPFAAccelerated,
+        kCGLPFAAllowOfflineRenderers,
+        static_cast<CGLPixelFormatAttribute>(0)
+    };
+    CGLPixelFormatObj format{nullptr};
+    GLint count{0};
+    const CGLError error = CGLChoosePixelFormat(attributes, &format, &count);
+    if (error != kCGLNoError || !format)
+    {
+        return false;
+    }
+    const CGLError contextError = CGLCreateContext(format, nullptr, &m_context);
+    CGLDestroyPixelFormat(format);
+    return contextError == kCGLNoError && m_context;
+}
+
+bool MpvMetalRenderer::Impl::createFrame(FrameSlot &frame, const QSize &size)
+{
+    destroyFrame(frame);
     NSDictionary *properties = @{
         (id)kIOSurfaceWidth : @(size.width()),
         (id)kIOSurfaceHeight : @(size.height()),
         (id)kIOSurfaceBytesPerElement : @4,
-        (id)kIOSurfacePixelFormat : @(kCVPixelFormatType_32BGRA),
+        (id)kIOSurfacePixelFormat : @(kCVPixelFormatType_32BGRA)
     };
     frame.surface = IOSurfaceCreate((CFDictionaryRef)properties);
+    if (!frame.surface)
+    {
+        return false;
+    }
 
     glGenTextures(1, &frame.texture);
     glBindTexture(GL_TEXTURE_RECTANGLE, frame.texture);
     glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    CGLTexImageIOSurface2D(
-        CGLGetCurrentContext(),
+    const CGLError error = CGLTexImageIOSurface2D(
+        m_context,
         GL_TEXTURE_RECTANGLE,
         GL_RGBA8,
         size.width(),
@@ -435,7 +397,10 @@ MpvMetalRenderer::Impl::createFrame(const QSize &size)
         frame.surface,
         0
     );
-
+    if (error != kCGLNoError)
+    {
+        return false;
+    }
     glGenFramebuffers(1, &frame.framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, frame.framebuffer);
     glFramebufferTexture2D(
@@ -445,109 +410,233 @@ MpvMetalRenderer::Impl::createFrame(const QSize &size)
         frame.texture,
         0
     );
-    return frame;
-}
-
-void MpvMetalRenderer::Impl::renderFrame()
-{
-    int frameIndex;
-    QSize activeSize;
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
-        std::scoped_lock lock{m_mutex};
-        frameIndex = (m_writeFrame + 1) % static_cast<int>(m_frames.size());
-        m_writeFrame = frameIndex;
-        activeSize = m_activeSize;
+        return false;
     }
-
-    FrameSlot &frame = m_frames[frameIndex];
-    glBindFramebuffer(GL_FRAMEBUFFER, frame.framebuffer);
-    m_frameBackend->renderToFramebuffer(frame.framebuffer, activeSize);
-    glFlush();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_RECTANGLE, 0);
 
+    MTLTextureDescriptor *descriptor = [
+        MTLTextureDescriptor
+            texture2DDescriptorWithPixelFormat : MTLPixelFormatBGRA8Unorm
+            width : size.width()
+            height : size.height()
+            mipmapped : NO
+    ];
+    descriptor.usage = MTLTextureUsageShaderRead;
+    frame.metalTexture = [
+        m_device newTextureWithDescriptor : descriptor
+            iosurface : frame.surface
+            plane : 0
+    ];
+    if (!frame.metalTexture)
     {
-        std::scoped_lock lock{m_mutex};
-        frame.serial = m_nextSerial++;
-        m_latestFrame = frameIndex;
+        return false;
     }
 
-    /*
-     * The scene graph update that requested this frame may already have run
-     * before the worker finished rendering. Schedule a follow-up pass so
-     * paused video and item-only resizes still present the newly published
-     * frame.
-     */
-    QMetaObject::invokeMethod(
-        m_player,
-        [player = m_player] () { player->update(); },
-        Qt::QueuedConnection
-    );
+    frame.rhiTexture.reset(m_rhi->newTexture(QRhiTexture::BGRA8, size));
+    if (!frame.rhiTexture->createFrom({quint64(frame.metalTexture), 0}))
+    {
+        return false;
+    }
+    frame.bindings.reset(m_rhi->newShaderResourceBindings());
+    frame.bindings->setBindings({
+        QRhiShaderResourceBinding::sampledTexture(
+            0,
+            QRhiShaderResourceBinding::FragmentStage,
+            frame.rhiTexture.get(),
+            m_sampler.get()
+        )
+    });
+    if (!frame.bindings->create())
+    {
+        return false;
+    }
+    frame.size = size;
+    return true;
 }
+
+bool MpvMetalRenderer::Impl::createPipeline(QRhiRenderTarget *target)
+{
+    const QShader vertex = loadShader(":/player/mpv.vert.qsb");
+    const QShader fragment = loadShader(":/player/mpv.frag.qsb");
+    if (!vertex.isValid() || !fragment.isValid())
+    {
+        return false;
+    }
+    m_layout.reset(m_rhi->newShaderResourceBindings());
+    m_layout->setBindings({
+        QRhiShaderResourceBinding::sampledTexture(
+            0, QRhiShaderResourceBinding::FragmentStage, nullptr, nullptr
+        )
+    });
+    if (!m_layout->create())
+    {
+        return false;
+    }
+    m_renderPass.reset(
+        target->renderPassDescriptor()->newCompatibleRenderPassDescriptor()
+    );
+    m_pipeline.reset(m_rhi->newGraphicsPipeline());
+    m_pipeline->setShaderStages({
+        {QRhiShaderStage::Vertex, vertex},
+        {QRhiShaderStage::Fragment, fragment}
+    });
+    m_pipeline->setShaderResourceBindings(m_layout.get());
+    m_pipeline->setRenderPassDescriptor(m_renderPass.get());
+    return m_pipeline->create();
+}
+
+/* End Initializers */
+/* Begin Rendering */
+
+void MpvMetalRenderer::synchronize([[maybe_unused]] QQuickRhiItem *item)
+{
+
+}
+
+void MpvMetalRenderer::render(QRhiCommandBuffer *cb)
+{
+    m_impl->render(cb, renderTarget());
+}
+
+void MpvMetalRenderer::Impl::render(
+    QRhiCommandBuffer *cb, QRhiRenderTarget *target)
+{
+    Q_ASSERT(QThread::currentThread() == m_backend.thread());
+    FrameSlot *frame{nullptr};
+    if (!m_failed)
+    {
+        CglContextGuard guard{m_context};
+        if (!guard.isValid())
+        {
+            qCritical("MpvMetalRenderer: Cannot make the GL context current.");
+            m_failed = true;
+        }
+        else
+        {
+            Q_ASSERT(CGLGetCurrentContext() == m_context);
+            /* Qt has completed the previous Metal use of this frame slot. */
+            frame = &m_frames[m_rhi->currentFrameSlot()];
+            if (frame->size != target->pixelSize() &&
+                !createFrame(*frame, target->pixelSize()))
+            {
+                qCritical("MpvMetalRenderer: Cannot create a bridge texture.");
+                m_failed = true;
+            }
+            if (!m_failed)
+            {
+                m_failed = !m_backend.renderToFramebuffer(
+                    frame->framebuffer, frame->size, false
+                );
+            }
+            /* IOSurface sharing alone does not synchronize the two APIs. */
+            glFinish();
+        }
+        if (!m_failed && !m_pipeline && !createPipeline(target))
+        {
+            qCritical("MpvMetalRenderer: Cannot create the presentation pass.");
+            m_failed = true;
+        }
+    }
+
+    cb->beginPass(target, Qt::black, {1.0f, 0});
+    if (!m_failed)
+    {
+        cb->setGraphicsPipeline(m_pipeline.get());
+        cb->setShaderResources(frame->bindings.get());
+        cb->setViewport(
+            {0, 0, float(frame->size.width()), float(frame->size.height())}
+        );
+        cb->draw(3);
+    }
+    cb->endPass();
+}
+
+/* End Rendering */
+/* Begin Cleanup */
 
 void MpvMetalRenderer::Impl::destroyFrame(FrameSlot &frame)
 {
     if (frame.framebuffer)
     {
         glDeleteFramebuffers(1, &frame.framebuffer);
-        frame.framebuffer = 0;
     }
     if (frame.texture)
     {
         glDeleteTextures(1, &frame.texture);
-        frame.texture = 0;
     }
+    frame.bindings.reset();
+    frame.rhiTexture.reset();
+    [frame.metalTexture release];
     if (frame.surface)
     {
         CFRelease(frame.surface);
-        frame.surface = nullptr;
     }
+    frame = FrameSlot{};
 }
 
-void MpvMetalRenderer::Impl::destroyWorkerResources()
+void MpvMetalRenderer::Impl::releaseResources()
 {
-    m_context->makeCurrent(m_surface.get());
-    m_frameBackend->destroyRenderContext();
-
-    for (FrameSlot &frame : m_frames)
+    Q_ASSERT(QThread::currentThread() == m_backend.thread());
+    m_backend.stopUpdates();
+    if (m_rhi)
     {
-        destroyFrame(frame);
+        /* Imported native textures must outlive all in-flight Metal reads. */
+        m_rhi->finish();
     }
-    for (auto &generation : m_retiredFrames)
+    if (m_context)
     {
-        for (FrameSlot &frame : generation)
         {
-            destroyFrame(frame);
+            CglContextGuard guard{m_context};
+            if (!guard.isValid())
+            {
+                qFatal(
+                    "MpvMetalRenderer: Cannot make cleanup context current."
+                );
+            }
+            Q_ASSERT(CGLGetCurrentContext() == m_context);
+            m_backend.destroyRenderContext();
+            glFinish();
+            m_pipeline.reset();
+            m_layout.reset();
+            m_renderPass.reset();
+            for (FrameSlot &frame : m_frames)
+            {
+                destroyFrame(frame);
+            }
+            m_frames.clear();
+            m_sampler.reset();
         }
+        if (CGLGetCurrentContext() == m_context)
+        {
+            CGLSetCurrentContext(nullptr);
+        }
+        CGLDestroyContext(m_context);
+        m_context = nullptr;
     }
-    m_frames.clear();
-    m_retiredFrames.clear();
-
-    m_context->doneCurrent();
-    m_context.reset();
+    m_device = nil;
+    m_rhi = nullptr;
 }
 
-MpvMetalRenderer::MpvMetalRenderer(
-    MpvPlayer *player, MpvOpenGlFrameBackend *backend) :
-    m_impl{std::make_unique<Impl>(player, backend)}
+/* End Cleanup */
+/* Begin Native Resources */
+
+void *MpvMetalRenderer::Impl::getProcAddress(
+    [[maybe_unused]] void *ctx, const char *name)
 {
-
+    return dlsym(RTLD_DEFAULT, name);
 }
 
-MpvMetalRenderer::~MpvMetalRenderer() = default;
-
-void MpvMetalRenderer::setPixelSize(const QSize &pixelSize)
+QShader MpvMetalRenderer::Impl::loadShader(const char *path)
 {
-    m_impl->setPixelSize(pixelSize);
+    QFile file{QString::fromUtf8(path)};
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        return {};
+    }
+    return QShader::fromSerialized(file.readAll());
 }
 
-void MpvMetalRenderer::requestRender()
-{
-    m_impl->requestRender();
-}
-
-QSGTexture *MpvMetalRenderer::texture(QQuickWindow *window)
-{
-    return m_impl->texture(window);
-}
-
-#endif // Q_OS_MACOS
+/* End Native Resources */

@@ -20,49 +20,99 @@
 
 #pragma once
 
-#include <QQuickFramebufferObject>
+#include <QObject>
+#include <QQuickRhiItem>
+
+#include <memory>
 
 #include "player/mpvopenglframebackend.h"
 
+class QOpenGLContext;
+
 /**
- * @brief Renders mpv into a Qt Quick OpenGL framebuffer.
+ * @brief Renders mpv into Qt's OpenGL RHI target on the render thread.
  */
-class MpvOpenGlRenderer : public QQuickFramebufferObject::Renderer
+class MpvOpenGlRenderer final : public QObject, public QQuickRhiItemRenderer
 {
+    Q_OBJECT
+
 public:
     /**
-     * @brief Constructs a new mpv renderer object.
-     * Should only be called from MpvPlayer.
+     * @brief Creates a renderer sharing ownership of the player's mpv core.
      *
-     * @param player The MpvPlayer that created this MpvOpenGlRenderer.
-     * @param backend The OpenGL framebackend for this player.
+     * @param mpv The core to render.
      */
-    MpvOpenGlRenderer(MpvPlayer *player, MpvOpenGlFrameBackend *backend);
+    explicit MpvOpenGlRenderer(std::shared_ptr<mpv_handle> mpv);
 
     /**
-     * @brief Releases the OpenGL renderer's framebuffer wrapper.
+     * @brief Frees mpv's render context with the Qt GL context current.
      */
-    ~MpvOpenGlRenderer() override = default;
+    ~MpvOpenGlRenderer() override;
+
+signals:
+    /**
+     * @brief Emitted when the render context is ready for playback.
+     */
+    void contextCreated();
 
     /**
-     * @brief Creates a new framebuffer object.
-     * Called for the first frame and whenever the framebuffer size changes.
+     * @brief Emitted from mpv's callback to queue a GUI frame request.
+     */
+    void redraw();
+
+protected:
+    /**
+     * @brief Validates Qt's target and detects graphics context changes.
      *
-     * @param size The size of the requested framebuffer.
-     * @return A QOpenGLFramebufferObject of size.
+     * @param cb The current command buffer, unused until render().
      */
-    QOpenGLFramebufferObject *createFramebufferObject(
-        const QSize &size) override;
+    void initialize(QRhiCommandBuffer *cb) override;
 
     /**
-     * @brief Renders the data from mpv to the framebuffer.
+     * @brief Implements the synchronization hook; no item data is needed.
+     *
+     * @param item The player item, unused by the renderer.
      */
-    void render() override;
+    void synchronize(QQuickRhiItem *item) override;
+
+    /**
+     * @brief Renders into Qt's framebuffer inside external-command boundaries.
+     *
+     * @param cb The command buffer used to isolate mpv's GL state.
+     */
+    void render(QRhiCommandBuffer *cb) override;
 
 private:
-    /* The player that created this framebuffer */
-    MpvPlayer *m_player{nullptr};
+    /**
+     * @brief Releases mpv's render context before Qt destroys its GL context.
+     */
+    void releaseResources();
 
-    /* Shared mpv render core */
-    MpvOpenGlFrameBackend *m_frameBackend{nullptr};
+    /**
+     * @brief Resolves a function in the current Qt OpenGL context.
+     *
+     * @param ctx Unused callback context.
+     * @param name The GL function name.
+     * @return The function address, or nullptr if unavailable.
+     */
+    static void *getProcAddress(void *ctx, const char *name);
+
+    /**
+     * @brief Gets the native display needed by Linux hardware decoders.
+     *
+     * @return A display parameter, or the terminator if none is available.
+     */
+    static mpv_render_param nativeDisplay();
+
+    /* Shared GL submission and mpv render-context ownership. */
+    MpvOpenGlFrameBackend m_backend;
+
+    /* Borrowed RHI used to make the originating GL context current. */
+    QRhi *m_rhi{nullptr};
+
+    /* Borrowed Qt context used to detect replacement and assert ownership. */
+    QOpenGLContext *m_context{nullptr};
+
+    /* Stops retries and repeated diagnostics after a rendering failure. */
+    bool m_failed{false};
 };

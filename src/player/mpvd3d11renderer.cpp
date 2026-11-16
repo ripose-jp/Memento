@@ -23,7 +23,7 @@
 #include <utility>
 
 #include <QDebug>
-
+#include <QThread>
 #include <rhi/qrhi_platform.h>
 #include <rhi/qrhi.h>
 
@@ -49,6 +49,7 @@ MpvD3D11Renderer::~MpvD3D11Renderer()
 
 void MpvD3D11Renderer::createRenderContext()
 {
+    Q_ASSERT(QThread::currentThread() == thread());
     mpv_d3d11_init_params initParams{m_device};
     mpv_render_param params[]{
         {
@@ -80,6 +81,7 @@ void MpvD3D11Renderer::createRenderContext()
 
 void MpvD3D11Renderer::destroyRenderContext()
 {
+    Q_ASSERT(QThread::currentThread() == thread());
     if (m_renderContext == nullptr)
     {
         return;
@@ -95,6 +97,7 @@ void MpvD3D11Renderer::destroyRenderContext()
 
 void MpvD3D11Renderer::initialize([[maybe_unused]] QRhiCommandBuffer *cb)
 {
+    Q_ASSERT(QThread::currentThread() == thread());
     if (rhi()->backend() != QRhi::D3D11)
     {
         if (!m_failed)
@@ -124,7 +127,10 @@ void MpvD3D11Renderer::synchronize([[maybe_unused]] QQuickRhiItem *item)
 void MpvD3D11Renderer::render(QRhiCommandBuffer *cb)
 {
     cb->beginPass(
-        renderTarget(), Qt::black, {1.0f, 0}, nullptr,
+        renderTarget(),
+        Qt::black,
+        {1.0f, 0},
+        nullptr,
         QRhiCommandBuffer::ExternalContent
     );
 
@@ -134,11 +140,14 @@ void MpvD3D11Renderer::render(QRhiCommandBuffer *cb)
             rhi()->nativeHandles()
         );
         auto *context = static_cast<ID3D11DeviceContext *>(handles->context);
-        if (m_device == nullptr || context == nullptr || !colorTexture())
+        if (m_device == nullptr ||
+            context == nullptr ||
+            !colorTexture() ||
+            colorTexture()->format() != QRhiTexture::RGBA8)
         {
             qCritical(
                 "MpvD3D11Renderer: A D3D11 device and a single-sample "
-                "color texture are required."
+                "RGBA8 color texture are required."
             );
             m_failed = true;
         }

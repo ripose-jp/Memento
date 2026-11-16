@@ -20,10 +20,10 @@
 
 #pragma once
 
-#include <memory>
-
 #include <QObject>
 #include <QQuickRhiItem>
+
+#include <memory>
 
 #include <mpv/render.h>
 

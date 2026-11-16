@@ -22,99 +22,100 @@
 
 #include <QObject>
 
+#include <memory>
+
 #include <QSize>
 
 #include <mpv/render_gl.h>
 
-class MpvPlayer;
-
 /**
- * @brief Shared mpv OpenGL rendering core used by platform presentation
- * backends.
+ * @brief Owns an mpv OpenGL render context independently of its presentation.
  *
- * This class deliberately knows nothing about how the resulting framebuffer is
- * presented. The legacy Qt/OpenGL path and the macOS Metal bridge both provide
- * a framebuffer and let this class submit mpv's frame into it.
+ * The renderer must make its original GL context current before creating,
+ * rendering, or destroying this backend's render context.
  */
-class MpvOpenGlFrameBackend : public QObject
+class MpvOpenGlFrameBackend final : public QObject
 {
     Q_OBJECT
 
 public:
     /**
-     * @brief Creates an OpenGL frame backend for the player.
+     * @brief Shares ownership of the mpv core until rendering is cleaned up.
      *
-     * @param parent The parent of this render backend.
-     * @param player The player to render frames for.
+     * @param mpv The core to render.
      */
-    explicit MpvOpenGlFrameBackend(QObject *parent, MpvPlayer *player);
+    explicit MpvOpenGlFrameBackend(std::shared_ptr<mpv_handle> mpv);
 
     /**
-     * @brief Destroys the render context if it hasn't already been destroyed.
+     * @brief Verifies that the renderer released its context before the core.
      */
-    virtual ~MpvOpenGlFrameBackend();
+    ~MpvOpenGlFrameBackend() override;
 
     /**
-     * @brief The mpv OpenGL render context in use.
+     * @brief Returns the current mpv render context.
      *
-     * @return A pointer to the current render context. Nullptr if
-     * createRenderContext() has not been called yet.
+     * @return The context, or nullptr before creation and after cleanup.
      */
     [[nodiscard]]
     mpv_render_context *renderContext() const noexcept;
 
     /**
-     * @brief Creates the render context.
+     * @brief Creates the render context using the current OpenGL context.
+     *
+     * @param initParams The GL function resolver and its callback context.
+     * @param display Optional native display for hardware decoding.
+     * @return True if the context is ready, or false after logging a failure.
      */
-    void createRenderContext();
+    [[nodiscard]]
+    bool createRenderContext(
+        mpv_opengl_init_params initParams,
+        mpv_render_param display = {MPV_RENDER_PARAM_INVALID, nullptr});
 
     /**
-     * @brief Destroys the mpv render context.
-     *
-     * The OpenGL context that was current when createRenderContext() was called
-     * must be current before this function is called.
+     * @brief Stops frame notifications before renderer cleanup.
+     */
+    void stopUpdates();
+
+    /**
+     * @brief Frees the render context with its original GL context current.
+     * Safe to call repeatedly; must run on the renderer's owning thread.
      */
     void destroyRenderContext();
 
     /**
-     * @brief Renders the mpv object to an OpenGL framebuffer object.
+     * @brief Renders without waiting for mpv's target presentation time.
      *
-     * @param framebuffer The framebuffer object to render to.
-     * @param size The size of the framebuffer in real device pixels.
+     * @param framebuffer The framebuffer to render into.
+     * @param size The framebuffer size in physical pixels.
+     * @param flipY Whether the target uses bottom-up image coordinates.
+     * @return True on success, or false after logging a failure.
      */
-    void renderToFramebuffer(unsigned int framebuffer, const QSize &size);
+    [[nodiscard]]
+    bool renderToFramebuffer(
+        unsigned int framebuffer, const QSize &size, bool flipY);
 
 signals:
     /**
-     * @brief Emitted when the render context is created.
+     * @brief Emitted when the render context is ready for playback.
      */
     void contextCreated();
 
     /**
-     * @brief Emitted when mpv is ready to redraw on the framebuffer.
+     * @brief Emitted from mpv's callback to request another frame.
      */
     void redraw();
 
 private:
     /**
-     * @brief Notifies the GUI thread that mpv needs another OpenGL frame.
+     * @brief Forwards a frame notification without calling rendering APIs.
      *
-     * @param ctx The player to update.
+     * @param ctx The backend whose frame needs updating.
      */
     static void onMpvRedraw(void *ctx);
 
-    /**
-     * @brief Resolves an OpenGL function in the current Qt context.
-     *
-     * @param ctx Unused callback context.
-     * @param name The OpenGL function name.
-     * @return The function address, or nullptr if no context is current.
-     */
-    static void *getProcAddressMpv(void *ctx, const char *name);
+    /* Keeps the core alive until the renderer has released its GL context. */
+    std::shared_ptr<mpv_handle> m_mpv;
 
-    /* Pointer to the mpv player instance */
-    MpvPlayer *m_player{nullptr};
-
-    /* The mpv render context */
-    mpv_render_context *m_mpv_gl{nullptr};
+    /* The render context, used and freed only on the renderer's thread. */
+    mpv_render_context *m_renderContext{nullptr};
 };

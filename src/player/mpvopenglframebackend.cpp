@@ -20,135 +20,131 @@
 
 #include "player/mpvopenglframebackend.h"
 
-#include <QOpenGLContext>
+#include <utility>
 
-#include "player/mpvplayer.h"
+#include <QDebug>
+#include <QThread>
 
 /* Begin Constructor/Destructor */
 
 MpvOpenGlFrameBackend::MpvOpenGlFrameBackend(
-    QObject *parent, MpvPlayer *player) :
-    QObject(parent),
-    m_player{player}
+    std::shared_ptr<mpv_handle> mpv) :
+    m_mpv{std::move(mpv)}
 {
 
 }
 
 MpvOpenGlFrameBackend::~MpvOpenGlFrameBackend()
 {
-    destroyRenderContext();
+    Q_ASSERT(m_renderContext == nullptr);
 }
 
 /* End Constructor/Destructor */
-/* Begin Lifetime Functions */
+/* Begin Render Context */
 
 mpv_render_context *MpvOpenGlFrameBackend::renderContext() const noexcept
 {
-    return m_mpv_gl;
+    return m_renderContext;
 }
 
-void MpvOpenGlFrameBackend::createRenderContext()
+bool MpvOpenGlFrameBackend::createRenderContext(
+    mpv_opengl_init_params initParams, mpv_render_param display)
 {
-    if (m_mpv_gl)
+    Q_ASSERT(QThread::currentThread() == thread());
+    if (m_renderContext)
     {
-        return;
+        return true;
     }
 
-    mpv_opengl_init_params gl_init_params{};
-    gl_init_params.get_proc_address = &MpvOpenGlFrameBackend::getProcAddressMpv;
-    gl_init_params.get_proc_address_ctx = nullptr;
-#if MPV_CLIENT_API_VERSION < MPV_MAKE_VERSION(2, 0)
-    gl_init_params.extra_exts = nullptr;
-#endif
     mpv_render_param params[]{
         {
             MPV_RENDER_PARAM_API_TYPE,
             const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)
         },
-        {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init_params},
-        {MPV_RENDER_PARAM_INVALID, nullptr},
-        {MPV_RENDER_PARAM_INVALID, nullptr},
+        {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &initParams},
+        display,
+        {MPV_RENDER_PARAM_INVALID, nullptr}
     };
-
-#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
-    if (auto x11App = qApp->nativeInterface<QNativeInterface::QX11Application>())
+    const int error = ::mpv_render_context_create(
+        &m_renderContext, m_mpv.get(), params
+    );
+    if (error < 0)
     {
-        params[2].type = MPV_RENDER_PARAM_X11_DISPLAY;
-        params[2].data = x11App->display();
+        qCritical(
+            "MpvOpenGlFrameBackend: Cannot initialize OpenGL: %s",
+            ::mpv_error_string(error)
+        );
+        return false;
     }
-#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
-    else if (auto wlApp = qApp->nativeInterface<QNativeInterface::QWaylandApplication>())
-    {
-        params[2].type = MPV_RENDER_PARAM_WL_DISPLAY;
-        params[2].data = wlApp->display();
-    }
-#endif // QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
-#endif // defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
 
-    if (::mpv_render_context_create(&m_mpv_gl, m_player->handle(), params) < 0)
+    ::mpv_render_context_set_update_callback(
+        m_renderContext, onMpvRedraw, this
+    );
+    emit contextCreated();
+    return true;
+}
+
+void MpvOpenGlFrameBackend::stopUpdates()
+{
+    if (m_renderContext)
     {
-        throw std::runtime_error(
-            "MpvPlayer: Failed to initialize mpv GL context"
+        ::mpv_render_context_set_update_callback(
+            m_renderContext, nullptr, nullptr
         );
     }
-    ::mpv_render_context_set_update_callback(
-        m_mpv_gl, &MpvOpenGlFrameBackend::onMpvRedraw, this
-    );
-
-    emit contextCreated();
 }
 
 void MpvOpenGlFrameBackend::destroyRenderContext()
 {
-    if (m_mpv_gl == nullptr)
+    Q_ASSERT(QThread::currentThread() == thread());
+    if (m_renderContext == nullptr)
     {
         return;
     }
 
-    ::mpv_render_context_set_update_callback(m_mpv_gl, nullptr, nullptr);
-    ::mpv_render_context_free(m_mpv_gl);
-    m_mpv_gl = nullptr;
+    stopUpdates();
+    ::mpv_render_context_free(m_renderContext);
+    m_renderContext = nullptr;
 }
 
-/* End Lifetime Functions */
+/* End Render Context */
 /* Begin Rendering */
 
-void MpvOpenGlFrameBackend::renderToFramebuffer(
-    unsigned int framebuffer, const QSize &size)
+bool MpvOpenGlFrameBackend::renderToFramebuffer(
+    unsigned int framebuffer, const QSize &size, bool flipY)
 {
-    mpv_opengl_fbo mpfbo{
-        .fbo = static_cast<int>(framebuffer),
-        .w = size.width(),
-        .h = size.height(),
-        .internal_format = 0
+    Q_ASSERT(QThread::currentThread() == thread());
+    Q_ASSERT(m_renderContext);
+    mpv_opengl_fbo fbo{
+        static_cast<int>(framebuffer), size.width(), size.height(), 0
     };
-
+    int flip{flipY};
+    int blockForTargetTime{0};
     mpv_render_param params[]{
-        {MPV_RENDER_PARAM_OPENGL_FBO, &mpfbo},
+        {MPV_RENDER_PARAM_OPENGL_FBO, &fbo},
+        {MPV_RENDER_PARAM_FLIP_Y, &flip},
+        {MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME, &blockForTargetTime},
         {MPV_RENDER_PARAM_INVALID, nullptr}
     };
-    ::mpv_render_context_render(renderContext(), params);
+    const int error = ::mpv_render_context_render(m_renderContext, params);
+    if (error < 0)
+    {
+        qCritical(
+            "MpvOpenGlFrameBackend: Cannot render frame: %s",
+            ::mpv_error_string(error)
+        );
+        return false;
+    }
+    return true;
 }
 
 /* End Rendering */
-/* Begin Static Callbacks */
+/* Begin Callbacks */
 
 void MpvOpenGlFrameBackend::onMpvRedraw(void *ctx)
 {
-    MpvOpenGlFrameBackend *self =
-        reinterpret_cast<MpvOpenGlFrameBackend *>(ctx);
-    emit self->redraw();
+    auto *backend = static_cast<MpvOpenGlFrameBackend *>(ctx);
+    emit backend->redraw();
 }
 
-void *MpvOpenGlFrameBackend::getProcAddressMpv(
-    [[maybe_unused]] void *ctx, const char *name)
-{
-    QOpenGLContext *glctx = QOpenGLContext::currentContext();
-    if (glctx == nullptr)
-    {
-        return nullptr;
-    }
-    return reinterpret_cast<void *>(glctx->getProcAddress(QByteArray(name)));
-}
-
-/* End Static Callbacks */
+/* End Callbacks */

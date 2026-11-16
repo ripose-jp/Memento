@@ -20,40 +20,23 @@
 
 #pragma once
 
+#include <QQuickRhiItem>
+
+#include <functional>
 #include <memory>
 
-#include <QtGlobal>
-
-#if defined(Q_OS_WIN)
-#include <QQuickRhiItem>
-#elif defined(Q_OS_MACOS)
-#include <QQuickItem>
-#else
-#include <QQuickFramebufferObject>
-#endif
+#include <QHash>
+#include <QString>
 
 #include <mpv/client.h>
-#include <mpv/render.h>
 
 #include "player/mpvcontroller.h"
 #include "player/mpvstate.h"
-#ifndef Q_OS_WIN
-#include "player/mpvopenglframebackend.h"
-#endif // Q_OS_WIN
-
-#if defined(Q_OS_WIN)
-using MpvPlayerBase = QQuickRhiItem;
-#elif defined(Q_OS_MACOS)
-class MpvMetalRenderer;
-using MpvPlayerBase = QQuickItem;
-#else
-using MpvPlayerBase = QQuickFramebufferObject;
-#endif
 
 /**
  * @brief A component that creates an instance of mpv in QML.
  */
-class MpvPlayer : public MpvPlayerBase
+class MpvPlayer : public QQuickRhiItem
 {
     Q_OBJECT
 
@@ -80,7 +63,7 @@ public:
     /**
      * @brief Disconnects callbacks and releases the player's mpv resources.
      */
-    virtual ~MpvPlayer();
+    ~MpvPlayer() override;
 
     /**
      * @brief Returns a pointer to the mpv_handle for this player.
@@ -90,23 +73,13 @@ public:
     [[nodiscard]]
     mpv_handle *handle() const noexcept;
 
-#if defined(Q_OS_WIN)
     /**
-     * @brief Creates the Windows D3D11 renderer on the Qt render thread.
+     * @brief Creates the platform renderer on the Qt render thread.
      *
-     * @return A pointer to the newly created renderer.
+     * @return A pointer to the newly created renderer, owned by Qt.
      */
     [[nodiscard]]
     QQuickRhiItemRenderer *createRenderer() override;
-#elif !defined(Q_OS_MACOS)
-    /**
-     * @brief Creates the OpenGL framebuffer renderer.
-     *
-     * @return A pointer to the newly created renderer.
-     */
-    [[nodiscard]]
-    Renderer *createRenderer() const override;
-#endif
 
     /**
      * @brief Gets the state object tracked by this mpv context.
@@ -188,11 +161,6 @@ private slots:
     void initializeMpv();
 
     /**
-     * @brief A slot wrapper around update().
-     */
-    void doUpdate();
-
-    /**
      * @brief Handles all available mpv events.
      */
     void handleMpvEvents();
@@ -217,11 +185,8 @@ private:
      */
     static void onMpvEvents(void *ctx);
 
-    /* The mpv core */
-    mpv_handle *m_mpv{nullptr};
-
     /* Keeps the core alive until both the player and renderer release it. */
-    std::shared_ptr<mpv_handle> m_mpvOwner;
+    std::shared_ptr<mpv_handle> m_mpv;
 
     /* Prevents renderer recreation from initializing the mpv core twice. */
     bool m_initialized{false};
@@ -232,52 +197,6 @@ private:
     /* The state object tracking this mpv player */
     MpvState *m_state{new MpvState(this)};
 
-    /* The state object tracking this mpv player */
+    /* The controller issuing commands to this mpv player. */
     MpvController *m_controller{new MpvController(this)};
-
-#ifndef Q_OS_WIN
-    /* The OpenGL framebackend which manges the OpenGL context on Linux and
-     * macOS */
-    MpvOpenGlFrameBackend *m_frameBackend{
-        new MpvOpenGlFrameBackend{this, this}
-    };
-#endif // Q_OS_WIN
-
-#ifdef Q_OS_MACOS
-protected:
-    /**
-     * @brief Called when the Qt Scene graph wants an update from the player.
-     *
-     * @param oldNode The current node in use. May be nullptr.
-     * @return The new node with the frame rendered.
-     */
-    [[nodiscard]]
-    QSGNode *updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *) override;
-
-    /**
-     * @brief Called when the player's geometry changes. Forces an update.
-     *
-     * @param newGeometry The new geometry of the Item.
-     * @param oldGeometry The new geometry of the Item.
-     */
-    void geometryChange(
-        const QRectF &newGeometry, const QRectF &oldGeometry) override;
-
-    /**
-     * @brief Called when something about this Item changes.
-     *
-     * Used to check for window changes so a new screen can be connected to.
-     *
-     * @param change The change in the item.
-     * @param value The new value.
-     */
-    void itemChange(ItemChange change, const ItemChangeData &value) override;
-
-private:
-    /* The Metal-OpenGL bridge renderer for macOS */
-    std::unique_ptr<MpvMetalRenderer> m_renderer;
-
-    /* The connection managing the screen change */
-    QMetaObject::Connection m_screenChangedConnection;
-#endif // Q_OS_MACOS
 };

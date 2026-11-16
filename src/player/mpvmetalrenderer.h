@@ -20,66 +20,73 @@
 
 #pragma once
 
-#include <QtCore/qglobal.h>
-
-#ifdef Q_OS_MACOS
+#include <QObject>
+#include <QQuickRhiItem>
 
 #include <memory>
 
-#include <QSize>
-
-class MpvOpenGlFrameBackend;
-class MpvPlayer;
-class QQuickWindow;
-class QSGTexture;
+#include <mpv/client.h>
 
 /**
- * @brief macOS renderer that produces mpv frames on a dedicated OpenGL worker
- * thread and exposes the latest completed IOSurface through Metal.
+ * @brief Presents mpv's OpenGL frames through Qt's Metal RHI on its thread.
+ *
+ * The renderer owns the CGL context and frees mpv's render context with that
+ * context current. Qt owns the renderer and its output texture.
  */
-class MpvMetalRenderer
+class MpvMetalRenderer final : public QObject, public QQuickRhiItemRenderer
 {
+    Q_OBJECT
+
 public:
     /**
-     * @brief Creates the macOS renderer for a player.
+     * @brief Creates a renderer sharing ownership of the player's mpv core.
      *
-     * @param player The player whose mpv render context is rendered.
-     * @param backend The OpenGL frame backend containing the mpv OpenGL
-     * context.
+     * @param mpv The core to render.
      */
-    explicit MpvMetalRenderer(
-        MpvPlayer *player, MpvOpenGlFrameBackend *backend);
+    explicit MpvMetalRenderer(std::shared_ptr<mpv_handle> mpv);
 
     /**
-     * @brief Stops the worker and releases all worker-owned resources.
+     * @brief Releases native resources and mpv on Qt's render thread.
      */
-    ~MpvMetalRenderer();
+    ~MpvMetalRenderer() override;
+
+signals:
+    /**
+     * @brief Emitted when the render context is ready for playback.
+     */
+    void contextCreated();
 
     /**
-     * @brief Requests a new backing size in physical pixels.
+     * @brief Emitted from mpv's callback to queue a GUI frame request.
+     */
+    void redraw();
+
+protected:
+    /**
+     * @brief Validates Qt's target and initializes the native bridge.
      *
-     * @param pixelSize The requested frame size in real device pixels.
+     * @param cb The current command buffer, unused until render().
      */
-    void setPixelSize(const QSize &pixelSize);
+    void initialize(QRhiCommandBuffer *cb) override;
 
     /**
-     * @brief Requests that the worker render a new mpv frame.
-     */
-    void requestRender();
-
-    /**
-     * @brief Returns a scene graph texture for the latest completed frame.
+     * @brief Implements the synchronization hook; no item data is needed.
      *
-     * @param window The window that owns the scene graph texture.
-     * @return The latest completed frame, or nullptr if no frame is ready yet.
+     * @param item The player item, unused by the renderer.
      */
-    [[nodiscard]]
-    QSGTexture *texture(QQuickWindow *window);
+    void synchronize(QQuickRhiItem *item) override;
+
+    /**
+     * @brief Renders mpv and presents its shared surface through Metal.
+     *
+     * @param cb The command buffer for the presentation pass.
+     */
+    void render(QRhiCommandBuffer *cb) override;
 
 private:
-    /* PiPL declaration to the Objective-C++ Metal render bridge. */
+    /* Hides Objective-C types and owns all native rendering resources. */
     class Impl;
+
+    /* The bridge implementation, destroyed on Qt's render thread. */
     std::unique_ptr<Impl> m_impl;
 };
-
-#endif // Q_OS_MACOS

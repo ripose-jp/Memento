@@ -157,6 +157,7 @@ set(
 	Concurrent
 	Core
 	Gui
+	GuiPrivate
 	LinguistTools
 	Network
 	OpenGL
@@ -166,10 +167,7 @@ set(
 	Svg
 )
 if(APPLE)
-	list(APPEND MEMENTO_QT_COMPONENTS QuickPrivate)
-endif()
-if(WIN32)
-    list(APPEND MEMENTO_QT_COMPONENTS GuiPrivate)
+	list(APPEND MEMENTO_QT_COMPONENTS ShaderTools)
 endif()
 if(UNIX AND NOT APPLE)
 	list(APPEND MEMENTO_QT_COMPONENTS DBus)

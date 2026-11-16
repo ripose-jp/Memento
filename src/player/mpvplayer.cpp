@@ -20,14 +20,11 @@
 
 #include "player/mpvplayer.h"
 
-#include <QQuickWindow>
-#ifdef Q_OS_MACOS
-#include <QSGSimpleTextureNode>
-#endif // Q_OS_MACOS
+#include <cstring>
+#include <stdexcept>
+#include <utility>
 
-#ifndef Q_OS_WIN
-#include <mpv/render_gl.h>
-#endif // Q_OS_WIN
+#include <QQuickWindow>
 
 #if defined(Q_OS_WIN)
 #include "player/mpvd3d11renderer.h"
@@ -38,16 +35,24 @@
 #endif
 #include "util/utils.h"
 
+#if defined(Q_OS_WIN)
+using PlatformRenderer = MpvD3D11Renderer;
+#elif defined(Q_OS_MACOS)
+using PlatformRenderer = MpvMetalRenderer;
+#else
+using PlatformRenderer = MpvOpenGlRenderer;
+#endif
+
 /* Begin Constructor/Deconstructor */
 
-MpvPlayer::MpvPlayer(QQuickItem *parent) : MpvPlayerBase(parent)
+MpvPlayer::MpvPlayer(QQuickItem *parent) : QQuickRhiItem(parent)
 {
-    m_mpv = ::mpv_create();
-    if (m_mpv == nullptr)
+    mpv_handle *mpv = ::mpv_create();
+    if (mpv == nullptr)
     {
         throw std::runtime_error("MpvPlayer: Could not create mpv context");
     }
-    m_mpvOwner = std::shared_ptr<mpv_handle>(m_mpv, ::mpv_terminate_destroy);
+    m_mpv = {mpv, ::mpv_terminate_destroy};
 
     initPropertyMap();
 
@@ -56,34 +61,12 @@ MpvPlayer::MpvPlayer(QQuickItem *parent) : MpvPlayerBase(parent)
         this, &MpvPlayer::handleMpvEvents,
         Qt::QueuedConnection
     );
-#ifndef Q_OS_WIN
-    connect(
-        m_frameBackend, &MpvOpenGlFrameBackend::contextCreated,
-        this, &MpvPlayer::initializeMpv,
-        Qt::QueuedConnection
-    );
-    connect(
-        m_frameBackend, &MpvOpenGlFrameBackend::redraw,
-        this, &MpvPlayer::doUpdate,
-        Qt::QueuedConnection
-    );
-#endif // Q_OS_WIN
-    ::mpv_set_wakeup_callback(m_mpv, &MpvPlayer::onMpvEvents, this);
-
-#ifdef Q_OS_MACOS
-    setFlag(ItemHasContents, true);
-    m_renderer = std::make_unique<MpvMetalRenderer>(this, m_frameBackend);
-#endif // Q_OS_MACOS
+    ::mpv_set_wakeup_callback(handle(), &MpvPlayer::onMpvEvents, this);
 }
 
 MpvPlayer::~MpvPlayer()
 {
-    ::mpv_set_wakeup_callback(m_mpv, nullptr, nullptr);
-#ifdef Q_OS_MACOS
-    m_renderer.reset();
-#elif !defined(Q_OS_WIN)
-    m_frameBackend->destroyRenderContext();
-#endif
+    ::mpv_set_wakeup_callback(handle(), nullptr, nullptr);
 }
 
 /* End Constructor/Deconstructor */
@@ -182,7 +165,7 @@ void MpvPlayer::initPropertyMap()
     m_propertyMap["track-list/count"] = [this] (mpv_event_property *)
     {
         mpv_node node;
-        mpv_get_property(m_mpv, "track-list", MPV_FORMAT_NODE, &node);
+        mpv_get_property(handle(), "track-list", MPV_FORMAT_NODE, &node);
         state()->setTracks(&node);
         mpv_free_node_contents(&node);
     };
@@ -325,10 +308,10 @@ void MpvPlayer::initPropertyMap()
             double start{0};
             double end{0};
             ::mpv_get_property(
-                m_mpv, "sub-start", MPV_FORMAT_DOUBLE, &start
+                handle(), "sub-start", MPV_FORMAT_DOUBLE, &start
             );
             ::mpv_get_property(
-                m_mpv, "sub-end",   MPV_FORMAT_DOUBLE, &end
+                handle(), "sub-end",   MPV_FORMAT_DOUBLE, &end
             );
 
             state()->subtitle()->setStartTime(start);
@@ -346,10 +329,10 @@ void MpvPlayer::initPropertyMap()
             double start{0};
             double end{0};
             ::mpv_get_property(
-                m_mpv, "secondary-sub-start", MPV_FORMAT_DOUBLE, &start
+                handle(), "secondary-sub-start", MPV_FORMAT_DOUBLE, &start
             );
             ::mpv_get_property(
-                m_mpv, "secondary-sub-end",   MPV_FORMAT_DOUBLE, &end
+                handle(), "secondary-sub-end",   MPV_FORMAT_DOUBLE, &end
             );
 
             state()->secondarySubtitle()->setStartTime(start);
@@ -367,7 +350,8 @@ void MpvPlayer::initPropertyMap()
         }
     };
 
-    m_propertyMap["secondary-sub-visibility"] = [this] (mpv_event_property *prop)
+    m_propertyMap["secondary-sub-visibility"] =
+        [this] (mpv_event_property *prop)
     {
         if (prop->format == MPV_FORMAT_FLAG)
         {
@@ -425,45 +409,47 @@ void MpvPlayer::initializeMpv()
 
     initOptions();
 
-    if (mpv_initialize(m_mpv) < 0)
+    if (mpv_initialize(handle()) < 0)
     {
         throw std::runtime_error("MpvPlayer: Failed to initialize mpv context");
     }
 
-    mpv_observe_property(m_mpv, 0, "chapter-list",        MPV_FORMAT_NODE);
-    mpv_observe_property(m_mpv, 0, "duration",            MPV_FORMAT_DOUBLE);
-    mpv_observe_property(m_mpv, 0, "fullscreen",          MPV_FORMAT_FLAG);
-    mpv_observe_property(m_mpv, 0, "media-title",         MPV_FORMAT_STRING);
-    mpv_observe_property(m_mpv, 0, "path",                MPV_FORMAT_STRING);
-    mpv_observe_property(m_mpv, 0, "pause",               MPV_FORMAT_FLAG);
-    mpv_observe_property(m_mpv, 0, "time-pos",            MPV_FORMAT_DOUBLE);
-    mpv_observe_property(m_mpv, 0, "track-list/count",    MPV_FORMAT_INT64);
-    mpv_observe_property(m_mpv, 0, "volume-max",          MPV_FORMAT_INT64);
-    mpv_observe_property(m_mpv, 0, "volume",              MPV_FORMAT_INT64);
-    mpv_observe_property(m_mpv, 0, "video-params/w",      MPV_FORMAT_INT64);
-    mpv_observe_property(m_mpv, 0, "video-params/h",      MPV_FORMAT_INT64);
+    mpv_observe_property(handle(), 0, "chapter-list",        MPV_FORMAT_NODE);
+    mpv_observe_property(handle(), 0, "duration",            MPV_FORMAT_DOUBLE);
+    mpv_observe_property(handle(), 0, "fullscreen",          MPV_FORMAT_FLAG);
+    mpv_observe_property(handle(), 0, "media-title",         MPV_FORMAT_STRING);
+    mpv_observe_property(handle(), 0, "path",                MPV_FORMAT_STRING);
+    mpv_observe_property(handle(), 0, "pause",               MPV_FORMAT_FLAG);
+    mpv_observe_property(handle(), 0, "time-pos",            MPV_FORMAT_DOUBLE);
+    mpv_observe_property(handle(), 0, "track-list/count",    MPV_FORMAT_INT64);
+    mpv_observe_property(handle(), 0, "volume-max",          MPV_FORMAT_INT64);
+    mpv_observe_property(handle(), 0, "volume",              MPV_FORMAT_INT64);
+    mpv_observe_property(handle(), 0, "video-params/w",      MPV_FORMAT_INT64);
+    mpv_observe_property(handle(), 0, "video-params/h",      MPV_FORMAT_INT64);
 
-    mpv_observe_property(m_mpv, 0, "aid",                 MPV_FORMAT_INT64);
-    mpv_observe_property(m_mpv, 0, "aid",                 MPV_FORMAT_FLAG);
-    mpv_observe_property(m_mpv, 0, "secondary-sid",       MPV_FORMAT_INT64);
-    mpv_observe_property(m_mpv, 0, "secondary-sid",       MPV_FORMAT_FLAG);
-    mpv_observe_property(m_mpv, 0, "sid",                 MPV_FORMAT_INT64);
-    mpv_observe_property(m_mpv, 0, "sid",                 MPV_FORMAT_FLAG);
-    mpv_observe_property(m_mpv, 0, "vid",                 MPV_FORMAT_INT64);
-    mpv_observe_property(m_mpv, 0, "vid",                 MPV_FORMAT_FLAG);
+    mpv_observe_property(handle(), 0, "aid",                 MPV_FORMAT_INT64);
+    mpv_observe_property(handle(), 0, "aid",                 MPV_FORMAT_FLAG);
+    mpv_observe_property(handle(), 0, "secondary-sid",       MPV_FORMAT_INT64);
+    mpv_observe_property(handle(), 0, "secondary-sid",       MPV_FORMAT_FLAG);
+    mpv_observe_property(handle(), 0, "sid",                 MPV_FORMAT_INT64);
+    mpv_observe_property(handle(), 0, "sid",                 MPV_FORMAT_FLAG);
+    mpv_observe_property(handle(), 0, "vid",                 MPV_FORMAT_INT64);
+    mpv_observe_property(handle(), 0, "vid",                 MPV_FORMAT_FLAG);
 
-    mpv_observe_property(m_mpv, 0, "secondary-sub-text",  MPV_FORMAT_STRING);
-    mpv_observe_property(m_mpv, 0, "secondary-sub-delay", MPV_FORMAT_DOUBLE);
-    mpv_observe_property(m_mpv, 0, "secondary-sub-visibility", MPV_FORMAT_FLAG);
-    mpv_observe_property(m_mpv, 0, "sub-delay",           MPV_FORMAT_DOUBLE);
-    mpv_observe_property(m_mpv, 0, "sub-text",            MPV_FORMAT_STRING);
-    mpv_observe_property(m_mpv, 0, "sub-visibility",      MPV_FORMAT_FLAG);
+    mpv_observe_property(handle(), 0, "secondary-sub-text",  MPV_FORMAT_STRING);
+    mpv_observe_property(handle(), 0, "secondary-sub-delay", MPV_FORMAT_DOUBLE);
+    mpv_observe_property(
+        handle(), 0, "secondary-sub-visibility", MPV_FORMAT_FLAG
+    );
+    mpv_observe_property(handle(), 0, "sub-delay",           MPV_FORMAT_DOUBLE);
+    mpv_observe_property(handle(), 0, "sub-text",            MPV_FORMAT_STRING);
+    mpv_observe_property(handle(), 0, "sub-visibility",      MPV_FORMAT_FLAG);
 
-    mpv_observe_property(m_mpv, 0, "cursor-autohide",     MPV_FORMAT_INT64);
-    mpv_observe_property(m_mpv, 0, "cursor-autohide",     MPV_FORMAT_STRING);
-    mpv_observe_property(m_mpv, 0, "cursor-autohide-fs-only", MPV_FORMAT_FLAG);
-
-    mpv_set_wakeup_callback(m_mpv, &MpvPlayer::onMpvEvents, this);
+    mpv_observe_property(handle(), 0, "cursor-autohide",     MPV_FORMAT_INT64);
+    mpv_observe_property(handle(), 0, "cursor-autohide",     MPV_FORMAT_STRING);
+    mpv_observe_property(
+        handle(), 0, "cursor-autohide-fs-only", MPV_FORMAT_FLAG
+    );
 
     m_initialized = true;
     emit initialized();
@@ -472,20 +458,20 @@ void MpvPlayer::initializeMpv()
 void MpvPlayer::initOptions()
 {
     /* Hardcoded options */
-    mpv_set_option_string(m_mpv, "config",                 "yes");
-    mpv_set_option_string(m_mpv, "input-default-bindings", "yes");
-    mpv_set_option_string(m_mpv, "keep-open",              "yes");
-    mpv_set_option_string(m_mpv, "screenshot-directory",   "~~desktop/");
-    mpv_set_option_string(m_mpv, "terminal",               "yes");
-    mpv_set_option_string(m_mpv, "vo",                     "libmpv");
-    mpv_set_option_string(m_mpv, "ytdl",                   "yes");
-    mpv_set_option_string(m_mpv, "pause",                  "yes");
+    mpv_set_option_string(handle(), "config",                 "yes");
+    mpv_set_option_string(handle(), "input-default-bindings", "yes");
+    mpv_set_option_string(handle(), "keep-open",              "yes");
+    mpv_set_option_string(handle(), "screenshot-directory",   "~~desktop/");
+    mpv_set_option_string(handle(), "terminal",               "yes");
+    mpv_set_option_string(handle(), "vo",                     "libmpv");
+    mpv_set_option_string(handle(), "ytdl",                   "yes");
+    mpv_set_option_string(handle(), "pause",                  "yes");
 
     QByteArray configDir = DirectoryUtils::getConfigDir().toUtf8();
-    mpv_set_option_string(m_mpv, "config-dir", configDir);
+    mpv_set_option_string(handle(), "config-dir", configDir);
 
     QByteArray inputFile = DirectoryUtils::getMpvInputConfig().toUtf8();
-    mpv_set_option_string(m_mpv, "input-conf", inputFile);
+    mpv_set_option_string(handle(), "input-conf", inputFile);
 
     /* Commandline options */
     QStringList args = QCoreApplication::arguments();
@@ -535,7 +521,7 @@ void MpvPlayer::initOptions()
 
         QByteArray option = arg.first(sepIndex).toUtf8();
         QByteArray value = arg.mid(sepIndex + 1).toUtf8();
-        mpv_set_option_string(m_mpv, option, value);
+        mpv_set_option_string(handle(), option, value);
     }
 }
 
@@ -544,135 +530,36 @@ void MpvPlayer::initOptions()
 
 mpv_handle *MpvPlayer::handle() const noexcept
 {
-    return m_mpv;
+    return m_mpv.get();
 }
 
-#if defined(Q_OS_WIN)
 QQuickRhiItemRenderer *MpvPlayer::createRenderer()
 {
     window()->setPersistentGraphics(true);
     window()->setPersistentSceneGraph(true);
 
-    auto *renderer = new MpvD3D11Renderer(m_mpvOwner);
+    auto *renderer = new PlatformRenderer(m_mpv);
     connect(
-        renderer, &MpvD3D11Renderer::contextCreated,
+        renderer, &PlatformRenderer::contextCreated,
         this, &MpvPlayer::initializeMpv,
         Qt::QueuedConnection
     );
     connect(
-        renderer, &MpvD3D11Renderer::redraw,
-        this, &MpvPlayer::doUpdate,
+        renderer, &PlatformRenderer::redraw,
+        this, &MpvPlayer::update,
         Qt::QueuedConnection
     );
     return renderer;
 }
-#elif !defined(Q_OS_MACOS)
-QQuickFramebufferObject::Renderer *MpvPlayer::createRenderer() const
-{
-    window()->setPersistentGraphics(true);
-    window()->setPersistentSceneGraph(true);
-    return new MpvOpenGlRenderer(
-        const_cast<MpvPlayer *>(this),
-        const_cast<MpvOpenGlFrameBackend *>(m_frameBackend)
-    );
-}
-#endif
 
 /* End mpv context methods */
 /* Begin Mpv Event Slots */
-
-void MpvPlayer::doUpdate()
-{
-#if defined(Q_OS_MACOS)
-    if (m_renderer)
-    {
-        m_renderer->requestRender();
-    }
-#else
-    update();
-#endif
-}
-
-#ifdef Q_OS_MACOS
-QSGNode *MpvPlayer::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
-{
-    QSGSimpleTextureNode *node = static_cast<QSGSimpleTextureNode *>(oldNode);
-    if (window() == nullptr || width() <= 0 || height() <= 0)
-    {
-        delete node;
-        return nullptr;
-    }
-
-    if (node == nullptr)
-    {
-        node = new QSGSimpleTextureNode;
-        node->setOwnsTexture(false);
-        node->setFiltering(QSGTexture::Linear);
-        node->setTextureCoordinatesTransform(QSGSimpleTextureNode::NoTransform);
-    }
-
-    const qreal dpr = window()->effectiveDevicePixelRatio();
-    const QSize pixelSize{
-        qMax(1, qRound(width() * dpr)),
-        qMax(1, qRound(height() * dpr))
-    };
-    m_renderer->setPixelSize(pixelSize);
-    if (QSGTexture *texture = m_renderer->texture(window()))
-    {
-        if (node->texture() != texture)
-        {
-            node->setTexture(texture);
-        }
-    }
-    else
-    {
-        return MpvPlayerBase::updatePaintNode(node, data);
-    }
-    node->setRect(boundingRect());
-    return node;
-}
-
-void MpvPlayer::geometryChange(
-    const QRectF &newGeometry, const QRectF &oldGeometry)
-{
-    MpvPlayerBase::geometryChange(newGeometry, oldGeometry);
-    if (newGeometry.size() != oldGeometry.size())
-    {
-        update();
-    }
-}
-
-void MpvPlayer::itemChange(ItemChange change, const ItemChangeData &value)
-{
-    MpvPlayerBase::itemChange(change, value);
-    if (change != ItemSceneChange)
-    {
-        return;
-    }
-
-    if (m_screenChangedConnection)
-    {
-        disconnect(m_screenChangedConnection);
-    }
-
-    if (QQuickWindow *newWindow = value.window)
-    {
-        newWindow->setPersistentGraphics(true);
-        newWindow->setPersistentSceneGraph(true);
-        m_screenChangedConnection = connect(
-            newWindow, &QWindow::screenChanged,
-            this, &MpvPlayer::update
-        );
-    }
-    update();
-}
-#endif // Q_OS_MACOS
 
 void MpvPlayer::handleMpvEvents()
 {
     while (m_mpv)
     {
-        mpv_event *event = ::mpv_wait_event(m_mpv, 0);
+        mpv_event *event = ::mpv_wait_event(handle(), 0);
         if (event->event_id == MPV_EVENT_NONE)
         {
             break;
@@ -705,9 +592,9 @@ void MpvPlayer::handleMpvEvent(mpv_event *event)
     case MPV_EVENT_FILE_LOADED:
     {
         int64_t w = 0;
-        ::mpv_get_property(m_mpv, "video-params/w", MPV_FORMAT_INT64, &w);
+        ::mpv_get_property(handle(), "video-params/w", MPV_FORMAT_INT64, &w);
         int64_t h = 0;
-        ::mpv_get_property(m_mpv, "video-params/h", MPV_FORMAT_INT64, &h);
+        ::mpv_get_property(handle(), "video-params/h", MPV_FORMAT_INT64, &h);
         emit fileLoaded(w, h);
         break;
     }
