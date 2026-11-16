@@ -9,7 +9,7 @@ ApplicationWindow {
 
     width: 1280
     height: 720
-    visibility: player.state.fullscreen ? Window.FullScreen : Window.Windowed
+    visibility: Window.Windowed
     color: "black"
     title: player.state.title ? qsTr("%1 - Memento").arg(player.state.title) : qsTr("Memento")
 
@@ -35,6 +35,11 @@ ApplicationWindow {
     function updateWindowSize(requestedWidth, requestedHeight) {
         /* Don't trigger in fullscreen or maximized */
         if (root.visibility !== Window.Windowed)
+        {
+            return;
+        }
+        else if (fullscreenControllerLoader.item &&
+                 fullscreenControllerLoader.item.restoringMaximized)
         {
             return;
         }
@@ -66,6 +71,44 @@ ApplicationWindow {
         /* Center in the current screen's virtual-desktop geometry */
         root.x = Screen.virtualX + (maxWidth - finalWidth) / 2;
         root.y = Screen.virtualY + (maxHeight - finalHeight) / 2;
+    }
+
+    Binding {
+        when: Features.isMacos
+        root.visibility: player.state.fullscreen ? Window.FullScreen : Window.Windowed
+    }
+
+    Loader {
+        active: Features.isMacos
+        sourceComponent: Component {
+            Connections {
+                target: root
+                function onVisibilityChanged() {
+                    switch (root.visibility)
+                    {
+                    case Window.Windowed:
+                        player.controller.setFullscreen(false);
+                        break;
+                    case Window.Maximized:
+                    case Window.FullScreen:
+                        player.controller.setFullscreen(true);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    Loader {
+        id: fullscreenControllerLoader
+        active: !Features.isMacos
+        sourceComponent: Component {
+            FullscreenController {
+                id: fullscreenController
+                window: root
+                fullscreen: player.state.fullscreen
+            }
+        }
     }
 
     SplitView {

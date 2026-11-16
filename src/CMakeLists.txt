@@ -87,6 +87,7 @@ qt_add_qml_module(
         qml/dialogs/UpdateDialog.qml
         qml/Main.qml
         qml/objects/CursorTimer.qml
+        qml/objects/FullscreenController.qml
         qml/objects/MoveTimer.qml
         qml/options/AnkiIntegrationHelpWindow.qml
         qml/options/AnkiIntegrationPage.qml
