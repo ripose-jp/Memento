@@ -34,12 +34,8 @@ ApplicationWindow {
      */
     function updateWindowSize(requestedWidth, requestedHeight) {
         /* Don't trigger in fullscreen or maximized */
-        if (root.visibility !== Window.Windowed)
-        {
-            return;
-        }
-        else if (fullscreenControllerLoader.item &&
-                 fullscreenControllerLoader.item.restoringMaximized)
+        if (root.visibility !== Window.Windowed ||
+            fullscreenController.restoringMaximized)
         {
             return;
         }
@@ -73,11 +69,7 @@ ApplicationWindow {
         root.y = Screen.virtualY + (maxHeight - finalHeight) / 2;
     }
 
-    Binding {
-        when: Features.isMacos
-        root.visibility: player.state.fullscreen ? Window.FullScreen : Window.Windowed
-    }
-
+    /* It is possible for fullscreen to get desynced on macOS without this */
     Loader {
         active: Features.isMacos
         sourceComponent: Component {
@@ -87,9 +79,9 @@ ApplicationWindow {
                     switch (root.visibility)
                     {
                     case Window.Windowed:
+                    case Window.Maximized:
                         player.controller.setFullscreen(false);
                         break;
-                    case Window.Maximized:
                     case Window.FullScreen:
                         player.controller.setFullscreen(true);
                         break;
@@ -99,16 +91,10 @@ ApplicationWindow {
         }
     }
 
-    Loader {
-        id: fullscreenControllerLoader
-        active: !Features.isMacos
-        sourceComponent: Component {
-            FullscreenController {
-                id: fullscreenController
-                window: root
-                fullscreen: player.state.fullscreen
-            }
-        }
+    FullscreenController {
+        id: fullscreenController
+        window: root
+        fullscreen: player.state.fullscreen
     }
 
     SplitView {
