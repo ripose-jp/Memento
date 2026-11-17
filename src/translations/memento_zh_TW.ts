@@ -331,7 +331,7 @@
     <message>
         <location filename="../qml/util/AnkiMarkers.qml" line="51"/>
         <source>&lt;p&gt;Audio of the word if found and the skip hash is not matched.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;如果找到單字且略過雜湊不相符，則為該單字的音訊。&lt;/p&gt;</translation>
+        <translation>&lt;p&gt;如果找到單字的音訊且其雜湊與略過雜湊不相符，則使用該音訊。&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../qml/util/AnkiMarkers.qml" line="54"/>
@@ -624,7 +624,7 @@
 <context>
     <name>ApplicationPage</name>
     <message>
-        <location filename="../qml/options/ApplicationPage.qml" line="66"/>
+        <location filename="../qml/options/ApplicationPage.qml" line="65"/>
         <source>Language</source>
         <translation>語言</translation>
     </message>
@@ -637,22 +637,22 @@
         <translation type="vanished">介面語言（需要重新啟動）</translation>
     </message>
     <message>
-        <location filename="../qml/options/ApplicationPage.qml" line="76"/>
+        <location filename="../qml/options/ApplicationPage.qml" line="75"/>
         <source>Interface language (Restart required)</source>
         <translation>介面語言（需要重新啟動）</translation>
     </message>
     <message>
-        <location filename="../qml/options/ApplicationPage.qml" line="83"/>
+        <location filename="../qml/options/ApplicationPage.qml" line="82"/>
         <source>System</source>
         <translation>系統</translation>
     </message>
     <message>
-        <location filename="../qml/options/ApplicationPage.qml" line="118"/>
+        <location filename="../qml/options/ApplicationPage.qml" line="116"/>
         <source>Update</source>
         <translation>更新</translation>
     </message>
     <message>
-        <location filename="../qml/options/ApplicationPage.qml" line="128"/>
+        <location filename="../qml/options/ApplicationPage.qml" line="126"/>
         <source>Check for updates on launch</source>
         <translation>啟動時檢查更新</translation>
     </message>
@@ -819,96 +819,96 @@
 <context>
     <name>DatabaseManager</name>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="395"/>
-        <location filename="../dict/databasemanager.cpp" line="526"/>
+        <location filename="../dict/databasemanager.cpp" line="396"/>
+        <location filename="../dict/databasemanager.cpp" line="537"/>
         <source>Could not prepare database query</source>
         <translation>無法準備資料庫查詢</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="404"/>
-        <location filename="../dict/databasemanager.cpp" line="416"/>
-        <location filename="../dict/databasemanager.cpp" line="428"/>
-        <location filename="../dict/databasemanager.cpp" line="534"/>
+        <location filename="../dict/databasemanager.cpp" line="405"/>
+        <location filename="../dict/databasemanager.cpp" line="417"/>
+        <location filename="../dict/databasemanager.cpp" line="429"/>
+        <location filename="../dict/databasemanager.cpp" line="545"/>
         <source>Could not bind values to statement</source>
         <translation>無法將值繫結到陳述式</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="463"/>
+        <location filename="../dict/databasemanager.cpp" line="464"/>
         <source>Error when executing sqlite query. Code %1</source>
         <translation>執行 SQLite 查詢時發生錯誤。錯誤碼 %1</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="473"/>
+        <location filename="../dict/databasemanager.cpp" line="474"/>
         <source>Error getting term information</source>
         <translation>取得詞條資訊時發生錯誤</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="608"/>
+        <location filename="../dict/databasemanager.cpp" line="619"/>
         <source>Error while executing kanji query</source>
         <translation>執行漢字查詢時發生錯誤</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1105"/>
+        <location filename="../dict/databasemanager.cpp" line="1130"/>
         <source>Could not add index.json</source>
         <translation>無法新增 index.json</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1107"/>
+        <location filename="../dict/databasemanager.cpp" line="1132"/>
         <source>Could not add kanji terms</source>
         <translation>無法新增漢字詞條</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1109"/>
+        <location filename="../dict/databasemanager.cpp" line="1134"/>
         <source>Could not add kanji metadata</source>
         <translation>無法新增漢字中繼資料</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1111"/>
+        <location filename="../dict/databasemanager.cpp" line="1136"/>
         <source>Could not add tags</source>
         <translation>無法新增標籤</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1113"/>
+        <location filename="../dict/databasemanager.cpp" line="1138"/>
         <source>Could not add terms</source>
         <translation>無法新增詞條</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1115"/>
+        <location filename="../dict/databasemanager.cpp" line="1140"/>
         <source>Could not add term metadata</source>
         <translation>無法新增詞條中繼資料</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1117"/>
+        <location filename="../dict/databasemanager.cpp" line="1142"/>
         <source>Could not open database</source>
         <translation>無法開啟資料庫</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1119"/>
+        <location filename="../dict/databasemanager.cpp" line="1144"/>
         <source>Database is of a newer version</source>
         <translation>資料庫版本較新</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1121"/>
+        <location filename="../dict/databasemanager.cpp" line="1146"/>
         <source>Could not open dictionary file</source>
         <translation>無法開啟詞典檔案</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1123"/>
+        <location filename="../dict/databasemanager.cpp" line="1148"/>
         <source>Could not execute delete query on database</source>
         <translation>無法在資料庫上執行刪除查詢</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1125"/>
+        <location filename="../dict/databasemanager.cpp" line="1150"/>
         <source>Could not extract dictionary resources</source>
         <translation>無法擷取詞典資源</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1127"/>
+        <location filename="../dict/databasemanager.cpp" line="1152"/>
         <source>Could not remove dictionary resources</source>
         <translation>無法移除詞典資源</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1129"/>
+        <location filename="../dict/databasemanager.cpp" line="1154"/>
         <source>Unknown error</source>
         <translation>未知錯誤</translation>
     </message>
@@ -1163,27 +1163,27 @@
     </message>
     <message>
         <location filename="../qml/options/InterfacePage.qml" line="125"/>
-        <location filename="../qml/options/InterfacePage.qml" line="403"/>
-        <location filename="../qml/options/InterfacePage.qml" line="468"/>
-        <location filename="../qml/options/InterfacePage.qml" line="533"/>
-        <location filename="../qml/options/InterfacePage.qml" line="598"/>
-        <location filename="../qml/options/InterfacePage.qml" line="663"/>
-        <location filename="../qml/options/InterfacePage.qml" line="728"/>
-        <location filename="../qml/options/InterfacePage.qml" line="883"/>
-        <location filename="../qml/options/InterfacePage.qml" line="948"/>
+        <location filename="../qml/options/InterfacePage.qml" line="428"/>
+        <location filename="../qml/options/InterfacePage.qml" line="493"/>
+        <location filename="../qml/options/InterfacePage.qml" line="558"/>
+        <location filename="../qml/options/InterfacePage.qml" line="623"/>
+        <location filename="../qml/options/InterfacePage.qml" line="688"/>
+        <location filename="../qml/options/InterfacePage.qml" line="753"/>
+        <location filename="../qml/options/InterfacePage.qml" line="908"/>
+        <location filename="../qml/options/InterfacePage.qml" line="973"/>
         <source>Bold</source>
         <translation>粗體</translation>
     </message>
     <message>
         <location filename="../qml/options/InterfacePage.qml" line="146"/>
-        <location filename="../qml/options/InterfacePage.qml" line="424"/>
-        <location filename="../qml/options/InterfacePage.qml" line="489"/>
-        <location filename="../qml/options/InterfacePage.qml" line="554"/>
-        <location filename="../qml/options/InterfacePage.qml" line="619"/>
-        <location filename="../qml/options/InterfacePage.qml" line="684"/>
-        <location filename="../qml/options/InterfacePage.qml" line="749"/>
-        <location filename="../qml/options/InterfacePage.qml" line="904"/>
-        <location filename="../qml/options/InterfacePage.qml" line="969"/>
+        <location filename="../qml/options/InterfacePage.qml" line="449"/>
+        <location filename="../qml/options/InterfacePage.qml" line="514"/>
+        <location filename="../qml/options/InterfacePage.qml" line="579"/>
+        <location filename="../qml/options/InterfacePage.qml" line="644"/>
+        <location filename="../qml/options/InterfacePage.qml" line="709"/>
+        <location filename="../qml/options/InterfacePage.qml" line="774"/>
+        <location filename="../qml/options/InterfacePage.qml" line="929"/>
+        <location filename="../qml/options/InterfacePage.qml" line="994"/>
         <source>Italics</source>
         <translation>斜體</translation>
     </message>
@@ -1221,7 +1221,7 @@
     </message>
     <message>
         <location filename="../qml/options/InterfacePage.qml" line="256"/>
-        <location filename="../qml/options/InterfacePage.qml" line="1018"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1043"/>
         <source>Text color</source>
         <translation>文字顏色</translation>
     </message>
@@ -1232,7 +1232,7 @@
     </message>
     <message>
         <location filename="../qml/options/InterfacePage.qml" line="284"/>
-        <location filename="../qml/options/InterfacePage.qml" line="990"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1015"/>
         <source>Background color</source>
         <translation>背景顏色</translation>
     </message>
@@ -1252,163 +1252,173 @@
         <translation>選擇字幕描邊顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="370"/>
+        <location filename="../qml/options/InterfacePage.qml" line="342"/>
+        <source>Target furigana to subtitle size ratio</source>
+        <translation>振假名與字幕字級的目標比例</translation>
+    </message>
+    <message>
+        <location filename="../qml/options/InterfacePage.qml" line="351"/>
+        <source>Ratio</source>
+        <translation>比例</translation>
+    </message>
+    <message>
+        <location filename="../qml/options/InterfacePage.qml" line="395"/>
         <source>Search</source>
         <translation>搜尋</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="380"/>
+        <location filename="../qml/options/InterfacePage.qml" line="405"/>
         <source>Term Expression Font</source>
         <translation>詞條表記字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="389"/>
+        <location filename="../qml/options/InterfacePage.qml" line="414"/>
         <source>Select Term Expression Font</source>
         <translation>選擇詞條表記字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="445"/>
+        <location filename="../qml/options/InterfacePage.qml" line="470"/>
         <source>Term Reading Font</source>
         <translation>詞條讀音字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="454"/>
+        <location filename="../qml/options/InterfacePage.qml" line="479"/>
         <source>Select Term Reading Font</source>
         <translation>選擇詞條讀音字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="510"/>
+        <location filename="../qml/options/InterfacePage.qml" line="535"/>
         <source>Term Conjugation Explanation Font</source>
         <translation>詞條活用說明字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="519"/>
+        <location filename="../qml/options/InterfacePage.qml" line="544"/>
         <source>Select Term Conjugation Explanation Font</source>
         <translation>選擇詞條活用說明字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="575"/>
+        <location filename="../qml/options/InterfacePage.qml" line="600"/>
         <source>Tag Font</source>
         <translation>標籤字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="584"/>
+        <location filename="../qml/options/InterfacePage.qml" line="609"/>
         <source>Select Tag Font</source>
         <translation>選擇標籤字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="640"/>
+        <location filename="../qml/options/InterfacePage.qml" line="665"/>
         <source>Glossary Font</source>
         <translation>釋義字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="649"/>
+        <location filename="../qml/options/InterfacePage.qml" line="674"/>
         <source>Select Glossary Font</source>
         <translation>選擇釋義字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="705"/>
+        <location filename="../qml/options/InterfacePage.qml" line="730"/>
         <source>Kanji Font</source>
         <translation>漢字字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="714"/>
+        <location filename="../qml/options/InterfacePage.qml" line="739"/>
         <source>Select Kanji Font</source>
         <translation>選擇漢字字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="768"/>
+        <location filename="../qml/options/InterfacePage.qml" line="793"/>
         <source>Popup</source>
         <translation>彈出視窗</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="778"/>
+        <location filename="../qml/options/InterfacePage.qml" line="803"/>
         <source>Popup width</source>
         <translation>彈出視窗寬度</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="798"/>
+        <location filename="../qml/options/InterfacePage.qml" line="823"/>
         <source>Popup height</source>
         <translation>彈出視窗高度</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="816"/>
+        <location filename="../qml/options/InterfacePage.qml" line="841"/>
         <source>Subtitle List</source>
         <translation>字幕清單</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="826"/>
-        <location filename="../qml/options/InterfacePage.qml" line="1139"/>
+        <location filename="../qml/options/InterfacePage.qml" line="851"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1164"/>
         <source>Open in a separate window</source>
         <translation>在單獨視窗中開啟</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="843"/>
+        <location filename="../qml/options/InterfacePage.qml" line="868"/>
         <source>Show timestamps</source>
         <translation>顯示時間戳記</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="860"/>
+        <location filename="../qml/options/InterfacePage.qml" line="885"/>
         <source>Primary subtitle font</source>
         <translation>主要字幕字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="869"/>
+        <location filename="../qml/options/InterfacePage.qml" line="894"/>
         <source>Select Subtitle List Primary Font</source>
         <translation>選擇字幕清單主要字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="925"/>
+        <location filename="../qml/options/InterfacePage.qml" line="950"/>
         <source>Secondary subtitle font</source>
         <translation>次要字幕字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="934"/>
+        <location filename="../qml/options/InterfacePage.qml" line="959"/>
         <source>Select Subtitle List Secondary Font</source>
         <translation>選擇字幕清單次要字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1003"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1028"/>
         <source>Select Subtitle List Background Color</source>
         <translation>選擇字幕清單背景顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1031"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1056"/>
         <source>Select Subtitle List Text Color</source>
         <translation>選擇字幕清單文字顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1046"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1071"/>
         <source>Hover color</source>
         <translation>懸停顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1059"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1084"/>
         <source>Select Subtitle List Hover Color</source>
         <translation>選擇字幕清單懸停顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1074"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1099"/>
         <source>Selection color</source>
         <translation>選取顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1087"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1112"/>
         <source>Select Subtitle List Selection Color</source>
         <translation>選擇字幕清單選取顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1102"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1127"/>
         <source>Hovered selection color</source>
         <translation>懸停選取顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1115"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1140"/>
         <source>Select Subtitle List Hovered Selection Color</source>
         <translation>選擇字幕清單懸停選取顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1129"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1154"/>
         <source>Auxiliary Search</source>
         <translation>輔助搜尋</translation>
     </message>
@@ -1552,42 +1562,47 @@
         <translation>切換字幕可見性</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="345"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="347"/>
+        <source>Toggle subtitle furigana</source>
+        <translation>切換字幕振假名顯示</translation>
+    </message>
+    <message>
+        <location filename="../qml/options/KeybindsPage.qml" line="362"/>
         <source>Decrease subtitle size</source>
         <translation>縮小字幕</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="360"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="377"/>
         <source>Increase subtitle size</source>
-        <translation>增大字幕大小</translation>
+        <translation>放大字幕</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="375"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="392"/>
         <source>Move subtitle up</source>
         <translation>上移字幕</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="390"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="407"/>
         <source>Move subtitle down</source>
         <translation>下移字幕</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="405"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="422"/>
         <source>Copy subtitle list selection</source>
         <translation>複製字幕清單所選內容</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="420"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="437"/>
         <source>Subtitle list find</source>
         <translation>字幕清單查找</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="435"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="452"/>
         <source>Subtitle list find next</source>
         <translation>字幕清單查找下一個</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="450"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="467"/>
         <source>Subtitle list find previous</source>
         <translation>字幕清單查找上一個</translation>
     </message>
@@ -1605,42 +1620,42 @@
         <translation>Memento</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="263"/>
+        <location filename="../qml/Main.qml" line="243"/>
         <source>Search</source>
         <translation>搜尋</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="287"/>
+        <location filename="../qml/Main.qml" line="267"/>
         <source>Subtitle List</source>
         <translation>字幕清單</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="327"/>
+        <location filename="../qml/Main.qml" line="307"/>
         <source>No Dictionaries Installed</source>
         <translation>尚未安裝詞典</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="333"/>
+        <location filename="../qml/Main.qml" line="313"/>
         <source>&lt;p&gt;For searching to work, please install a dictionary.&lt;/p&gt;&lt;p&gt;Dictionaries can be found &lt;a href=&apos;https://yomitan.wiki/dictionaries/&apos;&gt;here&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;To install a dictionary, go to %1.&lt;/p&gt;</source>
         <translation>&lt;p&gt;若要使用搜尋功能，請先安裝詞典。&lt;/p&gt;&lt;p&gt;您可以在&lt;a href=&apos;https://yomitan.wiki/dictionaries/&apos;&gt;這裡&lt;/a&gt;找到詞典。&lt;/p&gt;&lt;p&gt;若要安裝詞典，請前往 %1。&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="338"/>
+        <location filename="../qml/Main.qml" line="318"/>
         <source>Memento → Preferences → Dictionary</source>
         <translation>Memento → 偏好設定 → 詞典</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="339"/>
+        <location filename="../qml/Main.qml" line="319"/>
         <source>Settings → Options → Dictionary</source>
         <translation>設定 → 選項 → 詞典</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="360"/>
+        <location filename="../qml/Main.qml" line="340"/>
         <source>Auto Update</source>
         <translation>自動更新</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="363"/>
+        <location filename="../qml/Main.qml" line="343"/>
         <source>Do you want to check for updates on launch?
 
 This can be disabled at any time by going to %1.
@@ -1651,12 +1666,12 @@ This will check GitHub&apos;s API when Memento is launched.</source>
 Memento 啟動時將會查詢 GitHub API。</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="368"/>
+        <location filename="../qml/Main.qml" line="348"/>
         <source>Memento → Preferences → Application</source>
         <translation>Memento → 偏好設定 → 應用程式</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="369"/>
+        <location filename="../qml/Main.qml" line="349"/>
         <source>Settings → Options → Application</source>
         <translation>設定 → 選項 → 應用程式</translation>
     </message>
@@ -1664,7 +1679,7 @@ Memento 啟動時將會查詢 GitHub API。</translation>
 <context>
     <name>ManualSearchPage</name>
     <message>
-        <location filename="../qml/controls/ManualSearchPage.qml" line="31"/>
+        <location filename="../qml/controls/ManualSearchPage.qml" line="49"/>
         <source>Search</source>
         <translation>搜尋</translation>
     </message>
@@ -1737,7 +1752,7 @@ Memento 啟動時將會查詢 GitHub API。</translation>
     <message>
         <location filename="../qml/options/OptionsWindow.qml" line="50"/>
         <source>Interface</source>
-        <translation>界面</translation>
+        <translation>介面</translation>
     </message>
     <message>
         <location filename="../qml/options/OptionsWindow.qml" line="55"/>
@@ -1778,7 +1793,7 @@ Memento 啟動時將會查詢 GitHub API。</translation>
         <translation>自動</translation>
     </message>
     <message>
-        <location filename="../qml/controls/Player.qml" line="261"/>
+        <location filename="../qml/controls/Player.qml" line="277"/>
         <source>Playing media</source>
         <translation>正在播放媒體</translation>
     </message>
@@ -1822,8 +1837,8 @@ Memento 啟動時將會查詢 GitHub API。</translation>
     </message>
     <message>
         <location filename="../qml/controls/PlayerMenu.qml" line="156"/>
-        <location filename="../qml/controls/PlayerMenu.qml" line="313"/>
-        <location filename="../qml/controls/PlayerMenu.qml" line="370"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="360"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="417"/>
         <source>None</source>
         <translation>無</translation>
     </message>
@@ -1845,7 +1860,7 @@ Memento 啟動時將會查詢 GitHub API。</translation>
     <message>
         <location filename="../qml/controls/PlayerMenu.qml" line="214"/>
         <source>&amp;Increase Size</source>
-        <translation>增大大小(&amp;I)</translation>
+        <translation>放大(&amp;I)</translation>
     </message>
     <message>
         <location filename="../qml/controls/PlayerMenu.qml" line="230"/>
@@ -1863,98 +1878,103 @@ Memento 啟動時將會查詢 GitHub API。</translation>
         <translation>下移(&amp;D)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="279"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="291"/>
         <source>&amp;Show Subtitles</source>
         <translation>顯示字幕(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="296"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="310"/>
+        <source>&amp;Show Furigana</source>
+        <translation>顯示振假名(&amp;S)</translation>
+    </message>
+    <message>
+        <location filename="../qml/controls/PlayerMenu.qml" line="343"/>
         <source>&amp;Add Subtitle...</source>
         <translation>新增字幕(&amp;A)...</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="302"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="349"/>
         <source>&amp;Second Track</source>
         <translation>第二軌(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="405"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="452"/>
         <source>&amp;Tools</source>
         <translation>工具(&amp;T)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="409"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="456"/>
         <source>&amp;Show Search</source>
         <translation>顯示搜尋(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="425"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="472"/>
         <source>&amp;Show Subtitle List</source>
         <translation>顯示字幕清單(&amp;L)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="445"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="492"/>
         <source>&amp;Start OCR</source>
         <translation>開始 OCR(&amp;O)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="476"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="523"/>
         <source>&amp;Settings</source>
         <translation>設定(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="481"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="528"/>
         <source>&amp;Anki Profile</source>
         <translation>Anki 設定檔(&amp;A)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="518"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="565"/>
         <source>&amp;Options</source>
         <translation>選項(&amp;O)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="524"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="571"/>
         <source>&amp;Open Config</source>
         <translation>開啟設定資料夾(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="531"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="578"/>
         <source>&amp;Check for Updates</source>
         <translation>檢查更新(&amp;U)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="536"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="583"/>
         <source>&amp;About Memento</source>
         <translation>關於 Memento(&amp;A)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="546"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="593"/>
         <source>Video Files (%1)</source>
         <translation>影片檔案 (%1)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="547"/>
-        <location filename="../qml/controls/PlayerMenu.qml" line="581"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="594"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="628"/>
         <source>All Files (*.*)</source>
         <translation>所有檔案 (*.*)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="558"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="605"/>
         <source>Open Stream</source>
         <translation>開啟串流</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="570"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="617"/>
         <source>Enter URL</source>
         <translation>輸入 URL</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="580"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="627"/>
         <source>Subtitle Files (%1)</source>
         <translation>字幕檔案 (%1)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="583"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="630"/>
         <source>Select Subtitle File</source>
         <translation>選擇字幕檔案</translation>
     </message>
@@ -2087,22 +2107,27 @@ Memento 啟動時將會查詢 GitHub API。</translation>
         <translation>懸停在字幕上時暫停</translation>
     </message>
     <message>
-        <location filename="../qml/options/SearchPage.qml" line="368"/>
+        <location filename="../qml/options/SearchPage.qml" line="371"/>
+        <source>Show furigana over subtitles (inaccurate)</source>
+        <translation>在字幕上方顯示振假名（可能不準確）</translation>
+    </message>
+    <message>
+        <location filename="../qml/options/SearchPage.qml" line="388"/>
         <source>Replace new lines in subtitles</source>
         <translation>取代字幕中的換行</translation>
     </message>
     <message>
-        <location filename="../qml/options/SearchPage.qml" line="385"/>
+        <location filename="../qml/options/SearchPage.qml" line="405"/>
         <source>New line replacement text</source>
         <translation>換行取代文字</translation>
     </message>
     <message>
-        <location filename="../qml/options/SearchPage.qml" line="402"/>
+        <location filename="../qml/options/SearchPage.qml" line="422"/>
         <source>Remove subtitle text matching regex</source>
         <translation>移除相符正規表示式的字幕文字</translation>
     </message>
     <message>
-        <location filename="../qml/options/SearchPage.qml" line="406"/>
+        <location filename="../qml/options/SearchPage.qml" line="426"/>
         <source>Regex</source>
         <translation>正規表示式</translation>
     </message>
@@ -2148,12 +2173,12 @@ Memento 啟動時將會查詢 GitHub API。</translation>
 <context>
     <name>TermEntry</name>
     <message>
-        <location filename="../qml/definition/TermEntry.qml" line="86"/>
+        <location filename="../qml/definition/TermEntry.qml" line="87"/>
         <source>Error Adding Anki Note</source>
         <translation>新增 Anki 筆記時發生錯誤</translation>
     </message>
     <message>
-        <location filename="../qml/definition/TermEntry.qml" line="251"/>
+        <location filename="../qml/definition/TermEntry.qml" line="253"/>
         <source>Could Not Open Anki</source>
         <translation>無法開啟 Anki</translation>
     </message>

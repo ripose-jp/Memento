@@ -331,7 +331,7 @@
     <message>
         <location filename="../qml/util/AnkiMarkers.qml" line="51"/>
         <source>&lt;p&gt;Audio of the word if found and the skip hash is not matched.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;단어를 찾았고 건너뛰기 해시가 일치하지 않을 때의 단어 오디오입니다.&lt;/p&gt;</translation>
+        <translation>&lt;p&gt;단어의 오디오를 찾았고 건너뛰기 해시와 일치하지 않으면 해당 오디오를 사용합니다.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../qml/util/AnkiMarkers.qml" line="54"/>
@@ -624,7 +624,7 @@
 <context>
     <name>ApplicationPage</name>
     <message>
-        <location filename="../qml/options/ApplicationPage.qml" line="66"/>
+        <location filename="../qml/options/ApplicationPage.qml" line="65"/>
         <source>Language</source>
         <translation>언어</translation>
     </message>
@@ -637,22 +637,22 @@
         <translation type="vanished">인터페이스 언어 (재시작 필요)</translation>
     </message>
     <message>
-        <location filename="../qml/options/ApplicationPage.qml" line="76"/>
+        <location filename="../qml/options/ApplicationPage.qml" line="75"/>
         <source>Interface language (Restart required)</source>
         <translation>인터페이스 언어 (재시작 필요)</translation>
     </message>
     <message>
-        <location filename="../qml/options/ApplicationPage.qml" line="83"/>
+        <location filename="../qml/options/ApplicationPage.qml" line="82"/>
         <source>System</source>
         <translation>시스템</translation>
     </message>
     <message>
-        <location filename="../qml/options/ApplicationPage.qml" line="118"/>
+        <location filename="../qml/options/ApplicationPage.qml" line="116"/>
         <source>Update</source>
         <translation>업데이트</translation>
     </message>
     <message>
-        <location filename="../qml/options/ApplicationPage.qml" line="128"/>
+        <location filename="../qml/options/ApplicationPage.qml" line="126"/>
         <source>Check for updates on launch</source>
         <translation>실행 시 업데이트 확인</translation>
     </message>
@@ -819,96 +819,96 @@
 <context>
     <name>DatabaseManager</name>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="395"/>
-        <location filename="../dict/databasemanager.cpp" line="526"/>
+        <location filename="../dict/databasemanager.cpp" line="396"/>
+        <location filename="../dict/databasemanager.cpp" line="537"/>
         <source>Could not prepare database query</source>
         <translation>데이터베이스 쿼리를 준비할 수 없습니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="404"/>
-        <location filename="../dict/databasemanager.cpp" line="416"/>
-        <location filename="../dict/databasemanager.cpp" line="428"/>
-        <location filename="../dict/databasemanager.cpp" line="534"/>
+        <location filename="../dict/databasemanager.cpp" line="405"/>
+        <location filename="../dict/databasemanager.cpp" line="417"/>
+        <location filename="../dict/databasemanager.cpp" line="429"/>
+        <location filename="../dict/databasemanager.cpp" line="545"/>
         <source>Could not bind values to statement</source>
         <translation>SQL 문에 값을 바인딩할 수 없습니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="463"/>
+        <location filename="../dict/databasemanager.cpp" line="464"/>
         <source>Error when executing sqlite query. Code %1</source>
         <translation>SQLite 쿼리 실행 중 오류가 발생했습니다. 코드 %1</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="473"/>
+        <location filename="../dict/databasemanager.cpp" line="474"/>
         <source>Error getting term information</source>
         <translation>단어 정보를 가져오는 중 오류가 발생했습니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="608"/>
+        <location filename="../dict/databasemanager.cpp" line="619"/>
         <source>Error while executing kanji query</source>
         <translation>한자 쿼리 실행 중 오류가 발생했습니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1105"/>
+        <location filename="../dict/databasemanager.cpp" line="1130"/>
         <source>Could not add index.json</source>
         <translation>index.json을 추가할 수 없습니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1107"/>
+        <location filename="../dict/databasemanager.cpp" line="1132"/>
         <source>Could not add kanji terms</source>
         <translation>한자 단어를 추가할 수 없습니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1109"/>
+        <location filename="../dict/databasemanager.cpp" line="1134"/>
         <source>Could not add kanji metadata</source>
         <translation>한자 메타데이터를 추가할 수 없습니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1111"/>
+        <location filename="../dict/databasemanager.cpp" line="1136"/>
         <source>Could not add tags</source>
         <translation>태그를 추가할 수 없습니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1113"/>
+        <location filename="../dict/databasemanager.cpp" line="1138"/>
         <source>Could not add terms</source>
         <translation>단어를 추가할 수 없습니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1115"/>
+        <location filename="../dict/databasemanager.cpp" line="1140"/>
         <source>Could not add term metadata</source>
         <translation>단어 메타데이터를 추가할 수 없습니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1117"/>
+        <location filename="../dict/databasemanager.cpp" line="1142"/>
         <source>Could not open database</source>
         <translation>데이터베이스를 열 수 없습니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1119"/>
+        <location filename="../dict/databasemanager.cpp" line="1144"/>
         <source>Database is of a newer version</source>
         <translation>데이터베이스가 더 최신 버전입니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1121"/>
+        <location filename="../dict/databasemanager.cpp" line="1146"/>
         <source>Could not open dictionary file</source>
         <translation>사전 파일을 열 수 없습니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1123"/>
+        <location filename="../dict/databasemanager.cpp" line="1148"/>
         <source>Could not execute delete query on database</source>
         <translation>데이터베이스에서 삭제 쿼리를 실행할 수 없습니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1125"/>
+        <location filename="../dict/databasemanager.cpp" line="1150"/>
         <source>Could not extract dictionary resources</source>
         <translation>사전 리소스를 추출할 수 없습니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1127"/>
+        <location filename="../dict/databasemanager.cpp" line="1152"/>
         <source>Could not remove dictionary resources</source>
         <translation>사전 리소스를 제거할 수 없습니다</translation>
     </message>
     <message>
-        <location filename="../dict/databasemanager.cpp" line="1129"/>
+        <location filename="../dict/databasemanager.cpp" line="1154"/>
         <source>Unknown error</source>
         <translation>알 수 없는 오류</translation>
     </message>
@@ -1163,27 +1163,27 @@
     </message>
     <message>
         <location filename="../qml/options/InterfacePage.qml" line="125"/>
-        <location filename="../qml/options/InterfacePage.qml" line="403"/>
-        <location filename="../qml/options/InterfacePage.qml" line="468"/>
-        <location filename="../qml/options/InterfacePage.qml" line="533"/>
-        <location filename="../qml/options/InterfacePage.qml" line="598"/>
-        <location filename="../qml/options/InterfacePage.qml" line="663"/>
-        <location filename="../qml/options/InterfacePage.qml" line="728"/>
-        <location filename="../qml/options/InterfacePage.qml" line="883"/>
-        <location filename="../qml/options/InterfacePage.qml" line="948"/>
+        <location filename="../qml/options/InterfacePage.qml" line="428"/>
+        <location filename="../qml/options/InterfacePage.qml" line="493"/>
+        <location filename="../qml/options/InterfacePage.qml" line="558"/>
+        <location filename="../qml/options/InterfacePage.qml" line="623"/>
+        <location filename="../qml/options/InterfacePage.qml" line="688"/>
+        <location filename="../qml/options/InterfacePage.qml" line="753"/>
+        <location filename="../qml/options/InterfacePage.qml" line="908"/>
+        <location filename="../qml/options/InterfacePage.qml" line="973"/>
         <source>Bold</source>
         <translation>굵게</translation>
     </message>
     <message>
         <location filename="../qml/options/InterfacePage.qml" line="146"/>
-        <location filename="../qml/options/InterfacePage.qml" line="424"/>
-        <location filename="../qml/options/InterfacePage.qml" line="489"/>
-        <location filename="../qml/options/InterfacePage.qml" line="554"/>
-        <location filename="../qml/options/InterfacePage.qml" line="619"/>
-        <location filename="../qml/options/InterfacePage.qml" line="684"/>
-        <location filename="../qml/options/InterfacePage.qml" line="749"/>
-        <location filename="../qml/options/InterfacePage.qml" line="904"/>
-        <location filename="../qml/options/InterfacePage.qml" line="969"/>
+        <location filename="../qml/options/InterfacePage.qml" line="449"/>
+        <location filename="../qml/options/InterfacePage.qml" line="514"/>
+        <location filename="../qml/options/InterfacePage.qml" line="579"/>
+        <location filename="../qml/options/InterfacePage.qml" line="644"/>
+        <location filename="../qml/options/InterfacePage.qml" line="709"/>
+        <location filename="../qml/options/InterfacePage.qml" line="774"/>
+        <location filename="../qml/options/InterfacePage.qml" line="929"/>
+        <location filename="../qml/options/InterfacePage.qml" line="994"/>
         <source>Italics</source>
         <translation>기울임꼴</translation>
     </message>
@@ -1221,7 +1221,7 @@
     </message>
     <message>
         <location filename="../qml/options/InterfacePage.qml" line="256"/>
-        <location filename="../qml/options/InterfacePage.qml" line="1018"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1043"/>
         <source>Text color</source>
         <translation>텍스트 색상</translation>
     </message>
@@ -1232,7 +1232,7 @@
     </message>
     <message>
         <location filename="../qml/options/InterfacePage.qml" line="284"/>
-        <location filename="../qml/options/InterfacePage.qml" line="990"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1015"/>
         <source>Background color</source>
         <translation>배경색</translation>
     </message>
@@ -1252,163 +1252,173 @@
         <translation>자막 테두리 색상 선택</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="370"/>
+        <location filename="../qml/options/InterfacePage.qml" line="342"/>
+        <source>Target furigana to subtitle size ratio</source>
+        <translation>자막 크기 대비 후리가나 크기의 목표 비율</translation>
+    </message>
+    <message>
+        <location filename="../qml/options/InterfacePage.qml" line="351"/>
+        <source>Ratio</source>
+        <translation>비율</translation>
+    </message>
+    <message>
+        <location filename="../qml/options/InterfacePage.qml" line="395"/>
         <source>Search</source>
         <translation>검색</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="380"/>
+        <location filename="../qml/options/InterfacePage.qml" line="405"/>
         <source>Term Expression Font</source>
         <translation>단어 표기 글꼴</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="389"/>
+        <location filename="../qml/options/InterfacePage.qml" line="414"/>
         <source>Select Term Expression Font</source>
         <translation>단어 표기 글꼴 선택</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="445"/>
+        <location filename="../qml/options/InterfacePage.qml" line="470"/>
         <source>Term Reading Font</source>
         <translation>단어 읽기 글꼴</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="454"/>
+        <location filename="../qml/options/InterfacePage.qml" line="479"/>
         <source>Select Term Reading Font</source>
         <translation>단어 읽기 글꼴 선택</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="510"/>
+        <location filename="../qml/options/InterfacePage.qml" line="535"/>
         <source>Term Conjugation Explanation Font</source>
         <translation>단어 활용 설명 글꼴</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="519"/>
+        <location filename="../qml/options/InterfacePage.qml" line="544"/>
         <source>Select Term Conjugation Explanation Font</source>
         <translation>단어 활용 설명 글꼴 선택</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="575"/>
+        <location filename="../qml/options/InterfacePage.qml" line="600"/>
         <source>Tag Font</source>
         <translation>태그 글꼴</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="584"/>
+        <location filename="../qml/options/InterfacePage.qml" line="609"/>
         <source>Select Tag Font</source>
         <translation>태그 글꼴 선택</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="640"/>
+        <location filename="../qml/options/InterfacePage.qml" line="665"/>
         <source>Glossary Font</source>
         <translation>뜻 글꼴</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="649"/>
+        <location filename="../qml/options/InterfacePage.qml" line="674"/>
         <source>Select Glossary Font</source>
         <translation>뜻 글꼴 선택</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="705"/>
+        <location filename="../qml/options/InterfacePage.qml" line="730"/>
         <source>Kanji Font</source>
         <translation>한자 글꼴</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="714"/>
+        <location filename="../qml/options/InterfacePage.qml" line="739"/>
         <source>Select Kanji Font</source>
         <translation>한자 글꼴 선택</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="768"/>
+        <location filename="../qml/options/InterfacePage.qml" line="793"/>
         <source>Popup</source>
         <translation>팝업</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="778"/>
+        <location filename="../qml/options/InterfacePage.qml" line="803"/>
         <source>Popup width</source>
         <translation>팝업 너비</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="798"/>
+        <location filename="../qml/options/InterfacePage.qml" line="823"/>
         <source>Popup height</source>
         <translation>팝업 높이</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="816"/>
+        <location filename="../qml/options/InterfacePage.qml" line="841"/>
         <source>Subtitle List</source>
         <translation>자막 목록</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="826"/>
-        <location filename="../qml/options/InterfacePage.qml" line="1139"/>
+        <location filename="../qml/options/InterfacePage.qml" line="851"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1164"/>
         <source>Open in a separate window</source>
         <translation>별도 창에서 열기</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="843"/>
+        <location filename="../qml/options/InterfacePage.qml" line="868"/>
         <source>Show timestamps</source>
         <translation>타임스탬프 표시</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="860"/>
+        <location filename="../qml/options/InterfacePage.qml" line="885"/>
         <source>Primary subtitle font</source>
         <translation>기본 자막 글꼴</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="869"/>
+        <location filename="../qml/options/InterfacePage.qml" line="894"/>
         <source>Select Subtitle List Primary Font</source>
         <translation>자막 목록 기본 글꼴 선택</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="925"/>
+        <location filename="../qml/options/InterfacePage.qml" line="950"/>
         <source>Secondary subtitle font</source>
         <translation>보조 자막 글꼴</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="934"/>
+        <location filename="../qml/options/InterfacePage.qml" line="959"/>
         <source>Select Subtitle List Secondary Font</source>
         <translation>자막 목록 보조 글꼴 선택</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1003"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1028"/>
         <source>Select Subtitle List Background Color</source>
         <translation>자막 목록 배경색 선택</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1031"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1056"/>
         <source>Select Subtitle List Text Color</source>
         <translation>자막 목록 텍스트 색상 선택</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1046"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1071"/>
         <source>Hover color</source>
         <translation>호버 색상</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1059"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1084"/>
         <source>Select Subtitle List Hover Color</source>
         <translation>자막 목록 호버 색상 선택</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1074"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1099"/>
         <source>Selection color</source>
         <translation>선택 색상</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1087"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1112"/>
         <source>Select Subtitle List Selection Color</source>
         <translation>자막 목록 선택 색상 선택</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1102"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1127"/>
         <source>Hovered selection color</source>
         <translation>호버된 선택 색상</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1115"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1140"/>
         <source>Select Subtitle List Hovered Selection Color</source>
         <translation>자막 목록 호버된 선택 색상 선택</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1129"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1154"/>
         <source>Auxiliary Search</source>
         <translation>보조 검색</translation>
     </message>
@@ -1552,42 +1562,47 @@
         <translation>자막 표시 전환</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="345"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="347"/>
+        <source>Toggle subtitle furigana</source>
+        <translation>자막 후리가나 표시 전환</translation>
+    </message>
+    <message>
+        <location filename="../qml/options/KeybindsPage.qml" line="362"/>
         <source>Decrease subtitle size</source>
         <translation>자막 크기 줄이기</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="360"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="377"/>
         <source>Increase subtitle size</source>
         <translation>자막 크기 늘리기</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="375"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="392"/>
         <source>Move subtitle up</source>
         <translation>자막 위로 이동</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="390"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="407"/>
         <source>Move subtitle down</source>
         <translation>자막 아래로 이동</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="405"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="422"/>
         <source>Copy subtitle list selection</source>
         <translation>자막 목록 선택 항목 복사</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="420"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="437"/>
         <source>Subtitle list find</source>
         <translation>자막 목록 찾기</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="435"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="452"/>
         <source>Subtitle list find next</source>
         <translation>자막 목록 다음 찾기</translation>
     </message>
     <message>
-        <location filename="../qml/options/KeybindsPage.qml" line="450"/>
+        <location filename="../qml/options/KeybindsPage.qml" line="467"/>
         <source>Subtitle list find previous</source>
         <translation>자막 목록 이전 찾기</translation>
     </message>
@@ -1605,42 +1620,42 @@
         <translation>Memento</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="263"/>
+        <location filename="../qml/Main.qml" line="243"/>
         <source>Search</source>
         <translation>검색</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="287"/>
+        <location filename="../qml/Main.qml" line="267"/>
         <source>Subtitle List</source>
         <translation>자막 목록</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="327"/>
+        <location filename="../qml/Main.qml" line="307"/>
         <source>No Dictionaries Installed</source>
         <translation>설치된 사전 없음</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="333"/>
+        <location filename="../qml/Main.qml" line="313"/>
         <source>&lt;p&gt;For searching to work, please install a dictionary.&lt;/p&gt;&lt;p&gt;Dictionaries can be found &lt;a href=&apos;https://yomitan.wiki/dictionaries/&apos;&gt;here&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;To install a dictionary, go to %1.&lt;/p&gt;</source>
         <translation>&lt;p&gt;검색을 사용하려면 사전을 설치하세요.&lt;/p&gt;&lt;p&gt;사전은 &lt;a href=&apos;https://yomitan.wiki/dictionaries/&apos;&gt;여기&lt;/a&gt;에서 찾을 수 있습니다.&lt;/p&gt;&lt;p&gt;사전을 설치하려면 %1(으)로 이동하세요.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="338"/>
+        <location filename="../qml/Main.qml" line="318"/>
         <source>Memento → Preferences → Dictionary</source>
         <translation>Memento → 환경설정 → 사전</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="339"/>
+        <location filename="../qml/Main.qml" line="319"/>
         <source>Settings → Options → Dictionary</source>
         <translation>설정 → 옵션 → 사전</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="360"/>
+        <location filename="../qml/Main.qml" line="340"/>
         <source>Auto Update</source>
         <translation>자동 업데이트</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="363"/>
+        <location filename="../qml/Main.qml" line="343"/>
         <source>Do you want to check for updates on launch?
 
 This can be disabled at any time by going to %1.
@@ -1651,12 +1666,12 @@ This will check GitHub&apos;s API when Memento is launched.</source>
 Memento가 실행될 때 GitHub API를 확인합니다.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="368"/>
+        <location filename="../qml/Main.qml" line="348"/>
         <source>Memento → Preferences → Application</source>
         <translation>Memento → 환경설정 → 애플리케이션</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="369"/>
+        <location filename="../qml/Main.qml" line="349"/>
         <source>Settings → Options → Application</source>
         <translation>설정 → 옵션 → 애플리케이션</translation>
     </message>
@@ -1664,7 +1679,7 @@ Memento가 실행될 때 GitHub API를 확인합니다.</translation>
 <context>
     <name>ManualSearchPage</name>
     <message>
-        <location filename="../qml/controls/ManualSearchPage.qml" line="31"/>
+        <location filename="../qml/controls/ManualSearchPage.qml" line="49"/>
         <source>Search</source>
         <translation>검색</translation>
     </message>
@@ -1778,7 +1793,7 @@ Memento가 실행될 때 GitHub API를 확인합니다.</translation>
         <translation>자동</translation>
     </message>
     <message>
-        <location filename="../qml/controls/Player.qml" line="261"/>
+        <location filename="../qml/controls/Player.qml" line="277"/>
         <source>Playing media</source>
         <translation>미디어 재생 중</translation>
     </message>
@@ -1822,8 +1837,8 @@ Memento가 실행될 때 GitHub API를 확인합니다.</translation>
     </message>
     <message>
         <location filename="../qml/controls/PlayerMenu.qml" line="156"/>
-        <location filename="../qml/controls/PlayerMenu.qml" line="313"/>
-        <location filename="../qml/controls/PlayerMenu.qml" line="370"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="360"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="417"/>
         <source>None</source>
         <translation>없음</translation>
     </message>
@@ -1863,98 +1878,103 @@ Memento가 실행될 때 GitHub API를 확인합니다.</translation>
         <translation>아래로 이동(&amp;D)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="279"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="291"/>
         <source>&amp;Show Subtitles</source>
         <translation>자막 표시(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="296"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="310"/>
+        <source>&amp;Show Furigana</source>
+        <translation>후리가나 표시(&amp;S)</translation>
+    </message>
+    <message>
+        <location filename="../qml/controls/PlayerMenu.qml" line="343"/>
         <source>&amp;Add Subtitle...</source>
         <translation>자막 추가(&amp;A)...</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="302"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="349"/>
         <source>&amp;Second Track</source>
         <translation>두 번째 트랙(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="405"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="452"/>
         <source>&amp;Tools</source>
         <translation>도구(&amp;T)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="409"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="456"/>
         <source>&amp;Show Search</source>
         <translation>검색 표시(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="425"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="472"/>
         <source>&amp;Show Subtitle List</source>
         <translation>자막 목록 표시(&amp;L)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="445"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="492"/>
         <source>&amp;Start OCR</source>
         <translation>OCR 시작(&amp;O)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="476"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="523"/>
         <source>&amp;Settings</source>
         <translation>설정(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="481"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="528"/>
         <source>&amp;Anki Profile</source>
         <translation>Anki 프로필(&amp;A)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="518"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="565"/>
         <source>&amp;Options</source>
         <translation>옵션(&amp;O)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="524"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="571"/>
         <source>&amp;Open Config</source>
         <translation>설정 폴더 열기(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="531"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="578"/>
         <source>&amp;Check for Updates</source>
         <translation>업데이트 확인(&amp;U)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="536"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="583"/>
         <source>&amp;About Memento</source>
         <translation>Memento 정보(&amp;A)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="546"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="593"/>
         <source>Video Files (%1)</source>
         <translation>동영상 파일 (%1)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="547"/>
-        <location filename="../qml/controls/PlayerMenu.qml" line="581"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="594"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="628"/>
         <source>All Files (*.*)</source>
         <translation>모든 파일 (*.*)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="558"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="605"/>
         <source>Open Stream</source>
         <translation>스트림 열기</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="570"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="617"/>
         <source>Enter URL</source>
         <translation>URL 입력</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="580"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="627"/>
         <source>Subtitle Files (%1)</source>
         <translation>자막 파일 (%1)</translation>
     </message>
     <message>
-        <location filename="../qml/controls/PlayerMenu.qml" line="583"/>
+        <location filename="../qml/controls/PlayerMenu.qml" line="630"/>
         <source>Select Subtitle File</source>
         <translation>자막 파일 선택</translation>
     </message>
@@ -2087,22 +2107,27 @@ Memento가 실행될 때 GitHub API를 확인합니다.</translation>
         <translation>자막 위에 마우스를 올리면 일시정지</translation>
     </message>
     <message>
-        <location filename="../qml/options/SearchPage.qml" line="368"/>
+        <location filename="../qml/options/SearchPage.qml" line="371"/>
+        <source>Show furigana over subtitles (inaccurate)</source>
+        <translation>자막 위에 후리가나 표시 (부정확할 수 있음)</translation>
+    </message>
+    <message>
+        <location filename="../qml/options/SearchPage.qml" line="388"/>
         <source>Replace new lines in subtitles</source>
         <translation>자막의 줄바꿈 바꾸기</translation>
     </message>
     <message>
-        <location filename="../qml/options/SearchPage.qml" line="385"/>
+        <location filename="../qml/options/SearchPage.qml" line="405"/>
         <source>New line replacement text</source>
         <translation>줄바꿈 대체 텍스트</translation>
     </message>
     <message>
-        <location filename="../qml/options/SearchPage.qml" line="402"/>
+        <location filename="../qml/options/SearchPage.qml" line="422"/>
         <source>Remove subtitle text matching regex</source>
         <translation>정규식과 일치하는 자막 텍스트 제거</translation>
     </message>
     <message>
-        <location filename="../qml/options/SearchPage.qml" line="406"/>
+        <location filename="../qml/options/SearchPage.qml" line="426"/>
         <source>Regex</source>
         <translation>정규식</translation>
     </message>
@@ -2148,12 +2173,12 @@ Memento가 실행될 때 GitHub API를 확인합니다.</translation>
 <context>
     <name>TermEntry</name>
     <message>
-        <location filename="../qml/definition/TermEntry.qml" line="86"/>
+        <location filename="../qml/definition/TermEntry.qml" line="87"/>
         <source>Error Adding Anki Note</source>
         <translation>Anki 노트 추가 오류</translation>
     </message>
     <message>
-        <location filename="../qml/definition/TermEntry.qml" line="251"/>
+        <location filename="../qml/definition/TermEntry.qml" line="253"/>
         <source>Could Not Open Anki</source>
         <translation>Anki를 열 수 없습니다</translation>
     </message>
