@@ -147,7 +147,6 @@ ListView {
         onTriggered: root.scrollToPrevious()
     }
 
-    cacheBuffer: 1000
     reuseItems: true
     boundsBehavior: Flickable.StopAtBounds
     ScrollBar.vertical: ScrollBar {
