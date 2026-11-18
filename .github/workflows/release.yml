@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -72,7 +72,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install dependencies
         run: |
@@ -174,7 +174,7 @@ jobs:
           done < <(zipinfo -1 Memento_macOS_arm64.zip)
 
       - name: Upload macOS release asset
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos-release-asset
           path: Memento_macOS_arm64.zip
@@ -220,7 +220,7 @@ jobs:
             mingw-w64-ucrt-x86_64-sqlite3
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Build installer and portable directory
         run: |
@@ -259,7 +259,7 @@ jobs:
           done < <(zipinfo -1 Memento_Windows_x86_64.zip)
 
       - name: Upload Windows release assets
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-release-assets
           path: |
@@ -278,7 +278,7 @@ jobs:
 
     steps:
       - name: Download release assets
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: release-assets
           merge-multiple: true

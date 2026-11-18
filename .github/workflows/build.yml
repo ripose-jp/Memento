@@ -29,7 +29,7 @@ jobs:
         install-deps: 'true'
 
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: CMake Build
       run: |
@@ -65,7 +65,7 @@ jobs:
           mingw-w64-ucrt-x86_64-sqlite3
 
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: CMake Build
       run: |
@@ -84,7 +84,7 @@ jobs:
         brew install git cmake sqlite3 qt6 qcoro6 mpv mecab mecab-ipadic json-c libzip || true
 
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: CMake Build
       run: |
