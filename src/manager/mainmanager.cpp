@@ -20,7 +20,8 @@
 
 #include "manager/mainmanager.h"
 
-#include <QCoreApplication>
+#include <QGuiApplication>
+#include <QStyleHints>
 
 #include "dict/dictionary.h"
 #include "manager/playermanager.h"
@@ -39,6 +40,14 @@ MainManager::MainManager(
         this, &MainManager::handleObjectCreated,
         Qt::QueuedConnection
     );
+#if !defined(Q_OS_UNIX) || defined(Q_OS_MACOS)
+    connect(
+        context->settings(), &Settings::interfaceThemeChanged,
+        this, &MainManager::handleIntefaceThemeChanged,
+        Qt::QueuedConnection
+    );
+    handleIntefaceThemeChanged(context->settings()->interfaceTheme());
+#endif // !defined(Q_OS_UNIX) || defined(Q_OS_MACOS)
 }
 
 void MainManager::handleObjectCreated()
@@ -63,4 +72,24 @@ void MainManager::handleObjectCreated()
     /* Initialize managers */
     m_playerManager = new PlayerManager(m_context, this);
     m_subtitleListManager = new SubtitleListManager(m_context, this);
+}
+
+void MainManager::handleIntefaceThemeChanged(Setting::Theme theme)
+{
+    Qt::ColorScheme colorScheme = Qt::ColorScheme::Unknown;
+    switch (theme)
+    {
+        case Setting::Theme::ThemeSystem:
+            colorScheme = Qt::ColorScheme::Unknown;
+            break;
+
+        case Setting::Theme::ThemeDark:
+            colorScheme = Qt::ColorScheme::Dark;
+            break;
+
+        case Setting::Theme::ThemeLight:
+            colorScheme = Qt::ColorScheme::Light;
+            break;
+    }
+    QGuiApplication::styleHints()->setColorScheme(colorScheme);
 }

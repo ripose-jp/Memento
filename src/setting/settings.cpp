@@ -844,6 +844,12 @@ void Settings::loadInterfaceSettings()
     QSettings s;
     s.beginGroup(Keys::Interface::GROUP);
 
+    setInterfaceTheme(
+        static_cast<Setting::Theme>(s.value(
+            Keys::Interface::THEME,
+            static_cast<int>(Keys::Interface::THEME_DEFAULT)
+        ).toInt())
+    );
     setInterfaceSystemIcons(
         s.value(
             Keys::Interface::SYSTEM_ICONS,
@@ -1037,6 +1043,10 @@ void Settings::writeInterfaceSettings()
     s.beginGroup(Keys::Interface::GROUP);
 
     s.setValue(
+        Keys::Interface::THEME,
+        interfaceTheme()
+    );
+    s.setValue(
         Keys::Interface::SYSTEM_ICONS,
         interfaceSystemIcons()
     );
@@ -1154,6 +1164,7 @@ void Settings::writeInterfaceSettings()
 
 void Settings::defaultInterfaceSettings()
 {
+    setInterfaceTheme();
     setInterfaceSystemIcons();
     setInterfaceSubtitleFont();
     setInterfaceSubtitleLineSpacing();
@@ -2187,6 +2198,21 @@ void Settings::setSearchShowAnkiGlossaryCheckbox(bool value)
 }
 
 /* Interface Settings */
+
+Setting::Theme Settings::interfaceTheme() const noexcept
+{
+    return m_interface.theme;
+}
+
+void Settings::setInterfaceTheme(Setting::Theme value)
+{
+    if (m_interface.theme == value)
+    {
+        return;
+    }
+    m_interface.theme = value;
+    emit interfaceThemeChanged(m_interface.theme);
+}
 
 bool Settings::interfaceSystemIcons() const noexcept
 {

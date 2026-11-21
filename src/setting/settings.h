@@ -331,6 +331,13 @@ class Settings : public QObject
     /* Interface Settings */
 
     Q_PROPERTY(
+        Setting::Theme interfaceTheme
+        READ interfaceTheme
+        WRITE setInterfaceTheme
+        NOTIFY interfaceThemeChanged
+    )
+
+    Q_PROPERTY(
         bool interfaceSystemIcons
         READ interfaceSystemIcons
         WRITE setInterfaceSystemIcons
@@ -1432,6 +1439,21 @@ public:
     /* Interface Settings */
 
     /**
+     * @brief Get the current application theme.
+     *
+     * @return The current application theme.
+     */
+    Setting::Theme interfaceTheme() const noexcept;
+
+    /**
+     * @brief Set the current application theme.
+     *
+     * @param theme The new application theme.
+     */
+    void setInterfaceTheme(
+        Setting::Theme theme = Keys::Interface::THEME_DEFAULT);
+
+    /**
      * @brief Gets if system icons should be used.
      *
      * @return true to use system icons,
@@ -2241,6 +2263,13 @@ signals:
     /* Interface Settings */
 
     /**
+     * @brief Emitted when the interface theme is changed.
+     *
+     * @param value The new interface theme.
+     */
+    void interfaceThemeChanged(Setting::Theme value);
+
+    /**
      * @brief Emitted when the interface system icons setting is changed.
      *
      * @param value The new value.
@@ -2679,6 +2708,9 @@ private:
      */
     struct InterfaceSettings
     {
+        /* Color scheme of the application */
+        Setting::Theme theme{Keys::Interface::THEME_DEFAULT};
+
         /* true to use system icons, false to use bundled icons */
         bool systemIcons{Keys::Interface::SYSTEM_ICONS_DEFAULT};
 

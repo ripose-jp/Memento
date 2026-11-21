@@ -78,6 +78,14 @@ enum SearchMethod
 };
 Q_ENUM_NS(SearchMethod)
 
+enum Theme
+{
+    ThemeSystem = 0,
+    ThemeDark = 1,
+    ThemeLight = 2,
+};
+Q_ENUM_NS(Theme)
+
 } // namespace Setting
 
 namespace Keys
@@ -260,6 +268,9 @@ namespace Keys
     namespace Interface
     {
         constexpr const char *GROUP = "interface";
+
+        constexpr const char *THEME = "theme";
+        constexpr Setting::Theme THEME_DEFAULT = Setting::Theme::ThemeSystem;
 
         constexpr const char *SYSTEM_ICONS = "system-icons";
         constexpr bool SYSTEM_ICONS_DEFAULT = true;

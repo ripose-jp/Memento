@@ -21,4 +21,5 @@ target_link_libraries(
     PUBLIC "$<$<NOT:$<BOOL:${MEMENTO_SYSTEM_QCORO}>>:QCoro6Coro>"
     PUBLIC Qt6::Core
     PUBLIC Qt6::Qml
+    PUBLIC settings
 )

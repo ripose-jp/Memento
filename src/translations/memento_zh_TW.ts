@@ -1137,288 +1137,304 @@
 <context>
     <name>InterfacePage</name>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="66"/>
+        <location filename="../qml/options/InterfacePage.qml" line="65"/>
+        <location filename="../qml/options/InterfacePage.qml" line="76"/>
         <source>Theme</source>
         <translation>佈景主題</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="76"/>
+        <location filename="../qml/options/InterfacePage.qml" line="83"/>
+        <source>System</source>
+        <translation>系統</translation>
+    </message>
+    <message>
+        <location filename="../qml/options/InterfacePage.qml" line="87"/>
+        <source>Dark</source>
+        <translation>深色</translation>
+    </message>
+    <message>
+        <location filename="../qml/options/InterfacePage.qml" line="91"/>
+        <source>Light</source>
+        <translation>淺色</translation>
+    </message>
+    <message>
+        <location filename="../qml/options/InterfacePage.qml" line="107"/>
         <source>Use system icons</source>
         <translation>使用系統圖示</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="92"/>
+        <location filename="../qml/options/InterfacePage.qml" line="123"/>
         <source>Subtitle</source>
         <translation>字幕</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="102"/>
+        <location filename="../qml/options/InterfacePage.qml" line="133"/>
         <source>Font</source>
         <translation>字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="111"/>
+        <location filename="../qml/options/InterfacePage.qml" line="142"/>
         <source>Select Subtitle Font</source>
         <translation>選擇字幕字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="125"/>
-        <location filename="../qml/options/InterfacePage.qml" line="428"/>
-        <location filename="../qml/options/InterfacePage.qml" line="493"/>
-        <location filename="../qml/options/InterfacePage.qml" line="558"/>
-        <location filename="../qml/options/InterfacePage.qml" line="623"/>
-        <location filename="../qml/options/InterfacePage.qml" line="688"/>
-        <location filename="../qml/options/InterfacePage.qml" line="753"/>
-        <location filename="../qml/options/InterfacePage.qml" line="908"/>
-        <location filename="../qml/options/InterfacePage.qml" line="973"/>
+        <location filename="../qml/options/InterfacePage.qml" line="156"/>
+        <location filename="../qml/options/InterfacePage.qml" line="459"/>
+        <location filename="../qml/options/InterfacePage.qml" line="524"/>
+        <location filename="../qml/options/InterfacePage.qml" line="589"/>
+        <location filename="../qml/options/InterfacePage.qml" line="654"/>
+        <location filename="../qml/options/InterfacePage.qml" line="719"/>
+        <location filename="../qml/options/InterfacePage.qml" line="784"/>
+        <location filename="../qml/options/InterfacePage.qml" line="939"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1004"/>
         <source>Bold</source>
         <translation>粗體</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="146"/>
-        <location filename="../qml/options/InterfacePage.qml" line="449"/>
-        <location filename="../qml/options/InterfacePage.qml" line="514"/>
-        <location filename="../qml/options/InterfacePage.qml" line="579"/>
-        <location filename="../qml/options/InterfacePage.qml" line="644"/>
-        <location filename="../qml/options/InterfacePage.qml" line="709"/>
-        <location filename="../qml/options/InterfacePage.qml" line="774"/>
-        <location filename="../qml/options/InterfacePage.qml" line="929"/>
-        <location filename="../qml/options/InterfacePage.qml" line="994"/>
+        <location filename="../qml/options/InterfacePage.qml" line="177"/>
+        <location filename="../qml/options/InterfacePage.qml" line="480"/>
+        <location filename="../qml/options/InterfacePage.qml" line="545"/>
+        <location filename="../qml/options/InterfacePage.qml" line="610"/>
+        <location filename="../qml/options/InterfacePage.qml" line="675"/>
+        <location filename="../qml/options/InterfacePage.qml" line="740"/>
+        <location filename="../qml/options/InterfacePage.qml" line="805"/>
+        <location filename="../qml/options/InterfacePage.qml" line="960"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1025"/>
         <source>Italics</source>
         <translation>斜體</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="167"/>
+        <location filename="../qml/options/InterfacePage.qml" line="198"/>
         <source>Line spacing</source>
         <translation>行距</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="173"/>
-        <location filename="../qml/options/InterfacePage.qml" line="242"/>
+        <location filename="../qml/options/InterfacePage.qml" line="204"/>
+        <location filename="../qml/options/InterfacePage.qml" line="273"/>
         <source>Pixels</source>
         <translation>像素</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="187"/>
+        <location filename="../qml/options/InterfacePage.qml" line="218"/>
         <source>Line height as a percentage of window height</source>
         <translation>行高占視窗高度的百分比</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="196"/>
-        <location filename="../qml/options/InterfacePage.qml" line="219"/>
+        <location filename="../qml/options/InterfacePage.qml" line="227"/>
+        <location filename="../qml/options/InterfacePage.qml" line="250"/>
         <source>Percent</source>
         <translation>百分比</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="210"/>
+        <location filename="../qml/options/InterfacePage.qml" line="241"/>
         <source>Bottom offset as a percentage of window height</source>
         <translation>底部偏移占視窗高度的百分比</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="233"/>
+        <location filename="../qml/options/InterfacePage.qml" line="264"/>
         <source>Stroke size</source>
         <translation>描邊大小</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="256"/>
-        <location filename="../qml/options/InterfacePage.qml" line="1043"/>
+        <location filename="../qml/options/InterfacePage.qml" line="287"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1074"/>
         <source>Text color</source>
         <translation>文字顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="269"/>
+        <location filename="../qml/options/InterfacePage.qml" line="300"/>
         <source>Select Subtitle Text Color</source>
         <translation>選擇字幕文字顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="284"/>
-        <location filename="../qml/options/InterfacePage.qml" line="1015"/>
+        <location filename="../qml/options/InterfacePage.qml" line="315"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1046"/>
         <source>Background color</source>
         <translation>背景顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="297"/>
+        <location filename="../qml/options/InterfacePage.qml" line="328"/>
         <source>Select Subtitle Background Color</source>
         <translation>選擇字幕背景顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="312"/>
+        <location filename="../qml/options/InterfacePage.qml" line="343"/>
         <source>Stroke color</source>
         <translation>描邊顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="325"/>
+        <location filename="../qml/options/InterfacePage.qml" line="356"/>
         <source>Select Subtitle Stroke Color</source>
         <translation>選擇字幕描邊顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="342"/>
+        <location filename="../qml/options/InterfacePage.qml" line="373"/>
         <source>Target furigana to subtitle size ratio</source>
         <translation>振假名與字幕字級的目標比例</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="351"/>
+        <location filename="../qml/options/InterfacePage.qml" line="382"/>
         <source>Ratio</source>
         <translation>比例</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="395"/>
+        <location filename="../qml/options/InterfacePage.qml" line="426"/>
         <source>Search</source>
         <translation>搜尋</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="405"/>
+        <location filename="../qml/options/InterfacePage.qml" line="436"/>
         <source>Term Expression Font</source>
         <translation>詞條表記字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="414"/>
+        <location filename="../qml/options/InterfacePage.qml" line="445"/>
         <source>Select Term Expression Font</source>
         <translation>選擇詞條表記字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="470"/>
+        <location filename="../qml/options/InterfacePage.qml" line="501"/>
         <source>Term Reading Font</source>
         <translation>詞條讀音字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="479"/>
+        <location filename="../qml/options/InterfacePage.qml" line="510"/>
         <source>Select Term Reading Font</source>
         <translation>選擇詞條讀音字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="535"/>
+        <location filename="../qml/options/InterfacePage.qml" line="566"/>
         <source>Term Conjugation Explanation Font</source>
         <translation>詞條活用說明字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="544"/>
+        <location filename="../qml/options/InterfacePage.qml" line="575"/>
         <source>Select Term Conjugation Explanation Font</source>
         <translation>選擇詞條活用說明字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="600"/>
+        <location filename="../qml/options/InterfacePage.qml" line="631"/>
         <source>Tag Font</source>
         <translation>標籤字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="609"/>
+        <location filename="../qml/options/InterfacePage.qml" line="640"/>
         <source>Select Tag Font</source>
         <translation>選擇標籤字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="665"/>
+        <location filename="../qml/options/InterfacePage.qml" line="696"/>
         <source>Glossary Font</source>
         <translation>釋義字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="674"/>
+        <location filename="../qml/options/InterfacePage.qml" line="705"/>
         <source>Select Glossary Font</source>
         <translation>選擇釋義字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="730"/>
+        <location filename="../qml/options/InterfacePage.qml" line="761"/>
         <source>Kanji Font</source>
         <translation>漢字字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="739"/>
+        <location filename="../qml/options/InterfacePage.qml" line="770"/>
         <source>Select Kanji Font</source>
         <translation>選擇漢字字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="793"/>
+        <location filename="../qml/options/InterfacePage.qml" line="824"/>
         <source>Popup</source>
         <translation>彈出視窗</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="803"/>
+        <location filename="../qml/options/InterfacePage.qml" line="834"/>
         <source>Popup width</source>
         <translation>彈出視窗寬度</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="823"/>
+        <location filename="../qml/options/InterfacePage.qml" line="854"/>
         <source>Popup height</source>
         <translation>彈出視窗高度</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="841"/>
+        <location filename="../qml/options/InterfacePage.qml" line="872"/>
         <source>Subtitle List</source>
         <translation>字幕清單</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="851"/>
-        <location filename="../qml/options/InterfacePage.qml" line="1164"/>
+        <location filename="../qml/options/InterfacePage.qml" line="882"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1195"/>
         <source>Open in a separate window</source>
         <translation>在單獨視窗中開啟</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="868"/>
+        <location filename="../qml/options/InterfacePage.qml" line="899"/>
         <source>Show timestamps</source>
         <translation>顯示時間戳記</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="885"/>
+        <location filename="../qml/options/InterfacePage.qml" line="916"/>
         <source>Primary subtitle font</source>
         <translation>主要字幕字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="894"/>
+        <location filename="../qml/options/InterfacePage.qml" line="925"/>
         <source>Select Subtitle List Primary Font</source>
         <translation>選擇字幕清單主要字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="950"/>
+        <location filename="../qml/options/InterfacePage.qml" line="981"/>
         <source>Secondary subtitle font</source>
         <translation>次要字幕字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="959"/>
+        <location filename="../qml/options/InterfacePage.qml" line="990"/>
         <source>Select Subtitle List Secondary Font</source>
         <translation>選擇字幕清單次要字型</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1028"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1059"/>
         <source>Select Subtitle List Background Color</source>
         <translation>選擇字幕清單背景顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1056"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1087"/>
         <source>Select Subtitle List Text Color</source>
         <translation>選擇字幕清單文字顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1071"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1102"/>
         <source>Hover color</source>
         <translation>懸停顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1084"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1115"/>
         <source>Select Subtitle List Hover Color</source>
         <translation>選擇字幕清單懸停顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1099"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1130"/>
         <source>Selection color</source>
         <translation>選取顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1112"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1143"/>
         <source>Select Subtitle List Selection Color</source>
         <translation>選擇字幕清單選取顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1127"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1158"/>
         <source>Hovered selection color</source>
         <translation>懸停選取顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1140"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1171"/>
         <source>Select Subtitle List Hovered Selection Color</source>
         <translation>選擇字幕清單懸停選取顏色</translation>
     </message>
     <message>
-        <location filename="../qml/options/InterfacePage.qml" line="1154"/>
+        <location filename="../qml/options/InterfacePage.qml" line="1185"/>
         <source>Auxiliary Search</source>
         <translation>輔助搜尋</translation>
     </message>

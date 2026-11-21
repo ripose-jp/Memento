@@ -62,7 +62,6 @@ Page {
                 Layout.preferredWidth: root.preferredWidth
                 Layout.topMargin: root.groupSpacing
                 Layout.alignment: Qt.AlignHCenter
-                visible: Features.isUnix
                 title: qsTr("Theme")
 
                 ColumnLayout {
@@ -70,6 +69,38 @@ Page {
                     spacing: root.groupSpacing
 
                     RowLayout {
+                        visible: !Features.isUnix
+                        Label {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignLeft
+                            text: qsTr("Theme")
+                        }
+                        ComboBox {
+                            Layout.alignment: Qt.AlignRight
+                            implicitContentWidthPolicy: ComboBox.WidestText
+                            model: ListModel {
+                                ListElement {
+                                    text: qsTr("System")
+                                    value: MementoSetting.ThemeSystem
+                                }
+                                ListElement {
+                                    text: qsTr("Dark")
+                                    value: MementoSetting.ThemeDark
+                                }
+                                ListElement {
+                                    text: qsTr("Light")
+                                    value: MementoSetting.ThemeLight
+                                }
+                            }
+                            textRole: "text"
+                            valueRole: "value"
+                            currentValue: MementoSettings.interfaceTheme
+                            onActivated: MementoSettings.interfaceTheme = currentValue
+                        }
+                    }
+
+                    RowLayout {
+                        visible: Features.isUnix
                         Label {
                             Layout.fillWidth: true
                             Layout.alignment: Qt.AlignLeft

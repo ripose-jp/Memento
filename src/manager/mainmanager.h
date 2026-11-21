@@ -24,6 +24,8 @@
 
 #include <QQmlApplicationEngine>
 
+#include "setting/keys.h"
+
 class Context;
 class PlayerManager;
 class SubtitleListManager;
@@ -52,10 +54,17 @@ public:
 
 private slots:
     /**
-     * @brief Handles the objectCreated signal from the engine. Allows this
+     * @brief Handle the objectCreated signal from the engine. Allows this
      * manager to populate context fields and initialize other objects.
      */
     void handleObjectCreated();
+
+    /**
+     * @brief Handle the application theme being changed.
+     *
+     * @param theme The new application theme.
+     */
+    void handleIntefaceThemeChanged(Setting::Theme theme);
 
 private:
     /* The QML application engine */
